@@ -18,9 +18,8 @@
 
 |유지민|채윤지|홍지현|
 |:---:|:---:|:---:|
-|<img src="https://github.com/KateteDeveloper.png"  width="300" height="230">|<img src="https://github.com/ugmin1030.png"  width="300" height="230">|<img src="https://github.com/Hongji03.png"  width="300" height="230">|
-|[@KateteDeveloper](https://github.com/KateteDeveloper)|[@
-ugmin1030](https://github.com/ugmin1030)|[@Hongji03](https://github.com/Hongji03)|
+|<img src="https://github.com/ugmin1030.png"  width="300" height="230">|<img src="https://github.com/KateteDeveloper.png"  width="300" height="230">|<img src="https://github.com/Hongji03.png"  width="300" height="230">|
+|[@ugmin1030](https://github.com/ugmin1030)|[@KateteDeveloper](https://github.com/KateteDeveloper)|[@Hongji03](https://github.com/Hongji03)|
 <br/>
 
 # Tech Stack
