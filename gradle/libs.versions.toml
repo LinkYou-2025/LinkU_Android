@@ -45,8 +45,8 @@ androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-man
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version = "2.54" }
-hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version = "2.54" }
-androidx-hilt-complier = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidx-hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version = "2.54" }
+androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidx-hilt" }
 androidx-hilt-navigation = {group = "androidx.hilt", name = "hilt-navigation-fragment", version.ref = "androidx-hilt"}
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
