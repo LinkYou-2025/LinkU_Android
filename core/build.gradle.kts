@@ -35,5 +35,6 @@ dependencies {
 
     implementation(project(":design"))
 //    implementation(project(":data"))
+    //testImplementation("junit:junit:4.13.2") // 유닛 테스트 의존성
     implementation(libs.androidx.runtime.android)
 }

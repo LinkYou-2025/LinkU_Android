@@ -115,7 +115,6 @@ fun StepIndicator() {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // ✅ 1번 원만
             Box(
                 modifier = Modifier
                     .padding(start = 8.dp)
@@ -124,7 +123,7 @@ fun StepIndicator() {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    "1",
+                    text = "1",
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
@@ -178,7 +177,7 @@ fun StepIndicator() {
             }
         }
 
-        // ✅ 1번 원 바로 아래에 계정 정보
+        //  1번 원 바로 아래에 계정 정보
         Text(
             text = "계정 정보",
             modifier = Modifier.padding(start = 0.dp, top = 4.dp),
