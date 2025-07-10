@@ -1,6 +1,7 @@
-package com.example.file.ui.ui.theme
+package com.example.file.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 
 val Purple80 = Color(0xFFD0BCFF)
 val PurpleGrey80 = Color(0xFFCCC2DC)
@@ -35,3 +36,5 @@ val Purple300 = Color(0xFF9A3AB5)
 val Purple200 = Color(0xFFCB59EB)
 val Purple100 = Color(0xFFE5ACF4)
 val Purple50 = Color(0xFFFBEEFF)
+
+val defaultCorner = 6.dp
