@@ -13,16 +13,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.linku_android.component.Paperlogy
 
 
 @Preview(showBackground = true)
 @Composable
 fun EmailVerificationScreen() {
+    val isPreview = LocalInspectionMode.current //폰트 표시
+ 
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -38,9 +44,11 @@ fun EmailVerificationScreen() {
         Text(
             text = "가입을 위한 이메일 주소를\n인증해주세요",
             fontSize = 18.sp,
+            fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            textAlign = TextAlign.Start
+            textAlign = TextAlign.Start,
+
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -65,6 +73,8 @@ fun EmailVerificationScreen() {
                     Text(
                         "이메일 주소를 입력해주세요.",
                         fontSize = 13.sp,
+                        fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+                        fontWeight = FontWeight.Normal,
                         color = Color(0xFF757575)
                     )
                 },
@@ -101,7 +111,9 @@ fun EmailVerificationScreen() {
                 text = "인증메일 발송",
                 color = Color.White,
                 fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
+                fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+                fontWeight = FontWeight.Bold,
+
             )
         }
     }
@@ -109,6 +121,8 @@ fun EmailVerificationScreen() {
 
 @Composable
 fun StepIndicator() {
+    val isPreview = LocalInspectionMode.current //폰트 표시
+
     Column(
         horizontalAlignment = Alignment.Start
     ) {
@@ -183,7 +197,8 @@ fun StepIndicator() {
             modifier = Modifier.padding(start = 0.dp, top = 4.dp),
             fontSize = 12.sp,
             color = Color(0xFFCB59EB),
-            fontWeight = FontWeight.Medium
+            fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+            fontWeight = FontWeight.Light,
         )
     }
 }
