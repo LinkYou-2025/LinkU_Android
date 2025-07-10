@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,29 +28,33 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
+import com.example.linku_android.component.Paperlogy
 
 
 // 데이터 클래스
 data class Purpose(val emoji: String, val label: String, val size: Float, val offset: DpOffset)
 
-// 예시 리스트 (위치 정보 추가!) *위치 수정 필요*
+// 예시 리스트 (위치 정보 추가!) *위치 수정 필요 -> 피그마에 맞춤. 부족한 점 있으면 추후 수정 -*
 val purposes = listOf(
-    Purpose("📚", "자기계발\n정보 수집", 130f, DpOffset(190.dp, 0.dp)),
-    Purpose("📝", "학업/리포트 정리", 120f, DpOffset(250.dp, 130.dp)),
-    Purpose("💼", "업무자료 아카이브", 150f, DpOffset(220.dp, 360.dp)),
-    Purpose("💡", "사이트 프로젝트\n창업 준비", 180f, DpOffset(60.dp, 110.dp)),
-    Purpose("📅", "그냥 나중에\n보고 싶은 글 저장", 220f, DpOffset(-40.dp, 290.dp)),
-    Purpose("❓", "기타", 80f, DpOffset(180.dp, 290.dp)),
+    Purpose("📚", "자기계발\n정보 수집", 130f, DpOffset(190.dp, 10.dp)),
+    Purpose("📝", "학업/리포트 정리", 140f, DpOffset(250.dp, 190.dp)),
+    Purpose("💼", "업무자료 아카이브", 150f, DpOffset(220.dp, 350.dp)),
+    Purpose("💡", "사이트 프로젝트\n창업 준비", 180f, DpOffset(60.dp, 120.dp)),
+    Purpose("📅", "그냥 나중에\n보고 싶은 글 저장", 220f, DpOffset(-70.dp, 290.dp)),
+    Purpose("❓", "기타", 70f, DpOffset(160.dp, 310.dp)),
     Purpose("💻", "블로그/콘텐츠 작성 참고용", 110f, DpOffset(330.dp, 10.dp)),
     Purpose("🧠", "인사이트 모으기", 120f, DpOffset(340.dp, 300.dp)),
-    Purpose("🎓", "취업·커리어 준비", 140f, DpOffset(-70.dp, 30.dp))
+    Purpose("🎓", "취업·커리어 준비", 140f, DpOffset(-70.dp, 40.dp))
 )
 
 @Preview(showBackground = true)
 @Composable
 fun InterestPurposeScreen() {
+    val isPreview = LocalInspectionMode.current //폰트 표시
+
     val selectedPurposes = remember { mutableStateListOf<String>() }
 
     Column(
@@ -68,7 +73,8 @@ fun InterestPurposeScreen() {
                 }
             },
             fontSize = 18.sp,
-            fontWeight = FontWeight.ExtraBold
+            fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+            fontWeight = FontWeight.Bold,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -142,6 +148,8 @@ fun PurposeItem(
 // 상단 관심사 단계 표시
 @Composable
 fun InterestStepIndicator() {
+    val isPreview = LocalInspectionMode.current //폰트 표시
+
     Column(horizontalAlignment = Alignment.Start) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 1번 체크
@@ -222,7 +230,9 @@ fun InterestStepIndicator() {
             modifier = Modifier.padding(start = 128.dp, top = 4.dp),
             fontSize = 12.sp,
             color = Color(0xFFCB59EB),
-            fontWeight = FontWeight.Medium
+            fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+            fontWeight = FontWeight.Light
+
         )
     }
 }
