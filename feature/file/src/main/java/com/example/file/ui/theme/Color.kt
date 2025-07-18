@@ -1,5 +1,6 @@
 package com.example.file.ui.theme
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
@@ -11,7 +12,13 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
-val MainColor = Color(0xFF2C6FFF) // 원래 2C6FFF~C800FF 그라데이션 추후 수정
+// 원래 2C6FFF~C800FF 그라데이션 추후 수정
+val MainColor = Brush.horizontalGradient(
+    listOf(
+        Color(0xFF2C6FFF),
+        Color(0xFFC800FF)
+    )
+)
 
 val NegativeColor = Color(0xFFFF5E5E)
 val PositiveColor = Color(0xFF35DF79)
@@ -36,5 +43,3 @@ val Purple300 = Color(0xFF9A3AB5)
 val Purple200 = Color(0xFFCB59EB)
 val Purple100 = Color(0xFFE5ACF4)
 val Purple50 = Color(0xFFFBEEFF)
-
-val defaultCorner = 6.dp
