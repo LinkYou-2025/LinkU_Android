@@ -4,5 +4,5 @@ import androidx.compose.runtime.Composable
 
 @Composable
 fun HomeApp(viewModel: HomeViewModel) {
-    HomeScreen()
+    HomeScreen(userName = "세나")
 }
