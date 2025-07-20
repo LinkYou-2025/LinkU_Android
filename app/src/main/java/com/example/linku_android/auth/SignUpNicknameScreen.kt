@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.linku_android.component.Paperlogy
 
 @Preview(showBackground = true)
 @Composable
@@ -39,6 +40,7 @@ fun SignUpNicknameScreen() {
         Text(
             text = "사용하실 닉네임을\n입력해주세요",
             fontSize = 18.sp,
+            fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             textAlign = TextAlign.Start
@@ -66,6 +68,7 @@ fun SignUpNicknameScreen() {
                     Text(
                         "닉네임을 입력해주세요.",
                         fontSize = 13.sp,
+                        fontFamily = Paperlogy,
                         color = Color(0xFF757575)
                     )
                 },
@@ -103,6 +106,7 @@ fun SignUpNicknameScreen() {
             Text(
                 text = "국문/영문 10자 이하",
                 fontSize = 12.sp,
+                fontFamily = Paperlogy,
                 color = Color(0xFF757575)
             )
         }
@@ -124,6 +128,7 @@ fun SignUpNicknameScreen() {
         ) {
             Text(
                 text = "다음",
+                fontFamily = Paperlogy,
                 color = Color.White,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
@@ -173,6 +178,7 @@ fun ProfileStepIndicator() {
             ) {
                 Text(
                     text = "2",
+                    fontFamily = Paperlogy,
                     color = Color.White,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
@@ -202,6 +208,7 @@ fun ProfileStepIndicator() {
                 Text(
                     text = "3",
                     color = Color(0xFFD6D6D6),
+                    fontFamily = Paperlogy,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -212,6 +219,7 @@ fun ProfileStepIndicator() {
             text = "프로필 설정",
             modifier = Modifier.padding(start = 64.dp, top = 4.dp),
             fontSize = 12.sp,
+            fontFamily = Paperlogy,
             color = Color(0xFFCB59EB),
             fontWeight = FontWeight.Medium
         )

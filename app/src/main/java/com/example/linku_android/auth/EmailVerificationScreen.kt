@@ -44,7 +44,7 @@ fun EmailVerificationScreen() {
         Text(
             text = "가입을 위한 이메일 주소를\n인증해주세요",
             fontSize = 18.sp,
-            fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+            fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             textAlign = TextAlign.Start,
@@ -73,7 +73,7 @@ fun EmailVerificationScreen() {
                     Text(
                         "이메일 주소를 입력해주세요.",
                         fontSize = 13.sp,
-                        fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+                        fontFamily = Paperlogy,
                         fontWeight = FontWeight.Normal,
                         color = Color(0xFF757575)
                     )
@@ -111,7 +111,7 @@ fun EmailVerificationScreen() {
                 text = "인증메일 발송",
                 color = Color.White,
                 fontSize = 13.sp,
-                fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+                fontFamily = Paperlogy,
                 fontWeight = FontWeight.Bold,
 
             )
@@ -140,6 +140,7 @@ fun StepIndicator() {
                     text = "1",
                     color = Color.White,
                     fontSize = 13.sp,
+                    fontFamily = Paperlogy,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -197,10 +198,14 @@ fun StepIndicator() {
             modifier = Modifier.padding(start = 0.dp, top = 4.dp),
             fontSize = 12.sp,
             color = Color(0xFFCB59EB),
-            fontFamily = if (isPreview) FontFamily.Serif else Paperlogy,
+            fontFamily = Paperlogy,
             fontWeight = FontWeight.Light,
         )
     }
+
+
+
+
 }
 
 //

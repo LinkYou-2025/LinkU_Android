@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
+import com.example.linku_android.component.Paperlogy
 
 @Composable
 fun TermsAgreementContent(
@@ -114,11 +115,13 @@ fun AgreementItem(
         Spacer(Modifier.width(8.dp))
         Text(
             text = title,
+            fontFamily = Paperlogy,
             style = MaterialTheme.typography.bodyMedium
         )
         Spacer(Modifier.width(4.dp))
         Text(
             text = suffix,
+            fontFamily = Paperlogy,
             fontSize = 12.sp,
             color = suffixColor
         )
