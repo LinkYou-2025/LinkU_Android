@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.linku_android.component.Paperlogy
 
 @Preview(showBackground = true)
 @Composable
@@ -39,6 +40,7 @@ fun PasswordResetAlert(
             Text(
                 text = "임시 비밀번호 전송 완료!",
                 fontSize = 16.sp,
+                fontFamily = Paperlogy,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 textAlign = TextAlign.Center
@@ -50,6 +52,7 @@ fun PasswordResetAlert(
             Text(
                 text = "임시 비밀번호를 보내드렸습니다.\n메일함을 확인해주세요!",
                 fontSize = 13.sp,
+                fontFamily = Paperlogy,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF757575),
                 textAlign = TextAlign.Center
@@ -79,6 +82,7 @@ fun PasswordResetAlert(
                 Text(
                     text = "로그인 하러가기",
                     fontSize = 13.sp,
+                    fontFamily = Paperlogy,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )

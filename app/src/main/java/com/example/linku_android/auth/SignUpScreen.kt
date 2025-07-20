@@ -21,6 +21,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.linku_android.R
+import com.example.linku_android.component.Paperlogy
 
 @Preview(showBackground = true)
 @Composable
@@ -49,6 +50,7 @@ fun PasswordResetScreen() {
             Text(
                 "비밀번호 재설정",
                 fontSize = 22.sp,
+                fontFamily = Paperlogy,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
                 textAlign = TextAlign.Start
@@ -60,6 +62,7 @@ fun PasswordResetScreen() {
             Text(
                 "걱정 마세요! 이메일 주소를 입력해 주시면,\n임시 비밀번호를 보내드릴게요!",
                 fontSize = 13.sp,
+                fontFamily = Paperlogy,
                 fontWeight = FontWeight.Normal,
                 color = Color(0xFF757575),
                 textAlign = TextAlign.Start
@@ -90,6 +93,7 @@ fun PasswordResetScreen() {
                         Text(
                             "이메일 주소를 입력해주세요.",
                             fontSize = 13.sp,
+                            fontFamily = Paperlogy,
                             fontWeight = FontWeight.Normal,
                             color = Color(0xFF757575)
                         )
@@ -129,6 +133,7 @@ fun PasswordResetScreen() {
             Text(
                 text = "임시 비밀번호 받기",
                 color = Color.White,
+                fontFamily = Paperlogy,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Normal
             )

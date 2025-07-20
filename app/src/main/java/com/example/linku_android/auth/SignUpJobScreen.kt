@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.linku_android.component.Paperlogy
 
 @Preview(showBackground = true)
 @Composable
@@ -38,6 +39,7 @@ fun SignUpJobScreen() {
         Text(
             text = "현재 하고 계신 일이나\n활동을 알려주세요",
             fontSize = 18.sp,
+            fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             textAlign = TextAlign.Start
@@ -68,6 +70,7 @@ fun SignUpJobScreen() {
         ) {
             Text(
                 text = "다음",
+                fontFamily = Paperlogy,
                 color = Color.White,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
@@ -101,6 +104,7 @@ fun JobOptionButton(text: String) {
             Text(
                 text = text,
                 fontSize = 13.sp,
+                fontFamily = Paperlogy,
                 color = Color.Black,
                 modifier = Modifier.padding(start = 16.dp)
             )

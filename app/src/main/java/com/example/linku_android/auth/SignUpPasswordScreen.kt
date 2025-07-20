@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.linku_android.component.Paperlogy
 
 @Preview(showBackground = true)
 @Composable
@@ -39,6 +40,7 @@ fun SignUpPasswordScreen() {
         Text(
             text = "사용하실 비밀번호를\n입력해주세요",
             fontSize = 18.sp,
+            fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             textAlign = TextAlign.Start
@@ -66,6 +68,7 @@ fun SignUpPasswordScreen() {
                     Text(
                         "비밀번호를 입력해주세요.",
                         fontSize = 13.sp,
+                        fontFamily = Paperlogy,
                         color = Color(0xFF757575)
                     )
                 },
@@ -105,6 +108,7 @@ fun SignUpPasswordScreen() {
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "영문, 숫자, 특수기호 조합",
+                    fontFamily = Paperlogy,
                     fontSize = 12.sp,
                     color = Color(0xFF757575)
                 )
@@ -130,6 +134,7 @@ fun SignUpPasswordScreen() {
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = "8~20자",
+                    fontFamily = Paperlogy,
                     fontSize = 12.sp,
                     color = Color(0xFF757575)
                 )
@@ -154,6 +159,7 @@ fun SignUpPasswordScreen() {
             Text(
                 text = "다음",
                 color = Color.White,
+                fontFamily = Paperlogy,
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Medium
             )

@@ -23,6 +23,8 @@ import com.example.home.HomeScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
+import com.example.linku_android.auth.AnimatedLoginScreen
+
 
 @Composable
 fun MainApp(
@@ -72,11 +74,12 @@ fun MainApp(
 
                         Splash(
                             onFinish = {
-                                navigator.navigate(NavigationRoute.Home.route) {
+                                navigator.navigate(NavigationRoute.Login.route) {
                                     popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                 }
                             }
-                        )
+                        ) //스플래쉬 -> 이후, LoginScreen으로 이동하기.
+                        //추후, 로그인 된 상태라면 Home으로 이동할 수 있도록 수정해야함.
                     }
                 }
 
@@ -84,10 +87,11 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
                         FinishHandler()
-                        LoginScreen(
+//                        LoginScreen(
 //                            viewModel = hiltViewModel(),
 //                            onLoginSuccess = { viewModel.checkLogin() }
-                        )
+//                        )
+                        AnimatedLoginScreen() // 애니메이션 포함된 로그인 화면으로 교체!
                     }
                 }
 
