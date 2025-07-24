@@ -24,6 +24,10 @@ import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
 import com.example.linku_android.auth.AnimatedLoginScreen
+import androidx.navigation.compose.composable
+import com.example.linku_android.auth.ServiceTermsScreen
+import com.example.linku_android.auth.PrivacyTermsScreenFixed
+import com.example.linku_android.auth.MarketingTermsScreenComposable
 
 
 @Composable
@@ -91,8 +95,38 @@ fun MainApp(
 //                            viewModel = hiltViewModel(),
 //                            onLoginSuccess = { viewModel.checkLogin() }
 //                        )
-                        AnimatedLoginScreen() // 애니메이션 포함된 로그인 화면으로 교체!
+                        AnimatedLoginScreen(navigator = navigator) // 애니메이션 포함된 로그인 화면으로 교체!
                     }
+                }
+
+                //스택 구조 상의 문제로, 우선 3개의 이용약관 여기에 넣음
+                // 서비스 이용약관
+                composable("terms/service") {
+                    ServiceTermsScreen(
+                        onBackClicked = { navigator.popBackStack() },
+                        onAgreeClicked = { navigator.navigate("terms/privacy") } // 다음 약관으로 이동
+                    )
+                }
+
+                // 개인정보 처리방침
+                composable("terms/privacy") {
+                    PrivacyTermsScreenFixed(
+                        onBackClicked = { navigator.popBackStack() },
+                        onAgreeClicked = { navigator.navigate("terms/marketing") } // 다음 약관으로 이동
+                    )
+                }
+
+                // 마케팅 수신 동의
+                composable("terms/marketing") {
+                    MarketingTermsScreenComposable(
+                        onBackClicked = { navigator.popBackStack() },
+                        onAgreeClicked = {
+                            // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo("terms/service") { inclusive = true }
+                            }
+                        }
+                    )
                 }
 
                 with(NavigationRoute.Home) {
