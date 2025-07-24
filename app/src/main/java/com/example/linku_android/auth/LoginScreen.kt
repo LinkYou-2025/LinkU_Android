@@ -22,22 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
 import com.example.linku_android.R
 import com.example.linku_android.component.Paperlogy
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.dp
+
 
 @Composable
 fun LoginScreen(
     logoOffsetY: Float = 0f,
-    contentAlpha: Float = 1f
+    contentAlpha: Float = 1f,
+    emailButtonColor: Color = Color(0x66FFFFFF),
+    onSignUpClick: () -> Unit = {} // 회원가입 클릭 시 호출되는 콜백 함수
 ) {
     val isPreview = LocalInspectionMode.current
 
@@ -53,12 +47,12 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
+                .padding(horizontal = 32.dp)
+                .graphicsLayer { alpha = contentAlpha }, // 전체 콘텐츠 페이드 인
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-
-            // ✅ 로고
+            // 로고
             Image(
                 painter = painterResource(R.drawable.logo_white),
                 contentDescription = "Logo",
@@ -70,125 +64,120 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // ✅ 로그인 영역 + 콘텐츠 페이드 효과
-            Column(modifier = Modifier.graphicsLayer { alpha = contentAlpha }) {
-                Button(
-                    onClick = { },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0x66FFFFFF)),
-                    shape = RoundedCornerShape(50),
+            // 이메일 로그인 버튼
+            Button(
+                onClick = { },
+                colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        " ✉ 이메일로 로그인",
+                        fontSize = 16.sp,
+                        color = Color.White,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 비밀번호 재설정 | 회원가입
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    "비밀번호 재설정",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.clickable { }
+                )
+                Text("  |  ", color = Color.White, fontSize = 14.sp)
+                Text(
+                    "회원가입",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.clickable {
+                        onSignUpClick() // 회원가입 클릭 시 바텀시트 콜백 실행
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // 간편 로그인 안내
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(1.dp)
+                        .background(Color.White.copy(alpha = 0.5f))
+                )
+                Text(
+                    "  간편 로그인  ",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Normal
+                )
+                Box(
+                    Modifier
+                        .weight(1f)
+                        .height(1.dp)
+                        .background(Color.White.copy(alpha = 0.5f))
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // 카카오 / 네이버 로그인 버튼
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
+                        .size(50.dp)
+                        .background(Color.Yellow, CircleShape)
+                        .clickable { },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            " ✉ 이메일로 로그인",
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            fontFamily = Paperlogy,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Image(
+                        painter = painterResource(R.drawable.ic_kakao),
+                        contentDescription = "Kakao",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(100.dp)
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.width(24.dp))
 
-                // ✅ "비밀번호 재설정 | 회원가입" 중앙 정렬
-                Row(
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
+                        .size(50.dp)
+                        .background(Color.Green, CircleShape)
+                        .clickable { },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        "비밀번호 재설정",
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier.clickable { }
+                    Image(
+                        painter = painterResource(R.drawable.ic_naver),
+                        contentDescription = "Naver",
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier.size(100.dp)
                     )
-                    Text(
-                        "  |  ",
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        "회원가입",
-                        color = Color.White,
-                        fontSize = 14.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier.clickable { }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                // ✅ 구분선
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .height(1.dp)
-                            .background(Color.White.copy(alpha = 0.5f))
-                    )
-                    Text(
-                        "  간편 로그인  ",
-                        color = Color.White,
-                        fontSize = 12.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Normal,
-                    )
-                    Box(
-                        Modifier
-                            .weight(1f)
-                            .height(1.dp)
-                            .background(Color.White.copy(alpha = 0.5f))
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // ✅ 간편 로그인 아이콘 중앙 정렬
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(Color.Yellow, CircleShape)
-                            .clickable { },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_kakao),
-                            contentDescription = "Kakao",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(100.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.width(24.dp))
-
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(Color.Green, CircleShape)
-                            .clickable { },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_naver),
-                            contentDescription = "Naver",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(100.dp)
-                        )
-                    }
                 }
             }
         }
