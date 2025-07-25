@@ -1,4 +1,4 @@
-package com.example.linku_android.auth
+package com.example.login.auth
 
 import retrofit2.http.POST
 import retrofit2.http.Query

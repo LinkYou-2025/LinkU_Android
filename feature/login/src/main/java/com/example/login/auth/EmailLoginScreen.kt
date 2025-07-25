@@ -1,4 +1,4 @@
-package com.example.linku_android.auth
+package com.example.login.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
