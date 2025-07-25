@@ -1,123 +1,244 @@
 package com.example.linku_android.auth
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import android.R.attr.textStyle
+import android.util.Patterns
+import android.widget.Toast
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import com.example.linku_android.auth.EmailAuthViewModel
 import com.example.linku_android.component.Paperlogy
+import kotlinx.coroutines.delay
+import android.content.Context
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
 
 
-@Preview(showBackground = true)
 @Composable
-fun EmailVerificationScreen() {
-    val isPreview = LocalInspectionMode.current //폰트 표시
- 
+fun EmailVerificationScreen(
+    navigator: NavHostController,
+    viewModel: EmailAuthViewModel = hiltViewModel(),
+    signUpViewModel: SignUpViewModel = hiltViewModel()
+) {
+    val signUpViewModel: SignUpViewModel = hiltViewModel()
+    val email = remember { mutableStateOf("") }
+    val code = remember { mutableStateOf("") }
 
-    Column(
+    val emailValid = remember(email.value) {
+        Patterns.EMAIL_ADDRESS.matcher(email.value).matches()
+    }
+
+
+
+    val context = LocalContext.current
+
+    val sendResult by viewModel.sendCodeResult.collectAsState()
+    val verifyResult by viewModel.verifyCodeResult.collectAsState()
+
+    var errorMessage by remember { mutableStateOf("") }
+    var timer by remember { mutableStateOf(180) }
+
+    val isCodeSent = sendResult != null
+    val isCodeValid = code.value.length == 6
+    val timerText = String.format("%02d:%02d", timer / 60, timer % 60)
+
+
+
+    // 인증 타이머
+    LaunchedEffect(isCodeSent) {
+        if (isCodeSent) {
+            timer = 180
+            while (timer > 0) {
+                delay(1000)
+                timer -= 1
+            }
+        }
+    }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp, vertical = 40.dp),
-        horizontalAlignment = Alignment.Start
+            .padding(horizontal = 32.dp)
     ) {
-        // 상단 단계 표시
-        StepIndicator()
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 타이틀
-        Text(
-            text = "가입을 위한 이메일 주소를\n인증해주세요",
-            fontSize = 18.sp,
-            fontFamily = Paperlogy,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = TextAlign.Start,
-
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 이메일 입력 필드
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(1.dp)
+                .fillMaxSize()
+                .padding(top = 40.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            OutlinedTextField(
-                value = "",
-                onValueChange = {},
-                placeholder = {
-                    Text(
-                        "이메일 주소를 입력해주세요.",
-                        fontSize = 13.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Normal,
-                        color = Color(0xFF757575)
-                    )
-                },
-                singleLine = true,
+            StepIndicator()
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "가입을 위한 이메일 주소를\n인증해주세요",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 이메일 입력 필드
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color.White, shape = RoundedCornerShape(16.dp)),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
+                    .height(56.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        ),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(1.dp)
+            ) {
+                OutlinedTextField(
+                    value = email.value,
+                    onValueChange = {
+                        email.value = it
+                        errorMessage = ""
+                    },
+                    placeholder = {
+                        Text(
+                            "이메일 주소를 입력해주세요",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = Paperlogy,
+                            color = Color(0xFF757575)
+                        )
+                    },
+                    textStyle = LocalTextStyle.current.copy(
+                        fontSize = 14.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Normal
+                    ),
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, shape = RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    )
+                )
+            }
+
+            // 인증 코드 입력 영역
+            if (isCodeSent) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                OutlinedTextField(
+                    value = code.value,
+                    onValueChange = {
+                        code.value = it
+                        errorMessage = ""
+                    },
+                    placeholder = {
+                        Text(
+                            "코드를 입력해주세요",
+                            fontSize = 13.sp,
+                            fontFamily = Paperlogy,
+                            color = Color(0xFF757575)
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .background(Color.White, shape = RoundedCornerShape(16.dp))
+                        .border(
+                            width = 1.dp,
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            ),
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                    shape = RoundedCornerShape(16.dp),
+                    singleLine = true,
+                    trailingIcon = {
+                        Text(
+                            text = timerText,
+                            color = Color(0xFFFF5E5E),
+                            fontSize = 13.sp,
+                            fontFamily = Paperlogy
+                        )
+                    },
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent
+                    )
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 하단 인증메일 발송 버튼
+        // 하단 버튼 (메일 발송 또는 인증)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                        colors = when {
+                            isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                        }
                     ),
                     shape = RoundedCornerShape(24.dp)
-                ),
+                )
+                .clickable(
+                    enabled = if (isCodeSent) isCodeValid else emailValid
+                ) {
+                    if (isCodeSent) {
+                        viewModel.verifyEmailCode(context, email.value, code.value)
+                    } else {
+                        viewModel.sendEmailCode(email.value)
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "인증메일 발송",
+                text = if (isCodeSent) "인증하기" else "인증메일 발송",
                 color = Color.White,
-                fontSize = 13.sp,
+                fontSize = 16.sp,
                 fontFamily = Paperlogy,
-                fontWeight = FontWeight.Bold,
-
+                fontWeight = FontWeight.Bold
             )
         }
     }
+
+    //비밀번호 수정으로 넘어가기
+    val isVerifySuccess by viewModel.isVerifySuccess.collectAsState()
+
+    LaunchedEffect(isVerifySuccess) {
+        if (isVerifySuccess) {
+            signUpViewModel.email = email.value
+            navigator?.navigate("sign_up_password")
+        }
+    }
 }
+
 
 @Composable
 fun StepIndicator() {
@@ -202,182 +323,18 @@ fun StepIndicator() {
             fontWeight = FontWeight.Light,
         )
     }
-
-
-
-
 }
 
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun EmailVerificationScreen() {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(horizontal = 32.dp, vertical = 48.dp),
-//        verticalArrangement = Arrangement.SpaceBetween
-//    ) {
-//        Column {
-//            // 🔵 진행 단계 Indicator
-//            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    // Step 1 - 활성
-//                    Box(
-//                        modifier = Modifier
-//                            .size(48.dp)
-//                            .background(Color(0xFFCB59EB), shape = CircleShape),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Text(
-//                            text = "1",
-//                            color = Color.White,
-//                            fontWeight = FontWeight.Bold,
-//                            fontSize = 18.sp
-//                        )
-//                    }
-//
-//                    Spacer(modifier = Modifier.width(8.dp))
-//
-//                    // Dot 3개
-//                    repeat(3) {
-//                        Box(
-//                            modifier = Modifier
-//                                .size(6.dp)
-//                                .background(Color(0xFFCFD3DC), shape = CircleShape)
-//                        )
-//                        if (it < 2) Spacer(modifier = Modifier.width(4.dp))
-//                    }
-//
-//                    Spacer(modifier = Modifier.width(8.dp))
-//
-//                    // Step 2 - 비활성
-//                    Box(
-//                        modifier = Modifier
-//                            .size(48.dp)
-//                            .border(2.dp, Color(0xFFCFD3DC), shape = CircleShape),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Text(
-//                            text = "2",
-//                            color = Color(0xFFCFD3DC),
-//                            fontWeight = FontWeight.Bold,
-//                            fontSize = 18.sp
-//                        )
-//                    }
-//
-//                    Spacer(modifier = Modifier.width(8.dp))
-//
-//                    // Dot 3개
-//                    repeat(3) {
-//                        Box(
-//                            modifier = Modifier
-//                                .size(6.dp)
-//                                .background(Color(0xFFCFD3DC), shape = CircleShape)
-//                        )
-//                        if (it < 2) Spacer(modifier = Modifier.width(4.dp))
-//                    }
-//
-//                    Spacer(modifier = Modifier.width(8.dp))
-//
-//                    // Step 3 - 비활성
-//                    Box(
-//                        modifier = Modifier
-//                            .size(48.dp)
-//                            .border(2.dp, Color(0xFFCFD3DC), shape = CircleShape),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Text(
-//                            text = "3",
-//                            color = Color(0xFFCFD3DC),
-//                            fontWeight = FontWeight.Bold,
-//                            fontSize = 18.sp
-//                        )
-//                    }
-//                }
-//
-//                Spacer(modifier = Modifier.height(8.dp))
-//
-//                Text(
-//                    text = "계정 정보",
-//                    fontSize = 14.sp,
-//                    fontWeight = FontWeight.Medium,
-//                    color = Color(0xFFCB59EB)
-//                )
-//            }
-//
-//            Spacer(modifier = Modifier.height(32.dp))
-//
-//            // 타이틀
-//            Text(
-//                text = "가입을 위한 이메일 주소를\n인증해주세요",
-//                fontSize = 18.sp,
-//                fontWeight = FontWeight.Bold,
-//                color = Color.Black,
-//                textAlign = TextAlign.Start
-//            )
-//
-//            Spacer(modifier = Modifier.height(32.dp))
-//
-//            // 이메일 입력 필드
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(56.dp)
-//                    .background(
-//                        brush = Brush.horizontalGradient(
-//                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-//                        ),
-//                        shape = RoundedCornerShape(16.dp)
-//                    )
-//                    .padding(1.dp)
-//            ) {
-//                OutlinedTextField(
-//                    value = "",
-//                    onValueChange = {},
-//                    placeholder = {
-//                        Text(
-//                            "이메일 주소를 입력해주세요.",
-//                            fontSize = 13.sp,
-//                            color = Color(0xFF757575)
-//                        )
-//                    },
-//                    singleLine = true,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .background(Color.White, shape = RoundedCornerShape(16.dp)),
-//                    colors = TextFieldDefaults.colors(
-//                        focusedIndicatorColor = Color.Transparent,
-//                        unfocusedIndicatorColor = Color.Transparent,
-//                        focusedContainerColor = Color.Transparent,
-//                        unfocusedContainerColor = Color.Transparent
-//                    ),
-//                    shape = RoundedCornerShape(16.dp)
-//                )
-//            }
-//        }
-//
-//        // 하단 인증메일 발송 버튼
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(48.dp)
-//                .background(
-//                    brush = Brush.horizontalGradient(
-//                        colors = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-//                    ),
-//                    shape = RoundedCornerShape(24.dp)
-//                ),
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                text = "인증메일 발송",
-//                color = Color.White,
-//                fontSize = 13.sp,
-//                fontWeight = FontWeight.Medium
-//            )
-//        }
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun EmailVerificationScreenPreview() {
+    val fakeNavigator = rememberNavController()
+    val fakeEmailViewModel = viewModel<EmailAuthViewModel>()
+    val fakeSignUpViewModel = viewModel<SignUpViewModel>()
+
+    EmailVerificationScreen(
+        navigator = fakeNavigator,
+        viewModel = fakeEmailViewModel,
+        signUpViewModel = fakeSignUpViewModel
+    )
+}

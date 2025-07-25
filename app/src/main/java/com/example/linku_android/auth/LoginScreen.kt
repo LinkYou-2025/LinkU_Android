@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.linku_android.R
 import com.example.linku_android.component.Paperlogy
+import androidx.compose.ui.geometry.Offset
 
 
 @Composable
@@ -39,11 +40,13 @@ fun LoginScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(Color(0xFFE93CFF), Color(0xFF5C6CFF))
+                brush = Brush.linearGradient(
+                    colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
+                    start = Offset(0f, 0f),           // 좌상단
+                    end = Offset.Infinite             // 우하단 (대각선)
                 )
             )
-    ) {
+    ){
         Column(
             modifier = Modifier
                 .fillMaxSize()

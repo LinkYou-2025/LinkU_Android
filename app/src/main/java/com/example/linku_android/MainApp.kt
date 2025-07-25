@@ -1,5 +1,6 @@
 package com.example.linku_android
 
+import android.R.attr.type
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
@@ -14,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.curation.CurationScreen
@@ -25,9 +27,18 @@ import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
 import com.example.linku_android.auth.AnimatedLoginScreen
 import androidx.navigation.compose.composable
+import com.example.linku_android.auth.EmailVerificationScreen
 import com.example.linku_android.auth.ServiceTermsScreen
 import com.example.linku_android.auth.PrivacyTermsScreenFixed
 import com.example.linku_android.auth.MarketingTermsScreenComposable
+import com.example.linku_android.auth.SignUpPasswordScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+import com.example.linku_android.auth.InterestContentScreen
+import com.example.linku_android.auth.InterestPurposeScreen
+import com.example.linku_android.auth.SignUpGenderScreen
+import com.example.linku_android.auth.SignUpNicknameScreen
+import com.example.linku_android.auth.SignUpJobScreen
 
 
 @Composable
@@ -122,12 +133,57 @@ fun MainApp(
                         onBackClicked = { navigator.popBackStack() },
                         onAgreeClicked = {
                             // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
-                            navigator.navigate(NavigationRoute.Home.route) {
+                            navigator.navigate("email_verification") {
                                 popUpTo("terms/service") { inclusive = true }
                             }
                         }
                     )
                 }
+
+
+                // 이메일 인증
+                composable("email_verification") {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
+                    EmailVerificationScreen(navigator = navigator)
+                }
+
+                //ViewModel 사용
+                composable("sign_up_password") {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
+                    SignUpPasswordScreen(navigator = navigator)
+                }
+
+                //닉네임.
+                composable("sign_up_nickname") {
+                    SignUpNicknameScreen(
+                        navigator = navigator
+                    )
+                }
+
+                //성별
+                composable("sign_up_gender") {
+                    SignUpGenderScreen(navigator = navigator)
+                }
+
+                // 직업 선택 화면
+                composable("sign_up_job") {
+                    SignUpJobScreen(navigator = navigator)
+                }
+
+                // 목적 선택 화면
+                composable("sign_up_purpose") {
+                    InterestPurposeScreen(navigator = navigator)
+                }
+
+                composable("sign_up_interest") {
+                    InterestContentScreen(
+                        navigator = navigator,
+                        signUpViewModel = hiltViewModel()
+                    )
+                }
+                
 
                 with(NavigationRoute.Home) {
                     setNavGraph {
