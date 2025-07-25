@@ -153,9 +153,8 @@ fun InterestContentScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
                 .clickable(enabled = canProceed) {
-                    // 👉 선택 저장
                     signUpViewModel.interestList = selectedContents.toList()
-                    navigator.navigate("sign_up_done")
+                    navigator.navigate("welcome")
                 },
             contentAlignment = Alignment.Center
         ) {
