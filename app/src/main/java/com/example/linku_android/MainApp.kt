@@ -16,13 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
-import com.example.curation.CurationScreen
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
 import com.example.home.HomeScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
+import com.example.curation.ui.CurationScreen
 
 @Composable
 fun MainApp(
