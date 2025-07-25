@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>
 
-</androidx.preference.PreferenceScreen>
+
+<!-- 추후 백엔드 수정 후 반드시 삭제 test 중으로 http://~ 로컬로 이용중 -->

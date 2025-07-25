@@ -31,7 +31,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.linku_android.component.Paperlogy
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
 
 
 // 데이터 클래스
@@ -45,17 +50,38 @@ val purposes = listOf(
     Purpose("💡", "사이트 프로젝트\n창업 준비", 180f, DpOffset(60.dp, 120.dp)),
     Purpose("📅", "그냥 나중에\n보고 싶은 글 저장", 220f, DpOffset(-70.dp, 290.dp)),
     Purpose("❓", "기타", 70f, DpOffset(160.dp, 310.dp)),
-    Purpose("💻", "블로그/콘텐츠 작성 참고용", 110f, DpOffset(330.dp, 10.dp)),
-    Purpose("🧠", "인사이트 모으기", 120f, DpOffset(340.dp, 300.dp)),
+    Purpose("💻", "블로그/콘텐츠 작성 참고용", 110f, DpOffset(330.dp, 50.dp)),
+    Purpose("🧠", "인사이트 모으기", 120f, DpOffset(380.dp, 300.dp)),
     Purpose("🎓", "취업·커리어 준비", 140f, DpOffset(-70.dp, 40.dp))
 )
 
-@Preview(showBackground = true)
+//매핑용 Map
+val purposeLabelToCode = mapOf(
+    "자기계발\n정보 수집" to "SELF_DEVELOPMENT",
+    "사이드 프로젝트\n창업 준비" to "SIDE_PROJECT",
+    "기타" to "OTHERS",
+    "그냥 나중에\n보고 싶은 글 저장" to "LATER_READING",
+    "취업·커리어 준비" to "CAREER",
+    "블로그/콘텐츠 작성 참고용" to "CREATION_REFERENCE",
+    "인사이트 모으기" to "INSIGHTS",
+    "업무자료 아카이브" to "WORK",
+    "학업/리포트 정리" to "STUDY"
+)
+
+
 @Composable
-fun InterestPurposeScreen() {
+fun InterestPurposeScreen(
+    navigator: NavHostController,
+    signUpViewModel: SignUpViewModel = hiltViewModel()
+) {
     val isPreview = LocalInspectionMode.current //폰트 표시
 
     val selectedPurposes = remember { mutableStateListOf<String>() }
+
+    // 선택한 항목 개수 >= 1 → 다음 버튼 활성화
+    val canProceed = selectedPurposes.isNotEmpty()
+
+
 
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
@@ -72,48 +98,62 @@ fun InterestPurposeScreen() {
                     append("(복수 선택 가능)")
                 }
             },
-            fontSize = 18.sp,
+            fontSize = 22.sp,
             fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp)
-                .horizontalScroll(rememberScrollState()) // 좌우 스크롤 가능
+                .horizontalScroll(rememberScrollState())
         ) {
-            purposes.forEach { purpose ->
-                PurposeItem(
-                    purpose = purpose,
-                    isSelected = selectedPurposes.contains(purpose.label),
-                    onClick = {
-                        if (selectedPurposes.contains(purpose.label)) {
-                            selectedPurposes.remove(purpose.label)
-                        } else {
-                            selectedPurposes.add(purpose.label)
-                        }
-                    },
-                    modifier = Modifier.offset(purpose.offset.x, purpose.offset.y)
-                )
+            Box(modifier = Modifier.width(1000.dp)) { // 충분한 너비 확보
+                purposes.forEach { purpose ->
+                    PurposeItem(
+                        purpose = purpose,
+                        isSelected = selectedPurposes.contains(purpose.label),
+                        onClick = {
+                            if (selectedPurposes.contains(purpose.label)) {
+                                selectedPurposes.remove(purpose.label)
+                            } else {
+                                selectedPurposes.add(purpose.label)
+                            }
+                        },
+                        modifier = Modifier.offset(purpose.offset.x, purpose.offset.y)
+                    )
+                }
             }
         }
 
         Spacer(modifier = Modifier.weight(1f))
 
+        // 다음 버튼 (비활성/활성 상태 구분)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
                 .background(
-                    brush = Brush.horizontalGradient(listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))),
+                    brush = Brush.horizontalGradient(
+                        colors = if (canProceed)
+                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        else
+                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                    ),
                     shape = RoundedCornerShape(24.dp)
-                ),
+                )
+                .clickable(enabled = canProceed) {
+                    signUpViewModel.purposeList = selectedPurposes.mapNotNull {
+                        purposeLabelToCode[it]
+                    }
+                    navigator.navigate("sign_up_interest")
+                },
             contentAlignment = Alignment.Center
         ) {
-            Text("다음", color = Color.White, fontFamily = Paperlogy,fontSize = 13.sp)
+            Text("다음", color = Color.White, fontFamily = Paperlogy, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
     }
 }
@@ -134,13 +174,34 @@ fun PurposeItem(
                 brush = Brush.sweepGradient(listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
                 shape = CircleShape
             )
-            .background(if (isSelected) Color(0xFFE5ACF4) else Color.White, CircleShape)
+            .background(
+                brush = if (isSelected)
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 연한 파랑 (왼쪽)
+                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 연한 분홍 (오른쪽)
+                        )
+                    )
+                else
+                    SolidColor(Color.White),
+                shape = CircleShape
+            )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = purpose.emoji,fontFamily = Paperlogy, fontSize = 24.sp)
-            Text(text = purpose.label, fontSize = 12.sp,fontFamily = Paperlogy, textAlign = TextAlign.Center)
+            Text(
+                text = purpose.emoji,
+                fontFamily = Paperlogy,
+                fontSize = 24.sp
+            )
+            Text(
+                text = purpose.label,
+                fontSize = 14.sp,
+                fontFamily = Paperlogy,
+                textAlign = TextAlign.Center,
+                color = if (isSelected) Color.White else Color.Black
+            )
         }
     }
 }
@@ -236,4 +297,16 @@ fun InterestStepIndicator() {
 
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InterestPurposeScreenPreview() {
+    val fakeNavController = rememberNavController()
+    val fakeViewModel = remember { SignUpViewModel() }
+
+    InterestPurposeScreen(
+        navigator = fakeNavController,
+        signUpViewModel = fakeViewModel
+    )
 }

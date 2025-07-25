@@ -68,6 +68,16 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":design"))
 
+    // Retrofit2
+    implementation(libs.retrofit2)
+    implementation(libs.retrofit2.converter.gson)
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+
+    // SharedPreference
+    implementation(libs.preference.ktx)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

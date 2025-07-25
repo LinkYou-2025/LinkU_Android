@@ -17,6 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.geometry.Offset
 
 @Composable
 fun Splash(onFinish: () -> Unit) {
@@ -42,19 +44,27 @@ fun Splash(onFinish: () -> Unit) {
 
     // 배경 색상 보간용 progress
     val progress = (rotationAnim.value / 180f).coerceIn(0f, 1f)
-    val topColor = lerpColor(Color(0xFF5C6CFF), Color(0xFFE93CFF), progress)
-    val bottomColor = lerpColor(Color(0xFFE93CFF), Color(0xFF5C6CFF), progress)
+    val startColor = lerpColor(Color(0xFF2C6FFF), Color(0xFFC800FF), progress)
+    val endColor = lerpColor(Color(0xFFC800FF), Color(0xFF2C6FFF), progress)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 if (isGlowPhase) {
-                    // ✅ Glow 단계에서는 LoginScreen과 동일한 고정 배경
-                    Brush.verticalGradient(listOf(Color(0xFFE93CFF), Color(0xFF5C6CFF)))
+                    // ✅ Glow 단계: Figma와 동일하게 분홍 → 파랑 (좌상단 → 우하단)
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
+                        start = Offset(0f, 0f),
+                        end = Offset.Infinite
+                    )
                 } else {
-                    // 애니메이션 중에는 회전값에 따른 배경 보간
-                    Brush.verticalGradient(listOf(topColor, bottomColor))
+                    // ✅ 애니메이션 단계: 파랑 → 분홍 → 파랑 보간
+                    Brush.linearGradient(
+                        colors = listOf(startColor, endColor),
+                        start = Offset(0f, 0f),
+                        end = Offset.Infinite
+                    )
                 }
             ),
         contentAlignment = Alignment.Center

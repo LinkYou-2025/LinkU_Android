@@ -31,7 +31,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.linku_android.component.Paperlogy
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
 
 
 // 데이터 클래스
@@ -55,13 +60,31 @@ val contents = listOf(
 
 )
 
-@Preview(showBackground = true)
+// 관심 콘텐츠 라벨 → 서버 enum 코드 매핑
+val contentLabelToCode = mapOf(
+    "비즈니스/마케팅" to "BUSINESS",
+    "디자인/\n크리에이티브" to "DESIGN",
+    "IT/개발" to "IT",
+    "스타트업/창업" to "STARTUP",
+    "사회/문화/환경" to "SOCIETY",
+    "학업/\n리포트 참고" to "STUDY",
+    "글쓰기/콘텐츠\n작성" to "WRITING",
+    "책/인사이트\n요약" to "INSIGHTS",
+    "심리/자기계발" to "PSYCHOLOGY",
+    "시사/트렌드" to "CURRENT_EVENTS",
+    "그냥 모아두고\n싶은 글들" to "COLLECT",
+    "커리어/채용" to "CAREER"
+)
+
+
 @Composable
-fun InterestContentScreen() {
-    val isPreview = LocalInspectionMode.current //폰트 표시
+fun InterestContentScreen(
+    navigator: NavHostController,
+    signUpViewModel: SignUpViewModel = hiltViewModel()
+) {
+    val selectedContents = remember { mutableStateListOf<String>() }
 
-    val selectedPurposes = remember { mutableStateListOf<String>() }
-
+    val canProceed = selectedContents.isNotEmpty()
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.Start
@@ -77,32 +100,40 @@ fun InterestContentScreen() {
                     append("(복수 선택 가능)")
                 }
             },
-            fontSize = 18.sp,
+            fontSize = 22.sp,
             fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Box(
+        //
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(500.dp)
-                .horizontalScroll(rememberScrollState()) // 좌우 스크롤 가능
+                .horizontalScroll(rememberScrollState())
         ) {
-            contents.forEach { content ->
-                ContentItem(
-                    content = content,
-                    isSelected = selectedPurposes.contains(content.label),
-                    onClick = {
-                        if (selectedPurposes.contains(content.label)) {
-                            selectedPurposes.remove(content.label)
-                        } else {
-                            selectedPurposes.add(content.label)
-                        }
-                    },
-                    modifier = Modifier.offset(content.offset.x, content.offset.y)
-                )
+
+            Box(
+                modifier = Modifier
+                    .width(1000.dp) // 충분히 넓게 확보 (필요 시 늘리세요)
+                    .height(500.dp)
+            ) {
+                contents.forEach { content ->
+                    ContentItem(
+                        content = content,
+                        isSelected = selectedContents.contains(content.label),
+                        onClick = {
+                            if (selectedContents.contains(content.label)) {
+                                selectedContents.remove(content.label)
+                            } else {
+                                selectedContents.add(content.label)
+                            }
+                        },
+                        modifier = Modifier.offset(content.offset.x, content.offset.y)
+                    )
+                }
             }
         }
 
@@ -113,12 +144,27 @@ fun InterestContentScreen() {
                 .fillMaxWidth()
                 .height(48.dp)
                 .background(
-                    brush = Brush.horizontalGradient(listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))),
+                    brush = Brush.horizontalGradient(
+                        colors = if (canProceed)
+                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        else
+                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                    ),
                     shape = RoundedCornerShape(24.dp)
-                ),
+                )
+                .clickable(enabled = canProceed) {
+                    // 👉 선택 저장
+                    signUpViewModel.interestList = selectedContents.toList()
+                    navigator.navigate("sign_up_done")
+                },
             contentAlignment = Alignment.Center
         ) {
-            Text("다음", color = Color.White, fontFamily = Paperlogy,fontSize = 13.sp)
+            Text(
+                "다음",
+                color = Color.White,
+                fontFamily = Paperlogy,
+                fontSize = 16.sp
+            )
         }
     }
 }
@@ -139,13 +185,34 @@ fun ContentItem(
                 brush = Brush.sweepGradient(listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
                 shape = CircleShape
             )
-            .background(if (isSelected) Color(0xFFE5ACF4) else Color.White, CircleShape)
+            .background(
+                brush = if (isSelected)
+                    Brush.horizontalGradient(
+                        colors = listOf(
+                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 연한 파랑 (왼쪽)
+                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 연한 분홍 (오른쪽)
+                        )
+                    )
+                else
+                    SolidColor(Color.White),
+                shape = CircleShape
+            )
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = content.emoji,fontFamily = Paperlogy, fontSize = 24.sp)
-            Text(text = content.label, fontSize = 12.sp,fontFamily = Paperlogy, textAlign = TextAlign.Center)
+            Text(
+                text = content.emoji,
+                fontFamily = Paperlogy,
+                fontSize = 24.sp
+            )
+            Text(
+                text = content.label,
+                fontSize = 14.sp,
+                fontFamily = Paperlogy,
+                textAlign = TextAlign.Center,
+                color = if (isSelected) Color.White else Color.Black
+            )
         }
     }
 }
@@ -241,4 +308,16 @@ fun ContentStepIndicator() {
 
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun InterestContentScreenPreview() {
+    val fakeNavController = rememberNavController()
+    val fakeViewModel = remember { SignUpViewModel() }
+
+    InterestContentScreen(
+        navigator = fakeNavController,
+        signUpViewModel = fakeViewModel
+    )
 }

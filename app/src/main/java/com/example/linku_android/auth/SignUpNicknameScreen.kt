@@ -22,33 +22,39 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.linku_android.component.Paperlogy
+import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.clickable
+import androidx.compose.runtime.*
 
-@Preview(showBackground = true)
 @Composable
-fun SignUpNicknameScreen() {
+fun SignUpNicknameScreen(
+    navigator: NavHostController,
+    signUpViewModel: SignUpViewModel = hiltViewModel()
+) {
+    var nickname by remember { mutableStateOf("") }
+    val isNicknameValid = nickname.isNotBlank() && nickname.length <= 10
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 32.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        // 상단 단계 표시
         ProfileStepIndicator()
-
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
             text = "사용하실 닉네임을\n입력해주세요",
-            fontSize = 18.sp,
+            fontSize = 22.sp,
             fontFamily = Paperlogy,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = TextAlign.Start
+            color = Color.Black
         )
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // 닉네임 입력 필드
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -62,8 +68,8 @@ fun SignUpNicknameScreen() {
                 .padding(1.dp)
         ) {
             OutlinedTextField(
-                value = "",
-                onValueChange = {},
+                value = nickname,
+                onValueChange = { nickname = it },
                 placeholder = {
                     Text(
                         "닉네임을 입력해주세요.",
@@ -92,7 +98,10 @@ fun SignUpNicknameScreen() {
             Box(
                 modifier = Modifier
                     .size(20.dp)
-                    .background(Color(0xFFD7D9DF), shape = RoundedCornerShape(4.dp)),
+                    .background(
+                        if (isNicknameValid) Color(0xFFCB59EB) else Color(0xFFD7D9DF),
+                        shape = RoundedCornerShape(4.dp)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -113,25 +122,32 @@ fun SignUpNicknameScreen() {
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // 하단 버튼
+        // 다음 버튼
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                        colors = if (isNicknameValid)
+                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        else
+                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
                     shape = RoundedCornerShape(24.dp)
-                ),
+                )
+                .clickable(enabled = isNicknameValid) {
+                    signUpViewModel.nickname = nickname // ViewModel에 저장
+                    navigator.navigate("sign_up_gender") //
+                },
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "다음",
                 fontFamily = Paperlogy,
                 color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -224,4 +240,11 @@ fun ProfileStepIndicator() {
             fontWeight = FontWeight.Medium
         )
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun SignUpNicknameScreenPreview() {
+    val fakeNavController = rememberNavController()
+    SignUpNicknameScreen(navigator = fakeNavController)
 }
