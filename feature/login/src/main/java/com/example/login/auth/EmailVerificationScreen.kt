@@ -1,4 +1,4 @@
-package com.example.linku_android.auth
+package com.example.login.auth
 
 import android.R.attr.textStyle
 import android.util.Patterns

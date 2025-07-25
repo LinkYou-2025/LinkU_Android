@@ -1,4 +1,4 @@
-package com.example.linku_android.auth
+package com.example.login.auth
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
