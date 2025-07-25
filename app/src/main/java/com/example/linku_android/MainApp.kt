@@ -34,12 +34,15 @@ import com.example.linku_android.auth.MarketingTermsScreenComposable
 import com.example.linku_android.auth.SignUpPasswordScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import com.example.linku_android.auth.EmailLoginScreen
 import com.example.linku_android.auth.InterestContentScreen
 import com.example.linku_android.auth.InterestPurposeScreen
 import com.example.linku_android.auth.SignUpGenderScreen
 import com.example.linku_android.auth.SignUpNicknameScreen
 import com.example.linku_android.auth.SignUpJobScreen
-
+import com.example.linku_android.auth.TermsAgreementScreen
+import com.example.linku_android.auth.WelcomeScreen
+import com.example.linku_android.auth.ResetPasswordScreen
 
 @Composable
 fun MainApp(
@@ -183,6 +186,29 @@ fun MainApp(
                         signUpViewModel = hiltViewModel()
                     )
                 }
+
+                // 회원가입 완료 → 환영 화면
+                composable("welcome") {
+                    WelcomeScreen(navigator = navigator)
+                }
+
+                composable("email_login") {
+                    EmailLoginScreen(navigator = navigator)
+                }
+
+                //이메일 로그인 -> 회원가입
+                composable("terms_agreement") {
+                    TermsAgreementScreen(navController = navigator)
+                }
+
+                //비밀번호 재설정 화면
+                composable("resetPassword") {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
+                    ResetPasswordScreen(navigator = navigator)
+                }
+
+
                 
 
                 with(NavigationRoute.Home) {
