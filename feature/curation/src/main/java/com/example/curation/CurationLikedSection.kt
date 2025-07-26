@@ -12,23 +12,22 @@ package com.example.curation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.R
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import ui.curation.model.CurationItem
+import com.example.curation.R
 
 @Composable
 fun CurationLikedSection(nickname: String) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("$nickname이 좋아요한 큐레이션", style = MaterialTheme.typography.titleMedium)
+        Text("{$nickname}이 좋아요한 큐레이션", style = MaterialTheme.typography.titleMedium)
 
         val likedCurations = listOf(
-            CurationItem("트럼프 큐레이션", "2025년 6월호", R.drawable.trump_card, liked = true),
-            CurationItem("트럼프 큐레이션", "2025년 7월호", R.drawable.trump_card, liked = true)
+            CurationItem("트럼프 큐레이션", "2025년 6월호", R.drawable.img_trump_card, liked = true),
+            CurationItem("트럼프 큐레이션", "2025년 7월호", R.drawable.img_trump_card, liked = true)
         )
 
         likedCurations.forEach {
