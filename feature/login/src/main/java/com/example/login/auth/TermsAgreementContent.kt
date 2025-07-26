@@ -17,7 +17,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.linku_android.component.Paperlogy
+import com.example.login.R
+import com.example.login.Paperlogy
 
 @Composable
 fun TermsAgreementScreen(navController: NavController) {

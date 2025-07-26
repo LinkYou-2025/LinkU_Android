@@ -25,10 +25,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.design.theme.font.Paperlogy
-import com.example.linku_android.R
-import com.example.linku_android.component.Paperlogy
-import androidx.compose.ui.geometry.Offset
+import com.example.login.R
+import com.example.login.Paperlogy
+
+
 
 
 @Composable

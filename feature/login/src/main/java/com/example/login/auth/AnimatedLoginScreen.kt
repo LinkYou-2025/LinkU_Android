@@ -30,7 +30,7 @@ fun AnimatedLoginScreen(navigator: NavController){
     val showTermsSheet = remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // ✅ 상태 remember
+    //  상태 remember
     val agreeTerms = remember { mutableStateOf(false) }
     val agreePrivacy = remember { mutableStateOf(false) }
     val agreeMarketing = remember { mutableStateOf(false) }

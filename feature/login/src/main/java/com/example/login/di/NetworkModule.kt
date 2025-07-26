@@ -1,6 +1,7 @@
-package com.example.linku_android.di
+package com.example.login.di
 
-import com.example.linku_android.auth.AuthApi
+
+import com.example.login.auth.AuthApi
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

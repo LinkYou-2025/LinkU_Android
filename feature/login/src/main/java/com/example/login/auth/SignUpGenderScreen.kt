@@ -24,7 +24,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.linku_android.component.Paperlogy
+import com.example.login.R
+import com.example.login.Paperlogy
 
 @Composable
 fun SignUpGenderScreen(

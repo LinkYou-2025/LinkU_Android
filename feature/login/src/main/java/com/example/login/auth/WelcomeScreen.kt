@@ -21,9 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.linku_android.R
-import com.example.linku_android.component.Paperlogy
-
+import com.example.login.R
+import com.example.login.Paperlogy
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController
