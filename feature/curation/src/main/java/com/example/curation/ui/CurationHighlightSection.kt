@@ -9,23 +9,110 @@ package com.example.curation.ui
 관심사: API로 받아온 하나의 큐레이션 데이터를 표시
 
 */
+
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import com.example.curation.R
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.curation.CurationItem
+import com.example.curation.Paperlogy
+import com.example.curation.R
+
+
+@Composable
+fun HighlightCard(item: CurationItem) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp)
+            .clip(RoundedCornerShape(12.dp))
+    ) {
+        // 배경 이미지
+        Image(
+            painter = painterResource(id = item.imageRes),
+            contentDescription = item.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(12.dp))
+        )
+
+        // 좋아요 아이콘 (우측 상단)
+        Icon(
+            painter = painterResource(id = R.drawable.ic_heart_outline),
+            contentDescription = "좋아요",
+            tint = Color.White,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(12.dp)
+                .size(24.dp)
+        )
+
+        //  제목 & 날짜 (왼쪽 하단)
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 16.dp, bottom = 16.dp, end = 80.dp) // 오른쪽 여백 확보
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color.White
+                )
+            )
+            Text(
+                text = item.date,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontFamily = Paperlogy,
+                    fontSize = 14.sp,
+                    color = Color.White
+                )
+            )
+        }
+
+        // "보러가기 >" → Box의 직접 자식으로 배치 (align 정상 동작)
+        Text(
+            text = "보러가기 >",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = Color.White
+            ),
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        )
+    }
+}
 
 @Composable
 fun CurationHighlightSection(nickname: String) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = "${nickname}을 위한 8월의 큐레이션",
-            style = MaterialTheme.typography.titleMedium
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp
+            )
         )
 
         val highlight = CurationItem(
@@ -35,17 +122,14 @@ fun CurationHighlightSection(nickname: String) {
             liked = false
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(6.dp))
         HighlightCard(item = highlight)
     }
 }
 
+
+@Preview(showBackground = true)
 @Composable
-fun HighlightCard(item: CurationItem) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Image(painter = painterResource(id = item.imageRes), contentDescription = null)
-        Text(text = item.title)
-        Text(text = item.date)
-    }
+fun PreviewCurationHighlightSection() {
+    CurationHighlightSection(nickname = "세나님")
 }
