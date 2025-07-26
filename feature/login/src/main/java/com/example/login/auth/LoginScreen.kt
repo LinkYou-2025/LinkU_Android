@@ -22,13 +22,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.linku_android.R
-import com.example.linku_android.component.Paperlogy
+import com.example.login.R
+import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 
 
 @Composable
 fun LoginScreen(
+    navigator: NavHostController,
     logoOffsetY: Float = 0f,
     contentAlpha: Float = 1f,
     emailButtonColor: Color = Color(0x66FFFFFF),
@@ -69,7 +72,9 @@ fun LoginScreen(
 
             // 이메일 로그인 버튼
             Button(
-                onClick = { },
+                onClick = {
+                    navigator.navigate("emailLogin")
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
@@ -190,7 +195,8 @@ fun LoginScreen(
 @Preview(showBackground = true)
 @Composable
 fun LoginScreenPreview() {
-    LoginScreen()
+    val dummyNavController = rememberNavController()
+    LoginScreen(navigator = dummyNavController)
 }
 
 //

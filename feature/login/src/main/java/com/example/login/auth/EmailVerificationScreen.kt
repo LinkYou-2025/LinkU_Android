@@ -21,12 +21,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.linku_android.auth.EmailAuthViewModel
-import com.example.linku_android.component.Paperlogy
 import kotlinx.coroutines.delay
 import android.content.Context
-import androidx.hilt.navigation.compose.hiltViewModel
+
 import androidx.navigation.compose.rememberNavController
+import com.example.login.R
+import com.example.login.Paperlogy
+import androidx.hilt.navigation.compose.hiltViewModel
 
 
 @Composable

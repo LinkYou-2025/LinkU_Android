@@ -34,7 +34,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.linku_android.component.Paperlogy
+import com.example.login.R
+import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 

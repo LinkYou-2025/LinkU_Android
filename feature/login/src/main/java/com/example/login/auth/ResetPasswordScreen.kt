@@ -29,12 +29,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.ui.text.style.TextAlign
-import com.example.linku_android.component.Paperlogy
+import com.example.login.Paperlogy
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
-import com.example.linku_android.R
+import com.example.login.R
+import com.example.login.Paperlogy
 
 
 

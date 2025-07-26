@@ -3,16 +3,19 @@ package com.example.login.auth
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.linku_android.di.NetworkModule
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.example.login.di.NetworkModule
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
 
 // 이메일 인증과 관련된 로직을 담당하는 ViewModel
+
+
 class EmailAuthViewModel : ViewModel() {
 
     companion object {

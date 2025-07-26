@@ -25,25 +25,28 @@ import com.example.home.HomeScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
-import com.example.linku_android.auth.AnimatedLoginScreen
-import androidx.navigation.compose.composable
-import com.example.linku_android.auth.EmailVerificationScreen
-import com.example.linku_android.auth.ServiceTermsScreen
-import com.example.linku_android.auth.PrivacyTermsScreenFixed
-import com.example.linku_android.auth.MarketingTermsScreenComposable
-import com.example.linku_android.auth.SignUpPasswordScreen
+
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import com.example.linku_android.auth.EmailLoginScreen
-import com.example.linku_android.auth.InterestContentScreen
-import com.example.linku_android.auth.InterestPurposeScreen
-import com.example.linku_android.auth.SignUpGenderScreen
-import com.example.linku_android.auth.SignUpNicknameScreen
-import com.example.linku_android.auth.SignUpJobScreen
-import com.example.linku_android.auth.TermsAgreementScreen
-import com.example.linku_android.auth.WelcomeScreen
-import com.example.linku_android.auth.ResetPasswordScreen
 
+
+import androidx.navigation.compose.composable
+import com.example.login.auth.AnimatedLoginScreen
+import com.example.login.auth.AnimatedLoginScreen
+import com.example.login.auth.EmailVerificationScreen
+import com.example.login.auth.ServiceTermsScreen
+import com.example.login.auth.PrivacyTermsScreenFixed
+import com.example.login.auth.MarketingTermsScreenComposable
+import com.example.login.auth.SignUpPasswordScreen
+import com.example.login.auth.EmailLoginScreen
+import com.example.login.auth.InterestContentScreen
+import com.example.login.auth.InterestPurposeScreen
+import com.example.login.auth.SignUpGenderScreen
+import com.example.login.auth.SignUpNicknameScreen
+import com.example.login.auth.SignUpJobScreen
+import com.example.login.auth.TermsAgreementScreen
+import com.example.login.auth.WelcomeScreen
+import com.example.login.auth.ResetPasswordScreen
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
