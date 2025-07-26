@@ -53,6 +53,8 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.kotlinx.coroutines.test)
 
+    implementation(libs.gson)
+
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
@@ -62,14 +64,16 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+    ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
 
-//    // Retrofit2
-//    implementation(libs.retrofit2)
-//    implementation(libs.retrofit2.converter.gson)
-//    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-//    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-//    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
-//
-//    // SharedPreference
-//    implementation(libs.preference.ktx)
+    // Retrofit2
+    implementation(libs.retrofit2)
+    implementation(libs.retrofit2.converter.gson)
+    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+
+    // SharedPreference
+    implementation(libs.preference.ktx)
 }
