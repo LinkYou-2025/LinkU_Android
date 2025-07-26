@@ -24,8 +24,8 @@ fun CurationRecommendedLinksSection() {
         Text("추천 링크", style = MaterialTheme.typography.titleMedium)
 
         val links = listOf(
-            //LinkItem("서울 근교 드라이브 코스", R.drawable.drive_image, "https://example.com/1"), -> 이미지 없음.
-            //LinkItem("감성 무드등 추천", R.drawable.light_image, "https://example.com/2") -> 이미지 없음
+            LinkItem("서울 근교 드라이브 코스", R.drawable.img_seoul_card, "https://example.com/1"),
+            LinkItem("감성 무드등 추천", R.drawable.img_travel_card, "https://example.com/2")
         )
 
         Spacer(modifier = Modifier.height(8.dp))
