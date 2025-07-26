@@ -31,11 +31,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.example.curation.LikedCurationCard
+import com.example.curation.Paperlogy
 
 
 @Composable
 fun CurationScreen() {
+
+    // 하드코딩된 닉네임 (서버 연동 시 이 변수만 교체)
+    val nickname = "세나"
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -43,11 +49,11 @@ fun CurationScreen() {
     ) {
         //  상단 바
         CurationTopBar()
-        Spacer(modifier = Modifier.height(16.dp))
+        //Spacer(modifier = Modifier.height(16.dp))
 
         //  1. 하이라이트 섹션
-        CurationHighlightSection(nickname = "세나님")
-        Spacer(modifier = Modifier.height(16.dp))
+        CurationHighlightSection(nickname = "${nickname}님")
+        Spacer(modifier = Modifier.height(2.dp))
 
         // 2. 추천 링크 (고정)
         CurationRecommendedLinksSection()
@@ -55,8 +61,12 @@ fun CurationScreen() {
 
         // 3. 좋아요한 큐레이션 (이 부분만 스크롤)
         Text(
-            text = "세나님이 좋아요 한 큐레이션",
-            style = MaterialTheme.typography.titleMedium,
+            text = "${nickname}님이 좋아요 한 큐레이션",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            ),
             modifier = Modifier.padding(horizontal = 16.dp)
         )
 
@@ -87,7 +97,7 @@ fun CurationTopBar() {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 0.dp)
     ) {
 
         Row(
@@ -98,11 +108,11 @@ fun CurationTopBar() {
                 painter = painterResource(id = R.drawable.ic_linkukor),
                 contentDescription = "링큐 로고",
                 modifier = Modifier
-                    .size(45.dp)
-                    .padding(start = 12.dp)
+                    .size(50.dp)
+                    .padding(start = 8.dp)
             )
 
-            Spacer(modifier = Modifier.weight(0.6f))
+            Spacer(modifier = Modifier.weight(0.01f))
 
             Image(
                 painter = painterResource(id = R.drawable.ic_alarm),
@@ -111,9 +121,9 @@ fun CurationTopBar() {
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        //Spacer(modifier = Modifier.height(4.dp))
 
-        // 🔹 빠른 링크 검색 (Figma 그라데이션 적용)
+        // 빠른 링크 검색 (Figma 그라데이션 적용)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -132,15 +142,19 @@ fun CurationTopBar() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_linkukor),
+                painter = painterResource(id = R.drawable.ic_logo_white),
                 contentDescription = "링크 아이콘",
                 tint = Color.White,
                 modifier = Modifier.size(20.dp)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "빠른 링크 검색",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
+                ),
                 color = Color.White
             )
         }
