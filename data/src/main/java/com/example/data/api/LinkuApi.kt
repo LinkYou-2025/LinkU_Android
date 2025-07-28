@@ -64,6 +64,6 @@ interface LinkuApi {
         @Query("size") size: Int = 5
     ) : BaseResponse<LinkuSimpleDTO>
 
-    // 빠른 링크 검색 -> 후순위 개발??
+    // 빠른 링크 검색 -> 스웨거에 추가되는대로 업뎃 예정
 //    @GET("/api/search/quick")
 }
