@@ -35,6 +35,13 @@ fun SignUpNicknameScreen(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     var nickname by remember { mutableStateOf("") }
+
+    // ViewModel 상태 관찰
+    val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState(initial = null)
+    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState(initial = null)
+    val isLoading by signUpViewModel.isLoading.collectAsState(initial = false)
+
+    // 닉네임 입력 유효성 (로컬 조건)
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 10
 
     Column(
@@ -56,6 +63,7 @@ fun SignUpNicknameScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
+        //닉네임 입력 필드
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -70,7 +78,14 @@ fun SignUpNicknameScreen(
         ) {
             OutlinedTextField(
                 value = nickname,
-                onValueChange = { nickname = it },
+                onValueChange = {
+                    nickname = it
+                    signUpViewModel.nickname = it
+                    // 닉네임이 유효할 때만 API 호출
+                    if (isNicknameValid) {
+                        signUpViewModel.checkNickname()
+                    }
+                },
                 placeholder = {
                     Text(
                         "닉네임을 입력해주세요.",
@@ -92,6 +107,29 @@ fun SignUpNicknameScreen(
                 shape = RoundedCornerShape(16.dp)
             )
         }
+
+        // 닉네임 중복 메시지 표시 (빨간 글씨)
+        if (isNicknameAvailable == false) {
+            Text(
+                text = "중복된 닉네임 입니다.",
+                fontSize = 13.sp,
+                fontFamily = Paperlogy,
+                color = Color(0xFFFF5E5E),
+                fontWeight = FontWeight.Normal
+            )
+        }
+
+        // 서버 요청 실패 메시지 표시
+        if (nicknameMessage == "서버 요청 실패") {
+            Text(
+                text = "서버 요청 실패",
+                fontSize = 13.sp,
+                fontFamily = Paperlogy,
+                color = Color(0xFFFF5E5E),
+                fontWeight = FontWeight.Normal
+            )
+        }
+
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -124,22 +162,25 @@ fun SignUpNicknameScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         // 다음 버튼
+        // 닉네임 유효성 + 서버 중복 확인 성공 여부
+        val canProceed = isNicknameValid && (isNicknameAvailable == true)
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = if (isNicknameValid)
+                        colors = if (canProceed)
                             listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
                         else
                             listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
-                .clickable(enabled = isNicknameValid) {
-                    signUpViewModel.nickname = nickname // ViewModel에 저장
-                    navigator.navigate("sign_up_gender") //
+                .clickable(enabled = canProceed) {
+                    signUpViewModel.nickname = nickname
+                    navigator.navigate("sign_up_gender")
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -151,6 +192,7 @@ fun SignUpNicknameScreen(
                 fontWeight = FontWeight.Bold
             )
         }
+
     }
 }
 @Composable

@@ -81,7 +81,7 @@ val contentLabelToCode = mapOf(
 @Composable
 fun InterestContentScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel = hiltViewModel()
+    signUpViewModel: SignUpViewModel ?= null
 ) {
     val selectedContents = remember { mutableStateListOf<String>() }
 
@@ -154,7 +154,9 @@ fun InterestContentScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
                 .clickable(enabled = canProceed) {
-                    signUpViewModel.interestList = selectedContents.toList()
+                    //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
+                    signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
+
                     navigator.navigate("welcome")
                 },
             contentAlignment = Alignment.Center
@@ -314,10 +316,9 @@ fun ContentStepIndicator() {
 @Composable
 fun InterestContentScreenPreview() {
     val fakeNavController = rememberNavController()
-    val fakeViewModel = remember { SignUpViewModel() }
 
     InterestContentScreen(
         navigator = fakeNavController,
-        signUpViewModel = fakeViewModel
+
     )
 }

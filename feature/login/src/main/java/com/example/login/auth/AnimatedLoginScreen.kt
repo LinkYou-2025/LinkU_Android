@@ -10,13 +10,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnimatedLoginScreen(navigator: NavController){
+fun AnimatedLoginScreen(navigator: NavHostController){
     val logoOffset = remember { Animatable(40f) }
     val contentAlpha = remember { Animatable(0f) }
 
@@ -49,6 +49,7 @@ fun AnimatedLoginScreen(navigator: NavController){
 
     Box(modifier = Modifier.fillMaxSize()) {
         LoginScreen(
+            navigator = navigator,
             logoOffsetY = logoOffset.value,
             contentAlpha = contentAlpha.value,
             emailButtonColor = emailButtonColor.value,

@@ -23,7 +23,6 @@ import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
 import com.example.home.HomeScreen
 import com.example.linku_android.component.NavigationItem
-import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
 
 import androidx.navigation.NavType
@@ -31,7 +30,6 @@ import androidx.navigation.navArgument
 
 
 import androidx.navigation.compose.composable
-import com.example.login.auth.AnimatedLoginScreen
 import com.example.login.auth.AnimatedLoginScreen
 import com.example.login.auth.EmailVerificationScreen
 import com.example.login.auth.ServiceTermsScreen
