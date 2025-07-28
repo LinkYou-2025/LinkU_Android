@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -8,6 +11,9 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val localProperties = Properties()
+localProperties.load(FileInputStream(rootProject.file("local.properties")))
+
 android {
     namespace = "com.example.data"
     compileSdk = 35
@@ -17,6 +23,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField(
+            "String",
+            "SERVER_BASE_URL",
+            "\"${localProperties.getProperty("SERVER_BASE_URL")}\""
+        )
     }
 
     buildTypes {
