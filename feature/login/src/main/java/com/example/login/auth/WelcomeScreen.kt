@@ -1,5 +1,6 @@
 package com.example.login.auth
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,14 +20,39 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.login.R
 import com.example.login.Paperlogy
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
 fun WelcomeScreen(
-    navigator: NavHostController
+    navigator: NavHostController,
+    signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
+    // StateFlow → Compose State 변환
+    val signUpResponseState = signUpViewModel.signUpState.collectAsState()
+    val signUpResponse = signUpResponseState.value
+
+    // 화면 진입 시 API 한 번 호출
+    LaunchedEffect(Unit) {
+        signUpViewModel.signUp()
+    }
+
+    // 서버 응답 감지 후 로깅
+    LaunchedEffect(signUpResponse) {
+        signUpResponse?.let {
+            if (it.isSuccess) {
+                Log.d("WelcomeScreen", "회원가입 성공: ${it.message}")
+            } else {
+                Log.e("WelcomeScreen", "회원가입 실패: ${it.message}")
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()

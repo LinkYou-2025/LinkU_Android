@@ -1,5 +1,6 @@
 package com.example.login.auth
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -25,21 +27,43 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.core.utils.TokenManager
 import com.example.login.R
 import com.example.login.Paperlogy
-
-
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
 
 
 @Composable
 fun EmailLoginScreen(
     navigator: NavHostController,
+    loginViewModel: LoginViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    val context = LocalContext.current
+
+    val loginResponse by loginViewModel.loginState.collectAsState()
 
     val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
+
+    // 로그인 응답 감지
+    LaunchedEffect(loginResponse) {
+        loginResponse?.let { response ->
+            if (response.isSuccess) {
+                val token = response.result?.accessToken ?: ""
+                TokenManager.saveToken(context, token)
+                navigator.navigate("home")
+            } else {
+                Log.e("Login", "로그인 실패: ${response.message}")
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -147,7 +171,7 @@ fun EmailLoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 로그인 버튼
+            //로그인 버튼
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -162,7 +186,7 @@ fun EmailLoginScreen(
                         shape = RoundedCornerShape(24.dp)
                     )
                     .clickable(enabled = isFormValid) {
-                        navigator.navigate("home")
+                        loginViewModel.login(email, password) // ✅ StateFlow 업데이트만 실행
                     },
                 contentAlignment = Alignment.Center
             ) {
