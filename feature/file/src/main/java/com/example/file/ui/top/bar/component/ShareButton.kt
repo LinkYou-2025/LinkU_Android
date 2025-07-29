@@ -1,6 +1,6 @@
 // 공유 버튼 이미지 레이아웃
 
-package com.example.file.ui
+package com.example.file.ui.top.bar.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

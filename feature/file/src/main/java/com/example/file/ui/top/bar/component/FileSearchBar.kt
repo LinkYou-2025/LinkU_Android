@@ -1,5 +1,4 @@
-
-package com.example.file.ui
+package com.example.file.ui.top.bar.component
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
