@@ -66,6 +66,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation(libs.gson)
+
     // 의존성 정의
     implementation(project(":feature:login"))
     implementation(project(":feature:home"))
