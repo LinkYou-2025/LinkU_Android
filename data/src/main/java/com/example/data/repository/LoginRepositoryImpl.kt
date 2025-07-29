@@ -11,6 +11,7 @@ import com.example.core.api.NicknameResponse
 import com.example.core.api.SignUpRequest
 import com.example.core.api.SignUpResponse
 import com.example.core.domain.LoginRepository
+import com.example.core.utils.TokenManager
 import jakarta.inject.Inject
 
 /**
@@ -18,7 +19,8 @@ import jakarta.inject.Inject
  * core의 LoginApi를 사용하여 서버와 통신
  */
 class LoginRepositoryImpl @Inject constructor(
-    private val loginApi: LoginApi
+    private val loginApi: LoginApi,
+    private val tokenManager: TokenManager
 ) : LoginRepository {
 
     // 닉네임을 파라미터로 받아 API에 전달
@@ -31,7 +33,13 @@ class LoginRepositoryImpl @Inject constructor(
 
     // 로그인 API 호출 구현
     override suspend fun login(email: String, password: String): LoginResponse {
-        return loginApi.login(LoginRequest(email, password))
+        val response = loginApi.login(LoginRequest(email, password))
+        //  로그인 성공 시 JWT 저장
+        response.result?.accessToken?.let { token ->
+            Log.d("LoginRepositoryImpl", "JWT 저장 → $token")
+            tokenManager.saveToken(token)
+        }
+        return response
     }
 
     override suspend fun sendEmailCode(email: String): EmailCodeResponse {

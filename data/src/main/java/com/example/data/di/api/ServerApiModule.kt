@@ -1,7 +1,6 @@
 package com.example.data.di.api
 
 import com.squareup.moshi.Moshi
-import com.example.data.BuildConfig
 import com.example.data.api.ServerApi
 import com.example.data.preference.AuthPreference
 import dagger.Module
@@ -13,6 +12,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
+import com.example.data.BuildConfig
 
 @Module
 @InstallIn(SingletonComponent::class)
