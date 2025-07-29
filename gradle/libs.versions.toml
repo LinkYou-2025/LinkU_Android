@@ -29,6 +29,7 @@ runtimeAndroid = "1.7.7"
 firebaseMessagingKtx = "24.1.1"
 gson = "2.10.1"
 
+
 [libraries]
 androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

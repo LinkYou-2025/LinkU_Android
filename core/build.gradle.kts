@@ -39,7 +39,7 @@ dependencies {
 
     // design 모듈 의존성
     implementation(project(":design"))
-    implementation(project(":data"))
+
 
 
     // ✅ Retrofit2 & OkHttp 추가 (버전은 app 모듈과 동일한 libs 사용)
