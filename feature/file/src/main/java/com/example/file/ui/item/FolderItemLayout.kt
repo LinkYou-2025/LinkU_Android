@@ -46,7 +46,7 @@ import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.content.BookMarkStar
 import com.example.file.ui.content.PencilIcon
-import com.example.file.ui.state.EditState
+import com.example.file.ui.state.EditStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
@@ -267,7 +267,7 @@ fun TopFolderItemLayout(
 fun BottomFolderItemLayout(
     categoryColorStyle: CategoryColorStyle,
     categoryName: String,
-    editState: EditState
+    editStateViewModel: EditStateViewModel
 ){
     FolderItemLayout(
         backgroundColor = categoryColorStyle.color1,
@@ -277,7 +277,7 @@ fun BottomFolderItemLayout(
         folderMaskBrush = categoryColorStyle.verticalGradient(),
         leftIcon = {},
         rightIcon = {
-            if(editState.isEditMode){
+            if(editStateViewModel.isEditMode){
                 Box(
                     modifier = Modifier
                 ) {
@@ -302,7 +302,7 @@ fun FolderItemTest() {
         BottomFolderItemLayout(
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
             categoryName = "기본",
-            editState = viewModel()
+            editStateViewModel = viewModel()
         )
     }
 }

@@ -24,7 +24,7 @@ import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.LinkItemLayout
-import com.example.file.ui.state.EditState
+import com.example.file.ui.state.EditStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
@@ -33,7 +33,7 @@ import com.example.file.ui.theme.DefaultFont
 fun BottomFolderGrid(
     folderList: List<String>,
     linkList: List<String>,
-    editState: EditState,
+    editStateViewModel: EditStateViewModel,
     onFolderClick: (String) -> Unit
 ){
     Column {
@@ -82,7 +82,7 @@ fun BottomFolderGrid(
                     BottomFolderItemLayout(
                         categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
                         categoryName = folder,
-                        editState = editState
+                        editStateViewModel = editStateViewModel
                     )
                 }
             }
@@ -131,6 +131,6 @@ fun BottomFolderGridTest(){
     BottomFolderGrid(
         listOf("카테고리 1","카테고리 2","카테고리 3","카테고리 4","카테고리 5"),
         listOf("태그1", "태그2"),
-        editState = viewModel()
+        editStateViewModel = viewModel()
     ){}
 }

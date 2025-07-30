@@ -11,25 +11,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.state.EditState
+import com.example.file.ui.state.EditStateViewModel
+import com.example.file.ui.state.FolderState
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.White
 
 
 @Composable
 fun EditButton(
-    editState: EditState
+    editStateViewModel: EditStateViewModel,
+    folderViewModel: FolderStateViewModel
 ) {
 
     // 수정 버튼
     Text(
         modifier = Modifier
             .noRippleClickable {
-                editState.updateEditMode(!editState.isEditMode)
+                if (folderViewModel.currentFolderState == FolderState.BOTTOM){
+                    editStateViewModel.updateEditMode(!editStateViewModel.isEditMode)
+                }
             },
 
         // 텍스트 내용 ("수정")
-        text = if(editState.isEditMode) "완료" else "수정",
+        text = if(editStateViewModel.isEditMode) "완료" else "수정",
 
         // 텍스트 크기 (15sp)
         fontSize = 15.sp,
@@ -54,5 +59,5 @@ fun EditButton(
 @Preview(showBackground = true)
 @Composable
 fun EditButtonTest() {
-    EditButton(viewModel())
+    EditButton(viewModel(), viewModel())
 }

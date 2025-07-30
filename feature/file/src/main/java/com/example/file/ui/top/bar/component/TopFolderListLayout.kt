@@ -33,7 +33,8 @@ import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 
 @Composable
-fun TopFolderListLayout() {
+fun TopFolderListLayout(
+) {
 
     // 레이아웃의 배경틀
     Surface(
@@ -48,8 +49,6 @@ fun TopFolderListLayout() {
         shape = RoundedCornerShape(14.dp),
     ) {
 
-        val expanded = remember { mutableStateOf(false) }
-
         // 내부 배치 레이아웃
         Row(
             modifier = Modifier
@@ -57,8 +56,7 @@ fun TopFolderListLayout() {
                 .fillMaxSize()
 
                 // 내부 여백 (양 옆 15dp)
-                .padding(horizontal = 15.dp)
-                .noRippleClickable{expanded.value = true},
+                .padding(horizontal = 15.dp),
 
             // 가로 정렬 방법 (요소 간 10dp 간격, 가로 중앙 정렬)
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
@@ -110,14 +108,6 @@ fun TopFolderListLayout() {
                 contentDescription = "아래 화살표"
             )
         }
-
-        TopFolderListMenu(
-            listOf("나의 폴더", "공유받은 폴더"),
-            expanded.value,
-            { expanded.value = false },
-            {}
-        )
-
     }
 }
 
