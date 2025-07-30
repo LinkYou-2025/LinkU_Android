@@ -46,11 +46,11 @@ fun TextFieldFileBottomSheet(
     onDismiss: () -> Unit,
 ){
     FileBottomSheet(
-        title,
-        body,
-        "저장",
-        visible,
-        onDismiss
+        title = title,
+        body = body,
+        buttonText = "저장",
+        visible = visible,
+        onDismiss = onDismiss
     ) {
         Row(
             modifier = Modifier

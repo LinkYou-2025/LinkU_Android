@@ -1,9 +1,14 @@
 package com.example.file.ui.content
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cheonjaeung.compose.grid.SimpleGridCells
@@ -37,20 +42,29 @@ fun TopFolderGrid(
         modifier = Modifier
             .fillMaxWidth(),
         columns = SimpleGridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(20.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
         for (i in 0..15) {
-            TopFolderItemLayout(
-                categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
-                categoryName = categories[i],
-                isBookmarked = false
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
+            ){
+                TopFolderItemLayout(
+                    categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
+                    categoryName = categories[i],
+                    isBookmarked = false
+                )
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    heightDp = 2000
+)
 @Composable
 fun TopFolderGridTest(){
     TopFolderGrid(

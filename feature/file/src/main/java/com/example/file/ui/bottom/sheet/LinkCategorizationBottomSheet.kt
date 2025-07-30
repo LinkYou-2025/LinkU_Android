@@ -58,11 +58,11 @@ fun LinkCategorizationBottomSheet(
     onDismiss: () -> Unit
 ) {
     FileBottomSheet(
-        "$folderName 폴더의 미분류 링크 목록",
-        "하위폴더에 추가하실 링크를 선택해주세요!",
-        "추가",
-        visible,
-        onDismiss
+        title = "$folderName 폴더의 미분류 링크 목록",
+        body = "하위폴더에 추가하실 링크를 선택해주세요!",
+        buttonText = "추가",
+        visible = visible,
+        onDismiss = onDismiss
     ) {
         LazyColumn(
             modifier = Modifier
