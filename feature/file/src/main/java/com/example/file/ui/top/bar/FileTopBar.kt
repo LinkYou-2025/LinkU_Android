@@ -44,6 +44,7 @@ import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.top.bar.component.EditButton
 import com.example.file.ui.bottom.sheet.FileBottomSheet
+import com.example.file.ui.content.TopFolderGrid
 import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 import com.example.file.ui.top.bar.component.TopFolderListLayout
 import com.example.file.ui.top.bar.component.TopFolderListMenu
@@ -223,47 +224,7 @@ fun FileTopBarTest() {
                 contentPadding = PaddingValues(20.dp)
             ) {
                 item {
-                    // Folder Grid
-                    VerticalGrid(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        columns = SimpleGridCells.Fixed(2),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalArrangement = Arrangement.spacedBy(18.51.dp),
-                    ) {
-                        // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
-                        itemList.forEach { folder ->
-                        }
-                    }
-                }
-
-                item {
-                    // "분류되지 않은 링크" 텍스트
-                    Text(
-                        text = "분류되지 않은 링크",
-                        fontSize = 20.sp,
-                        lineHeight = 30.sp,
-                        fontFamily = DefaultFont,
-                        fontWeight = FontWeight(700),
-                        color = Black,
-                        modifier = Modifier.padding(top = 40.dp, bottom = 20.dp) // 위아래 간격 추가
-                    )
-                }
-
-                item {
-                    // Link Grid
-                    VerticalGrid(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        columns = SimpleGridCells.Fixed(2),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalArrangement = Arrangement.spacedBy(18.51.dp)
-                    ) {
-                        // items 람다 안에 file을 넘겨줘야 LinkItemLayout에서 사용할 수 있어!
-                        itemList.forEach { link -> // 변수 이름을 link로 변경하는 게 더 명확할 것 같아!
-                            LinkItemLayout(link)
-                        }
-                    }
+                    TopFolderGrid()
                 }
             }
 
@@ -282,11 +243,11 @@ fun FileTopBarTest() {
         onDismiss = { isTopSheetVisible = false }
     )
     FileBottomSheet(
-        "해당 카테고리를 수정하시겠습니까?",
-        "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
-        "저장",
-        isBottomSheetVisible,
-        { isTopSheetVisible = false }
+        title = "해당 카테고리를 수정하시겠습니까?",
+        body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
+        buttonText = "저장",
+        visible = isBottomSheetVisible,
+        onDismiss = { isBottomSheetVisible = false }
     ) {
         Row(
             modifier = Modifier

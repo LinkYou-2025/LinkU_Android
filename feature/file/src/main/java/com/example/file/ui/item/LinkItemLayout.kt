@@ -45,16 +45,19 @@ import com.example.file.ui.FileModalWindow
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
+import com.example.file.ui.theme.Gray200
+import com.example.file.ui.theme.Gray400
+import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
 
 @Composable
 fun LinkItemLayout(
-    painter: Painter = painterResource(id = R.drawable.link_categorization_default),
+    painter: Painter? = null,
     title: String = "제목",
     tags: List<String> = listOf("태그1", "태그2"),
-    domainIcon: Painter = painterResource(id = R.drawable.twiter_logo_img),
+    domainIcon: Painter? = null,
     domain: String = "도메인",
 ) {
     var showDialog by remember { mutableStateOf(false) }
@@ -126,14 +129,24 @@ fun LinkItemLayout(
                     .clip(RoundedCornerShape(18.dp))
                     .size(157.dp)
                     .align(Alignment.CenterHorizontally)
-                    .background(Gray100),
+                    .background(color = if(painter != null) Gray100 else White),
+                contentAlignment = Alignment.Center
             ){
-                Image(
-                    modifier = Modifier.fillMaxSize(),
-                    // 사용할 이미지 리소스
-                    painter = painter,  // 테스트 이미지
-                    contentDescription = null
-                )
+                if(painter != null){
+                    Image(
+                        modifier = Modifier.fillMaxSize(),
+                        // 사용할 이미지 리소스
+                        painter = painter,  // 테스트 이미지
+                        contentDescription = null
+                    )
+                }else{
+                    Icon(
+                        modifier = Modifier.width(90.dp),
+                        painter = painterResource(com.example.design.R.drawable.logo_whiteback),
+                        tint = Gray400,
+                        contentDescription = null
+                    )
+                }
             }
 
             // (2) 링크 제목
@@ -184,16 +197,24 @@ fun LinkItemLayout(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
 
-                // 도메인 아이콘 (ex. 트위터)
-                Image(
-                    // 원형으로 클립, 사이즈 26dp
+                Box(
                     modifier = Modifier
+                        .size(26.dp)
                         .clip(CircleShape)
-                        .size(26.dp),
-                    // 아이콘 이미지 리소스
-                    painter = domainIcon,  // 트위터 로고(테스트)
-                    contentDescription = null
-                )
+                        .background(color = Gray200),
+                    contentAlignment = Alignment.Center
+                ){
+                    // 도메인 아이콘 (ex. 트위터)
+                    if (domainIcon != null) {
+                        Image(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            // 아이콘 이미지 리소스
+                            painter = domainIcon,  // 트위터 로고(테스트)
+                            contentDescription = null
+                        )
+                    }
+                }
 
                 // 링크의 도메인 텍스트
                 Text(
@@ -241,15 +262,17 @@ fun LinkItemLayout(
 @Composable
 fun LinkItemTest() {
     Box(
-        modifier = Modifier.alpha(0.35f),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.TopCenter
     ){
-        LinkItemLayout(
-            tags = listOf("태그1", "태그2"),
-            painter = painterResource(R.drawable.add_link)
-        )
+        Box(
+            modifier = Modifier.alpha(0.35f),
+        ){
+            LinkItemLayout(
+                tags = listOf("태그1", "태그2"),
+            )
+        }
 
-        Icon(
+        Image(
             modifier = Modifier.padding(top = 103.dp),
             painter = painterResource(R.drawable.add_folder_icon),
             contentDescription = null
