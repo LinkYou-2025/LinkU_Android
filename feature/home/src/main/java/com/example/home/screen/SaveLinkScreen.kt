@@ -46,7 +46,9 @@ import com.example.design.theme.color.Basic
 import com.example.home.R
 
 @Composable
-fun SaveLinkScreen() {
+fun SaveLinkScreen(
+    onSaveSuccess: () -> Unit
+) {
     val isInvalidLink = false  // 임의로 false로 값을 주고 추후 API 연결 시 교체 예정
     val linkText = remember { mutableStateOf("") }
     val bannedDomains = listOf("youtube.com", "youtu.be")
@@ -327,9 +329,13 @@ fun SaveLinkScreen() {
                             )
                         }
                     )
-                    .clickable(enabled = isButtonEnabled) {
-                        // 클릭 시 실행할 동작
-                    },
+                    .clickable(
+                        enabled = isButtonEnabled,
+                        onClick = {
+                            // 저장 로직 후 이동
+                            onSaveSuccess()
+                        }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -458,5 +464,5 @@ private fun EmotionBadge(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSaveLinkScreen() {
-    SaveLinkScreen()
+    SaveLinkScreen(onSaveSuccess = {})
 }
