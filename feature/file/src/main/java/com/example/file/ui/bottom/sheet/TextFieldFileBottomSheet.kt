@@ -1,7 +1,16 @@
 package com.example.file.ui.bottom.sheet
 
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,11 +18,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,19 +33,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.cheonjaeung.compose.grid.SimpleGridCells
+import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
+import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray300
 import com.example.file.ui.theme.Gray400
 import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.MainColor
+import com.example.file.ui.theme.White
 
 @Composable
 fun TextFieldFileBottomSheet(
@@ -45,6 +65,7 @@ fun TextFieldFileBottomSheet(
     visible: Boolean,
     onDismiss: () -> Unit,
 ){
+    var expanded by remember { mutableStateOf(false) }
     FileBottomSheet(
         title = title,
         body = body,
@@ -96,6 +117,7 @@ fun TextFieldFileBottomSheet(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .animateContentSize()
                     .padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -118,25 +140,75 @@ fun TextFieldFileBottomSheet(
                     color = Gray400,
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                Surface(
+                Box(
                     modifier = Modifier
-                        .size(25.dp),
-                    color = Gray300,
-                    shape = CircleShape
-                ) { }
+                        .size(25.dp)
+                        .clip(CircleShape)
+                        .background(Gray300),
+                    contentAlignment = Alignment.Center
+                ) {
+
+                    Icon(
+                        modifier = Modifier.width(15.dp),
+                        imageVector = Icons.Default.Check,
+                        tint = White,
+                        contentDescription = null
+                    )
+                }
+
+                val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "")
+
+                val modifier = if(expanded) Modifier
+                    .padding(start = 10.dp)
+                    .graphicsLayer(alpha = 0.99f)
+                    .drawWithCache {
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(MainColor, blendMode = BlendMode.SrcAtop)
+                        }
+                    } else Modifier.padding(start = 10.dp)
                 Icon(
-                    modifier = Modifier
-                        .padding(start = 10.dp),
+                    modifier = modifier.rotate(rotation),
                     tint = Gray600,
                     painter = painterResource(id = R.drawable.check_img),
                     contentDescription = "아래 화살표"
                 )
             }
+            AnimatedVisibility(
+                modifier = Modifier
+                    .padding(top = 14.dp)
+                    .padding(horizontal = 26.5.dp),
+                visible = expanded,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                VerticalGrid(
+                    columns = SimpleGridCells.Fixed(8),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalArrangement = Arrangement.spacedBy(7.5.dp)
+                ) {
+                    for (colorStyle in CategoryColorStyle.categoryStyleList) {
+
+                        Box(
+                            modifier = Modifier.fillMaxWidth()
+                        ){
+                            Box(
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .clip(CircleShape)
+                                    .background(colorStyle.color4)
+                                    .align(Alignment.Center),
+                                contentAlignment = Alignment.Center
+                            ) {}
+                        }
+                    }
+                }
+            }
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 2000)
 @Composable
 fun TextFieldFileBottomSheetTest(){
     TextFieldFileBottomSheet(
