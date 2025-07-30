@@ -19,7 +19,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.ui.content.categories
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray800
@@ -28,20 +30,19 @@ import kotlin.math.exp
 
 @Composable
 fun BottomFolderListMenu(
+    folderStateViewModel: FolderStateViewModel,
     items: List<String> = categories,
     isLinks: Boolean = false,
-    expanded: Boolean,
-    onDismiss: () -> Unit,
     onChangeFolder: () -> Unit
 ){
     DropdownMenu(
         modifier = Modifier
-//            .heightIn(max = 264.dp)
+            .heightIn(max = 264.dp)
             .width(205.dp),
         shape = RoundedCornerShape(18.dp),
         offset = DpOffset(0.dp, 10.dp),
-        expanded = expanded,
-        onDismissRequest = { onDismiss() },
+        expanded = folderStateViewModel.bottomMenuExpanded,
+        onDismissRequest = { folderStateViewModel.updateBottomMenuExpanded(false) },
         containerColor = White
     ) {
         for((i, category) in items.withIndex()){
@@ -79,11 +80,11 @@ fun BottomFolderListMenu(
 @Preview()
 @Composable
 fun BottomFolderListMenuTest(){
+    val folderStateViewModel: FolderStateViewModel = viewModel()
     BottomFolderListMenu(
+        folderStateViewModel = folderStateViewModel,
 //        items = listOf("나의 폴더", "공유받은 폴더"),
         isLinks = true,
-        expanded = true,
-        onDismiss = {},
         onChangeFolder = {}
     )
 }

@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 
-class EditState : ViewModel(){
+class EditStateViewModel : ViewModel(){
     var isEditMode by mutableStateOf(false)
         private set
 

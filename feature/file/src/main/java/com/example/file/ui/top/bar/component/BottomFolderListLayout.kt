@@ -6,47 +6,47 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.R
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
-import com.example.file.ui.theme.Gray500
-import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 
 @Composable
 fun BottomFolderListLayout(
-    colorStyle: CategoryColorStyle
+    colorStyle: CategoryColorStyle,
+    folderStateViewModel: FolderStateViewModel
 ) {
+    var text = (folderStateViewModel.selectedTopFolder?:"") +
+            (folderStateViewModel.selectedBottomFolder?.let{ " > $it" }?:"")
+
     // 레이아웃의 배경틀
     Box(
         modifier = Modifier
+            .height(35.dp)
             .clip(RoundedCornerShape(14.dp))
+            .background(White)
             .background(brush = colorStyle.horizontalGradient())
             // 가로 111.28947dp, 세로 35dp로 전체 크기 지정
-            .padding(horizontal = 15.dp)
-            .padding(vertical = 10.dp)
+            .padding(horizontal = 15.dp),
+        contentAlignment = Alignment.Center
     ) {
 
         // 내부 배치 레이아웃
@@ -64,7 +64,7 @@ fun BottomFolderListLayout(
 
             // 현재, 상위 폴더명
             Text(
-                text = "어학 > 영어",
+                text = text,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
                 fontFamily = DefaultFont,
@@ -91,7 +91,11 @@ fun BottomFolderListLayout(
 @Preview(showBackground = true)
 @Composable
 fun BottomFolderListLayoutTest() {
+    val folderStateViewModel: FolderStateViewModel = viewModel()
+    folderStateViewModel.updateSelectedTopFolder("어학")
+    // folderStateViewModel.updateSelectedBottomFolder("단어장")
     BottomFolderListLayout(
-        colorStyle = CategoryColorStyle.categoryStyleList[0]
+        colorStyle = CategoryColorStyle.categoryStyleList[0],
+        folderStateViewModel = folderStateViewModel
     )
 }

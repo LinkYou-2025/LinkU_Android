@@ -24,6 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.MainColor
@@ -31,9 +33,8 @@ import com.example.file.ui.theme.White
 
 @Composable
 fun TopFolderListMenu(
+    folderStateViewModel: FolderStateViewModel,
     items: List<String>,
-    expanded: Boolean,
-    onDismiss: () -> Unit,
     onChangeFolder: () -> Unit
 ){
     DropdownMenu(
@@ -41,30 +42,33 @@ fun TopFolderListMenu(
             .width(150.dp),
         shape = RoundedCornerShape(18.dp),
         offset = DpOffset(0.dp, 10.dp),
-        expanded = expanded,
-        onDismissRequest = { onDismiss() },
+        expanded = folderStateViewModel.topMenuExpanded,
+        onDismissRequest = { folderStateViewModel.updateTopMenuExpanded(false) },
         containerColor = White
     ) {
         var selectedText = remember { mutableStateOf(items[0]) }
         items.forEach{ selectedOption ->
             DropdownMenuItem(
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .graphicsLayer(alpha = 0.99f) // 강제 레이어
-                            .drawWithCache {
-                                onDrawWithContent {
-                                    drawContent() // 기본 아이콘 먼저 그림
-                                    drawRect(
-                                        MainColor,
-                                        blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
-                                    )
+                leadingIcon = if (selectedOption == selectedText.value){
+                    @Composable
+                    {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .graphicsLayer(alpha = 0.99f) // 강제 레이어
+                                .drawWithCache {
+                                    onDrawWithContent {
+                                        drawContent() // 기본 아이콘 먼저 그림
+                                        drawRect(
+                                            MainColor,
+                                            blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
+                                        )
+                                    }
                                 }
-                            }
-                    )
-                },
+                        )
+                    }
+                }else null,
                 text = {
                     Text(
                         text = buildAnnotatedString {
@@ -103,10 +107,10 @@ fun TopFolderListMenu(
 @Preview()
 @Composable
 fun FolderListMenuTest(){
+    val folderStateViewModel: FolderStateViewModel = viewModel()
     TopFolderListMenu(
+        folderStateViewModel = folderStateViewModel,
         listOf("나의 폴더", "공유받은 폴더"),
-        true,
-        {},
         {}
     )
 }
