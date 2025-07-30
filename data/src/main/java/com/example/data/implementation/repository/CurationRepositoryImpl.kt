@@ -12,4 +12,10 @@ class CurationRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
 ): CurationRepository {
+
+    override suspend fun generateMonthlyCuration(userId: Long) {
+        serverApi.withAuth(authPreference) {
+            generateMonthlyCuration(userId)
+        }
+    }
 }
