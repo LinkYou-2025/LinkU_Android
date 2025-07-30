@@ -53,7 +53,7 @@ class UserRepositoryImpl @Inject constructor(
             email = email,
             password = password,
             gender = gender,
-            jobId = jobId.toLong(),
+            jobId = jobId,
             purposeList = purposeList,
             interestList = interestList
         )

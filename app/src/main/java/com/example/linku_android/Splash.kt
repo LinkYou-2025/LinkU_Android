@@ -26,19 +26,18 @@ fun Splash(onFinish: () -> Unit) {
     var isGlowPhase by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        // 로고 회전 애니메이션
+        println("✅ Splash 시작됨")
         rotationAnim.animateTo(
             targetValue = 180f,
             animationSpec = tween(durationMillis = 2500, easing = FastOutSlowInEasing)
         )
 
-        // Glow 시작
+        println("✅ Glow Phase 진입")
         isGlowPhase = true
-        delay(700) // glow 유지 시간
+        delay(700)
 
-        delay(800) // 로그인 진입 애니메이션과 연결되도록 텀 주기
-
-        // 다음 화면으로 이동
+        delay(800)
+        println("✅ Splash onFinish 호출")
         onFinish()
     }
 
@@ -52,14 +51,14 @@ fun Splash(onFinish: () -> Unit) {
             .fillMaxSize()
             .background(
                 if (isGlowPhase) {
-                    // ✅ Glow 단계: Figma와 동일하게 분홍 → 파랑 (좌상단 → 우하단)
+                    //  Glow 단계: Figma와 동일하게 분홍 → 파랑 (좌상단 → 우하단)
                     Brush.linearGradient(
                         colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
                         start = Offset(0f, 0f),
                         end = Offset.Infinite
                     )
                 } else {
-                    // ✅ 애니메이션 단계: 파랑 → 분홍 → 파랑 보간
+                    //  애니메이션 단계: 파랑 → 분홍 → 파랑 보간
                     Brush.linearGradient(
                         colors = listOf(startColor, endColor),
                         start = Offset(0f, 0f),
