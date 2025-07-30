@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,7 +30,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +50,13 @@ import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
 
 @Composable
-fun LinkItemLayout(tags: List<String>) {
+fun LinkItemLayout(
+    painter: Painter = painterResource(id = R.drawable.link_categorization_default),
+    title: String = "제목",
+    tags: List<String> = listOf("태그1", "태그2"),
+    domainIcon: Painter = painterResource(id = R.drawable.twiter_logo_img),
+    domain: String = "도메인",
+) {
     var showDialog by remember { mutableStateOf(false) }
 
     // 링크 분류 태그(Chip) 컴포저블
@@ -88,7 +97,7 @@ fun LinkItemLayout(tags: List<String>) {
         modifier = Modifier
             .width(181.dp)
             .height(267.dp)
-            .pointerInput(Unit){
+            .pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         showDialog = true // 꾹 누르면 Dialog 띄우기
@@ -111,23 +120,28 @@ fun LinkItemLayout(tags: List<String>) {
         ) {
 
             // (1) 링크의 메인 이미지
-            Image(
+            Box(
                 // 둥근 모서리(18dp)로 클립, 사이즈 157dp, 가로 중앙 정렬
                 modifier = Modifier
                     .clip(RoundedCornerShape(18.dp))
                     .size(157.dp)
-                    .align(Alignment.CenterHorizontally),
-                // 사용할 이미지 리소스
-                painter = painterResource(id = R.drawable.test_img),  // 테스트 이미지
-                contentDescription = null
-            )
+                    .align(Alignment.CenterHorizontally)
+                    .background(Gray100),
+            ){
+                Image(
+                    modifier = Modifier.fillMaxSize(),
+                    // 사용할 이미지 리소스
+                    painter = painter,  // 테스트 이미지
+                    contentDescription = null
+                )
+            }
 
             // (2) 링크 제목
             Text(
                 // 위쪽 여백(10dp)
                 modifier = Modifier
                     .padding(top = 10.dp),
-                text = "제목",
+                text = title,
                 // 폰트 크기(15sp)
                 fontSize = 15.sp,
                 // 폰트
@@ -177,7 +191,7 @@ fun LinkItemLayout(tags: List<String>) {
                         .clip(CircleShape)
                         .size(26.dp),
                     // 아이콘 이미지 리소스
-                    painter = painterResource(id = R.drawable.twiter_logo_img),  // 트위터 로고(테스트)
+                    painter = domainIcon,  // 트위터 로고(테스트)
                     contentDescription = null
                 )
 
@@ -186,7 +200,7 @@ fun LinkItemLayout(tags: List<String>) {
                     modifier = Modifier,
 
                     // 텍스트 내용
-                    text = "도메인",
+                    text = domain,
 
                     // 폰트 크기 (12sp)
                     fontSize = 12.sp,
@@ -226,5 +240,29 @@ fun LinkItemLayout(tags: List<String>) {
 @Preview(showBackground = true)
 @Composable
 fun LinkItemTest() {
-    LinkItemLayout(listOf("태그1", "태그2", "태그3"))
+    Box(
+        modifier = Modifier.alpha(0.35f),
+        contentAlignment = Alignment.Center
+    ){
+        LinkItemLayout(
+            tags = listOf("태그1", "태그2"),
+            painter = painterResource(R.drawable.add_link)
+        )
+
+        Icon(
+            modifier = Modifier.padding(top = 103.dp),
+            painter = painterResource(R.drawable.add_folder_icon),
+            contentDescription = null
+        )
+
+        Text(
+            modifier = Modifier.padding(top = 147.dp),
+            text = "링크 추가하기",
+            fontSize = 15.sp,
+            fontFamily = DefaultFont,
+            fontWeight = FontWeight(500),
+            color = Black,
+            textAlign = TextAlign.Center,
+        )
+    }
 }

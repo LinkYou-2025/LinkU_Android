@@ -18,9 +18,10 @@ fun LinksGrid(
         modifier = Modifier
             .fillMaxWidth(),
         columns = SimpleGridCells.Fixed(2),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.spacedBy(20.dp),
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
+
         // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
         linkList.forEach { link ->
             LinkItemLayout(linkList)

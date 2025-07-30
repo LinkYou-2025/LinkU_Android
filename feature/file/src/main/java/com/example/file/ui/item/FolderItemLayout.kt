@@ -45,6 +45,7 @@ import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray200
 import com.example.file.ui.theme.Gray300
+import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.White
 
 @Composable
@@ -140,7 +141,7 @@ fun FolderItemLayout(
                         }
                         .shadow(
                             elevation = 10.dp,
-                            ambientColor = Color.Black.copy(alpha = 0.5f), // 그림자 강도 조절!
+                            ambientColor = Color.Black.copy(alpha = 0.5f),
                             spotColor = Color.Black.copy(alpha = 0.5f),
                         )
                 )
@@ -221,7 +222,7 @@ fun EmptyFolderItemLayout(
         folderMaskBrush = topFolderMaskBrush,
         leftIcon = {},
         rightIcon = {},
-        textBackgroundColor = Gray100,
+        textBackgroundColor = Gray500,
         categoryName = categoryName
     )
 }
