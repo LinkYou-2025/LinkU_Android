@@ -19,7 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.curation.CurationScreen
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
-import com.example.home.HomeScreen
+import com.example.home.screen.HomeScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
