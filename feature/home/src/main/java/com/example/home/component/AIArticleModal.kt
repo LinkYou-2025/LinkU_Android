@@ -36,7 +36,8 @@ fun AIArticleModal(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(22.dp)),
+            .clip(RoundedCornerShape(22.dp))
+            .background(LocalColorTheme.current.white),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(

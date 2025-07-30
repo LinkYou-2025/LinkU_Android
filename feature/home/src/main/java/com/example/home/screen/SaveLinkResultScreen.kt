@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import coil3.compose.rememberAsyncImagePainter
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
@@ -57,26 +59,21 @@ fun SaveLinkResultScreen(
 
     var isEditMode by remember { mutableStateOf(false) }
 
+    var memoText by remember { mutableStateOf("본격적으로 오픽 시험 준비하기 전에 봐야할 영상!!!!") }
+    var isMemoEditing by remember { mutableStateOf(false) }
+
+    // ✅ 수정 완료 시 텍스트 입력 종료
+    LaunchedEffect(isEditMode) {
+        if (!isEditMode) {
+            isMemoEditing = false
+        }
+    }
+
     // ✅ showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
     LaunchedEffect(showAIArticleModal) {
         if (showAIArticleModal) {
             delay(3000)
             showAIArticleModal = false
-        }
-    }
-
-    if (showAIArticleModal) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0x66000000)) // 40% 투명한 검정색 배경
-                .clickable(enabled = false) {} // 외부 클릭 막기
-        ) {
-            AIArticleModal(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 40.dp)
-            )
         }
     }
 
@@ -348,12 +345,21 @@ fun SaveLinkResultScreen(
                         .padding(horizontal = 22.dp, vertical = 15.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "본격적으로 오픽 시험 준비하기 전에 봐야할 영상!!!!",
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
-                        color = LocalColorTheme.current.black,
-                        modifier = Modifier.weight(1f)  // 텍스트가 남은 공간 차지
-                    )
+                    if (isMemoEditing) {
+                        BasicTextField(
+                            value = memoText,
+                            onValueChange = { memoText = it },
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Text(
+                            text = memoText,
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
+                            color = LocalColorTheme.current.black,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
 
                     if (isEditMode) {
                         Spacer(modifier = Modifier.width(10.dp))
@@ -361,7 +367,12 @@ fun SaveLinkResultScreen(
                         Image(
                             painter = painterResource(R.drawable.ic_delete_gray),
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable {
+                                    memoText = ""
+                                    isMemoEditing = true
+                                }
                         )
                     }
                 }
@@ -439,6 +450,28 @@ fun SaveLinkResultScreen(
                 )
             }
         }
+
+        if (showAIArticleModal) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000)) // 40% 투명한 검정색 배경
+                    .zIndex(1f)
+                    .clickable(enabled = false) {}, // 외부 클릭 막기
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AIArticleModal(
+                        modifier = Modifier
+//                    .align(Alignment.Center)
+                            .padding(horizontal = 20.dp)
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -450,6 +483,16 @@ fun TopBar(
 ) {
     // 태그 샘플
     val tags = listOf("카테고리", "감정")
+
+    var titleText by remember { mutableStateOf("3일만에 오픽 AL") }
+    var isTitleEditing by remember { mutableStateOf(false) }
+
+    // ✅ 수정 완료 시 텍스트 입력 종료
+    LaunchedEffect(isEditMode) {
+        if (!isEditMode) {
+            isTitleEditing = false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -472,15 +515,18 @@ fun TopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 59.dp, start = 20.dp, end = 24.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_back_white),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(width = 10.dp, height = 16.25.dp)
-                )
+                Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_back_white),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(width = 10.dp, height = 16.25.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
 
                 Text(
                     text = "저장된 링크",
@@ -488,13 +534,17 @@ fun TopBar(
                     color = LocalColorTheme.current.white
                 )
 
-                Text(
-                    text = if (isEditMode) "완료" else "수정",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal),
-                    color = LocalColorTheme.current.blue[50],
-                    modifier = Modifier
-                        .clickable { onEditClick() }
-                )
+                Spacer(modifier = Modifier.weight(1f))
+
+                Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
+                    Text(
+                        text = if (isEditMode) "완료" else "수정",
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal),
+                        color = LocalColorTheme.current.blue[50],
+                        modifier = Modifier
+                            .clickable { onEditClick() }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(34.75.dp))
@@ -529,11 +579,19 @@ fun TopBar(
                         ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "3일만에 오픽 AL",
-                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                        color = LocalColorTheme.current.white
-                    )
+                    if (isTitleEditing) {
+                        BasicTextField(
+                            value = titleText,
+                            onValueChange = { titleText = it },
+                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white)
+                        )
+                    } else {
+                        Text(
+                            text = titleText,
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                            color = LocalColorTheme.current.white
+                        )
+                    }
 
                     if (isEditMode) {
                         Spacer(modifier = Modifier.width(10.dp))
@@ -541,7 +599,12 @@ fun TopBar(
                         Image(
                             painter = painterResource(R.drawable.ic_delete),
                             contentDescription = null,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
+                                .clickable {
+                                    titleText = ""
+                                    isTitleEditing = true
+                                }
                         )
                     }
                 }
