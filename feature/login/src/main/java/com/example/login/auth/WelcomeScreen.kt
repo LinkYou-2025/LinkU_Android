@@ -27,29 +27,30 @@ import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    // StateFlow → Compose State 변환
-    val signUpResponseState = signUpViewModel.signUpState.collectAsState()
-    val signUpResponse = signUpResponseState.value
+    //  signUpSuccess(Boolean?) 사용
+    val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
 
-    // 화면 진입 시 API 한 번 호출
+    // 화면 진입 시 회원가입 요청
     LaunchedEffect(Unit) {
         signUpViewModel.signUp()
     }
 
-    // 서버 응답 감지 후 로깅
-    LaunchedEffect(signUpResponse) {
-        signUpResponse?.let {
-            if (it.isSuccess) {
-                Log.d("WelcomeScreen", "회원가입 성공: ${it.message}")
-            } else {
-                Log.e("WelcomeScreen", "회원가입 실패: ${it.message}")
+    // 서버 응답 감지
+    LaunchedEffect(signUpSuccess) {
+        when (signUpSuccess) {
+            true -> {
+                Log.d("WelcomeScreen", " 회원가입 성공")
+                navigator.navigate("home")  // 회원가입 후 홈으로 이동
             }
+            false -> Log.e("WelcomeScreen", " 회원가입 실패")
+            null -> {} // 아직 응답 없음
         }
     }
 

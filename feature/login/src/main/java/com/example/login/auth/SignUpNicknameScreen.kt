@@ -37,9 +37,9 @@ fun SignUpNicknameScreen(
     var nickname by remember { mutableStateOf("") }
 
     // ViewModel 상태 관찰
-    val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState(initial = null)
-    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState(initial = null)
-    val isLoading by signUpViewModel.isLoading.collectAsState(initial = false)
+    val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState()
+    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState()  // ✅ 추가됨
+    val isLoading by signUpViewModel.isLoading.collectAsState()
 
     // 닉네임 입력 유효성 (로컬 조건)
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 10
