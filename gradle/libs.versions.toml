@@ -66,6 +66,8 @@ androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidx-hilt" }
+
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

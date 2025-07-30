@@ -31,6 +31,11 @@ import androidx.compose.ui.unit.sp
 import com.example.curation.CurationItem
 import com.example.curation.Paperlogy
 import com.example.curation.R
+import com.example.curation.CurationViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 
 @Composable
@@ -104,7 +109,18 @@ fun HighlightCard(item: CurationItem) {
 }
 
 @Composable
-fun CurationHighlightSection(nickname: String) {
+fun CurationHighlightSection(
+    nickname: String,
+    viewModel: CurationViewModel = hiltViewModel()
+) {
+    val isGenerating by viewModel.isGenerating.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
+
+    // 앱 시작 시 한 번만 호출
+    LaunchedEffect(Unit) {
+        viewModel.generateMonthlyCuration(userId = 1L) // 로그인 전 → 임시 userId
+    }
+
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             text = "${nickname}을 위한 8월의 큐레이션",
@@ -115,17 +131,47 @@ fun CurationHighlightSection(nickname: String) {
             )
         )
 
-        val highlight = CurationItem(
-            title = "트럼프 큐레이션",
-            date = "2025년 8월호",
-            imageRes = R.drawable.img_trump_card,
-            liked = false
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-        HighlightCard(item = highlight)
+        when {
+            isGenerating -> Text("큐레이션을 생성 중입니다...")
+            errorMessage != null -> Text("오류: $errorMessage")
+            else -> {
+                // 성공 시 UI 표시
+                val highlight = CurationItem(
+                    title = "트럼프 큐레이션",
+                    date = "2025년 8월호",
+                    imageRes = R.drawable.img_trump_card,
+                    liked = false
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                HighlightCard(item = highlight)
+            }
+        }
     }
 }
+
+//@Composable
+//fun CurationHighlightSection(nickname: String) {
+//    Column(modifier = Modifier.padding(16.dp)) {
+//        Text(
+//            text = "${nickname}을 위한 8월의 큐레이션",
+//            style = MaterialTheme.typography.titleMedium.copy(
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Bold,
+//                fontSize = 22.sp
+//            )
+//        )
+//
+//        val highlight = CurationItem(
+//            title = "트럼프 큐레이션",
+//            date = "2025년 8월호",
+//            imageRes = R.drawable.img_trump_card,
+//            liked = false
+//        )
+//
+//        Spacer(modifier = Modifier.height(6.dp))
+//        HighlightCard(item = highlight)
+//    }
+//}
 
 
 @Preview(showBackground = true)

@@ -67,6 +67,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.complier)
     implementation(libs.androidx.hilt.navigation)
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
     // Coil
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")

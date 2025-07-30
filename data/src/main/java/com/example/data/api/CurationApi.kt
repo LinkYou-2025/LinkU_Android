@@ -12,6 +12,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface CurationApi {
+
+    //월간 큐레이션 자동 생성
+    @POST("/api/curations/generate/monthly/{userId}")
+    suspend fun generateMonthlyCuration(
+        @Path("userId") userId: Long
+    ): BaseResponse<Unit>
+
     // 특정 큐레이션 상세 조회
     @GET("/api/curations/detail/{curationId}")
     suspend fun getCuration(
