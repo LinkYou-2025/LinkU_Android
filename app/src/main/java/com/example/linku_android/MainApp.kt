@@ -14,11 +14,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import com.example.curation.CurationScreen
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
+import com.example.home.HomeViewModel
 import com.example.home.screen.HomeScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
@@ -98,8 +100,9 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.HOME
                         }
                         FinishHandler()
+                        val homeViewModel: HomeViewModel = hiltViewModel()
                         HomeScreen(
-//                            viewModel = hiltViewModel()
+                            userName = "지현"
                         )
                     }
                 }
