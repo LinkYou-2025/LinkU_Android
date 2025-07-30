@@ -1,6 +1,5 @@
-package com.example.home
+package com.example.home.screen
 
-import android.widget.Space
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -45,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
-import com.example.design.theme.color.ThemeColorScheme
+import com.example.home.R
 import kotlinx.coroutines.launch
 import com.example.design.R as Res
 
