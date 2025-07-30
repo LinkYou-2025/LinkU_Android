@@ -54,7 +54,7 @@ fun FileSearchBarTopSheet(
         if (visible) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .matchParentSize()
                     .background(Color.Black.copy(alpha = 0.3f))
                     .noRippleClickable { onDismiss() }
             )
@@ -90,7 +90,8 @@ fun FileSearchBarTopSheet(
                     ){
                         Icon(
                             modifier = Modifier
-                                .width(10.dp),
+                                .width(10.dp)
+                                .noRippleClickable{ onDismiss() },
                             tint = Gray600,
                             painter = painterResource(R.drawable.left_arrow_head_icon_img),
                             contentDescription = null
@@ -172,8 +173,7 @@ fun FileSearchBarTopSheet(
                                 Image(
                                     modifier = Modifier
                                         .padding(end = 18.dp)
-                                        .size(18.dp)
-                                        .noRippleClickable{ onDismiss() },
+                                        .size(18.dp),
                                     painter = painterResource(R.drawable.clear_icon_img),
                                     contentDescription = null
                                 )

@@ -54,7 +54,7 @@ import com.example.file.ui.theme.White
 
 @Composable
 fun LinkItemLayout(
-    painter: Painter? = null,
+    painter: Painter? = painterResource(R.drawable.link_categorization_default),
     title: String = "제목",
     tags: List<String> = listOf("태그1", "태그2"),
     domainIcon: Painter? = null,
@@ -238,24 +238,6 @@ fun LinkItemLayout(
             }
         }
     }
-
-    FileModalWindow(
-        showDialog,
-        {},
-        "삭제하기",
-        "",
-        "해당 폴더를 비공개 하시겠습니까?"
-    ){
-        Text(
-            text = "해당 폴더는 타인과 공유중인 폴더입니다.\n비공개 폴더로 전환하시겠습니까?",
-            fontSize = 15.sp,
-            lineHeight = 22.sp,
-            fontFamily = DefaultFont,
-            fontWeight = FontWeight(400),
-            color = Gray600,
-            textAlign = TextAlign.Center,
-        )
-    }
 }
 
 @Preview(showBackground = true)
@@ -268,6 +250,7 @@ fun LinkItemTest() {
             modifier = Modifier.alpha(0.35f),
         ){
             LinkItemLayout(
+                painter = null,
                 tags = listOf("태그1", "태그2"),
             )
         }

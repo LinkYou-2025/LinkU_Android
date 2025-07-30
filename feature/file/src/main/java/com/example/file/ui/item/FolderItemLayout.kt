@@ -21,6 +21,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,8 +41,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.content.BookMarkStar
+import com.example.file.ui.content.PencilIcon
+import com.example.file.ui.state.EditState
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
@@ -233,6 +241,8 @@ fun TopFolderItemLayout(
     categoryName: String = "",
     isBookmarked: Boolean = false
 ){
+    var bookmark by remember { mutableStateOf(isBookmarked) }
+
     FolderItemLayout(
         backgroundColor = Gray200,
         color1 = categoryColorStyle.color3,
@@ -241,7 +251,12 @@ fun TopFolderItemLayout(
         folderMaskBrush = topFolderMaskBrush,
         leftIcon = {},
         rightIcon = {
-            BookMarkStar(isBookmarked)
+            Box(
+                modifier = Modifier
+                    .noRippleClickable{ bookmark = !bookmark }
+            ){
+                BookMarkStar(bookmark)
+            }
         },
         textBackgroundColor = categoryColorStyle.color4,
         categoryName = categoryName
@@ -251,7 +266,8 @@ fun TopFolderItemLayout(
 @Composable
 fun BottomFolderItemLayout(
     categoryColorStyle: CategoryColorStyle,
-    categoryName: String
+    categoryName: String,
+    editState: EditState
 ){
     FolderItemLayout(
         backgroundColor = categoryColorStyle.color1,
@@ -260,7 +276,15 @@ fun BottomFolderItemLayout(
         color3 = White,
         folderMaskBrush = categoryColorStyle.verticalGradient(),
         leftIcon = {},
-        rightIcon = {},
+        rightIcon = {
+            if(editState.isEditMode){
+                Box(
+                    modifier = Modifier
+                ) {
+                    PencilIcon(categoryColorStyle.color2)
+                }
+            }
+        },
         textBackgroundColor = categoryColorStyle.color4,
         categoryName = categoryName
     )
@@ -277,7 +301,8 @@ fun FolderItemTest() {
         )
         BottomFolderItemLayout(
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
-            categoryName = "기본"
+            categoryName = "기본",
+            editState = viewModel()
         )
     }
 }

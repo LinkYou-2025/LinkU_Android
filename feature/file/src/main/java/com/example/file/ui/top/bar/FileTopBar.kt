@@ -1,5 +1,6 @@
 package com.example.file.ui.top.bar
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.design.BottomNavigationBar
@@ -44,11 +46,14 @@ import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.top.bar.component.EditButton
 import com.example.file.ui.bottom.sheet.FileBottomSheet
+import com.example.file.ui.content.BottomFolderGrid
+import com.example.file.ui.content.LinksGrid
 import com.example.file.ui.content.TopFolderGrid
 import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 import com.example.file.ui.top.bar.component.TopFolderListLayout
 import com.example.file.ui.top.bar.component.TopFolderListMenu
 import com.example.file.ui.item.LinkItemLayout
+import com.example.file.ui.state.EditState
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.FileTopBarLinkUFont
@@ -60,12 +65,14 @@ import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.component.FileSearchBar
 import com.example.file.ui.top.bar.component.ShareButton
+import com.example.file.ui.state.FolderState
 
 
 @Composable
 fun FileTopBar(
     onOpenTopSheet: () -> Unit,
-    onOpenBottomSheet: () -> Unit
+    onOpenBottomSheet: () -> Unit,
+    editState: EditState
     ) {
     // 내부 요소들을 겹쳐서 배치하는 Box
     Box(
@@ -78,6 +85,7 @@ fun FileTopBar(
             // Box 배경에 메인 그라데이션 적용
             .background(brush = MainColor)
     ) {
+
         // 1. 흐린 로고 (배경 맨 뒤)
         Icon(
             // 투명도 낮게 (alpha=0.2f)
@@ -130,25 +138,17 @@ fun FileTopBar(
             FileSearchBar()
         }
 
-        val expanded = remember { mutableStateOf(false) }
         // 4. 폴더 리스트 레이아웃
         Box(
             // 왼쪽 위에 정렬
             modifier = Modifier
                 .align(Alignment.TopStart)
                 // 왼쪽 20dp, 위쪽 153dp 여백
-                .padding(start = 20.dp, top = 153.dp)
-                .noRippleClickable{expanded.value = true},
+                .padding(start = 20.dp, top = 153.dp),
         ) {
             // 폴더 리스트 컴포저블
             TopFolderListLayout()
         }
-        TopFolderListMenu(
-            listOf("나의 폴더", "공유받은 폴더"),
-            expanded.value,
-            { expanded.value = false },
-            {}
-        )
 
         // 5. 알람 아이콘 (오른쪽 위)
         Icon(
@@ -177,7 +177,7 @@ fun FileTopBar(
                 .noRippleClickable { onOpenBottomSheet() },
         ) {
             // 수정 버튼 컴포저블
-            EditButton()
+            EditButton(editState = editState)
         }
     }
 
@@ -191,15 +191,34 @@ fun FileTopBar(
     showBackground = true)
 @Composable
 fun FileTopBarTest() {
+    // 현재 단계 기억
+    var folderViewLevel by remember { mutableStateOf(FolderState.TOP) }
+
+    // 선택된 폴더/하위폴더 기억 (이름 또는 id 등 원하는 방식)
+    var selectedTopFolder by remember { mutableStateOf<String?>(null) }
+    var selectedBottomFolder by remember { mutableStateOf<String?>(null) }
+
+    // 뒤로가기 핸들러
+    BackHandler(enabled = folderViewLevel != FolderState.TOP) {
+        when (folderViewLevel) {
+            FolderState.LINK -> folderViewLevel = FolderState.BOTTOM
+            FolderState.BOTTOM -> folderViewLevel = FolderState.TOP
+            else -> {}
+        }
+    }
+
     var isTopSheetVisible by remember { mutableStateOf(false) }
     var isBottomSheetVisible by remember { mutableStateOf(false) }
+    val editState:EditState = viewModel()
+
     Scaffold (
         modifier = Modifier.fillMaxSize(),
         containerColor = White,
         topBar = {
             FileTopBar(
                 onOpenTopSheet = { isTopSheetVisible = true },
-                onOpenBottomSheet = { isBottomSheetVisible = true }
+                onOpenBottomSheet = { isBottomSheetVisible = true },
+                editState = editState
         )},
         bottomBar = { BottomNavigationBar(
             selectedTab = NavigationItem.FILE,
@@ -224,7 +243,29 @@ fun FileTopBarTest() {
                 contentPadding = PaddingValues(20.dp)
             ) {
                 item {
-                    TopFolderGrid()
+                    when(folderViewLevel) {
+                        FolderState.TOP -> {
+                            TopFolderGrid { folderName ->
+                                selectedTopFolder = folderName
+                                folderViewLevel = FolderState.BOTTOM
+                            }
+                        }
+                        FolderState.BOTTOM -> {
+                            BottomFolderGrid(
+                                folderList = listOf("나의 폴더", "공유받은 폴더"), // 실제 폴더 데이터로
+                                linkList = listOf("링크1", "링크2"),
+                                editState = editState
+                            ) { bottomFolderName ->
+                                selectedBottomFolder = bottomFolderName
+                                folderViewLevel = FolderState.LINK
+                            }
+                        }
+                        FolderState.LINK -> {
+                            LinksGrid(
+                                linkList = listOf("링크1", "링크2", "링크3")
+                            )
+                        }
+                    }
                 }
             }
 

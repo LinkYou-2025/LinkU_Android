@@ -1,37 +1,40 @@
 package com.example.file.ui.content
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
-import com.example.file.ui.item.LinkItemLayout
-import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.DefaultFont
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
+import com.example.file.ui.item.LinkItemLayout
+import com.example.file.ui.state.EditState
+import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
+import com.example.file.ui.theme.DefaultFont
 
 @Composable
 fun BottomFolderGrid(
     folderList: List<String>,
-    linkList: List<String>
+    linkList: List<String>,
+    editState: EditState,
+    onFolderClick: (String) -> Unit
 ){
     Column {
         // Folder Grid
@@ -72,12 +75,14 @@ fun BottomFolderGrid(
             for((i, folder) in folderList.withIndex()) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .noRippleClickable{ onFolderClick(folder)},
                     contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
                 ) {
                     BottomFolderItemLayout(
                         categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
-                        categoryName = folder
+                        categoryName = folder,
+                        editState = editState
                     )
                 }
             }
@@ -111,7 +116,9 @@ fun BottomFolderGrid(
                         .fillMaxWidth(),
                     contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
                 ) {
-                    LinkItemLayout()
+                    LinkItemLayout(
+                        title = link
+                    )
                 }
             }
         }
@@ -122,7 +129,8 @@ fun BottomFolderGrid(
 @Composable
 fun BottomFolderGridTest(){
     BottomFolderGrid(
-        listOf("나의 폴더", "공유받은 폴더"),
-        listOf("태그1", "태그2")
-    )
+        listOf("카테고리 1","카테고리 2","카테고리 3","카테고리 4","카테고리 5"),
+        listOf("태그1", "태그2"),
+        editState = viewModel()
+    ){}
 }
