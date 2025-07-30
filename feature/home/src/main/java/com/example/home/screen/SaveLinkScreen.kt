@@ -1,5 +1,3 @@
-@file:JvmName("SaveLinkScreenKt")
-
 package com.example.home.screen
 
 import androidx.activity.compose.rememberLauncherForActivityResult
