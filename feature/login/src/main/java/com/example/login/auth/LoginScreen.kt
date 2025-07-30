@@ -10,6 +10,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -37,6 +38,10 @@ fun LoginScreen(
     emailButtonColor: Color = Color(0x66FFFFFF),
     onSignUpClick: () -> Unit = {} // 회원가입 클릭 시 호출되는 콜백 함수
 ) {
+
+    LaunchedEffect(Unit) {
+        println(" LoginScreen Loaded")
+    }
     val isPreview = LocalInspectionMode.current
 
     Box(

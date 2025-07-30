@@ -46,6 +46,9 @@ fun ResetPasswordScreen(navigator: NavHostController) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
 
+    // Alert(팝업) UI 상태 관리
+    var showSuccessDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -144,9 +147,11 @@ fun ResetPasswordScreen(navigator: NavHostController) {
                 .clickable(enabled = isEmailValid) {
                     keyboardController?.hide()
                     coroutineScope.launch {
-                        // TODO: 임시 비밀번호 전송 로직 처리
-                        delay(1000)
+                        // // 임시: API 없이 바로 팝업 띄우기!
+                        delay(1000) //임시 지연
+                        showSuccessDialog = true  // 팝업 띄우기
                         navigator.popBackStack()
+
                     }
                 },
             contentAlignment = Alignment.Center
@@ -160,7 +165,24 @@ fun ResetPasswordScreen(navigator: NavHostController) {
             )
         }
     }
+
+    //  팝업 UI 표시
+    if (showSuccessDialog) {
+        PasswordResetAlert(
+            onDismissRequest = { showSuccessDialog = false },
+            onConfirmClick = {
+                showSuccessDialog = false
+                // 로그인 화면으로 이동
+                navigator.navigate("email_login") {
+                    // 팝업 띄운 resetPassword 화면 스택에서 제거
+                    popUpTo("resetPassword") { inclusive = true }
+                }
+            }
+        )
+    }
 }
+
+
 
 @Preview(showBackground = true, name = "ResetPasswordScreen Preview")
 @Composable

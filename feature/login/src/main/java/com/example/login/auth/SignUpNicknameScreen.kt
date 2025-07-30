@@ -38,7 +38,7 @@ fun SignUpNicknameScreen(
 
     // ViewModel 상태 관찰
     val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState()
-    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState()  // ✅ 추가됨
+    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState()
     val isLoading by signUpViewModel.isLoading.collectAsState()
 
     // 닉네임 입력 유효성 (로컬 조건)
@@ -81,10 +81,10 @@ fun SignUpNicknameScreen(
                 onValueChange = {
                     nickname = it
                     signUpViewModel.nickname = it
-                    // 닉네임이 유효할 때만 API 호출
-                    if (isNicknameValid) {
-                        signUpViewModel.checkNickname()
-                    }
+                    // 닉네임이 유효할 때만 API 호출 -> 서버 수정 중으로 부득이하게 주석처리, 추후 해지하기.
+//                    if (isNicknameValid) {
+//                        signUpViewModel.checkNickname()
+//                    }
                 },
                 placeholder = {
                     Text(
@@ -163,7 +163,12 @@ fun SignUpNicknameScreen(
 
         // 다음 버튼
         // 닉네임 유효성 + 서버 중복 확인 성공 여부
-        val canProceed = isNicknameValid && (isNicknameAvailable == true)
+        //val canProceed = isNicknameValid && (isNicknameAvailable == true)
+
+        //서버 수정 중으로 부득이하게,
+        // 임시방편
+        val canProceed = isNicknameValid //-> 추후 삭제하고 위의 코드로 교체.
+
 
         Box(
             modifier = Modifier
