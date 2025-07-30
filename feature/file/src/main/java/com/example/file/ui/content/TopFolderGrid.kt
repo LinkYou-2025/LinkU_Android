@@ -13,6 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.ui.theme.CategoryColorStyle
 
@@ -37,6 +38,7 @@ val categories = listOf(
 
 @Composable
 fun TopFolderGrid(
+    onFolderClick: (String) -> Unit
 ){
     VerticalGrid(
         modifier = Modifier
@@ -48,7 +50,8 @@ fun TopFolderGrid(
         for (i in 0..15) {
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .noRippleClickable { onFolderClick(categories[i]) },
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 TopFolderItemLayout(
@@ -67,6 +70,5 @@ fun TopFolderGrid(
 )
 @Composable
 fun TopFolderGridTest(){
-    TopFolderGrid(
-    )
+    TopFolderGrid{}
 }

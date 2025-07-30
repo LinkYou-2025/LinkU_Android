@@ -12,6 +12,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -24,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.MainColor
@@ -45,6 +48,8 @@ fun TopFolderListLayout() {
         shape = RoundedCornerShape(14.dp),
     ) {
 
+        val expanded = remember { mutableStateOf(false) }
+
         // 내부 배치 레이아웃
         Row(
             modifier = Modifier
@@ -52,7 +57,8 @@ fun TopFolderListLayout() {
                 .fillMaxSize()
 
                 // 내부 여백 (양 옆 15dp)
-                .padding(horizontal = 15.dp),
+                .padding(horizontal = 15.dp)
+                .noRippleClickable{expanded.value = true},
 
             // 가로 정렬 방법 (요소 간 10dp 간격, 가로 중앙 정렬)
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
@@ -104,6 +110,14 @@ fun TopFolderListLayout() {
                 contentDescription = "아래 화살표"
             )
         }
+
+        TopFolderListMenu(
+            listOf("나의 폴더", "공유받은 폴더"),
+            expanded.value,
+            { expanded.value = false },
+            {}
+        )
+
     }
 }
 

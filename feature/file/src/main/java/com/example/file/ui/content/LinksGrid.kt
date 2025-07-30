@@ -47,6 +47,7 @@ fun LinksGrid(
                     modifier = Modifier.alpha(0.35f),
                 ) {
                     LinkItemLayout(
+                        painter = null,
                         tags = listOf("태그1", "태그2"),
                     )
                 }
