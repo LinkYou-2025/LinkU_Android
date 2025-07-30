@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.core.utils.TokenManager
 import com.example.login.R
 import com.example.login.Paperlogy
 import kotlinx.coroutines.CoroutineScope
@@ -45,22 +44,26 @@ fun EmailLoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val context = LocalContext.current
 
-    val loginResponse by loginViewModel.loginState.collectAsState()
+    val loginResult by loginViewModel.loginState.collectAsState()
 
     val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
-
     // 로그인 응답 감지
-    LaunchedEffect(loginResponse) {
-        loginResponse?.let { response ->
-            if (response.isSuccess) {
-                val token = response.result?.accessToken ?: ""
-                TokenManager.saveToken(context, token)
-                navigator.navigate("home")
-            } else {
-                Log.e("Login", "로그인 실패: ${response.message}")
+    LaunchedEffect(loginResult) {
+        loginResult?.let { result ->
+            when {
+                result.status == "INACTIVE" -> {
+                    Log.w("Login", "⚠️ 계정이 탈퇴 예정 (inactiveDate=${result.inactiveDate})")
+                    // 경고 다이얼로그는 아래 remember { mutableStateOf(false) }로 제어
+                }
+                result.userId != -1 -> {
+                    Log.d("Login", "로그인 성공 → token=${result.token}")
+                    navigator.navigate("home")
+                }
+                else -> {
+                    Log.e("Login", "로그인 실패: 유효하지 않은 사용자")
+                }
             }
         }
     }

@@ -7,10 +7,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.example.core.repository.UserRepository
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.SharingStarted
-import com.example.core.domain.LoginRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EmailAuthViewModel @Inject constructor(
-    private val loginRepository: LoginRepository
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _sendCodeResult = MutableStateFlow<String?>(null)
