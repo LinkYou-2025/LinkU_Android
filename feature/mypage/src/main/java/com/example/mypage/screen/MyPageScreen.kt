@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -42,6 +44,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
 import com.example.mypage.R
 import com.example.mypage.component.LogoutModal
@@ -49,195 +53,384 @@ import com.example.mypage.component.ServiceQuitModal
 import com.example.design.R as Res
 
 @Composable
-fun MyPageScreen() {
-    var showQuitDialog by remember { mutableStateOf(false) }
-    var showLogoutDialog by remember { mutableStateOf(false) }
+fun MyPageScreen(
+    navController: NavController,
+    onNavigateAccount: () -> Unit = {},
+    onNavigateAlarm: () -> Unit = {},
+    onNavigateQuit: () -> Unit = {}
+) {
+    val TopBarHeightExpanded = 319.dp // InfoCard 보일 때 TopBar 전체 높이
+    val TopBarHeightCollapsed = 235.dp // InfoCard 숨겨질 때 남기는 TopBar 높이
 
     // 스크롤 상태 추적!
-    val scrollState = rememberScrollState()
-    val infoCardVisible = scrollState.value < 60 // 60px 넘게 스크롤하면 감추기
+    val listState = rememberLazyListState()
+    val infoCardVisible = listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset < 60
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Column(
+    val topPadding = if (infoCardVisible) TopBarHeightExpanded else TopBarHeightCollapsed
+
+//    var showQuitDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        TopBar(infoCardVisible = infoCardVisible)
+
+        LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
                 .background(LocalColorTheme.current.gray[100])
+                .padding(top = topPadding)
         ) {
-            // 탑 바
-            TopBar(infoCardVisible)
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 설정
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = "설정",
-                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                    color = LocalColorTheme.current.black
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // 서비스 설정
+            item {
                 Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(LocalColorTheme.current.white)
-                        .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+                        .fillMaxSize()
+                        .background(LocalColorTheme.current.gray[100])
                 ) {
-                    Text(
-                        text = "서비스 설정",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[500]
-                    )
-
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    Row {
+                    // 설정
+                    Column(
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
                         Text(
-                            text = "계정 설정",
-                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                            color = LocalColorTheme.current.gray[800],
-                            modifier = Modifier.padding(start = 6.dp)
+                            text = "설정",
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                            color = LocalColorTheme.current.black
                         )
 
-                        Spacer(modifier = Modifier.weight(1f))
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                        Icon(
-                            painter = painterResource(id = Res.drawable.ic_detail),
-                            contentDescription = null,
-                            tint = LocalColorTheme.current.gray[500]
-                        )
+                        // 서비스 설정
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(15.dp))
+                                .background(LocalColorTheme.current.white)
+                                .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+                        ) {
+                            Text(
+                                text = "서비스 설정",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[500]
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Row(
+                                modifier = Modifier.clickable { onNavigateAccount() }
+                            ) {
+                                Text(
+                                    text = "계정 설정",
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                    color = LocalColorTheme.current.gray[800],
+                                    modifier = Modifier.padding(start = 6.dp)
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Icon(
+                                    painter = painterResource(id = Res.drawable.ic_detail),
+                                    contentDescription = null,
+                                    tint = LocalColorTheme.current.gray[500]
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Row(
+                                modifier = Modifier.clickable { onNavigateAlarm() }
+                            ) {
+                                Text(
+                                    text = "알림 설정",
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                    color = LocalColorTheme.current.gray[800],
+                                    modifier = Modifier.padding(start = 6.dp)
+                                )
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Icon(
+                                    painter = painterResource(id = Res.drawable.ic_detail),
+                                    contentDescription = null,
+                                    tint = LocalColorTheme.current.gray[500]
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.padding(top = 15.dp))
+
+                        // 고객 센터
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(15.dp))
+                                .background(LocalColorTheme.current.white)
+                                .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+                        ) {
+                            Text(
+                                text = "고객 센터",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[500]
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = "1 : 1 문의",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[800],
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = "공지사항",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[800],
+                                modifier = Modifier.padding(start = 6.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.padding(top = 15.dp))
+
+                        // 기타
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(15.dp))
+                                .background(LocalColorTheme.current.white)
+                                .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+                        ) {
+                            Text(
+                                text = "기타",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[500]
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = "회원탈퇴",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[800],
+                                modifier = Modifier
+                                    .padding(start = 6.dp)
+                                    .clickable {
+//                                        showQuitDialog = true
+                                        onNavigateQuit()
+                                    }
+                            )
+
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Text(
+                                text = "로그아웃",
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                color = LocalColorTheme.current.gray[800],
+                                modifier = Modifier
+                                    .padding(start = 6.dp)
+                                    .clickable { showLogoutDialog = true }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(74.dp))
                     }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Row {
-                        Text(
-                            text = "알림 설정",
-                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                            color = LocalColorTheme.current.gray[800],
-                            modifier = Modifier.padding(start = 6.dp)
-                        )
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Icon(
-                            painter = painterResource(id = Res.drawable.ic_detail),
-                            contentDescription = null,
-                            tint = LocalColorTheme.current.gray[500]
-                        )
-                    }
                 }
-
-                Spacer(modifier = Modifier.padding(top = 15.dp))
-
-                // 고객 센터
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(LocalColorTheme.current.white)
-                        .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
-                ) {
-                    Text(
-                        text = "고객 센터",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[500]
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "1 : 1 문의",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[800],
-                        modifier = Modifier.padding(start = 6.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "공지사항",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[800],
-                        modifier = Modifier.padding(start = 6.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(top = 15.dp))
-
-                // 기타
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(LocalColorTheme.current.white)
-                        .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
-                ) {
-                    Text(
-                        text = "기타",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[500]
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "회원탈퇴",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[800],
-                        modifier = Modifier
-                            .padding(start = 6.dp)
-                            .clickable { showQuitDialog = true }
-                    )
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    Text(
-                        text = "로그아웃",
-                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
-                        color = LocalColorTheme.current.gray[800],
-                        modifier = Modifier
-                            .padding(start = 6.dp)
-                            .clickable { showLogoutDialog = true }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(74.dp))
             }
         }
     }
 
-    if (showQuitDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0x66000000)) // 40% 투명한 검정색 배경
-                .zIndex(1f)
-                .clickable(enabled = false) {}, // 외부 클릭 막기
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier.padding(horizontal = 20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                ServiceQuitModal(
-                    onDismiss = { showQuitDialog = false },
-                    onConfirm = {
-                        showQuitDialog = false
-                        // 실제 탈퇴 로직 호출
-                    }
-                )
-            }
-        }
-    }
+
+//    Box(
+//        modifier = Modifier.fillMaxSize()
+//    ) {
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .verticalScroll(scrollState)
+//                .background(LocalColorTheme.current.gray[100])
+//        ) {
+//            // 탑 바
+//            TopBar(infoCardVisible)
+//
+//            Spacer(modifier = Modifier.height(24.dp))
+//
+//            // 설정
+//            Column(
+//                modifier = Modifier.padding(horizontal = 16.dp)
+//            ) {
+//                Text(
+//                    text = "설정",
+//                    style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+//                    color = LocalColorTheme.current.black
+//                )
+//
+//                Spacer(modifier = Modifier.height(24.dp))
+//
+//                // 서비스 설정
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clip(RoundedCornerShape(15.dp))
+//                        .background(LocalColorTheme.current.white)
+//                        .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+//                ) {
+//                    Text(
+//                        text = "서비스 설정",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[500]
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    Row(
+//                        modifier = Modifier.clickable { onNavigateAccount() }
+//                    ) {
+//                        Text(
+//                            text = "계정 설정",
+//                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                            color = LocalColorTheme.current.gray[800],
+//                            modifier = Modifier.padding(start = 6.dp)
+//                        )
+//
+//                        Spacer(modifier = Modifier.weight(1f))
+//
+//                        Icon(
+//                            painter = painterResource(id = Res.drawable.ic_detail),
+//                            contentDescription = null,
+//                            tint = LocalColorTheme.current.gray[500]
+//                        )
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    Row(
+//                        modifier = Modifier.clickable { onNavigateAlarm() }
+//                    ) {
+//                        Text(
+//                            text = "알림 설정",
+//                            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                            color = LocalColorTheme.current.gray[800],
+//                            modifier = Modifier.padding(start = 6.dp)
+//                        )
+//
+//                        Spacer(modifier = Modifier.weight(1f))
+//
+//                        Icon(
+//                            painter = painterResource(id = Res.drawable.ic_detail),
+//                            contentDescription = null,
+//                            tint = LocalColorTheme.current.gray[500]
+//                        )
+//                    }
+//                }
+//
+//                Spacer(modifier = Modifier.padding(top = 15.dp))
+//
+//                // 고객 센터
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clip(RoundedCornerShape(15.dp))
+//                        .background(LocalColorTheme.current.white)
+//                        .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+//                ) {
+//                    Text(
+//                        text = "고객 센터",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[500]
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    Text(
+//                        text = "1 : 1 문의",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[800],
+//                        modifier = Modifier.padding(start = 6.dp)
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    Text(
+//                        text = "공지사항",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[800],
+//                        modifier = Modifier.padding(start = 6.dp)
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.padding(top = 15.dp))
+//
+//                // 기타
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .clip(RoundedCornerShape(15.dp))
+//                        .background(LocalColorTheme.current.white)
+//                        .padding(start = 28.dp, top = 26.dp, end = 26.dp, bottom = 25.dp)
+//                ) {
+//                    Text(
+//                        text = "기타",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[500]
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    Text(
+//                        text = "회원탈퇴",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[800],
+//                        modifier = Modifier
+//                            .padding(start = 6.dp)
+//                            .clickable {
+//                                showQuitDialog = true
+//                                onNavigateQuit()
+//                            }
+//                    )
+//
+//                    Spacer(modifier = Modifier.height(24.dp))
+//
+//                    Text(
+//                        text = "로그아웃",
+//                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+//                        color = LocalColorTheme.current.gray[800],
+//                        modifier = Modifier
+//                            .padding(start = 6.dp)
+//                            .clickable { showLogoutDialog = true }
+//                    )
+//                }
+//
+//                Spacer(modifier = Modifier.height(74.dp))
+//            }
+//        }
+//    }
+
+//    if (showQuitDialog) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(Color(0x66000000)) // 40% 투명한 검정색 배경
+//                .zIndex(1f)
+//                .clickable(enabled = false) {}, // 외부 클릭 막기
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Box(
+//                modifier = Modifier.padding(horizontal = 20.dp),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                ServiceQuitModal(
+//                    onDismiss = { showQuitDialog = false },
+//                    onConfirm = {
+//                        showQuitDialog = false
+//                        // 실제 탈퇴 로직 호출
+//                    }
+//                )
+//            }
+//        }
+//    }
 
     if (showLogoutDialog) {
         Box(
@@ -265,7 +458,9 @@ fun MyPageScreen() {
 }
 
 @Composable
-fun TopBar(infoCardVisible: Boolean) {
+fun TopBar(
+    infoCardVisible: Boolean
+) {
     val buttonBrush = Brush.horizontalGradient(
             listOf(
                 Color(0xFF2C6FFF).copy(alpha = 0.2f),
@@ -278,6 +473,8 @@ fun TopBar(infoCardVisible: Boolean) {
             .clip(RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp))
             .background(LocalColorTheme.current.white)
             .padding(bottom = 17.dp)
+            .fillMaxWidth()
+            .zIndex(1f)
     ) {
         Row(
             modifier = Modifier.padding(18.dp, 17.dp)
@@ -445,5 +642,6 @@ fun InfoCard(title: String, count: String, borderBrush: Brush? = null) {
 @Preview(showBackground = true)
 @Composable
 fun PreviewMyPageScreen() {
-    MyPageScreen()
+    val navController = rememberNavController()
+    MyPageScreen(navController = navController)
 }

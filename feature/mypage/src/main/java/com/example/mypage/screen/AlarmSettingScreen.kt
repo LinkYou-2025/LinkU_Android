@@ -32,11 +32,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
 import com.example.mypage.R
 
 @Composable
-fun AlarmSettingScreen() {
+fun AlarmSettingScreen(
+    navController: NavController
+) {
     var isAlarmEnabled by remember { mutableStateOf(false) }
     var isAICurationEnabled by remember { mutableStateOf(false) }
     var isNoticeEventEnabled by remember { mutableStateOf(false) }
@@ -53,7 +57,9 @@ fun AlarmSettingScreen() {
             Image(
                 painter = painterResource(R.drawable.ic_back),
                 contentDescription = null,
-                modifier = Modifier.width(10.dp)
+                modifier = Modifier
+                    .width(10.dp)
+                    .clickable { navController.popBackStack() }
             )
 
             Spacer(modifier = Modifier.width(135.dp))
@@ -205,5 +211,6 @@ fun SubNotificationSwitch(
 @Preview(showBackground = true)
 @Composable
 fun PreviewAlarmSettingScreen() {
-    AlarmSettingScreen()
+    val navController = rememberNavController()
+    AlarmSettingScreen(navController = navController)
 }
