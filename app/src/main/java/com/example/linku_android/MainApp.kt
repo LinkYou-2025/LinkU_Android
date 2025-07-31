@@ -22,7 +22,7 @@ import com.example.file.FileScreen
 import com.example.home.HomeScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
-import com.example.mypage.MyPageScreen
+import com.example.mypage.screen.MyPageScreen
 
 @Composable
 fun MainApp(
