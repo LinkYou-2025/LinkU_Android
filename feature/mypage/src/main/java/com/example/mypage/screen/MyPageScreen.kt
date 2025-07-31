@@ -45,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
 import com.example.mypage.R
 import com.example.mypage.component.LogoutModal
@@ -639,9 +638,9 @@ fun InfoCard(title: String, count: String, borderBrush: Brush? = null) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewMyPageScreen() {
-    val navController = rememberNavController()
-    MyPageScreen(navController = navController)
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewMyPageScreen() {
+//    val navController = rememberNavController()
+//    MyPageScreen(navController = navController)
+//}
