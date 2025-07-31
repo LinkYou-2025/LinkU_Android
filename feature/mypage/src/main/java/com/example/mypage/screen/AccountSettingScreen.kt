@@ -47,12 +47,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.mypage.R
 
 @Composable
-fun AccountSettingScreen() {
+fun AccountSettingScreen(
+    navController: NavController
+) {
     val username = "세나"  // 외부에서 정의한 초기 이름
     val userjob = "대학생"
     var name by remember { mutableStateOf("") }
@@ -112,7 +116,9 @@ fun AccountSettingScreen() {
                 Image(
                     painter = painterResource(R.drawable.ic_back),
                     contentDescription = null,
-                    modifier = Modifier.width(10.dp)
+                    modifier = Modifier
+                        .width(10.dp)
+                        .clickable { navController.popBackStack() }
                 )
 
                 Spacer(modifier = Modifier.width(135.dp))
@@ -503,5 +509,6 @@ fun BrushText(
 @Preview(showBackground = true)
 @Composable
 fun PreviewAccountSettingScreen() {
-    AccountSettingScreen()
+    val navController = rememberNavController()
+    AccountSettingScreen(navController = navController)
 }

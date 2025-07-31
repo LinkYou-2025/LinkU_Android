@@ -34,13 +34,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.mypage.R
 import com.example.mypage.component.ServiceQuitModal
 
 @Composable
-fun ServiceQuitScreen() {
+fun ServiceQuitScreen(
+    navController: NavController
+) {
     var username by remember { mutableStateOf("세나") }
 
     var reasonText by remember { mutableStateOf("") }
@@ -60,7 +64,9 @@ fun ServiceQuitScreen() {
                 Image(
                     painter = painterResource(R.drawable.ic_back),
                     contentDescription = null,
-                    modifier = Modifier.width(10.dp)
+                    modifier = Modifier
+                        .width(10.dp)
+                        .clickable { navController.popBackStack() }
                 )
 
                 Spacer(modifier = Modifier.width(135.dp))
@@ -222,5 +228,6 @@ fun ServiceQuitScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewServiceQuitScreen() {
-    ServiceQuitScreen()
+    val navController = rememberNavController()
+    ServiceQuitScreen(navController = navController)
 }
