@@ -14,12 +14,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.curation.CurationScreen
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
-import com.example.home.HomeScreen
+import com.example.home.HomeViewModel
+import com.example.home.screen.HomeScreen
+import com.example.home.screen.SaveLinkResultScreen
+import com.example.home.screen.SaveLinkScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
 import com.example.mypage.MyPageScreen
@@ -33,6 +38,15 @@ fun MainApp(
 
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
+
+    var saveLinkEntryTriggered by remember { mutableStateOf(false) }
+
+    LaunchedEffect(saveLinkEntryTriggered) {
+        if (saveLinkEntryTriggered) {
+            navigator.navigate("savelink")
+            saveLinkEntryTriggered = false
+        }
+    }
 
     ThemeProvider {
         MainScreen(
@@ -53,9 +67,10 @@ fun MainApp(
                 },
                 onCenterButtonClicked = {
                     // 여기에 중앙 버튼 눌렀을 때 로직 넣기
+                    saveLinkEntryTriggered = true  // SaveLinkScreen으로 진입
                 }
             ) else null,
-            centerButtonProp = null
+            centerButtonProp = null // 바로 이동하므로 null
         ) {
             NavHost(
                 navController = navigator,
@@ -98,8 +113,9 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.HOME
                         }
                         FinishHandler()
+                        val homeViewModel: HomeViewModel = hiltViewModel()
                         HomeScreen(
-//                            viewModel = hiltViewModel()
+                            userName = "지현"
                         )
                     }
                 }
@@ -141,6 +157,18 @@ fun MainApp(
 //                            viewModel = hiltViewModel()
                         )
                     }
+                }
+
+                composable("savelink") {
+                    SaveLinkScreen(
+                        onSaveSuccess = {
+                            navigator.navigate("savelinkresult")
+                        }
+                    )
+                }
+
+                composable("savelinkresult") {
+                    SaveLinkResultScreen()
                 }
             }
         }

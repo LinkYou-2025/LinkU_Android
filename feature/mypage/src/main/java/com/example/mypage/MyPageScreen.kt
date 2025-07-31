@@ -11,10 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun MyPageScreen() {
-    // TODO: 화면 구현
     Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.fillMaxSize()
     ) {
         Text(text = "MyPage Screen")
