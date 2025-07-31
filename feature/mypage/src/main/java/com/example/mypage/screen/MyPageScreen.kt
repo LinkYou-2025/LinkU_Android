@@ -1,5 +1,10 @@
 package com.example.mypage.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,17 +53,21 @@ fun MyPageScreen() {
     var showQuitDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // 스크롤 상태 추적!
+    val scrollState = rememberScrollState()
+    val infoCardVisible = scrollState.value < 60 // 60px 넘게 스크롤하면 감추기
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState()) // 수동 스크롤 설정
+                .verticalScroll(scrollState)
                 .background(LocalColorTheme.current.gray[100])
         ) {
             // 탑 바
-            TopBar()
+            TopBar(infoCardVisible)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -256,7 +265,7 @@ fun MyPageScreen() {
 }
 
 @Composable
-fun TopBar() {
+fun TopBar(infoCardVisible: Boolean) {
     val buttonBrush = Brush.horizontalGradient(
             listOf(
                 Color(0xFF2C6FFF).copy(alpha = 0.2f),
@@ -361,19 +370,29 @@ fun TopBar() {
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 18.dp)
+        AnimatedVisibility(
+            visible = infoCardVisible,
+            enter = slideInVertically(
+                initialOffsetY = { it } // 아래에서 위로 등장
+            ) + fadeIn(),
+            exit = slideOutVertically(
+                targetOffsetY = { -it } // 위로 사라짐
+            ) + fadeOut()
         ) {
-            InfoCard(title = "나의 링크", count = "0")
-            Spacer(modifier = Modifier.width(8.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 18.dp)
+            ) {
+                InfoCard(title = "나의 링크", count = "0")
+                Spacer(modifier = Modifier.width(8.dp))
 
-            InfoCard(title = "나의 폴더", count = "0")
-            Spacer(modifier = Modifier.width(8.dp))
+                InfoCard(title = "나의 폴더", count = "0")
+                Spacer(modifier = Modifier.width(8.dp))
 
-            InfoCard(title = "AI 요약 링크", count = "0", borderBrush = buttonBrush)
+                InfoCard(title = "AI 요약 링크", count = "0", borderBrush = buttonBrush)
+            }
         }
     }
 }
