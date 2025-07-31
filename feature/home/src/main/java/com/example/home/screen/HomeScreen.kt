@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,6 +44,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.home.R
@@ -270,6 +273,8 @@ fun TopBar(
             )
         )
 
+    var isNoticeExist by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .clip(
@@ -295,14 +300,32 @@ fun TopBar(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Icon(
-                    painter = painterResource(id = Res.drawable.ic_alarm),
-                    contentDescription = null,
+                Box(
                     modifier = Modifier
                         .padding(end = 13.8.dp)
-                        .height(27.18.dp),
-                    tint = LocalColorTheme.current.gray[300]
-                )
+                ) {
+                    Icon(
+                        painter = painterResource(id = Res.drawable.ic_alarm),
+                        contentDescription = null,
+                        tint = LocalColorTheme.current.gray[300]
+                    )
+
+                    if (isNoticeExist) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .align(Alignment.TopEnd)
+                                .offset(x = 3.8.dp, y = (-3.38).dp)
+                                .background(LocalColorTheme.current.negative, shape = RoundedCornerShape(50))
+                                .border(
+                                    width = 3.dp,
+                                    color = LocalColorTheme.current.white,
+                                    shape = RoundedCornerShape(50)
+                                )
+                                .zIndex(1f)
+                        )
+                    }
+                }
             }
 
             // 빠른 링크 검색
@@ -364,13 +387,14 @@ fun TopBar(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 19.dp, start = 20.dp, end = 21.dp)
+                        .padding(top = 19.dp)
                 ) {
                     Column {
                         Text(
                             text = "${userName}님의 감정과 상황을 알려주세요!",
                             style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                            color = LocalColorTheme.current.black
+                            color = LocalColorTheme.current.black,
+                            modifier = Modifier.padding(start = 20.dp, end = 21.dp)
                         )
                     }
 
@@ -381,7 +405,8 @@ fun TopBar(
                             Text(
                                 text = "오늘의 감정은 어때요?",
                                 style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                                color = LocalColorTheme.current.gray[700]
+                                color = LocalColorTheme.current.gray[700],
+                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
                             )
                         }
 
@@ -487,7 +512,8 @@ fun TopBar(
                             Text(
                                 text = "지금 뭐하는 중이에요?",
                                 style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                                color = LocalColorTheme.current.gray[700]
+                                color = LocalColorTheme.current.gray[700],
+                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
                             )
                         }
 
@@ -651,11 +677,28 @@ fun EmotionSelector(
     selectedEmotion: String?,
     onEmotionChange: (String?) -> Unit
 ) {
-    val emotions = listOf("😃", "😐", "😍", "🥲", "😫", "😡")
+    val emotions = listOf(
+        R.drawable.ic_joy,
+        R.drawable.ic_calm,
+        R.drawable.ic_excite,
+        R.drawable.ic_sad,
+        R.drawable.ic_irritation,
+        R.drawable.ic_anger
+    )
 
-    Row {
-        emotions.forEach { emoji ->
-            val isSelected = selectedEmotion == emoji
+    // 감정의 고유 key (이모지 대신 리소스 ID를 String으로)
+    val emotionKeys = listOf(
+        "joy", "calm", "excitement", "sadness", "irritation", "anger"
+    )
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        emotions.forEachIndexed { idx, resId ->
+            val key = emotionKeys[idx]
+            val isSelected = selectedEmotion == key
+
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -670,15 +713,16 @@ fun EmotionSelector(
                             shape = RoundedCornerShape(18.dp)
                         ) else Modifier
                     )
-                    .padding(12.dp, 14.dp)
+                    .padding(8.dp)
                     .clickable {
-                        onEmotionChange(if (isSelected) null else emoji)
+                        onEmotionChange(if (isSelected) null else key)
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = emoji,
-                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = null, // 감정 이름 필요하면 emotionKeys[idx] 등 넣어도 됨
+                    modifier = Modifier.size(40.dp)
                 )
             }
 
@@ -692,12 +736,15 @@ fun TaskSelector(
     selectedTask: String?,
     onTaskChange: (String?) -> Unit
 ) {
-    val tasks = listOf("영어 공부 중", "퇴근 중", "쇼핑 중", "데이트 중", "통학 중", "요리 중", "드라이브 중", "야근 중")
+    val tasks = listOf("트렌드 확인", "과제 중", "쇼핑 중", "데이트 중", "통학 중", "알바 중", "휴식 중", "자기 전")
 
     Column {
         // 첫 줄: 4개
         Row(
-            modifier = Modifier.padding(start = 10.dp, end = 8.dp)
+            modifier = Modifier
+                .padding(start = 10.dp, end = 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
             tasks.take(4).forEach { task ->
                 val isSelected = selectedTask == task
@@ -738,7 +785,10 @@ fun TaskSelector(
 
         // 두 번째 줄: 나머지 4개
         Row(
-            modifier = Modifier.padding(start = 17.dp, end = 16.dp)
+            modifier = Modifier
+                .padding(start = 17.dp, end = 16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center
         ) {
             tasks.drop(4).forEach { task ->
                 val isSelected = selectedTask == task
