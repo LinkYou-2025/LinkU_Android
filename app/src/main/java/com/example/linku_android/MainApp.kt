@@ -27,7 +27,9 @@ import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
 import com.example.linku_android.component.NavigationItem
 import com.example.login.LoginScreen
-import com.example.mypage.MyPageScreen
+import com.example.mypage.MyPageApp
+import com.example.mypage.MyPageViewModel
+import com.example.mypage.screen.MyPageScreen
 
 @Composable
 fun MainApp(
@@ -153,9 +155,9 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.MY_PAGE
                         }
                         FinishHandler()
-                        MyPageScreen(
-//                            viewModel = hiltViewModel()
-                        )
+
+                        val mypageViewModel: MyPageViewModel = hiltViewModel()
+                        MyPageApp(mypageViewModel)
                     }
                 }
 
