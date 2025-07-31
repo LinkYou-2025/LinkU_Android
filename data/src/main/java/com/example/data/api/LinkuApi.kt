@@ -53,7 +53,7 @@ interface LinkuApi {
     @GET("/api/linku/recent")
     suspend fun recentLinks(
         @Query("limit") limit: Int = 10
-    ) : BaseResponse<LinkuSimpleDTO>
+    ) : BaseResponse<List<LinkuSimpleDTO>>
 
     // 링크 추천
     @GET("/api/linku/recommend")
