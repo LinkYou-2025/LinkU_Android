@@ -64,12 +64,14 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
+    implementation(project(":data"))
 
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // Coil
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")

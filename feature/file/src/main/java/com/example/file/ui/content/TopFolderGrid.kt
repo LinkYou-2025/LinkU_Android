@@ -4,17 +4,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.file.FileViewModel
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.ui.state.EditStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
+import kotlinx.coroutines.flow.withIndex
 
 val categories = listOf(
     "어학",
@@ -37,10 +41,12 @@ val categories = listOf(
 
 @Composable
 fun TopFolderGrid(
+    fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     onFolderClick: (String) -> Unit,
     onFolderEdit: () -> Unit,
 ){
+    val categoryList = fileViewModel.categoryList.collectAsState().value
     VerticalGrid(
         modifier = Modifier
             .fillMaxWidth(),
@@ -48,20 +54,21 @@ fun TopFolderGrid(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
-        for (i in 0..15) {
+        for ((i, folder) in categoryList.withIndex()) {
+            val categoryName = folder.categoryName
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .noRippleClickable { if(editStateViewModel.isEditMode){
                         onFolderEdit()
                     }else{
-                        onFolderClick(categories[i])
+                        onFolderClick(categoryName)
                     } },
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 TopFolderItemLayout(
                     categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
-                    categoryName = categories[i],
+                    categoryName = categoryName,
                     isBookmarked = false,
                     editStateViewModel = editStateViewModel
                 )
@@ -77,6 +84,7 @@ fun TopFolderGrid(
 @Composable
 fun TopFolderGridTest(){
     TopFolderGrid(
+        fileViewModel = hiltViewModel(),
         editStateViewModel = viewModel(),
         {}
     ){}
