@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,8 +21,9 @@ import com.example.file.FileViewModel
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.ui.state.EditStateViewModel
+import com.example.file.ui.state.FolderState
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
-import kotlinx.coroutines.flow.withIndex
 
 val categories = listOf(
     "어학",
@@ -42,8 +47,8 @@ val categories = listOf(
 @Composable
 fun TopFolderGrid(
     fileViewModel: FileViewModel,
+    folderStateViewModel: FolderStateViewModel,
     editStateViewModel: EditStateViewModel,
-    onFolderClick: (String) -> Unit,
     onFolderEdit: () -> Unit,
 ){
     val categoryList = fileViewModel.categoryList.collectAsState().value
@@ -55,23 +60,34 @@ fun TopFolderGrid(
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
         for ((i, folder) in categoryList.withIndex()) {
+            var isBookmarked by remember { mutableStateOf(false) }
             val categoryName = folder.categoryName
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .noRippleClickable { if(editStateViewModel.isEditMode){
-                        onFolderEdit()
-                    }else{
-                        onFolderClick(categoryName)
-                    } },
+                    .noRippleClickable {
+                        if (editStateViewModel.isEditMode) {
+                            onFolderEdit()
+                        } else {
+                            folderStateViewModel.updateSelectedTopFolder(categoryName)
+                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                        }
+                    },
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 TopFolderItemLayout(
                     categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
                     categoryName = categoryName,
                     isBookmarked = false,
+                    fileViewModel = fileViewModel,
                     editStateViewModel = editStateViewModel
-                )
+                ){
+                    fileViewModel.updateBookmark(
+                        folderId = folder.categoryId,
+                        isBookmarked = !isBookmarked
+                    )
+                    isBookmarked = !isBookmarked
+                }
             }
         }
     }
@@ -85,7 +101,7 @@ fun TopFolderGrid(
 fun TopFolderGridTest(){
     TopFolderGrid(
         fileViewModel = hiltViewModel(),
+        folderStateViewModel = viewModel(),
         editStateViewModel = viewModel(),
-        {}
     ){}
 }
