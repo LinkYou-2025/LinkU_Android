@@ -58,7 +58,7 @@ fun FileBottomSheet(
     if(visible) {
         ModalBottomSheet(
             modifier = Modifier
-                //.height(900.dp)
+                .height(900.dp)
             ,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
@@ -67,7 +67,7 @@ fun FileBottomSheet(
             Column(
                 modifier = Modifier
                     .wrapContentHeight()
-                    .padding(top = 47.dp)
+                    .padding(top = 7.dp)
                     .padding(bottom = 20.dp)
                     .padding(horizontal = 20.dp),
             ) {
@@ -122,7 +122,7 @@ fun FileBottomSheet(
 
 @Preview(showBackground = true, heightDp = 2000)
 @Composable
-fun FileEditBottomSheetTest(){
+private fun FileEditBottomSheetTest(){
     FileBottomSheet(
         title = "해당 카테고리를 수정하시겠습니까?",
         body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",

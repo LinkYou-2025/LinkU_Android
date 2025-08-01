@@ -35,14 +35,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.R
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.Purple200
 
-data class link(
+data class Link(
     val title: String,
     val domain: String,
     val icon: Painter?,
@@ -52,17 +54,44 @@ data class link(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkCategorizationBottomSheet(
-    folderName: String,
-    links: List<link>,
-    visible: Boolean,
-    onDismiss: () -> Unit
+    folderStateViewModel: FolderStateViewModel,
 ) {
+    val links: List<Link> = listOf(
+        Link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), null),
+        Link("title", "domain", null, painterResource(id = R.drawable.test_img)),
+        Link(
+            "title",
+            "domain",
+            painterResource(id = R.drawable.twiter_logo_img),
+            painterResource(id = R.drawable.test_img)
+        ),
+        Link("title", "domain", null, null),
+        Link(
+            "title",
+            "domain",
+            painterResource(id = R.drawable.twiter_logo_img),
+            painterResource(id = R.drawable.test_img)
+        ),
+        Link(
+            "title",
+            "domain",
+            painterResource(id = R.drawable.twiter_logo_img),
+            painterResource(id = R.drawable.test_img)
+        ),
+        Link(
+            "title",
+            "domain",
+            painterResource(id = R.drawable.twiter_logo_img),
+            painterResource(id = R.drawable.test_img)
+        ),
+    )
+
     FileBottomSheet(
-        title = "$folderName 폴더의 미분류 링크 목록",
+        title = "${folderStateViewModel.selectedTopFolder} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
-        visible = visible,
-        onDismiss = onDismiss
+        visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
+        onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
     ) {
         LazyColumn(
             modifier = Modifier
@@ -161,17 +190,11 @@ fun LinkCategorizationBottomSheet(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 2000)
 @Composable
-fun LinkCategorizationBottomSheetTest(){
-    val links = listOf(
-        link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), null),
-        link("title", "domain", null, painterResource(id = R.drawable.test_img)),
-        link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), painterResource(id = R.drawable.test_img)),
-        link("title", "domain", null, null),
-        link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), painterResource(id = R.drawable.test_img)),
-        link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), painterResource(id = R.drawable.test_img)),
-        link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), painterResource(id = R.drawable.test_img)),
-    )
-    LinkCategorizationBottomSheet("땡땡",links, true){}
+private fun LinkCategorizationBottomSheetTest(){
+    val folderStateViewModel: FolderStateViewModel = viewModel()
+    folderStateViewModel.updateSelectedTopFolder("호호호")
+    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+    LinkCategorizationBottomSheet(folderStateViewModel)
 }

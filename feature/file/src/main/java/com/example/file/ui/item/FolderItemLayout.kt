@@ -96,39 +96,36 @@ fun FolderItemLayout(
 
     Surface(
         modifier = Modifier
-            .width(174.dp)
-            .height(153.53.dp),
-        shape = RoundedCornerShape(30.dp),
-        color = backgroundColor, // Surface에서 배경 색상을 지정!
-        shadowElevation = 4.dp // 그림자도 Surface에서 한 번만!
+            .width(165.3.dp)
+            .height(145.8535.dp),
+        shape = RoundedCornerShape(28.5.dp),
+        color = backgroundColor,
+        shadowElevation = 3.8.dp
     ) {
-        // 내부 Box: 배경/클립/쉐도우 중복 제거
         Box(
             Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // 1. Folder 컬러 Layer Box들 (세 개를 함수화해서 코드 간결)
             FolderLayerBox(
                 color = color1,
-                size = 111.dp,
-                padding = PaddingValues(bottom = 6.dp),
+                size = 105.45.dp,
+                padding = PaddingValues(bottom = 5.7.dp),
                 rotation = -7.39f
             )
             FolderLayerBox(
                 color = color2,
-                size = 111.dp,
-                padding = PaddingValues(bottom = 3.35.dp),
+                size = 105.45.dp,
+                padding = PaddingValues(bottom = 3.1825.dp),
                 rotation = 4.86f
             )
             FolderLayerBox(
                 color = color3,
-                size = 133.06.dp,
-                height = 112.59.dp,
-                padding = PaddingValues(top = 8.dp),
+                size = 126.407.dp,
+                height = 107.9605.dp,
+                padding = PaddingValues(top = 7.6.dp),
                 rotation = 0f
             )
 
-            // 2. 폴더 마스크 + 그라데이션
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -148,42 +145,39 @@ fun FolderItemLayout(
                             }
                         }
                         .shadow(
-                            elevation = 10.dp,
+                            elevation = 9.5.dp,
                             ambientColor = Color.Black.copy(alpha = 0.5f),
                             spotColor = Color.Black.copy(alpha = 0.5f),
                         )
                 )
 
-                // 3. 왼쪽 아이콘
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopStart)
-                        .padding(top = 13.21.dp, start = 21.dp)
+                        .padding(top = 12.5495.dp, start = 19.95.dp)
                 ) {
                     leftIcon()
                 }
 
-                // 4. 오른쪽 아이콘
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(top = 27.23.dp, end = 20.dp)
+                        .padding(top = 25.8685.dp, end = 19.dp)
                 ) {
                     rightIcon()
                 }
 
-                // 5. 카테고리명 라벨(아이콘+텍스트)
                 if(categoryName.isNotEmpty()){
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .offset(x = 18.42.dp, y = (-18.42).dp),
+                            .offset(x = 17.499.dp, y = (-17.499).dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.19.dp)
+                        horizontalArrangement = Arrangement.spacedBy(7.7805.dp)
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(30.71.dp)
+                                .size(29.1745.dp)
                                 .clip(CircleShape)
                                 .background(color = textBackgroundColor),
                             contentAlignment = Alignment.Center
@@ -239,7 +233,8 @@ fun EmptyFolderItemLayout(
 fun TopFolderItemLayout(
     categoryColorStyle: CategoryColorStyle,
     categoryName: String = "",
-    isBookmarked: Boolean = false
+    isBookmarked: Boolean = false,
+    editStateViewModel: EditStateViewModel
 ){
     var bookmark by remember { mutableStateOf(isBookmarked) }
 
@@ -251,11 +246,19 @@ fun TopFolderItemLayout(
         folderMaskBrush = topFolderMaskBrush,
         leftIcon = {},
         rightIcon = {
-            Box(
-                modifier = Modifier
-                    .noRippleClickable{ bookmark = !bookmark }
-            ){
-                BookMarkStar(bookmark)
+            if(editStateViewModel.isEditMode){
+                Box(
+                    modifier = Modifier
+                ) {
+                    PencilIcon(categoryColorStyle.color2)
+                }
+            }else {
+                Box(
+                    modifier = Modifier
+                        .noRippleClickable { bookmark = !bookmark }
+                ) {
+                    BookMarkStar(bookmark)
+                }
             }
         },
         textBackgroundColor = categoryColorStyle.color4,
@@ -297,7 +300,8 @@ fun FolderItemTest() {
         EmptyFolderItemLayout()
         TopFolderItemLayout(
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
-            categoryName = "기본"
+            categoryName = "기본",
+            editStateViewModel = viewModel()
         )
         BottomFolderItemLayout(
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],

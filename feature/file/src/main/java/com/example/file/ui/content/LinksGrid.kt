@@ -16,35 +16,42 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.LinkItemLayout
+import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 
 @Composable
 fun LinksGrid(
+    folderStateViewModel: FolderStateViewModel,
     linkList: List<String>
 ){
     VerticalGrid(
         modifier = Modifier
             .fillMaxWidth(),
         columns = SimpleGridCells.Fixed(2),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalArrangement = Arrangement.spacedBy(18.dp),
+        horizontalArrangement = Arrangement.spacedBy(9.dp),
+        verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
-
         Box(
             modifier = Modifier
                 .fillMaxWidth(),
             contentAlignment = Alignment.TopStart
-        ){
+        ) {
             Box(
+                modifier = Modifier
+                    .noRippleClickable {
+                        folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                    },
                 contentAlignment = Alignment.TopCenter
             ) {
                 Box(
-                    modifier = Modifier.alpha(0.35f),
+                    modifier = Modifier.alpha(1f),
                 ) {
                     LinkItemLayout(
                         painter = null,
@@ -70,21 +77,27 @@ fun LinksGrid(
             }
         }
 
+
         // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
         for((i, link) in linkList.withIndex()) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth(),
                 contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
-            ) { LinkItemLayout() }
+            ) {
+                LinkItemLayout(
+                    title = link
+                )
+            }
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun LinksGridTest(){
+private fun LinksGridTest(){
     LinksGrid(
+        viewModel(),
         listOf("나의 폴더", "공유받은 폴더")
     )
 }

@@ -1,20 +1,19 @@
 package com.example.file.ui.content
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.TopFolderItemLayout
+import com.example.file.ui.state.EditStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 
 val categories = listOf(
@@ -38,7 +37,9 @@ val categories = listOf(
 
 @Composable
 fun TopFolderGrid(
-    onFolderClick: (String) -> Unit
+    editStateViewModel: EditStateViewModel,
+    onFolderClick: (String) -> Unit,
+    onFolderEdit: () -> Unit,
 ){
     VerticalGrid(
         modifier = Modifier
@@ -51,13 +52,18 @@ fun TopFolderGrid(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .noRippleClickable { onFolderClick(categories[i]) },
+                    .noRippleClickable { if(editStateViewModel.isEditMode){
+                        onFolderEdit()
+                    }else{
+                        onFolderClick(categories[i])
+                    } },
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 TopFolderItemLayout(
                     categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
                     categoryName = categories[i],
-                    isBookmarked = false
+                    isBookmarked = false,
+                    editStateViewModel = editStateViewModel
                 )
             }
         }
@@ -70,5 +76,8 @@ fun TopFolderGrid(
 )
 @Composable
 fun TopFolderGridTest(){
-    TopFolderGrid{}
+    TopFolderGrid(
+        editStateViewModel = viewModel(),
+        {}
+    ){}
 }
