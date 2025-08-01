@@ -1,5 +1,6 @@
 package com.example.linku_android
 
+import android.R.attr.type
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
@@ -30,6 +31,28 @@ import com.example.login.LoginScreen
 import com.example.mypage.MyPageApp
 import com.example.mypage.MyPageViewModel
 import com.example.mypage.screen.MyPageScreen
+import com.example.mypage.MyPageScreen
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
+
+
+import androidx.navigation.compose.composable
+import com.example.login.auth.AnimatedLoginScreen
+import com.example.login.auth.EmailVerificationScreen
+import com.example.login.auth.ServiceTermsScreen
+import com.example.login.auth.PrivacyTermsScreenFixed
+import com.example.login.auth.MarketingTermsScreenComposable
+import com.example.login.auth.SignUpPasswordScreen
+import com.example.login.auth.EmailLoginScreen
+import com.example.login.auth.InterestContentScreen
+import com.example.login.auth.InterestPurposeScreen
+import com.example.login.auth.SignUpGenderScreen
+import com.example.login.auth.SignUpNicknameScreen
+import com.example.login.auth.SignUpJobScreen
+import com.example.login.auth.TermsAgreementScreen
+import com.example.login.auth.WelcomeScreen
+import com.example.login.auth.ResetPasswordScreen
+import com.example.login.auth.SignUpViewModel
 
 @Composable
 fun MainApp(
@@ -37,7 +60,7 @@ fun MainApp(
 ) {
     val navigator = rememberNavController()
 //    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
-
+    val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
 
@@ -89,11 +112,12 @@ fun MainApp(
 
                         Splash(
                             onFinish = {
-                                navigator.navigate(NavigationRoute.Home.route) {
+                                navigator.navigate(NavigationRoute.Login.route) {
                                     popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                 }
                             }
-                        )
+                        ) //스플래쉬 -> 이후, LoginScreen으로 이동하기.
+                        //추후, 로그인 된 상태라면 Home으로 이동할 수 있도록 수정해야함.
                     }
                 }
 
@@ -101,12 +125,121 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
                         FinishHandler()
-                        LoginScreen(
+//                        LoginScreen(
 //                            viewModel = hiltViewModel(),
 //                            onLoginSuccess = { viewModel.checkLogin() }
-                        )
+//                        )
+                        AnimatedLoginScreen(navigator = navigator) // 애니메이션 포함된 로그인 화면으로 교체!
                     }
                 }
+
+                //스택 구조 상의 문제로, 우선 3개의 이용약관 여기에 넣음
+                // 서비스 이용약관
+                composable("terms/service") {
+                    ServiceTermsScreen(
+                        onBackClicked = { navigator.popBackStack() },
+                        onAgreeClicked = { navigator.navigate("terms/privacy") } // 다음 약관으로 이동
+                    )
+                }
+
+                // 개인정보 처리방침
+                composable("terms/privacy") {
+                    PrivacyTermsScreenFixed(
+                        onBackClicked = { navigator.popBackStack() },
+                        onAgreeClicked = { navigator.navigate("terms/marketing") } // 다음 약관으로 이동
+                    )
+                }
+
+                // 마케팅 수신 동의
+                composable("terms/marketing") {
+                    MarketingTermsScreenComposable(
+                        onBackClicked = { navigator.popBackStack() },
+                        onAgreeClicked = {
+                            // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
+                            navigator.navigate("email_verification") {
+                                popUpTo("terms/service") { inclusive = true }
+                            }
+                        }
+                    )
+                }
+
+
+                // 이메일 인증
+                composable("email_verification") {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
+                    EmailVerificationScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                //ViewModel 사용
+                composable("sign_up_password") {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
+                    //SignUpPasswordScreen(navigator = navigator)
+                    SignUpPasswordScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                //닉네임.
+                composable("sign_up_nickname") {
+                    SignUpNicknameScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                //성별
+                composable("sign_up_gender") {
+                    SignUpGenderScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                // 직업 선택 화면
+                composable("sign_up_job") {
+                    SignUpJobScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                // 목적 선택 화면
+                composable("sign_up_purpose") {
+                    //InterestPurposeScreen(navigator = navigator)
+                    InterestPurposeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                composable("sign_up_interest") {
+//                    InterestContentScreen(
+//                        navigator = navigator,
+//                        signUpViewModel = hiltViewModel()
+//                    )
+                    InterestContentScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                // 회원가입 완료 → 환영 화면
+                composable("welcome") {
+                    WelcomeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
+                }
+
+                composable("email_login") {
+                    //EmailLoginScreen(navigator = navigator)
+                    EmailLoginScreen(
+                        navigator = navigator,
+//                        onLoginSuccess = {
+//                            //  네비게이션 로직은 app 모듈에서만 관리
+//                            navigator.navigate(NavigationRoute.Home.route) {
+//                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+//                            }
+//                        }
+                    )
+                }
+
+                //이메일 로그인 -> 회원가입
+                composable("terms_agreement") {
+                    TermsAgreementScreen(navController = navigator)
+                }
+
+                //비밀번호 재설정 화면
+                composable("resetPassword") {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    FinishHandler()
+                    ResetPasswordScreen(navigator = navigator)
+                }
+
+
+                
 
                 with(NavigationRoute.Home) {
                     setNavGraph {
