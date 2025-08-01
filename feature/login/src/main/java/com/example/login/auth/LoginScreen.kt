@@ -78,7 +78,7 @@ fun LoginScreen(
             // 이메일 로그인 버튼
             Button(
                 onClick = {
-                    navigator.navigate("emailLogin")
+                    navigator.navigate("email_login")
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
                 shape = RoundedCornerShape(50),

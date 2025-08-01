@@ -28,7 +28,13 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = userRepository.login(email, password)
-                _loginState.value = result
+                //  새 객체로 복사하여 emit → Compose 변경 감지 강제
+                _loginState.value = LoginResult(
+                    userId = result.userId,
+                    token = result.token,
+                    status = result.status,
+                    inactiveDate = result.inactiveDate
+                )
                 _isInactiveAccount.value = (result.status == "INACTIVE")
             } catch (e: Exception) {
                 _loginState.value = null

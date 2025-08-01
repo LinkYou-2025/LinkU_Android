@@ -59,18 +59,24 @@ class SignUpViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // 내가 보낸 닉네임 확인
+                Log.d("SignUpViewModel", " [닉네임 중복 확인 요청] nickname = $nickname")
+
                 val available = userRepository.checkNickname(nickname)  // Boolean 반환
+
+                //  서버 응답 로그
+                Log.d("SignUpViewModel", " [닉네임 중복 확인 응답] available = $available")
+
                 _isNicknameAvailable.value = available
                 _nicknameMessage.value = if (available) {
                     "사용 가능한 닉네임입니다."
                 } else {
                     "이미 사용 중인 닉네임입니다."
                 }
-                Log.d("SignUpViewModel", "닉네임 확인 → $available")
             } catch (e: Exception) {
                 _isNicknameAvailable.value = false
                 _nicknameMessage.value = "닉네임 확인 실패"
-                Log.e("SignUpViewModel", "닉네임 확인 실패", e)
+                Log.e("SignUpViewModel", " [닉네임 확인 실패]", e)
             } finally {
                 _isLoading.value = false
             }
@@ -83,6 +89,18 @@ class SignUpViewModel @Inject constructor(
     fun signUp() {
         viewModelScope.launch {
             try {
+                // ✅ 내가 서버로 보낼 데이터 전체 확인
+                Log.d("SignUpViewModel", """
+                👉 [회원가입 요청 데이터]
+                email = $email
+                password = $password
+                nickname = $nickname
+                gender = $gender
+                jobId = $jobId
+                purposeList = $purposeList
+                interestList = $interestList
+            """.trimIndent())
+
                 val success = userRepository.signUp(
                     nickname = nickname,
                     email = email,
@@ -92,11 +110,13 @@ class SignUpViewModel @Inject constructor(
                     purposeList = purposeList,
                     interestList = interestList
                 )
+
+                Log.d("SignUpViewModel", " [회원가입 응답] success = $success")
+
                 _signUpSuccess.value = success
-                Log.d("SignUpViewModel", "회원가입 성공 여부 → $success")
             } catch (e: Exception) {
                 _signUpSuccess.value = false
-                Log.e("SignUpViewModel", "회원가입 실패", e)
+                Log.e("SignUpViewModel", " [회원가입 실패]", e)
             }
         }
     }

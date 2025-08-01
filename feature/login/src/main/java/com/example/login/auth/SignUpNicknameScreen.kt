@@ -82,9 +82,9 @@ fun SignUpNicknameScreen(
                     nickname = it
                     signUpViewModel.nickname = it
                     // 닉네임이 유효할 때만 API 호출 -> 서버 수정 중으로 부득이하게 주석처리, 추후 해지하기.
-//                    if (isNicknameValid) {
-//                        signUpViewModel.checkNickname()
-//                    }
+                    if (isNicknameValid) {
+                        signUpViewModel.checkNickname()
+                    }
                 },
                 placeholder = {
                     Text(
@@ -163,11 +163,11 @@ fun SignUpNicknameScreen(
 
         // 다음 버튼
         // 닉네임 유효성 + 서버 중복 확인 성공 여부
-        //val canProceed = isNicknameValid && (isNicknameAvailable == true)
+        val canProceed = isNicknameValid && (isNicknameAvailable == true)
 
         //서버 수정 중으로 부득이하게,
         // 임시방편
-        val canProceed = isNicknameValid //-> 추후 삭제하고 위의 코드로 교체.
+        //val canProceed = isNicknameValid //-> 추후 삭제하고 위의 코드로 교체.
 
 
         Box(

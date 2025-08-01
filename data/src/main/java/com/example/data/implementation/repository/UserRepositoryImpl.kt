@@ -16,8 +16,14 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
     override suspend fun checkNickname(nickname: String): Boolean {
-        val response = userApi.checkNickDuplication(nickname)
-        return response.isSuccess == true   // Boolean? → Boolean 변환
+        val token = "Bearer ${authPreference.accessToken}" // ✅ JWT 토큰 가져오기
+        Log.d("UserRepository", " [API 호출] checkNickname nickname=$nickname token=$token")
+
+        val response = userApi.checkNickname(nickname, token)
+
+        Log.d("UserRepository", " [API 응답] isSuccess=${response.isSuccess} message=${response.message}")
+
+        return response.isSuccess == true
     }
 
     override suspend fun login(email: String, password: String): LoginResult {
@@ -38,7 +44,6 @@ class UserRepositoryImpl @Inject constructor(
             inactiveDate = result.inactiveDate?.toString()
         )
     }
-
     override suspend fun signUp(
         nickname: String,
         email: String,
@@ -48,19 +53,56 @@ class UserRepositoryImpl @Inject constructor(
         purposeList: List<String>,
         interestList: List<String>
     ): Boolean {
+        // gender & jobId 유효성 체크
+        require(gender in 1..2) { "gender 값이 잘못되었습니다. (1=남성, 2=여성)" }
+        require(jobId in 1..6) { "jobId 값이 잘못되었습니다. (1~6)" }
+
+        // null 대신 항상 빈 리스트 전달
+        val safePurposeList = if (purposeList.isEmpty()) emptyList() else purposeList
+        val safeInterestList = if (interestList.isEmpty()) emptyList() else interestList
+
         val dto = JoinDTO(
             nickName = nickname,
             email = email,
             password = password,
             gender = gender,
             jobId = jobId,
-            purposeList = purposeList,
-            interestList = interestList
+            purposeList = safePurposeList,
+            interestList = safeInterestList
         )
 
-        val response = userApi.signUp(dto)
-        return response.isSuccess == true   // Boolean? → Boolean 변환
+        val token = "Bearer ${authPreference.accessToken}" // ✅ JWT 토큰 추가
+        Log.d("UserRepository", " [회원가입 요청] token=$token dto=$dto")
+
+        // userApi.signUp에 토큰 전달 필요 → UserApi 수정 필요
+        val response = userApi.signUp(dto, token)
+
+        Log.d("UserRepository", " [회원가입 응답] isSuccess=${response.isSuccess} message=${response.message}")
+        return response.isSuccess == true
     }
+
+//    override suspend fun signUp(
+//        nickname: String,
+//        email: String,
+//        password: String,
+//        gender: Int,
+//        jobId: Int,
+//        purposeList: List<String>,
+//        interestList: List<String>
+//    ): Boolean {
+//        val dto = JoinDTO(
+//            nickName = nickname,
+//            email = email,
+//            password = password,
+//            gender = gender,
+//            jobId = jobId,
+//            purposeList = purposeList,
+//            interestList = interestList
+//        )
+//
+//        val response = userApi.signUp(dto)
+//        return response.isSuccess == true   // Boolean? → Boolean 변환
+//    }
 
     override suspend fun sendEmailCode(email: String): Boolean {
         val response = userApi.sendVerificationEmail(email)

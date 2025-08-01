@@ -36,7 +36,7 @@ fun EmailVerificationScreen(
     viewModel: EmailAuthViewModel = hiltViewModel(),
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    val signUpViewModel: SignUpViewModel = hiltViewModel()
+    //val signUpViewModel: SignUpViewModel = hiltViewModel()
     val email = remember { mutableStateOf("") }
     val code = remember { mutableStateOf("") }
 

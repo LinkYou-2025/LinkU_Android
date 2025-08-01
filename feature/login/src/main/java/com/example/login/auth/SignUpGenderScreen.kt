@@ -91,7 +91,7 @@ fun SignUpGenderScreen(
                 )
                 .clickable(enabled = selectedGender != null) {
                     //  ViewModel에 선택된 성별 저장
-                    signUpViewModel.gender = selectedGender ?: 0
+                    signUpViewModel.gender = selectedGender ?: 1
 
                     // 다음 화면으로 이동
                     navigator.navigate("sign_up_job")
