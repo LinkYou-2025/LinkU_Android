@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.design.BottomNavigationBar
 import com.example.design.NavigationItem
+import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
@@ -58,6 +59,7 @@ import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 
 @Composable
 fun FileTopBar(
+    fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
     ) {
@@ -217,139 +219,4 @@ fun FileTopBar(
     showBackground = true)
 @Composable
 fun FileTopBarTest() {
-
-    // 뷰 모델 선언
-    val editStateViewModel:EditStateViewModel = viewModel()
-    val folderStateViewModel: FolderStateViewModel = viewModel()
-
-    // 뒤로가기 핸들러
-    BackHandler(enabled = folderStateViewModel.currentFolderState != FolderState.TOP) {
-        editStateViewModel.updateEditMode(false)
-        when (folderStateViewModel.currentFolderState) {
-            FolderState.LINK -> {
-                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                folderStateViewModel.updateSelectedBottomFolder(null)
-            }
-            FolderState.BOTTOM -> {
-                folderStateViewModel.updateFolderState(FolderState.TOP)
-                folderStateViewModel.updateSelectedTopFolder(null)
-            }
-            else -> {}
-        }
-    }
-
-    Scaffold (
-        modifier = Modifier
-            .fillMaxSize()
-            .noRippleClickable { },
-        containerColor = White,
-        topBar = {
-            FileTopBar(
-                editStateViewModel = editStateViewModel,
-                folderStateViewModel = folderStateViewModel
-        )},
-        bottomBar = { BottomNavigationBar(
-            selectedTab = NavigationItem.FILE,
-            onTabSelected = {},
-            onFabClick = {}
-        ) }
-    ){ innerPadding ->
-
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(20.dp)
-            ) {
-                item {
-                    when(folderStateViewModel.currentFolderState) {
-                        FolderState.TOP -> {
-                            TopFolderGrid(
-                                editStateViewModel = editStateViewModel,
-                                onFolderClick = { folderName ->
-                                    folderStateViewModel.updateSelectedTopFolder(folderName)
-                                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                                },
-                                onFolderEdit = {
-                                    folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)
-                                }
-                            )
-                        }
-                        FolderState.BOTTOM -> {
-                            BottomFolderGrid(
-                                folderList = listOf("나의 폴더", "공유받은 폴더"), // 실제 폴더 데이터로
-                                linkList = listOf("링크1", "링크2"),
-                                editStateViewModel = editStateViewModel,
-                                folderStateViewModel = folderStateViewModel,
-                                onFolderAdd = {
-                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                                },
-                                onFolderClick = {folder ->
-                                    folderStateViewModel.updateSelectedBottomFolder(folder)
-                                    if(editStateViewModel.isEditMode){
-                                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                                    }else{
-                                        folderStateViewModel.updateFolderState(FolderState.LINK)
-                                    }
-                                }
-                            )
-                        }
-                        FolderState.LINK -> {
-                            LinksGrid(
-                                folderStateViewModel = folderStateViewModel,
-                                linkList = listOf("링크1", "링크2", "링크3")
-                            )
-                        }
-                    }
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 19.dp, bottom = 8.dp)
-            ) {
-                ShareButton()
-            }
-        }
-
-        if (
-            folderStateViewModel.topMenuExpanded ||
-            folderStateViewModel.bottomMenuExpanded
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-            )
-        }
-    }
-
-    FileSearchBarTopSheet(
-        visible = folderStateViewModel.searchTopSheetVisible,
-        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) }
-    )
-
-    // 중분류 폴더 수정 바텀 시트
-    TopFolderEditBottomSheet(
-        folderStateViewModel = folderStateViewModel
-    )
-
-    // 폴더 추가하기 바텀 시트
-    NewBottomFolderBottomSheet(
-        folderStateViewModel = folderStateViewModel
-    )
-
-    // 중분류 폴더 수정 바텀 시트
-    BottomFolderEditBottomSheet(
-        folderStateViewModel = folderStateViewModel
-    )
-
-    // 링크 추가하기 바텀 시트
-    LinkCategorizationBottomSheet(
-        folderStateViewModel = folderStateViewModel
-    )
 }
