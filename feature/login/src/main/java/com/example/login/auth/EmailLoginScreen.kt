@@ -37,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 
 
+
 @Composable
 fun EmailLoginScreen(
     navigator: NavHostController,
@@ -44,29 +45,85 @@ fun EmailLoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-
+    var isLoginRequested by remember { mutableStateOf(false) }
     val loginResult by loginViewModel.loginState.collectAsState()
-
     val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
-    // 로그인 응답 감지
-    LaunchedEffect(loginResult) {
-        loginResult?.let { result ->
-            when {
-                result.status == "INACTIVE" -> {
-                    Log.w("Login", "⚠️ 계정이 탈퇴 예정 (inactiveDate=${result.inactiveDate})")
-                    // 경고 다이얼로그는 아래 remember { mutableStateOf(false) }로 제어
-                }
-                result.userId != -1 -> {
-                    Log.d("Login", "로그인 성공 → token=${result.token}")
-                    navigator.navigate("home")
-                }
-                else -> {
-                    Log.e("Login", "로그인 실패: 유효하지 않은 사용자")
-                }
+
+    LaunchedEffect(loginResult?.userId, isLoginRequested) {
+        val result = loginResult
+        if (isLoginRequested && result?.userId != null && result.userId != -1) {
+            Log.d("Login", " 로그인 성공 → Home 이동")
+            isLoginRequested = false
+
+            // NavHost에서 실제 라우트명을 정확히 사용!
+            navigator.navigate("home") {
+                popUpTo(0) { inclusive = true }   // 모든 스택 제거 후 홈으로
+                launchSingleTop = true
             }
         }
     }
+
+//@Composable
+//fun EmailLoginScreen(
+//    navigator: NavHostController,
+//    loginViewModel: LoginViewModel = hiltViewModel(),
+//    onLoginSuccess: () -> Unit
+//) {
+//    var email by remember { mutableStateOf("") }
+//    var password by remember { mutableStateOf("") }
+//    var isLoginRequested by remember { mutableStateOf(false) }
+//    val loginResult by loginViewModel.loginState.collectAsState()
+//    //var loginSuccess by remember { mutableStateOf(false) }
+//    val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+//    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
+//
+//    val currentNavigator = rememberUpdatedState(navigator)
+//
+//    LaunchedEffect(loginResult) {
+//        val result = loginResult
+//        if (isLoginRequested && result?.userId != null && result.userId != -1) {
+//            Log.d("Login", " 로그인 성공 → ${result.token}")
+//            isLoginRequested = false
+//
+//            navigator.navigate("home") {
+//                popUpTo("email_login") { inclusive = true }
+//            }
+//        }
+//    }
+//    //  로그인 성공 시 → HomeScreen 표시 후 return (Login UI 제거)
+//    if (loginSuccess) {
+//        //com.example.home.HomeScreen() //  네가 만든 HomeScreen 바로 호출
+//        return
+//    }
+
+
+
+//    LaunchedEffect(loginResult) {
+//        loginResult?.let { result ->
+//            if (isLoginRequested) { // 로그인 버튼 클릭 이후에만 처리
+//                when {
+//                    result.status == "INACTIVE" -> {
+//                        Log.w("Login", "⚠️ 계정 비활성 예정")
+//                        isLoginRequested = false
+//                    }
+//
+//                    result.userId != -1 -> {
+//                        Log.d("Login", "로그인 성공 → ${result.token}")
+//                        isLoginRequested = false
+//                        navigator.navigate("home") {
+//                            popUpTo("email_login") { inclusive = true }
+//                        }
+//                    }
+//
+//                    else -> {
+//                        Log.e("Login", "로그인 실패")
+//                        isLoginRequested = false
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     Box(
         modifier = Modifier
@@ -189,8 +246,12 @@ fun EmailLoginScreen(
                         shape = RoundedCornerShape(24.dp)
                     )
                     .clickable(enabled = isFormValid) {
-                        loginViewModel.login(email, password) // ✅ StateFlow 업데이트만 실행
-                    },
+                        if (!isLoginRequested) {
+                            isLoginRequested = true
+                            loginViewModel.login(email, password)
+                        }
+                    }
+                ,
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -237,11 +298,22 @@ fun EmailLoginScreen(
         }
     }
 }
-
-
 @Preview(showBackground = true, name = "EmailLoginScreen Preview")
 @Composable
 fun EmailLoginScreenPreview() {
     val dummyNavController = rememberNavController()
     EmailLoginScreen(navigator = dummyNavController)
 }
+
+//@Preview(showBackground = true, name = "EmailLoginScreen Preview")
+//@Composable
+//fun EmailLoginScreenPreview() {
+//    val dummyNavController = rememberNavController()
+//    EmailLoginScreen(
+//        navigator = dummyNavController,
+////        onLoginSuccess = {
+////            //  Preview에서는 단순히 로그만 찍음
+////            Log.d("Preview", "Login Success Triggered (Preview)")
+////        }
+//    )
+//}

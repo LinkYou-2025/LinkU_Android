@@ -147,8 +147,11 @@ fun InterestPurposeScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
                 .clickable(enabled = canProceed) {
+//                    signUpViewModel.purposeList = selectedPurposes.mapNotNull {
+//                        purposeLabelToCode[it]
+//                    }
                     signUpViewModel.purposeList = selectedPurposes.mapNotNull {
-                        purposeLabelToCode[it]
+                        purposeLabelToCode[it.replace("\n", "")]
                     }
                     navigator.navigate("sign_up_interest")
                 },

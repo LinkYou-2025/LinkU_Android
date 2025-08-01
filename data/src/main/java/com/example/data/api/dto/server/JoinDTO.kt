@@ -20,9 +20,9 @@ data class JoinDTO (
     val jobId: Int,
 
     @Json(name = "purposeList")
-    val purposeList: List<String>? = null,
+    val purposeList: List<String>,
 
     @Json(name = "interestList")
-    val interestList: List<String>? = null
+    val interestList: List<String>
 
 )

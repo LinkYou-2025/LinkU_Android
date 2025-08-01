@@ -45,13 +45,15 @@ import com.example.login.auth.SignUpJobScreen
 import com.example.login.auth.TermsAgreementScreen
 import com.example.login.auth.WelcomeScreen
 import com.example.login.auth.ResetPasswordScreen
+import com.example.login.auth.SignUpViewModel
+
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
 ) {
     val navigator = rememberNavController()
 //    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
-
+    val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
 
@@ -149,52 +151,62 @@ fun MainApp(
                 composable("email_verification") {
                     LaunchedEffect(Unit) { showNavBar = false }
                     FinishHandler()
-                    EmailVerificationScreen(navigator = navigator)
+                    EmailVerificationScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 //ViewModel 사용
                 composable("sign_up_password") {
                     LaunchedEffect(Unit) { showNavBar = false }
                     FinishHandler()
-                    SignUpPasswordScreen(navigator = navigator)
+                    //SignUpPasswordScreen(navigator = navigator)
+                    SignUpPasswordScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 //닉네임.
                 composable("sign_up_nickname") {
-                    SignUpNicknameScreen(
-                        navigator = navigator
-                    )
+                    SignUpNicknameScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 //성별
                 composable("sign_up_gender") {
-                    SignUpGenderScreen(navigator = navigator)
+                    SignUpGenderScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 // 직업 선택 화면
                 composable("sign_up_job") {
-                    SignUpJobScreen(navigator = navigator)
+                    SignUpJobScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 // 목적 선택 화면
                 composable("sign_up_purpose") {
-                    InterestPurposeScreen(navigator = navigator)
+                    //InterestPurposeScreen(navigator = navigator)
+                    InterestPurposeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 composable("sign_up_interest") {
-                    InterestContentScreen(
-                        navigator = navigator,
-                        signUpViewModel = hiltViewModel()
-                    )
+//                    InterestContentScreen(
+//                        navigator = navigator,
+//                        signUpViewModel = hiltViewModel()
+//                    )
+                    InterestContentScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 // 회원가입 완료 → 환영 화면
                 composable("welcome") {
-                    WelcomeScreen(navigator = navigator)
+                    WelcomeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 composable("email_login") {
-                    EmailLoginScreen(navigator = navigator)
+                    //EmailLoginScreen(navigator = navigator)
+                    EmailLoginScreen(
+                        navigator = navigator,
+//                        onLoginSuccess = {
+//                            //  네비게이션 로직은 app 모듈에서만 관리
+//                            navigator.navigate(NavigationRoute.Home.route) {
+//                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+//                            }
+//                        }
+                    )
                 }
 
                 //이메일 로그인 -> 회원가입

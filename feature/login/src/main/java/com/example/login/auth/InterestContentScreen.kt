@@ -155,7 +155,11 @@ fun InterestContentScreen(
                 )
                 .clickable(enabled = canProceed) {
                     //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
-                    signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
+                    // 줄 바꿈으로 서버 인식 불가 -> 변경.
+                    //signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
+                    signUpViewModel?.interestList = selectedContents.mapNotNull {
+                        contentLabelToCode[it.replace("\n", "")]
+                    }
 
                     navigator.navigate("welcome")
                 },
