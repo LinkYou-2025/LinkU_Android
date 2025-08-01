@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.content.BookMarkStar
@@ -234,10 +235,10 @@ fun TopFolderItemLayout(
     categoryColorStyle: CategoryColorStyle,
     categoryName: String = "",
     isBookmarked: Boolean = false,
-    editStateViewModel: EditStateViewModel
+    fileViewModel: FileViewModel,
+    editStateViewModel: EditStateViewModel,
+    onClick: () -> Unit
 ){
-    var bookmark by remember { mutableStateOf(isBookmarked) }
-
     FolderItemLayout(
         backgroundColor = Gray200,
         color1 = categoryColorStyle.color3,
@@ -255,9 +256,11 @@ fun TopFolderItemLayout(
             }else {
                 Box(
                     modifier = Modifier
-                        .noRippleClickable { bookmark = !bookmark }
+                        .noRippleClickable {
+                            onClick()
+                        }
                 ) {
-                    BookMarkStar(bookmark)
+                    BookMarkStar(isBookmarked)
                 }
             }
         },
@@ -301,8 +304,9 @@ fun FolderItemTest() {
         TopFolderItemLayout(
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
             categoryName = "기본",
+            fileViewModel = viewModel(),
             editStateViewModel = viewModel()
-        )
+        ){}
         BottomFolderItemLayout(
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
             categoryName = "기본",
