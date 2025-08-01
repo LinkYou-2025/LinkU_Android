@@ -17,10 +17,12 @@ class CategoryRepositoryImpl @Inject constructor(
     override suspend fun getCategoryList(
     ): List<CategorySimpleInfo> {
         Log.d("CategoryRepositoryImpl", "getCategoryList")
+
         val categorys = serverApi.withAuth(authPreference) {
             getCategoryList()
         }
-        Log.d("CategoryRepositoryImpl", categorys.toString())
+
+        Log.d("CategoryRepositoryImpl", "categorys: $categorys")
 
         return categorys.map { category ->
             CategorySimpleInfo(
