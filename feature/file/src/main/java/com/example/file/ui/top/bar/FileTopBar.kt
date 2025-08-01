@@ -1,0 +1,355 @@
+package com.example.file.ui.top.bar
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.design.BottomNavigationBar
+import com.example.design.NavigationItem
+import com.example.file.R
+import com.example.file.modifier.noRippleClickable
+import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
+import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
+import com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet
+import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
+import com.example.file.ui.content.BottomFolderGrid
+import com.example.file.ui.content.LinksGrid
+import com.example.file.ui.content.TopFolderGrid
+import com.example.file.ui.content.categories
+import com.example.file.ui.state.EditStateViewModel
+import com.example.file.ui.state.FolderState
+import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.ui.theme.CategoryColorStyle
+import com.example.file.ui.theme.FileTopBarLinkUFont
+import com.example.file.ui.theme.MainColor
+import com.example.file.ui.theme.White
+import com.example.file.ui.top.bar.component.BottomFolderListLayout
+import com.example.file.ui.top.bar.component.BottomFolderListMenu
+import com.example.file.ui.top.bar.component.EditButton
+import com.example.file.ui.top.bar.component.FileSearchBar
+import com.example.file.ui.top.bar.component.ShareButton
+import com.example.file.ui.top.bar.component.TopFolderListLayout
+import com.example.file.ui.top.bar.component.TopFolderListMenu
+import com.example.file.ui.top.sheet.FileSearchBarTopSheet
+
+
+@Composable
+fun FileTopBar(
+    editStateViewModel: EditStateViewModel,
+    folderStateViewModel: FolderStateViewModel,
+    ) {
+    // 내부 요소들을 겹쳐서 배치하는 Box
+    Box(
+        // 전체 영역을 가득 채우도록
+        modifier = Modifier
+            .fillMaxWidth()
+            // 세로 길이 지정 (206dp)
+            .height(206.dp)
+            .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))
+            // Box 배경에 메인 그라데이션 적용
+            .background(brush = MainColor)
+    ) {
+
+        // 1. 흐린 로고 (배경 맨 뒤)
+        Icon(
+            // 투명도 낮게 (alpha=0.2f)
+            modifier = Modifier
+                .alpha(0.2f)
+                // 오른쪽 위에 정렬
+                .align(Alignment.TopEnd)
+                // 위쪽 여백 (80dp), 오른쪽으로 22.5dp 밀기
+                .padding(top = 80.dp)
+                .offset(x = 22.5.dp)
+                // 아이콘 크기 지정 (149.49 x 106 dp)
+                .size(width = 149.49561.dp, height = 106.dp),
+            // 아이콘 색상 (흰색)
+            tint = White,
+            // 사용할 아이콘 이미지 리소스
+            painter = painterResource(id = R.drawable.linku_logo),
+            // 이미지 설명 ("링큐 투명 로고")
+            contentDescription = "링큐 투명 로고"
+        )
+
+        // 2. 타이틀(링큐)
+        Text(
+            // 왼쪽 위에 정렬
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                // 왼쪽 35dp, 위 52dp 여백
+                .padding(start = 35.dp, top = 52.dp),
+            // 텍스트 내용 ("링큐")
+            text = "링큐",
+            // 폰트 크기 (24sp)
+            fontSize = 24.sp,
+            // 사용할 폰트
+            fontFamily = FileTopBarLinkUFont,
+            // 폰트 굵기 (Normal)
+            fontWeight = FontWeight(400),
+            // 글자색 (흰색)
+            color = White,
+        )
+
+        // 3. 검색창 (FileSearchBar)
+        Box(
+            // 상단 중앙에 정렬
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                // 위쪽 여백 (91dp)
+                .padding(top = 91.dp)
+                .noRippleClickable {
+                    folderStateViewModel.updateSearchTopSheetVisible(true)
+                },
+        ) {
+            // 커스텀 검색창
+            FileSearchBar()
+        }
+
+        // 4. 폴더 리스트 레이아웃
+        Box(
+            // 왼쪽 위에 정렬
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                // 왼쪽 20dp, 위쪽 153dp 여백
+                .padding(start = 20.dp, top = 153.dp)
+                .noRippleClickable {
+                    folderStateViewModel.updateTopMenuExpanded(true)
+                },
+        ) {
+            // 폴더 리스트 컴포저블
+            TopFolderListLayout()
+
+            TopFolderListMenu(
+                folderStateViewModel = folderStateViewModel,
+                listOf("나의 폴더", "공유받은 폴더"),
+            ){}
+
+        }
+
+        if(folderStateViewModel.currentFolderState != FolderState.TOP){
+            Box(
+                // 왼쪽 위에 정렬
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    // 왼쪽 20dp, 위쪽 153dp 여백
+                    .padding(start = 139.29.dp, top = 153.dp)
+                    .noRippleClickable {
+                        folderStateViewModel.updateBottomMenuExpanded(true)
+                    },
+            ) {
+                // 폴더 리스트 컴포저블
+                BottomFolderListLayout(
+                    colorStyle = CategoryColorStyle.categoryStyleList[0],
+                    folderStateViewModel = folderStateViewModel
+                )
+
+                BottomFolderListMenu(
+                    folderStateViewModel = folderStateViewModel,
+                    items = categories,
+                    onChangeFolder = {}
+                )
+            }
+        }
+
+        // 5. 알람 아이콘 (오른쪽 위)
+        Icon(
+            // 오른쪽 위에 정렬
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                // 오른쪽 29.8dp, 위 50.38dp 여백
+                .padding(end = 29.8.dp, top = 50.38.dp)
+                // 아이콘 크기 (22.26 x 27.18 dp)
+                .size(width = 22.25668.dp, height = 27.17871.dp),
+            // 아이콘 색상 (흰색)
+            tint = White,
+            // 사용할 아이콘 이미지 리소스
+            painter = painterResource(id = com.example.design.R.drawable.ic_alarm),
+            // 이미지 설명 ("알람")
+            contentDescription = "알람",
+        )
+
+        // 6. 수정 버튼 (오른쪽 아래)
+        Box(
+            // 오른쪽 위에 정렬(실제 위치는 아래임)
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                // 오른쪽 30dp, 위 165dp 여백
+                .padding(end = 30.dp, top = 165.dp)
+                //.noRippleClickable { onOpenBottomSheet() },
+        ) {
+            // 수정 버튼 컴포저블
+            EditButton(
+                editStateViewModel = editStateViewModel,
+                folderViewModel = folderStateViewModel
+            )
+        }
+    }
+
+}
+
+
+@Preview(
+    name = "Pixel 8 Size",
+    widthDp = 412,
+    heightDp = 915,
+    showBackground = true)
+@Composable
+fun FileTopBarTest() {
+
+    // 뷰 모델 선언
+    val editStateViewModel:EditStateViewModel = viewModel()
+    val folderStateViewModel: FolderStateViewModel = viewModel()
+
+    // 뒤로가기 핸들러
+    BackHandler(enabled = folderStateViewModel.currentFolderState != FolderState.TOP) {
+        editStateViewModel.updateEditMode(false)
+        when (folderStateViewModel.currentFolderState) {
+            FolderState.LINK -> {
+                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                folderStateViewModel.updateSelectedBottomFolder(null)
+            }
+            FolderState.BOTTOM -> {
+                folderStateViewModel.updateFolderState(FolderState.TOP)
+                folderStateViewModel.updateSelectedTopFolder(null)
+            }
+            else -> {}
+        }
+    }
+
+    Scaffold (
+        modifier = Modifier
+            .fillMaxSize()
+            .noRippleClickable { },
+        containerColor = White,
+        topBar = {
+            FileTopBar(
+                editStateViewModel = editStateViewModel,
+                folderStateViewModel = folderStateViewModel
+        )},
+        bottomBar = { BottomNavigationBar(
+            selectedTab = NavigationItem.FILE,
+            onTabSelected = {},
+            onFabClick = {}
+        ) }
+    ){ innerPadding ->
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(20.dp)
+            ) {
+                item {
+                    when(folderStateViewModel.currentFolderState) {
+                        FolderState.TOP -> {
+                            TopFolderGrid(
+                                editStateViewModel = editStateViewModel,
+                                onFolderClick = { folderName ->
+                                    folderStateViewModel.updateSelectedTopFolder(folderName)
+                                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                                },
+                                onFolderEdit = {
+                                    folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)
+                                }
+                            )
+                        }
+                        FolderState.BOTTOM -> {
+                            BottomFolderGrid(
+                                folderList = listOf("나의 폴더", "공유받은 폴더"), // 실제 폴더 데이터로
+                                linkList = listOf("링크1", "링크2"),
+                                editStateViewModel = editStateViewModel,
+                                folderStateViewModel = folderStateViewModel,
+                                onFolderAdd = {
+                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                                },
+                                onFolderClick = {folder ->
+                                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                                    if(editStateViewModel.isEditMode){
+                                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                                    }else{
+                                        folderStateViewModel.updateFolderState(FolderState.LINK)
+                                    }
+                                }
+                            )
+                        }
+                        FolderState.LINK -> {
+                            LinksGrid(
+                                folderStateViewModel = folderStateViewModel,
+                                linkList = listOf("링크1", "링크2", "링크3")
+                            )
+                        }
+                    }
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 19.dp, bottom = 8.dp)
+            ) {
+                ShareButton()
+            }
+        }
+
+        if (
+            folderStateViewModel.topMenuExpanded ||
+            folderStateViewModel.bottomMenuExpanded
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.3f))
+            )
+        }
+    }
+
+    FileSearchBarTopSheet(
+        visible = folderStateViewModel.searchTopSheetVisible,
+        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) }
+    )
+
+    // 중분류 폴더 수정 바텀 시트
+    TopFolderEditBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+
+    // 폴더 추가하기 바텀 시트
+    NewBottomFolderBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+
+    // 중분류 폴더 수정 바텀 시트
+    BottomFolderEditBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+
+    // 링크 추가하기 바텀 시트
+    LinkCategorizationBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+}
