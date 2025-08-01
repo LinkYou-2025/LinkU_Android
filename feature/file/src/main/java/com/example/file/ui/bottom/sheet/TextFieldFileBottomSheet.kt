@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.sp
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
+import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray300
@@ -61,17 +63,23 @@ fun TextFieldFileBottomSheet(
     title: String,
     body: String,
     placeholderText: String,
-    isEditable: Boolean,
+    isEditable: Boolean = false,
     visible: Boolean,
     onDismiss: () -> Unit,
 ){
     var expanded by remember { mutableStateOf(false) }
+    var selectedColor by remember { mutableStateOf(Gray300) }
+
     FileBottomSheet(
         title = title,
         body = body,
         buttonText = "저장",
         visible = visible,
-        onDismiss = onDismiss
+        onDismiss = {
+            selectedColor = Gray300
+            expanded = false
+            onDismiss()
+        }
     ) {
         Row(
             modifier = Modifier
@@ -87,7 +95,7 @@ fun TextFieldFileBottomSheet(
                 onValueChange = { text = it },
                 textStyle = TextStyle(
                     fontSize = 14.sp,
-                    color = Gray400,
+                    color = Black,
                     fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
                 ),
@@ -99,7 +107,7 @@ fun TextFieldFileBottomSheet(
                         // 입력값이 비어 있으면 placeholder 보여줌
                         if (text.isEmpty()) {
                             Text(
-                                text = placeholderText, // placeholder
+                                text = " $placeholderText", // placeholder
                                 color = Gray400,
                                 fontSize = 14.sp,
                                 fontFamily = DefaultFont,
@@ -112,8 +120,10 @@ fun TextFieldFileBottomSheet(
             )
 
         }
-        Spacer(modifier = Modifier.height(19.dp))
+
         if (isEditable) {
+            Spacer(modifier = Modifier.height(19.dp))
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -140,11 +150,12 @@ fun TextFieldFileBottomSheet(
                     color = Gray400,
                 )
                 Spacer(modifier = Modifier.weight(1f))
+
                 Box(
                     modifier = Modifier
                         .size(25.dp)
                         .clip(CircleShape)
-                        .background(Gray300),
+                        .background(selectedColor),
                     contentAlignment = Alignment.Center
                 ) {
 
@@ -168,7 +179,9 @@ fun TextFieldFileBottomSheet(
                         }
                     } else Modifier.padding(start = 10.dp)
                 Icon(
-                    modifier = modifier.rotate(rotation),
+                    modifier = modifier
+                        .rotate(rotation)
+                        .noRippleClickable { expanded = !expanded },
                     tint = Gray600,
                     painter = painterResource(id = R.drawable.check_img),
                     contentDescription = "아래 화살표"
@@ -197,7 +210,8 @@ fun TextFieldFileBottomSheet(
                                     .size(25.dp)
                                     .clip(CircleShape)
                                     .background(colorStyle.color4)
-                                    .align(Alignment.Center),
+                                    .align(Alignment.Center)
+                                    .noRippleClickable { selectedColor = colorStyle.color4 },
                                 contentAlignment = Alignment.Center
                             ) {}
                         }
@@ -210,7 +224,7 @@ fun TextFieldFileBottomSheet(
 
 @Preview(showBackground = true, heightDp = 2000)
 @Composable
-fun TextFieldFileBottomSheetTest(){
+private fun TextFieldFileBottomSheetTest(){
     TextFieldFileBottomSheet(
         "해당 카테고리를 수정하시겠습니까?",
         "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",

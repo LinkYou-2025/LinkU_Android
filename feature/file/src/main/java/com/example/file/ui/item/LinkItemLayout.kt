@@ -112,7 +112,7 @@ fun LinkItemLayout(
         // 카드 배경색(White)
         color = White,
         // 그림자(입체감) 효과(20dp)
-        shadowElevation = 20.dp,
+        shadowElevation = 5.dp//(if(painter == null) 0 else 5).dp,
     ) {
         // 내용 전체를 세로로 배치하는 Column
         Column (
@@ -120,6 +120,7 @@ fun LinkItemLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(11.dp)
+                .alpha(if(painter == null) 0.35f else 1f)
         ) {
 
             // (1) 링크의 메인 이미지
@@ -242,7 +243,7 @@ fun LinkItemLayout(
 
 @Preview(showBackground = true)
 @Composable
-fun LinkItemTest() {
+private fun LinkItemTest() {
     Box(
         contentAlignment = Alignment.TopCenter
     ){

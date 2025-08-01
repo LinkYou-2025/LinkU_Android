@@ -2,11 +2,8 @@ package com.example.file.ui.top.bar
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -14,25 +11,17 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -42,7 +31,10 @@ import com.example.design.BottomNavigationBar
 import com.example.design.NavigationItem
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.bottom.sheet.FileBottomSheet
+import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
+import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
+import com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet
+import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
 import com.example.file.ui.content.BottomFolderGrid
 import com.example.file.ui.content.LinksGrid
 import com.example.file.ui.content.TopFolderGrid
@@ -51,12 +43,7 @@ import com.example.file.ui.state.EditStateViewModel
 import com.example.file.ui.state.FolderState
 import com.example.file.ui.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
-import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.FileTopBarLinkUFont
-import com.example.file.ui.theme.Gray300
-import com.example.file.ui.theme.Gray400
-import com.example.file.ui.theme.Gray600
-import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.component.BottomFolderListLayout
@@ -71,8 +58,6 @@ import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 
 @Composable
 fun FileTopBar(
-    onOpenTopSheet: () -> Unit,
-    onOpenBottomSheet: () -> Unit,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
     ) {
@@ -134,7 +119,9 @@ fun FileTopBar(
                 .align(Alignment.TopCenter)
                 // 위쪽 여백 (91dp)
                 .padding(top = 91.dp)
-                .noRippleClickable { onOpenTopSheet() },
+                .noRippleClickable {
+                    folderStateViewModel.updateSearchTopSheetVisible(true)
+                },
         ) {
             // 커스텀 검색창
             FileSearchBar()
@@ -157,8 +144,7 @@ fun FileTopBar(
             TopFolderListMenu(
                 folderStateViewModel = folderStateViewModel,
                 listOf("나의 폴더", "공유받은 폴더"),
-                {}
-            )
+            ){}
 
         }
 
@@ -171,7 +157,7 @@ fun FileTopBar(
                     .padding(start = 139.29.dp, top = 153.dp)
                     .noRippleClickable {
                         folderStateViewModel.updateBottomMenuExpanded(true)
-                   },
+                    },
             ) {
                 // 폴더 리스트 컴포저블
                 BottomFolderListLayout(
@@ -232,11 +218,8 @@ fun FileTopBar(
 @Composable
 fun FileTopBarTest() {
 
-    var isTopSheetVisible by remember { mutableStateOf(false) }
-    var isBottomSheetVisible by remember { mutableStateOf(false) }
-
+    // 뷰 모델 선언
     val editStateViewModel:EditStateViewModel = viewModel()
-
     val folderStateViewModel: FolderStateViewModel = viewModel()
 
     // 뒤로가기 핸들러
@@ -258,12 +241,10 @@ fun FileTopBarTest() {
     Scaffold (
         modifier = Modifier
             .fillMaxSize()
-            .noRippleClickable {  },
+            .noRippleClickable { },
         containerColor = White,
         topBar = {
             FileTopBar(
-                onOpenTopSheet = { isTopSheetVisible = true },
-                onOpenBottomSheet = { isBottomSheetVisible = true },
                 editStateViewModel = editStateViewModel,
                 folderStateViewModel = folderStateViewModel
         )},
@@ -279,12 +260,6 @@ fun FileTopBarTest() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            val itemList = listOf(
-                listOf("태그1", "태그2"),
-                listOf("태그2", "태그3"),
-                listOf("태그3", "태그4")
-            )
-
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 contentPadding = PaddingValues(20.dp)
@@ -292,23 +267,39 @@ fun FileTopBarTest() {
                 item {
                     when(folderStateViewModel.currentFolderState) {
                         FolderState.TOP -> {
-                            TopFolderGrid { folderName ->
-                                folderStateViewModel.updateSelectedTopFolder(folderName)
-                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                            }
+                            TopFolderGrid(
+                                editStateViewModel = editStateViewModel,
+                                onFolderClick = { folderName ->
+                                    folderStateViewModel.updateSelectedTopFolder(folderName)
+                                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                                },
+                                onFolderEdit = {
+                                    folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)
+                                }
+                            )
                         }
                         FolderState.BOTTOM -> {
                             BottomFolderGrid(
                                 folderList = listOf("나의 폴더", "공유받은 폴더"), // 실제 폴더 데이터로
                                 linkList = listOf("링크1", "링크2"),
-                                editStateViewModel = editStateViewModel
-                            ) { bottomFolderName ->
-                                folderStateViewModel.updateSelectedBottomFolder(bottomFolderName)
-                                folderStateViewModel.updateFolderState(FolderState.LINK)
-                            }
+                                editStateViewModel = editStateViewModel,
+                                folderStateViewModel = folderStateViewModel,
+                                onFolderAdd = {
+                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                                },
+                                onFolderClick = {folder ->
+                                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                                    if(editStateViewModel.isEditMode){
+                                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                                    }else{
+                                        folderStateViewModel.updateFolderState(FolderState.LINK)
+                                    }
+                                }
+                            )
                         }
                         FolderState.LINK -> {
                             LinksGrid(
+                                folderStateViewModel = folderStateViewModel,
                                 linkList = listOf("링크1", "링크2", "링크3")
                             )
                         }
@@ -338,96 +329,27 @@ fun FileTopBarTest() {
     }
 
     FileSearchBarTopSheet(
-        visible = isTopSheetVisible,
-        onDismiss = { isTopSheetVisible = false }
+        visible = folderStateViewModel.searchTopSheetVisible,
+        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) }
     )
-    FileBottomSheet(
-        title = "해당 카테고리를 수정하시겠습니까?",
-        body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
-        buttonText = "저장",
-        visible = isBottomSheetVisible,
-        onDismiss = { isBottomSheetVisible = false }
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .border(1.dp, MainColor, RoundedCornerShape(18.dp))
-                .padding(horizontal = 21.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            var text by remember { mutableStateOf("") }
-            BasicTextField(
-                value = text,
-                onValueChange = { text = it },
-                textStyle = TextStyle(
-                    fontSize = 14.sp,
-                    color = Gray400,
-                    fontFamily = DefaultFont,
-                    fontWeight = FontWeight.Normal,
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                decorationBox = { innerTextField ->
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // 입력값이 비어 있으면 placeholder 보여줌
-                        if (text.isEmpty()) {
-                            Text(
-                                text = "카테고리명은 최대 10자입니다", // placeholder
-                                color = Gray400,
-                                fontSize = 14.sp,
-                                fontFamily = DefaultFont,
-                                fontWeight = FontWeight.Normal,
-                            )
-                        }
-                        innerTextField() // 실제 입력란
-                    }
-                }
-            )
 
-        }
-        Spacer(modifier = Modifier.height(19.dp))
-        if (true) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "색상",
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    fontFamily = DefaultFont,
-                    fontWeight = FontWeight.Normal,
-                    color = Gray800,
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 1.dp),
-                    text = "(색상은 한 번 지정하면 변경 불가합니다)",
-                    fontSize = 13.sp,
-                    lineHeight = 15.sp,
-                    fontFamily = DefaultFont,
-                    fontWeight = FontWeight.Normal,
-                    color = Gray400,
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Surface(
-                    modifier = Modifier
-                        .size(25.dp),
-                    color = Gray300,
-                    shape = CircleShape
-                ) { }
-                Icon(
-                    modifier = Modifier
-                        .padding(start = 10.dp),
-                    tint = Gray600,
-                    painter = painterResource(id = R.drawable.check_img),
-                    contentDescription = "아래 화살표"
-                )
-            }
-        }
-    }
+    // 중분류 폴더 수정 바텀 시트
+    TopFolderEditBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+
+    // 폴더 추가하기 바텀 시트
+    NewBottomFolderBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+
+    // 중분류 폴더 수정 바텀 시트
+    BottomFolderEditBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
+
+    // 링크 추가하기 바텀 시트
+    LinkCategorizationBottomSheet(
+        folderStateViewModel = folderStateViewModel
+    )
 }
