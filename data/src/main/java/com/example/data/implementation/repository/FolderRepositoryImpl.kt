@@ -1,10 +1,9 @@
 package com.example.data.implementation.repository
 
 import android.util.Log
-import com.example.core.model.FolderSimpleInfo
 import com.example.core.repository.FolderRepository
 import com.example.data.api.ServerApi
-import com.example.data.api.dto.server.*
+import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
 import com.example.data.api.withAuth
 import com.example.data.preference.AuthPreference
 import javax.inject.Inject
@@ -18,7 +17,7 @@ class FolderRepositoryImpl @Inject constructor(
     override suspend fun updateBookmark(
         folderId: Long,
         isBookmarked: Boolean
-    ): FolderSimpleInfo {
+    ): Boolean {
         Log.d("updateBookmark", "folderId: $folderId, isBookmarked: $isBookmarked")
 
         val folderResponse = serverApi.withAuth(authPreference) {
@@ -27,17 +26,8 @@ class FolderRepositoryImpl @Inject constructor(
 
         Log.d("updateBookmark", "folderResponse: $folderResponse")
 
-        return with(folderResponse) {
-            FolderSimpleInfo(
-                folderId = folderId,
-                folderName = folderName,
-                categoryId = categoryId,
-                categoryName = categoryName,
-                parentFolderId = parentFolderId,
-                createdAt = createdAt,
-                updatedAt = updatedAt,
-            )
-        }
+        return folderResponse.isBookmarked
+
     }
 //
 //    // 2. 내 폴더(트리) 전체 조회

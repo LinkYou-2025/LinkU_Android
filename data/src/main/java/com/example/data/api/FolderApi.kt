@@ -9,6 +9,7 @@ import com.example.data.api.dto.server.FolderTreeResponseDTO
 import com.example.data.api.dto.server.FolderUpdateRequestDTO
 import com.example.data.api.dto.server.ShareFolderResponseDTO
 import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
+import com.example.data.api.dto.server.UpdateBookmarkResponseDTO
 import com.example.data.api.dto.server.ViewerResponseDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -23,7 +24,7 @@ interface FolderApi {
     suspend fun updateBookmark(
         @Path("folderId") folderId: Long,
         @Body body: UpdateBookmarkRequestDTO
-    ): BaseResponse<FolderResponseDTO>
+    ): BaseResponse<UpdateBookmarkResponseDTO>
 
     // 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
     @GET("/api/folders/my")

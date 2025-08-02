@@ -4,6 +4,8 @@ import android.util.Log
 import com.example.core.model.CategorySimpleInfo
 import com.example.core.repository.CategoryRepository
 import com.example.data.api.ServerApi
+import com.example.data.api.dto.server.UpdateCategoryColorRequestDTO
+import com.example.data.api.dto.server.UserCategoryColorResponseDTO
 import com.example.data.api.withAuth
 import com.example.data.preference.AuthPreference
 import javax.inject.Inject
