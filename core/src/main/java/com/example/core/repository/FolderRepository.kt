@@ -8,7 +8,7 @@ interface FolderRepository {
     suspend fun updateBookmark(
         folderId: Long,
         isBookmarked: Boolean
-    ): FolderSimpleInfo
+    ): Boolean
 //
 //    // 2. 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
 //    suspend fun getMyFolders(): List<FolderTreeResponseDTO>
