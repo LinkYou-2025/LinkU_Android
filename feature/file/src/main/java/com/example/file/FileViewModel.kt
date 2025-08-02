@@ -75,11 +75,14 @@ class FileViewModel @Inject constructor(
         Log.d("fetchCategories", "fetchCategories return")
     }
 
+    // 북마크 등록/해제
     fun updateBookmark(
         folderId: Long,
         isBookmarked: Boolean
-    ){
+    ): Boolean {
         Log.d("updateBookmark", "updateBookmark")
+
+        var result = isBookmarked
 
         viewModelScope.launch {
             Log.d("updateBookmark", "updateBookmark launch")
@@ -90,7 +93,7 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("updateBookmark", "updateBookmark try")
 
-                val result = folderRepository.updateBookmark(folderId, isBookmarked)
+                result = folderRepository.updateBookmark(folderId, isBookmarked)
 
                 Log.d("updateBookmark", "updateBookmark try result: $result")
 
@@ -107,5 +110,7 @@ class FileViewModel @Inject constructor(
             Log.d("updateBookmark", "updateBookmark end")
         }
         Log.d("updateBookmark", "updateBookmark return")
+
+        return result
     }
 }
