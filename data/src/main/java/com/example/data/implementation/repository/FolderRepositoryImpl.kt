@@ -1,8 +1,9 @@
 package com.example.data.implementation.repository
 
+import android.util.Log
 import com.example.core.repository.FolderRepository
 import com.example.data.api.ServerApi
-import com.example.data.api.dto.server.*
+import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
 import com.example.data.api.withAuth
 import com.example.data.preference.AuthPreference
 import javax.inject.Inject
@@ -11,14 +12,23 @@ class FolderRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
 ) : FolderRepository {
-//
-//    // 1. 폴더 북마크 등록/해제
-//    override suspend fun updateBookmark(
-//        folderId: Long,
-//        body: UpdateBookmarkRequestDTO
-//    ): FolderResponseDTO = serverApi.withAuth(authPreference) {
-//        updateBookmark(folderId, body)
-//    }
+
+    // 폴더 북마크 등록/해제
+    override suspend fun updateBookmark(
+        folderId: Long,
+        isBookmarked: Boolean
+    ): Boolean {
+        Log.d("updateBookmark", "folderId: $folderId, isBookmarked: $isBookmarked")
+
+        val folderResponse = serverApi.withAuth(authPreference) {
+            updateBookmark(folderId, UpdateBookmarkRequestDTO(isBookmarked))
+        }
+
+        Log.d("updateBookmark", "folderResponse: $folderResponse")
+
+        return folderResponse.isBookmarked
+
+    }
 //
 //    // 2. 내 폴더(트리) 전체 조회
 //    override suspend fun getMyFolders(): List<FolderTreeResponseDTO> =

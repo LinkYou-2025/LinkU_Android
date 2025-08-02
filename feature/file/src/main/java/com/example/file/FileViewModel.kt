@@ -40,26 +40,77 @@ class FileViewModel @Inject constructor(
     // ------------- 주요 함수 -------------
 
     /** 카테고리 전체 불러오기 */
-    fun fetchCategories() {
+    fun getCategoryLisy() {
         Log.d("fetchCategories", "fetchCategories")
+
         viewModelScope.launch {
             Log.d("fetchCategories", "fetchCategories launch")
+
             _loading.value = true
             _errorMessage.value = null
+
             try {
                 Log.d("fetchCategories", "fetchCategories try")
+
                 val result = categoryRepository.getCategoryList()
+
                 Log.d("fetchCategories", "fetchCategories try result: $result")
+
                 _categoryList.value = result
+
             } catch (e: Exception) {
                 Log.d("fetchCategories", "fetchCategories catch: $e.message")
+
                 _errorMessage.value = e.message
+
             } finally {
                 Log.d("fetchCategories", "fetchCategories finally")
+
                 _loading.value = false
+
             }
+
             Log.d("fetchCategories", "fetchCategories end")
         }
         Log.d("fetchCategories", "fetchCategories return")
+    }
+
+    // 북마크 등록/해제
+    fun updateBookmark(
+        folderId: Long,
+        isBookmarked: Boolean
+    ): Boolean {
+        Log.d("updateBookmark", "updateBookmark")
+
+        var result = isBookmarked
+
+        viewModelScope.launch {
+            Log.d("updateBookmark", "updateBookmark launch")
+
+            _loading.value = true
+            _errorMessage.value = null
+
+            try {
+                Log.d("updateBookmark", "updateBookmark try")
+
+                result = folderRepository.updateBookmark(folderId, isBookmarked)
+
+                Log.d("updateBookmark", "updateBookmark try result: $result")
+
+            } catch (e: Exception) {
+                Log.d("updateBookmark", "updateBookmark catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("updateBookmark", "updateBookmark finally")
+
+                _loading.value = false
+            }
+
+            Log.d("updateBookmark", "updateBookmark end")
+        }
+        Log.d("updateBookmark", "updateBookmark return")
+
+        return result
     }
 }

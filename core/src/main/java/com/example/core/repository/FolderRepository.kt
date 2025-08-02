@@ -1,12 +1,14 @@
 package com.example.core.repository
 
+import com.example.core.model.FolderSimpleInfo
+
 interface FolderRepository {
-//
-//    // 1. 폴더 북마크 등록/해제 (북마크 설정/해제)
-//    suspend fun updateBookmark(
-//        folderId: Long,
-//        isBookmarked: Boolean
-//    ): FolderResponseDTO
+
+    // 폴더 북마크 등록/해제 (북마크 설정/해제)
+    suspend fun updateBookmark(
+        folderId: Long,
+        isBookmarked: Boolean
+    ): Boolean
 //
 //    // 2. 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
 //    suspend fun getMyFolders(): List<FolderTreeResponseDTO>

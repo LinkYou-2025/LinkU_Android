@@ -51,7 +51,7 @@ fun FileScreen(
     // 한 번만 데이터 로딩 (최초 진입 시)
     LaunchedEffect(Unit) {
         Log.d("FileScreen", "LaunchedEffect")
-        fileViewModel.fetchCategories()
+        fileViewModel.getCategoryLisy()
     }
 
     Log.d("FileScreen", "FileScreen")
@@ -104,11 +104,8 @@ fun FileScreen(
                         FolderState.TOP -> {
                             TopFolderGrid(
                                 fileViewModel = fileViewModel,
+                                folderStateViewModel = folderStateViewModel,
                                 editStateViewModel = editStateViewModel,
-                                onFolderClick = { folderName ->
-                                    folderStateViewModel.updateSelectedTopFolder(folderName)
-                                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                                },
                                 onFolderEdit = {
                                     folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)
                                 }
