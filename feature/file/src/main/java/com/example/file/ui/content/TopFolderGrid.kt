@@ -82,11 +82,10 @@ fun TopFolderGrid(
                     fileViewModel = fileViewModel,
                     editStateViewModel = editStateViewModel
                 ){
-                    fileViewModel.updateBookmark(
+                    isBookmarked = fileViewModel.updateBookmark(
                         folderId = folder.categoryId,
                         isBookmarked = !isBookmarked
                     )
-                    isBookmarked = !isBookmarked
                 }
             }
         }
