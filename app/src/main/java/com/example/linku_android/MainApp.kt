@@ -27,11 +27,11 @@ import com.example.home.HomeViewModel
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
 import com.example.linku_android.component.NavigationItem
-import com.example.login.LoginScreen
+//import com.example.login.LoginScreen
 import com.example.mypage.MyPageApp
 import com.example.mypage.MyPageViewModel
 import com.example.mypage.screen.MyPageScreen
-import com.example.mypage.MyPageScreen
+//import com.example.mypage.MyPageScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
@@ -106,6 +106,7 @@ fun MainApp(
                 popEnterTransition = { EnterTransition.None },
                 popExitTransition = { ExitTransition.None },
             ) {
+                //스플래쉬
                 with(NavigationRoute.Splash) {
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
@@ -120,16 +121,12 @@ fun MainApp(
                         //추후, 로그인 된 상태라면 Home으로 이동할 수 있도록 수정해야함.
                     }
                 }
-
+                //AnimatedLoginScreen으로 교체
                 with(NavigationRoute.Login) {
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
                         FinishHandler()
-//                        LoginScreen(
-//                            viewModel = hiltViewModel(),
-//                            onLoginSuccess = { viewModel.checkLogin() }
-//                        )
-                        AnimatedLoginScreen(navigator = navigator) // 애니메이션 포함된 로그인 화면으로 교체!
+                        AnimatedLoginScreen(navigator = navigator)
                     }
                 }
 
