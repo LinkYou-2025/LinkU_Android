@@ -27,8 +27,7 @@ interface UserApi {
 //    ): BaseResponse<JoinResultDTO>
     @POST("/api/users/join")
     suspend fun signUp(
-        @Body joinDTO: JoinDTO,
-        @Header("Authorization") token: String
+        @Body joinDTO: JoinDTO
     ): BaseResponse<JoinResultDTO>
 
     // 닉네임 중복 확인
@@ -38,8 +37,7 @@ interface UserApi {
 //    ): ApiResponseString
     @GET("/api/users/check-nickname")
     suspend fun checkNickname(
-        @Query("nickname") nickname: String,
-        @Header("Authorization") token: String
+        @Query("nickname") nickname: String
     ): ApiResponseString
 
     // 위의 코드가 안된다면 아래 코드로 교체
@@ -93,9 +91,9 @@ interface UserApi {
     // 이메일 인증 코드 전송
     @POST("/api/users/emails/code")
     suspend fun sendVerificationEmail(
-        @Query("email") email: String
+        @Query("email") email: String,
+        @Query("code") code: String
     ): ApiResponseString
-
     // 위의 코드가 안된다면 아래 코드로 교체
 //    @POST("/api/users/emails/code")
 //    suspend fun sendVerificationEmail(

@@ -40,13 +40,16 @@ fun EmailVerificationScreen(
     val email = remember { mutableStateOf("") }
     val code = remember { mutableStateOf("") }
 
+//    val emailValid = remember(emailState.value) {
+//        android.util.Patterns.EMAIL_ADDRESS.matcher(emailState.value).matches()
+//    }
     val emailValid = remember(email.value) {
         Patterns.EMAIL_ADDRESS.matcher(email.value).matches()
     }
 
 
 
-    val context = LocalContext.current
+        val context = LocalContext.current
 
     val sendResult by viewModel.sendCodeResult.collectAsState()
     val verifyResult by viewModel.verifyCodeResult.collectAsState()
@@ -54,7 +57,7 @@ fun EmailVerificationScreen(
     var errorMessage by remember { mutableStateOf("") }
     var timer by remember { mutableStateOf(180) }
 
-    val isCodeSent = sendResult != null
+    val isCodeSent = sendResult == "인증 코드 전송 성공"
     val isCodeValid = code.value.length == 6
     val timerText = String.format("%02d:%02d", timer / 60, timer % 60)
 
@@ -174,12 +177,21 @@ fun EmailVerificationScreen(
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     trailingIcon = {
-                        Text(
-                            text = timerText,
-                            color = Color(0xFFFF5E5E),
-                            fontSize = 13.sp,
-                            fontFamily = Paperlogy
-                        )
+                        if (sendResult == "서버 오류") {
+                            Text(
+                                text = "서버 오류",
+                                color = Color(0xFFFF5E5E),
+                                fontSize = 13.sp,
+                                fontFamily = Paperlogy
+                            )
+                        } else {
+                            Text(
+                                text = timerText,
+                                color = Color(0xFFFF5E5E),
+                                fontSize = 13.sp,
+                                fontFamily = Paperlogy
+                            )
+                        }
                     },
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
@@ -189,9 +201,21 @@ fun EmailVerificationScreen(
                     )
                 )
             }
+            else if (sendResult == "서버 오류") {
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "서버 오류: 잠시 후 다시 시도해주세요",
+                    color = Color.Red,
+                    fontSize = 13.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
         }
+        val isButtonEnabled = sendResult != "서버 오류" &&
+                (if (isCodeSent) isCodeValid else emailValid)
 
         // 하단 버튼 (메일 발송 또는 인증)
+        // 하단 버튼
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -202,43 +226,110 @@ fun EmailVerificationScreen(
                     brush = Brush.horizontalGradient(
                         colors = when {
                             isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                            !isCodeSent && emailValid  -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            else                        -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         }
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
-                .clickable(
-                    enabled = if (isCodeSent) isCodeValid else emailValid
-                ) {
+                .clickable(enabled = isButtonEnabled) {   //  여기서 변경됨
+                    val cleanEmail = email.value.trim()
                     if (isCodeSent) {
-                        viewModel.verifyEmailCode(context, email.value, code.value)
+                        viewModel.verifyEmailCode(cleanEmail, code.value.trim())
                     } else {
-                        viewModel.sendEmailCode(email.value)
+                        viewModel.sendEmailCode(cleanEmail)
                     }
                 },
+//                .clickable(enabled = if (isCodeSent) isCodeValid else emailValid) {
+//                    val cleanEmail = emailState.value.trim()
+//                    if (isCodeSent) {
+//                        viewModel.verifyEmailCode(cleanEmail, codeState.value.trim())
+//                    } else {
+//                        viewModel.sendEmailCode(cleanEmail)
+//                    }
+//                },
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = if (isCodeSent) "인증하기" else "인증메일 발송",
                 color = Color.White,
                 fontSize = 16.sp,
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy
             )
         }
     }
 
-    //비밀번호 수정으로 넘어가기
-    val isVerifySuccess by viewModel.isVerifySuccess.collectAsState()
+    // Send 결과 토스트
+    LaunchedEffect(sendResult) {
+        sendResult?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    // Verify 결과 토스트
+    LaunchedEffect(verifyResult) {
+        verifyResult?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // 인증 성공 시 다음 화면으로
+    val isVerifySuccess by viewModel.isVerifySuccess.collectAsState()
     LaunchedEffect(isVerifySuccess) {
         if (isVerifySuccess) {
-            signUpViewModel.email = email.value
-            navigator?.navigate("sign_up_password")
+            signUpViewModel.email = email.value.trim()
+            navigator.navigate("sign_up_password")
         }
     }
 }
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter)
+//                .padding(bottom = 32.dp)
+//                .height(48.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = when {
+//                            isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                            !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                            else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                        }
+//                    ),
+//                    shape = RoundedCornerShape(24.dp)
+//                )
+//                .clickable(
+//                    enabled = if (isCodeSent) isCodeValid else emailValid
+//                ) {
+//                    if (isCodeSent) {
+//                        viewModel.verifyEmailCode(context, email.value, code.value)
+//                    } else {
+//                        viewModel.sendEmailCode(email.value)
+//                    }
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = if (isCodeSent) "인증하기" else "인증메일 발송",
+//                color = Color.White,
+//                fontSize = 16.sp,
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//    }
+//
+//    //비밀번호 수정으로 넘어가기
+//    val isVerifySuccess by viewModel.isVerifySuccess.collectAsState()
+//
+//    LaunchedEffect(isVerifySuccess) {
+//        if (isVerifySuccess) {
+//            signUpViewModel.email = email.value
+//            navigator?.navigate("sign_up_password")
+//        }
+//    }
+//}
 
 
 @Composable

@@ -39,6 +39,7 @@ dependencies {
 
     // design 모듈 의존성
     implementation(project(":design"))
+    implementation(project(":design"))
 
 
 
