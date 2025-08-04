@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.util.Log
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -28,17 +29,23 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = userRepository.login(email, password)
-                //  새 객체로 복사하여 emit → Compose 변경 감지 강제
+
+                //  Compose 변경 감지를 위해 새 객체로 복사
                 _loginState.value = LoginResult(
                     userId = result.userId,
                     token = result.token,
                     status = result.status,
                     inactiveDate = result.inactiveDate
                 )
+
+                // 디버깅 로그 추가 (emit 직후)
+                Log.d("LoginVM", "emit loginState userId=${result.userId} token=${result.token}")
+
                 _isInactiveAccount.value = (result.status == "INACTIVE")
             } catch (e: Exception) {
                 _loginState.value = null
                 _isInactiveAccount.value = false
+                Log.e("LoginVM", "login 실패", e) // 실패 로그도 추가
             }
         }
     }
