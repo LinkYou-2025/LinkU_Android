@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 
 
 
+
 @Composable
 fun EmailLoginScreen(
     navigator: NavHostController,
@@ -50,15 +51,14 @@ fun EmailLoginScreen(
     val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
 
-    LaunchedEffect(loginResult?.userId, isLoginRequested) {
+    LaunchedEffect(loginResult) {
         val result = loginResult
-        if (isLoginRequested && result?.userId != null && result.userId != -1) {
-            Log.d("Login", " 로그인 성공 → Home 이동")
+        Log.d("Login", "현재 loginResult = $result") // 디버깅 추가
+        if (result?.userId != null && result.userId != -1) {
+            Log.d("Login", "로그인 성공 → Home 이동")
             isLoginRequested = false
-
-            // NavHost에서 실제 라우트명을 정확히 사용!
             navigator.navigate("home") {
-                popUpTo(0) { inclusive = true }   // 모든 스택 제거 후 홈으로
+                popUpTo("email_login") { inclusive = true } // 올바른 현재 라우트 사용
                 launchSingleTop = true
             }
         }
@@ -248,10 +248,12 @@ fun EmailLoginScreen(
                     .clickable(enabled = isFormValid) {
                         if (!isLoginRequested) {
                             isLoginRequested = true
-                            loginViewModel.login(email, password)
+                            // 앞뒤 공백 제거
+                            val cleanEmail = email.trim()
+                            val cleanPassword = password.trim()
+                            loginViewModel.login(cleanEmail, cleanPassword)
                         }
-                    }
-                ,
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -280,17 +282,17 @@ fun EmailLoginScreen(
                         navigator.navigate("resetPassword")
                     }
                 )
-                Text("  |  ", color = Color(0xFF87898F), fontSize = 14.sp)
-                Text(
-                    "회원가입",
-                    color = Color(0xFF87898F),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = Paperlogy,
-                    modifier = Modifier.clickable {
-                        navigator.navigate("terms_agreement")
-                    }
-                )
+//                Text("  |  ", color = Color(0xFF87898F), fontSize = 14.sp)
+//                Text(
+//                    "회원가입",
+//                    color = Color(0xFF87898F),
+//                    fontSize = 15.sp,
+//                    fontWeight = FontWeight.Normal,
+//                    fontFamily = Paperlogy,
+//                    modifier = Modifier.clickable {
+//                        navigator.navigate("terms_agreement")
+//                    }
+//                ) -> 불필요함.
             }
 
             Spacer(modifier = Modifier.height(40.dp))
