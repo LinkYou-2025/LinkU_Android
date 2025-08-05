@@ -11,9 +11,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.state.EditStateViewModel
-import com.example.file.ui.state.FolderState
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.EditStateViewModel
+import com.example.file.viewmodel.FolderState
+import com.example.file.viewmodel.FolderStateViewModel
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.White
 

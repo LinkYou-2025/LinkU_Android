@@ -31,9 +31,9 @@ import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
 import com.example.file.ui.content.BottomFolderGrid
 import com.example.file.ui.content.LinksGrid
 import com.example.file.ui.content.TopFolderGrid
-import com.example.file.ui.state.EditStateViewModel
-import com.example.file.ui.state.FolderState
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.EditStateViewModel
+import com.example.file.viewmodel.FolderState
+import com.example.file.viewmodel.FolderStateViewModel
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton

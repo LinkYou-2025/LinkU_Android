@@ -20,9 +20,9 @@ import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.FileViewModel
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.TopFolderItemLayout
-import com.example.file.ui.state.EditStateViewModel
-import com.example.file.ui.state.FolderState
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.EditStateViewModel
+import com.example.file.viewmodel.FolderState
+import com.example.file.viewmodel.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 
 val categories = listOf(
