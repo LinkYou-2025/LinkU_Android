@@ -32,8 +32,8 @@ import com.example.file.ui.FileModalWindow
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.LinkItemLayout
-import com.example.file.ui.state.EditStateViewModel
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.EditStateViewModel
+import com.example.file.viewmodel.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
