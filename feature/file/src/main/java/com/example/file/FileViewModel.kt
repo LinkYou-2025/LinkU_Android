@@ -4,6 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.model.CategorySimpleInfo
+import com.example.core.model.FolderSimpleInfo
+import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.FolderRepository
 import com.example.data.api.dto.server.*
@@ -26,11 +28,19 @@ class FileViewModel @Inject constructor(
     private val _folderTree = MutableStateFlow<List<FolderTreeResponseDTO>>(emptyList())
     val folderTree: StateFlow<List<FolderTreeResponseDTO>> = _folderTree.asStateFlow()
 
-    // 3. 하위 폴더 리스트
-    private val _subFolders = MutableStateFlow<List<FolderListResponseDTO>>(emptyList())
-    val subFolders: StateFlow<List<FolderListResponseDTO>> = _subFolders.asStateFlow()
+    // 3. 상위 폴더 리스트
+    private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+    val parentFolders: StateFlow<List<FolderSimpleInfo>> = _parentFolders.asStateFlow()
 
-    // 4. 로딩/에러 상태 예시 (원하면 커스텀하게)
+    // 4. 하위 폴더 리스트
+    private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+    val subFolders: StateFlow<List<FolderSimpleInfo>> = _subFolders.asStateFlow()
+
+    // 5. 링크 리스트
+    private val _links = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
+    val links: StateFlow<List<LinkSimpleInfo>> = _links.asStateFlow()
+
+    // 6. 로딩/에러 상태 예시 (원하면 커스텀하게)
     private val _loading = MutableStateFlow(false)
     val loading: StateFlow<Boolean> = _loading.asStateFlow()
 
@@ -39,8 +49,8 @@ class FileViewModel @Inject constructor(
 
     // ------------- 주요 함수 -------------
 
-    /** 카테고리 전체 불러오기 */
-    fun getCategoryLisy() {
+    // 카테고리 전체 불러오기
+    fun getCategoryList() {
         Log.d("fetchCategories", "fetchCategories")
 
         viewModelScope.launch {

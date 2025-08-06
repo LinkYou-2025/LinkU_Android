@@ -31,9 +31,9 @@ import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
 import com.example.file.ui.content.BottomFolderGrid
 import com.example.file.ui.content.LinksGrid
 import com.example.file.ui.content.TopFolderGrid
-import com.example.file.ui.state.EditStateViewModel
-import com.example.file.ui.state.FolderState
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.edit.state.EditStateViewModel
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
@@ -51,7 +51,7 @@ fun FileScreen(
     // 한 번만 데이터 로딩 (최초 진입 시)
     LaunchedEffect(Unit) {
         Log.d("FileScreen", "LaunchedEffect")
-        fileViewModel.getCategoryLisy()
+        fileViewModel.getCategoryList()
     }
 
     Log.d("FileScreen", "FileScreen")
