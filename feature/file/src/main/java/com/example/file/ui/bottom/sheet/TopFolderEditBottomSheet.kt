@@ -1,7 +1,7 @@
 package com.example.file.ui.bottom.sheet
 
 import androidx.compose.runtime.Composable
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun TopFolderEditBottomSheet(

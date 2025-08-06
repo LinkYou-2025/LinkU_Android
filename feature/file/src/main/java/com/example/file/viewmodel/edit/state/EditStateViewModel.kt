@@ -1,4 +1,4 @@
-package com.example.file.ui.state
+package com.example.file.viewmodel.edit.state
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

@@ -1,48 +1,32 @@
 package com.example.file.ui.top.bar
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.design.BottomNavigationBar
-import com.example.design.NavigationItem
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
-import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
-import com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet
-import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
-import com.example.file.ui.content.BottomFolderGrid
-import com.example.file.ui.content.LinksGrid
-import com.example.file.ui.content.TopFolderGrid
 import com.example.file.ui.content.categories
-import com.example.file.ui.state.EditStateViewModel
-import com.example.file.ui.state.FolderState
-import com.example.file.ui.state.FolderStateViewModel
+import com.example.file.viewmodel.edit.state.EditStateViewModel
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
@@ -51,10 +35,8 @@ import com.example.file.ui.top.bar.component.BottomFolderListLayout
 import com.example.file.ui.top.bar.component.BottomFolderListMenu
 import com.example.file.ui.top.bar.component.EditButton
 import com.example.file.ui.top.bar.component.FileSearchBar
-import com.example.file.ui.top.bar.component.ShareButton
 import com.example.file.ui.top.bar.component.TopFolderListLayout
 import com.example.file.ui.top.bar.component.TopFolderListMenu
-import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 
 
 @Composable
