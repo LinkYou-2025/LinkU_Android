@@ -3,6 +3,7 @@ package com.example.data.implementation.repository
 import android.util.Log
 import com.example.core.model.CategorySimpleInfo
 import com.example.core.repository.CategoryRepository
+import com.example.data.api.CategoryApi
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.server.UpdateCategoryColorRequestDTO
 import com.example.data.api.dto.server.UserCategoryColorResponseDTO
@@ -12,6 +13,7 @@ import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
+    private val categoryApi: CategoryApi,
     private val authPreference: AuthPreference,
 ) : CategoryRepository {
 
@@ -20,18 +22,7 @@ class CategoryRepositoryImpl @Inject constructor(
     ): List<CategorySimpleInfo> {
         Log.d("CategoryRepositoryImpl", "getCategoryList")
 
-        val categorys = serverApi.withAuth(authPreference) {
-            getCategoryList()
-        }
-
-        Log.d("CategoryRepositoryImpl", "categorys: $categorys")
-
-        return categorys.map { category ->
-            CategorySimpleInfo(
-                categoryId = category.categoryId,
-                categoryName = category.categoryName
-            )
-        }
+        return categoryApi.getCategoryList()
     }
 
     // 카테고리(폴더) 색상 변경
