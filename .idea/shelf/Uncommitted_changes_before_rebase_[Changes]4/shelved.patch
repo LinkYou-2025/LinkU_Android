@@ -1,0 +1,61 @@
+Index: feature/file/src/main/java/com/example/file/ui/ItemFile.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/ItemFile.kt b/feature/file/src/main/java/com/example/file/ui/item/FolderItem.kt
+rename from feature/file/src/main/java/com/example/file/ui/ItemFile.kt
+rename to feature/file/src/main/java/com/example/file/ui/item/FolderItem.kt
+--- a/feature/file/src/main/java/com/example/file/ui/ItemFile.kt	(revision 036aa7751ec275cc41fff89e414344394c8e7006)
++++ b/feature/file/src/main/java/com/example/file/ui/item/FolderItem.kt	(date 1752136936399)
+@@ -1,10 +1,8 @@
+-//파일 항목의 메인 레이아웃 파일
++// 폴더 단위의 레이아웃
+ 
+-package com.example.file
++package com.example.file.ui.item
+ 
+ import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+ import androidx.compose.ui.Alignment
+@@ -21,9 +19,11 @@
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ 
+-// 파일 내 항목 중 파일 단위 아이템의 레이아웃
++
+ @Composable
+-fun ItemFile(name: String/*id: Int, date: String*/) {
++fun FolderItem(name: String/*id: Int, date: String*/) {
++
++    // 폴더 아이템 레이아웃
+     Row(
+         modifier = Modifier
+             .border(
+@@ -37,6 +37,7 @@
+         horizontalArrangement = Arrangement.spacedBy(8.dp),
+         verticalAlignment = Alignment.CenterVertically,
+     ) {
++        // 폴더의 메인 이미지
+         Box(
+             modifier = Modifier
+                 .size(32.dp)
+@@ -46,6 +47,7 @@
+                 )
+         )
+ 
++        // 폴더명
+         Text(
+             text = name,
+             style = TextStyle(
+@@ -60,7 +62,7 @@
+ 
+ @Preview(showBackground = true)
+ @Composable
+-fun Test() {
+-    ItemFile("유지민민")
++fun FolderItemTest() {
++    FolderItem("유지민민")
+     //FileScreen()
+ }
+\ No newline at end of file
