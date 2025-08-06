@@ -24,9 +24,9 @@ import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.content.categories
-import com.example.file.viewmodel.EditStateViewModel
-import com.example.file.viewmodel.FolderState
-import com.example.file.viewmodel.FolderStateViewModel
+import com.example.file.viewmodel.edit.state.EditStateViewModel
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
