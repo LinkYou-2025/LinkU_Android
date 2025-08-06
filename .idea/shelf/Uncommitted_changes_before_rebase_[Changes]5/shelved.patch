@@ -1,0 +1,1117 @@
+Index: feature/file/src/main/java/com/example/file/ui/EditButton.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/EditButton.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt
+rename from feature/file/src/main/java/com/example/file/ui/EditButton.kt
+rename to feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt
+--- a/feature/file/src/main/java/com/example/file/ui/EditButton.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt	(date 1753792414201)
+@@ -1,10 +1,9 @@
+ // 수정 버튼
+ 
+-package com.example.file.ui
++package com.example.file.ui.top.bar.component
+ 
+ import androidx.compose.material3.Text
+ import androidx.compose.runtime.Composable
+-import androidx.compose.ui.text.TextStyle
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.text.style.TextAlign
+ import androidx.compose.ui.tooling.preview.Preview
+Index: feature/file/src/main/java/com/example/file/ui/theme/Color.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.theme\r\n\r\nimport androidx.compose.ui.graphics.Brush\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.unit.dp\r\n\r\nval Purple80 = Color(0xFFD0BCFF)\r\nval PurpleGrey80 = Color(0xFFCCC2DC)\r\nval Pink80 = Color(0xFFEFB8C8)\r\n\r\nval Purple40 = Color(0xFF6650a4)\r\nval PurpleGrey40 = Color(0xFF625b71)\r\nval Pink40 = Color(0xFF7D5260)\r\n\r\n// 원래 2C6FFF~C800FF 그라데이션 추후 수정\r\nval MainColor = Brush.horizontalGradient(\r\n    listOf(\r\n        Color(0xFF2C6FFF),\r\n        Color(0xFFC800FF)\r\n    )\r\n)\r\n\r\nval NegativeColor = Color(0xFFFF5E5E)\r\nval PositiveColor = Color(0xFF35DF79)\r\n\r\nval Black = Color(0xFF000208)\r\nval Gray800 = Color(0xFF43454B)\r\nval Gray700 = Color(0xFF5F6167)\r\nval Gray600 = Color(0xFF87898F)\r\nval Gray500 = Color(0xFFA1A3A9)\r\nval Gray400 = Color(0xFFB7B9BF)\r\nval Gray300 = Color(0xFFD7D9DF)\r\nval Gray200 = Color(0xFFE9EAEE)\r\nval Gray100 = Color(0xFFF5F6F9)\r\nval White = Color(0xFFFFFFFF)\r\n\r\nval Blue300 = Color(0xFF1451D5)\r\nval Blue200 = Color(0xFF2C6FFF)\r\nval Blue100 = Color(0xFF95B6FF)\r\nval Blue50 = Color(0xFFE5EDFF)\r\n\r\nval Purple300 = Color(0xFF9A3AB5)\r\nval Purple200 = Color(0xFFCB59EB)\r\nval Purple100 = Color(0xFFE5ACF4)\r\nval Purple50 = Color(0xFFFBEEFF)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/theme/Color.kt b/feature/file/src/main/java/com/example/file/ui/theme/Color.kt
+--- a/feature/file/src/main/java/com/example/file/ui/theme/Color.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/src/main/java/com/example/file/ui/theme/Color.kt	(date 1753792414262)
+@@ -42,4 +42,128 @@
+ val Purple300 = Color(0xFF9A3AB5)
+ val Purple200 = Color(0xFFCB59EB)
+ val Purple100 = Color(0xFFE5ACF4)
+-val Purple50 = Color(0xFFFBEEFF)
+\ No newline at end of file
++val Purple50 = Color(0xFFFBEEFF)
++
++data class CategoryColorStyle(
++    val color1: Color,
++    val color2: Color,
++    val color3: Color,
++    val color4: Color,
++) {
++    // verticalGradient: color1 ~ color2로 만드는 함수
++    fun verticalGradient(): Brush = Brush.verticalGradient(
++        colorStops = arrayOf(
++            0.2f to color1.copy(alpha = 0.8f),
++            1.0f to color2.copy(alpha = 0.7f)
++        )
++    )
++
++    // horizontalGradient: color1 ~ color2로 만드는 함수
++    fun horizontalGradient(): Brush = Brush.horizontalGradient(
++        colorStops = arrayOf(
++            0.2f to color1.copy(alpha = 0.8f),
++            1.0f to color2.copy(alpha = 0.7f)
++        )
++    )
++
++    companion object {
++        val categoryStyleList: List<CategoryColorStyle> = listOf(
++            CategoryColorStyle(
++                color1 = Color(0xFFFFEEEE),
++                color2 = Color(0xFFFFC2C2),
++                color3 = Color(0xFFFFA0A0),
++                color4 = Color(0xFFFF5353),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFFFEBE1),
++                color2 = Color(0xFFFFD3C1),
++                color3 = Color(0xFFFFA783),
++                color4 = Color(0xFFFF6A2B),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFFFEFDD),
++                color2 = Color(0xFFFFD4A3),
++                color3 = Color(0xFFFFB867),
++                color4 = Color(0xFFFF9C2B),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFFFFAEB),
++                color2 = Color(0xFFFFEEBE),
++                color3 = Color(0xFFFFE291),
++                color4 = Color(0xFFFFCE45),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFEEFFE0),
++                color2 = Color(0xFFDAFDBD),
++                color3 = Color(0xFFB8F785),
++                color4 = Color(0xFF77E61D),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFDAF7EB),
++                color2 = Color(0xFFB8F0D9),
++                color3 = Color(0xFF6BDFAE),
++                color4 = Color(0xFF00C774),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFC7E8CD),
++                color2 = Color(0xFF9ECCA6),
++                color3 = Color(0xFF70AA79),
++                color4 = Color(0xFF4B9857),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFDDFFFB),
++                color2 = Color(0xFFB9F7F0),
++                color3 = Color(0xFF98EDE2),
++                color4 = Color(0xFF36D1BE),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFECF8FF),
++                color2 = Color(0xFFD0EEFF),
++                color3 = Color(0xFF97D8FF),
++                color4 = Color(0xFF34BBFF),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFE6ECFF),
++                color2 = Color(0xFFC2D2FF),
++                color3 = Color(0xFF82A3FF),
++                color4 = Color(0xFF4C7AF8),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFEDE4FF),
++                color2 = Color(0xFFC5A6FF),
++                color3 = Color(0xFFA778FF),
++                color4 = Color(0xFF813CFF),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFF4E6FF),
++                color2 = Color(0xFFE7C6FF),
++                color3 = Color(0xFFD8A3FF),
++                color4 = Color(0xFFBA5AFF),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFFFEBFB),
++                color2 = Color(0xFFFFC7F5),
++                color3 = Color(0xFFFF9FED),
++                color4 = Color(0xFFFF52DF),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFFFE7F2),
++                color2 = Color(0xFFFFC5E0),
++                color3 = Color(0xFFFFA2CC),
++                color4 = Color(0xFFFF459C),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFF4E6DB),
++                color2 = Color(0xFFE0B795),
++                color3 = Color(0xFFBE9A7B),
++                color4 = Color(0xFF906744),
++            ),
++            CategoryColorStyle(
++                color1 = Color(0xFFD4D4D4),
++                color2 = Color(0xFFAFAFAF),
++                color3 = Color(0xFF747474),
++                color4 = Color(0xFF000000),
++            )
++        )
++    }
++}
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/ItemFile.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/ItemFile.kt b/feature/file/src/main/java/com/example/file/ui/ItemFile.kt
+deleted file mode 100644
+--- a/feature/file/src/main/java/com/example/file/ui/ItemFile.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ /dev/null	(revision db22863490c525f82f71a01a45551982fda99712)
+@@ -1,66 +0,0 @@
+-//파일 항목의 메인 레이아웃 파일
+-
+-package com.example.file
+-
+-import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.foundation.layout.Column
+-import androidx.compose.foundation.layout.fillMaxSize
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.ui.Alignment
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.tooling.preview.Preview
+-import androidx.compose.foundation.background
+-import androidx.compose.foundation.border
+-import androidx.compose.foundation.layout.*
+-import androidx.compose.foundation.shape.CircleShape
+-import androidx.compose.foundation.shape.RoundedCornerShape
+-import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.text.TextStyle
+-import androidx.compose.ui.text.font.FontWeight
+-import androidx.compose.ui.unit.dp
+-import androidx.compose.ui.unit.sp
+-
+-// 파일 내 항목 중 파일 단위 아이템의 레이아웃
+-@Composable
+-fun ItemFile(name: String/*id: Int, date: String*/) {
+-    Row(
+-        modifier = Modifier
+-            .border(
+-                width = 1.dp,
+-                color = Color(0x1A000000),
+-                shape = RoundedCornerShape(size = 6.dp)
+-            )
+-            .width(162.dp)
+-            .height(70.dp)
+-            .padding(start = 12.dp, top = 12.dp, end = 12.dp, bottom = 12.dp),
+-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+-        verticalAlignment = Alignment.CenterVertically,
+-    ) {
+-        Box(
+-            modifier = Modifier
+-                .size(32.dp)
+-                .background(
+-                    color = Color(0x0D000000),
+-                    shape = CircleShape
+-                )
+-        )
+-
+-        Text(
+-            text = name,
+-            style = TextStyle(
+-                fontSize = 14.sp,
+-                lineHeight = 16.sp,
+-                fontWeight = FontWeight(500),
+-                color = Color(0xFF000000),
+-            )
+-        )
+-    }
+-}
+-
+-@Preview(showBackground = true)
+-@Composable
+-fun Test() {
+-    ItemFile("유지민민")
+-    //FileScreen()
+-}
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/item/LinkItem.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/item/LinkItem.kt b/feature/file/src/main/java/com/example/file/ui/item/LinkItem.kt
+deleted file mode 100644
+--- a/feature/file/src/main/java/com/example/file/ui/item/LinkItem.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ /dev/null	(revision db22863490c525f82f71a01a45551982fda99712)
+@@ -1,181 +0,0 @@
+-// 폴더 단위의 레이아웃
+-
+-package com.example.file.ui.item
+-
+-import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.ui.Alignment
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.tooling.preview.Preview
+-import androidx.compose.foundation.background
+-import androidx.compose.foundation.border
+-import androidx.compose.foundation.layout.*
+-import androidx.compose.foundation.shape.RoundedCornerShape
+-import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.text.TextStyle
+-import androidx.compose.ui.text.font.FontWeight
+-import androidx.compose.ui.unit.dp
+-import androidx.compose.ui.unit.sp
+-import androidx.compose.foundation.Image
+-import androidx.compose.foundation.shape.CircleShape
+-import androidx.compose.ui.draw.*
+-import androidx.compose.ui.res.painterResource
+-import com.example.file.ui.ui.theme.Black
+-import com.example.file.ui.ui.theme.defaultCorner
+-import com.example.file.R
+-
+-@Composable
+-fun LinkItem() {
+-    Column(
+-        modifier = Modifier
+-            .border(
+-                width = 1.dp,
+-                color = Color(0x1A000000),
+-                shape = RoundedCornerShape(size = defaultCorner)
+-            )
+-            .width(176.dp)
+-            .height(252.dp),
+-        verticalArrangement = Arrangement.spacedBy(0.dp, Alignment.Top),
+-        horizontalAlignment = Alignment.CenterHorizontally
+-    ) {
+-
+-        // 링크의 메인 이미지
+-        Image(
+-            /*
+-            * modifier.clip: 이미지 윗 부분을 둥글게 자름
+-            * painter: 불러올 이미지
+-            * contentDescription: 이미지 설명
+-            */
+-            modifier = Modifier.clip(
+-                RoundedCornerShape(
+-                    topStart = defaultCorner,  // 왼쪽 위만 6dp radius
+-                    topEnd = defaultCorner    // 오른쪽 위만 6dp radius
+-                )
+-            )
+-                .width(176.dp)
+-                .height(164.dp),
+-            painter = painterResource(id = R.drawable.test_img),  //테스트 이미지 삽입
+-            contentDescription = null
+-        )
+-
+-        // 링크에 대한 설명 (제목, 태그, 도메인)
+-        Column(
+-            modifier = Modifier
+-                .width(176.dp)
+-                .height(88.dp)
+-                .padding(start = 8.dp, top = 8.dp, end = 8.dp, bottom = 8.dp),
+-            verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top),
+-            horizontalAlignment = Alignment.Start
+-        ) {
+-
+-            // 링크 제목
+-            Text(
+-                modifier = Modifier
+-                    .width(160.dp)
+-                    .height(16.dp),
+-                text = "ChatGPT로 영어회화 공부하기",
+-                style = TextStyle(
+-                    fontSize = 12.sp,
+-                    lineHeight = 16.sp,
+-
+-                    /* TODO: 폰트 추가
+-                    * fontFamily = FontFamily(Font(R.font.roboto)),
+-                    */
+-
+-                    fontWeight = FontWeight(400),
+-                    color = Black,
+-                )
+-            )
+-
+-            // 링크 분류 태그 프레임
+-            Row(
+-                modifier = Modifier
+-                    .width(160.dp)
+-                    .height(20.dp),
+-                horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.Start),
+-                verticalAlignment = Alignment.CenterVertically,
+-            ) {
+-
+-                // 링크 분류 태그 바탕
+-                // 추후 다중화를 위해 분리 해야함
+-                Row(
+-                    modifier = Modifier
+-                        .border(width = 0.5.dp, color = Color(0x1A000000), shape = RoundedCornerShape(size = 2.dp))
+-                        .width(61.dp)
+-                        .height(20.dp)
+-                        .background(color = Color(0x0D000000), shape = RoundedCornerShape(size = 2.dp))
+-                        .padding(start = 4.dp, top = 2.dp, end = 4.dp, bottom = 2.dp),
+-                    horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally),
+-                    verticalAlignment = Alignment.CenterVertically,
+-                ) {
+-
+-                    // 링크 분류 태그명
+-                    Text(
+-                        modifier = Modifier
+-                            .width(53.dp)
+-                            .height(16.dp),
+-                        text = "어학(영어)",
+-                        style = TextStyle(
+-                            fontSize = 12.sp,
+-                            lineHeight = 16.sp,
+-
+-                            /* TODO: 폰트 추가
+-                            * fontFamily = FontFamily(Font(R.font.roboto)),
+-                            */
+-
+-                            fontWeight = FontWeight(400),
+-                            color = Color(0xFF000000),
+-                        )
+-                    )
+-                }
+-            }
+-
+-            // 링크 설명 프레임
+-            Row(
+-                modifier = Modifier
+-                    .width(160.dp)
+-                    .height(20.dp),
+-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
+-                verticalAlignment = Alignment.CenterVertically,
+-            ) {
+-
+-                // 링크의 메인 이미지
+-                Image(
+-                    modifier = Modifier
+-                        .clip(CircleShape)
+-                        .size(20.dp),
+-                    painter = painterResource(id = R.drawable.twiter_logo_img),  // 테스트로 트위터 로고 삽입
+-                    contentDescription = null
+-                )
+-
+-                // 링크의 도메인
+-                Text(
+-                    modifier = Modifier
+-                        .width(132.dp)
+-                        .height(16.dp),
+-                    text = "X(트위터)",
+-                    style = TextStyle(
+-                        fontSize = 12.sp,
+-                        lineHeight = 16.sp,
+-
+-                        /* TODO: 폰트 추가
+-                        * fontFamily = FontFamily(Font(R.font.roboto)),
+-                        */
+-
+-                        fontWeight = FontWeight(500),
+-                        color = Color(0xFF000000),
+-                    )
+-                )
+-            }
+-
+-        }
+-    }
+-}
+-
+-@Preview(showBackground = true)
+-@Composable
+-fun LinkItemTest() {
+-    LinkItem()
+-    //FileScreen()
+-}
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/FolderListLayout.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/FolderListLayout.kt b/feature/file/src/main/java/com/example/file/ui/FolderListLayout.kt
+deleted file mode 100644
+--- a/feature/file/src/main/java/com/example/file/ui/FolderListLayout.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ /dev/null	(revision db22863490c525f82f71a01a45551982fda99712)
+@@ -1,66 +0,0 @@
+-// 폴더 목록을 보이는 탭의 레이아웃
+-
+-package com.example.file.ui
+-
+-import androidx.compose.foundation.Image
+-import androidx.compose.foundation.background
+-import androidx.compose.foundation.layout.Arrangement
+-import androidx.compose.foundation.layout.Row
+-import androidx.compose.foundation.layout.height
+-import androidx.compose.foundation.layout.padding
+-import androidx.compose.foundation.layout.width
+-import androidx.compose.material3.Text
+-import androidx.compose.runtime.Composable
+-import androidx.compose.ui.Alignment
+-import androidx.compose.ui.Modifier
+-import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.res.painterResource
+-import androidx.compose.ui.text.TextStyle
+-import androidx.compose.ui.text.font.FontWeight
+-import androidx.compose.ui.tooling.preview.Preview
+-import androidx.compose.ui.unit.dp
+-import androidx.compose.ui.unit.sp
+-import com.example.file.R
+-
+-@Composable
+-fun FolderListLayout(){
+-    Row(
+-        modifier = Modifier
+-            .width(360.dp)
+-            .height(50.dp)
+-            .background(color = Color(0x4DCCCCCC)),
+-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.Start),
+-        verticalAlignment = Alignment.CenterVertically,
+-    ){
+-        Text(
+-            modifier = Modifier
+-                .width(331.dp)
+-                .padding(start = 12.dp),
+-            text = "나의 폴더",
+-            style = TextStyle(
+-                fontSize = 18.sp,
+-                lineHeight = 24.sp,
+-
+-                /* TODO: 폰트 추가
+-                * fontFamily = FontFamily(Font(R.font.roboto)),
+-                */
+-
+-                fontWeight = FontWeight(500),
+-                color = Color(0xFF000000),
+-            )
+-        )
+-        Image(
+-            modifier = Modifier
+-                .width(12.dp)
+-                .height(24.dp),
+-            painter = painterResource(id = R.drawable.check_img),
+-            contentDescription = "image description"
+-        )
+-    }
+-}
+-
+-@Preview(showBackground = true)
+-@Composable
+-fun FolderListLayoutTest() {
+-    FolderListLayout()
+-}
+\ No newline at end of file
+Index: feature/file/src/main/res/drawable/folder_mask.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/res/drawable/folder_mask.xml b/feature/file/src/main/res/drawable/folder_mask.xml
+deleted file mode 100644
+--- a/feature/file/src/main/res/drawable/folder_mask.xml	(revision db22863490c525f82f71a01a45551982fda99712)
++++ /dev/null	(revision db22863490c525f82f71a01a45551982fda99712)
+@@ -1,21 +0,0 @@
+-<vector xmlns:android="http://schemas.android.com/apk/res/android"
+-    xmlns:aapt="http://schemas.android.com/aapt"
+-    android:width="174dp"
+-    android:height="116dp"
+-    android:viewportWidth="174"
+-    android:viewportHeight="116">
+-  <path
+-      android:pathData="M0,25.81C0,12 11.19,0.81 25,0.81H46.8C51.82,0.81 56.56,3.1 59.68,7.02C62.81,10.95 67.55,13.24 72.57,13.24H149C162.81,13.24 174,24.43 174,38.24V90.08C174,103.89 162.81,115.08 149,115.08H25C11.19,115.08 0,103.89 0,90.08V25.81Z">
+-    <aapt:attr name="android:fillColor">
+-      <gradient 
+-          android:startX="87"
+-          android:startY="114.57"
+-          android:endX="87"
+-          android:endY="1.04"
+-          android:type="linear">
+-        <item android:offset="0.2" android:color="#FFE9EAEE"/>
+-        <item android:offset="1" android:color="#B2F5F6F9"/>
+-      </gradient>
+-    </aapt:attr>
+-  </path>
+-</vector>
+Index: feature/file/src/main/java/com/example/file/ui/FileSearchBar.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/FileSearchBar.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/FileSearchBar.kt
+rename from feature/file/src/main/java/com/example/file/ui/FileSearchBar.kt
+rename to feature/file/src/main/java/com/example/file/ui/top/bar/FileSearchBar.kt
+--- a/feature/file/src/main/java/com/example/file/ui/FileSearchBar.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/FileSearchBar.kt	(date 1753792414409)
+@@ -1,5 +1,4 @@
+-
+-package com.example.file.ui
++package com.example.file.ui.top.bar
+ 
+ import androidx.compose.foundation.BorderStroke
+ import androidx.compose.foundation.layout.Arrangement
+@@ -30,8 +29,8 @@
+     // 검색창 전체 바탕(틀)
+     Surface(
+         modifier = Modifier
+-            // 가로 360dp, 세로 48dp로 전체 크기 지정
+-            .size(width = 360.dp, height = 48.dp),
++            // 가로 380dp, 세로 48dp로 전체 크기 지정
++            .size(width = 380.dp, height = 48.dp),
+ 
+         // 배경색 (투명)
+         color = Color.Transparent,
+Index: feature/file/src/main/java/com/example/file/ui/theme/Font.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.theme\r\n\r\nimport androidx.compose.ui.text.font.Font\r\nimport androidx.compose.ui.text.font.FontFamily\r\nimport androidx.compose.ui.text.font.FontStyle\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport com.example.file.R\r\n\r\nval DefaultFont = FontFamily(\r\n    Font(R.font.paperlogy_black, FontWeight.Black, FontStyle.Normal),\r\n    Font(R.font.paperlogy_bold, FontWeight.Bold, FontStyle.Normal),\r\n    Font(R.font.paperlogy_extra_bold, FontWeight.ExtraBold, FontStyle.Normal),\r\n    Font(R.font.paperlogy_light, FontWeight.Light, FontStyle.Normal),\r\n    Font(R.font.paperlogy_medium, FontWeight.Medium, FontStyle.Normal),\r\n    Font(R.font.paperlogy_regular, FontWeight.Normal, FontStyle.Normal),\r\n    Font(R.font.paperlogy_semi_bold, FontWeight.SemiBold, FontStyle.Normal),\r\n    Font(R.font.paperlogy_thin, FontWeight.Thin, FontStyle.Normal)\r\n)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/theme/Font.kt b/feature/file/src/main/java/com/example/file/ui/theme/Font.kt
+--- a/feature/file/src/main/java/com/example/file/ui/theme/Font.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/src/main/java/com/example/file/ui/theme/Font.kt	(date 1753792414283)
+@@ -15,4 +15,8 @@
+     Font(R.font.paperlogy_regular, FontWeight.Normal, FontStyle.Normal),
+     Font(R.font.paperlogy_semi_bold, FontWeight.SemiBold, FontStyle.Normal),
+     Font(R.font.paperlogy_thin, FontWeight.Thin, FontStyle.Normal)
++)
++
++val FileTopBarLinkUFont = FontFamily(
++    Font(R.font.taebaek_font, FontWeight.Normal, FontStyle.Normal)
+ )
+\ No newline at end of file
+Index: feature/file/build.gradle.kts
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>plugins {\r\n    alias(libs.plugins.android.library)\r\n    alias(libs.plugins.kotlin.android)\r\n    alias(libs.plugins.kotlin.compose)\r\n\r\n    // Hilt\r\n    alias(libs.plugins.hilt.android)\r\n    alias(libs.plugins.ksp)\r\n}\r\n\r\nandroid {\r\n    namespace = \"com.example.file\"\r\n    compileSdk = 35\r\n\r\n    defaultConfig {\r\n        minSdk = 26\r\n\r\n        testInstrumentationRunner = \"androidx.test.runner.AndroidJUnitRunner\"\r\n        //consumerProguardFiles(\"consumer-rules.pro\")\r\n    }\r\n\r\n    buildTypes {\r\n        release {\r\n            isMinifyEnabled = false\r\n            proguardFiles(\r\n                getDefaultProguardFile(\"proguard-android-optimize.txt\"),\r\n                \"proguard-rules.pro\"\r\n            )\r\n        }\r\n    }\r\n    compileOptions {\r\n        sourceCompatibility = JavaVersion.VERSION_11\r\n        targetCompatibility = JavaVersion.VERSION_11\r\n    }\r\n    kotlinOptions {\r\n        jvmTarget = \"11\"\r\n    }\r\n    buildFeatures {\r\n        buildConfig = true\r\n    }\r\n}\r\n\r\ndependencies {\r\n\r\n    implementation(libs.androidx.core.ktx)\r\n    implementation(libs.androidx.appcompat)\r\n    implementation(libs.material)\r\n    implementation(libs.androidx.lifecycle.runtime.ktx)\r\n    implementation(libs.androidx.activity.compose)\r\n    implementation(platform(libs.androidx.compose.bom))\r\n    implementation(libs.androidx.ui)\r\n    implementation(libs.androidx.ui.graphics)\r\n    implementation(libs.androidx.ui.tooling.preview)\r\n    implementation(libs.androidx.material3)\r\n    implementation(libs.androidx.navigation.compose)\r\n    testImplementation(libs.junit)\r\n    androidTestImplementation(libs.androidx.junit)\r\n    androidTestImplementation(libs.androidx.espresso.core)\r\n    androidTestImplementation(platform(libs.androidx.compose.bom))\r\n    androidTestImplementation(libs.androidx.ui.test.junit4)\r\n    debugImplementation(libs.androidx.ui.tooling)\r\n    debugImplementation(libs.androidx.ui.test.manifest)\r\n\r\n    // 의존성 정의\r\n    implementation(project(\":core\"))\r\n    implementation(project(\":design\"))\r\n\r\n    // Hilt\r\n    implementation(libs.hilt.android)\r\n    ksp(libs.hilt.compiler)\r\n    ksp(libs.androidx.hilt.compiler)\r\n    implementation(libs.androidx.hilt.navigation)\r\n\r\n    // Coil\r\n    implementation(\"io.coil-kt.coil3:coil-compose:3.0.4\")\r\n    implementation(\"io.coil-kt.coil3:coil-svg:3.0.4\")\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/build.gradle.kts b/feature/file/build.gradle.kts
+--- a/feature/file/build.gradle.kts	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/build.gradle.kts	(date 1753792414298)
+@@ -74,4 +74,6 @@
+     // Coil
+     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
+     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
++
++    implementation("com.cheonjaeung.compose.grid:grid:2.0.0")
+ }
+\ No newline at end of file
+Index: test/file/src/main/java/com/example/file/TestActivity.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file\r\n\r\nimport android.os.Bundle\r\nimport androidx.activity.ComponentActivity\r\nimport androidx.activity.compose.setContent\r\n\r\nclass TestActivity : ComponentActivity() {\r\n    override fun onCreate(savedInstanceState: Bundle?) {\r\n        super.onCreate(savedInstanceState)\r\n        setContent {\r\n            // TODO: 화면 구현\r\n        }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/test/file/src/main/java/com/example/file/TestActivity.kt b/test/file/src/main/java/com/example/file/TestActivity.kt
+--- a/test/file/src/main/java/com/example/file/TestActivity.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/test/file/src/main/java/com/example/file/TestActivity.kt	(date 1753792414366)
+@@ -3,12 +3,57 @@
+ import android.os.Bundle
+ import androidx.activity.ComponentActivity
+ import androidx.activity.compose.setContent
++import androidx.activity.enableEdgeToEdge
++import androidx.compose.foundation.border
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.width
++import androidx.compose.foundation.layout.wrapContentSize
++import androidx.compose.foundation.lazy.grid.GridCells
++import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
++import androidx.compose.foundation.lazy.grid.items
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.tooling.preview.Preview
++import androidx.compose.ui.unit.dp
++import com.example.file.ui.top.bar.FileTopBarTest
+ 
+ class TestActivity : ComponentActivity() {
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
++        enableEdgeToEdge()
+         setContent {
+-            // TODO: 화면 구현
++            FileTopBarTest()
++        }
++    }
++}
++
++
++
++@Preview(showBackground = true)
++@Composable
++fun A(){
++    val itemsList = (0..15).toList()
++
++    val itemModifier = Modifier
++        .border(1.dp, Color.Blue)
++        .width(80.dp)
++        .wrapContentSize()
++
++    LazyHorizontalGrid(
++        rows = GridCells.Fixed(3),
++        horizontalArrangement = Arrangement.spacedBy(16.dp),
++        verticalArrangement = Arrangement.spacedBy(16.dp)
++    ) {
++        item {
++            Text("Single item", itemModifier)
++        }
++        items(itemsList) {
++            Text("Item is $it", itemModifier)
++        }
++        item {
++            Text("Single item", itemModifier)
+         }
+     }
+ }
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListLayout.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListLayout.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListLayout.kt
+new file mode 100644
+--- /dev/null	(date 1753792414359)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListLayout.kt	(date 1753792414359)
+@@ -0,0 +1,114 @@
++// 폴더 목록을 보이는 탭의 레이아웃
++
++package com.example.file.ui.top.bar.component
++
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.layout.size
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.Icon
++import androidx.compose.material3.Surface
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.res.painterResource
++import androidx.compose.ui.text.SpanStyle
++import androidx.compose.ui.text.buildAnnotatedString
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.text.withStyle
++import androidx.compose.ui.tooling.preview.Preview
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.example.file.R
++import com.example.file.ui.theme.DefaultFont
++import com.example.file.ui.theme.Gray500
++import com.example.file.ui.theme.MainColor
++import com.example.file.ui.theme.White
++
++@Composable
++fun TopFolderListLayout() {
++
++    // 레이아웃의 배경틀
++    Surface(
++        modifier = Modifier
++            // 가로 111.28947dp, 세로 35dp로 전체 크기 지정
++            .size(width = 111.28947.dp, height = 35.dp),
++
++        // 배경색 (White)
++        color = White,
++
++        // 모서리 둥글게 (14dp)
++        shape = RoundedCornerShape(14.dp),
++    ) {
++
++        // 내부 배치 레이아웃
++        Row(
++            modifier = Modifier
++                // 전체 영역을 가득 채우도록
++                .fillMaxSize()
++
++                // 내부 여백 (양 옆 15dp)
++                .padding(horizontal = 15.dp),
++
++            // 가로 정렬 방법 (요소 간 10dp 간격, 가로 중앙 정렬)
++            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
++
++            // 세로 정렬 방법 (세로 중앙 정렬)
++            verticalAlignment = Alignment.CenterVertically,
++        ) {
++
++            // 현재, 상위 폴더명
++            Text(
++                // 텍스트(그라데이션 및 스타일 지정)
++                text = buildAnnotatedString {
++                    withStyle(
++                        SpanStyle(
++                            // 폰트 크기 (16sp)
++                            fontSize = 16.sp,
++
++                            // 사용할 폰트 (paperlogy 폰트)
++                            fontFamily = DefaultFont,
++
++                            // 폰트 굵기 (Bold)
++                            fontWeight = FontWeight.Bold,
++
++                            // 텍스트 그라데이션 색상(링큐 메인 색상)
++                            brush = MainColor,
++                        )
++                    ) {
++                        // 실제 표시할 텍스트
++                        append("나의 폴더")
++                    }
++                },
++
++                // 텍스트 정렬 (정중앙)
++                textAlign = TextAlign.Center,
++
++                // 한 줄 높이 (20sp)
++                lineHeight = 20.sp,
++            )
++
++            // 아래 화살표 모양 아이콘
++            Icon(
++                // 아이콘 색상 (Gray500)
++                tint = Gray500,
++
++                // 사용할 아이콘 이미지 리소스 (drawable/check_img.xml)
++                painter = painterResource(id = R.drawable.check_img),
++
++                // 이미지 설명 ("아래 화살표")
++                contentDescription = "아래 화살표"
++            )
++        }
++    }
++}
++
++@Preview(showBackground = true)
++@Composable
++fun FolderListLayoutTest() {
++    TopFolderListLayout()
++}
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/NoRippleClickable.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/NoRippleClickable.kt b/feature/file/src/main/java/com/example/file/modifier/NoRippleClickable.kt
+rename from feature/file/src/main/java/com/example/file/ui/NoRippleClickable.kt
+rename to feature/file/src/main/java/com/example/file/modifier/NoRippleClickable.kt
+--- a/feature/file/src/main/java/com/example/file/ui/NoRippleClickable.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/src/main/java/com/example/file/modifier/NoRippleClickable.kt	(date 1753792414308)
+@@ -1,4 +1,4 @@
+-package com.example.file.ui
++package com.example.file.modifier
+ 
+ import androidx.compose.foundation.clickable
+ import androidx.compose.foundation.interaction.MutableInteractionSource
+Index: .idea/misc.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"ExternalStorageConfigurationManager\" enabled=\"true\" />\r\n  <component name=\"ProjectRootManager\" version=\"2\" languageLevel=\"JDK_21\" default=\"true\" project-jdk-name=\"jbr-21\" project-jdk-type=\"JavaSDK\">\r\n    <output url=\"file://$PROJECT_DIR$/build/classes\" />\r\n  </component>\r\n  <component name=\"ProjectType\">\r\n    <option name=\"id\" value=\"Android\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/misc.xml b/.idea/misc.xml
+--- a/.idea/misc.xml	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/.idea/misc.xml	(date 1753792414455)
+@@ -1,4 +1,3 @@
+-<?xml version="1.0" encoding="UTF-8"?>
+ <project version="4">
+   <component name="ExternalStorageConfigurationManager" enabled="true" />
+   <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="jbr-21" project-jdk-type="JavaSDK">
+Index: feature/file/src/main/java/com/example/file/ui/item/LinkItemLayout.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/item/LinkItemLayout.kt b/feature/file/src/main/java/com/example/file/ui/item/LinkItemLayout.kt
+new file mode 100644
+--- /dev/null	(date 1753792414291)
++++ b/feature/file/src/main/java/com/example/file/ui/item/LinkItemLayout.kt	(date 1753792414291)
+@@ -0,0 +1,230 @@
++// 폴더 단위의 레이아웃
++
++package com.example.file.ui.item
++
++import androidx.compose.foundation.Image
++import androidx.compose.foundation.background
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.foundation.layout.Arrangement
++import androidx.compose.foundation.layout.Box
++import androidx.compose.foundation.layout.Column
++import androidx.compose.foundation.layout.Row
++import androidx.compose.foundation.layout.Spacer
++import androidx.compose.foundation.layout.fillMaxSize
++import androidx.compose.foundation.layout.fillMaxWidth
++import androidx.compose.foundation.layout.height
++import androidx.compose.foundation.layout.padding
++import androidx.compose.foundation.layout.size
++import androidx.compose.foundation.layout.width
++import androidx.compose.foundation.layout.wrapContentHeight
++import androidx.compose.foundation.layout.wrapContentSize
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material3.Surface
++import androidx.compose.material3.Text
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.getValue
++import androidx.compose.runtime.mutableStateOf
++import androidx.compose.runtime.remember
++import androidx.compose.runtime.setValue
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.res.painterResource
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.tooling.preview.Preview
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.example.file.R
++import com.example.file.ui.FileModalWindow
++import com.example.file.ui.theme.Black
++import com.example.file.ui.theme.DefaultFont
++import com.example.file.ui.theme.Gray100
++import com.example.file.ui.theme.Gray600
++import com.example.file.ui.theme.Gray800
++import com.example.file.ui.theme.White
++
++@Composable
++fun LinkItemLayout(tags: List<String>) {
++    var showDialog by remember { mutableStateOf(false) }
++
++    // 링크 분류 태그(Chip) 컴포저블
++    @Composable
++    fun LinkItemTag(tag: String){
++        // 태그의 배경(Box)
++        Box (
++            // 태그 배경: 크기 wrap, 둥근 모서리(6dp), Gray100 배경색
++            modifier = Modifier
++                .wrapContentSize()
++                .background(
++                    shape = RoundedCornerShape(size = 6.dp),
++                    color = Gray100
++                ),
++        ) {
++            // 태그 텍스트
++            Text(
++                // 태그 텍스트를 Box 중앙에 정렬, 내부 여백(가로 6dp, 세로 3dp)
++                modifier = Modifier
++                    .align(Alignment.Center)
++                    .padding(horizontal = 6.dp, vertical = 3.dp),
++                text = tag,
++                // 폰트 크기(10sp)
++                fontSize = 10.sp,
++                // 폰트
++                fontFamily = DefaultFont,
++                // 폰트 굵기(Normal)
++                fontWeight = FontWeight.Normal,
++                // 글자색(Gray600)
++                color = Gray600,
++            )
++        }
++    }
++
++    // 전체 카드 바탕 Surface
++    Surface(
++        // 카드 크기: 가로 181dp, 세로 267dp
++        modifier = Modifier
++            .width(181.dp)
++            .height(267.dp)
++            .pointerInput(Unit){
++                detectTapGestures(
++                    onLongPress = {
++                        showDialog = true // 꾹 누르면 Dialog 띄우기
++                    }
++                )
++            },
++        // 모서리 둥글게(18dp)
++        shape = RoundedCornerShape(18.dp),
++        // 카드 배경색(White)
++        color = White,
++        // 그림자(입체감) 효과(20dp)
++        shadowElevation = 20.dp,
++    ) {
++        // 내용 전체를 세로로 배치하는 Column
++        Column (
++            // 전체 영역 채우고, 내부 패딩 11dp
++            modifier = Modifier
++                .fillMaxSize()
++                .padding(11.dp)
++        ) {
++
++            // (1) 링크의 메인 이미지
++            Image(
++                // 둥근 모서리(18dp)로 클립, 사이즈 157dp, 가로 중앙 정렬
++                modifier = Modifier
++                    .clip(RoundedCornerShape(18.dp))
++                    .size(157.dp)
++                    .align(Alignment.CenterHorizontally),
++                // 사용할 이미지 리소스
++                painter = painterResource(id = R.drawable.test_img),  // 테스트 이미지
++                contentDescription = null
++            )
++
++            // (2) 링크 제목
++            Text(
++                // 위쪽 여백(10dp)
++                modifier = Modifier
++                    .padding(top = 10.dp),
++                text = "제목",
++                // 폰트 크기(15sp)
++                fontSize = 15.sp,
++                // 폰트
++                fontFamily = DefaultFont,
++                // 폰트 굵기(Medium, 500)
++                fontWeight = FontWeight(500),
++                // 글자색(Black)
++                color = Black
++            )
++
++            // (3) 링크 분류 태그(여러 개를 Row에 배치)
++            Row(
++                // 가로 전체 채우기, 위쪽 여백(8dp)
++                modifier = Modifier
++                    .fillMaxWidth()
++                    .padding(top = 8.dp),
++                // 태그 간 5dp 간격, 왼쪽 정렬
++                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
++                // 세로 중앙 정렬
++                verticalAlignment = Alignment.CenterVertically,
++            ) {
++                // 전달받은 tags 리스트를 순회하며 LinkItemTag 생성
++                tags.forEach {
++                    LinkItemTag(it)
++                }
++            }
++
++            // (4) 남은 공간 모두 차지하는 Spacer (아래로 밀어내기)
++            Spacer(modifier = Modifier.weight(1f))
++
++            // (5) 링크 설명 프레임 (도메인, 아이콘 등)
++            Row(
++                // 가로 전체 채우기, wrapContentHeight로 높이 최소화
++                modifier = Modifier
++                    .fillMaxWidth()
++                    .wrapContentHeight(),
++                // 요소 간 7dp 간격, 왼쪽 정렬
++                horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.Start),
++                // 세로 중앙 정렬
++                verticalAlignment = Alignment.CenterVertically,
++            ) {
++
++                // 도메인 아이콘 (ex. 트위터)
++                Image(
++                    // 원형으로 클립, 사이즈 26dp
++                    modifier = Modifier
++                        .clip(CircleShape)
++                        .size(26.dp),
++                    // 아이콘 이미지 리소스
++                    painter = painterResource(id = R.drawable.twiter_logo_img),  // 트위터 로고(테스트)
++                    contentDescription = null
++                )
++
++                // 링크의 도메인 텍스트
++                Text(
++                    modifier = Modifier,
++
++                    // 텍스트 내용
++                    text = "도메인",
++
++                    // 폰트 크기 (12sp)
++                    fontSize = 12.sp,
++
++                    // 폰트 (paperlogy 폰트)
++                    fontFamily = DefaultFont,
++
++                    // 폰트 굵기 (Bold)
++                    fontWeight = FontWeight.Bold,
++
++                    // 글자색 (Gray800)
++                    color = Gray800
++                )
++            }
++        }
++    }
++
++    FileModalWindow(
++        showDialog,
++        {},
++        "삭제하기",
++        "",
++        "해당 폴더를 비공개 하시겠습니까?"
++    ){
++        Text(
++            text = "해당 폴더는 타인과 공유중인 폴더입니다.\n비공개 폴더로 전환하시겠습니까?",
++            fontSize = 15.sp,
++            lineHeight = 22.sp,
++            fontFamily = DefaultFont,
++            fontWeight = FontWeight(400),
++            color = Gray600,
++            textAlign = TextAlign.Center,
++        )
++    }
++}
++
++@Preview(showBackground = true)
++@Composable
++fun LinkItemTest() {
++    LinkItemLayout(listOf("태그1", "태그2", "태그3"))
++}
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/ShareButton.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/ShareButton.kt b/feature/file/src/main/java/com/example/file/ui/content/ShareButton.kt
+rename from feature/file/src/main/java/com/example/file/ui/ShareButton.kt
+rename to feature/file/src/main/java/com/example/file/ui/content/ShareButton.kt
+--- a/feature/file/src/main/java/com/example/file/ui/ShareButton.kt	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/feature/file/src/main/java/com/example/file/ui/content/ShareButton.kt	(date 1753792414372)
+@@ -1,6 +1,6 @@
+ // 공유 버튼 이미지 레이아웃
+ 
+-package com.example.file.ui
++package com.example.file.ui.content
+ 
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.Arrangement
+Index: .idea/deploymentTargetSelector.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"deploymentTargetSelector\">\r\n    <selectionStates>\r\n      <SelectionState runConfigName=\"app\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-07-03T20:37:28.863775Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Jihyun\\.android\\avd\\Pixel_8_API_35.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"test.curation\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"test.file\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"test.home\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-07-03T18:35:00.446516100Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Jihyun\\.android\\avd\\Pixel_8_API_35.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"test.login\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"test.mypage\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n      </SelectionState>\r\n      <SelectionState runConfigName=\"PreviewBottomNavigationBar\">\r\n        <option name=\"selectionMode\" value=\"DROPDOWN\" />\r\n        <DropdownSelection timestamp=\"2025-07-03T15:45:50.782829400Z\">\r\n          <Target type=\"DEFAULT_BOOT\">\r\n            <handle>\r\n              <DeviceId pluginId=\"LocalEmulator\" identifier=\"path=C:\\Users\\Jihyun\\.android\\avd\\Pixel_8_API_35.avd\" />\r\n            </handle>\r\n          </Target>\r\n        </DropdownSelection>\r\n        <DialogSelection />\r\n      </SelectionState>\r\n    </selectionStates>\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/deploymentTargetSelector.xml b/.idea/deploymentTargetSelector.xml
+--- a/.idea/deploymentTargetSelector.xml	(revision db22863490c525f82f71a01a45551982fda99712)
++++ b/.idea/deploymentTargetSelector.xml	(date 1753792414461)
+@@ -18,6 +18,14 @@
+       </SelectionState>
+       <SelectionState runConfigName="test.file">
+         <option name="selectionMode" value="DROPDOWN" />
++        <DropdownSelection timestamp="2025-07-20T04:11:02.310105300Z">
++          <Target type="DEFAULT_BOOT">
++            <handle>
++              <DeviceId pluginId="PhysicalDevice" identifier="serial=R3CW10FTK0D" />
++            </handle>
++          </Target>
++        </DropdownSelection>
++        <DialogSelection />
+       </SelectionState>
+       <SelectionState runConfigName="test.home">
+         <option name="selectionMode" value="DROPDOWN" />
+@@ -35,17 +43,6 @@
+       </SelectionState>
+       <SelectionState runConfigName="test.mypage">
+         <option name="selectionMode" value="DROPDOWN" />
+-      </SelectionState>
+-      <SelectionState runConfigName="PreviewBottomNavigationBar">
+-        <option name="selectionMode" value="DROPDOWN" />
+-        <DropdownSelection timestamp="2025-07-03T15:45:50.782829400Z">
+-          <Target type="DEFAULT_BOOT">
+-            <handle>
+-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Jihyun\.android\avd\Pixel_8_API_35.avd" />
+-            </handle>
+-          </Target>
+-        </DropdownSelection>
+-        <DialogSelection />
+       </SelectionState>
+     </selectionStates>
+   </component>

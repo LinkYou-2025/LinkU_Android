@@ -13,7 +13,6 @@ import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val categoryApi: CategoryApi,
     private val authPreference: AuthPreference,
 ) : CategoryRepository {
 
@@ -22,7 +21,7 @@ class CategoryRepositoryImpl @Inject constructor(
     ): List<CategorySimpleInfo> {
         Log.d("CategoryRepositoryImpl", "getCategoryList")
 
-        return categoryApi.getCategoryList()
+        return serverApi.getCategoryList()
     }
 
     // 카테고리(폴더) 색상 변경
