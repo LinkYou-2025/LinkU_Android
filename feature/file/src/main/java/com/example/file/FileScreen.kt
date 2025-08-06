@@ -83,11 +83,6 @@ fun FileScreen(
                 editStateViewModel = editStateViewModel,
                 folderStateViewModel = folderStateViewModel
             )},
-        bottomBar = { BottomNavigationBar(
-            selectedTab = NavigationItem.FILE,
-            onTabSelected = {},
-            onFabClick = {}
-        ) }
     ){ innerPadding ->
 
         Box(
