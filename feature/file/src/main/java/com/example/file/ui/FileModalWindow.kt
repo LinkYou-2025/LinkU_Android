@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -44,6 +45,7 @@ fun FileModalWindow(
             ){
                 Column(
                     modifier = Modifier
+                        .width(372.dp)
                         .padding(27.dp),
                     verticalArrangement = Arrangement.spacedBy(36.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -143,8 +145,8 @@ fun FileModalWindowTest(){
     FileModalWindow(
         true,
         {},
-        "삭제하기",
-        "",
+        "확인",
+        "취소",
         "해당 폴더를 비공개 하시겠습니까?"
     ){
         Text(
