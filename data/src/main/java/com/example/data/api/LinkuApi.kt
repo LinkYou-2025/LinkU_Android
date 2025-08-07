@@ -5,6 +5,7 @@ import com.example.data.api.dto.server.LinkuIsExistDTO
 import com.example.data.api.dto.server.LinkuResultDTO
 import com.example.data.api.dto.server.LinkuSimpleDTO
 import com.example.data.api.dto.server.LinkuUpdateDTO
+import com.example.data.api.dto.server.QuickSearchResult
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -64,6 +65,10 @@ interface LinkuApi {
         @Query("size") size: Int = 5
     ) : BaseResponse<LinkuSimpleDTO>
 
-    // 빠른 링크 검색 -> 스웨거에 추가되는대로 업뎃 예정
-//    @GET("/api/search/quick")
+    // 빠른 링크 검색
+    @GET("/api/linku/api/search/quick")
+    suspend fun quickSearch(
+        @Query("keyword") keyword: String,
+        @Query("userId") userId: Long
+    ) : BaseResponse<QuickSearchResult>
 }
