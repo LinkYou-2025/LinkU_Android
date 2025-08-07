@@ -25,28 +25,28 @@ interface FolderRepository {
         parentFolderId: Long
     ): List<FolderSimpleInfo>
 
-    // (소분류) 폴더 내부 링크 조회 (커서) -> In Progress
+    // (소분류) 폴더 내부 링크 조회 (커서)
     suspend fun getLinksFolders(
         folderId: Long,
-        limit: Int? = 10,
+        limit: Int? = 20,
         cursor: String? = null,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkSimpleInfo>) -> Unit
     ): String?
 
-    // (소분류) 폴더 생성 (소분류 폴더 생성)
+    // (소분류) 폴더 생성 (소분류 폴더 생성) (예외 던질 수 있음)
     suspend fun createSubfolder(
         parentFolderId: Long,
         folderName: String
     ): FolderInfo
 
-    // (소분류) 폴더 수정 (소분류 폴더 수정)
+    // (소분류) 폴더 수정 (소분류 폴더 수정) (예외 던질 수 있음)
     suspend fun updateSubfolder(
         folderId: Long,
         folderName: String
     ): FolderInfo
 
-    // (소분류) 폴더 삭제 (소분류 폴더 삭제)
+    // (소분류) 폴더 삭제 (소분류 폴더 삭제) (예외 던질 수 있음)
     suspend fun deleteSubfolder(folderId: Long)
 
     // 공유 받은 폴더 목록 조회
@@ -68,6 +68,6 @@ interface FolderRepository {
 //        body: FolderPermissionRequestDTO
 //    ): ShareFolderResponseDTO
 //
-    // 폴더 비공개 전환
+    // 폴더 비공개 전환 (예외 던질 수 있음)
     suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo
 }

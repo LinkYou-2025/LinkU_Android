@@ -1,8 +1,8 @@
 package com.example.data.api.dto.server
 
-import com.example.core.model.FolderPermission
 import com.squareup.moshi.Json
 
+// com.example.core.model.SharedFolderSimpleInfo -> 구조를 공유
 data class ShareFolderResponseDTO(
 
     @Json(name = "folderId")
@@ -14,7 +14,7 @@ data class ShareFolderResponseDTO(
     @Json(name = "permission")
     val permission: String,
 
-    @Json(name = "sharedAt")
-    val sharedAt: String
+//    @Json(name = "sharedAt")
+//    val sharedAt: String
 
 )
