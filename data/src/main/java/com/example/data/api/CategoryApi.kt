@@ -13,12 +13,12 @@ import retrofit2.http.Path
 interface CategoryApi {
     // 카테고리 목록 조회
     @GET("/api/categories")
-    suspend fun getCategoryList(): List<CategorySimpleInfo>
+    suspend fun getCategoryList(): List<CategoryListResponseDTO>
 
     // (중분류) 폴더 색 수정
     @PUT("/api/categories/{categoryId}/color")
     suspend fun updateCategoryColor(
         @Path("categoryId") categoryId: Long,
         @Body body: UpdateCategoryColorRequestDTO
-    ): BaseResponse<UserCategoryColorResponseDTO>
+    ): UserCategoryColorResponseDTO
 }

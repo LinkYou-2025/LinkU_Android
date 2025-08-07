@@ -21,7 +21,25 @@ class CategoryRepositoryImpl @Inject constructor(
     ): List<CategorySimpleInfo> {
         Log.d("CategoryRepositoryImpl", "getCategoryList")
 
-        return serverApi.getCategoryList()
+        val categoryList: List<CategorySimpleInfo>
+
+        try{
+            Log.d("CategoryRepositoryImpl", "try")
+            categoryList = serverApi.getCategoryList().map{
+                CategorySimpleInfo(
+                    categoryId = it.categoryId,
+                    categoryName = it.categoryName
+                )
+            }
+
+        }catch(e: Exception) {
+            Log.d("CategoryRepositoryImpl", "error: $e")
+            return emptyList()
+        }
+
+        Log.d("CategoryRepositoryImpl", "categoryList: $categoryList")
+
+        return categoryList
     }
 
     // 카테고리(폴더) 색상 변경

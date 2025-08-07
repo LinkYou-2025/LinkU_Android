@@ -41,13 +41,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.file.R
-import com.example.file.ui.FileModalWindow
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray200
 import com.example.file.ui.theme.Gray400
-import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White

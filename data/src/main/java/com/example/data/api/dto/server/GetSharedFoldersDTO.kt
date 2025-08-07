@@ -9,6 +9,7 @@ data class FolderOwnerDTO(
     val nickname: String
 )
 
+// com.example.core.model.SharedFolderInfo -> 구조를 공유
 data class GetSharedFoldersDTO(
 
     @Json(name = "folderId")
