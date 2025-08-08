@@ -150,8 +150,8 @@ fun FileTopBar(
                 )
 
                 BottomFolderListMenu(
+                    fileViewModel = fileViewModel,
                     folderStateViewModel = folderStateViewModel,
-                    items = categories,
                     onChangeFolder = {}
                 )
             }

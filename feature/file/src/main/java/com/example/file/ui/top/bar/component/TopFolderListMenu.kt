@@ -49,9 +49,7 @@ fun TopFolderListMenu(
         var selectedText = remember { mutableStateOf(items[0]) }
         items.forEach{ selectedOption ->
             DropdownMenuItem(
-                leadingIcon = if (selectedOption == selectedText.value){
-                    @Composable
-                    {
+                leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
@@ -61,14 +59,14 @@ fun TopFolderListMenu(
                                     onDrawWithContent {
                                         drawContent() // 기본 아이콘 먼저 그림
                                         drawRect(
-                                            MainColor,
+                                            brush = if (selectedOption == selectedText.value) MainColor
+                                            else Brush.horizontalGradient(listOf(White, White)),
                                             blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
                                         )
                                     }
                                 }
                         )
-                    }
-                }else null,
+                    },
                 text = {
                     Text(
                         text = buildAnnotatedString {
@@ -111,6 +109,5 @@ fun FolderListMenuTest(){
     TopFolderListMenu(
         folderStateViewModel = folderStateViewModel,
         listOf("나의 폴더", "공유받은 폴더"),
-        {}
-    )
+    ){}
 }

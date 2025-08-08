@@ -37,12 +37,12 @@ interface FolderApi {
     suspend fun getMyFolders(): BaseResponse<List<FolderTreeResponseDTO>>
 
     // (중분류) 중분류 폴더 조회
-    // 콜백 함수 등록
+    // ✅
     @GET("/api/folders/parentFolders")
     suspend fun getParentfolders(): List<FolderListResponseDTO>
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
-    // 콜백 함수 등록
+    // ✅
     @GET("/api/folders/{parentFolderId}/subfolders")
     suspend fun getSubfolders(
         @Path("parentFolderId") parentFolderId: Long
@@ -58,7 +58,7 @@ interface FolderApi {
     ): LinksFoldersResponseDTO
 
     // (소분류) 폴더 생성 (소분류 폴더 생성)
-    // 콜백 함수 등록
+    // ✅
     @POST("/api/folders/{parentFolderId}/subfolders")
     suspend fun createSubfolder(
         @Path("parentFolderId") parentFolderId: Long,
@@ -74,7 +74,7 @@ interface FolderApi {
     ): FolderResponseDTO
 
     // (소분류) 폴더 삭제 (소분류 폴더 삭제)
-    // 콜백 함수 등록
+    // ✅
     @DELETE("/api/folders/subfolders/{folderId}")
     suspend fun deleteSubfolder(
         @Path("folderId") folderId: Long

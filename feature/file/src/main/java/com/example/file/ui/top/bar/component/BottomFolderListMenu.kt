@@ -11,6 +11,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -19,21 +20,25 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.file.FileViewModel
 import com.example.file.ui.content.categories
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
+import com.example.file.viewmodel.folder.state.FolderState
 
 @Composable
 fun BottomFolderListMenu(
+    fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
-    items: List<String> = categories,
     isLinks: Boolean = false,
     onChangeFolder: () -> Unit
 ){
+    val items = fileViewModel.parentFolders.collectAsState().value
     DropdownMenu(
         modifier = Modifier
             .heightIn(max = 264.dp)
@@ -44,7 +49,7 @@ fun BottomFolderListMenu(
         onDismissRequest = { folderStateViewModel.updateBottomMenuExpanded(false) },
         containerColor = White
     ) {
-        for((i, category) in items.withIndex()){
+        for((i, folder) in items.withIndex()){
             DropdownMenuItem(
                 leadingIcon = if (isLinks) null else {
                     @Composable {
@@ -58,7 +63,7 @@ fun BottomFolderListMenu(
                 },
                 text = {
                     Text(
-                        text = category,
+                        text = folder.folderName,
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                         fontFamily = DefaultFont,
@@ -69,7 +74,9 @@ fun BottomFolderListMenu(
                     )
                 },
                 onClick = {
-                    onChangeFolder()
+                    fileViewModel.getSubfolders(folder.folderId)
+                    folderStateViewModel.updateSelectedTopFolder(folder)
+                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                 }
             )
         }
@@ -81,8 +88,8 @@ fun BottomFolderListMenu(
 fun BottomFolderListMenuTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
     BottomFolderListMenu(
+        fileViewModel = hiltViewModel(),
         folderStateViewModel = folderStateViewModel,
-//        items = listOf("나의 폴더", "공유받은 폴더"),
         isLinks = true,
         onChangeFolder = {}
     )
