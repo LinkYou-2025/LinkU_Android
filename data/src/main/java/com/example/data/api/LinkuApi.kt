@@ -22,7 +22,7 @@ interface LinkuApi {
     @Multipart
     @POST("/api/linku")
     suspend fun addLink(
-        @Part image: MultipartBody.Part,
+        @Part image: MultipartBody.Part?,
         @Part("linku") linku: RequestBody,
         @Part("memo") memo: RequestBody?,
         @Part("emotionId") emotionId: RequestBody?
