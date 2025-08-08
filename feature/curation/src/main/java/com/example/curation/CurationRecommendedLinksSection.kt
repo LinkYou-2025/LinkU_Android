@@ -27,9 +27,11 @@ import androidx.compose.ui.unit.sp
 import com.example.curation.Paperlogy
 import com.example.curation.R
 
+
+//Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp))
 @Composable
-fun CurationRecommendedLinksSection() {
-    Column(modifier = Modifier.padding(16.dp)) {
+fun CurationRecommendedLinksSection(modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
         Text(
             text = "추천 링크",
             style = MaterialTheme.typography.titleMedium.copy(

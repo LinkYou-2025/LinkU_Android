@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.media3.common.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -61,6 +62,7 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
+    implementation(project(":data"))
 
     // Hilt
     implementation(libs.hilt.android)

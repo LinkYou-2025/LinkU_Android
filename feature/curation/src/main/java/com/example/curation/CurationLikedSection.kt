@@ -30,12 +30,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.curation.ui.UICurationItem
 import com.example.curation.R
 import com.example.curation.Paperlogy
 
+
 @Composable
 fun CurationLikedSection(nickname: String) {
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         // 제목
         Text(
             text = "${nickname}님이 좋아요 한 큐레이션",
@@ -52,12 +54,15 @@ fun CurationLikedSection(nickname: String) {
 
         // 좋아요 리스트
         val likedCurations = listOf(
-            CurationItem("링큐 큐레이션", "2025년 7월호", R.drawable.img_trump_card, liked = true),
-            CurationItem("링큐 큐레이션", "2025년 6월호", R.drawable.img_trump_card, liked = true),
-            CurationItem("링큐 큐레이션", "2025년 5월호", R.drawable.img_trump_card, liked = true)
+            UICurationItem("링큐 큐레이션", "2025년 7월호", R.drawable.img_trump_card, liked = true),
+            UICurationItem("링큐 큐레이션", "2025년 6월호", R.drawable.img_trump_card, liked = true),
+            UICurationItem("링큐 큐레이션", "2025년 5월호", R.drawable.img_trump_card, liked = true)
         )
 
-        LazyColumn(contentPadding = PaddingValues(vertical = 8.dp)) {
+        LazyColumn(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(vertical = 8.dp)
+        ) {
             items(likedCurations) { item ->
                 LikedCurationCard(item = item)
                 Spacer(modifier = Modifier.height(12.dp))
@@ -67,7 +72,7 @@ fun CurationLikedSection(nickname: String) {
 }
 
 @Composable
-fun LikedCurationCard(item: CurationItem) {
+fun LikedCurationCard(item: UICurationItem) {
     Box(
         modifier = Modifier
             .fillMaxWidth()

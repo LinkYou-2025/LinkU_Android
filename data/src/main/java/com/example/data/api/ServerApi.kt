@@ -11,7 +11,7 @@ suspend fun <T> ServerApi.withCheck(
 ): T {
     val response = getter()
     if (!response.isSuccess) throw Exception(response.message)
-    return response.result
+    return response.result ?: throw Exception("서버 응답이 null입니다.")
 }
 
 // refreshToken 갱신 有
