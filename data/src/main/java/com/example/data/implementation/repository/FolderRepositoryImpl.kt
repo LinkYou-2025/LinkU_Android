@@ -61,8 +61,8 @@ class FolderRepositoryImpl @Inject constructor(
                 FolderSimpleInfo(
                     folderId = it.folderId,
                     folderName = it.folderName,
-                    parentFolderId = it.parentFolderId,
-                    isBookmarked = it.isBookmarked
+                    parentFolderId = 0,
+                    isBookmarked = false//it.isBookmarked
                 )
             }
         }catch (e: Exception){
@@ -95,8 +95,8 @@ class FolderRepositoryImpl @Inject constructor(
                 FolderSimpleInfo(
                     folderId = it.folderId,
                     folderName = it.folderName,
-                    parentFolderId = it.parentFolderId,
-                    isBookmarked = it.isBookmarked
+                    parentFolderId = it.parentFolderId?: parentFolderId,
+                    isBookmarked = false//it.isBookmarked
                 )
             }
         }catch (e: Exception){

@@ -1,4 +1,4 @@
-package com.example.file.ui
+package com.example.file.ui.modal
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +31,7 @@ import com.example.file.ui.theme.*
 @Composable
 fun FileModalWindow(
     visible: Boolean,
+    onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
     positiveText: String,
     negativeText: String = "",
@@ -119,7 +120,10 @@ fun FileModalWindow(
                                     brush = MainColor,
                                     shape = RoundedCornerShape(size = 14.dp)
                                 )
-                                .noRippleClickable{onDismiss()},
+                                .noRippleClickable{
+                                    onOkay()
+                                    onDismiss()
+                                  },
                             contentAlignment = Alignment.Center
                         ){
                             Text(
@@ -141,9 +145,10 @@ fun FileModalWindow(
 
 @Preview(showBackground = true)
 @Composable
-fun FileModalWindowTest(){
+private fun FileModalWindowTest(){
     FileModalWindow(
         true,
+        {},
         {},
         "확인",
         "취소",

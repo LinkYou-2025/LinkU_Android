@@ -65,16 +65,19 @@ fun TextFieldFileBottomSheet(
     placeholderText: String,
     isEditable: Boolean = false,
     visible: Boolean,
+    onTextDeliver: (String) -> Unit = {},
     onDismiss: () -> Unit,
 ){
     var expanded by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(Gray300) }
+    var text by remember { mutableStateOf("") }
 
     FileBottomSheet(
         title = title,
         body = body,
         buttonText = "저장",
         visible = visible,
+        onOkay = { onTextDeliver(text) },
         onDismiss = {
             selectedColor = Gray300
             expanded = false
@@ -89,7 +92,6 @@ fun TextFieldFileBottomSheet(
                 .padding(horizontal = 21.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            var text by remember { mutableStateOf("") }
             BasicTextField(
                 value = text,
                 onValueChange = { text = it },

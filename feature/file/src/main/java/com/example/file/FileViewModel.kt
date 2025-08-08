@@ -47,80 +47,194 @@ class FileViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    // ------------- 주요 함수 -------------
-
-    // 카테고리 전체 불러오기
-    fun getCategoryList() {
-        Log.d("fetchCategories", "fetchCategories")
+    // ---------- get method ----------
+    // 중분류 전체 불러오기
+    fun getParentfolders() {
+        Log.d("FileViewModel", "getParentfolders")
 
         viewModelScope.launch {
-            Log.d("fetchCategories", "fetchCategories launch")
+            Log.d("FileViewModel", "getParentfolders launch")
 
             _loading.value = true
             _errorMessage.value = null
 
             try {
-                Log.d("fetchCategories", "fetchCategories try")
+                Log.d("FileViewModel", "getParentfolders try")
 
-                val result = categoryRepository.getCategoryList()
+                val result = folderRepository.getParentfolders()
 
-                Log.d("fetchCategories", "fetchCategories try result: $result")
+                Log.d("FileViewModel", "getParentfolders try result: $result")
 
-                _categoryList.value = result
+                _parentFolders.value = result
 
             } catch (e: Exception) {
-                Log.d("fetchCategories", "fetchCategories catch: $e.message")
+                Log.d("FileViewModel", "getParentfolders catch: $e.message")
 
                 _errorMessage.value = e.message
 
             } finally {
-                Log.d("fetchCategories", "fetchCategories finally")
+                Log.d("FileViewModel", "getParentfolders finally")
 
                 _loading.value = false
 
             }
 
-            Log.d("fetchCategories", "fetchCategories end")
+            Log.d("FileViewModel", "getParentfolders end")
         }
-        Log.d("fetchCategories", "fetchCategories return")
+        Log.d("FileViewModel", "getParentfolders return")
     }
 
+    // 하위 폴더 전체 불러오기
+    fun getSubfolders(parentFolderId: Long) {
+        Log.d("FileViewModel", "getSubfolders")
+        viewModelScope.launch {
+            Log.d("FileViewModel", "getSubfolders launch")
+
+            _loading.value = true
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getSubfolders try")
+
+                val result = folderRepository.getSubfolders(parentFolderId)
+
+                Log.d("FileViewModel", "getSubfolders try result: $result")
+
+                _subFolders.value = result
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "getSubfolders catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "getSubfolders finally")
+
+                _loading.value = false
+            }
+        }
+        Log.d("FileViewModel", "getSubfolders return")
+    }
+    // ---------- get method ----------
+
+    // ---------- create method ----------
+    fun createSubfolder(
+        parentFolderId: Long,
+        folderName: String
+    ){
+        Log.d("FileViewModel", "createSubfolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "createSubfolder launch")
+
+            _loading.value = true
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "createSubfolder try")
+
+                val newFolder = folderRepository.createSubfolder(parentFolderId, folderName).run{
+                    FolderSimpleInfo(
+                        folderId = this.folderId,
+                        folderName = this.folderName,
+                        parentFolderId = this.parentFolderId,
+                        isBookmarked = false
+                    )
+                }
+
+                _subFolders.value = _subFolders.value + newFolder
+
+                Log.d("FileViewModel", "createSubfolder try result: $newFolder")
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "createSubfolder catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "createSubfolder finally")
+
+                _loading.value = false
+            }
+        }
+        Log.d("FileViewModel", "createSubfolder return")
+    }
+    // ---------- create method ----------
+
+    // ---------- update method ----------
     // 북마크 등록/해제
     fun updateBookmark(
         folderId: Long,
         isBookmarked: Boolean
     ): Boolean {
-        Log.d("updateBookmark", "updateBookmark")
+        Log.d("FileViewModel", "updateBookmark")
 
         var result = isBookmarked
 
         viewModelScope.launch {
-            Log.d("updateBookmark", "updateBookmark launch")
+            Log.d("FileViewModel", "updateBookmark launch")
 
             _loading.value = true
             _errorMessage.value = null
 
             try {
-                Log.d("updateBookmark", "updateBookmark try")
+                Log.d("FileViewModel", "updateBookmark try")
 
                 result = folderRepository.updateBookmark(folderId, isBookmarked)
 
-                Log.d("updateBookmark", "updateBookmark try result: $result")
+                Log.d("FileViewModel", "updateBookmark try result: $result")
 
             } catch (e: Exception) {
-                Log.d("updateBookmark", "updateBookmark catch: $e.message")
+                Log.d("FileViewModel", "updateBookmark catch: $e.message")
 
                 _errorMessage.value = e.message
             }finally {
-                Log.d("updateBookmark", "updateBookmark finally")
+                Log.d("FileViewModel", "updateBookmark finally")
 
                 _loading.value = false
             }
 
-            Log.d("updateBookmark", "updateBookmark end")
+            Log.d("FileViewModel", "updateBookmark end")
         }
-        Log.d("updateBookmark", "updateBookmark return")
+        Log.d("FileViewModel", "updateBookmark return")
 
         return result
     }
+    // ---------- update method ----------
+
+    // ---------- delete method ----------
+    // 소분류 폴더 삭제
+    fun deleteSubfolder(folderId: Long, index: Int) {
+        Log.d("FileViewModel", "deleteSubfolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "deleteSubfolder launch")
+
+            _loading.value = true
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "deleteSubfolder try")
+
+                folderRepository.deleteSubfolder(folderId)
+                _subFolders.value = _subFolders.value.filterIndexed { i, _ -> i != index }
+
+                Log.d("FileViewModel", "deleteSubfolder try result")
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "deleteSubfolder catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "deleteSubfolder finally")
+
+                _loading.value = false
+            }
+
+            Log.d("FileViewModel", "deleteSubfolder end")
+            }
+        Log.d("FileViewModel", "deleteSubfolder return")
+    }
+    // ---------- delete method ----------
 }

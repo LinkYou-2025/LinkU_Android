@@ -35,7 +35,7 @@ fun BottomFolderListLayout(
     colorStyle: CategoryColorStyle,
     folderStateViewModel: FolderStateViewModel
 ) {
-    var text = folderStateViewModel.selectedTopFolder!! +
+    var text = folderStateViewModel.selectedTopFolder!!.folderName +
             if(folderStateViewModel.currentFolderState==FolderState.LINK)
                 folderStateViewModel.selectedBottomFolder?.let{ " > $it" }
             else ""
@@ -95,7 +95,6 @@ fun BottomFolderListLayout(
 @Composable
 fun BottomFolderListLayoutTest() {
     val folderStateViewModel: FolderStateViewModel = viewModel()
-    folderStateViewModel.updateSelectedTopFolder("어학")
     // folderStateViewModel.updateSelectedBottomFolder("단어장")
     BottomFolderListLayout(
         colorStyle = CategoryColorStyle.categoryStyleList[0],
