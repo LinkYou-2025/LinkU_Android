@@ -17,12 +17,12 @@ data class JoinDTO (
     val gender: Int,
 
     @Json(name = "jobId")
-    val jobId: Long,
+    val jobId: Int,
 
     @Json(name = "purposeList")
-    val purposeList: List<String>? = null,
+    val purposeList: List<String>,
 
     @Json(name = "interestList")
-    val interestList: List<String>? = null
+    val interestList: List<String>
 
 )

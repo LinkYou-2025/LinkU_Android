@@ -17,18 +17,27 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.http.Header
 
 interface UserApi {
     // 회원 가입
+//    @POST("/api/users/join")
+//    suspend fun signUp(
+//        @Body body: JoinDTO
+//    ): BaseResponse<JoinResultDTO>
     @POST("/api/users/join")
     suspend fun signUp(
-        @Body body: JoinDTO
+        @Body joinDTO: JoinDTO
     ): BaseResponse<JoinResultDTO>
 
     // 닉네임 중복 확인
+//    @GET("/api/users/check-nickname")
+//    suspend fun checkNickDuplication(
+//        @Query("nickname") username: String
+//    ): ApiResponseString
     @GET("/api/users/check-nickname")
-    suspend fun checkNickDuplication(
-        @Query("username") username: String
+    suspend fun checkNickname(
+        @Query("nickname") nickname: String
     ): ApiResponseString
 
     // 위의 코드가 안된다면 아래 코드로 교체
@@ -82,9 +91,9 @@ interface UserApi {
     // 이메일 인증 코드 전송
     @POST("/api/users/emails/code")
     suspend fun sendVerificationEmail(
-        @Query("email") email: String
+        @Query("email") email: String,
+        @Query("code") code: String
     ): ApiResponseString
-
     // 위의 코드가 안된다면 아래 코드로 교체
 //    @POST("/api/users/emails/code")
 //    suspend fun sendVerificationEmail(

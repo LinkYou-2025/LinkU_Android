@@ -1,6 +1,7 @@
 package com.example.data.api.dto.server
 
 import com.squareup.moshi.Json
+import java.time.OffsetDateTime
 
 data class LoginResultDTO (
 
@@ -14,6 +15,6 @@ data class LoginResultDTO (
     val status: String? = null,
 
     @Json(name = "inactiveDate")
-    val inactiveDate: java.time.OffsetDateTime? = null
+    val inactiveDate: String? = null
 
 )

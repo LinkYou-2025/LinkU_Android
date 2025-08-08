@@ -12,7 +12,7 @@ data class ShareFolderResponseDTO(
     val userId: Long,
 
     @Json(name = "permission")
-    val permission: FolderPermission,
+    val permission: String,
 
     @Json(name = "sharedAt")
     val sharedAt: String
