@@ -17,6 +17,7 @@ import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
 import com.example.data.api.dto.server.UpdateBookmarkResponseDTO
 import com.example.data.api.withAuth
 import com.example.data.preference.AuthPreference
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
@@ -184,8 +185,8 @@ class FolderRepositoryImpl @Inject constructor(
                         categoryId = this.categoryId,
                         categoryName = this.categoryName,
                         parentFolderId = this.parentFolderId,
-                        createdAt = this.createdAt,
-                        updatedAt = this.updatedAt,
+                        createdAt = this.createdAt?.let{OffsetDateTime.parse(it)},
+                        updatedAt = this.updatedAt?.let{OffsetDateTime.parse(it)},
                     )
                 }
         }catch (e: Exception){
@@ -217,8 +218,8 @@ class FolderRepositoryImpl @Inject constructor(
                     categoryId = this.categoryId,
                     categoryName = this.categoryName,
                     parentFolderId = this.parentFolderId,
-                    createdAt = this.createdAt,
-                    updatedAt = this.updatedAt,
+                    createdAt = this.createdAt?.let{OffsetDateTime.parse(it)},
+                    updatedAt = this.updatedAt?.let{OffsetDateTime.parse(it)},
                 )
             }
         }catch (e: Exception){

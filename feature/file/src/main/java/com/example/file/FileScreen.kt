@@ -152,6 +152,22 @@ fun FileScreen(
                     .background(Color.Black.copy(alpha = 0.3f))
             )
         }
+
+        // 로딩창
+        if (fileViewModel.loading.collectAsState().value) {
+            // 로딩 로직
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MainColor),
+                contentAlignment = Alignment.Center
+            ){
+                Image(
+                    painter = painterResource(R.drawable.linku_logo),
+                    contentDescription = "로딩중"
+                )
+            }
+        }
     }
 
     // 검색창 탑 시트
@@ -182,22 +198,6 @@ fun FileScreen(
     LinkCategorizationBottomSheet(
         folderStateViewModel = folderStateViewModel
     )
-
-    // 로딩창
-    if (fileViewModel.loading.collectAsState().value) {
-        // 로딩 로직
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MainColor),
-            contentAlignment = Alignment.Center
-        ){
-            Image(
-                painter = painterResource(R.drawable.linku_logo),
-                contentDescription = "로딩중"
-            )
-        }
-    }
 }
 
 @Preview(

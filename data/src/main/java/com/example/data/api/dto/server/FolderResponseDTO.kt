@@ -20,8 +20,8 @@ data class FolderResponseDTO(
     val parentFolderId: Long,
 
     @Json(name = "createdAt")
-    val createdAt: OffsetDateTime?,
+    val createdAt: String?,
 
     @Json(name = "updatedAt")
-    val updatedAt: OffsetDateTime?
+    val updatedAt: String?
 )
