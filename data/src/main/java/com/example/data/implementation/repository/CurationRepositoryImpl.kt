@@ -21,11 +21,23 @@ class CurationRepositoryImpl @Inject constructor(
             throw IllegalStateException("Access token is missing.")
         }
 
-        val bearerToken = "Bearer $rawToken"
-
-        val response = serverApi.withCheck {
-            serverApi.getMyRecentCuration(bearerToken, userId)
+        val baseResponse = try {
+            serverApi.getMyRecentCuration(userId)
+        } catch (e: Exception) {
+            throw IllegalStateException("서버로부터 응답을 받을 수 없습니다: ${e.message}")
         }
+
+        // ⚠️ 여기가 핵심
+        if (baseResponse == null) {
+            throw IllegalStateException("최근 큐레이션이 없습니다. (204 No Content)")
+        }
+
+        if (!baseResponse.isSuccess) {
+            throw Exception(baseResponse.message)
+        }
+
+        val response = baseResponse.result
+            ?: throw IllegalStateException("최근 큐레이션 데이터가 없습니다.")
 
         return response.toDomain()
     }
