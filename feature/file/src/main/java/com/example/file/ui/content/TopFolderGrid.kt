@@ -51,7 +51,7 @@ fun TopFolderGrid(
     editStateViewModel: EditStateViewModel,
     onFolderEdit: () -> Unit,
 ){
-    val categoryList = fileViewModel.categoryList.collectAsState().value
+    val categoryList = fileViewModel.parentFolders.collectAsState().value
     VerticalGrid(
         modifier = Modifier
             .fillMaxWidth(),
@@ -61,7 +61,7 @@ fun TopFolderGrid(
     ) {
         for ((i, folder) in categoryList.withIndex()) {
             var isBookmarked by remember { mutableStateOf(false) }
-            val categoryName = folder.categoryName
+            val folderName = folder.folderName
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -69,7 +69,8 @@ fun TopFolderGrid(
                         if (editStateViewModel.isEditMode) {
                             onFolderEdit()
                         } else {
-                            folderStateViewModel.updateSelectedTopFolder(categoryName)
+                            fileViewModel.getSubfolders(folder.folderId)
+                            folderStateViewModel.updateSelectedTopFolder(folder)
                             folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                         }
                     },
@@ -77,13 +78,13 @@ fun TopFolderGrid(
             ){
                 TopFolderItemLayout(
                     categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
-                    categoryName = categoryName,
+                    categoryName = folderName,
                     isBookmarked = false,
                     fileViewModel = fileViewModel,
                     editStateViewModel = editStateViewModel
                 ){
                     isBookmarked = fileViewModel.updateBookmark(
-                        folderId = folder.categoryId,
+                        folderId = folder.folderId,
                         isBookmarked = !isBookmarked
                     )
                 }

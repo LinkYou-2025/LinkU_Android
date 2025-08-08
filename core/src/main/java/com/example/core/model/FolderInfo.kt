@@ -9,6 +9,8 @@ data class FolderInfo(
     val categoryId: Long,
     val categoryName: String,
     val parentFolderId: Long,
-    val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime
+    val createdAt: OffsetDateTime?,
+    val updatedAt: OffsetDateTime?
+//    val createdAt: OffsetDateTime,
+//    val updatedAt: OffsetDateTime
 )

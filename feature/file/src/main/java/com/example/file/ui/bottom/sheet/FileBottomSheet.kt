@@ -52,6 +52,7 @@ fun FileBottomSheet(
     body: String,
     buttonText: String,
     visible: Boolean,
+    onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -102,7 +103,10 @@ fun FileBottomSheet(
                         .height(50.dp)
                         .clip(shape = RoundedCornerShape(18.dp))
                         .background(brush = MainColor)
-                        .noRippleClickable { onDismiss() }
+                        .noRippleClickable {
+                            onOkay()
+                            onDismiss()
+                        }
                 ){
                     Text(
                         modifier = Modifier.align(Alignment.Center),

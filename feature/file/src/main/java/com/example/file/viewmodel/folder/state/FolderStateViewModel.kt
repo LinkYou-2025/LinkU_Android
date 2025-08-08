@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import com.example.core.model.FolderSimpleInfo
 
 enum class FolderState {
     TOP,    // 최상위 폴더(TopFolderGrid)
@@ -23,9 +24,9 @@ class FolderStateViewModel : ViewModel() {
     }
 
     // 선택한 중분류 폴더, null이면 대분류 단계
-    var selectedTopFolder by mutableStateOf<String?>(null)
+    var selectedTopFolder by mutableStateOf<FolderSimpleInfo?>(null)
         private set
-    fun updateSelectedTopFolder(newFolder: String?) {
+    fun updateSelectedTopFolder(newFolder: FolderSimpleInfo?) {
         selectedTopFolder = newFolder
     }
 

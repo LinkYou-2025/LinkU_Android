@@ -87,7 +87,7 @@ fun LinkCategorizationBottomSheet(
     )
 
     FileBottomSheet(
-        title = "${folderStateViewModel.selectedTopFolder} 폴더의 미분류 링크 목록",
+        title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
         visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
@@ -194,7 +194,6 @@ fun LinkCategorizationBottomSheet(
 @Composable
 private fun LinkCategorizationBottomSheetTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
-    folderStateViewModel.updateSelectedTopFolder("호호호")
     folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
     LinkCategorizationBottomSheet(folderStateViewModel)
 }

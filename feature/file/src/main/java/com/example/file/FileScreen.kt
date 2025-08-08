@@ -21,8 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.design.BottomNavigationBar
-import com.example.design.NavigationItem
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
@@ -51,7 +49,7 @@ fun FileScreen(
     // 한 번만 데이터 로딩 (최초 진입 시)
     LaunchedEffect(Unit) {
         Log.d("FileScreen", "LaunchedEffect")
-        fileViewModel.getCategoryList()
+        fileViewModel.getParentfolders()
     }
 
     Log.d("FileScreen", "FileScreen")
@@ -108,8 +106,8 @@ fun FileScreen(
                         }
                         FolderState.BOTTOM -> {
                             BottomFolderGrid(
-                                folderList = listOf("나의 폴더", "공유받은 폴더"), // 실제 폴더 데이터로
                                 linkList = listOf("링크1", "링크2"),
+                                fileViewModel = fileViewModel,
                                 editStateViewModel = editStateViewModel,
                                 folderStateViewModel = folderStateViewModel,
                                 onFolderAdd = {
@@ -167,8 +165,11 @@ fun FileScreen(
         folderStateViewModel = folderStateViewModel
     )
 
-    // 폴더 추가하기 바텀 시트
+    // 소분류 폴더 추가하기 바텀 시트
     NewBottomFolderBottomSheet(
+        onTextDeliver = {
+            fileViewModel.createSubfolder(folderStateViewModel.selectedTopFolder!!.folderId,it)
+        },
         folderStateViewModel = folderStateViewModel
     )
 
