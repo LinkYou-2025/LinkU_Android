@@ -13,6 +13,8 @@ plugins {
 
 val localProperties = Properties()
 localProperties.load(FileInputStream(rootProject.file("local.properties")))
+//인식이 오류가.. 있어서... 부득이하게 넣었는데, 추후 수정하겠습니다!
+val serverBaseUrl = localProperties.getProperty("SERVER_BASE_URL") ?: "https://linkuserver.store/"
 
 android {
     namespace = "com.example.data"
@@ -23,12 +25,13 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
 
-        buildConfigField(
-            "String",
-            "SERVER_BASE_URL",
-            "\"${localProperties.getProperty("SERVER_BASE_URL")}\""
-        )
+//        buildConfigField(
+//            "String",
+//            "SERVER_BASE_URL",
+//            "\"${localProperties.getProperty("SERVER_BASE_URL") ?: serverBaseUrl}\""
+//        )
     }
 
     buildTypes {
@@ -74,7 +77,7 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-    ksp(libs.androidx.hilt.complier)
+    ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
     ksp("com.squareup.moshi:moshi-kotlin-codegen:1.15.2")
@@ -84,7 +87,6 @@ dependencies {
     implementation(libs.retrofit2.converter.gson)
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
 
     // SharedPreference
     implementation(libs.preference.ktx)
