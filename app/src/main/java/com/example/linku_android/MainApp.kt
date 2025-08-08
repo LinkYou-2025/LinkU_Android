@@ -1,8 +1,13 @@
 package com.example.linku_android
 
 import android.R.attr.type
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +42,7 @@ import androidx.navigation.navArgument
 
 
 import androidx.navigation.compose.composable
+import com.example.home.HomeApp
 import com.example.login.auth.AnimatedLoginScreen
 import com.example.login.auth.EmailVerificationScreen
 import com.example.login.auth.ServiceTermsScreen
@@ -53,6 +59,8 @@ import com.example.login.auth.TermsAgreementScreen
 import com.example.login.auth.WelcomeScreen
 import com.example.login.auth.ResetPasswordScreen
 import com.example.login.auth.SignUpViewModel
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun MainApp(
@@ -245,11 +253,9 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.HOME
                         }
                         FinishHandler()
+
                         val homeViewModel: HomeViewModel = hiltViewModel()
-                        HomeScreen(
-                            userName = "지현",
-                            recentLinks = homeViewModel.recentLinks
-                        )
+                        HomeApp(viewModel = homeViewModel)
                     }
                 }
 
@@ -293,10 +299,47 @@ fun MainApp(
                 }
 
                 composable("savelink") {
-                    SaveLinkScreen(
-                        onSaveSuccess = {
-                            navigator.navigate("savelinkresult")
+                    val context = LocalContext.current
+                    val vm: HomeViewModel = hiltViewModel()
+
+                    // 갤러리 런처: Uri -> 임시 File 로 복사해서 뷰모델에 전달
+                    val imagePicker = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()
+                    ) { uri: Uri? ->
+                        if (uri != null) {
+                            runCatching { uri.toTempFile(context) }
+                                .onSuccess { file -> vm.setImage(file) }
+                                .onFailure {
+                                    Toast.makeText(context, "이미지 로드에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
                         }
+                    }
+
+                    SaveLinkScreen(
+                        image = vm.image,
+                        url = vm.url,
+                        memo = vm.memo,
+                        selectedEmotionId = vm.selectedEmotionId,
+                        onPickImage = { imagePicker.launch("image/*") },
+                        onUrlChange = vm::setUrl,
+                        onMemoChange = vm::setMemo,
+                        onEmotionSelect = vm::selectEmotion,
+                        onSaveClick = {
+                            // 저장 버튼 로그 + API 호출
+                            Log.d("SaveLink", "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, image=${vm.image?.name}")
+                            vm.saveLink(
+                                onSucceed = { saved ->
+                                    Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
+                                    vm.resetForm()
+                                    navigator.navigate("savelinkresult")
+                                },
+                                onFailed = { e ->
+                                    Log.e("SaveLink", "failed: ${e.message}", e)
+                                    Toast.makeText(context, e.message ?: "저장에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        },
+                        onBack = { navigator.popBackStack() }
                     )
                 }
 
@@ -346,4 +389,15 @@ fun android.content.Context.findActivity(): android.app.Activity? {
         ctx = ctx.baseContext
     }
     return null
+}
+
+private fun Uri.toTempFile(context: Context): File {
+    val fileName = "picked_${System.currentTimeMillis()}.jpg"
+    val tempFile = File(context.cacheDir, fileName)
+    context.contentResolver.openInputStream(this).use { input ->
+        FileOutputStream(tempFile).use { output ->
+            input?.copyTo(output)
+        }
+    }
+    return tempFile
 }
