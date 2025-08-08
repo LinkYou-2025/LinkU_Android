@@ -143,6 +143,8 @@ class SignUpViewModel @Inject constructor(
         override suspend fun sendEmailCode(email: String, code: String) = true
         override suspend fun verifyEmailCode(email: String, code: String) = true
         override suspend fun deleteUser(reason: String) = true
+
+        override suspend fun getUserInfo(userId: Long): String? = "dummy_id"
     })
 }
 
