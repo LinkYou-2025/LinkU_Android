@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.FileViewModel
-import com.example.file.ui.content.categories
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
@@ -35,10 +34,12 @@ import com.example.file.viewmodel.folder.state.FolderState
 fun BottomFolderListMenu(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
-    isLinks: Boolean = false,
     onChangeFolder: () -> Unit
 ){
-    val items = fileViewModel.parentFolders.collectAsState().value
+    val isLinks = folderStateViewModel.currentFolderState == FolderState.LINKS
+    val folders = fileViewModel.parentFolders.collectAsState().value
+    val links = fileViewModel.subFolders.collectAsState().value
+
     DropdownMenu(
         modifier = Modifier
             .heightIn(max = 264.dp)
@@ -49,36 +50,59 @@ fun BottomFolderListMenu(
         onDismissRequest = { folderStateViewModel.updateBottomMenuExpanded(false) },
         containerColor = White
     ) {
-        for((i, folder) in items.withIndex()){
-            DropdownMenuItem(
-                leadingIcon = if (isLinks) null else {
-                    @Composable {
-                        Box(
-                            modifier = Modifier
-                                .size(25.dp)
-                                .clip(CircleShape)
-                                .background(color = CategoryColorStyle.categoryStyleList[i].color4)
+        if(!isLinks){
+            for ((i, folder) in folders.withIndex()) {
+                DropdownMenuItem(
+                    leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .clip(CircleShape)
+                                    .background(color = CategoryColorStyle.categoryStyleList[i].color4)
+                            )
+                        },
+                    text = {
+                        Text(
+                            text = folder.folderName,
+                            fontSize = 15.sp,
+                            lineHeight = 22.sp,
+                            fontFamily = DefaultFont,
+                            fontWeight = FontWeight(400),
+                            color = Gray800,
+                            maxLines = 1,  // 한 줄만 보여주고
+                            overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
                         )
+                    },
+                    onClick = {
+                        fileViewModel.getSubfolders(folder.folderId)
+                        folderStateViewModel.updateSelectedTopFolder(folder)
+                        folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                     }
-                },
-                text = {
-                    Text(
-                        text = folder.folderName,
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        fontFamily = DefaultFont,
-                        fontWeight = FontWeight(400),
-                        color = Gray800,
-                        maxLines = 1,  // 한 줄만 보여주고
-                        overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
-                    )
-                },
-                onClick = {
-                    fileViewModel.getSubfolders(folder.folderId)
-                    folderStateViewModel.updateSelectedTopFolder(folder)
-                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                }
-            )
+                )
+            }
+        }else{
+            for ((i, folder) in links.withIndex()) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = folder.folderName,
+                            fontSize = 15.sp,
+                            lineHeight = 22.sp,
+                            fontFamily = DefaultFont,
+                            fontWeight = FontWeight(400),
+                            color = Gray800,
+                            maxLines = 1,  // 한 줄만 보여주고
+                            overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
+                        )
+                    },
+                    onClick = {
+                        fileViewModel.getLinks(folder.folderId)
+                        folderStateViewModel.updateSelectedBottomFolder(folder)
+                        folderStateViewModel.updateFolderState(FolderState.LINKS)
+                    }
+                )
+            }
+
         }
     }
 }
@@ -90,7 +114,6 @@ fun BottomFolderListMenuTest(){
     BottomFolderListMenu(
         fileViewModel = hiltViewModel(),
         folderStateViewModel = folderStateViewModel,
-        isLinks = true,
         onChangeFolder = {}
     )
 }

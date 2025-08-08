@@ -36,8 +36,8 @@ fun BottomFolderListLayout(
     folderStateViewModel: FolderStateViewModel
 ) {
     var text = folderStateViewModel.selectedTopFolder!!.folderName +
-            if(folderStateViewModel.currentFolderState==FolderState.LINK)
-                folderStateViewModel.selectedBottomFolder?.let{ " > $it" }
+            if(folderStateViewModel.currentFolderState==FolderState.LINKS)
+                folderStateViewModel.selectedBottomFolder?.let{ " > ${it.folderName}" }
             else ""
 
     // 레이아웃의 배경틀
