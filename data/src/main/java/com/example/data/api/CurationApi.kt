@@ -32,16 +32,17 @@ interface CurationApi {
 //    ): BaseResponse<Unit>
 
     // 특정 큐레이션 상세 조회
-    @GET("/api/curations/detail/{curationId}")
-    suspend fun getCuration(
-        @Path("curationId") curationId: Long
-    ): BaseResponse<CurationDetailResponse>
+
 
      //내 최근 큐레이션 상세 조회
-    @GET("/api/curations/latest/{userId}")
-    suspend fun getMyRecentCuration(
-        @Path("userId") userId: Long
-    ): BaseResponse<CurationLatestResponse>
+//     @GET("/api/curations/latest/{userId}")
+//     suspend fun getMyRecentCuration(
+//         @Path("userId") userId: Long
+//     ): BaseResponse<CurationLatestResponse?> //  null 가능성 반영
+     @GET("/api/curations/latest/{userId}")
+     suspend fun getMyRecentCuration(
+         @Path("userId") userId: Long
+     ): BaseResponse<CurationLatestResponse>?
 
     // 큐레이션 좋아요 등록
     @POST("/api/curations/{curationId}/like")

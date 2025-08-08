@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
@@ -44,6 +45,9 @@ import com.example.curation.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.design.R as Res
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 
 
@@ -52,6 +56,11 @@ fun CurationScreen(
     viewModel: CurationViewModel = hiltViewModel()
 ) {
     val nickname by viewModel.nickname.collectAsState()
+
+    // 현재 월을 "8월" 같은 형식으로 가져옴
+    val currentMonth = remember {
+        LocalDate.now().format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
+    }
 
     // 닉네임 불러오기
     LaunchedEffect(Unit) {
@@ -75,7 +84,7 @@ fun CurationScreen(
             ) {
                 // 1. 큐레이션 하이라이트 텍스트
                 Text(
-                    text = "${nickname}님을 위한 8월의 큐레이션",
+                    text = "${nickname}님을 위한 ${currentMonth}의 큐레이션",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = Paperlogy,
                         fontWeight = FontWeight.Bold,

@@ -8,5 +8,5 @@ data class BaseResponse<T>(
     val isSuccess: Boolean,
     val code: String,
     val message: String,
-    val result: T? = null   //  nullable + 기본값 설정 -> 수정
+    val result: T
 )
