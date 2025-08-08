@@ -41,6 +41,7 @@ import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
+import com.example.file.viewmodel.folder.state.FolderState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -49,8 +50,7 @@ fun BottomFolderGrid(
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
-    onFolderAdd: () -> Unit,
-    onFolderClick: (String) -> Unit
+    onFolderAdd: () -> Unit
 ){
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -106,7 +106,9 @@ fun BottomFolderGrid(
                             indication = null,
                             interactionSource = interactionSource,
                             onClick = {
-                                onFolderClick(folder.folderName)
+                                fileViewModel.getLinks(folder.folderId)
+                                folderStateViewModel.updateSelectedBottomFolder(folder)
+                                folderStateViewModel.updateFolderState(FolderState.LINKS)
                             },
                             onLongClick = {
                                 visible = true
@@ -120,6 +122,7 @@ fun BottomFolderGrid(
                         editStateViewModel = editStateViewModel
                     )
                 }
+
                 FileModalWindow(
                     visible = visible,
                     onOkay = {fileViewModel.deleteSubfolder(folder.folderId, i)},
@@ -206,6 +209,5 @@ private fun BottomFolderGridTest(){
         editStateViewModel = viewModel(),
         folderStateViewModel = viewModel(),
         {},
-        {}
     )
 }

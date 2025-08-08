@@ -115,6 +115,40 @@ class FileViewModel @Inject constructor(
         }
         Log.d("FileViewModel", "getSubfolders return")
     }
+
+    // 링크 불러오기
+    fun getLinks(folderId: Long) {
+        Log.d("FileViewModel", "getLinks")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "getLinks launch")
+
+            _loading.value = true
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getLinks try")
+
+                folderRepository.getLinksFolders(folderId, null, null,
+                    onGetFolders = { /*_subFolders.value = it*/ },
+                    onGetLinks = { _links.value = it }
+                )
+
+                Log.d("FileViewModel", "getLinks try result: ${_links.value}")
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "getLinks catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "getLinks finally")
+
+                _loading.value = false
+            }
+        }
+        Log.d("FileViewModel", "getLinks return")
+    }
     // ---------- get method ----------
 
     // ---------- create method ----------

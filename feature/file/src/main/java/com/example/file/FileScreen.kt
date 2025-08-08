@@ -58,7 +58,7 @@ fun FileScreen(
     BackHandler(enabled = folderStateViewModel.currentFolderState != FolderState.TOP) {
         editStateViewModel.updateEditMode(false)
         when (folderStateViewModel.currentFolderState) {
-            FolderState.LINK -> {
+            FolderState.LINKS -> {
                 folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                 folderStateViewModel.updateSelectedBottomFolder(null)
             }
@@ -112,18 +112,10 @@ fun FileScreen(
                                 folderStateViewModel = folderStateViewModel,
                                 onFolderAdd = {
                                     folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                                },
-                                onFolderClick = {folder ->
-                                    folderStateViewModel.updateSelectedBottomFolder(folder)
-                                    if(editStateViewModel.isEditMode){
-                                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                                    }else{
-                                        folderStateViewModel.updateFolderState(FolderState.LINK)
-                                    }
                                 }
                             )
                         }
-                        FolderState.LINK -> {
+                        FolderState.LINKS -> {
                             LinksGrid(
                                 folderStateViewModel = folderStateViewModel,
                                 linkList = listOf("링크1", "링크2", "링크3")

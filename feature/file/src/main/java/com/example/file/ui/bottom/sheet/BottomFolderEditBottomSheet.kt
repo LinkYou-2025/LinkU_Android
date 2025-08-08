@@ -10,7 +10,7 @@ fun BottomFolderEditBottomSheet(
     TextFieldFileBottomSheet(
         title = "폴더명을 변경하시겠습니까?",
         body = "변경할 폴더명을 입력해주세요!",
-        placeholderText = folderStateViewModel.selectedBottomFolder?:"",
+        placeholderText = folderStateViewModel.selectedBottomFolder?.folderName?:"",
         visible = folderStateViewModel.bottomFolderEditBottomSheetVisible,
         onDismiss = { folderStateViewModel.updateBottomFolderEditBottomSheetVisible(false) }
     )

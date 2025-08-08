@@ -10,7 +10,7 @@ import com.example.core.model.FolderSimpleInfo
 enum class FolderState {
     TOP,    // 최상위 폴더(TopFolderGrid)
     BOTTOM, // 하위 폴더(BottomFolderGrid)
-    LINK    // 링크 목록(LinksGrid)
+    LINKS    // 링크 목록(LinksGrid)
 }
 
 // FolderState 뷰 모델
@@ -31,9 +31,9 @@ class FolderStateViewModel : ViewModel() {
     }
 
     // 선택한 소분류 폴더, null이면 중분류 이상 단계
-    var selectedBottomFolder by mutableStateOf<String?>(null)
+    var selectedBottomFolder by mutableStateOf<FolderSimpleInfo?>(null)
         private set
-    fun updateSelectedBottomFolder(newFolder: String?) {
+    fun updateSelectedBottomFolder(newFolder: FolderSimpleInfo?) {
         selectedBottomFolder = newFolder
     }
 
