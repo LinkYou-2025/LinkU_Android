@@ -73,7 +73,10 @@ fun HomeApp(viewModel: HomeViewModel) {
                         }
                     )
                 },
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                isCheckingUrl = viewModel.isCheckingUrl,
+                isDuplicateUrl = viewModel.isDuplicateUrl,
+                isInvalidLink = viewModel.isInvalidUrl
             )
         }
 

@@ -20,8 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -53,11 +51,18 @@ fun SaveLinkScreen(
     onEmotionSelect: (Long?) -> Unit,
     onSaveClick: () -> Unit,
     onBack: () -> Unit,
+    isCheckingUrl: Boolean,
+    isDuplicateUrl: Boolean?,
+    isInvalidLink: Boolean,
 ) {
-    val isInvalidLink = false  // 임의로 false로 값을 주고 추후 API 연결 시 교체 예정
     val bannedDomains = listOf("youtube.com", "youtu.be")
     val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
-    val isButtonEnabled = url.isNotBlank()
+    val isButtonEnabled =
+        url.isNotBlank() &&
+        !isCheckingUrl &&
+        (isDuplicateUrl == false) &&
+        !showVideoWarning &&
+        !isInvalidLink
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -121,13 +126,37 @@ fun SaveLinkScreen(
                 )
             }
 
-            if (isInvalidLink) {
-                WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
+            // URL 검사 결과 메시지
+            when {
+                url.isBlank() -> Unit
+                showVideoWarning -> WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
+                isCheckingUrl -> Text(
+                    text = "링크를 확인 중입니다…",
+                    style = TextStyle(fontSize = 13.sp),
+                    color = LocalColorTheme.current.gray[600],
+                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
+                )
+                isInvalidLink -> {
+                    WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
+                    true
+                }
+                isDuplicateUrl == true -> WarningText("이미 저장된 링크예요.")
+                isDuplicateUrl == false -> Text(
+                    text = "저장 가능한 링크예요.",
+                    style = TextStyle(fontSize = 13.sp),
+                    color = LocalColorTheme.current.blue[200],
+                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
+                )
+                else -> Unit
             }
 
-            if (showVideoWarning) {
-                WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
-            }
+//            if (isInvalidLink) {
+//                WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
+//            }
+//
+//            if (showVideoWarning) {
+//                WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
+//            }
 
             // 둘 다 false일 때만 Spacer 추가
             if (!isInvalidLink && !showVideoWarning) {
@@ -444,6 +473,9 @@ fun PreviewSaveLinkScreen() {
         onMemoChange = {},
         onEmotionSelect = {},
         onSaveClick = {},
-        onBack = {}
+        onBack = {},
+        isCheckingUrl = false,
+        isDuplicateUrl = null,
+        isInvalidLink = false
     )
 }

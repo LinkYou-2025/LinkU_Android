@@ -59,6 +59,15 @@ class LinkuRepositoryImpl @Inject constructor(
         )
     }
 
+    // 링크 유효성 검사
+    override suspend fun checkLink(url: String): Boolean {
+        val res = serverApi.withAuth(authPreference) {
+            checkLink(url = url)
+        }
+
+        return res.exist == true
+    }
+
     // 최근 열람 링크 조회
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> {
         val response = serverApi.withAuth(authPreference) {
