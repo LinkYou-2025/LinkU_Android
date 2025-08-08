@@ -339,7 +339,10 @@ fun MainApp(
                                 }
                             )
                         },
-                        onBack = { navigator.popBackStack() }
+                        onBack = { navigator.popBackStack() },
+                        isCheckingUrl = vm.isCheckingUrl,
+                        isDuplicateUrl = vm.isDuplicateUrl,
+                        isInvalidLink = vm.isInvalidUrl
                     )
                 }
 
