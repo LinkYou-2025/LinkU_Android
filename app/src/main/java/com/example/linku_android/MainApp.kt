@@ -38,6 +38,7 @@ import androidx.navigation.navArgument
 
 
 import androidx.navigation.compose.composable
+import com.example.curation.ui.CurationDetailScreen
 import com.example.curation.ui.CurationScreen
 import com.example.login.auth.AnimatedLoginScreen
 import com.example.login.auth.EmailVerificationScreen
@@ -277,9 +278,15 @@ fun MainApp(
                         }
                         FinishHandler()
                         CurationScreen(
-//                            viewModel = hiltViewModel()
+                            onOpenDetail = { navigator.navigate("curation_detail") }   // ✅ 디테일로 이동
                         )
                     }
+                }
+                composable("curation_detail") {
+                    // 바텀바 그대로 보이고 싶으면 showNavBar=true 유지
+                    CurationDetailScreen(
+                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
+                    )
                 }
 
                 with(NavigationRoute.MyPage) {

@@ -53,30 +53,39 @@ fun CurationHighlightSection(
     }
 
     when {
+        // 1) 데이터가 있으면 무조건 이미지 먼저!
+        recentCuration != null -> {
+            Log.d("CurationUI", "큐레이션 표시 - URL: ${recentCuration!!.thumbnailUrl}")
+            HighlightCardOnlyImage(
+                imageUrl = recentCuration!!.thumbnailUrl,
+                modifier = modifier
+            )
+        }
+
+        // 2) 그 다음 로딩
         isGenerating -> {
             Log.d("CurationUI", "큐레이션 생성 중")
+            // 필요하면 로딩용 임시 카드도 가능:
+            // HighlightCardWithFallback(imageRes = R.drawable.img_trump_card_main, modifier = modifier)
             Text(text = "큐레이션 생성 중...", modifier = Modifier.padding(horizontal = 20.dp))
         }
 
+        // 3) 에러
         errorMessage != null -> {
             Log.w("CurationUI", "오류 발생: $errorMessage")
-            Column {
-//                Text(
-//                    text = "오류 발생: $errorMessage",
-//                    modifier = Modifier.padding(horizontal = 20.dp)
-//                )
-                HighlightCardWithFallback(imageRes = R.drawable.img_trump_card_main)
-            }
+            HighlightCardWithFallback(
+                imageRes = R.drawable.img_trump_card_main,
+                modifier = modifier
+            )
         }
 
-        recentCuration != null -> {
-            Log.d("CurationUI", "큐레이션 표시 - URL: ${recentCuration!!.thumbnailUrl}")
-            HighlightCardOnlyImage(imageUrl = recentCuration!!.thumbnailUrl)
-        }
-
+        // 4) 아무 것도 없을 때
         else -> {
             Log.d("CurationUI", "큐레이션 없음")
-            HighlightCardWithFallback(imageRes = R.drawable.img_trump_card_main)
+            HighlightCardWithFallback(
+                imageRes = R.drawable.img_trump_card_main,
+                modifier = modifier
+            )
         }
     }
 }
@@ -100,14 +109,15 @@ fun CurationHighlightSection(
 @Composable
 fun HighlightCardOnlyImage(
     imageUrl: String?,
+    modifier: Modifier = Modifier
 ) {
     var liked by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .padding(top = 16.dp, start = 0.dp, end = 0.dp)
+            .padding(top = 16.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
         // 배경 이미지 (API 이미지)
@@ -155,14 +165,15 @@ fun HighlightCardWithFallback(
     imageRes: Int,
     title: String = "링큐 큐레이션",
     //date: String = "2025년 8월호"
-    date: String = getCurrentKoreanCurationDate()
+    date: String = getCurrentKoreanCurationDate(),
+    modifier: Modifier = Modifier
 ) {
     var liked by remember { mutableStateOf(false) } // ❤️ 좋아요 상태 기억
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(200.dp)
-            .padding(top = 16.dp, start = 0.dp, end = 0.dp) // ← 위 여백 + 좌우 여백
+            .padding(top = 16.dp) // ← 위 여백 + 좌우 여백
             .clip(RoundedCornerShape(12.dp))
     ) {
         // 배경 이미지
