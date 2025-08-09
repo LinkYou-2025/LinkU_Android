@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -60,7 +56,7 @@ fun TopFolderGrid(
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
         for ((i, folder) in categoryList.withIndex()) {
-            var isBookmarked by remember { mutableStateOf(false) }
+
             val folderName = folder.folderName
             Box(
                 modifier = Modifier
@@ -79,13 +75,13 @@ fun TopFolderGrid(
                 TopFolderItemLayout(
                     categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
                     categoryName = folderName,
-                    isBookmarked = false,
+                    isBookmarked = folder.isBookmarked,
                     fileViewModel = fileViewModel,
                     editStateViewModel = editStateViewModel
                 ){
-                    isBookmarked = fileViewModel.updateBookmark(
+                    fileViewModel.updateBookmark(
                         folderId = folder.folderId,
-                        isBookmarked = !isBookmarked
+                        updateBookmarked = !folder.isBookmarked
                     )
                 }
             }

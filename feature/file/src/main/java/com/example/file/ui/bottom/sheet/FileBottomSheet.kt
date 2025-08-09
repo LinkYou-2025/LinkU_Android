@@ -59,7 +59,7 @@ fun FileBottomSheet(
     if(visible) {
         ModalBottomSheet(
             modifier = Modifier
-                .height(900.dp)
+                //.height(900.dp)
             ,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
