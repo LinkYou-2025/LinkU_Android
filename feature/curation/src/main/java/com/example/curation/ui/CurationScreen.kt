@@ -53,7 +53,8 @@ import java.util.Locale
 
 @Composable
 fun CurationScreen(
-    viewModel: CurationViewModel = hiltViewModel()
+    viewModel: CurationViewModel = hiltViewModel(),
+    onOpenDetail: () -> Unit = {}
 ) {
     val nickname by viewModel.nickname.collectAsState()
 
@@ -93,7 +94,9 @@ fun CurationScreen(
                     color = LocalColorTheme.current.black
                 )
                 CurationHighlightSection(
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onOpenDetail() }
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))

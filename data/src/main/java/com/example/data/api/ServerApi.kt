@@ -3,6 +3,9 @@ package com.example.data.api
 import com.example.core.error.TokenExpiredException
 import com.example.data.api.dto.BaseResponse
 import com.example.data.preference.AuthPreference
+import retrofit2.HttpException
+import java.io.IOException
+
 
 interface ServerApi: UserApi, LinkuApi, CurationApi, AIArticleApi, FolderApi, CategoryApi
 
