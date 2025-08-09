@@ -29,6 +29,7 @@ runtimeAndroid = "1.7.7"
 firebaseMessagingKtx = "24.1.1"
 navigationComposeJvmstubs = "2.9.3"
 gson = "2.10.1"
+media3CommonKtxVersion = "1.8.0"
 
 
 [libraries]
@@ -69,10 +70,13 @@ androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 androidx-navigation-compose-jvmstubs = { group = "androidx.navigation", name = "navigation-compose-jvmstubs", version.ref = "navigationComposeJvmstubs" }
-androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt" }
+#androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt" }
 
 
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidx-hilt" }
+media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtxVersion" }
+
 
 
 [plugins]

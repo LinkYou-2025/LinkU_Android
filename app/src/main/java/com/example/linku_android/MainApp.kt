@@ -1,5 +1,6 @@
 package com.example.linku_android
 
+
 import android.R.attr.type
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -19,7 +20,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.curation.CurationScreen
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
 import com.example.home.HomeScreen
@@ -27,6 +27,7 @@ import com.example.home.HomeViewModel
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
 import com.example.linku_android.component.NavigationItem
+
 //import com.example.login.LoginScreen
 import com.example.mypage.MyPageApp
 import com.example.mypage.MyPageViewModel
@@ -37,6 +38,8 @@ import androidx.navigation.navArgument
 
 
 import androidx.navigation.compose.composable
+import com.example.curation.ui.CurationDetailScreen
+import com.example.curation.ui.CurationScreen
 import com.example.login.auth.AnimatedLoginScreen
 import com.example.login.auth.EmailVerificationScreen
 import com.example.login.auth.ServiceTermsScreen
@@ -53,6 +56,7 @@ import com.example.login.auth.TermsAgreementScreen
 import com.example.login.auth.WelcomeScreen
 import com.example.login.auth.ResetPasswordScreen
 import com.example.login.auth.SignUpViewModel
+
 
 @Composable
 fun MainApp(
@@ -236,7 +240,7 @@ fun MainApp(
                 }
 
 
-                
+
 
                 with(NavigationRoute.Home) {
                     setNavGraph {
@@ -274,9 +278,15 @@ fun MainApp(
                         }
                         FinishHandler()
                         CurationScreen(
-//                            viewModel = hiltViewModel()
+                            onOpenDetail = { navigator.navigate("curation_detail") }   // ✅ 디테일로 이동
                         )
                     }
+                }
+                composable("curation_detail") {
+                    // 바텀바 그대로 보이고 싶으면 showNavBar=true 유지
+                    CurationDetailScreen(
+                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
+                    )
                 }
 
                 with(NavigationRoute.MyPage) {
