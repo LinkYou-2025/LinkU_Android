@@ -14,7 +14,7 @@ data class ShareFolderResponseDTO(
     @Json(name = "permission")
     val permission: String,
 
-//    @Json(name = "sharedAt")
-//    val sharedAt: String
+    @Json(name = "sharedAt")
+    val sharedAt: String
 
 )

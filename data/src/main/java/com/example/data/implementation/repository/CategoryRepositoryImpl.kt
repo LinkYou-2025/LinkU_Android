@@ -25,7 +25,10 @@ class CategoryRepositoryImpl @Inject constructor(
 
         try{
             Log.d("CategoryRepositoryImpl", "try")
-            categoryList = serverApi.getCategoryList().map{
+
+            categoryList = serverApi.withAuth(authPreference){
+                getCategoryList()
+            }.map{
                 CategorySimpleInfo(
                     categoryId = it.categoryId,
                     categoryName = it.categoryName
