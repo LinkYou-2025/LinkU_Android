@@ -10,6 +10,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.Response
 import retrofit2.http.Header
 
 interface CurationApi {
@@ -42,7 +43,7 @@ interface CurationApi {
      @GET("/api/curations/latest/{userId}")
      suspend fun getMyRecentCuration(
          @Path("userId") userId: Long
-     ): BaseResponse<CurationLatestResponse>?
+     ): Response<CurationLatestResponse> // <- BaseResponse 제거
 
     // 큐레이션 좋아요 등록
     @POST("/api/curations/{curationId}/like")
