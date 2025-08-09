@@ -30,7 +30,17 @@ class FileViewModel @Inject constructor(
 
     // 3. 상위 폴더 리스트
     private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
-    val parentFolders: StateFlow<List<FolderSimpleInfo>> = _parentFolders.asStateFlow()
+    // 매번 북마크 우선 정렬
+    val parentFolders: StateFlow<List<FolderSimpleInfo>> =
+        _parentFolders
+            .map { list ->
+                list.sortedByDescending { it.isBookmarked }
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = emptyList()
+            )
 
     // 4. 하위 폴더 리스트
     private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
@@ -199,11 +209,11 @@ class FileViewModel @Inject constructor(
     // 북마크 등록/해제
     fun updateBookmark(
         folderId: Long,
-        isBookmarked: Boolean
+        updateBookmarked: Boolean
     ): Boolean {
         Log.d("FileViewModel", "updateBookmark")
 
-        var result = isBookmarked
+        var result = updateBookmarked
 
         viewModelScope.launch {
             Log.d("FileViewModel", "updateBookmark launch")
@@ -214,14 +224,28 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "updateBookmark try")
 
-                result = folderRepository.updateBookmark(folderId, isBookmarked)
+                result = folderRepository.updateBookmark(folderId, updateBookmarked)
 
                 Log.d("FileViewModel", "updateBookmark try result: $result")
+
+                _parentFolders.update { list ->
+                    list.map { folder ->
+                        if (folder.folderId == folderId) {
+                            folder.copy(isBookmarked = updateBookmarked)
+                        } else {
+                            folder
+                        }
+                    }
+                }
+
+                Log.d("FileViewModel", "updateBookmark update well _parentFolders")
 
             } catch (e: Exception) {
                 Log.d("FileViewModel", "updateBookmark catch: $e.message")
 
                 _errorMessage.value = e.message
+
+                result = updateBookmarked
             }finally {
                 Log.d("FileViewModel", "updateBookmark finally")
 

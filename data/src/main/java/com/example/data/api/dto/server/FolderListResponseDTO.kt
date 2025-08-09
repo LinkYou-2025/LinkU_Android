@@ -14,6 +14,6 @@ data class FolderListResponseDTO(
     @Json(name = "parentFolderId")
     val parentFolderId: Long?,
 
-//    @Json(name = "isBookmarked")
-//    val isBookmarked: Boolean
+    @Json(name = "isBookmarked")
+    val isBookmarked: Boolean
 )

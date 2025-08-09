@@ -11,6 +11,7 @@ import com.example.core.model.SharedFolderSimpleInfo
 import com.example.core.repository.FolderRepository
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.server.FolderCreateRequestDTO
+import com.example.data.api.dto.server.FolderListResponseDTO
 import com.example.data.api.dto.server.FolderUpdateRequestDTO
 import com.example.data.api.dto.server.LinksFoldersResponseDTO
 import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
@@ -32,12 +33,17 @@ class FolderRepositoryImpl @Inject constructor(
     ): Boolean {
         Log.d("updateBookmark", "folderId: $folderId, isBookmarked: $isBookmarked")
 
-        val folderResponse: UpdateBookmarkResponseDTO
+        val folderResponse: Boolean
 
         try{
             Log.d("updateBookmark", "try")
 
-            folderResponse = serverApi.updateBookmark(folderId, UpdateBookmarkRequestDTO(isBookmarked))
+            folderResponse = serverApi.withAuth(authPreference){
+                updateBookmark(
+                    folderId,
+                    UpdateBookmarkRequestDTO(isBookmarked)
+                )
+            }.isBookmarked
 
         }catch (e: Exception){
             Log.d("updateBookmark", "error: $e")
@@ -46,7 +52,7 @@ class FolderRepositoryImpl @Inject constructor(
 
         Log.d("updateBookmark", "folderResponse: $folderResponse")
 
-        return folderResponse.isBookmarked
+        return folderResponse
     }
 
     // 중분류 폴더 조회
@@ -58,14 +64,17 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("getParentfolders", "try")
 
-            folderList = serverApi.getParentfolders().map {
+            folderList = serverApi.withAuth(authPreference) {
+                getParentfolders()
+            }.map {
                 FolderSimpleInfo(
                     folderId = it.folderId,
                     folderName = it.folderName,
                     parentFolderId = 0,
-                    isBookmarked = false//it.isBookmarked
+                    isBookmarked = it.isBookmarked
                 )
             }
+
         }catch (e: Exception){
             Log.d("getParentfolders", "error: $e")
             throw e
@@ -97,7 +106,7 @@ class FolderRepositoryImpl @Inject constructor(
                     folderId = it.folderId,
                     folderName = it.folderName,
                     parentFolderId = it.parentFolderId?: parentFolderId,
-                    isBookmarked = false//it.isBookmarked
+                    isBookmarked = it.isBookmarked
                 )
             }
         }catch (e: Exception){

@@ -29,7 +29,7 @@ interface FolderApi {
     suspend fun updateBookmark(
         @Path("folderId") folderId: Long,
         @Body body: UpdateBookmarkRequestDTO
-    ): UpdateBookmarkResponseDTO
+    ): BaseResponse<UpdateBookmarkResponseDTO>
 
     // 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
     // 작업 중
@@ -39,7 +39,7 @@ interface FolderApi {
     // (중분류) 중분류 폴더 조회
     // ✅
     @GET("/api/folders/parentFolders")
-    suspend fun getParentfolders(): List<FolderListResponseDTO>
+    suspend fun getParentfolders(): BaseResponse<List<FolderListResponseDTO>>
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
     // ✅
