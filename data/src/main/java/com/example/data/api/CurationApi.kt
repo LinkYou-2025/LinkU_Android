@@ -5,13 +5,16 @@ import com.example.data.api.dto.server.CurationDetailResponse
 import com.example.data.api.dto.server.CurationLatestResponse
 import com.example.data.api.dto.server.CurationLikeStatusResponseDTO
 import com.example.data.api.dto.server.LikedCurationResponse
+import com.example.data.api.dto.server.RecommendLinkItemDto
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.Call
 import retrofit2.http.Query
 import retrofit2.Response
 import retrofit2.http.Header
+import com.example.data.api.dto.server.RecommendLinksResponse
 
 interface CurationApi {
 
@@ -77,4 +80,29 @@ interface CurationApi {
 
     // 큐레이션 추천링크 (디테일 화면) -> In Progress
 //    @GET("/api/curations/recommend")
+
+    // 큐레이션 추천링크(디테일 화면)
+//    @GET("/api/curations/recommend-links")
+//    suspend fun getRecommendLinks(
+//        @Header("Authorization") accessToken: String,
+//        @Query("userId") userId: Long,
+//        @Query("curationId") curationId: Long
+//    ): RecommendLinksResponse
+    // Authorization 헤더는 인터셉터/withAuth가 붙여줌
+//    @GET("/api/curations/recommend-links")
+//    suspend fun getRecommendLinks(
+//        @Query("userId") userId: Long,
+//        @Query("curationId") curationId: Long
+//    ): BaseResponse<List<RecommendLinkItemDto>>
+    @GET("/api/curations/recommend-links")
+    suspend fun getRecommendLinks(
+        @Query("userId") userId: Long,
+        @Query("curationId") curationId: Long
+    ): List<RecommendLinkItemDto>
+
+    @GET("/api/curations/recommend-links")
+    fun getRecommendLinksCall(
+        @Query("userId") userId: Long,
+        @Query("curationId") curationId: Long
+    ): Call<List<RecommendLinkItemDto>>
 }

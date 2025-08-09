@@ -34,11 +34,19 @@ class CurationViewModel @Inject constructor(
     private val _recentCuration = MutableStateFlow<CurationItem?>(null)
     val recentCuration: StateFlow<CurationItem?> = _recentCuration
 
+    // 추가: 네비게이션용 ID들
+    private val _userId = MutableStateFlow(-1L)
+    val userId: StateFlow<Long> = _userId
+
+    private val _currentCurationId = MutableStateFlow(-1L)
+    val currentCurationId: StateFlow<Long> = _currentCurationId
+
 
     //닉네임 가져오기.
     fun loadNickname() {
         viewModelScope.launch {
             val userId = authPreference.userId ?: -1L
+            _userId.value = userId
             if (userId != -1L) {
                 val name = userRepository.getUserInfo(userId)
                 _nickname.value = name
@@ -50,10 +58,11 @@ class CurationViewModel @Inject constructor(
             _isGenerating.value = true
             _errorMessage.value = null
 
-            val userId = authPreference.userId
-            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $userId")
+            val uid = authPreference.userId ?: -1L
+            _userId.value = uid
+            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
 
-            if (userId == null || userId == -1L) {
+            if (uid == -1L) {
                 _errorMessage.value = "로그인이 필요합니다."
                 _isGenerating.value = false
                 Log.w("CurationVM", "userId가 null 또는 -1L")
@@ -61,8 +70,10 @@ class CurationViewModel @Inject constructor(
             }
 
             try {
-                val response = repository.getMyRecentCuration(userId)
+                val response = repository.getMyRecentCuration(uid)
                 _recentCuration.value = response
+                // 현재 큐레이션 ID도 갱신 (CurationItem의 실제 필드명에 맞춰 수정)
+                _currentCurationId.value = response.id
                 Log.d("CurationVM", "큐레이션 불러오기 성공: $response")
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "큐레이션 조회 실패"

@@ -48,15 +48,22 @@ import com.example.design.R as Res
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import androidx.compose.ui.platform.LocalUriHandler
 
 
 
 @Composable
 fun CurationScreen(
     viewModel: CurationViewModel = hiltViewModel(),
-    onOpenDetail: () -> Unit = {}
+    onOpenDetail: (Long, Long) -> Unit = { _, _ -> }
 ) {
+    val uri = LocalUriHandler.current
     val nickname by viewModel.nickname.collectAsState()
+
+    val userId by viewModel.userId.collectAsState(initial = -1L)
+    val currentCurationId by viewModel.currentCurationId.collectAsState(initial = -1L)
+
+    val canOpenDetail = userId > 0 && currentCurationId > 0
 
     // 현재 월을 "8월" 같은 형식으로 가져옴
     val currentMonth = remember {
@@ -74,7 +81,7 @@ fun CurationScreen(
             .background(LocalColorTheme.current.white),
         contentPadding = PaddingValues(bottom = 32.dp)
     ) {
-        // ✅ 홈스크린처럼 TopBar를 item {} 안에 배치
+        // 홈스크린처럼 TopBar를 item {} 안에 배치
         item {
             CurationTopBar()
         }
@@ -96,7 +103,9 @@ fun CurationScreen(
                 CurationHighlightSection(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onOpenDetail() }
+                        .clickable(enabled = canOpenDetail) {
+                            onOpenDetail(userId, currentCurationId)
+                        }
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -105,7 +114,14 @@ fun CurationScreen(
 
                 // 2. 추천 링크
                 // 내부에서 padding 제거하고 modifier로 전달
-                CurationRecommendedLinksSection(modifier = Modifier.fillMaxWidth())
+                CurationRecommendedLinksSection(
+                    modifier = Modifier.fillMaxWidth(),
+                    links = emptyList(),        //  홈화면은 아직 데이터 없으니 빈 리스트
+                    loading = false,            // 필요 시 viewModel 상태로 교체
+                    onRetry = { /* TODO: 새로고침 액션 */ },
+                    onClick = { url -> runCatching { uri.openUri(url) } }
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // 3. 좋아요한 큐레이션 텍스트
@@ -213,6 +229,30 @@ fun CurationTopBar() {
 }
 @Composable
 fun CurationScreenPreviewable(nickname: String = "홍길동") {
+    val uri = LocalUriHandler.current
+
+    val demoLinks = listOf(            // 프리뷰용 더미 데이터(추천)
+        com.example.core.model.RecommendedLink(
+            isInternal = true,
+            userLinkuId = 11L,
+            title = "성신여대 홈페이지",
+            url = "https://www.sungshin.ac.kr/sites/main_kor/main.jsp",
+            imageUrl = null,
+            domain = "sungshin.ac.kr",
+            domainImageUrl = null,
+            categories = listOf("기타")
+        ),
+        com.example.core.model.RecommendedLink(
+            isInternal = false,
+            userLinkuId = null,
+            title = "나만의 자기관리 체크리스트 만들기 - Adobe",
+            url = "https://www.adobe.com/kr/acrobat/hub/create-a-self-care-checklist.html",
+            imageUrl = "https://picsum.photos/400/240",
+            domain = "adobe.com",
+            domainImageUrl = null,
+            categories = listOf("정보")
+        )
+    )
     val likedCurations = listOf(
         UICurationItem("트럼프 큐레이션", "2025년 7월호", R.drawable.img_trump_card, liked = true),
         UICurationItem("트럼프 큐레이션", "2025년 6월호", R.drawable.img_trump_card, liked = true),
@@ -234,8 +274,14 @@ fun CurationScreenPreviewable(nickname: String = "홍길동") {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 추천 링크 섹션 (고정)
-        CurationRecommendedLinksSection()
+        // 추천 링크 섹션 (프리뷰용 더미 전달)
+        CurationRecommendedLinksSection(
+            modifier = Modifier.fillMaxWidth(),
+            links = demoLinks,
+            loading = false,
+            onRetry = {},
+            onClick = { url -> runCatching { uri.openUri(url) } }
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -265,6 +311,8 @@ fun CurationScreenPreviewable(nickname: String = "홍길동") {
         }
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable
