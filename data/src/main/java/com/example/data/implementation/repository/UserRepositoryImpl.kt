@@ -66,7 +66,9 @@ class UserRepositoryImpl @Inject constructor(
     }
     override suspend fun login(email: String, password: String): LoginResult {
         val response = userApi.signIn(LoginRequestDTO(email, password))
+        Log.d("UserRepository", "[로그인 응답] isSuccess=${response.isSuccess}, message=${response.message}, result=${response.result}")
         val result = response.result ?: throw IllegalStateException("로그인 실패: ${response.message}")
+        authPreference.userId = result.userId?.toLong() ?: -1L //로그인할 때, userId 저장하기! -> 추후 큐레이션에 닉네임 표시용.
 
         //  accessToken 저장 (if 사용 → 타입 추론 오류 방지)
         val accessToken: String? = result.accessToken
@@ -196,6 +198,20 @@ class UserRepositoryImpl @Inject constructor(
         val dto = DeleteReasonDTO(reason)
         val response = userApi.deleteUser(dto)
         return response.isSuccess == true
+    }
+
+    override suspend fun getUserInfo(userId: Long): String? {
+        return try {
+            val response = userApi.getUserInfo(userId)
+
+            // ✅ 여기서 실제 nickname이 뭔지 로그 찍기
+            Log.d("getUserInfo", "닉네임=${response.result?.nickname}")
+
+            response.result?.nickname
+        } catch (e: Exception) {
+            Log.e("UserRepository", "닉네임 가져오기 실패", e)
+            null
+        }
     }
 
 }
