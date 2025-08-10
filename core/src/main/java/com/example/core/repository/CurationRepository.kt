@@ -14,4 +14,10 @@ interface CurationRepository {
 
      //사용자 디테일 정보 제공(큐레이션 디테일)
      suspend fun getCurationDetail(curationId: Long): CurationDetail
+
+     //큐레이션 추천(기본 페이지)
+     suspend fun getHomeRecommendedLinksTop2(userId: Long, curationId: Long): List<RecommendedLink>
+
+     //큐레이션 좋아요(기본 페이지)
+     suspend fun getLikedCurations(userId: Long): List<CurationItem>
 }

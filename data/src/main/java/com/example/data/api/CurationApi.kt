@@ -70,10 +70,15 @@ interface CurationApi {
     ): BaseResponse<CurationLikeStatusResponseDTO>
 
     // 좋아요한 큐레이션 조회 (최대 6개)
+//    @GET("/api/curations/likes/recent")
+//    suspend fun getLikeCurations(
+//        @Query("userId") userId: Long
+//    ): BaseResponse<List<LikedCurationResponse>>
+    // 변경 후: 래핑 제거
     @GET("/api/curations/likes/recent")
-    suspend fun getLikeCurations(
+    suspend fun getLikedCurations(
         @Query("userId") userId: Long
-    ): BaseResponse<List<LikedCurationResponse>>
+    ): List<LikedCurationResponse>
 
     // 큐레이션 추천링크 (기본 화면) -> In Progress
 //    @GET("/api/curations/{curationId}/links/saved")
@@ -111,4 +116,11 @@ interface CurationApi {
     suspend fun getCurationDetail(
         @Path("curationId") curationId: Long
     ): CurationDetailResponse
+
+    //큐레이션 기본 페이지 추천
+    @GET("/api/curations/recommend-links/internal/top2")
+    suspend fun getInternalTop2(
+        @Query("userId") userId: Long,
+        @Query("curationId") curationId: Long
+    ): List<RecommendLinkItemDto>
 }

@@ -666,7 +666,7 @@ private fun LinksPreparing(modifier: Modifier = Modifier) {
 
         // 설명
         Text(
-            "AI가 한달 감정&상황을 분석해\n추천 링크를 준비하고 있어요",
+            "AI가 한달 감정&상황 데이터를 바탕으로\n추천 링크를 준비하고 있어요",
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Medium,

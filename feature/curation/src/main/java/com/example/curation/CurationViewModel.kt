@@ -74,6 +74,11 @@ class CurationViewModel @Inject constructor(
                 _recentCuration.value = response
                 // 현재 큐레이션 ID도 갱신 (CurationItem의 실제 필드명에 맞춰 수정)
                 _currentCurationId.value = response.id
+
+                // 첫 진입에 바로 추천 Top2 로드
+                loadHomeRecommendedLinksTop2(uid, response.id)
+                loadLikedCurations()
+
                 Log.d("CurationVM", "큐레이션 불러오기 성공: $response")
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "큐레이션 조회 실패"
@@ -83,9 +88,63 @@ class CurationViewModel @Inject constructor(
             }
         }
     }
+//    init {
+//        loadNickname()
+//        loadMonthlyCuration()
+//    }
+
+    //큐레이션 추천(2개)
+    private val _homeLinks = MutableStateFlow(CurationLinksUiState())
+    val homeLinks: StateFlow<CurationLinksUiState> = _homeLinks
+
+    fun loadHomeRecommendedLinksTop2(userId: Long, curationId: Long) {
+        viewModelScope.launch {
+            _homeLinks.value = _homeLinks.value.copy(loading = true, error = null)
+            runCatching { repository.getHomeRecommendedLinksTop2(userId, curationId) }
+                .onSuccess { list ->
+                    _homeLinks.value = CurationLinksUiState(
+                        loading = false,
+                        items = list,   // 최대 2개
+                        error = null
+                    )
+                }
+                .onFailure { e ->
+                    _homeLinks.value = CurationLinksUiState(
+                        loading = false,
+                        items = emptyList(),
+                        error = e.message
+                    )
+                }
+        }
+    }
+
+    //큐레이션 추천
+    private val _likedCurations = MutableStateFlow<List<CurationItem>>(emptyList())
+    val likedCurations: StateFlow<List<CurationItem>> = _likedCurations
+
+    private val _likedLoading = MutableStateFlow(false)
+    val likedLoading: StateFlow<Boolean> = _likedLoading
+
+    private val _likedError = MutableStateFlow<String?>(null)
+    val likedError: StateFlow<String?> = _likedError
+
+    fun loadLikedCurations() {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0L) { _likedCurations.value = emptyList(); return@launch }
+            _likedLoading.value = true
+            _likedError.value = null
+            runCatching { repository.getLikedCurations(uid) }
+                .onSuccess { _likedCurations.value = it }
+                .onFailure { _likedError.value = it.message }
+            _likedLoading.value = false
+        }
+    }
+
     init {
         loadNickname()
         loadMonthlyCuration()
+
     }
 }
 

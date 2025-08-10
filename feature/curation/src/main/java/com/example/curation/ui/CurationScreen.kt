@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,7 +51,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import androidx.compose.ui.platform.LocalUriHandler
 
-
+// 간단 확장함수
+private fun String.toLabel(): String = runCatching {
+    val y = substring(0, 4).toInt()
+    val m = substring(5, 7).toInt()
+    "${y}년 ${m}월호"
+}.getOrElse { this }
 
 @Composable
 fun CurationScreen(
@@ -64,6 +70,12 @@ fun CurationScreen(
     val currentCurationId by viewModel.currentCurationId.collectAsState(initial = -1L)
 
     val canOpenDetail = userId > 0 && currentCurationId > 0
+
+    val homeLinksState by viewModel.homeLinks.collectAsState()
+
+    //좋아요 리스트 상태 수집
+    val likedItems by viewModel.likedCurations.collectAsState()
+    val likedLoading by viewModel.likedLoading.collectAsState()
 
     // 현재 월을 "8월" 같은 형식으로 가져옴
     val currentMonth = remember {
@@ -118,13 +130,40 @@ fun CurationScreen(
 
                 // 2. 추천 링크
                 // 내부에서 padding 제거하고 modifier로 전달
-                CurationRecommendedLinksSection(
-                    modifier = Modifier.fillMaxWidth(),
-                    links = emptyList(),        //  홈화면은 아직 데이터 없으니 빈 리스트
-                    loading = false,            // 필요 시 viewModel 상태로 교체
-                    onRetry = { /* TODO: 새로고침 액션 */ },
-                    onClick = { url -> runCatching { uri.openUri(url) } }
-                )
+//                CurationRecommendedLinksSection(
+//                    modifier = Modifier.fillMaxWidth(),
+//                    links = emptyList(),        //  홈화면은 아직 데이터 없으니 빈 리스트
+//                    loading = false,            // 필요 시 viewModel 상태로 교체
+//                    onRetry = { /* TODO: 새로고침 액션 */ },
+//                    onClick = { url -> runCatching { uri.openUri(url) } }
+//                )
+                // 2. 추천 링크
+                // 내부에서 padding 제거하고 modifier로 전달
+                when {
+                    homeLinksState.loading && homeLinksState.items.isEmpty() -> {
+                        // ⏳ 로딩 중 + 아직 결과 없음 → 준비중 UI
+                        LinksPreparingHome(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.White)
+                                .padding(horizontal = 16.dp)
+                        )
+                    }
+                    else -> {
+                        CurationRecommendedLinksSection(
+                            modifier = Modifier.fillMaxWidth(),
+                            links = homeLinksState.items,          // 🔗 API 결과(top2)
+                            loading = homeLinksState.loading,      // 섹션 내부 스켈레톤/상태에 사용
+                            onRetry = {
+                                if (canOpenDetail) {
+                                    viewModel.loadHomeRecommendedLinksTop2(userId, currentCurationId)
+                                }
+                            },
+                            onClick = { url -> runCatching { uri.openUri(url) } }
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -139,26 +178,73 @@ fun CurationScreen(
                     color = LocalColorTheme.current.black
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(0.dp))
             }
         }
 
         // 4. 좋아요 큐레이션 카드 리스트
-        val likedCurations = listOf(
-            UICurationItem("트럼프 큐레이션", "2025년 7월호", Res.drawable.img_trump_card, liked = true),
-            UICurationItem("트럼프 큐레이션", "2025년 6월호", Res.drawable.img_trump_card, liked = true),
-            UICurationItem("트럼프 큐레이션", "2025년 5월호", Res.drawable.img_trump_card, liked = true)
-        )
+//        val likedCurations = listOf(
+//            UICurationItem("트럼프 큐레이션", "2025년 7월호", Res.drawable.img_trump_card, liked = true),
+//            UICurationItem("트럼프 큐레이션", "2025년 6월호", Res.drawable.img_trump_card, liked = true),
+//            UICurationItem("트럼프 큐레이션", "2025년 5월호", Res.drawable.img_trump_card, liked = true)
+//        )
+
 
         // 좋아요한 큐레이션 리스트
+//        item {
+//            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+//                likedCurations.forEach { item ->
+//                    LikedCurationCard(item)
+//                    Spacer(modifier = Modifier.height(10.dp))
+//                }
+//            }
+//        }
         item {
+            // 어댑터로 변환 (title은 고정문구/월 라벨 포맷)
+            val uiItems = likedItems.map {
+                UICurationItem(
+                    title = "링큐 큐레이션",
+                    date = it.month.toLabel(),      // "2025-07" -> "2025년 7월호"
+                    imageRes = Res.drawable.img_trump_card, // 임시: 카드 배경은 기존 리소스 유지
+                    liked = true
+                )
+            }
+
             Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                likedCurations.forEach { item ->
-                    LikedCurationCard(item)
-                    Spacer(modifier = Modifier.height(10.dp))
+//                Text(
+//                    text = "${nickname}님이 좋아요 한 큐레이션",
+//                    style = MaterialTheme.typography.titleMedium.copy(
+//                        fontFamily = Paperlogy, fontWeight = FontWeight.Bold, fontSize = 20.sp
+//                    ),
+//                    color = LocalColorTheme.current.black
+//                )
+//                Spacer(Modifier.height(8.dp))
+
+                when {
+                    likedLoading && uiItems.isEmpty() -> {
+                        // 간단 플레이스홀더
+                        Spacer(Modifier.height(10.dp))
+                        repeat(2) { Spacer(Modifier.height(150.dp).fillMaxWidth()) }
+                    }
+                    uiItems.isEmpty() -> {
+                        Text(
+                            text = "아직 좋아요한 큐레이션이 없어요.",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = Paperlogy, fontSize = 14.sp),
+                            modifier = Modifier.padding(vertical = 10.dp)
+                        )
+                    }
+                    else -> {
+                        uiItems.forEachIndexed { idx, item ->
+                            // 기존 카드 그대로 사용
+                            LikedCurationCard(item)
+                            Spacer(Modifier.height(10.dp))
+                        }
+                    }
                 }
             }
         }
+
+
     }
 }
 
@@ -229,6 +315,58 @@ fun CurationTopBar() {
                 )
             }
         }
+    }
+}
+@Composable
+private fun LinksPreparingHome(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .height(60.dp), // 필요시 조절
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+//        // 로고/아이콘 박스(선택)
+//        Box(
+//            modifier = Modifier
+//                .size(80.dp)
+//                .clip(RoundedCornerShape(16.dp))
+//                .background(Color(0xFFEDE9FF)),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Image(
+//                painter = painterResource(id = R.drawable.logo_whiteback),
+//                contentDescription = null,
+//                modifier = Modifier.size(48.dp)
+//            )
+//        }
+
+        Spacer(Modifier.height(12.dp))
+
+        // 설명
+        Text(
+            "AI가 한달 감정&상황 데이터를 바탕으로\n추천 링크를 준비하고 있어요",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                color = Color(0xFF87898F)
+            ),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+
+        Spacer(Modifier.height(14.dp))
+
+        // 안내 문구
+        Text(
+            "＊ 검증 과정으로 인해 추천 링크 수가 제한될 수 있습니다.",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                color = Color(0xFFFF5E5E)
+            ),
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
     }
 }
 @Composable
