@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.sp
 import com.example.curation.ui.UICurationItem
 import com.example.curation.R
 import com.example.curation.Paperlogy
-
+import androidx.compose.foundation.clickable
 
 @Composable
 fun CurationLikedSection(nickname: String) {
@@ -72,31 +72,63 @@ fun CurationLikedSection(nickname: String) {
 }
 
 @Composable
-fun LikedCurationCard(item: UICurationItem) {
+fun LikedCurationCard(
+    item: UICurationItem,
+    onHeartClick: (() -> Unit)? = null
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(150.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
-        // 배경 이미지
+//        // 배경 이미지
+//        Image(
+//            painter = painterResource(id = item.imageRes),
+//            contentDescription = item.title,
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier.fillMaxSize()
+//        )
+        // 1) 이미지 우선순위: URL → 로컬 리소스
+        val painter = when {
+            item.imageUrl?.isNotBlank() == true ->
+                coil3.compose.rememberAsyncImagePainter(
+                    model = item.imageUrl,
+                    // optional: 이미지 전환 부드럽게 하고 싶으면:
+                    // request = ImageRequest.Builder(LocalContext.current).data(item.imageUrl).crossfade(true).build()
+                )
+            item.imageRes != null -> painterResource(id = item.imageRes)
+            else -> painterResource(id = R.drawable.img_trump_card) // 완전한 Fallback
+        }
+
         Image(
-            painter = painterResource(id = item.imageRes),
+            painter = painter,
             contentDescription = item.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
 
         // 좋아요 하트 (우측 상단)
+//        Icon(
+//            painter = painterResource(id = R.drawable.ic_heart),
+//            contentDescription = "좋아요",
+//            tint = Color.White,
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .padding(12.dp)
+//                .size(24.dp)
+//        )
         Icon(
             painter = painterResource(id = R.drawable.ic_heart),
-            contentDescription = "좋아요",
+            contentDescription = "좋아요 취소",
             tint = Color.White,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(12.dp)
                 .size(24.dp)
+                .clickable { onHeartClick?.invoke() }   // ✅ 클릭 처리
         )
+
 
         // 텍스트 (왼쪽 하단)
         Column(

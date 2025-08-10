@@ -22,6 +22,8 @@ class CurationViewModel @Inject constructor(
     private val authPreference: AuthPreference
 ) : ViewModel() {
 
+    private var hasPrefetched = false //한 번만 실행.
+
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
@@ -40,6 +42,14 @@ class CurationViewModel @Inject constructor(
 
     private val _currentCurationId = MutableStateFlow(-1L)
     val currentCurationId: StateFlow<Long> = _currentCurationId
+
+    // 하이라이트(현재 큐레이션) 좋아요 상태
+    private val _highlightLiked = MutableStateFlow<Boolean?>(null)
+    val highlightLiked: StateFlow<Boolean?> = _highlightLiked
+
+    // 로딩/중복탭 방지 플래그(선택)
+    private val _likeBusy = MutableStateFlow(false)
+    val likeBusy: StateFlow<Boolean> = _likeBusy
 
 
     //닉네임 가져오기.
@@ -75,6 +85,11 @@ class CurationViewModel @Inject constructor(
                 // 현재 큐레이션 ID도 갱신 (CurationItem의 실제 필드명에 맞춰 수정)
                 _currentCurationId.value = response.id
 
+                // 현재 큐레이션 좋아요 상태도 로드
+                runCatching { repository.isCurationLiked(response.id, uid) }
+                    .onSuccess { _highlightLiked.value = it }
+                    .onFailure { _highlightLiked.value = false } // 실패 시 미선호로 기본
+
                 // 첫 진입에 바로 추천 Top2 로드
                 loadHomeRecommendedLinksTop2(uid, response.id)
                 loadLikedCurations()
@@ -92,6 +107,35 @@ class CurationViewModel @Inject constructor(
 //        loadNickname()
 //        loadMonthlyCuration()
 //    }
+//  하이라이트 하트 토글
+    fun toggleHighlightLike() {
+        val cid = _currentCurationId.value
+        val uid = authPreference.userId ?: -1L
+        val current = _highlightLiked.value ?: false
+        if (cid <= 0 || uid <= 0 || _likeBusy.value) return
+
+        viewModelScope.launch {
+            _likeBusy.value = true
+            // 낙관적 업데이트
+            _highlightLiked.value = !current
+
+            val result = runCatching {
+                if (current) repository.unlikeCuration(cid, uid)
+                else repository.likeCuration(cid, uid)
+            }
+
+            result.onSuccess {
+                // 성공 시 목록 리프레시(선택: 비용 줄이려면 생략 가능)
+                loadLikedCurations()
+            }.onFailure { e ->
+                // 실패하면 롤백
+                _highlightLiked.value = current
+                _likedError.value = e.message ?: "좋아요 처리에 실패했어요"
+            }
+
+            _likeBusy.value = false
+        }
+    }
 
     //큐레이션 추천(2개)
     private val _homeLinks = MutableStateFlow(CurationLinksUiState())
@@ -145,6 +189,33 @@ class CurationViewModel @Inject constructor(
         loadNickname()
         loadMonthlyCuration()
 
+    }
+
+
+    fun unlikeFromLikedList(curationId: Long) {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0) return@launch
+
+            val before = _likedCurations.value
+            _likedCurations.value = before.filterNot { it.id == curationId } // 낙관적 제거
+
+            runCatching { repository.unlikeCuration(curationId, uid) }
+                .onFailure { e ->
+                    _likedCurations.value = before // 롤백
+                    _likedError.value = e.message ?: "좋아요 취소에 실패했어요"
+                }
+        }
+    }
+
+    // (옵션) 상세 화면 등에서 좋아요 등록이 필요할 때 사용
+    fun likeCuration(curationId: Long) {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0) return@launch
+            runCatching { repository.likeCuration(curationId, uid) }
+                .onFailure { e -> _likedError.value = e.message ?: "좋아요에 실패했어요" }
+        }
     }
 }
 
