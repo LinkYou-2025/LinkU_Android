@@ -46,7 +46,6 @@ import com.example.file.viewmodel.folder.state.FolderState
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomFolderGrid(
-    linkList: List<String>,
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
@@ -55,6 +54,7 @@ fun BottomFolderGrid(
     val interactionSource = remember { MutableInteractionSource() }
 
     val folderList = fileViewModel.subFolders.collectAsState().value
+    val linkList = fileViewModel.notCategorizationLinks.collectAsState().value
 
     Column {
         // Folder Grid
@@ -106,7 +106,7 @@ fun BottomFolderGrid(
                             indication = null,
                             interactionSource = interactionSource,
                             onClick = {
-                                fileViewModel.getLinks(folder.folderId)
+                                fileViewModel.getLinksFolders(folder.folderId)
                                 folderStateViewModel.updateSelectedBottomFolder(folder)
                                 folderStateViewModel.updateFolderState(FolderState.LINKS)
                             },
@@ -173,7 +173,7 @@ fun BottomFolderGrid(
                     contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
                 ) {
                     LinkItemLayout(
-                        title = link
+                        link = link
                     )
                 }
             }
@@ -204,10 +204,8 @@ fun BottomFolderGrid(
 @Composable
 private fun BottomFolderGridTest(){
     BottomFolderGrid(
-        listOf("태그1", "태그2"),
         fileViewModel = hiltViewModel(),
         editStateViewModel = viewModel(),
         folderStateViewModel = viewModel(),
-        {},
-    )
+    ){}
 }

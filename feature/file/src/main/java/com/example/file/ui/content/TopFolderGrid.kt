@@ -65,7 +65,7 @@ fun TopFolderGrid(
                         if (editStateViewModel.isEditMode) {
                             onFolderEdit()
                         } else {
-                            fileViewModel.getSubfolders(folder.folderId)
+                            fileViewModel.getLinksFolders(folder.folderId)
                             folderStateViewModel.updateSelectedTopFolder(folder)
                             folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                         }
@@ -76,7 +76,6 @@ fun TopFolderGrid(
                     categoryColorStyle = CategoryColorStyle.categoryStyleList[i],
                     categoryName = folderName,
                     isBookmarked = folder.isBookmarked,
-                    fileViewModel = fileViewModel,
                     editStateViewModel = editStateViewModel
                 ){
                     fileViewModel.updateBookmark(

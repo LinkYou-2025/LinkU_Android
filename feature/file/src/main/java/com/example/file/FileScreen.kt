@@ -106,7 +106,6 @@ fun FileScreen(
                         }
                         FolderState.BOTTOM -> {
                             BottomFolderGrid(
-                                linkList = listOf("링크1", "링크2"),
                                 fileViewModel = fileViewModel,
                                 editStateViewModel = editStateViewModel,
                                 folderStateViewModel = folderStateViewModel,
@@ -117,8 +116,8 @@ fun FileScreen(
                         }
                         FolderState.LINKS -> {
                             LinksGrid(
+                                fileViewModel = fileViewModel,
                                 folderStateViewModel = folderStateViewModel,
-                                linkList = listOf("링크1", "링크2", "링크3")
                             )
                         }
                     }
@@ -188,6 +187,7 @@ fun FileScreen(
 
     // 링크 추가하기 바텀 시트
     LinkCategorizationBottomSheet(
+        fileViewModel = fileViewModel,
         folderStateViewModel = folderStateViewModel
     )
 }

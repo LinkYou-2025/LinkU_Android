@@ -96,7 +96,7 @@ fun BottomFolderListMenu(
                         )
                     },
                     onClick = {
-                        fileViewModel.getLinks(folder.folderId)
+                        fileViewModel.getLinksFolders(folder.folderId)
                         folderStateViewModel.updateSelectedBottomFolder(folder)
                         folderStateViewModel.updateFolderState(FolderState.LINKS)
                     }

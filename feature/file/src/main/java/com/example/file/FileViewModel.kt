@@ -46,9 +46,17 @@ class FileViewModel @Inject constructor(
     private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val subFolders: StateFlow<List<FolderSimpleInfo>> = _subFolders.asStateFlow()
 
+    // 4-1. 하위 폴더 요청 커서
+    private val _subFoldersCursor = MutableStateFlow<String?>(null)
+    val subFoldersCursor: StateFlow<String?> = _subFoldersCursor.asStateFlow()
+
     // 5. 링크 리스트
     private val _links = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
     val links: StateFlow<List<LinkSimpleInfo>> = _links.asStateFlow()
+
+    // 5-1. 분류되지않은 링크 리스트
+    private val _notCategorizationLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
+    val notCategorizationLinks: StateFlow<List<LinkSimpleInfo>> = _notCategorizationLinks.asStateFlow()
 
     // 6. 로딩/에러 상태 예시 (원하면 커스텀하게)
     private val _loading = MutableStateFlow(false)
@@ -127,37 +135,40 @@ class FileViewModel @Inject constructor(
     }
 
     // 링크 불러오기
-    fun getLinks(folderId: Long) {
-        Log.d("FileViewModel", "getLinks")
+    fun getLinksFolders(folderId: Long) {
+        Log.d("FileViewModel", "getNotCategorizationLinks")
 
         viewModelScope.launch {
-            Log.d("FileViewModel", "getLinks launch")
+            Log.d("FileViewModel", "getNotCategorizationLinks launch")
 
             _loading.value = true
             _errorMessage.value = null
 
             try {
-                Log.d("FileViewModel", "getLinks try")
+                Log.d("FileViewModel", "getNotCategorizationLinks try")
 
-                folderRepository.getLinksFolders(folderId, null, null,
-                    onGetFolders = { /*_subFolders.value = it*/ },
-                    onGetLinks = { _links.value = it }
+                _subFoldersCursor.value = folderRepository.getLinksFolders(
+                    folderId = folderId,
+                    limit = null,
+                    cursor = _subFoldersCursor.value,
+                    onGetFolders = { _subFolders.value = it },
+                    onGetLinks = { _notCategorizationLinks.value = it }
                 )
 
-                Log.d("FileViewModel", "getLinks try result: ${_links.value}")
+                Log.d("FileViewModel", "getNotCategorizationLinks try result: ${_notCategorizationLinks.value}")
 
             } catch (e: Exception) {
-                Log.d("FileViewModel", "getLinks catch: $e.message")
+                Log.d("FileViewModel", "getNotCategorizationLinks catch: $e.message")
 
                 _errorMessage.value = e.message
 
             } finally {
-                Log.d("FileViewModel", "getLinks finally")
+                Log.d("FileViewModel", "getNotCategorizationLinks finally")
 
                 _loading.value = false
             }
         }
-        Log.d("FileViewModel", "getLinks return")
+        Log.d("FileViewModel", "getNotCategorizationLinks return")
     }
     // ---------- get method ----------
 
