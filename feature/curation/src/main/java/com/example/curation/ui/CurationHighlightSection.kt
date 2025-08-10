@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
+
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -39,11 +40,16 @@ import java.util.Locale
 @Composable
 fun CurationHighlightSection(
     modifier: Modifier = Modifier,
-    viewModel: CurationViewModel = hiltViewModel()
+    viewModel: CurationViewModel = hiltViewModel(),
+    onOpenDetail: (() -> Unit)? = null
 ) {
     val isGenerating by viewModel.isGenerating.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
     val recentCuration by viewModel.recentCuration.collectAsState()
+
+    //  추가: 하트 상태/로딩 상태
+    val highlightLiked by viewModel.highlightLiked.collectAsState()
+    val likeBusy by viewModel.likeBusy.collectAsState()
 
 
     LaunchedEffect(viewModel) {
@@ -58,6 +64,10 @@ fun CurationHighlightSection(
             Log.d("CurationUI", "큐레이션 표시 - URL: ${recentCuration!!.thumbnailUrl}")
             HighlightCardOnlyImage(
                 imageUrl = recentCuration!!.thumbnailUrl,
+                liked = highlightLiked,                  //  VM 상태 전달
+                likeBusy = likeBusy,                     // 중복탭 방지
+                onToggleLike = { viewModel.toggleHighlightLike() },
+                onCardClick = onOpenDetail,            //  여기서 그대로 전달
                 modifier = modifier
             )
         }
@@ -109,9 +119,13 @@ fun CurationHighlightSection(
 @Composable
 fun HighlightCardOnlyImage(
     imageUrl: String?,
+    liked: Boolean?,                 // null이면 아직 모르는 상태(로딩)
+    likeBusy: Boolean,
+    onToggleLike: () -> Unit,
+    onCardClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-    var liked by remember { mutableStateOf(false) }
+    //var liked by remember { mutableStateOf(false) }
 
     Box(
         modifier = modifier
@@ -121,33 +135,75 @@ fun HighlightCardOnlyImage(
             .clip(RoundedCornerShape(12.dp))
     ) {
         // 배경 이미지 (API 이미지)
-        val painter = rememberAsyncImagePainter(model = imageUrl)
+//        val painter = rememberAsyncImagePainter(model = imageUrl)
+//        Image(
+//            painter = painter,
+//            contentDescription = "추천 큐레이션 이미지",
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier.fillMaxSize()
+//        )
+        // 배경 이미지 + 카드 이동 클릭은 배경에만!
+        val imagePainter = rememberAsyncImagePainter(model = imageUrl)
         Image(
-            painter = painter,
+            painter = imagePainter,
             contentDescription = "추천 큐레이션 이미지",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(                 // 배경만 이동
+                    enabled = !likeBusy,
+                    onClick = { onCardClick?.invoke() }
+                )
         )
 
-        // 좋아요 하트
+//        // 좋아요 하트
+//        Icon(
+//            painter = painterResource(id = if (liked) R.drawable.ic_heart else R.drawable.ic_heart_outline),
+//            contentDescription = "좋아요",
+//            tint = Color.White,
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .padding(12.dp)
+//                .size(24.dp)
+//                .clickable {
+//                    liked = !liked
+//
+//                    // TODO: 좋아요 상태 서버에 반영 (2025-08-09 예정)
+//                    // if (liked) {
+//                    //     viewModel.likeCuration(curationId)
+//                    // } else {
+//                    //     viewModel.unlikeCuration(curationId)
+//                    // }
+//                }
+//        )
+        // null이면 outline 유지(또는 alpha 처리로 로딩감)
+        val isLiked = (liked == true)
+//        Icon(
+//            painter = painterResource(id = if (isLiked) R.drawable.ic_heart else R.drawable.ic_heart_outline),
+//            contentDescription = if (isLiked) "좋아요 취소" else "좋아요",
+//            tint = Color.White,
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .padding(12.dp)
+//                .size(24.dp)
+//                .clickable(enabled = !likeBusy) { onToggleLike() }
+//        )
+        // 하트는 완전히 별도의 clickable (부모 클릭과 분리)
         Icon(
-            painter = painterResource(id = if (liked) R.drawable.ic_heart else R.drawable.ic_heart_outline),
-            contentDescription = "좋아요",
+            painter = painterResource(id = if (isLiked) R.drawable.ic_heart else R.drawable.ic_heart_outline),
+            contentDescription = if (isLiked) "좋아요 취소" else "좋아요",
             tint = Color.White,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(12.dp)
                 .size(24.dp)
-                .clickable {
-                    liked = !liked
-
-                    // TODO: 좋아요 상태 서버에 반영 (2025-08-09 예정)
-                    // if (liked) {
-                    //     viewModel.likeCuration(curationId)
-                    // } else {
-                    //     viewModel.unlikeCuration(curationId)
-                    // }
-                }
+                .clickable(
+                    // ripple/전파 최소화
+                    interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                    indication = null,
+                    enabled = !likeBusy,
+                    onClick = { onToggleLike() }     // 토글만 수행
+                )
         )
     }
 }
@@ -168,7 +224,7 @@ fun HighlightCardWithFallback(
     date: String = getCurrentKoreanCurationDate(),
     modifier: Modifier = Modifier
 ) {
-    var liked by remember { mutableStateOf(false) } // ❤️ 좋아요 상태 기억
+    var liked by remember { mutableStateOf(false) } // 좋아요 상태 기억
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -246,7 +302,10 @@ fun PreviewHighlightCardWithFallback() {
 @Composable
 fun PreviewCurationHighlightSection() {
     HighlightCardOnlyImage(
-        imageUrl = "https://dummyimage.com/600x400/000/fff&text=Preview"
+        imageUrl = "https://dummyimage.com/600x400/000/fff&text=Preview",
+        liked = false,
+        likeBusy = false,
+        onToggleLike = {}
     )
 }
 

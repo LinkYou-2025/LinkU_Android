@@ -192,7 +192,24 @@ class CurationRepositoryImpl @Inject constructor(
             )
         }.take(2)
     }
+    //큐레이션 등록, 취소
+    override suspend fun likeCuration(curationId: Long, userId: Long) {
+        val resp = curationApi.updateLike(curationId, userId)
+        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
+    }
 
+    override suspend fun unlikeCuration(curationId: Long, userId: Long) {
+        val resp = curationApi.deleteLike(curationId, userId)
+        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
+    }
+
+    //큐레이션 현재 좋아요 상태 추가
+    override suspend fun isCurationLiked(curationId: Long, userId: Long): Boolean {
+        val resp = curationApi.getIsLike(curationId, userId)
+        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
+        val dto = resp.body() ?: return false
+        return dto.liked    // ← 필드명 "liked" 로 접근
+    }
 
 
 }

@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,6 +51,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextAlign
 
 // 간단 확장함수
 private fun String.toLabel(): String = runCatching {
@@ -117,13 +119,9 @@ fun CurationScreen(
                     color = LocalColorTheme.current.black
                 )
                 CurationHighlightSection(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = canOpenDetail) {
-                            onOpenDetail(userId, currentCurationId)
-                        }
+                    modifier = Modifier.fillMaxWidth(),
+                    onOpenDetail = { onOpenDetail(userId, currentCurationId) }  //  파라미터 없는 람다로 변환해서 전달
                 )
-
                 Spacer(modifier = Modifier.height(20.dp))
 
 
@@ -205,7 +203,7 @@ fun CurationScreen(
                 UICurationItem(
                     title = "링큐 큐레이션",
                     date = it.month.toLabel(),      // "2025-07" -> "2025년 7월호"
-                    imageRes = Res.drawable.img_trump_card, // 임시: 카드 배경은 기존 리소스 유지
+                    imageUrl = it.thumbnailUrl,
                     liked = true
                 )
             }
@@ -227,16 +225,29 @@ fun CurationScreen(
                         repeat(2) { Spacer(Modifier.height(150.dp).fillMaxWidth()) }
                     }
                     uiItems.isEmpty() -> {
-                        Text(
-                            text = "아직 좋아요한 큐레이션이 없어요.",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontFamily = Paperlogy, fontSize = 14.sp),
-                            modifier = Modifier.padding(vertical = 10.dp)
+                        LikedCurationEmptyState(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp)
                         )
                     }
-                    else -> {
+                    else ->
+//                        {
+//                        uiItems.forEachIndexed { idx, item ->
+//                            // 기존 카드 그대로 사용
+//                            LikedCurationCard(item)
+//                            Spacer(Modifier.height(10.dp))
+//                        }
+                    {
                         uiItems.forEachIndexed { idx, item ->
-                            // 기존 카드 그대로 사용
-                            LikedCurationCard(item)
+                            LikedCurationCard(
+                                item = item,
+                                onHeartClick = {
+                                    likedItems.getOrNull(idx)?.let { domain ->
+                                        viewModel.unlikeFromLikedList(domain.id)   // ✅ 서버 취소 + 낙관적 제거
+                                    }
+                                }
+                            )
                             Spacer(Modifier.height(10.dp))
                         }
                     }
@@ -317,6 +328,55 @@ fun CurationTopBar() {
         }
     }
 }
+
+//좋아요한 큐레이션이 없는 경우 보여지는 화면.
+@Composable
+fun LikedCurationEmptyState(
+    modifier: Modifier = Modifier,
+    emptyIconRes: Int = R.drawable.img_curation_liked_null // 점선+링크가 합쳐진 PNG
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),                 // 필요시 조절
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // 아이콘(점선 박스 포함) 크기 고정
+        Image(
+            painter = painterResource(id = emptyIconRes),
+            contentDescription = null,
+            modifier = Modifier.size(82.dp),      // ✨ 28dp → 82dp
+            contentScale = ContentScale.Fit
+        )
+
+        Spacer(Modifier.height(12.dp))            // ✨ 간격 줄임(16 → 12)
+
+        Text(
+            text = "아직 좋아요한 큐레이션이 아직 없어요!",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Medium,
+                fontSize = 15.sp,
+                color = LocalColorTheme.current.black
+            ),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        Text(
+            text = "좋아요를 눌러보러 갈까요?",
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                color = Color(0xFF87898F)
+            ),
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Composable
 private fun LinksPreparingHome(modifier: Modifier = Modifier) {
     Column(

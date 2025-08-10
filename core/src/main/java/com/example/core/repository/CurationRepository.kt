@@ -20,4 +20,11 @@ interface CurationRepository {
 
      //큐레이션 좋아요(기본 페이지)
      suspend fun getLikedCurations(userId: Long): List<CurationItem>
+
+     //큐레이션 좋아요 등록,취소
+     suspend fun likeCuration(curationId: Long, userId: Long)
+     suspend fun unlikeCuration(curationId: Long, userId: Long)
+
+     //큐레이션 현재 좋아요 상태 추가!
+     suspend fun isCurationLiked(curationId: Long, userId: Long): Boolean
 }

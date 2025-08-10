@@ -49,25 +49,41 @@ interface CurationApi {
      ): Response<CurationLatestResponse> // <- BaseResponse 제거
 
     // 큐레이션 좋아요 등록
+//    @POST("/api/curations/{curationId}/like")
+//    suspend fun updateLike(
+//        @Path("curationId") curationId: Long,
+//        @Query("userId") userId: Long
+//    ): BaseResponse<Unit>
+    // CurationApi.kt
     @POST("/api/curations/{curationId}/like")
     suspend fun updateLike(
         @Path("curationId") curationId: Long,
         @Query("userId") userId: Long
-    ): BaseResponse<Unit>
+    ): Response<Unit>    // ◀︎ 변경: Response<Unit>
 
     // 큐레이션 좋아요 취소
+//    @DELETE("/api/curations/{curationId}/like")
+//    suspend fun deleteLike(
+//        @Path("curationId") curationId: Long,
+//        @Query("userId") userId: Long
+//    ): BaseResponse<Unit>
     @DELETE("/api/curations/{curationId}/like")
     suspend fun deleteLike(
         @Path("curationId") curationId: Long,
         @Query("userId") userId: Long
-    ): BaseResponse<Unit>
+    ): Response<Unit>    // ◀︎ 변경: Response<Unit>
 
     // 큐레이션 좋아요 여부 확인
+//    @GET("/api/curations/{curationId}/like")
+//    suspend fun getIsLike(
+//        @Path("curationId") curationId: Long,
+//        @Query("userId") userId: Long
+//    ): BaseResponse<CurationLikeStatusResponseDTO>
     @GET("/api/curations/{curationId}/like")
     suspend fun getIsLike(
         @Path("curationId") curationId: Long,
         @Query("userId") userId: Long
-    ): BaseResponse<CurationLikeStatusResponseDTO>
+    ): Response<CurationLikeStatusResponseDTO>
 
     // 좋아요한 큐레이션 조회 (최대 6개)
 //    @GET("/api/curations/likes/recent")
