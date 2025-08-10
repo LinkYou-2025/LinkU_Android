@@ -11,6 +11,7 @@ import com.example.data.preference.AuthPreference
 import javax.inject.Inject
 import com.example.core.model.RecommendedLink
 import com.example.core.error.TokenExpiredException
+import com.example.core.model.CurationDetail
 import com.example.data.api.dto.server.RecommendLinkItemDto
 import com.example.data.api.dto.server.RefreshTokenRequest
 import com.example.data.api.withCheck
@@ -135,6 +136,18 @@ class CurationRepositoryImpl @Inject constructor(
                 categories = dto.categories?.filter { it.isNotBlank() }
             )
         }.take(9)
+    }
+
+    //큐레이션 디테일 사용자 정보 제공
+    override suspend fun getCurationDetail(curationId: Long): CurationDetail {
+        val dto = curationApi.getCurationDetail(curationId)
+        return CurationDetail(
+            curationId = dto.curationId,
+            month = dto.month,
+            topTags = dto.topTags.orEmpty().take(3),
+            headerMent = dto.headerMent,
+            footerMent = dto.footerMent
+        )
     }
 }
 

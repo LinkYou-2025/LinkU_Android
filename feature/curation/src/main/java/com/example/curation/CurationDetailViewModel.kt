@@ -16,6 +16,15 @@ data class CurationLinksUiState(
     val error: String? = null
 )
 
+data class CurationDetailUiState(
+    val loading: Boolean = false,
+    val topTags: List<String> = emptyList(),
+    val headerMent: String? = null,
+    val footerMent: String? = null,
+    val error: String? = null
+)
+
+
 @HiltViewModel
 class CurationDetailViewModel @Inject constructor(
     private val repo: CurationRepository
@@ -34,6 +43,27 @@ class CurationDetailViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     _links.value = CurationLinksUiState(loading = false, items = emptyList(), error = e.message)
+                }
+        }
+    }
+
+    private val _detail = MutableStateFlow(CurationDetailUiState())
+    val detail: StateFlow<CurationDetailUiState> = _detail
+
+    fun loadCurationDetail(curationId: Long) {
+        _detail.value = _detail.value.copy(loading = true, error = null)
+        viewModelScope.launch {
+            runCatching { repo.getCurationDetail(curationId) }
+                .onSuccess { d ->
+                    _detail.value = CurationDetailUiState(
+                        loading = false,
+                        topTags = d.topTags,
+                        headerMent = d.headerMent,
+                        footerMent = d.footerMent
+                    )
+                }
+                .onFailure { e ->
+                    _detail.value = CurationDetailUiState(loading = false, error = e.message)
                 }
         }
     }
