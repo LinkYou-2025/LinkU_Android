@@ -122,13 +122,13 @@ class FolderRepositoryImpl @Inject constructor(
 
     // (중/소분류) 폴더 내부 폴더, 링크 조회
     override suspend fun getLinksFolders(
-        folderId: Long,
+        parentFolderId: Long,
         limit: Int?,
         cursor: String?,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkSimpleInfo>) -> Unit
     ): String? {
-        Log.d("getLinksFolders", "folderId: $folderId, limit: $limit, cursor: $cursor")
+        Log.d("getLinksFolders", "folderId: $parentFolderId, limit: $limit, cursor: $cursor")
 
         val response: LinksFoldersResponseDTO
 
@@ -136,7 +136,7 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("getLinksFolders", "try")
 
             response = serverApi.withAuth(authPreference) {
-                getLinksFolders(folderId, limit, cursor)
+                getLinksFolders(parentFolderId, limit, cursor)
             }
             Log.d("getLinksFolders", "response: $response")
 
@@ -144,7 +144,7 @@ class FolderRepositoryImpl @Inject constructor(
                     FolderSimpleInfo(
                         folderId = it.folderId,
                         folderName = it.folderName,
-                        parentFolderId = folderId,
+                        parentFolderId = parentFolderId,
                         isBookmarked = false
 
                     )

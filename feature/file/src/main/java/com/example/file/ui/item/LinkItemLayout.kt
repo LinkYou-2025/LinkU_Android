@@ -40,6 +40,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.core.model.LinkSimpleInfo
 import com.example.file.R
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
@@ -49,16 +50,17 @@ import com.example.file.ui.theme.Gray400
 import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
+import com.example.file.ui.theme.domainLogoPainterOrNull
 
 @Composable
 fun LinkItemLayout(
     painter: Painter? = painterResource(R.drawable.link_categorization_default),
-    title: String = "제목",
+    link: LinkSimpleInfo?,
     tags: List<String> = listOf("태그1", "태그2"),
-    domainIcon: Painter? = null,
-    domain: String = "도메인",
 ) {
     var showDialog by remember { mutableStateOf(false) }
+
+    val domainIcon = link?.let{ domainLogoPainterOrNull(it.domain) }?:painterResource(R.drawable.link_categorization_default)
 
     // 링크 분류 태그(Chip) 컴포저블
     @Composable
@@ -118,7 +120,7 @@ fun LinkItemLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(11.dp)
-                .alpha(if(painter == null) 0.35f else 1f)
+                .alpha(if (painter == null) 0.35f else 1f)
         ) {
 
             // (1) 링크의 메인 이미지
@@ -128,7 +130,7 @@ fun LinkItemLayout(
                     .clip(RoundedCornerShape(18.dp))
                     .size(157.dp)
                     .align(Alignment.CenterHorizontally)
-                    .background(color = if(painter != null) Gray100 else White),
+                    .background(color = if (painter != null) Gray100 else White),
                 contentAlignment = Alignment.Center
             ){
                 if(painter != null){
@@ -153,7 +155,7 @@ fun LinkItemLayout(
                 // 위쪽 여백(10dp)
                 modifier = Modifier
                     .padding(top = 10.dp),
-                text = title,
+                text = link?.title?:"제목",
                 // 폰트 크기(15sp)
                 fontSize = 15.sp,
                 // 폰트
@@ -203,16 +205,15 @@ fun LinkItemLayout(
                         .background(color = Gray200),
                     contentAlignment = Alignment.Center
                 ){
-                    // 도메인 아이콘 (ex. 트위터)
-                    if (domainIcon != null) {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            // 아이콘 이미지 리소스
-                            painter = domainIcon,  // 트위터 로고(테스트)
-                            contentDescription = null
-                        )
-                    }
+                    // 도메인 아이콘
+                    Image(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        // 아이콘 이미지 리소스
+                        painter = domainIcon,  // 트위터 로고(테스트)
+                        contentDescription = null
+                    )
+
                 }
 
                 // 링크의 도메인 텍스트
@@ -220,7 +221,7 @@ fun LinkItemLayout(
                     modifier = Modifier,
 
                     // 텍스트 내용
-                    text = domain,
+                    text = link?.domain?:"도메인",
 
                     // 폰트 크기 (12sp)
                     fontSize = 12.sp,
@@ -250,6 +251,7 @@ private fun LinkItemTest() {
         ){
             LinkItemLayout(
                 painter = null,
+                link = null,
                 tags = listOf("태그1", "태그2"),
             )
         }
