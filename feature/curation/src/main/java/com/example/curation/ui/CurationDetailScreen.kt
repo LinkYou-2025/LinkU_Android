@@ -74,7 +74,7 @@ import coil3.request.crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
 import com.example.curation.CurationDetailUiState
-
+import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.delay
 
 
@@ -87,7 +87,7 @@ fun CurationDetailScreen(
     nickname: String? = null,
     //viewModel: CurationViewModel = hiltViewModel(),
     detailViewModel: CurationDetailViewModel = hiltViewModel(),
-    homeViewModel: CurationViewModel = hiltViewModel(),   // 닉네임 전용
+    homeViewModel: CurationViewModel = hiltViewModel(),   // 닉네임 전용,하트 상태/토글 재사용
     onBack: () -> Unit = {},
 
 ) {
@@ -112,6 +112,16 @@ fun CurationDetailScreen(
 
     val detailState = detailViewModel.detail.collectAsState().value
 
+    // 좋아요 상태/바쁨 상태
+    val liked = homeViewModel.highlightLiked.collectAsState(initial = null).value
+    val likeBusy = homeViewModel.likeBusy.collectAsState().value
+
+    //좋아요 상태 로드
+    LaunchedEffect(curationId) {
+        homeViewModel.refreshHighlightLike(curationId)   // 초기 좋아요 상태 로드
+        homeViewModel.setCurrentCurationId(curationId)   // ← 현재 CID를 뷰모델에 주입
+    }
+
     val monthLabel = remember {
         java.time.LocalDate.now()
             .format(java.time.format.DateTimeFormatter.ofPattern("M월", java.util.Locale.KOREAN))
@@ -122,7 +132,10 @@ fun CurationDetailScreen(
         monthLabel = monthLabel,
         linksState = linksState,
         onBack = onBack,
-        detailState = detailState
+        detailState = detailState,
+        liked = liked,
+        likeBusy = likeBusy,
+        onToggleLike = { homeViewModel.toggleHighlightLike() }
     )
 }
 
@@ -133,7 +146,10 @@ private fun CurationDetailScreenContent(
     monthLabel: String,
     linksState: CurationLinksUiState,
     onBack: () -> Unit = {},
-    detailState: CurationDetailUiState
+    detailState: CurationDetailUiState,
+    liked: Boolean?,
+    likeBusy: Boolean,
+    onToggleLike: () -> Unit
 ) {
     val uri = LocalUriHandler.current
     Column(
@@ -149,7 +165,10 @@ private fun CurationDetailScreenContent(
             nickname = nickname,
             monthLabel = monthLabel,
             onBack = onBack,
-            detailState = detailState
+            detailState = detailState,
+            liked = liked ?: false,
+            likeBusy = likeBusy,
+            onToggleLike = onToggleLike
         )
 
         Spacer(Modifier.height(16.dp))
@@ -183,7 +202,10 @@ private fun HighlightCard(
     nickname: String,
     monthLabel: String,
     onBack: () -> Unit,
-    detailState: CurationDetailUiState
+    detailState: CurationDetailUiState,
+    liked: Boolean?,
+    likeBusy: Boolean,
+    onToggleLike: () -> Unit
 ) {
     BoxWithConstraints(
         modifier = Modifier
@@ -225,6 +247,8 @@ private fun HighlightCard(
                 .size(logoSize)
                 .graphicsLayer(alpha = 0.60f)
         )
+
+        // 하트 토글 버튼 (로고 위 겹치기)
 
         // 상단 바
         Box(
@@ -269,15 +293,39 @@ private fun HighlightCard(
                 .padding(top = 72.dp)
                 .padding(start = 16.dp, end = 16.dp, top = 36.dp)
         ) {
-            Text(
-                text = "링큐 큐레이션  |  2025년 ${prevMonthLabel}호",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                ),
-                color = LocalColorTheme.current.white
-            )
+            // 제목 + 하트 (같은 줄, 7월호 기준 우측 36dp, 위로 2dp 올림)
+            val HEART_GAP = 36.dp         // ← 더 오른쪽으로 (원래 30dp였으면 여길 조절)
+            val HEART_NUDGE_Y = (-5).dp   // ← 살짝 위로 올리기(필요 시 -1 ~ -4dp 튜닝)
+            Row(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "링큐 큐레이션  |  2025년 ${prevMonthLabel}호",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = LocalColorTheme.current.white,
+                    maxLines = 1,
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.alignByBaseline()
+                )
+
+                //Spacer(Modifier.width(40.dp))
+                Spacer(Modifier.width(HEART_GAP))
+
+                HeartToggleButton(
+                    liked = liked ?: false,
+                    busy = likeBusy,
+                    onClick = onToggleLike,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .alignByBaseline()
+                        .offset(y = HEART_NUDGE_Y)
+                )
+            }
             Spacer(Modifier.height(8.dp))
 //            Text(
 //                text = "생각은 많은데 정리가 안 되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
@@ -354,6 +402,33 @@ private fun HighlightCard(
             }
             Spacer(Modifier.height(8.dp))
         }
+    }
+}
+
+@Composable
+private fun HeartToggleButton(
+    modifier: Modifier = Modifier,
+    liked: Boolean,
+    busy: Boolean,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)                         // 충분한 터치 타깃
+            .clip(CircleShape)
+            .clickable(enabled = !busy) { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painter = painterResource(
+                id = if (liked) R.drawable.ic_heart else R.drawable.ic_heart_outline
+            ),
+            contentDescription = if (liked) "좋아요 취소" else "좋아요",
+            tint = Color.White,
+            modifier = Modifier
+                .size(22.dp)
+                .graphicsLayer { alpha = if (busy) 0.5f else 1f } // 요청 중이면 살짝 흐리게
+        )
     }
 }
 private fun replaceNickname(text: String?, nickname: String): String {
@@ -962,12 +1037,17 @@ private fun PreviewCurationDetailScreen() {
         footerMent = "설렘은 가장 강력한 동기부여예요. 지금, 그 에너지를 믿어보세요."
     )
 
+
     Surface {
         CurationDetailScreenContent(
             nickname = "세나",
             monthLabel = "8월",
             linksState = CurationLinksUiState(loading = false, items = demo),
-            detailState = demoDetail
+            detailState = demoDetail,
+            onBack = {},
+            liked = false,          // 프리뷰 기본값
+            likeBusy = false,       // 프리뷰 기본값
+            onToggleLike = {}       // 프리뷰 기본값
         )
     }
 }
