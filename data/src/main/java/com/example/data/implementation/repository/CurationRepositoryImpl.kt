@@ -43,6 +43,19 @@ class CurationRepositoryImpl @Inject constructor(
         )
     }
 
+    override suspend fun getLikedCurations(userId: Long): List<CurationItem> {
+        val dtos = curationApi.getLikedCurations(userId)   // ← Retrofit: List<LikedCurationResponse>
+        return dtos
+            .take(6) // 방어적으로 6개 제한
+            .map { dto ->
+                CurationItem(
+                    id = dto.curationId,
+                    month = dto.month,               // ex) "2025-07"
+                    thumbnailUrl = dto.thumbnailUrl  // S3 public URL
+                )
+            }
+    }
+
     private fun CurationLatestResponse.toDomain(): CurationItem {
         return CurationItem(
             id = this.curationId,
@@ -149,6 +162,39 @@ class CurationRepositoryImpl @Inject constructor(
             footerMent = dto.footerMent
         )
     }
+
+    //큐레이션 기본 페이지 추천
+    override suspend fun getHomeRecommendedLinksTop2(
+        userId: Long,
+        curationId: Long
+    ): List<RecommendedLink> {
+        val dtos: List<RecommendLinkItemDto> =
+            curationApi.getInternalTop2(userId, curationId) // ← 직접 호출
+
+        return dtos.mapNotNull { dto ->
+            val title = dto.title?.trim().orEmpty()
+            val url = dto.url?.trim().orEmpty()
+            if (title.isBlank() || url.isBlank()) return@mapNotNull null
+
+            val normalizedDomain = dto.domain
+                ?.takeIf { it.isNotBlank() && it.lowercase() !in setOf("invalid", "unknown") }
+                ?: runCatching { java.net.URL(url).host }.getOrNull()
+
+            RecommendedLink(
+                isInternal = true,                  // 내부 추천이므로 true
+                userLinkuId = dto.userLinkuId,      // 항상 존재
+                title = title,
+                url = url,
+                imageUrl = dto.imageUrl?.takeIf { it.isNotBlank() },
+                domain = normalizedDomain,
+                domainImageUrl = dto.domainImageUrl?.takeIf { it.isNotBlank() },
+                categories = dto.categories?.filter { it.isNotBlank() }
+            )
+        }.take(2)
+    }
+
+
+
 }
 
     /*// 결과 널 안전 처리 필요한 경우 아래 코드로 수정.
