@@ -2,6 +2,7 @@ package com.example.core.repository
 
 import com.example.core.model.CurationItem
 import com.example.core.model.RecommendedLink
+import com.example.core.model.CurationDetail
 
 
 interface CurationRepository {
@@ -10,4 +11,7 @@ interface CurationRepository {
 
      //추천(큐레이션 디테일)
      suspend fun getRecommendedLinks(userId: Long, curationId: Long): List<RecommendedLink>
+
+     //사용자 디테일 정보 제공(큐레이션 디테일)
+     suspend fun getCurationDetail(curationId: Long): CurationDetail
 }

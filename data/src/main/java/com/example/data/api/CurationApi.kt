@@ -105,4 +105,10 @@ interface CurationApi {
         @Query("userId") userId: Long,
         @Query("curationId") curationId: Long
     ): Call<List<RecommendLinkItemDto>>
+
+    //큐레이션 디테일
+    @GET("/api/curations/detail/{curationId}")
+    suspend fun getCurationDetail(
+        @Path("curationId") curationId: Long
+    ): CurationDetailResponse
 }

@@ -85,6 +85,10 @@ fun CurationScreen(
         item {
             CurationTopBar()
         }
+        // 현재 날짜에서 전달 구하기
+        val prevMonthLabel = LocalDate.now()
+            .minusMonths(1)
+            .format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
 
         item {
             Column(
@@ -92,7 +96,7 @@ fun CurationScreen(
             ) {
                 // 1. 큐레이션 하이라이트 텍스트
                 Text(
-                    text = "${nickname}님을 위한 ${currentMonth}의 큐레이션",
+                    text = "${nickname}님을 위한 ${prevMonthLabel}의 큐레이션",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = Paperlogy,
                         fontWeight = FontWeight.Bold,

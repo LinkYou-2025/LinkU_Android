@@ -73,6 +73,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
+import com.example.curation.CurationDetailUiState
+
 import kotlinx.coroutines.delay
 
 
@@ -86,7 +88,8 @@ fun CurationDetailScreen(
     //viewModel: CurationViewModel = hiltViewModel(),
     detailViewModel: CurationDetailViewModel = hiltViewModel(),
     homeViewModel: CurationViewModel = hiltViewModel(),   // 닉네임 전용
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+
 ) {
     // 닉네임 로드 (홈 VM)
     LaunchedEffect(Unit) {
@@ -101,6 +104,14 @@ fun CurationDetailScreen(
     }
     val linksState = detailViewModel.links.collectAsState().value
 
+    //큐레이션 디테일 사용자 정보 전달.
+    LaunchedEffect(curationId) {
+        detailViewModel.loadCurationDetail(curationId)
+    }
+
+
+    val detailState = detailViewModel.detail.collectAsState().value
+
     val monthLabel = remember {
         java.time.LocalDate.now()
             .format(java.time.format.DateTimeFormatter.ofPattern("M월", java.util.Locale.KOREAN))
@@ -110,7 +121,8 @@ fun CurationDetailScreen(
         nickname = finalNickname,
         monthLabel = monthLabel,
         linksState = linksState,
-        onBack = onBack
+        onBack = onBack,
+        detailState = detailState
     )
 }
 
@@ -120,7 +132,8 @@ private fun CurationDetailScreenContent(
     nickname: String,
     monthLabel: String,
     linksState: CurationLinksUiState,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    detailState: CurationDetailUiState
 ) {
     val uri = LocalUriHandler.current
     Column(
@@ -135,7 +148,8 @@ private fun CurationDetailScreenContent(
         HighlightCard(
             nickname = nickname,
             monthLabel = monthLabel,
-            onBack = onBack
+            onBack = onBack,
+            detailState = detailState
         )
 
         Spacer(Modifier.height(16.dp))
@@ -168,12 +182,13 @@ private fun CurationDetailScreenContent(
 private fun HighlightCard(
     nickname: String,
     monthLabel: String,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    detailState: CurationDetailUiState
 ) {
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(272.dp)
+            .height(268.dp)
     ) {
         // 배경 단색 (피그마 CB59EB)
         Box(
@@ -215,7 +230,7 @@ private fun HighlightCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 60.dp)
+                .padding(start = 16.dp, end = 16.dp, top = 70.dp)
                 .align(Alignment.TopStart)
         ) {
             Spacer(Modifier.height(12.dp))
@@ -242,6 +257,11 @@ private fun HighlightCard(
             Spacer(Modifier.height(16.dp))
         }
 
+        // 현재 날짜에서 전달 구하기
+        val prevMonthLabel = LocalDate.now()
+            .minusMonths(1)
+            .format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
+
         // 본문
         Column(
             modifier = Modifier
@@ -250,7 +270,7 @@ private fun HighlightCard(
                 .padding(start = 16.dp, end = 16.dp, top = 36.dp)
         ) {
             Text(
-                text = "링큐 큐레이션  |  2025년 ${monthLabel}호",
+                text = "링큐 큐레이션  |  2025년 ${prevMonthLabel}호",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Bold,
@@ -259,12 +279,23 @@ private fun HighlightCard(
                 color = LocalColorTheme.current.white
             )
             Spacer(Modifier.height(8.dp))
+//            Text(
+//                text = "생각은 많은데 정리가 안 되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
+//                style = MaterialTheme.typography.bodyMedium.copy(
+//                    fontFamily = Paperlogy,
+//                    fontWeight = FontWeight.Medium,
+//                    fontSize = 16.sp
+//                ),
+//                color = LocalColorTheme.current.white
+//            )
             Text(
-                text = "생각은 많은데 정리가 안 되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
+                text = run {
+                    val fromApi = replaceNickname(detailState.headerMent, nickname)
+                    if (fromApi.isNotBlank()) fromApi
+                    else "생각은 많은데 정리가 안 되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!"
+                },
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
+                    fontFamily = Paperlogy, fontWeight = FontWeight.Medium, fontSize = 16.sp
                 ),
                 color = LocalColorTheme.current.white
             )
@@ -278,17 +309,58 @@ private fun HighlightCard(
                 ),
                 color = LocalColorTheme.current.white
             )
+//            Spacer(Modifier.height(8.dp))
+//            Row(verticalAlignment = Alignment.CenterVertically) {
+//                EmotionChip("#슬픔")
+//                Spacer(Modifier.width(8.dp))
+//                EmotionChip("#커리어고민")
+//                Spacer(Modifier.width(8.dp))
+//                EmotionChip("#짜증")
+//            }
+//            Spacer(Modifier.height(8.dp))
             Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                EmotionChip("#슬픔")
-                Spacer(Modifier.width(8.dp))
-                EmotionChip("#커리어고민")
-                Spacer(Modifier.width(8.dp))
-                EmotionChip("#짜증")
+            when {
+                detailState.loading -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        repeat(3) {
+                            Box(
+                                Modifier
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(LocalColorTheme.current.white.copy(alpha = 0.25f))
+                                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                            ) { Text(" ", color = LocalColorTheme.current.white) }
+                            if (it != 2) Spacer(Modifier.width(8.dp))
+                        }
+                    }
+                }
+                detailState.topTags.isNotEmpty() -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        detailState.topTags.take(3).forEachIndexed { idx, tag ->
+                            EmotionChip("#$tag")
+                            if (idx != detailState.topTags.lastIndex) Spacer(Modifier.width(8.dp))
+                        }
+                    }
+                }
+                else -> {
+                    // 폴백: 기존 더미 유지
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        EmotionChip("#슬픔")
+                        Spacer(Modifier.width(8.dp))
+                        EmotionChip("#커리어고민")
+                        Spacer(Modifier.width(8.dp))
+                        EmotionChip("#짜증")
+                    }
+                }
             }
             Spacer(Modifier.height(8.dp))
         }
     }
+}
+private fun replaceNickname(text: String?, nickname: String): String {
+    if (text.isNullOrBlank()) return ""
+    return text.replace("(닉네임)", nickname)
+        .replace("{닉네임}", nickname)
+        .replace("\$닉네임", nickname)
 }
 
 /* =============================================================================
@@ -883,12 +955,19 @@ private fun PreviewCurationDetailScreen() {
             categories = listOf("뉴스")
         )
     )
+    val demoDetail = CurationDetailUiState(
+        loading = false,
+        topTags = listOf("설렘", "통학 중", "공부 중"),
+        headerMent = "세나님의 하루가 반짝였던 순간이에요. 그 감정에 어울리는 콘텐츠를 추천해요.",
+        footerMent = "설렘은 가장 강력한 동기부여예요. 지금, 그 에너지를 믿어보세요."
+    )
 
     Surface {
         CurationDetailScreenContent(
             nickname = "세나",
             monthLabel = "8월",
-            linksState = CurationLinksUiState(loading = false, items = demo)
+            linksState = CurationLinksUiState(loading = false, items = demo),
+            detailState = demoDetail
         )
     }
 }
