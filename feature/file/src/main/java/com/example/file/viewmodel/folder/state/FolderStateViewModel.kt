@@ -8,9 +8,10 @@ import androidx.lifecycle.ViewModel
 import com.example.core.model.FolderSimpleInfo
 
 enum class FolderState {
-    TOP,    // 최상위 폴더(TopFolderGrid)
-    BOTTOM, // 하위 폴더(BottomFolderGrid)
-    LINKS    // 링크 목록(LinksGrid)
+    TOP,        // 최상위 폴더(TopFolderGrid)
+    BOTTOM,     // 하위 폴더(BottomFolderGrid)
+    LINKS,      // 링크 목록(LinksGrid)
+    SHARED,     // 공유 폴더(SharedFolderGrid)
 }
 
 // FolderState 뷰 모델
@@ -36,6 +37,9 @@ class FolderStateViewModel : ViewModel() {
     fun updateSelectedBottomFolder(newFolder: FolderSimpleInfo?) {
         selectedBottomFolder = newFolder
     }
+
+    val isEditable: Boolean
+        get() = currentFolderState in listOf(FolderState.TOP, FolderState.BOTTOM)
 
     // 대분류 폴더 메뉴 가시성 상태
     var topMenuExpanded by mutableStateOf(false)

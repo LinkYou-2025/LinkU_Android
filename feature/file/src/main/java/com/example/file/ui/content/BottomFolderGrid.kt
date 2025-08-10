@@ -106,9 +106,16 @@ fun BottomFolderGrid(
                             indication = null,
                             interactionSource = interactionSource,
                             onClick = {
-                                fileViewModel.getLinksFolders(folder.folderId)
-                                folderStateViewModel.updateSelectedBottomFolder(folder)
-                                folderStateViewModel.updateFolderState(FolderState.LINKS)
+                                if(!editStateViewModel.isEditMode) {
+                                    // 기본 상태
+                                    fileViewModel.getLinksFolders(folder.folderId)
+                                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                                    folderStateViewModel.updateFolderState(FolderState.LINKS)
+                                }else{
+                                    // 수정 상태
+                                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                                    folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                                }
                             },
                             onLongClick = {
                                 visible = true

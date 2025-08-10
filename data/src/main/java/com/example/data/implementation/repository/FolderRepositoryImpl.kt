@@ -200,8 +200,8 @@ class FolderRepositoryImpl @Inject constructor(
                         categoryId = this.categoryId,
                         categoryName = this.categoryName,
                         parentFolderId = this.parentFolderId,
-                        createdAt = this.createdAt?.let{OffsetDateTime.parse(it)},
-                        updatedAt = this.updatedAt?.let{OffsetDateTime.parse(it)},
+                        createdAt = this.createdAt,
+                        updatedAt = this.updatedAt,
                     )
                 }
         }catch (e: Exception){
@@ -235,8 +235,8 @@ class FolderRepositoryImpl @Inject constructor(
                     categoryId = this.categoryId,
                     categoryName = this.categoryName,
                     parentFolderId = this.parentFolderId,
-                    createdAt = this.createdAt?.let{OffsetDateTime.parse(it)},
-                    updatedAt = this.updatedAt?.let{OffsetDateTime.parse(it)},
+                    createdAt = this.createdAt,
+                    updatedAt = this.updatedAt,
                 )
             }
         }catch (e: Exception){

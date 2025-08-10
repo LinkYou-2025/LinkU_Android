@@ -120,6 +120,9 @@ fun FileScreen(
                                 folderStateViewModel = folderStateViewModel,
                             )
                         }
+                        FolderState.SHARED -> {
+                            // SharedFolderGrid
+                        }
                     }
                 }
             }
@@ -161,6 +164,7 @@ fun FileScreen(
         }
     }
 
+    // ---------- bottom sheets ----------
     // 검색창 탑 시트
     FileSearchBarTopSheet(
         visible = folderStateViewModel.searchTopSheetVisible,
@@ -182,6 +186,9 @@ fun FileScreen(
 
     // 중분류 폴더 수정 바텀 시트
     BottomFolderEditBottomSheet(
+        onTextDeliver = {
+            fileViewModel.updateSubfolder(folderStateViewModel.selectedBottomFolder!!.folderId,it)
+        },
         folderStateViewModel = folderStateViewModel
     )
 
@@ -190,6 +197,12 @@ fun FileScreen(
         fileViewModel = fileViewModel,
         folderStateViewModel = folderStateViewModel
     )
+
+    // 폴더 공유 바텀 시트
+    //ShareBottomSheet(
+    //    folderStateViewModel = folderStateViewModel
+    //)
+    // ---------- bottom sheets ----------
 }
 
 @Preview(

@@ -269,6 +269,45 @@ class FileViewModel @Inject constructor(
 
         return result
     }
+
+    // 소분류 폴더 이름 수정
+    fun updateSubfolder(folderId: Long, folderName: String){
+        Log.d("FileViewModel", "updateSubfolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "updateSubfolder launch")
+
+            _loading.value = true
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "updateSubfolder try")
+
+                folderRepository.updateSubfolder(folderId, folderName)
+
+                Log.d("FileViewModel", "updateSubfolder try result")
+
+                _subFolders.update { list ->
+                    list.map { folder ->
+                        if (folder.folderId == folderId) {
+                            folder.copy(folderName = folderName)
+                        } else {
+                            folder
+                        }
+                    }
+                }
+            }catch (e: Exception){
+                Log.d("FileViewModel", "updateSubfolder catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "updateSubfolder finally")
+
+                _loading.value = false
+            }
+        }
+        Log.d("FileViewModel", "updateSubfolder return")
+    }
     // ---------- update method ----------
 
     // ---------- delete method ----------

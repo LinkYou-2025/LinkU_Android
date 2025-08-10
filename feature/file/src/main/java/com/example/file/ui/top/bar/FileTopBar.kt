@@ -23,10 +23,6 @@ import androidx.compose.ui.unit.sp
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.content.categories
-import com.example.file.viewmodel.edit.state.EditStateViewModel
-import com.example.file.viewmodel.folder.state.FolderState
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
@@ -37,6 +33,9 @@ import com.example.file.ui.top.bar.component.EditButton
 import com.example.file.ui.top.bar.component.FileSearchBar
 import com.example.file.ui.top.bar.component.TopFolderListLayout
 import com.example.file.ui.top.bar.component.TopFolderListMenu
+import com.example.file.viewmodel.edit.state.EditStateViewModel
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 
 @Composable
@@ -175,19 +174,21 @@ fun FileTopBar(
         )
 
         // 6. 수정 버튼 (오른쪽 아래)
-        Box(
-            // 오른쪽 위에 정렬(실제 위치는 아래임)
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                // 오른쪽 30dp, 위 165dp 여백
-                .padding(end = 30.dp, top = 165.dp)
+        if(folderStateViewModel.isEditable){
+            Box(
+                // 오른쪽 위에 정렬(실제 위치는 아래임)
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    // 오른쪽 30dp, 위 165dp 여백
+                    .padding(end = 30.dp, top = 165.dp)
                 //.noRippleClickable { onOpenBottomSheet() },
-        ) {
-            // 수정 버튼 컴포저블
-            EditButton(
-                editStateViewModel = editStateViewModel,
-                folderViewModel = folderStateViewModel
-            )
+            ) {
+                // 수정 버튼 컴포저블
+                EditButton(
+                    editStateViewModel = editStateViewModel,
+                    folderViewModel = folderStateViewModel
+                )
+            }
         }
     }
 

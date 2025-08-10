@@ -28,7 +28,7 @@ fun EditButton(
     Text(
         modifier = Modifier
             .noRippleClickable {
-                if (folderViewModel.currentFolderState != FolderState.LINKS){
+                if (folderViewModel.isEditable){
                     editStateViewModel.updateEditMode(!editStateViewModel.isEditMode)
                 }
             },
