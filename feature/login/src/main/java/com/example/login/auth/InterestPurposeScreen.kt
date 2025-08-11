@@ -366,7 +366,7 @@ private fun PurposeCloudScrollable(
     // 우측 끝 좌표로 스크롤 캔버스 폭 계산 (여유 80dp)
     val canvasWidth = remember(purposes, shiftX) {
         val right = purposes.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-        right + 80.dp
+        right + 80.dp //스크롤 좌우 간격
     }
 
     val scroll = rememberScrollState()
@@ -375,7 +375,8 @@ private fun PurposeCloudScrollable(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
-            .horizontalScroll(scroll)
+            .horizontalScroll(scroll),
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
