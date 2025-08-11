@@ -27,7 +27,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -66,18 +68,32 @@ fun TextFieldFileBottomSheet(
     isEditable: Boolean = false,
     visible: Boolean,
     onTextDeliver: (String) -> Unit = {},
+    onColorIdDeliver: (Int) -> Unit = {},
     onDismiss: () -> Unit,
 ){
+    var colorId by remember { mutableIntStateOf(-1) }
     var expanded by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(Gray300) }
     var text by remember { mutableStateOf("") }
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            text = "" // 바텀 시트 열릴 때 초기화
+        }
+    }
 
     FileBottomSheet(
         title = title,
         body = body,
         buttonText = "저장",
         visible = visible,
-        onOkay = { onTextDeliver(text) },
+        isShareMode = colorId == -1,
+        onOkay = {
+            onTextDeliver(text)
+            if(isEditable) {
+                onColorIdDeliver(colorId)
+            }
+        },
         onDismiss = {
             selectedColor = Gray300
             expanded = false
@@ -93,6 +109,7 @@ fun TextFieldFileBottomSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             BasicTextField(
+                enabled = !isEditable,
                 value = text,
                 onValueChange = { text = it },
                 textStyle = TextStyle(
@@ -202,7 +219,7 @@ fun TextFieldFileBottomSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(7.5.dp)
                 ) {
-                    for (colorStyle in CategoryColorStyle.categoryStyleList) {
+                    for ((i, colorStyle) in CategoryColorStyle.categoryStyleList.withIndex()) {
 
                         Box(
                             modifier = Modifier.fillMaxWidth()
@@ -213,7 +230,10 @@ fun TextFieldFileBottomSheet(
                                     .clip(CircleShape)
                                     .background(colorStyle.color4)
                                     .align(Alignment.Center)
-                                    .noRippleClickable { selectedColor = colorStyle.color4 },
+                                    .noRippleClickable {
+                                        selectedColor = colorStyle.color4
+                                        colorId = i
+                                   },
                                 contentAlignment = Alignment.Center
                             ) {}
                         }

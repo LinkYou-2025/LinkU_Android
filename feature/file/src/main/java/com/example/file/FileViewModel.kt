@@ -3,12 +3,16 @@ package com.example.file
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.core.model.CategorySimpleInfo
+import com.example.core.model.CategoryColorList
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.FolderRepository
+import com.example.core.repository.UserRepository
 import com.example.data.api.dto.server.*
+import com.example.data.preference.AuthPreference
+import com.example.file.ui.theme.CategoryColorStyle
+import com.example.file.ui.theme.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -18,11 +22,28 @@ import javax.inject.Inject
 class FileViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val folderRepository: FolderRepository,
+    private val userRepository: UserRepository,
+    private val authPreference: AuthPreference
 ) : ViewModel() {
 
+    // *닉네임*
+    private val _nickname = MutableStateFlow<String?>(null)
+    val nickname: StateFlow<String?> = _nickname.asStateFlow()
+
+    // 공유 폴더 리스트
+    private val _sharedTopFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+    val sharedTopFolders: StateFlow<List<FolderSimpleInfo>> = _sharedTopFolders.asStateFlow()
+
+    private val _sharedBottomFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+    val sharedBottomFolders: StateFlow<List<FolderSimpleInfo>> = _sharedBottomFolders.asStateFlow()
+
     // 1. 카테고리 리스트
-    private val _categoryList = MutableStateFlow<List<CategorySimpleInfo>>(emptyList())
-    val categoryList: StateFlow<List<CategorySimpleInfo>> = _categoryList.asStateFlow()
+    private val _categoryList = MutableStateFlow<List<CategoryColorList>>(emptyList())
+    val categoryList: StateFlow<List<CategoryColorList>> = _categoryList.asStateFlow()
+
+    // 1-1. 색깔 리스트
+    private val _categoryColorMap = MutableStateFlow<Map<String, CategoryColorStyle>>(emptyMap())
+    val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
 
     // 2. 내 폴더 트리
     private val _folderTree = MutableStateFlow<List<FolderTreeResponseDTO>>(emptyList())
@@ -58,14 +79,59 @@ class FileViewModel @Inject constructor(
     private val _notCategorizationLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
     val notCategorizationLinks: StateFlow<List<LinkSimpleInfo>> = _notCategorizationLinks.asStateFlow()
 
-    // 6. 로딩/에러 상태 예시 (원하면 커스텀하게)
-    private val _loading = MutableStateFlow(false)
-    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+    // 6. 로딩/에러 상태
+    private val _loadingCount = MutableStateFlow(0)
 
+    fun startLoading() {
+        _loadingCount.update { it + 1 }
+    }
+
+    fun stopLoading() {
+        _loadingCount.update { count -> (count - 1).coerceAtLeast(0) }
+    }
+
+    // 6-1. 로딩중
+    private val _loading = _loadingCount
+        .map { it > 0 } // 카운트가 0보다 크면 true
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
+    val loading: StateFlow<Boolean> = _loading
+
+    // 6-2. 에러 메시지
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     // ---------- get method ----------
+    // 유저 닉네임 가져오기
+    fun loadNickname() {
+        Log.d("FileViewModel", "loadNickname")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "loadNickname launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try{
+                val userId = authPreference.userId!!
+
+                val name = userRepository.getUserInfo(userId)
+                _nickname.value = name
+            }catch (e: Exception){
+                Log.d("FileViewModel", "loadNickname catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "loadNickname finally")
+
+                stopLoading()
+            }
+
+            Log.d("FileViewModel", "loadNickname end")
+        }
+        Log.d("FileViewModel", "loadNickname return")
+    }
+
     // 중분류 전체 불러오기
     fun getParentfolders() {
         Log.d("FileViewModel", "getParentfolders")
@@ -73,7 +139,7 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "getParentfolders launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -93,7 +159,7 @@ class FileViewModel @Inject constructor(
             } finally {
                 Log.d("FileViewModel", "getParentfolders finally")
 
-                _loading.value = false
+                stopLoading()
 
             }
 
@@ -102,13 +168,45 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "getParentfolders return")
     }
 
+    // 중분류 색상 리스트 불러오기
+    fun getCategoryColor(){
+        Log.d("FileViewModel", "getCategoryColor")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "getCategoryColor launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getCategoryColor try")
+
+                _categoryColorMap.value = categoryRepository.getCategoryColor().toCategoryColorStyleMap()
+
+                Log.d("FileViewModel", "getCategoryColor try result: ${_categoryColorMap.value}")
+
+            }catch (e: Exception){
+                Log.d("FileViewModel", "getCategoryColor catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "getCategoryColor finally")
+
+                stopLoading()
+            }
+        }
+
+        Log.d("FileViewModel", "getCategoryColor return")
+    }
+
     // 하위 폴더 전체 불러오기
     fun getSubfolders(parentFolderId: Long) {
         Log.d("FileViewModel", "getSubfolders")
+
         viewModelScope.launch {
             Log.d("FileViewModel", "getSubfolders launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -128,20 +226,57 @@ class FileViewModel @Inject constructor(
             } finally {
                 Log.d("FileViewModel", "getSubfolders finally")
 
-                _loading.value = false
+                stopLoading()
             }
         }
         Log.d("FileViewModel", "getSubfolders return")
     }
 
     // 링크 불러오기
+    fun getLinks(folderId: Long) {
+        Log.d("FileViewModel", "getLinks")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "getLinks launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getLinks try")
+
+                _subFoldersCursor.value = folderRepository.getLinksFolders(
+                    folderId = folderId,
+                    limit = null,
+                    cursor = _subFoldersCursor.value,
+                    onGetFolders = { },
+                    onGetLinks = { list -> _notCategorizationLinks.value = list.map { it.copy() } }
+                )
+
+                Log.d("FileViewModel", "getLinks try result: ${_notCategorizationLinks.value}")
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "getLinks catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "getLinks finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "getLinks return")
+    }
+
+    // 링크, 폴더 불러오기
     fun getLinksFolders(folderId: Long) {
         Log.d("FileViewModel", "getNotCategorizationLinks")
 
         viewModelScope.launch {
             Log.d("FileViewModel", "getNotCategorizationLinks launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -151,8 +286,8 @@ class FileViewModel @Inject constructor(
                     folderId = folderId,
                     limit = null,
                     cursor = _subFoldersCursor.value,
-                    onGetFolders = { _subFolders.value = it },
-                    onGetLinks = { _notCategorizationLinks.value = it }
+                    onGetFolders = { list -> _subFolders.value = list.map { it.copy() } },
+                    onGetLinks = { list -> _notCategorizationLinks.value = list.map { it.copy() } }
                 )
 
                 Log.d("FileViewModel", "getNotCategorizationLinks try result: ${_notCategorizationLinks.value}")
@@ -165,12 +300,51 @@ class FileViewModel @Inject constructor(
             } finally {
                 Log.d("FileViewModel", "getNotCategorizationLinks finally")
 
-                _loading.value = false
+                stopLoading()
             }
         }
         Log.d("FileViewModel", "getNotCategorizationLinks return")
     }
     // ---------- get method ----------
+
+    // ---------- fetch method ----------
+    // 외부로 소분류 폴더들을 반환하는 메소드
+    fun fetchSubfolders(parentFolderId: Long):List<FolderSimpleInfo>{
+        Log.d("FileViewModel", "fetchSubfolders")
+
+        var folders: List<FolderSimpleInfo> = emptyList()
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "fetchSubfolders launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "fetchSubfolders try")
+
+                folders = folderRepository.getSubfolders(parentFolderId)
+
+                Log.d("FileViewModel", "fetchSubfolders try result: $folders")
+
+            }catch (e: Exception){
+                Log.d("FileViewModel", "fetchSubfolders catch: $e.message")
+
+                _errorMessage.value = e.message
+
+                folders = emptyList()
+            }
+            finally {
+                Log.d("FileViewModel", "fetchSubfolders finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "fetchSubfolders return")
+
+        return folders
+    }
+    // ---------- fetch method ----------
 
     // ---------- create method ----------
     fun createSubfolder(
@@ -182,7 +356,7 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "createSubfolder launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -209,7 +383,7 @@ class FileViewModel @Inject constructor(
             } finally {
                 Log.d("FileViewModel", "createSubfolder finally")
 
-                _loading.value = false
+                stopLoading()
             }
         }
         Log.d("FileViewModel", "createSubfolder return")
@@ -217,6 +391,51 @@ class FileViewModel @Inject constructor(
     // ---------- create method ----------
 
     // ---------- update method ----------
+    // 중분류 폴더 색상 수정
+    fun updateCategoryColor(
+        categoryName: String,
+        colorId: Long,
+        colorStyle: CategoryColorStyle
+    ){
+        Log.d("FileViewModel", "updateCategoryColor")
+
+        val categoryId = (categoryColorMap.value.keys.indexOf(categoryName)+1).toLong()
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "updateCategoryColor launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "updateCategoryColor try")
+
+                categoryRepository.updateCategoryColor(categoryId, colorId)
+
+                _categoryColorMap.update { map ->
+                    map.mapValues { (key, value) ->
+                        if (key == categoryName) {
+                            colorStyle
+                        } else {
+                            value
+                        }
+                    }
+                }
+
+                Log.d("FileViewModel", "updateCategoryColor try result")
+
+            }catch (e: Exception){
+                Log.d("FileViewModel", "updateCategoryColor catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "updateCategoryColor finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "updateCategoryColor return")
+    }
     // 북마크 등록/해제
     fun updateBookmark(
         folderId: Long,
@@ -229,7 +448,7 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "updateBookmark launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -260,7 +479,7 @@ class FileViewModel @Inject constructor(
             }finally {
                 Log.d("FileViewModel", "updateBookmark finally")
 
-                _loading.value = false
+                stopLoading()
             }
 
             Log.d("FileViewModel", "updateBookmark end")
@@ -277,7 +496,7 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "updateSubfolder launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -303,7 +522,7 @@ class FileViewModel @Inject constructor(
             }finally {
                 Log.d("FileViewModel", "updateSubfolder finally")
 
-                _loading.value = false
+                stopLoading()
             }
         }
         Log.d("FileViewModel", "updateSubfolder return")
@@ -318,7 +537,7 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "deleteSubfolder launch")
 
-            _loading.value = true
+            startLoading()
             _errorMessage.value = null
 
             try {
@@ -337,7 +556,7 @@ class FileViewModel @Inject constructor(
             } finally {
                 Log.d("FileViewModel", "deleteSubfolder finally")
 
-                _loading.value = false
+                stopLoading()
             }
 
             Log.d("FileViewModel", "deleteSubfolder end")
@@ -345,4 +564,37 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "deleteSubfolder return")
     }
     // ---------- delete method ----------
+
+    // ---------- share method ----------
+    // 폴더 공유하기
+    fun shareFolder(folderId: Long){
+        Log.d("FileViewModel", "shareFolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "shareFolder launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "shareFolder try")
+
+                folderRepository.setFolderViewerPermission(folderId)
+
+                Log.d("FileViewModel", "shareFolder try result")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "shareFolder catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "shareFolder finally")
+
+                stopLoading()
+            }
+
+            Log.d("FileViewModel", "shareFolder end")
+        }
+        Log.d("FileViewModel", "shareFolder return")
+    }
+    // ---------- share method ----------
 }

@@ -2,7 +2,8 @@ package com.example.data.api.dto.server
 
 import com.squareup.moshi.Json
 
-data class UserCategoryColorResponseDTO(
+// com.example.core.model.CategoryColorList -> 구조를 공유
+data class CategoryColorListResponseDTO(
 
     @Json(name = "categoryId")
     val categoryId: Long,
@@ -24,4 +25,5 @@ data class UserCategoryColorResponseDTO(
 
     @Json(name = "colorCode4")
     val colorCode4: String
+
 )

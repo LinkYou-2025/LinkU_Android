@@ -108,12 +108,12 @@ fun BottomFolderGrid(
                             onClick = {
                                 if(!editStateViewModel.isEditMode) {
                                     // 기본 상태
-                                    fileViewModel.getLinksFolders(folder.folderId)
+                                    fileViewModel.getLinks(folder.folderId)
                                     folderStateViewModel.updateSelectedBottomFolder(folder)
                                     folderStateViewModel.updateFolderState(FolderState.LINKS)
                                 }else{
                                     // 수정 상태
-                                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                                    folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
                                     folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
                                 }
                             },
@@ -123,8 +123,10 @@ fun BottomFolderGrid(
                         ),
                     contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
                 ) {
+                    val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]
+
                     BottomFolderItemLayout(
-                        categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
+                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         categoryName = folder.folderName,
                         editStateViewModel = editStateViewModel
                     )
