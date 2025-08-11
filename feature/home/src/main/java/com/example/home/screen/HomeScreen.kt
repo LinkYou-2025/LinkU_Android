@@ -3,6 +3,7 @@ package com.example.home.screen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -38,13 +40,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import com.example.core.model.LinkSimpleInfo
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.home.R
@@ -60,22 +66,96 @@ data class LinkItem(
     val aiSummarized: Boolean  // AI 요약 여부
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
-    userName: String
+    userName: String,
+    showRecommendations: Boolean,
+    recommendedLinks: List<LinkSimpleInfo>,
+    isRecommending: Boolean,
+    onRecommendRequest: (emotionId: Long, situationId: Long, size: Int) -> Unit,
 ) {
+    var showRecs by remember { mutableStateOf(showRecommendations) }
+    LaunchedEffect(showRecommendations) { showRecs = showRecommendations }
+
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
     var isTopBarExpanded by remember { mutableStateOf(true) }
-    var selectedEmotion by remember { mutableStateOf<String?>(null) }
-    var selectedTask by remember { mutableStateOf<String?>(null) }
+    var selectedEmotion by remember { mutableStateOf<Long?>(null) }
+    var selectedTask by remember { mutableStateOf<Long?>(null) }
+
+    val emotionIdMap = mapOf(
+        1L to "즐거움",
+        2L to "평온",
+        3L to "설렘",
+        4L to "슬픔",
+        5L to "짜증",
+        6L to "분노"
+    )
+
+    fun emotionLabelToId(label: String?): Long? =
+        emotionIdMap.entries.firstOrNull { it.value == label }?.key
+
+    fun emotionIdToLabel(id: Long?): String? = emotionIdMap[id]
+
+    val taskIdMap = mapOf(
+        1L to "트렌드 확인",
+        2L to "휴식",
+        3L to "집중",
+        4L to "학습",
+        5L to "운동",
+        6L to "업무",
+        7L to "여행",
+        8L to "기타"
+    )
+
+    fun taskLabelToId(label: String?): Long? =
+        taskIdMap.entries.firstOrNull { it.value == label }?.key
+
+    fun taskIdToLabel(id: Long?): String? = taskIdMap[id]
+
+//    var showRecommendations by remember { mutableStateOf(false) }
+//    var recommendedLinks by remember { mutableStateOf<List<LinkItem>>(emptyList()) }
+
+    var showNeedMoreNotice by remember { mutableStateOf(false) }
 
     // 🔹 샘플 링크 데이터 (향후 실제 데이터로 대체)
-    // 예: listOf("https://example.com", "https://another.com")
     val linkList = remember {  // 데이터가 있는 경우
         mutableStateOf(
             listOf(
+                LinkItem(
+                    imageResId = R.drawable.sample_drive,
+                    title = "서울 근교 드라이브 코스 TOP5",
+                    tags = listOf("드라이브", "서울근교"),
+                    siteIconResId = R.drawable.ic_naver,
+                    siteName = "NAVER",
+                    aiSummarized = false
+                ),
+                LinkItem(
+                    imageResId = null,
+                    title = "글램핑 예약, 누구보다 싸게하기",
+                    tags = listOf("여행", "글램핑"),
+                    siteIconResId = R.drawable.ic_naverblog,
+                    siteName = "BLOG",
+                    aiSummarized = true
+                ),
+                LinkItem(
+                    imageResId = R.drawable.sample_drive,
+                    title = "서울 근교 드라이브 코스 TOP5",
+                    tags = listOf("드라이브", "서울근교"),
+                    siteIconResId = R.drawable.ic_naver,
+                    siteName = "NAVER",
+                    aiSummarized = false
+                ),
+                LinkItem(
+                    imageResId = null,
+                    title = "글램핑 예약, 누구보다 싸게하기",
+                    tags = listOf("여행", "글램핑"),
+                    siteIconResId = R.drawable.ic_naverblog,
+                    siteName = "BLOG",
+                    aiSummarized = true
+                ),
                 LinkItem(
                     imageResId = R.drawable.sample_drive,
                     title = "서울 근교 드라이브 코스 TOP5",
@@ -104,26 +184,82 @@ fun HomeScreen(
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
     }
 
+    // String 키 → 서버 ID 매핑 (필요 시 서버 정의에 맞춰 숫자만 바꾸면 됨)
+    fun emotionKeyToId(key: String?): Long? = when (key) {
+        "joy" -> 1L
+        "calm" -> 2L
+        "excitement" -> 3L
+        "sadness" -> 4L
+        "irritation" -> 5L
+        "anger" -> 6L
+        else -> null
+    }
+    fun taskNameToSituationId(task: String?): Long? = when (task) {
+        "트렌드 확인" -> 1L
+        "과제 중"   -> 2L
+        "쇼핑 중"   -> 3L
+        "데이트 중" -> 4L
+        "통학 중"   -> 5L
+        "알바 중"   -> 6L
+        "휴식 중"   -> 7L
+        "자기 전"   -> 8L
+        else -> null
+    }
+
+//    // 추천 버튼 클릭 → ID 매핑해서 상위 콜백 호출
+//    val onRecommendClick: () -> Unit = {
+//        if (selectedEmotion != null && selectedTask != null) {
+//            onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
+//            showRecs = true
+//            isTopBarExpanded = false
+//            coroutineScope.launch { listState.animateScrollToItem(1) }
+//        }
+//    }
+    // 추천 버튼 클릭 → 사전검증(링크 3개 미만이면 안내만), 아니면 API 호출
+    val onRecommendClick: () -> Unit = {
+        val savedCount = linkList.value.size  // TODO: 실제 "저장한 링크 수"로 교체
+        if (savedCount <= 2) {
+            showNeedMoreNotice = true
+            showRecs = false
+            coroutineScope.launch { listState.animateScrollToItem(1) }
+        } else if (selectedEmotion != null && selectedTask != null) {
+            showNeedMoreNotice = false
+            onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
+            showRecs = true
+            isTopBarExpanded = false
+            coroutineScope.launch { listState.animateScrollToItem(1) }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(LocalColorTheme.current.gray[100]),
         state = listState
     ) {
-        item {
+        stickyHeader {
             TopBar(
                 isExpanded = isTopBarExpanded,
                 selectedEmotion = selectedEmotion,
                 selectedTask = selectedTask,
-                onEmotionChange = { selectedEmotion = it },
-                onTaskChange = { selectedTask = it },
+                onEmotionChange = { id -> selectedEmotion = id },
+                onTaskChange = { id -> selectedTask = id },
                 onExpandRequest = {
-                    coroutineScope.launch {
-                        listState.animateScrollToItem(0)
-                    }
-                    isTopBarExpanded = true
+                    // ▼ 아래 화살표 클릭 시: 추천 배지/멘트 숨기고 선택 UI 다시 보이게
+                    showRecs = false          // 배지/추천 모드 끄기
+                    selectedEmotion = null     // 감정 선택 초기화
+                    selectedTask = null        // 상황 선택 초기화
+                    showNeedMoreNotice = false  // 문구 초기화
+
+                    isTopBarExpanded = true    // 상단 영역 펼치기
+                    coroutineScope.launch { listState.animateScrollToItem(0) } // 맨 위로
                 },
-                userName = userName
+                userName = userName,
+                recommendEnabled = (selectedEmotion != null && selectedTask != null && !isRecommending),
+                onRecommendClick = onRecommendClick,
+                showRecommendations = showRecs,
+                selectedEmotionLabel = emotionIdToLabel(selectedEmotion),
+                selectedTaskLabel = taskIdToLabel(selectedTask)
             )
         }
 
@@ -131,117 +267,275 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.padding(20.dp, 24.dp)
             ) {
+                val itemsToRender = if (showRecs) recommendedLinks.map { it.toLinkItem() }
+                                    else linkList.value
+                val titleText = if (showRecs) "세나님의 오늘에 어울리는 콘텐츠예요!"
+                                else "${userName}님이 최근에 열람한 링크"
 
-                // AI 추천 분류 개발 필요 (멘트는 "세나님의 오늘에 어울리는 콘텐츠예요")
-                if (linkList.value.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(LocalColorTheme.current.gray[100])
-                            .padding(top = 150.dp, bottom = 217.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
+                when {
+                    // 1) 링크 3개 미만 안내
+                    showNeedMoreNotice -> {
                         Text(
-                            text = "최근에 열람한 링크가 없어요!",
+                            text = "추천을 위해 최소 3개의 링크가 필요해요.\n지금 링크 하나 저장해볼까요?",
                             style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
-                            color = LocalColorTheme.current.gray[600]
+                            color = LocalColorTheme.current.gray[700]
                         )
                     }
-                } else {
-                    Text(
-                        text = "${userName}님이 최근에 열람한 링크",
-                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                        color = LocalColorTheme.current.black
-                    )
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    linkList.value.forEach { link ->
-                        Row(
+                    // 2) 추천 모드 + 분류 중
+                    showRecs && isRecommending -> {
+                        Text(
+                            text = "AI가 ${userName}님의 감정과 상황에 맞춰 추천할 링크를 분류하고 있어요!",
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            color = LocalColorTheme.current.gray[700]
+                        )
+                    }
+                    // 3) 일반 모드에서 최근 없음
+                    !showRecs && itemsToRender.isEmpty() -> {
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(LocalColorTheme.current.white)
-                                .padding(10.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(LocalColorTheme.current.gray[100])
+                                .padding(top = 150.dp, bottom = 217.dp),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box() {
-                                Image(
-                                    painter = painterResource(id = link.imageResId ?: R.drawable.img_default),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(85.dp)
-                                        .clip(RoundedCornerShape(12.dp))
+                            Text(
+                                text = "최근에 열람한 링크가 없어요!",
+                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                                color = LocalColorTheme.current.gray[600]
+                            )
+                        }
+                    }
+                    else -> {
+                        if (itemsToRender.isEmpty()) {
+                            val emptyMsg = if (showRecs) "추천할 링크가 아직 없어요!" else "최근에 열람한 링크가 없어요!"
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(LocalColorTheme.current.gray[100])
+                                    .padding(top = 150.dp, bottom = 217.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = emptyMsg,
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                                    color = LocalColorTheme.current.gray[600]
                                 )
-
-                                // AI 요약 뱃지
-                                if (link.aiSummarized) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.ic_ai_summarize),
-                                        contentDescription = "AI 요약됨",
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .size(20.dp)
-                                            .padding(6.dp),
-                                        tint = Color.Unspecified
-                                    )
-                                }
                             }
+                        } else {
+                            Text(
+                                text = titleText,
+                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                                color = LocalColorTheme.current.black
+                            )
 
-                            Spacer(modifier = Modifier.width(14.dp))
+                            Spacer(modifier = Modifier.height(20.dp))
 
-                            Column {
-                                Column {
-                                    Text(
-                                        text = link.title,
-                                        style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                                        color = LocalColorTheme.current.black
-                                    )
+                            itemsToRender.forEach { link ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(18.dp))
+                                        .background(LocalColorTheme.current.white)
+                                        .padding(10.dp)
+                                ) {
+                                    Box() {
+                                        Image(
+                                            painter = painterResource(id = link.imageResId ?: R.drawable.img_default),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(85.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                        )
 
-                                    Spacer(modifier = Modifier.height(10.dp))
-//
-                                    Row {
-                                        link.tags.forEach { tag ->
-                                            Box(
+                                        // AI 요약 뱃지
+                                        if (link.aiSummarized) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.ic_ai_summarize),
+                                                contentDescription = "AI 요약됨",
                                                 modifier = Modifier
-                                                    .background(LocalColorTheme.current.gray[100], RoundedCornerShape(6.dp))
-                                                    .padding(horizontal = 6.dp, vertical = 3.dp)
-                                            ) {
-                                                Text(
-                                                    text = "$tag",
-                                                    style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[600])
-                                                )
-                                            }
-
-                                            Spacer(modifier = Modifier.width(5.dp))
+                                                    .align(Alignment.TopEnd)
+                                                    .size(20.dp)
+                                                    .padding(6.dp),
+                                                tint = Color.Unspecified
+                                            )
                                         }
                                     }
 
-                                    Spacer(modifier = Modifier.height(10.dp))
+                                    Spacer(modifier = Modifier.width(14.dp))
+
+                                    Column {
+                                        Column {
+                                            Text(
+                                                text = link.title,
+                                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                                color = LocalColorTheme.current.black
+                                            )
+
+                                            Spacer(modifier = Modifier.height(10.dp))
 //
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Image(
-                                            painter = painterResource(id = link.siteIconResId),
-                                            contentDescription = "사이트 아이콘",
-                                            modifier = Modifier.size(22.dp)
-                                        )
+                                            Row {
+                                                link.tags.forEach { tag ->
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .background(LocalColorTheme.current.gray[100], RoundedCornerShape(6.dp))
+                                                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "$tag",
+                                                            style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[600])
+                                                        )
+                                                    }
 
-                                        Spacer(modifier = Modifier.width(6.dp))
+                                                    Spacer(modifier = Modifier.width(5.dp))
+                                                }
+                                            }
 
-                                        Text(
-                                            text = link.siteName,
-                                            style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800])
-                                        )
+                                            Spacer(modifier = Modifier.height(10.dp))
+//
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(id = link.siteIconResId),
+                                                    contentDescription = "사이트 아이콘",
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+
+                                                Spacer(modifier = Modifier.width(6.dp))
+
+                                                Text(
+                                                    text = link.siteName,
+                                                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800])
+                                                )
+                                            }
+                                        }
                                     }
                                 }
+
+                                Spacer(modifier = Modifier.height(10.dp))
                             }
                         }
-
-                        Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
+            }
+        }
+    }
+}
+
+// 서버 모델 → 카드 UI 모델 매핑
+private fun LinkSimpleInfo.toLinkItem(): LinkItem {
+    val tags = buildList {
+        categoryType?.name?.let { add(it) }
+        emotionType?.name?.let { add(it) }
+    }.take(2)
+    val icon = when {
+        domain.contains("naver", ignoreCase = true) -> R.drawable.ic_naver
+        domain.contains("blog", ignoreCase = true)  -> R.drawable.ic_naverblog
+        domain.contains("youtube", ignoreCase = true) -> R.drawable.ic_naverblog
+        else -> R.drawable.ic_naver // 기본 아이콘 대체
+    }
+    return LinkItem(
+        imageResId = null, // 서버 이미지가 있을 경우 AsyncImage로 바꾸는 걸 권장
+        title = title,
+        tags = tags,
+        siteIconResId = icon,
+        siteName = domain.ifBlank { "LINKU" },
+        aiSummarized = false
+    )
+}
+
+@Composable
+private fun EmptyRecentBox() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(LocalColorTheme.current.gray[100])
+            .padding(top = 150.dp, bottom = 217.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "최근에 열람한 링크가 없어요!",
+            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+            color = LocalColorTheme.current.gray[600]
+        )
+    }
+}
+
+@Composable
+private fun LinkCard(link: LinkItem) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(LocalColorTheme.current.white)
+            .padding(10.dp)
+    ) {
+        Box {
+            Image(
+                painter = painterResource(id = link.imageResId ?: R.drawable.img_default),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(85.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+
+            if (link.aiSummarized) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_ai_summarize),
+                    contentDescription = "AI 요약됨",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(20.dp)
+                        .padding(6.dp),
+                    tint = Color.Unspecified
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Column {
+            Text(
+                text = link.title,
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                color = LocalColorTheme.current.black
+            )
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row {
+                link.tags.forEach { tag ->
+                    Box(
+                        modifier = Modifier
+                            .background(LocalColorTheme.current.gray[100], RoundedCornerShape(6.dp))
+                            .padding(horizontal = 6.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = tag,
+                            style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[600])
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(5.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = link.siteIconResId),
+                    contentDescription = "사이트 아이콘",
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = link.siteName,
+                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800])
+                )
             }
         }
     }
@@ -250,12 +544,17 @@ fun HomeScreen(
 @Composable
 fun TopBar(
     isExpanded: Boolean,
-    selectedEmotion: String?,
-    selectedTask: String?,
-    onEmotionChange: (String?) -> Unit,
-    onTaskChange: (String?) -> Unit,
+    selectedEmotion: Long?,
+    selectedTask: Long?,
+    onEmotionChange: (Long?) -> Unit,
+    onTaskChange: (Long?) -> Unit,
     onExpandRequest: () -> Unit,
-    userName: String
+    userName: String,
+    recommendEnabled: Boolean,
+    onRecommendClick: () -> Unit,
+    showRecommendations: Boolean,
+    selectedEmotionLabel: String?,
+    selectedTaskLabel: String?,
 ) {
 //    val deactive_maincolor = Brush.horizontalGradient(
 //        listOf(
@@ -265,13 +564,20 @@ fun TopBar(
 //    )
 
     val buttonBrush =
-        if (selectedEmotion != null && selectedTask != null) Basic.maincolor
+        if (recommendEnabled) Basic.maincolor
         else Brush.horizontalGradient(
             listOf(
                 Color(0xFF2C6FFF).copy(alpha = 0.2f),
                 Color(0xFFC800FF).copy(alpha = 0.2f)
             )
         )
+
+    val selectedBrush = Brush.horizontalGradient(
+        listOf(
+            Color(0xFF2C6FFF).copy(alpha = 0.2f),
+            Color(0xFFC800FF).copy(alpha = 0.2f)
+        )
+    )
 
     var isNoticeExist by remember { mutableStateOf(false) }
 
@@ -358,6 +664,449 @@ fun TopBar(
                 }
             }
 
+//            // 토글 되는 부분
+//            AnimatedVisibility(
+//                visible = isExpanded,
+//                enter = expandVertically(),
+//                exit = shrinkVertically()
+//            ) {
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .padding(top = 19.dp)
+//                ) {
+//                    Column {
+//                        Text(
+//                            text = "${userName}님의 감정과 상황을 알려주세요!",
+//                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+//                            color = LocalColorTheme.current.black,
+//                            modifier = Modifier.padding(start = 20.dp, end = 21.dp)
+//                        )
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(22.dp))
+//
+//                    Column {
+//                        Box {
+//                            Text(
+//                                text = "오늘의 감정은 어때요?",
+//                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+//                                color = LocalColorTheme.current.gray[700],
+//                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
+//                            )
+//                        }
+//
+//                        Spacer(modifier = Modifier.height(15.dp))
+//
+//                        EmotionSelector(selectedEmotion, onEmotionChange)
+////                        Row {
+////                            // 6가지 감정 선택 버튼
+////                            Box(
+////                                modifier = Modifier
+////                                    .size(56.dp)
+////                                    .clip(RoundedCornerShape(18.dp))
+////                                    .background(LocalColorTheme.current.gray[100])
+////                                    .padding(12.dp, 14.dp)
+////                            ) {
+////                                Text(
+////                                    text = "\uD83D\uDE00",  // 😃
+////                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+////                                )
+////                            }
+////
+////                            Spacer(modifier = Modifier.width(7.dp))
+////
+////                            Box(
+////                                modifier = Modifier
+////                                    .size(56.dp)
+////                                    .clip(RoundedCornerShape(18.dp))
+////                                    .background(LocalColorTheme.current.gray[100])
+////                                    .padding(12.dp, 14.dp)
+////                            ) {
+////                                Text(
+////                                    text = "\uD83D\uDE10",  // 😐
+////                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+////                                )
+////                            }
+////
+////                            Spacer(modifier = Modifier.width(7.dp))
+////
+////                            Box(
+////                                modifier = Modifier
+////                                    .size(56.dp)
+////                                    .clip(RoundedCornerShape(18.dp))
+////                                    .background(LocalColorTheme.current.gray[100])
+////                                    .padding(12.dp, 14.dp)
+////                            ) {
+////                                Text(
+////                                    text = "\uD83D\uDE0D",  // 😍
+////                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+////                                )
+////                            }
+////
+////                            Spacer(modifier = Modifier.width(7.dp))
+////
+////                            Box(
+////                                modifier = Modifier
+////                                    .size(56.dp)
+////                                    .clip(RoundedCornerShape(18.dp))
+////                                    .background(LocalColorTheme.current.gray[100])
+////                                    .padding(12.dp, 14.dp)
+////                            ) {
+////                                Text(
+////                                    text = "\uD83E\uDD72",  // 🥲
+////                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+////                                )
+////                            }
+////
+////                            Spacer(modifier = Modifier.width(7.dp))
+////
+////                            Box(
+////                                modifier = Modifier
+////                                    .size(56.dp)
+////                                    .clip(RoundedCornerShape(18.dp))
+////                                    .background(LocalColorTheme.current.gray[100])
+////                                    .padding(12.dp, 14.dp)
+////                            ) {
+////                                Text(
+////                                    text = "\uD83D\uDE2B",  // 😫
+////                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+////                                )
+////                            }
+////
+////                            Spacer(modifier = Modifier.width(7.dp))
+////
+////                            Box(
+////                                modifier = Modifier
+////                                    .size(56.dp)
+////                                    .clip(RoundedCornerShape(18.dp))
+////                                    .background(LocalColorTheme.current.gray[100])
+////                                    .padding(12.dp, 14.dp)
+////                            ) {
+////                                Text(
+////                                    text = "\uD83D\uDE21",  // 😡
+////                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
+////                                )
+////                            }
+////                        }
+//                    }
+//
+//                    Spacer(modifier = Modifier.height(18.dp))
+//
+//                    Column {
+//                        Box {
+//                            Text(
+//                                text = "지금 뭐하는 중이에요?",
+//                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+//                                color = LocalColorTheme.current.gray[700],
+//                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
+//                            )
+//                        }
+//
+//                        Spacer(modifier = Modifier.height(14.dp))
+//
+//                        TaskSelector(selectedTask, onTaskChange)
+////                        Column {
+////                            Row(
+////                                modifier = Modifier.padding(start = 30.dp, end = 29.dp)
+////                            ) {
+////                                // 윗줄 4가지 할 일 선택 버튼
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "영어 공부 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////
+////                                Spacer(modifier = Modifier.width(10.dp))
+////
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "퇴근 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////
+////                                Spacer(modifier = Modifier.width(10.dp))
+////
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "쇼핑 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////
+////                                Spacer(modifier = Modifier.width(10.dp))
+////
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "데이트 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////                            }
+////
+////                            Spacer(modifier = Modifier.height(8.dp))
+////
+////                            Row(
+////                                modifier = Modifier.padding(horizontal = 37.dp)
+////                            ) {
+////                                // 아랫줄 4가지 할 일 선택 버튼
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "통학 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////
+////                                Spacer(modifier = Modifier.width(10.dp))
+////
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "요리 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////
+////                                Spacer(modifier = Modifier.width(10.dp))
+////
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "드라이브 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////
+////                                Spacer(modifier = Modifier.width(10.dp))
+////
+////                                Box(
+////                                    modifier = Modifier
+////                                        .clip(RoundedCornerShape(10.dp))
+////                                        .background(LocalColorTheme.current.gray[100])
+////                                        .padding(15.dp, 10.5.dp)
+////                                ) {
+////                                    Text(
+////                                        text = "야근 중",
+////                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
+////                                    )
+////                                }
+////                            }
+////                        }
+//                    }
+//
+//                    // 링크 추천 버튼
+//                    Column(
+//                        modifier = Modifier
+//                            .fillMaxWidth()
+//                            .padding(start = 96.dp, end = 96.dp, top = 15.dp, bottom = 20.dp),
+//                        horizontalAlignment = Alignment.CenterHorizontally
+//                    ) {
+//                        Box(
+//                            modifier = Modifier
+//                                .fillMaxWidth()
+//                                .width(220.dp)
+//                                .height(48.dp)
+//                                .clip(RoundedCornerShape(16.dp))
+//                                .background(brush = buttonBrush)
+//                                .clickable(enabled = recommendEnabled) { onRecommendClick() },
+//                            contentAlignment = Alignment.Center
+//                        ) {
+//                            Text(
+//                                text = "링크 추천해줘!",
+//                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
+//                                color = LocalColorTheme.current.white
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+            if (showRecommendations) {
+                // 추천 모드: 선택 UI 숨기고 배지 요약만 표시
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 19.dp, bottom = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val emotionIconMap = mapOf(
+                            "즐거움" to R.drawable.ic_joy,
+                            "평온" to R.drawable.ic_calm,
+                            "설렘" to R.drawable.ic_excite,
+                            "슬픔" to R.drawable.ic_sad,
+                            "짜증" to R.drawable.ic_irritation,
+                            "분노" to R.drawable.ic_anger
+                        )
+
+                        // 감정 배지
+                        selectedEmotionLabel?.let { label ->
+                            val iconRes = emotionIconMap[label]
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(brush = selectedBrush)
+                                    .border(1.dp, brush = Basic.maincolor, RoundedCornerShape(10.dp))
+                                    .padding(4.57.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    iconRes?.let {
+                                        Image(
+                                            painter = painterResource(id = it),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(22.86.dp) // 아이콘 크기 조정
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // 상황 배지
+                        selectedTaskLabel?.let {
+                            Box(
+                                modifier = Modifier
+                                    .height(32.dp)
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(brush = selectedBrush)
+                                    .border(1.dp, brush = Basic.maincolor, RoundedCornerShape(10.dp))
+                                    .padding(horizontal = 15.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                BrushText(
+                                    text = "$it",
+                                    brush = Basic.maincolor,
+                                    color = LocalColorTheme.current.gray[700],
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Normal,
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // 기존: 선택 UI + 추천 버튼
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 19.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = "${userName}님의 감정과 상황을 알려주세요!",
+                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                                color = LocalColorTheme.current.black,
+                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(22.dp))
+
+                        Column {
+                            Box {
+                                Text(
+                                    text = "오늘의 감정은 어때요?",
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                    color = LocalColorTheme.current.gray[700],
+                                    modifier = Modifier.padding(start = 20.dp, end = 21.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(15.dp))
+                            EmotionSelector(selectedEmotion, onEmotionChange)
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        Column {
+                            Box {
+                                Text(
+                                    text = "지금 뭐하는 중이에요?",
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                    color = LocalColorTheme.current.gray[700],
+                                    modifier = Modifier.padding(start = 20.dp, end = 21.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.height(14.dp))
+                            TaskSelector(selectedTask, onTaskChange)
+                        }
+
+                        // 링크 추천 버튼
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 96.dp, end = 96.dp, top = 15.dp, bottom = 20.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .width(220.dp)
+                                    .height(48.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(brush = buttonBrush)
+                                    .clickable(enabled = recommendEnabled) { onRecommendClick() },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "링크 추천해줘!",
+                                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
+                                    color = LocalColorTheme.current.white
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             // 화살표 버튼 (접힌 상태에서만 표시)
             if (!isExpanded) {
                 Spacer(modifier = Modifier.height(14.dp))
@@ -377,305 +1126,41 @@ fun TopBar(
                     }
                 }
             }
-
-            // 토글 되는 부분
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 19.dp)
-                ) {
-                    Column {
-                        Text(
-                            text = "${userName}님의 감정과 상황을 알려주세요!",
-                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                            color = LocalColorTheme.current.black,
-                            modifier = Modifier.padding(start = 20.dp, end = 21.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(22.dp))
-
-                    Column {
-                        Box {
-                            Text(
-                                text = "오늘의 감정은 어때요?",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                                color = LocalColorTheme.current.gray[700],
-                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(15.dp))
-
-                        EmotionSelector(selectedEmotion, onEmotionChange)
-//                        Row {
-//                            // 6가지 감정 선택 버튼
-//                            Box(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(18.dp))
-//                                    .background(LocalColorTheme.current.gray[100])
-//                                    .padding(12.dp, 14.dp)
-//                            ) {
-//                                Text(
-//                                    text = "\uD83D\uDE00",  // 😃
-//                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
-//                                )
-//                            }
-//
-//                            Spacer(modifier = Modifier.width(7.dp))
-//
-//                            Box(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(18.dp))
-//                                    .background(LocalColorTheme.current.gray[100])
-//                                    .padding(12.dp, 14.dp)
-//                            ) {
-//                                Text(
-//                                    text = "\uD83D\uDE10",  // 😐
-//                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
-//                                )
-//                            }
-//
-//                            Spacer(modifier = Modifier.width(7.dp))
-//
-//                            Box(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(18.dp))
-//                                    .background(LocalColorTheme.current.gray[100])
-//                                    .padding(12.dp, 14.dp)
-//                            ) {
-//                                Text(
-//                                    text = "\uD83D\uDE0D",  // 😍
-//                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
-//                                )
-//                            }
-//
-//                            Spacer(modifier = Modifier.width(7.dp))
-//
-//                            Box(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(18.dp))
-//                                    .background(LocalColorTheme.current.gray[100])
-//                                    .padding(12.dp, 14.dp)
-//                            ) {
-//                                Text(
-//                                    text = "\uD83E\uDD72",  // 🥲
-//                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
-//                                )
-//                            }
-//
-//                            Spacer(modifier = Modifier.width(7.dp))
-//
-//                            Box(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(18.dp))
-//                                    .background(LocalColorTheme.current.gray[100])
-//                                    .padding(12.dp, 14.dp)
-//                            ) {
-//                                Text(
-//                                    text = "\uD83D\uDE2B",  // 😫
-//                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
-//                                )
-//                            }
-//
-//                            Spacer(modifier = Modifier.width(7.dp))
-//
-//                            Box(
-//                                modifier = Modifier
-//                                    .size(56.dp)
-//                                    .clip(RoundedCornerShape(18.dp))
-//                                    .background(LocalColorTheme.current.gray[100])
-//                                    .padding(12.dp, 14.dp)
-//                            ) {
-//                                Text(
-//                                    text = "\uD83D\uDE21",  // 😡
-//                                    style = TextStyle(fontSize = 25.5.sp, fontWeight = FontWeight.Medium)
-//                                )
-//                            }
-//                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(18.dp))
-
-                    Column {
-                        Box {
-                            Text(
-                                text = "지금 뭐하는 중이에요?",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
-                                color = LocalColorTheme.current.gray[700],
-                                modifier = Modifier.padding(start = 20.dp, end = 21.dp)
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(14.dp))
-
-                        TaskSelector(selectedTask, onTaskChange)
-//                        Column {
-//                            Row(
-//                                modifier = Modifier.padding(start = 30.dp, end = 29.dp)
-//                            ) {
-//                                // 윗줄 4가지 할 일 선택 버튼
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "영어 공부 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.width(10.dp))
-//
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "퇴근 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.width(10.dp))
-//
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "쇼핑 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.width(10.dp))
-//
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "데이트 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//                            }
-//
-//                            Spacer(modifier = Modifier.height(8.dp))
-//
-//                            Row(
-//                                modifier = Modifier.padding(horizontal = 37.dp)
-//                            ) {
-//                                // 아랫줄 4가지 할 일 선택 버튼
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "통학 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.width(10.dp))
-//
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "요리 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.width(10.dp))
-//
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "드라이브 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//
-//                                Spacer(modifier = Modifier.width(10.dp))
-//
-//                                Box(
-//                                    modifier = Modifier
-//                                        .clip(RoundedCornerShape(10.dp))
-//                                        .background(LocalColorTheme.current.gray[100])
-//                                        .padding(15.dp, 10.5.dp)
-//                                ) {
-//                                    Text(
-//                                        text = "야근 중",
-//                                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[800])
-//                                    )
-//                                }
-//                            }
-//                        }
-                    }
-
-                    // 링크 추천 버튼
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 96.dp, end = 96.dp, top = 15.dp, bottom = 20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .width(220.dp)
-                                .height(48.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(brush = buttonBrush),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "링크 추천해줘!",
-                                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
-                                color = LocalColorTheme.current.white
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
 }
 
 @Composable
+fun BrushText(
+    text: String,
+    brush: Brush? = null,
+    color: Color = Color.Unspecified,
+    style: TextStyle = TextStyle.Default,
+    modifier: Modifier = Modifier,
+) {
+    if (brush != null) {
+        BasicText(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight)) {
+                    append(text)
+                }
+            },
+            style = style,
+            modifier = modifier,
+        )
+    } else {
+        BasicText(
+            text = text,
+            style = style.copy(color = color),
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
 fun EmotionSelector(
-    selectedEmotion: String?,
-    onEmotionChange: (String?) -> Unit
+    selectedEmotionId: Long?,
+    onEmotionChange: (Long?) -> Unit
 ) {
     val emotions = listOf(
         R.drawable.ic_joy,
@@ -685,6 +1170,8 @@ fun EmotionSelector(
         R.drawable.ic_irritation,
         R.drawable.ic_anger
     )
+
+    val emotionIds = listOf(1L, 2L, 3L, 4L, 5L, 6L)
 
     // 감정의 고유 key (이모지 대신 리소스 ID를 String으로)
     val emotionKeys = listOf(
@@ -696,8 +1183,8 @@ fun EmotionSelector(
         horizontalArrangement = Arrangement.Center
     ) {
         emotions.forEachIndexed { idx, resId ->
-            val key = emotionKeys[idx]
-            val isSelected = selectedEmotion == key
+            val id = emotionIds[idx]
+            val isSelected = selectedEmotionId == id
 
             Box(
                 modifier = Modifier
@@ -715,7 +1202,7 @@ fun EmotionSelector(
                     )
                     .padding(8.dp)
                     .clickable {
-                        onEmotionChange(if (isSelected) null else key)
+                        onEmotionChange(if (isSelected) null else id)
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -733,10 +1220,12 @@ fun EmotionSelector(
 
 @Composable
 fun TaskSelector(
-    selectedTask: String?,
-    onTaskChange: (String?) -> Unit
+    selectedTaskId: Long?,
+    onTaskChange: (Long?) -> Unit
 ) {
     val tasks = listOf("트렌드 확인", "과제 중", "쇼핑 중", "데이트 중", "통학 중", "알바 중", "휴식 중", "자기 전")
+
+    val taskIds = (1L..8L).toList()
 
     Column {
         // 첫 줄: 4개
@@ -746,8 +1235,10 @@ fun TaskSelector(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            tasks.take(4).forEach { task ->
-                val isSelected = selectedTask == task
+            tasks.take(4).forEachIndexed { idx, task ->
+                val id = taskIds[idx]
+                val isSelected = selectedTaskId == id
+
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
@@ -762,7 +1253,7 @@ fun TaskSelector(
                             ) else Modifier
                         )
                         .clickable {
-                            onTaskChange(if (isSelected) null else task)
+                            onTaskChange(if (isSelected) null else id)
                         }
                         .padding(horizontal = 15.dp, vertical = 10.5.dp),
                     contentAlignment = Alignment.Center
@@ -790,8 +1281,10 @@ fun TaskSelector(
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.Center
         ) {
-            tasks.drop(4).forEach { task ->
-                val isSelected = selectedTask == task
+            tasks.drop(4).forEachIndexed { idx, label ->
+                val id = taskIds[idx + 4]
+                val isSelected = selectedTaskId == id
+
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
@@ -806,13 +1299,13 @@ fun TaskSelector(
                             ) else Modifier
                         )
                         .clickable {
-                            onTaskChange(if (isSelected) null else task)
+                            onTaskChange(if (isSelected) null else id)
                         }
                         .padding(horizontal = 15.dp, vertical = 10.5.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = task,
+                        text = label,
                         style = TextStyle(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
@@ -830,5 +1323,22 @@ fun TaskSelector(
 @Preview(showBackground = true)
 @Composable
 fun PreviewHomeScreen() {
-    HomeScreen(userName = "세나")
+    HomeScreen(
+        userName = "세나",
+        showRecommendations = false, // or false
+        recommendedLinks = listOf(
+            LinkSimpleInfo(
+                linkuId = 1L,
+                categoryId = 1L,
+                memo = "",
+                emotionId = 3L,
+                title = "샘플 링크 제목",
+                domain = "naver.com",
+                domainImageUrl = "",
+                linkuImageUrl = ""
+            )
+        ),
+        isRecommending = false,
+        onRecommendRequest = { _, _, _ -> } // no-op
+    )
 }

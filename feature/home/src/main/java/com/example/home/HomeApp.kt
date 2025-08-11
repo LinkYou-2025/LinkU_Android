@@ -23,6 +23,28 @@ fun HomeApp(viewModel: HomeViewModel) {
     val context = LocalContext.current
     val navController = rememberNavController()
 
+    // === 감정/상황 키 → 서버 ID 매핑 ===
+    fun emotionKeyToId(key: String): Long = when (key) {
+        "joy" -> 1L
+        "calm" -> 2L
+        "excitement" -> 3L
+        "sadness" -> 4L
+        "irritation" -> 5L
+        "anger" -> 6L
+        else -> 0L
+    }
+    fun taskKeyToSituationId(key: String): Long = when (key) {
+        "트렌드 확인" -> 11L
+        "과제 중"   -> 12L
+        "쇼핑 중"   -> 13L
+        "데이트 중" -> 14L
+        "통학 중"   -> 15L
+        "알바 중"   -> 16L
+        "휴식 중"   -> 17L
+        "자기 전"   -> 18L
+        else -> 0L
+    }
+
     NavHost(
         navController = navController,
         startDestination = "onboarding",
@@ -30,7 +52,19 @@ fun HomeApp(viewModel: HomeViewModel) {
         popExitTransition = { ExitTransition.None }
     ) {
         composable("onboarding") {
-            HomeScreen(userName = "세나")
+            HomeScreen(
+                userName = "세나",
+                showRecommendations = viewModel.showRecommendations,
+                recommendedLinks = viewModel.recommendedLinks,
+                isRecommending = viewModel.isRecommending,
+                onRecommendRequest = { emotionId, situationId, size ->
+                    viewModel.fetchRecommendations(
+                        situationId = situationId,
+                        emotionId = emotionId,
+                        size = size
+                    )
+                }
+            )
         }
 
         composable("savelink") {

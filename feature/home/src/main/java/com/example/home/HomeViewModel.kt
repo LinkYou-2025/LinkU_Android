@@ -41,6 +41,16 @@ class HomeViewModel @Inject constructor(
     private val isInvalidUrlState = mutableStateOf(false)
     val isInvalidUrl get() = isInvalidUrlState.value
 
+    // 추천 링크
+    private val recommendedLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
+    val recommendedLinks get() = recommendedLinksState.value
+
+    private val isRecommendingState = mutableStateOf(false)
+    val isRecommending get() = isRecommendingState.value
+
+    private val showRecommendationsState = mutableStateOf(false)
+    val showRecommendations get() = showRecommendationsState.value
+
     fun setImage(file: File?) { imageState.value = file }
     fun setUrl(newUrl: String) {
         urlState.value = newUrl
@@ -121,6 +131,40 @@ class HomeViewModel @Inject constructor(
 
     // 링크 유효성 검사
 
+
+    // 링크 추천
+    fun fetchRecommendations(
+        situationId: Long,
+        emotionId: Long,
+        size: Int = 10,
+        onDone: () -> Unit = {}
+    ) {
+        if (isRecommendingState.value) return
+        viewModelScope.launch {
+            isRecommendingState.value = true
+            runCatching {
+                linkuRepository.recommendLinks(
+                    situationId = situationId,
+                    emotionId = emotionId,
+                    page = 0,
+                    size = size
+                )
+            }.onSuccess {
+                recommendedLinksState.value = it
+                showRecommendationsState.value = true
+            }.onFailure {
+                recommendedLinksState.value = emptyList()
+                showRecommendationsState.value = true // 실패해도 섹션은 바꿔서 빈 목록/메시지 보여줌
+            }
+            isRecommendingState.value = false
+            onDone()
+        }
+    }
+
+    // ‘최근’으로 되돌리기
+    fun showRecent() {
+        showRecommendationsState.value = false
+    }
 
     // 최근 조회 링크 로딩
 //    fun loadRecentLinks() {

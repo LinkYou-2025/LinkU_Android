@@ -68,6 +68,37 @@ class LinkuRepositoryImpl @Inject constructor(
         return res.exist == true
     }
 
+    // 링크 추천
+    override suspend fun recommendLinks(
+        situationId: Long,
+        emotionId: Long,
+        page: Int,
+        size: Int
+    ): List<LinkSimpleInfo> {
+        val list = serverApi.withAuth(authPreference) {
+            recommendLink(
+                situationId = situationId,
+                emotionId = emotionId,
+                page = page,
+                size = size
+            )
+        }
+
+        return list.map { dto ->
+            LinkSimpleInfo(
+                linkuId = dto.linkuId ?: 0L,
+                categoryId = dto.categoryId,
+                memo = dto.memo,
+                emotionId = dto.emotionId,
+                title = dto.title.orEmpty(),
+                domain = dto.domain.orEmpty(),
+                domainImageUrl = dto.domainImageUrl,
+                linkuImageUrl = dto.linkuImageUrl
+            )
+        }
+    }
+
+
     // 최근 열람 링크 조회
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> {
         val response = serverApi.withAuth(authPreference) {

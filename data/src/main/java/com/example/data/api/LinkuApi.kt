@@ -63,7 +63,7 @@ interface LinkuApi {
         @Query("emotionId") emotionId: Long,
         @Query("page") page: Int? = 0,
         @Query("size") size: Int? = 5
-    ) : BaseResponse<LinkuSimpleDTO>
+    ) : BaseResponse<List<LinkuSimpleDTO>>
 
     // 빠른 링크 검색
     @GET("/api/linku/api/search/quick")
