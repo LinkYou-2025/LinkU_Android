@@ -1,5 +1,6 @@
 package com.example.login.auth
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -52,6 +53,12 @@ fun ResetPasswordScreen(
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+
+    BackHandler {
+        navigator.navigate("email_login") {
+            popUpTo("resetPassword") { inclusive = true }
+        }
+    }
 
     // 성공시 다이얼로그 노출
     LaunchedEffect(ui.success) {

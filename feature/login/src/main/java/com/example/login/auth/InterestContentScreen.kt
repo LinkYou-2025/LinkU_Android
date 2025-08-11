@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -99,6 +100,7 @@ fun InterestContentScreen(
     val selectedContents = remember { mutableStateListOf<String>() }
 
     val canProceed = selectedContents.isNotEmpty()
+
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.Start
@@ -367,21 +369,30 @@ private fun InterestCloudScrollable(
     onToggle: (String) -> Unit,
     height: Dp = 500.dp
 ) {
-    // 좌표 보정: 음수 x가 있으면 전체를 +shiftX만큼 이동
+    // 좌표 보정
     val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
     val shiftX = if (minX < 0.dp) (-minX) else 0.dp
 
-    // 우측 끝 계산해서 캔버스 폭 확보 (여유 80dp)
+    // 캔버스 너비 계산
     val canvasWidth = remember(contents, shiftX) {
         val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-        (right + 80.dp)
+        right + 80.dp
+    }
+
+    val scrollState = rememberScrollState()
+
+    val density = LocalDensity.current
+
+    LaunchedEffect(Unit) {
+
+        scrollState.scrollTo(with(density) { 200.dp.roundToPx() })
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
-            .horizontalScroll(rememberScrollState())
+            .horizontalScroll(scrollState)
     ) {
         Box(
             modifier = Modifier
@@ -396,6 +407,52 @@ private fun InterestCloudScrollable(
                     onClick = { onToggle(content.label) },
                     modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
                 )
+//    // 좌표 보정: 음수 x가 있으면 전체를 +shiftX만큼 이동
+//    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
+//    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+//
+//    // 우측 끝 계산해서 캔버스 폭 확보 (여유 80dp)
+//    val canvasWidth = remember(contents, shiftX) {
+//        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+//        (right + 80.dp) //여기 스크롤 수정
+//    }
+//    val scroll = rememberScrollState()
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(height)
+//            .horizontalScroll(rememberScrollState())
+//            //.horizontalScroll(scroll)
+//        //contentAlignment = Alignment.Center
+//
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height)
+//        ) {
+//            contents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
+//                )
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height)
+//        ) {
+//            contents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
+//                )
             }
         }
     }
