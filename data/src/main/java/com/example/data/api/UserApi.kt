@@ -8,6 +8,7 @@ import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.JoinResultDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.api.dto.server.LoginResultDTO
+import com.example.data.api.dto.server.TempPasswordRequestDTO
 import com.example.data.api.dto.server.UpdateProfileDTO
 import com.example.data.api.dto.server.UserInfoDTO
 import com.example.data.api.dto.server.withDrawalResultDTO
@@ -58,12 +59,16 @@ interface UserApi {
         @Body body: LoginRequestDTO
     ): BaseResponse<LoginResultDTO>
 
-    // 임시 비밀번호 받기 -> 후순위 개발
+//    // 임시 비밀번호 받기 -> 후순위 개발
+//    @POST("/api/users/password/temp")
+//    suspend fun getTempPw(
+//        @Query("email") email: String
+//    ) : ApiResponseString
+    // 임시 비밀번호 받기 (RequestBody 사용)
     @POST("/api/users/password/temp")
-    suspend fun getTempPw(
+    suspend fun requestTempPassword(
         @Query("email") email: String
-    ) : ApiResponseString
-
+    ): ApiResponseString
     // 위의 코드가 안된다면 아래 코드로 교체
 //    @POST("/api/users/password/temp")
 //    suspend fun getTempPw(
