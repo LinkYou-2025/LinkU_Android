@@ -948,14 +948,15 @@ private fun PositiveNoteCard(
     footerMent: String?, // API로 받은 푸터 멘트
     modifier: Modifier = Modifier
 ) {
-    val (line1, line2) = remember(footerMent) { splitFirstSentence(footerMent) }
+    val (line1, line2) = remember(footerMent) {
+        splitFirstSentence(footerMent) }
 
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
             .background(Color(0xFFFBEEFF)) // 연보라 톤
-            .padding(start = 16.dp, end = 16.dp, top = 50.dp)
-    ) {
+            .padding(horizontal = 16.dp, vertical = 12.dp) // 글자 주변에만 여백
+    ){
         Text(
             text = line1,
             style = MaterialTheme.typography.bodyMedium.copy(
