@@ -39,7 +39,8 @@ fun CurationRecommendedLinksSection(
     links: List<RecommendedLink>,
     loading: Boolean,
     onRetry: () -> Unit = {},
-    onClick: (String) -> Unit
+    onClick: (String) -> Unit //url 클릭 콜백
+    
 ) {
     Column(modifier = modifier) {
         Text(

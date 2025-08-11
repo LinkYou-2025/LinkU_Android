@@ -60,6 +60,10 @@ private fun String.toLabel(): String = runCatching {
     "${y}년 ${m}월호"
 }.getOrElse { this }
 
+fun ensureHttpScheme(raw: String): String =
+    if (raw.startsWith("http://") || raw.startsWith("https://")) raw
+    else "https://$raw"
+
 @Composable
 fun CurationScreen(
     viewModel: CurationViewModel = hiltViewModel(),
@@ -476,13 +480,25 @@ fun CurationScreenPreviewable(nickname: String = "홍길동") {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        val uri = LocalUriHandler.current
+
         // 추천 링크 섹션 (프리뷰용 더미 전달)
+//        CurationRecommendedLinksSection(
+//            modifier = Modifier.fillMaxWidth(),
+//            links = demoLinks,
+//            loading = false,
+//            onRetry = {},
+//            onClick = { url -> runCatching { uri.openUri(url) } } //url 열림!
+//        )
         CurationRecommendedLinksSection(
             modifier = Modifier.fillMaxWidth(),
             links = demoLinks,
             loading = false,
             onRetry = {},
-            onClick = { url -> runCatching { uri.openUri(url) } }
+            onClick = { url ->
+                val safe = ensureHttpScheme(url)
+                runCatching { uri.openUri(safe) }
+            }
         )
 
         Spacer(modifier = Modifier.height(16.dp))
