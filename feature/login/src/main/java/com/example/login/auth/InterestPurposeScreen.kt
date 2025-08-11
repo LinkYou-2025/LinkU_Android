@@ -46,8 +46,8 @@ data class Purpose(val emoji: String, val label: String, val size: Float, val of
 // 예시 리스트 (위치 정보 추가!) *위치 수정 필요 -> 피그마에 맞춤. 부족한 점 있으면 추후 수정 -*
 val purposes = listOf(
     Purpose("📚", "자기계발\n정보 수집", 130f, DpOffset(190.dp, 10.dp)),
-    Purpose("📝", "학업/리포트 정리", 140f, DpOffset(250.dp, 190.dp)),
-    Purpose("💼", "업무자료 아카이브", 150f, DpOffset(220.dp, 350.dp)),
+    Purpose("📝", "학업/리포트 정리", 100f, DpOffset(250.dp, 190.dp)),
+    Purpose("💼", "업무자료 아카이브", 120f, DpOffset(220.dp, 350.dp)),
     Purpose("💡", "사이트 프로젝트\n창업 준비", 180f, DpOffset(60.dp, 120.dp)),
     Purpose("📅", "그냥 나중에\n보고 싶은 글 저장", 220f, DpOffset(-70.dp, 290.dp)),
     Purpose("❓", "기타", 70f, DpOffset(160.dp, 310.dp)),

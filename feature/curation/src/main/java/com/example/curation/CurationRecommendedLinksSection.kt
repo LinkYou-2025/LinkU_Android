@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -25,10 +26,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
 import com.example.curation.ui.resolveSourceIcon
 import com.example.curation.ui.resolveSourceLabel
 import com.example.core.model.RecommendedLink
 import com.example.curation.R
+import coil3.request.crossfade
 
 @Composable
 fun CurationRecommendedLinksSection(
@@ -97,6 +100,8 @@ fun RecommendedLinkCard(
     val iconRes = resolveSourceIcon(domain)
     val sourceLabel = resolveSourceLabel(domain)
 
+    val ctx = LocalContext.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -107,7 +112,10 @@ fun RecommendedLinkCard(
     ) {
         if (!link.imageUrl.isNullOrBlank()) {
             AsyncImage(
-                model = link.imageUrl,
+                model = ImageRequest.Builder(ctx)
+                    .data(link.imageUrl)
+                    .crossfade(true)
+                    .build(),
                 contentDescription = null,
                 modifier = Modifier
                     .size(60.dp)
@@ -116,11 +124,12 @@ fun RecommendedLinkCard(
             )
         } else {
             Image(
-                painter = painterResource(id = iconRes),
-                contentDescription = null,
+                painter = painterResource(R.drawable.ic_detail_image_url_null),
+                contentDescription = "이미지 없음",
                 modifier = Modifier
                     .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
             )
         }
 

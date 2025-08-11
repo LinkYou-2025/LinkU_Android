@@ -2,6 +2,7 @@ package com.example.curation.ui
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -61,7 +62,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.example.core.model.RecommendedLink
 import com.example.curation.CurationLinksUiState
-import com.example.curation.RecommendedLinkCard
+//import com.example.curation.RecommendedLinkCard
 import kotlin.math.ceil
 import kotlin.math.min
 import androidx.compose.ui.platform.LocalUriHandler
@@ -73,6 +74,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import com.example.curation.CurationDetailUiState
 import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.delay
@@ -197,13 +199,14 @@ private fun CurationDetailScreenContent(
 }
 
 /* ===== 하이라이트 카드: 하단만 둥글게 + 단색 배경 + 큰 로고 ===== */
+@Suppress("UnusedBoxWithConstraintsScope")
 @Composable
 private fun HighlightCard(
     nickname: String,
     monthLabel: String,
     onBack: () -> Unit,
     detailState: CurationDetailUiState,
-    liked: Boolean?,
+    liked: Boolean,
     likeBusy: Boolean,
     onToggleLike: () -> Unit
 ) {
@@ -583,8 +586,8 @@ fun CurationRecommendedLinksPagerSection(
     val perPage = 3
     val pageCount = remember(items) { ceil(items.size / perPage.toFloat()).toInt().coerceAtLeast(1) }
 
-    // 레이아웃 설정 (기존과 동일)
-    val rowHeight: Dp = 96.dp
+    // 레이아웃 설정
+    val rowHeight: Dp = 108.dp
     val rowMinHeight: Dp = rowHeight
     val spacing = 12.dp
 
@@ -655,8 +658,14 @@ fun CurationRecommendedLinksPagerSection(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(rowHeight) // 기존과 동일 높이
+                                    .clipToBounds()
                             ) {
-                                RecommendedLinkCard(link = items[i], onClick = onClick)
+                                RecommendedLinkCard(
+                                    link = items[i],
+                                    onClick = onClick,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(rowHeight)  )
                             }
                         }
                     }
@@ -702,6 +711,18 @@ private fun SkeletonLinks(height: Dp, spacing: Dp) {
 // 2) 준비중 화면
 @Composable
 private fun LinksPreparing(modifier: Modifier = Modifier) {
+
+    // 무한 회전 각도
+    val infinite = rememberInfiniteTransition(label = "rotate")
+    val rotation by infinite.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "angle"
+    )
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.Center,
@@ -711,8 +732,8 @@ private fun LinksPreparing(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .size(80.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color(0xFFEDE9FF)),
+                .clip(RoundedCornerShape(16.dp)),
+                //.background(Color(0xFFEDE9FF)),
             contentAlignment = Alignment.Center
         ) {
             Image(
@@ -720,7 +741,8 @@ private fun LinksPreparing(modifier: Modifier = Modifier) {
                 contentDescription = null,
                 modifier = Modifier
                     .size(48.dp)
-                    .alpha(0.82f),         // ← 로고를 옅게(밝기 낮춘 느낌)
+                    .alpha(0.82f)         // ← 로고를 옅게(밝기 낮춘 느낌)
+                .graphicsLayer { rotationZ = rotation }, // ← 회전 애니메이션 적용
                 contentScale = ContentScale.Fit
             )
         }
@@ -810,37 +832,35 @@ private fun PagerIndicator(pageCount: Int, current: Int) {
 @Composable
 fun RecommendedLinkCard(
     link: RecommendedLink,
-    onClick: (String) -> Unit
+    onClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(Color(0xFFF8F8F8), RoundedCornerShape(12.dp))
             .clickable { onClick(link.url) }
-            .padding(4.dp),
+            //.padding(4.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         val ctx = LocalContext.current
 
-        if (!link.imageUrl.isNullOrBlank()) {
-            AsyncImage(
-                model = ImageRequest.Builder(ctx)
-                    .data(link.imageUrl)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(Color(0xFFEDEDED))
-            )
-        }
+        AsyncImage(
+            model = ImageRequest.Builder(ctx)
+                .data(link.imageUrl)          // null이면 아래 fallback이 사용됨
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+            placeholder = painterResource(R.drawable.ic_detail_image_url_null), // 로딩 중
+            error = painterResource(R.drawable.ic_detail_image_url_null),       // 실패 시
+            fallback = painterResource(R.drawable.ic_detail_image_url_null),    // data == null
+            modifier = Modifier
+                .size(60.dp)
+                .clip(RoundedCornerShape(8.dp)),
+            contentScale = ContentScale.Crop
+        )
 
         Column(
             modifier = Modifier
@@ -866,8 +886,9 @@ fun RecommendedLinkCard(
                         TagChip(tag)
                     }
                 }
-                Spacer(Modifier.height(4.dp))
             }
+            // Spacer를 조건문 밖으로 빼서 항상 실행
+            Spacer(Modifier.height(4.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!link.domainImageUrl.isNullOrBlank()) {
@@ -887,8 +908,12 @@ fun RecommendedLinkCard(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 12.sp,
                         color = Color(0xFF43454B)
-                    )
+                    ),
+                    softWrap = true,           // 줄바꿈 허용
+                    overflow = TextOverflow.Clip // 잘림 없이 표시
+
                 )
+
             }
         }
     }
@@ -918,7 +943,7 @@ private fun PositiveNoteCard(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0xFFF7EAFE)) // 연보라 톤
+            //.background(Color(0xFFF7EAFE)) // 연보라 톤
             .padding(start = 16.dp, end = 16.dp, top = 50.dp)
     ) {
         Text(
