@@ -150,7 +150,7 @@ fun ResetPasswordScreen(navigator: NavHostController) {
                         // // 임시: API 없이 바로 팝업 띄우기!
                         delay(1000) //임시 지연
                         showSuccessDialog = true  // 팝업 띄우기
-                        navigator.popBackStack()
+                        //navigator.popBackStack()
 
                     }
                 },

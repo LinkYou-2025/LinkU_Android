@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -38,6 +39,7 @@ import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.unit.Dp
 
 
 // 데이터 클래스
@@ -68,6 +70,15 @@ val purposeLabelToCode = mapOf(
     "업무자료 아카이브" to "WORK",
     "학업/리포트 정리" to "STUDY"
 )
+//공백, 줄바꿈으로 서버에 empty로 들어가는 문제 보완을 위해서.
+// 라벨 정규화: 줄바꿈/공백 제거 + 흔한 오타(사이트→사이드) 보정
+private fun normalizePurpose(raw: String) =
+    raw.replace("\n","").replace(" ","")
+        .replace("사이트프로젝트", "사이드프로젝트")
+
+// 정규화된 키로 보관하는 맵
+val purposeLabelToCodeNormalized: Map<String, String> =
+    purposeLabelToCode.entries.associate { (k, v) -> normalizePurpose(k) to v }
 
 
 @Composable
@@ -106,29 +117,39 @@ fun InterestPurposeScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
-                .horizontalScroll(rememberScrollState())
-        ) {
-            Box(modifier = Modifier.width(1000.dp)) { // 충분한 너비 확보
-                purposes.forEach { purpose ->
-                    PurposeItem(
-                        purpose = purpose,
-                        isSelected = selectedPurposes.contains(purpose.label),
-                        onClick = {
-                            if (selectedPurposes.contains(purpose.label)) {
-                                selectedPurposes.remove(purpose.label)
-                            } else {
-                                selectedPurposes.add(purpose.label)
-                            }
-                        },
-                        modifier = Modifier.offset(purpose.offset.x, purpose.offset.y)
-                    )
-                }
-            }
-        }
+        PurposeCloudScrollable(
+            purposes = purposes,
+            selected = selectedPurposes,
+            onToggle = { label ->
+                if (selectedPurposes.contains(label)) selectedPurposes.remove(label)
+                else selectedPurposes.add(label)
+            },
+            height = 500.dp
+        )
+
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(500.dp)
+//                .horizontalScroll(rememberScrollState())
+//        ) {
+//            Box(modifier = Modifier.width(1000.dp)) { // 충분한 너비 확보
+//                purposes.forEach { purpose ->
+//                    PurposeItem(
+//                        purpose = purpose,
+//                        isSelected = selectedPurposes.contains(purpose.label),
+//                        onClick = {
+//                            if (selectedPurposes.contains(purpose.label)) {
+//                                selectedPurposes.remove(purpose.label)
+//                            } else {
+//                                selectedPurposes.add(purpose.label)
+//                            }
+//                        },
+//                        modifier = Modifier.offset(purpose.offset.x, purpose.offset.y)
+//                    )
+//                }
+//            }
+//        }
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -147,12 +168,28 @@ fun InterestPurposeScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
                 .clickable(enabled = canProceed) {
-//                    signUpViewModel.purposeList = selectedPurposes.mapNotNull {
-//                        purposeLabelToCode[it]
-//                    }
-                    signUpViewModel.purposeList = selectedPurposes.mapNotNull {
-                        purposeLabelToCode[it.replace("\n", "")]
+                    val codes = selectedPurposes
+                        .mapNotNull { purposeLabelToCodeNormalized[normalizePurpose(it)] }
+                        .distinct()
+
+                    if (codes.isEmpty()) {
+                        // 극히 예외(선택했는데 매핑 실패) 방지
+                        android.widget.Toast.makeText(
+                            navigator.context,
+                            "선택한 항목을 다시 확인해 주세요.",
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                        return@clickable
                     }
+
+                    signUpViewModel.purposeList = codes
+//                .clickable(enabled = canProceed) {
+////                    signUpViewModel.purposeList = selectedPurposes.mapNotNull {
+////                        purposeLabelToCode[it]
+////                    }
+//                    signUpViewModel.purposeList = selectedPurposes.mapNotNull {
+//                        purposeLabelToCode[it.replace("\n", "")]
+//                    }
                     navigator.navigate("sign_up_interest")
                 },
             contentAlignment = Alignment.Center
@@ -313,4 +350,47 @@ fun InterestPurposeScreenPreview() {
         navigator = fakeNavController,
         signUpViewModel = fakeViewModel
     )
+}
+
+@Composable
+private fun PurposeCloudScrollable(
+    purposes: List<Purpose>,
+    selected: SnapshotStateList<String>,
+    onToggle: (String) -> Unit,
+    height: Dp = 500.dp
+) {
+    // 왼쪽으로 삐져나간 버블 있을 때 전체를 오른쪽으로 이동
+    val minX = remember(purposes) { purposes.minOfOrNull { it.offset.x } ?: 0.dp }
+    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+
+    // 우측 끝 좌표로 스크롤 캔버스 폭 계산 (여유 80dp)
+    val canvasWidth = remember(purposes, shiftX) {
+        val right = purposes.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+        right + 80.dp
+    }
+
+    val scroll = rememberScrollState()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .horizontalScroll(scroll)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(canvasWidth)
+                .height(height)
+        ) {
+            purposes.forEach { p ->
+                val isSelected = p.label in selected
+                PurposeItem(
+                    purpose = p,
+                    isSelected = isSelected,
+                    onClick = { onToggle(p.label) },
+                    modifier = Modifier.offset(p.offset.x + shiftX, p.offset.y)
+                )
+            }
+        }
+    }
 }
