@@ -35,8 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
-
-
+import androidx.navigation.NavGraph.Companion.findStartDestination
 
 
 @Composable
@@ -53,16 +52,31 @@ fun EmailLoginScreen(
 
     LaunchedEffect(loginResult) {
         val result = loginResult
-        Log.d("Login", "현재 loginResult = $result") // 디버깅 추가
+        Log.d("Login", "현재 loginResult = $result")
         if (result?.userId != null && result.userId != -1) {
             Log.d("Login", "로그인 성공 → Home 이동")
             isLoginRequested = false
+
             navigator.navigate("home") {
-                popUpTo("email_login") { inclusive = true } // 올바른 현재 라우트 사용
+                // 스플래시를 포함해 전체 스택 정리
+                popUpTo(navigator.graph.findStartDestination().id) { inclusive = true }
                 launchSingleTop = true
             }
         }
     }
+//    LaunchedEffect(loginResult?.userId, isLoginRequested) {
+//        val result = loginResult
+//        if (isLoginRequested && result?.userId != null && result.userId != -1) {
+//            Log.d("Login", " 로그인 성공 → Home 이동")
+//            isLoginRequested = false
+//
+//            // NavHost에서 실제 라우트명을 정확히 사용!
+//            navigator.navigate("home") {
+//                popUpTo(0) { inclusive = true }   // 모든 스택 제거 후 홈으로
+//                launchSingleTop = true
+//            }
+//        }
+//    }
 
 //@Composable
 //fun EmailLoginScreen(
