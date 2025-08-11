@@ -11,7 +11,6 @@ enum class FolderState {
     TOP,        // 최상위 폴더(TopFolderGrid)
     BOTTOM,     // 하위 폴더(BottomFolderGrid)
     LINKS,      // 링크 목록(LinksGrid)
-    SHARED,     // 공유 폴더(SharedFolderGrid)
 }
 
 // FolderState 뷰 모델
@@ -21,6 +20,7 @@ class FolderStateViewModel : ViewModel() {
     var currentFolderState by mutableStateOf<FolderState>(FolderState.TOP)
         private set
     fun updateFolderState(newState: FolderState) {
+        Log.d("currentFolderState", newState.toString())
         currentFolderState = newState
     }
 
@@ -28,14 +28,32 @@ class FolderStateViewModel : ViewModel() {
     var selectedTopFolder by mutableStateOf<FolderSimpleInfo?>(null)
         private set
     fun updateSelectedTopFolder(newFolder: FolderSimpleInfo?) {
+        Log.d("selectedTopFolder", newFolder.toString())
         selectedTopFolder = newFolder
+    }
+
+    // 수정할 중분류 폴더
+    var readyToUpdateTopFolder by mutableStateOf<FolderSimpleInfo?>(null)
+        private set
+    fun updateReadyToUpdateTopFolder(newFolder: FolderSimpleInfo?) {
+        Log.d("readyToUpdateTopFolder", newFolder.toString())
+        readyToUpdateTopFolder = newFolder
     }
 
     // 선택한 소분류 폴더, null이면 중분류 이상 단계
     var selectedBottomFolder by mutableStateOf<FolderSimpleInfo?>(null)
         private set
     fun updateSelectedBottomFolder(newFolder: FolderSimpleInfo?) {
+        Log.d("selectedBottomFolder", newFolder.toString())
         selectedBottomFolder = newFolder
+    }
+
+    // 수정할 소분류 폴더
+    var readyToUpdateBottomFolder by mutableStateOf<FolderSimpleInfo?>(null)
+        private set
+    fun updateReadyToUpdateBottomFolder(newFolder: FolderSimpleInfo?) {
+        Log.d("readyToUpdateBottomFolder", newFolder.toString())
+        readyToUpdateBottomFolder = newFolder
     }
 
     val isEditable: Boolean
@@ -45,6 +63,7 @@ class FolderStateViewModel : ViewModel() {
     var topMenuExpanded by mutableStateOf(false)
         private set
     fun updateTopMenuExpanded(newState: Boolean) {
+        Log.d("topMenuExpanded", newState.toString())
         topMenuExpanded = newState
     }
 
@@ -52,6 +71,7 @@ class FolderStateViewModel : ViewModel() {
     var bottomMenuExpanded by mutableStateOf(false)
         private set
     fun updateBottomMenuExpanded(newState: Boolean) {
+        Log.d("bottomMenuExpanded", newState.toString())
         bottomMenuExpanded = newState
     }
 
@@ -59,24 +79,27 @@ class FolderStateViewModel : ViewModel() {
     var searchTopSheetVisible by mutableStateOf(false)
         private set
     fun updateSearchTopSheetVisible(newState: Boolean) {
+        Log.d("searchTopSheetVisible", newState.toString())
         searchTopSheetVisible = newState
     }
 
     // 중분류 폴더 수정 바텀 시트 가시성 상태
     var topFolderEditBottomSheetVisible by mutableStateOf(false)
         private set
-    fun upadateTopFolderEditBottomSheetVisible(newState: Boolean) {
+    fun updateTopFolderEditBottomSheetVisible(newState: Boolean) {
+        Log.d("topFolderEditBottomSheetVisible", newState.toString())
         topFolderEditBottomSheetVisible = newState
     }
 
-    // 중분류 폴더 추가하기 바텀 시트 가시성 상태
+    // 소분류 폴더 추가하기 바텀 시트 가시성 상태
     var newFolderBottomSheetVisible by mutableStateOf(false)
         private set
     fun updateNewFolderBottomSheetVisible(newState: Boolean) {
+        Log.d("newFolderBottomSheetVisible", newState.toString())
         newFolderBottomSheetVisible = newState
     }
 
-    // 중분류 폴더 수정 바텀 시트 가시성 상태
+    // 소분류 폴더 수정 바텀 시트 가시성 상태
     var bottomFolderEditBottomSheetVisible by mutableStateOf(false)
         private set
     fun updateBottomFolderEditBottomSheetVisible(newState: Boolean) {
@@ -90,5 +113,13 @@ class FolderStateViewModel : ViewModel() {
     fun updateLinkCategorizationBottomSheetVisible(newState: Boolean) {
         Log.d("linkCategorizationBottomSheetVisible", newState.toString())
         linkCategorizationBottomSheetVisible = newState
+    }
+
+    // 폴더 공유 바텀 시트 가시성 상태
+    var shareBottomSheetVisible by mutableStateOf(false)
+        private set
+    fun updateShareBottomSheetVisible(newState: Boolean) {
+        Log.d("shareBottomSheetVisible", newState.toString())
+        shareBottomSheetVisible = newState
     }
 }

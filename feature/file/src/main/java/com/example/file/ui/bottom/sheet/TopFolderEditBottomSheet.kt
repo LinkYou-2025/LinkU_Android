@@ -1,11 +1,14 @@
 package com.example.file.ui.bottom.sheet
 
 import androidx.compose.runtime.Composable
+import com.example.file.FileViewModel
+import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun TopFolderEditBottomSheet(
-    folderStateViewModel: FolderStateViewModel
+    folderStateViewModel: FolderStateViewModel,
+    fileViewModel: FileViewModel
 ){
     TextFieldFileBottomSheet(
         title = "해당 카테고리를 수정하시겠습니까?",
@@ -13,6 +16,15 @@ fun TopFolderEditBottomSheet(
         placeholderText = "저장",
         isEditable = true,
         visible = folderStateViewModel.topFolderEditBottomSheetVisible,
-        onDismiss = { folderStateViewModel.upadateTopFolderEditBottomSheetVisible(false) }
+        onColorIdDeliver = { colorId ->
+            fileViewModel.updateCategoryColor(
+                categoryName = folderStateViewModel.readyToUpdateTopFolder!!.folderName,
+                colorId = (colorId + 1).toLong(),
+                colorStyle = CategoryColorStyle.categoryStyleList[colorId]
+            )
+        },
+        onDismiss = {
+            folderStateViewModel.updateTopFolderEditBottomSheetVisible(false)
+        }
     )
 }

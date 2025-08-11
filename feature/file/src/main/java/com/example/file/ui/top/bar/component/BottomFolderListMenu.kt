@@ -74,9 +74,10 @@ fun BottomFolderListMenu(
                         )
                     },
                     onClick = {
-                        fileViewModel.getSubfolders(folder.folderId)
+                        fileViewModel.getLinksFolders(folder.folderId)
                         folderStateViewModel.updateSelectedTopFolder(folder)
                         folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                        folderStateViewModel.updateBottomMenuExpanded(false)
                     }
                 )
             }
@@ -99,6 +100,7 @@ fun BottomFolderListMenu(
                         fileViewModel.getLinksFolders(folder.folderId)
                         folderStateViewModel.updateSelectedBottomFolder(folder)
                         folderStateViewModel.updateFolderState(FolderState.LINKS)
+                        folderStateViewModel.updateBottomMenuExpanded(false)
                     }
                 )
             }

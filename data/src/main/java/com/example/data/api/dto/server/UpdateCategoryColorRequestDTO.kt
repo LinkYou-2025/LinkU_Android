@@ -4,7 +4,7 @@ import com.squareup.moshi.Json
 
 data class UpdateCategoryColorRequestDTO(
 
-    @Json(name = "colorCode")
-    val colorCode: String
+    @Json(name = "fcolorId")
+    val fcolorId: Long
 
 )
