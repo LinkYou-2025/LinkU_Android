@@ -79,6 +79,7 @@ import com.example.curation.CurationDetailUiState
 import androidx.compose.ui.text.style.TextOverflow
 import kotlinx.coroutines.delay
 
+//헬퍼
 
 
 /* ===== 실제 화면: VM에서 닉네임 받아와 Content 호출 ===== */
@@ -183,16 +184,20 @@ private fun CurationDetailScreenContent(
             links = linksState.items,
             loading = linksState.loading,
             onRetry = { /* 다시 로드 트리거는 부모에서 viewModel.load... 호출로 연결 */ },
-            onClick = { url -> runCatching { uri.openUri(url) } }
-        )
+            //onClick = { url -> runCatching { uri.openUri(url) } }
+            onClick = { url ->
+                val safe = ensureHttpScheme(url)
+                runCatching { uri.openUri(safe) }
+            }
+            )
 
         Spacer(Modifier.height(16.dp))
 
-        // 하단 위로-토닥 문구 카드
+
+        // footerMent 바인딩
         PositiveNoteCard(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+            footerMent = detailState.footerMent,
+            modifier = Modifier.padding(horizontal = 16.dp)
         )
         Spacer(Modifier.height(16.dp))
     }
@@ -939,15 +944,20 @@ fun TagChip(text: String) {
 
 /* ===== 하단 긍정 메시지 카드 ===== */
 @Composable
-private fun PositiveNoteCard(modifier: Modifier = Modifier) {
+private fun PositiveNoteCard(
+    footerMent: String?, // API로 받은 푸터 멘트
+    modifier: Modifier = Modifier
+) {
+    val (line1, line2) = remember(footerMent) { splitFirstSentence(footerMent) }
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            //.background(Color(0xFFF7EAFE)) // 연보라 톤
+            .background(Color(0xFFFBEEFF)) // 연보라 톤
             .padding(start = 16.dp, end = 16.dp, top = 50.dp)
     ) {
         Text(
-            text = "지금 떠오르지 않아도 괜찮아요.",
+            text = line1,
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Medium,
@@ -955,18 +965,51 @@ private fun PositiveNoteCard(modifier: Modifier = Modifier) {
             ),
             color = LocalColorTheme.current.black
         )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = "영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요.",
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp
-            ),
-            color = Color(0xFF43454B)
-        )
+        if (line2.isNotBlank()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = line2,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp
+                ),
+                color = Color(0xFF43454B)
+            )
+        }
     }
 }
+//@Composable
+//private fun PositiveNoteCard(
+//    footerMent: String?, //api로 부터 받은 푸트멘트
+//    modifier: Modifier = Modifier) {
+//    Column(
+//        modifier = modifier
+//            .clip(RoundedCornerShape(16.dp))
+//            .background(Color(0xFFFBEEFF)) // 연보라 톤
+//            .padding(start = 16.dp, end = 16.dp, top = 50.dp)
+//    ) {
+//        Text(
+//            text = "지금 떠오르지 않아도 괜찮아요.",
+//            style = MaterialTheme.typography.bodyMedium.copy(
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Medium,
+//                fontSize = 14.sp
+//            ),
+//            color = LocalColorTheme.current.black
+//        )
+//        Spacer(Modifier.height(4.dp))
+//        Text(
+//            text = "영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요.",
+//            style = MaterialTheme.typography.bodySmall.copy(
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Medium,
+//                fontSize = 14.sp
+//            ),
+//            color = Color(0xFF43454B)
+//        )
+//    }
+//}
 
 /* ===== 감정 칩 (기존) ===== */
 @Composable
@@ -1074,6 +1117,22 @@ private fun PreviewCurationDetailScreen() {
             likeBusy = false,       // 프리뷰 기본값
             onToggleLike = {}       // 프리뷰 기본값
         )
+    }
+}
+
+//하단 문장 분리 함수
+private fun splitFirstSentence(text: String?): Pair<String, String> {
+    if (text.isNullOrBlank()) {
+        return "지금 떠오르지 않아도 괜찮아요." to "영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요."
+    }
+    val trimmed = text.trim()
+    // 첫 문장(., !, ?)까지 + 나머지 전부
+    val m = Regex("([^.?!]+[.?!])\\s*(.*)", RegexOption.DOT_MATCHES_ALL).matchEntire(trimmed)
+    return if (m != null) {
+        m.groupValues[1].trim() to m.groupValues[2].trim()
+    } else {
+        // 문장부호 하나도 없으면 전부 첫 줄로
+        trimmed to ""
     }
 }
 

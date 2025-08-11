@@ -26,6 +26,11 @@ data class CurationDetailUiState(
     val error: String? = null
 )
 
+//스킵 보정 헬퍼(url 이동)
+private fun ensureHttpScheme(raw: String): String =
+    if (raw.startsWith("http://") || raw.startsWith("https://")) raw else "https://$raw"
+
+
 
 @HiltViewModel
 class CurationDetailViewModel @Inject constructor(
