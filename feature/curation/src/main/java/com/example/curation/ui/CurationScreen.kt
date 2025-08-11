@@ -163,7 +163,7 @@ fun CurationScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
                 // 3. 좋아요한 큐레이션 텍스트
                 Text(
@@ -244,7 +244,7 @@ fun CurationScreen(
                                 item = item,
                                 onHeartClick = {
                                     likedItems.getOrNull(idx)?.let { domain ->
-                                        viewModel.unlikeFromLikedList(domain.id)   // ✅ 서버 취소 + 낙관적 제거
+                                        viewModel.unlikeFromLikedList(domain.id)   // 서버 취소 + 낙관적 제거
                                     }
                                 }
                             )
@@ -345,11 +345,11 @@ fun LikedCurationEmptyState(
         Image(
             painter = painterResource(id = emptyIconRes),
             contentDescription = null,
-            modifier = Modifier.size(82.dp),      // ✨ 28dp → 82dp
+            modifier = Modifier.size(82.dp),
             contentScale = ContentScale.Fit
         )
 
-        Spacer(Modifier.height(12.dp))            // ✨ 간격 줄임(16 → 12)
+        Spacer(Modifier.height(12.dp))
 
         Text(
             text = "아직 좋아요한 큐레이션이 아직 없어요!",

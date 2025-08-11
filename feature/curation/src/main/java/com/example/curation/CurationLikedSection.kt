@@ -79,97 +79,140 @@ fun LikedCurationCard(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
+            .height(190.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {
-//        // 배경 이미지
-//        Image(
-//            painter = painterResource(id = item.imageRes),
-//            contentDescription = item.title,
-//            contentScale = ContentScale.Crop,
-//            modifier = Modifier.fillMaxSize()
-//        )
-        // 1) 이미지 우선순위: URL → 로컬 리소스
+        // 1) 이미지: URL > 리소스 > 폴백
         val painter = when {
             item.imageUrl?.isNotBlank() == true ->
-                coil3.compose.rememberAsyncImagePainter(
-                    model = item.imageUrl,
-                    // optional: 이미지 전환 부드럽게 하고 싶으면:
-                    // request = ImageRequest.Builder(LocalContext.current).data(item.imageUrl).crossfade(true).build()
-                )
-            item.imageRes != null -> painterResource(id = item.imageRes)
-            else -> painterResource(id = R.drawable.img_trump_card) // 완전한 Fallback
+                coil3.compose.rememberAsyncImagePainter(model = item.imageUrl)
+            item.imageRes != null ->
+                painterResource(id = item.imageRes)
+            else ->
+                painterResource(id = R.drawable.img_trump_card)
         }
 
         Image(
             painter = painter,
-            contentDescription = item.title,
+            contentDescription = null, // 텍스트 오버레이를 빼므로 CD도 생략
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
 
-        // 좋아요 하트 (우측 상단)
-//        Icon(
-//            painter = painterResource(id = R.drawable.ic_heart),
-//            contentDescription = "좋아요",
-//            tint = Color.White,
-//            modifier = Modifier
-//                .align(Alignment.TopEnd)
-//                .padding(12.dp)
-//                .size(24.dp)
-//        )
+        // 2) 좋아요 하트만 유지 (우상단)
         Icon(
             painter = painterResource(id = R.drawable.ic_heart),
-            contentDescription = "좋아요 취소",
+            contentDescription = null,
             tint = Color.White,
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(12.dp)
                 .size(24.dp)
-                .clickable { onHeartClick?.invoke() }   // ✅ 클릭 처리
-        )
-
-
-        // 텍스트 (왼쪽 하단)
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-            )
-            Text(
-                text = item.date,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontSize = 14.sp,
-                    color = Color.White
-                )
-            )
-        }
-
-        // 보러가기 > (오른쪽 하단)
-        Text(
-            text = "보러가기 >",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                color = Color.White
-            ),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
+                .clickable { onHeartClick?.invoke() }
         )
     }
 }
+//설명
+
+//@Composable
+//fun LikedCurationCard(
+//    item: UICurationItem,
+//    onHeartClick: (() -> Unit)? = null
+//) {
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(150.dp)
+//            .clip(RoundedCornerShape(12.dp))
+//    ) {
+////        // 배경 이미지
+////        Image(
+////            painter = painterResource(id = item.imageRes),
+////            contentDescription = item.title,
+////            contentScale = ContentScale.Crop,
+////            modifier = Modifier.fillMaxSize()
+////        )
+//        // 1) 이미지 우선순위: URL → 로컬 리소스
+//        val painter = when {
+//            item.imageUrl?.isNotBlank() == true ->
+//                coil3.compose.rememberAsyncImagePainter(
+//                    model = item.imageUrl,
+//                    // optional: 이미지 전환 부드럽게 하고 싶으면:
+//                    // request = ImageRequest.Builder(LocalContext.current).data(item.imageUrl).crossfade(true).build()
+//                )
+//            item.imageRes != null -> painterResource(id = item.imageRes)
+//            else -> painterResource(id = R.drawable.img_trump_card) // 완전한 Fallback
+//        }
+//
+//        Image(
+//            painter = painter,
+//            contentDescription = item.title,
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier.fillMaxSize()
+//        )
+//
+//        // 좋아요 하트 (우측 상단)
+////        Icon(
+////            painter = painterResource(id = R.drawable.ic_heart),
+////            contentDescription = "좋아요",
+////            tint = Color.White,
+////            modifier = Modifier
+////                .align(Alignment.TopEnd)
+////                .padding(12.dp)
+////                .size(24.dp)
+////        )
+//        Icon(
+//            painter = painterResource(id = R.drawable.ic_heart),
+//            contentDescription = "좋아요 취소",
+//            tint = Color.White,
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .padding(12.dp)
+//                .size(24.dp)
+//                .clickable { onHeartClick?.invoke() }   // ✅ 클릭 처리
+//        )
+//
+//
+//        // 텍스트 (왼쪽 하단)
+//        Column(
+//            modifier = Modifier
+//                .align(Alignment.BottomStart)
+//                .padding(16.dp)
+//        ) {
+//            Text(
+//                text = item.title,
+//                style = MaterialTheme.typography.titleMedium.copy(
+//                    fontFamily = Paperlogy,
+//                    fontWeight = FontWeight.Bold,
+//                    fontSize = 20.sp,
+//                    color = Color.White
+//                )
+//            )
+//            Text(
+//                text = item.date,
+//                style = MaterialTheme.typography.bodyMedium.copy(
+//                    fontFamily = Paperlogy,
+//                    fontSize = 14.sp,
+//                    color = Color.White
+//                )
+//            )
+//        }
+//
+//        // 보러가기 > (오른쪽 하단)
+//        Text(
+//            text = "보러가기 >",
+//            style = MaterialTheme.typography.bodyMedium.copy(
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Medium,
+//                fontSize = 14.sp,
+//                color = Color.White
+//            ),
+//            modifier = Modifier
+//                .align(Alignment.BottomEnd)
+//                .padding(16.dp)
+//        )
+//    }
+//}
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable

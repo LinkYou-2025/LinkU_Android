@@ -126,11 +126,12 @@ fun HighlightCardOnlyImage(
     modifier: Modifier = Modifier
 ) {
     //var liked by remember { mutableStateOf(false) }
-
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    var aspect by remember { mutableStateOf<Float?>(null) }
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(220.dp)
             .padding(top = 16.dp)
             .clip(RoundedCornerShape(12.dp))
     ) {

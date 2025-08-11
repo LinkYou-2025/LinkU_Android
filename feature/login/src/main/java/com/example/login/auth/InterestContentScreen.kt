@@ -48,14 +48,14 @@ val contents = listOf(
     Content("💼", "비즈니스/마케팅", 140f, DpOffset(-190.dp, 10.dp)),
     Content("🎨", "디자인/\n크리에이티브", 140f, DpOffset(-20.dp, 10.dp)),
     Content("💻", "IT/개발", 100f, DpOffset(140.dp, 50.dp)),
-    Content("🚀", "스타트업/창업", 120f, DpOffset(230.dp, 130.dp)),
+    Content("🚀", "스타트업/창업", 100f, DpOffset(230.dp, 130.dp)),
     Content("🌍", "사회/문화/환경", 140f, DpOffset(-50.dp, 310.dp)),
     Content("📚", "학업/\n리포트 참고", 120f, DpOffset(-80.dp, 150.dp)),
     Content("✍️", "글쓰기/콘텐츠\n작성", 160f, DpOffset(60.dp, 150.dp)),
     Content("📓", "책/인사이트\n요약", 140f, DpOffset(350.dp, 200.dp)),
     Content("🧠", "심리/자기계발", 140f, DpOffset(-50.dp, 310.dp)),
     Content("📰", "시사/트렌드", 110f, DpOffset(100.dp, 330.dp)),
-    Content("📂", "그냥 모아두고\n싶은 글들", 140f, DpOffset(210.dp, 260.dp)),
+    Content("📂", "그냥 모아두고\n싶은 글들", 110f, DpOffset(210.dp, 260.dp)),
     Content("🎯", "커리어/채용", 100f, DpOffset(-150.dp, 280.dp))
 
 
