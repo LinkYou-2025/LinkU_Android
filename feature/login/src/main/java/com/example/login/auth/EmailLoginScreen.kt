@@ -52,16 +52,16 @@ fun EmailLoginScreen(
 
     LaunchedEffect(loginResult) {
         val result = loginResult
-        Log.d("Login", "현재 loginResult = $result")
         if (result?.userId != null && result.userId != -1) {
-            Log.d("Login", "로그인 성공 → Home 이동")
+            //  성공
             isLoginRequested = false
-
             navigator.navigate("home") {
-                // 스플래시를 포함해 전체 스택 정리
                 popUpTo(navigator.graph.findStartDestination().id) { inclusive = true }
                 launchSingleTop = true
             }
+        } else {
+            // 실패 or null → 다시 시도 가능하게 해제
+            if (isLoginRequested) isLoginRequested = false
         }
     }
 //    LaunchedEffect(loginResult?.userId, isLoginRequested) {
@@ -259,13 +259,10 @@ fun EmailLoginScreen(
                         ),
                         shape = RoundedCornerShape(24.dp)
                     )
-                    .clickable(enabled = isFormValid) {
+                    .clickable(enabled = isFormValid && !isLoginRequested) {
                         if (!isLoginRequested) {
                             isLoginRequested = true
-                            // 앞뒤 공백 제거
-                            val cleanEmail = email.trim()
-                            val cleanPassword = password.trim()
-                            loginViewModel.login(cleanEmail, cleanPassword)
+                            loginViewModel.login(email.trim(), password.trim())
                         }
                     },
                 contentAlignment = Alignment.Center

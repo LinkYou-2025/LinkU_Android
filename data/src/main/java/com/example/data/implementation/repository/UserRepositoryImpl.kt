@@ -8,6 +8,7 @@ import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.server.DeleteReasonDTO
+import com.example.data.api.dto.server.TempPasswordRequestDTO
 import retrofit2.HttpException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -204,13 +205,28 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             val response = userApi.getUserInfo(userId)
 
-            // ✅ 여기서 실제 nickname이 뭔지 로그 찍기
+            // 여기서 실제 nickname이 뭔지 로그 찍기
             Log.d("getUserInfo", "닉네임=${response.result?.nickname}")
 
             response.result?.nickname
         } catch (e: Exception) {
             Log.e("UserRepository", "닉네임 가져오기 실패", e)
             null
+        }
+    }
+
+    //유저 비밀번호 재설정
+    override suspend fun requestTempPassword(email: String): Boolean {
+        return try {
+            val res = userApi.requestTempPassword(email) // ← @Query 호출
+            Log.d("UserRepository", "[임시PW 응답] success=${res.isSuccess} code=${res.code} msg=${res.message}")
+            res.isSuccess == true
+        } catch (e: HttpException) {
+            Log.e("UserRepository", "[임시PW API 오류] code=${e.code()} msg=${e.message()}")
+            false
+        } catch (e: Exception) {
+            Log.e("UserRepository", "[임시PW 호출 실패]", e)
+            false
         }
     }
 

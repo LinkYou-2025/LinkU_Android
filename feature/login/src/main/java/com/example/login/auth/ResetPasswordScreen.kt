@@ -36,27 +36,39 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.example.login.R
 import com.example.login.Paperlogy
-
-
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.foundation.text.KeyboardActions
 
 @Composable
-fun ResetPasswordScreen(navigator: NavHostController) {
+fun ResetPasswordScreen(
+    navigator: NavHostController,
+    viewModel: ResetPasswordViewModel = hiltViewModel()
+) {
     var email by remember { mutableStateOf(TextFieldValue("")) }
     val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email.text).matches()
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val coroutineScope = rememberCoroutineScope()
 
-    // Alert(팝업) UI 상태 관리
+    val ui = viewModel.ui.collectAsState().value
     var showSuccessDialog by remember { mutableStateOf(false) }
+
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    // 성공시 다이얼로그 노출
+    LaunchedEffect(ui.success) {
+        if (ui.success) {
+            showSuccessDialog = true
+            viewModel.consumeSuccess()
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 32.dp, vertical = 40.dp)
-            .imePadding(), // 키보드 올라오면 자동 여백 처리
+            .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(40.dp))
 
         Image(
             painter = painterResource(id = R.drawable.logo_whiteback),
@@ -67,7 +79,7 @@ fun ResetPasswordScreen(navigator: NavHostController) {
             contentScale = ContentScale.Fit
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
 
         Text(
             text = "비밀번호 재설정",
@@ -79,7 +91,7 @@ fun ResetPasswordScreen(navigator: NavHostController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(Modifier.height(8.dp))
 
         Text(
             text = "걱정 마세요! 이메일 주소를 입력해 주시면,\n임시 비밀번호를 보내드릴게요!",
@@ -91,11 +103,14 @@ fun ResetPasswordScreen(navigator: NavHostController) {
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(Modifier.height(32.dp))
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                email = it
+                if (ui.error != null) viewModel.consumeError()
+            },
             placeholder = {
                 Text(
                     "이메일 주소를 입력해주세요.",
@@ -109,6 +124,15 @@ fun ResetPasswordScreen(navigator: NavHostController) {
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    if (isEmailValid && !ui.loading) {
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
+                        viewModel.request(email.text)
+                    }
+                }
             ),
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,8 +153,23 @@ fun ResetPasswordScreen(navigator: NavHostController) {
             shape = RoundedCornerShape(16.dp)
         )
 
-        Spacer(modifier = Modifier.weight(1f)) // 항상 아래로 밀려 있게 유지
+        // 입력 하단 에러 문구 (피그마  #FF3B30 느낌)
+        if (ui.error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = ui.error ?: "",
+                color = Color(0xFFFF3B30),
+                fontSize = 12.sp,
+                fontFamily = Paperlogy,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp)
+            )
+        }
 
+        Spacer(modifier = Modifier.weight(1f))
+
+        // 제출 버튼
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,45 +183,44 @@ fun ResetPasswordScreen(navigator: NavHostController) {
                     ),
                     shape = RoundedCornerShape(50)
                 )
-                .clickable(enabled = isEmailValid) {
+                .clickable(enabled = isEmailValid && !ui.loading) {
                     keyboardController?.hide()
-                    coroutineScope.launch {
-                        // // 임시: API 없이 바로 팝업 띄우기!
-                        delay(1000) //임시 지연
-                        showSuccessDialog = true  // 팝업 띄우기
-                        //navigator.popBackStack()
-
-                    }
+                    focusManager.clearFocus()
+                    viewModel.request(email.text)
                 },
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "임시 비밀번호 받기",
-                color = Color.White,
-                fontFamily = Paperlogy,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            if (ui.loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = Color.White
+                )
+            } else {
+                Text(
+                    text = "임시 비밀번호 받기",
+                    color = Color.White,
+                    fontFamily = Paperlogy,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 
-    //  팝업 UI 표시
+    // 성공 팝업
     if (showSuccessDialog) {
         PasswordResetAlert(
             onDismissRequest = { showSuccessDialog = false },
             onConfirmClick = {
                 showSuccessDialog = false
-                // 로그인 화면으로 이동
                 navigator.navigate("email_login") {
-                    // 팝업 띄운 resetPassword 화면 스택에서 제거
                     popUpTo("resetPassword") { inclusive = true }
                 }
             }
         )
     }
 }
-
-
 
 @Preview(showBackground = true, name = "ResetPasswordScreen Preview")
 @Composable
@@ -191,3 +229,156 @@ fun ResetPasswordScreenPreview() {
     ResetPasswordScreen(navigator = fakeNavController)
 }
 
+//
+//@Composable
+//fun ResetPasswordScreen(navigator: NavHostController) {
+//    var email by remember { mutableStateOf(TextFieldValue("")) }
+//    val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email.text).matches()
+//    val keyboardController = LocalSoftwareKeyboardController.current
+//    val coroutineScope = rememberCoroutineScope()
+//
+//    // Alert(팝업) UI 상태 관리
+//    var showSuccessDialog by remember { mutableStateOf(false) }
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(horizontal = 32.dp, vertical = 40.dp)
+//            .imePadding(), // 키보드 올라오면 자동 여백 처리
+//        horizontalAlignment = Alignment.CenterHorizontally
+//    ) {
+//        Spacer(modifier = Modifier.height(40.dp))
+//
+//        Image(
+//            painter = painterResource(id = R.drawable.logo_whiteback),
+//            contentDescription = "Logo",
+//            modifier = Modifier
+//                .size(64.dp)
+//                .align(Alignment.Start),
+//            contentScale = ContentScale.Fit
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        Text(
+//            text = "비밀번호 재설정",
+//            fontSize = 22.sp,
+//            fontWeight = FontWeight.Bold,
+//            fontFamily = Paperlogy,
+//            color = Color.Black,
+//            textAlign = TextAlign.Start,
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(8.dp))
+//
+//        Text(
+//            text = "걱정 마세요! 이메일 주소를 입력해 주시면,\n임시 비밀번호를 보내드릴게요!",
+//            fontSize = 16.sp,
+//            fontWeight = FontWeight.Normal,
+//            fontFamily = Paperlogy,
+//            color = Color(0xFF87898F),
+//            textAlign = TextAlign.Start,
+//            modifier = Modifier.fillMaxWidth()
+//        )
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        OutlinedTextField(
+//            value = email,
+//            onValueChange = { email = it },
+//            placeholder = {
+//                Text(
+//                    "이메일 주소를 입력해주세요.",
+//                    fontSize = 14.sp,
+//                    fontWeight = FontWeight.Normal,
+//                    fontFamily = Paperlogy,
+//                    color = Color(0xFFB7B9BF)
+//                )
+//            },
+//            singleLine = true,
+//            keyboardOptions = KeyboardOptions(
+//                keyboardType = KeyboardType.Email,
+//                imeAction = ImeAction.Done
+//            ),
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(Color.White, shape = RoundedCornerShape(16.dp))
+//                .border(
+//                    width = 1.dp,
+//                    brush = Brush.horizontalGradient(
+//                        colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                    ),
+//                    shape = RoundedCornerShape(16.dp)
+//                ),
+//            colors = TextFieldDefaults.colors(
+//                focusedIndicatorColor = Color.Transparent,
+//                unfocusedIndicatorColor = Color.Transparent,
+//                focusedContainerColor = Color.Transparent,
+//                unfocusedContainerColor = Color.Transparent
+//            ),
+//            shape = RoundedCornerShape(16.dp)
+//        )
+//
+//        Spacer(modifier = Modifier.weight(1f)) // 항상 아래로 밀려 있게 유지
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(50.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = if (isEmailValid)
+//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        else
+//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                    ),
+//                    shape = RoundedCornerShape(50)
+//                )
+//                .clickable(enabled = isEmailValid) {
+//                    keyboardController?.hide()
+//                    coroutineScope.launch {
+//                        // // 임시: API 없이 바로 팝업 띄우기!
+//                        delay(1000) //임시 지연
+//                        showSuccessDialog = true  // 팝업 띄우기
+//                        //navigator.popBackStack()
+//
+//                    }
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = "임시 비밀번호 받기",
+//                color = Color.White,
+//                fontFamily = Paperlogy,
+//                fontSize = 16.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//    }
+//
+//    //  팝업 UI 표시
+//    if (showSuccessDialog) {
+//        PasswordResetAlert(
+//            onDismissRequest = { showSuccessDialog = false },
+//            onConfirmClick = {
+//                showSuccessDialog = false
+//                // 로그인 화면으로 이동
+//                navigator.navigate("email_login") {
+//                    // 팝업 띄운 resetPassword 화면 스택에서 제거
+//                    popUpTo("resetPassword") { inclusive = true }
+//                }
+//            }
+//        )
+//    }
+//}
+//
+//
+//
+//@Preview(showBackground = true, name = "ResetPasswordScreen Preview")
+//@Composable
+//fun ResetPasswordScreenPreview() {
+//    val fakeNavController = rememberNavController()
+//    ResetPasswordScreen(navigator = fakeNavController)
+//}
+//
