@@ -2,7 +2,6 @@ package com.example.data.implementation.repository
 
 import android.util.Log
 import com.example.core.model.FolderInfo
-import com.example.core.model.FolderOwner
 import com.example.core.model.FolderPermission
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
@@ -17,7 +16,6 @@ import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
 import com.example.data.api.withAuth
 import com.example.data.api.withAuthResp204Raw
 import com.example.data.preference.AuthPreference
-import java.time.OffsetDateTime
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
@@ -279,23 +277,16 @@ class FolderRepositoryImpl @Inject constructor(
                 getSharedFolders()
             }.map {
                 SharedFolderInfo(
-                    folderId = it.folderId,
-                    folderName = it.folderName,
-                    categoryId = it.categoryId,
-                    owner = it.owner.run {
-                        FolderOwner(
-                            userId = this.userId,
-                            nickname = this.nickname
+                    userId = it.userId,
+                    nickname = it.nickname,
+                    folders = it.folders.map {
+                        FolderSimpleInfo(
+                            folderId = it.folderId,
+                            folderName = it.folderName,
+                            parentFolderId = it.categoryId,
+                            isBookmarked = false
                         )
-                    },
-                    permission = when (it.permission) {
-                        "viewer" -> FolderPermission.VIEWER
-                        "writer" -> FolderPermission.WRITER
-                        "owner" -> FolderPermission.OWNER
-                        "none" -> FolderPermission.NONE
-                        else -> FolderPermission.NONE
                     }
-
                 )
             }
         } catch (e: Exception){

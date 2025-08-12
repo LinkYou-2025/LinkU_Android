@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.file.FileViewModel
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
@@ -34,9 +35,9 @@ import com.example.file.ui.theme.White
 @Composable
 fun TopFolderListMenu(
     folderStateViewModel: FolderStateViewModel,
-    items: List<String>,
-    onChangeFolder: () -> Unit
+    fileViewModel: FileViewModel
 ){
+    val items = listOf("나의 폴더", "공유받은 폴더")
     DropdownMenu(
         modifier = Modifier
             .width(150.dp),
@@ -47,7 +48,7 @@ fun TopFolderListMenu(
         containerColor = White
     ) {
         var selectedText = remember { mutableStateOf(items[0]) }
-        items.forEach{ selectedOption ->
+        for ((i, selectedOption) in items.withIndex()){
             DropdownMenuItem(
                 leadingIcon = {
                         Icon(
@@ -94,8 +95,17 @@ fun TopFolderListMenu(
                     )
                 },
                 onClick = {
-                    selectedText.value = selectedOption
-                    onChangeFolder()
+                    if (selectedOption != selectedText.value){
+                        if (i == 0) {
+                            // 나의 폴더 클릭 시
+                            folderStateViewModel.updateIsSharedFolders(false)
+                        } else {
+                            // 공유 받은 폴더 클릭 시
+                            fileViewModel.getSharedFolders()
+                            folderStateViewModel.updateIsSharedFolders(true)
+                        }
+                        folderStateViewModel.updateTopMenuExpanded(false)
+                    }
                 }
             )
         }
@@ -104,10 +114,10 @@ fun TopFolderListMenu(
 
 @Preview()
 @Composable
-fun FolderListMenuTest(){
+private fun FolderListMenuTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
     TopFolderListMenu(
         folderStateViewModel = folderStateViewModel,
-        listOf("나의 폴더", "공유받은 폴더"),
-    ){}
+        fileViewModel = viewModel()
+    )
 }
