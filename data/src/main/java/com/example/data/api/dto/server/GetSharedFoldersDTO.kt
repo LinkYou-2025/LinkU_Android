@@ -1,17 +1,9 @@
 package com.example.data.api.dto.server
+
 import com.squareup.moshi.Json
 
-data class FolderOwnerDTO(
-    @Json(name = "userId")
-    val userId: Long,
-
-    @Json(name = "nickname")
-    val nickname: String
-)
-
-// com.example.core.model.SharedFolderInfo -> 구조를 공유
-data class GetSharedFoldersDTO(
-
+// 폴더 정보 DTO
+data class SharedFolderDTO(
     @Json(name = "folderId")
     val folderId: Long,
 
@@ -19,11 +11,17 @@ data class GetSharedFoldersDTO(
     val folderName: String,
 
     @Json(name = "categoryId")
-    val categoryId: Long,
+    val categoryId: Long
+)
 
-    @Json(name = "owner")
-    val owner: FolderOwnerDTO,
+// 사용자 + 해당 사용자가 공유한 폴더 목록 DTO
+data class GetSharedFoldersDTO(
+    @Json(name = "userId")
+    val userId: Long,
 
-    @Json(name = "permission")
-    val permission: String
+    @Json(name = "nickname")
+    val nickname: String,
+
+    @Json(name = "folders")
+    val folders: List<SharedFolderDTO>
 )

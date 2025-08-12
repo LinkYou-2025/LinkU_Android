@@ -37,6 +37,8 @@ import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
 import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.file.ui.bottom.sheet.ShareBottomSheet
+import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.theme.MainColor
 
 @Composable
@@ -50,21 +52,24 @@ fun FileScreen(
     LaunchedEffect(Unit) {
         Log.d("FileScreen", "LaunchedEffect")
         fileViewModel.getParentfolders()
+        fileViewModel.loadNickname()
+        fileViewModel.getCategoryColor()
+        Log.d("FileScreen", "LaunchedEffect end")
     }
 
     Log.d("FileScreen", "FileScreen")
 
     // 뒤로가기 핸들러
-    BackHandler(enabled = folderStateViewModel.currentFolderState != FolderState.TOP) {
+    BackHandler(enabled = folderStateViewModel.currentFolderState in listOf(FolderState.BOTTOM, FolderState.LINKS)) {
         editStateViewModel.updateEditMode(false)
         when (folderStateViewModel.currentFolderState) {
-            FolderState.LINKS -> {
-                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                folderStateViewModel.updateSelectedBottomFolder(null)
-            }
             FolderState.BOTTOM -> {
                 folderStateViewModel.updateFolderState(FolderState.TOP)
                 folderStateViewModel.updateSelectedTopFolder(null)
+            }
+            FolderState.LINKS -> {
+                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                folderStateViewModel.updateSelectedBottomFolder(null)
             }
             else -> {}
         }
@@ -95,14 +100,19 @@ fun FileScreen(
                 item {
                     when(folderStateViewModel.currentFolderState) {
                         FolderState.TOP -> {
-                            TopFolderGrid(
-                                fileViewModel = fileViewModel,
-                                folderStateViewModel = folderStateViewModel,
-                                editStateViewModel = editStateViewModel,
-                                onFolderEdit = {
-                                    folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)
-                                }
-                            )
+                            if(!folderStateViewModel.isSharedFolders){
+                                TopFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    folderStateViewModel = folderStateViewModel,
+                                    editStateViewModel = editStateViewModel
+                                )
+                            }else{
+                                SharedTopFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    folderStateViewModel = folderStateViewModel,
+                                    editStateViewModel = editStateViewModel
+                                )
+                            }
                         }
                         FolderState.BOTTOM -> {
                             BottomFolderGrid(
@@ -120,19 +130,21 @@ fun FileScreen(
                                 folderStateViewModel = folderStateViewModel,
                             )
                         }
-                        FolderState.SHARED -> {
-                            // SharedFolderGrid
-                        }
                     }
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 19.dp, bottom = 8.dp)
-            ) {
-                ShareButton()
+            if(folderStateViewModel.currentFolderState == FolderState.BOTTOM){
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 19.dp, bottom = 8.dp)
+                        .noRippleClickable {
+                            folderStateViewModel.updateShareBottomSheetVisible(true)
+                        }
+                ) {
+                    ShareButton()
+                }
             }
         }
 
@@ -173,7 +185,8 @@ fun FileScreen(
 
     // 중분류 폴더 수정 바텀 시트
     TopFolderEditBottomSheet(
-        folderStateViewModel = folderStateViewModel
+        folderStateViewModel = folderStateViewModel,
+        fileViewModel = fileViewModel
     )
 
     // 소분류 폴더 추가하기 바텀 시트
@@ -184,10 +197,10 @@ fun FileScreen(
         folderStateViewModel = folderStateViewModel
     )
 
-    // 중분류 폴더 수정 바텀 시트
+    // 소분류 폴더 수정 바텀 시트
     BottomFolderEditBottomSheet(
         onTextDeliver = {
-            fileViewModel.updateSubfolder(folderStateViewModel.selectedBottomFolder!!.folderId,it)
+            fileViewModel.updateSubfolder(folderStateViewModel.readyToUpdateBottomFolder!!.folderId,it)
         },
         folderStateViewModel = folderStateViewModel
     )
@@ -199,9 +212,11 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    //ShareBottomSheet(
-    //    folderStateViewModel = folderStateViewModel
-    //)
+    ShareBottomSheet(
+        userName = fileViewModel.nickname.collectAsState().value?:"",
+        folderStateViewModel = folderStateViewModel,
+        fileViewModel = fileViewModel,
+    )
     // ---------- bottom sheets ----------
 }
 

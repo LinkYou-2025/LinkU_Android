@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.core.model.CategoryColorList
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.SharedFolderInfo
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.FolderRepository
 import com.example.core.repository.UserRepository
@@ -31,8 +32,8 @@ class FileViewModel @Inject constructor(
     val nickname: StateFlow<String?> = _nickname.asStateFlow()
 
     // 공유 폴더 리스트
-    private val _sharedTopFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
-    val sharedTopFolders: StateFlow<List<FolderSimpleInfo>> = _sharedTopFolders.asStateFlow()
+    private val _sharedTopFolders = MutableStateFlow<List<SharedFolderInfo>>(emptyList())
+    val sharedTopFolders: StateFlow<List<SharedFolderInfo>> = _sharedTopFolders.asStateFlow()
 
     private val _sharedBottomFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val sharedBottomFolders: StateFlow<List<FolderSimpleInfo>> = _sharedBottomFolders.asStateFlow()
@@ -304,6 +305,65 @@ class FileViewModel @Inject constructor(
             }
         }
         Log.d("FileViewModel", "getNotCategorizationLinks return")
+    }
+
+    // 공유 폴더 가져오기
+    fun getSharedFolders(){
+        Log.d("FileViewModel", "getSharedFolders")
+
+        viewModelScope.launch {
+
+            Log.d("FileViewModel", "getSharedFolders launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getSharedFolders try")
+
+                _sharedTopFolders.value = folderRepository.getSharedFolders()
+
+                Log.d("FileViewModel", "getSharedFolders try result: ${_sharedTopFolders.value}")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "getSharedFolders catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "getSharedFolders finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "getSharedFolders return")
+    }
+
+    // 공유 폴더 하위 폴더 가져오기
+    fun getSharedBottomFolders(sharedFolder: SharedFolderInfo){
+        Log.d("FileViewModel", "getSharedBottomFolders")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "getSharedBottomFolders launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getSharedBottomFolders try")
+
+                _sharedBottomFolders.value = sharedFolder.folders
+
+                Log.d("FileViewModel", "getSharedBottomFolders try result: ${_sharedBottomFolders.value}")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "getSharedBottomFolders catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "getSharedBottomFolders finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "getSharedBottomFolders return")
     }
     // ---------- get method ----------
 

@@ -43,7 +43,7 @@ fun FileTopBar(
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
-    ) {
+) {
     // 내부 요소들을 겹쳐서 배치하는 Box
     Box(
         // 전체 영역을 가득 채우도록
@@ -126,8 +126,8 @@ fun FileTopBar(
 
             TopFolderListMenu(
                 folderStateViewModel = folderStateViewModel,
-                listOf("나의 폴더", "공유받은 폴더"),
-            ){}
+                fileViewModel = fileViewModel
+            )
 
         }
 

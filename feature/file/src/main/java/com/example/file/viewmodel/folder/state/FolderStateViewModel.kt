@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.core.model.FolderSimpleInfo
+import com.example.core.model.SharedFolderInfo
 
 enum class FolderState {
     TOP,        // 최상위 폴더(TopFolderGrid)
@@ -15,6 +16,14 @@ enum class FolderState {
 
 // FolderState 뷰 모델
 class FolderStateViewModel : ViewModel() {
+
+    // 공유 폴더인지 내 폴더인지
+    var isSharedFolders by mutableStateOf(false)
+        private set
+    fun updateIsSharedFolders(newState: Boolean) {
+        Log.d("isSharedFolders", newState.toString())
+        isSharedFolders = newState
+    }
 
     // 현재 폴더 단계
     var currentFolderState by mutableStateOf<FolderState>(FolderState.TOP)
@@ -56,6 +65,22 @@ class FolderStateViewModel : ViewModel() {
         readyToUpdateBottomFolder = newFolder
     }
 
+    // 선택한 공유 폴더, null이면 나의 폴더 보는 중
+    var selectedTopSharedFolder by mutableStateOf<SharedFolderInfo?>(null)
+        private set
+    fun updateSelectedSharedFolder(newFolder: SharedFolderInfo?){
+        Log.d("selectedTopSharedFolder", newFolder.toString())
+        selectedTopSharedFolder = newFolder
+    }
+
+    var selectedBottomSharedFolder by mutableStateOf<FolderSimpleInfo?>(null)
+        private set
+    fun updateSelectedBottomSharedFolder(newFolder: FolderSimpleInfo?){
+        Log.d("selectedBottomSharedFolder", newFolder.toString())
+        selectedBottomSharedFolder = newFolder
+    }
+
+    // 수정 가능 상태 확인
     val isEditable: Boolean
         get() = currentFolderState in listOf(FolderState.TOP, FolderState.BOTTOM)
 

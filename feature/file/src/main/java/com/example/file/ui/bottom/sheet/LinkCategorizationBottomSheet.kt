@@ -22,6 +22,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,7 +36,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
@@ -43,48 +46,15 @@ import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.Purple200
-
-data class Link(
-    val title: String,
-    val domain: String,
-    val icon: Painter?,
-    val img: Painter?
-)
+import com.example.file.ui.theme.domainLogoPainterOrNull
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkCategorizationBottomSheet(
+    fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
-    val links: List<Link> = listOf(
-        Link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), null),
-        Link("title", "domain", null, painterResource(id = R.drawable.test_img)),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-        Link("title", "domain", null, null),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-    )
+    val links = fileViewModel.links.collectAsState().value
 
     FileBottomSheet(
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
@@ -102,8 +72,8 @@ fun LinkCategorizationBottomSheet(
             items(links) {
                 val title = it.title
                 val domain = it.domain
-                val icon = it.icon
-                val img = it.img
+                val icon = domainLogoPainterOrNull(it.domain)?:painterResource(R.drawable.link_categorization_default)
+                val img = painterResource(R.drawable.link_categorization_default)//it.img
                 Row(
                     modifier = Modifier
                         .height(60.dp),
@@ -130,8 +100,7 @@ fun LinkCategorizationBottomSheet(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(18.dp)),
-                            painter = img
-                                ?: painterResource(id = R.drawable.link_categorization_default),
+                            painter = img,
                             contentDescription = null
                         )
                     }
@@ -163,15 +132,13 @@ fun LinkCategorizationBottomSheet(
                                     .background(Gray100),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (icon != null) {
-                                    Image(
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        painter = icon,
-                                        contentDescription = null
-                                    )
-                                }
+                                Image(
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clip(CircleShape),
+                                    painter = icon,
+                                    contentDescription = null
+                                )
                             }
 
                             Text(
@@ -195,5 +162,8 @@ fun LinkCategorizationBottomSheet(
 private fun LinkCategorizationBottomSheetTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
     folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-    LinkCategorizationBottomSheet(folderStateViewModel)
+    LinkCategorizationBottomSheet(
+        hiltViewModel(),
+        folderStateViewModel
+    )
 }

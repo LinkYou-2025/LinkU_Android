@@ -52,6 +52,7 @@ fun FileBottomSheet(
     body: String,
     buttonText: String,
     visible: Boolean,
+    isShareMode: Boolean = false,
     onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
@@ -59,7 +60,7 @@ fun FileBottomSheet(
     if(visible) {
         ModalBottomSheet(
             modifier = Modifier
-                //.height(900.dp)
+                //.height(900.dp) // 바텀 시트의 스튜디오 렌더링 시 주석 해제
             ,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
@@ -102,10 +103,15 @@ fun FileBottomSheet(
                         .fillMaxWidth()
                         .height(50.dp)
                         .clip(shape = RoundedCornerShape(18.dp))
-                        .background(brush = MainColor)
+                        .background(
+                            brush = MainColor,
+                            alpha = if (isShareMode) 0.5f else 1f
+                        )
                         .noRippleClickable {
-                            onOkay()
-                            onDismiss()
+                            if (!isShareMode){
+                                onOkay()
+                                onDismiss()
+                            }
                         }
                 ){
                     Text(
@@ -132,6 +138,7 @@ private fun FileEditBottomSheetTest(){
         body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
         buttonText = "저장",
         visible = true,
+        isShareMode = true,
         onDismiss = {}
     ){
         Row(
