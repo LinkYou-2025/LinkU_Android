@@ -623,6 +623,40 @@ class FileViewModel @Inject constructor(
             }
         Log.d("FileViewModel", "deleteSubfolder return")
     }
+
+    // 공유 폴더 삭제
+    fun deleteSharedFolder(folderId: Long){
+        Log.d("FileViewModel", "deleteSharedFolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "deleteSharedFolder launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "deleteSharedFolder try")
+
+                folderRepository.deleteSharedFolder(folderId)
+
+                _sharedBottomFolders.update {
+                    it.filter { it.folderId != folderId }
+                }
+
+                Log.d("FileViewModel", "deleteSharedFolder try result")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "deleteSharedFolder catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "deleteSharedFolder finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "deleteSharedFolder return")
+    }
+
     // ---------- delete method ----------
 
     // ---------- share method ----------

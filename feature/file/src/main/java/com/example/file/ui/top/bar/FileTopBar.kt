@@ -1,7 +1,9 @@
 package com.example.file.ui.top.bar
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -111,48 +113,52 @@ fun FileTopBar(
         }
 
         // 4. 폴더 리스트 레이아웃
-        Box(
-            // 왼쪽 위에 정렬
+        Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 // 왼쪽 20dp, 위쪽 153dp 여백
-                .padding(start = 20.dp, top = 153.dp)
-                .noRippleClickable {
-                    folderStateViewModel.updateTopMenuExpanded(true)
-                },
-        ) {
-            // 폴더 리스트 컴포저블
-            TopFolderListLayout()
-
-            TopFolderListMenu(
-                folderStateViewModel = folderStateViewModel,
-                fileViewModel = fileViewModel
-            )
-
-        }
-
-        if(folderStateViewModel.currentFolderState != FolderState.TOP){
+                .padding(start = 20.dp, top = 153.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ){
             Box(
                 // 왼쪽 위에 정렬
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    // 왼쪽 20dp, 위쪽 153dp 여백
-                    .padding(start = 139.29.dp, top = 153.dp)
                     .noRippleClickable {
-                        folderStateViewModel.updateBottomMenuExpanded(true)
+                        folderStateViewModel.updateTopMenuExpanded(true)
                     },
             ) {
                 // 폴더 리스트 컴포저블
-                BottomFolderListLayout(
-                    colorStyle = CategoryColorStyle.categoryStyleList[0],
+                TopFolderListLayout(
                     folderStateViewModel = folderStateViewModel
                 )
 
-                BottomFolderListMenu(
-                    fileViewModel = fileViewModel,
+                TopFolderListMenu(
                     folderStateViewModel = folderStateViewModel,
-                    onChangeFolder = {}
+                    fileViewModel = fileViewModel
                 )
+
+            }
+
+            if (folderStateViewModel.currentFolderState != FolderState.TOP) {
+                Box(
+                    // 왼쪽 위에 정렬
+                    modifier = Modifier
+                        .noRippleClickable {
+                            folderStateViewModel.updateBottomMenuExpanded(true)
+                        },
+                ) {
+                    // 폴더 리스트 컴포저블
+                    BottomFolderListLayout(
+                        colorStyle = CategoryColorStyle.categoryStyleList[0],
+                        folderStateViewModel = folderStateViewModel
+                    )
+
+                    BottomFolderListMenu(
+                        fileViewModel = fileViewModel,
+                        folderStateViewModel = folderStateViewModel,
+                        onChangeFolder = {}
+                    )
+                }
             }
         }
 
@@ -201,5 +207,5 @@ fun FileTopBar(
     heightDp = 915,
     showBackground = true)
 @Composable
-fun FileTopBarTest() {
+private fun FileTopBarTest() {
 }

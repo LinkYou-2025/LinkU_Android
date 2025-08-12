@@ -35,10 +35,18 @@ fun BottomFolderListLayout(
     colorStyle: CategoryColorStyle,
     folderStateViewModel: FolderStateViewModel
 ) {
-    var text = folderStateViewModel.selectedTopFolder!!.folderName +
-            if(folderStateViewModel.currentFolderState==FolderState.LINKS)
-                folderStateViewModel.selectedBottomFolder?.let{ " > ${it.folderName}" }
-            else ""
+    var text = if(!folderStateViewModel.isSharedFolders)(
+        folderStateViewModel.selectedTopFolder!!.folderName +
+                if (folderStateViewModel.currentFolderState == FolderState.LINKS)
+                    folderStateViewModel.selectedBottomFolder?.let { " > ${it.folderName}" }
+                else ""
+    )else(
+        "${folderStateViewModel.selectedTopSharedFolder!!.nickname}의 폴더" +
+                if (folderStateViewModel.currentFolderState == FolderState.LINKS)
+                    folderStateViewModel.selectedBottomSharedFolder?.let { " > ${it.folderName}" }
+                else ""
+    )
+
 
     // 레이아웃의 배경틀
     Box(
