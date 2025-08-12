@@ -7,17 +7,43 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.LinkuRepository
+import com.example.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val linkuRepository: LinkuRepository
+    private val linkuRepository: LinkuRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
+    // 최초 진입 시 프로필 로드
+    init {
+        // TODO: 추후 프로필 로드 부분 연결 후 넣기
+    }
+
+    // 직업 ID 보관
+    private val jobIdState = mutableStateOf<Long?>(null)
+    val jobId get() = jobIdState.value
+
+    private fun Throwable.isLinku4003(): Boolean {
+        // 예외 메시지에 코드가 섞여 오는 경우
+        if (message?.contains("LINKU4003") == true) return true
+
+        // Retrofit HttpException인 경우 에러 바디에서 코드 텍스트만 탐지
+        val http = this as? HttpException ?: return false
+        return try {
+            val body = http.response()?.errorBody()?.string()
+            body?.contains("\"code\":\"LINKU4003\"") == true || body?.contains("LINKU4003") == true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
     // 새로운 링크 저장
     private val imageState = mutableStateOf<File?>(null)
     private val urlState = mutableStateOf("")
@@ -40,6 +66,11 @@ class HomeViewModel @Inject constructor(
     val isDuplicateUrl get() = isDuplicateUrlState.value
     private val isInvalidUrlState = mutableStateOf(false)
     val isInvalidUrl get() = isInvalidUrlState.value
+
+    // 추천에 필요한 링크 수 부족 안내 플래그
+    private val needMoreForRecommendationState = mutableStateOf(false)
+    val needMoreForRecommendation get() = needMoreForRecommendationState.value
+    fun clearNeedMoreNotice() { needMoreForRecommendationState.value = false }
 
     // 추천 링크
     private val recommendedLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
@@ -88,10 +119,12 @@ class HomeViewModel @Inject constructor(
         emotionIdState.value = null
     }
 
-    private val recentLinksState = mutableStateOf(listOf<LinkSimpleInfo>())
+    // 최근 조회 링크 상태
+    private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
+    val recentLinks get() = recentLinksState.value
 
     init {
-//        loadRecentLinks()
+        loadRecentLinks()
     }
 
     // 링크 저장
@@ -142,6 +175,8 @@ class HomeViewModel @Inject constructor(
         if (isRecommendingState.value) return
         viewModelScope.launch {
             isRecommendingState.value = true
+            needMoreForRecommendationState.value = false
+
             runCatching {
                 linkuRepository.recommendLinks(
                     situationId = situationId,
@@ -152,30 +187,36 @@ class HomeViewModel @Inject constructor(
             }.onSuccess {
                 recommendedLinksState.value = it
                 showRecommendationsState.value = true
-            }.onFailure {
-                recommendedLinksState.value = emptyList()
-                showRecommendationsState.value = true // 실패해도 섹션은 바꿔서 빈 목록/메시지 보여줌
+            }.onFailure { e ->
+                if (e.isLinku4003()) {
+                    // 3개 미만 케이스
+                    needMoreForRecommendationState.value = true
+                    recommendedLinksState.value = emptyList()
+                    showRecommendationsState.value = true
+                } else {
+                    // 그 외 실패
+                    needMoreForRecommendationState.value = false
+                    recommendedLinksState.value = emptyList()
+                    showRecommendationsState.value = true
+                }
             }
+
             isRecommendingState.value = false
             onDone()
         }
     }
 
-    // ‘최근’으로 되돌리기
-    fun showRecent() {
-        showRecommendationsState.value = false
-    }
+//    // ‘최근’으로 되돌리기
+//    fun showRecent() {
+//        showRecommendationsState.value = false
+//    }
 
     // 최근 조회 링크 로딩
-//    fun loadRecentLinks() {
-//        viewModelScope.launch {
-//            runCatching {
-//                linkuRepository.getRecentLinks()
-//            }.onSuccess {
-//                recentLinks = it
-//            }.onFailure {
-//                recentLinks = emptyList()
-//            }
-//        }
-//    }
+    fun loadRecentLinks() {
+        viewModelScope.launch {
+            runCatching { linkuRepository.getRecentLinks(limit = 10) }
+                .onSuccess { recentLinksState.value = it }
+                .onFailure { recentLinksState.value = emptyList() }
+        }
+    }
 }

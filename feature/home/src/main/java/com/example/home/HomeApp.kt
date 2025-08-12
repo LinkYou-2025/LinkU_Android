@@ -56,6 +56,7 @@ fun HomeApp(viewModel: HomeViewModel) {
                 userName = "세나",
                 showRecommendations = viewModel.showRecommendations,
                 recommendedLinks = viewModel.recommendedLinks,
+                recentLinks = viewModel.recentLinks,
                 isRecommending = viewModel.isRecommending,
                 onRecommendRequest = { emotionId, situationId, size ->
                     viewModel.fetchRecommendations(
@@ -63,7 +64,10 @@ fun HomeApp(viewModel: HomeViewModel) {
                         emotionId = emotionId,
                         size = size
                     )
-                }
+                },
+                needMoreForRecommendation = viewModel.needMoreForRecommendation,
+                onClearNeedMoreNotice = viewModel::clearNeedMoreNotice,
+                jobId = viewModel.jobId ?: 2L,
             )
         }
 

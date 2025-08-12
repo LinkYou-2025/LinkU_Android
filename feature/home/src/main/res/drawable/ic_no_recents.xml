@@ -1,0 +1,45 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="82dp"
+    android:height="82dp"
+    android:viewportWidth="82"
+    android:viewportHeight="82">
+  <path
+      android:strokeWidth="1"
+      android:pathData="M13,1L69,1A12,12 0,0 1,81 13L81,69A12,12 0,0 1,69 81L13,81A12,12 0,0 1,1 69L1,13A12,12 0,0 1,13 1z"
+      android:fillColor="#00000000"
+      android:strokeColor="#A1A3A9"
+      android:strokeLineCap="round"/>
+  <path
+      android:pathData="M34.065,32.45C37.028,29.635 41.508,29.694 44.406,32.179L37.958,38.326C35.363,40.8 34.798,44.728 36.59,47.833C37.035,48.603 37.586,49.263 38.212,49.809L36.038,51.875C32.418,55.316 26.532,54.465 24.035,50.139C22.251,47.05 22.816,43.141 25.402,40.683L34.065,32.45Z"
+      android:strokeAlpha="0.6"
+      android:fillAlpha="0.6">
+    <aapt:attr name="android:fillColor">
+      <gradient 
+          android:startX="24.553"
+          android:startY="51.037"
+          android:endX="44.424"
+          android:endY="32.168"
+          android:type="linear">
+        <item android:offset="0" android:color="#FFB7B9BF"/>
+        <item android:offset="1" android:color="#33B7B9BF"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <path
+      android:pathData="M46.539,30.147C50.181,26.675 56.111,27.528 58.627,31.885C60.419,34.99 59.854,38.918 57.259,41.392L48.679,49.572C45.681,52.431 41.131,52.356 38.212,49.809L44.701,43.642C47.287,41.185 47.852,37.276 46.069,34.187C45.615,33.401 45.049,32.73 44.406,32.179L46.539,30.147Z"
+      android:strokeAlpha="0.6"
+      android:fillAlpha="0.6">
+    <aapt:attr name="android:fillColor">
+      <gradient 
+          android:startX="38.205"
+          android:startY="49.8"
+          android:endX="57.795"
+          android:endY="31.094"
+          android:type="linear">
+        <item android:offset="0" android:color="#33B7B9BF"/>
+        <item android:offset="1" android:color="#FFB7B9BF"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+</vector>
