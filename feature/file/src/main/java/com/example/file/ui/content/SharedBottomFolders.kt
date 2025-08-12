@@ -75,10 +75,11 @@ fun SharedBottomFolderGrid(
 
             FileModalWindow(
                 visible = visible,
-                onOkay = {/*TODO: 삭제 로직*/},
+                onOkay = {
+                    fileViewModel.deleteSharedFolder(folder.folderId)
+                },
                 onDismiss = {visible = false},
                 positiveText = "삭제하기",
-                negativeText = "취소하기",
                 title = "해당 폴더를 삭제하시겠습니까?"
             ) {
                 Text(

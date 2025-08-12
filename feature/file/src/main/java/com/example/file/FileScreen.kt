@@ -38,6 +38,7 @@ import com.example.file.ui.top.bar.component.ShareButton
 import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.file.ui.bottom.sheet.ShareBottomSheet
+import com.example.file.ui.content.SharedBottomFolderGrid
 import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.theme.MainColor
 
@@ -115,14 +116,22 @@ fun FileScreen(
                             }
                         }
                         FolderState.BOTTOM -> {
-                            BottomFolderGrid(
-                                fileViewModel = fileViewModel,
-                                editStateViewModel = editStateViewModel,
-                                folderStateViewModel = folderStateViewModel,
-                                onFolderAdd = {
-                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                                }
-                            )
+                            if(!folderStateViewModel.isSharedFolders){
+                                BottomFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    editStateViewModel = editStateViewModel,
+                                    folderStateViewModel = folderStateViewModel,
+                                    onFolderAdd = {
+                                        folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                                    }
+                                )
+                            }else{
+                                SharedBottomFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    editStateViewModel = editStateViewModel,
+                                    folderStateViewModel = folderStateViewModel
+                                )
+                            }
                         }
                         FolderState.LINKS -> {
                             LinksGrid(

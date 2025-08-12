@@ -38,6 +38,8 @@ fun TopFolderListMenu(
     fileViewModel: FileViewModel
 ){
     val items = listOf("나의 폴더", "공유받은 폴더")
+    var selectedText = remember { mutableStateOf(items[0]) }
+
     DropdownMenu(
         modifier = Modifier
             .width(150.dp),
@@ -47,7 +49,6 @@ fun TopFolderListMenu(
         onDismissRequest = { folderStateViewModel.updateTopMenuExpanded(false) },
         containerColor = White
     ) {
-        var selectedText = remember { mutableStateOf(items[0]) }
         for ((i, selectedOption) in items.withIndex()){
             DropdownMenuItem(
                 leadingIcon = {
@@ -105,6 +106,7 @@ fun TopFolderListMenu(
                             folderStateViewModel.updateIsSharedFolders(true)
                         }
                         folderStateViewModel.updateTopMenuExpanded(false)
+                        selectedText.value = selectedOption
                     }
                 }
             )
