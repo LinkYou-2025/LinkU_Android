@@ -123,6 +123,13 @@ class HomeViewModel @Inject constructor(
     private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
     val recentLinks get() = recentLinksState.value
 
+    // 링크 상세 보기 상태
+    private val linkDetailState = mutableStateOf<LinkSimpleInfo?>(null)
+    val linkDetail get() = linkDetailState.value
+
+    private val isLoadingLinkDetailState = mutableStateOf(false)
+    val isLoadingLinkDetail get() = isLoadingLinkDetailState.value
+
     init {
         loadRecentLinks()
     }
@@ -217,6 +224,17 @@ class HomeViewModel @Inject constructor(
             runCatching { linkuRepository.getRecentLinks(limit = 10) }
                 .onSuccess { recentLinksState.value = it }
                 .onFailure { recentLinksState.value = emptyList() }
+        }
+    }
+
+    // 상세 불러오기
+    fun loadLinkDetail(linkuId: Long) {
+        viewModelScope.launch {
+            isLoadingLinkDetailState.value = true
+            runCatching { linkuRepository.getLinkDetail(linkuId) }
+                .onSuccess { linkDetailState.value = it }
+                .onFailure { linkDetailState.value = null }
+            isLoadingLinkDetailState.value = false
         }
     }
 }

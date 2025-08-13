@@ -52,24 +52,39 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SaveLinkResultScreen(
-    selectedImageUri: String? = null // 외부에서 전달받은 URI
+    selectedImageUri: String? = null, // 외부에서 전달받은 URI
+    link: com.example.core.model.LinkSimpleInfo?,
+    isLoading: Boolean = false,
+    onBack: () -> Unit = {}
 ) {
+    // 🔹 서버 데이터 바인딩 (널/로딩 방어)
+    val titleFromServer = link?.title.orEmpty()
+    val memoFromServer = link?.memo.orEmpty()
+    val imageUrl = link?.linkuImageUrl
+    val domain = link?.domain.orEmpty()
+
     var showAISummary by remember { mutableStateOf(false) }
     var showAIArticleModal by remember { mutableStateOf(false) }
 
     var isEditMode by remember { mutableStateOf(false) }
 
-    var memoText by remember { mutableStateOf("본격적으로 오픽 시험 준비하기 전에 봐야할 영상!!!!") }
+    // 메모/제목은 서버값으로 초기화
+    var memoText by remember { mutableStateOf(memoFromServer) }
     var isMemoEditing by remember { mutableStateOf(false) }
 
-    // ✅ 수정 완료 시 텍스트 입력 종료
+    LaunchedEffect(link) {
+        // 상세가 갱신되면 UI 상태도 동기화(사용자가 수정 중이 아닐 때만)
+        if (!isMemoEditing) memoText = memoFromServer
+    }
+
+    // 수정 완료 시 텍스트 입력 종료
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
             isMemoEditing = false
         }
     }
 
-    // ✅ showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
+    // showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
     LaunchedEffect(showAIArticleModal) {
         if (showAIArticleModal) {
             delay(3000)
@@ -130,9 +145,9 @@ fun SaveLinkResultScreen(
                     .border(1.dp, LocalColorTheme.current.gray[200]),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (selectedImageUri != null) {
+                if (!imageUrl.isNullOrBlank()) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = selectedImageUri),
+                        painter = rememberAsyncImagePainter(model = imageUrl),
                         contentDescription = "선택된 이미지",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop // ✅ 박스에 꽉 차도록
@@ -479,13 +494,19 @@ fun SaveLinkResultScreen(
 fun TopBar(
     isEditMode: Boolean = false,
     showAISummary: Boolean = false,
-    onEditClick: () -> Unit = {}
+    onEditClick: () -> Unit = {},
+    onBack: () -> Unit = {},
+    titleText: String = ""
 ) {
     // 태그 샘플
     val tags = listOf("카테고리", "감정")
 
-    var titleText by remember { mutableStateOf("3일만에 오픽 AL") }
+    var title by remember { mutableStateOf(titleText) }
     var isTitleEditing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(titleText) {
+        if (!isTitleEditing) title = titleText
+    }
 
     // ✅ 수정 완료 시 텍스트 입력 종료
     LaunchedEffect(isEditMode) {
@@ -523,6 +544,7 @@ fun TopBar(
                         contentDescription = null,
                         modifier = Modifier
                             .size(width = 10.dp, height = 16.25.dp)
+                            .clickable { onBack() }
                     )
                 }
 
@@ -582,12 +604,12 @@ fun TopBar(
                     if (isTitleEditing) {
                         BasicTextField(
                             value = titleText,
-                            onValueChange = { titleText = it },
+                            onValueChange = { title = it },
                             textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white)
                         )
                     } else {
                         Text(
-                            text = titleText,
+                            text = title,
                             style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                             color = LocalColorTheme.current.white
                         )
@@ -602,7 +624,7 @@ fun TopBar(
                             modifier = Modifier
                                 .size(18.dp)
                                 .clickable {
-                                    titleText = ""
+                                    title = ""
                                     isTitleEditing = true
                                 }
                         )
@@ -659,5 +681,17 @@ fun TopBar(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSaveLinkResultScreen() {
-    SaveLinkResultScreen()
+    SaveLinkResultScreen(
+        link = com.example.core.model.LinkSimpleInfo(
+            linkuId = 1L,
+            categoryId = 1L,
+            memo = "프리뷰 메모",
+            emotionId = 2L,
+            title = "프리뷰 제목",
+            domain = "example.com",
+            domainImageUrl = "",
+            linkuImageUrl = null
+        ),
+        isLoading = false
+    )
 }
