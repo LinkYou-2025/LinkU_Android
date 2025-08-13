@@ -54,13 +54,14 @@ fun LinkCategorizationBottomSheet(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
-    val links = fileViewModel.links.collectAsState().value
+    val links = fileViewModel.notCategorizationLinks.collectAsState().value
 
     FileBottomSheet(
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
         visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
+        onOkay = {/*TODO: 폴더에 링크 추가*/},
         onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
     ) {
         LazyColumn(

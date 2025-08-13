@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +61,7 @@ import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldFileBottomSheet(
     title: String,
@@ -87,7 +89,7 @@ fun TextFieldFileBottomSheet(
         body = body,
         buttonText = "저장",
         visible = visible,
-        isShareMode = colorId == -1,
+        isReady = colorId == -1,
         onOkay = {
             onTextDeliver(text)
             if(isEditable) {

@@ -143,7 +143,7 @@ fun FileScreen(
                 }
             }
 
-            if(folderStateViewModel.currentFolderState == FolderState.BOTTOM){
+            if((folderStateViewModel.currentFolderState == FolderState.BOTTOM)&&(!folderStateViewModel.isSharedFolders)){
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)

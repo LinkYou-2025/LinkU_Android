@@ -7,6 +7,7 @@ import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.SharedFolderSimpleInfo
+import com.example.core.model.FolderPermissionInfo
 import com.example.core.repository.FolderRepository
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.server.FolderCreateRequestDTO
@@ -99,13 +100,13 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("getSubfolders", "try")
 
             folderList = serverApi.withAuth(authPreference){
-                getSubfolders(parentFolderId)
-            }.map {
+                getLinksFolders(parentFolderId)
+            }.folders.map {
                 FolderSimpleInfo(
                     folderId = it.folderId,
                     folderName = it.folderName,
-                    parentFolderId = it.parentFolderId?: parentFolderId,
-                    isBookmarked = it.isBookmarked
+                    parentFolderId = parentFolderId,
+                    isBookmarked = false
                 )
             }
         }catch (e: Exception){
@@ -386,38 +387,65 @@ class FolderRepositoryImpl @Inject constructor(
         return response
     }
 
-//    // 폴더 뷰어 전체 조회
-//    override suspend fun getFolderViewers(folderId: Long): List<SharedFolderSimpleInfo> {
-//        Log.d("getFolderViewers", "folderId: $folderId")
-//
-//        val response = serverApi.withAuth(authPreference) {
-//            getFolderViewers(folderId)
-//        }
-//
-//        Log.d("getFolderViewers", "response: $response")
-//
-//        return response.map{
-//            SharedFolderSimpleInfo(
-//                folderId = it.folderId,
-//                userId = it.userId,
-//                permission = when (this.permission) {
-//                    "viewer" -> FolderPermission.VIEWER
-//                    "writer" -> FolderPermission.WRITER
-//                    "owner" -> FolderPermission.OWNER
-//                    "none" -> FolderPermission.NONE
-//                    else -> FolderPermission.NONE
-//                },
-//                sharedAt = ""   // <- 추후 수정
-//            )
-//        }
-//    }
+    // 폴더 뷰어 전체 조회
+    override suspend fun getFolderViewers(folderId: Long): List<FolderPermissionInfo> {
+        Log.d("getFolderViewers", "folderId: $folderId")
 
-//    // 뷰어 권한 수정
-//    override suspend fun updateViewerPermission(
-//        folderId: Long,
-//        userFolderId: Long,
-//        body: FolderPermissionRequestDTO
-//    ): ShareFolderResponseDTO = serverApi.withAuth(authPreference) {
-//        updateViewerPermission(folderId, userFolderId, body)
-//    }
+        val response: List<FolderPermissionInfo>
+        try{
+            Log.d("getFolderViewers", "try")
+
+            response = serverApi.withAuth(authPreference) {
+                getFolderViewers(folderId)
+            }.map {
+                FolderPermissionInfo(
+                    userId = it.userId,
+                    userName = it.userName,
+                    permission = when (it.permission) {
+                        "viewer" -> FolderPermission.VIEWER
+                        "writer" -> FolderPermission.WRITER
+                        "owner" -> FolderPermission.OWNER
+                        else -> FolderPermission.NONE
+                    }
+                )
+            }
+        }catch (e: Exception){
+            Log.d("getFolderViewers", "error: $e")
+            throw e
+            // return emptyList()
+        }
+
+        Log.d("getFolderViewers", "response: $response")
+
+        return response
+    }
+
+    // 뷰어 권한 수정
+    override suspend fun updateViewerPermission(
+        folderId: Long,
+        userFolderId: Long,
+        body: FolderPermission
+    )/*: ShareFolderResponseDTO*/ {
+        Log.d("updateViewerPermission", "folderId: $folderId, userFolderId: $userFolderId, body: $body")
+        try{
+            Log.d("updateViewerPermission", "try")
+
+            serverApi.withAuth(authPreference) {
+                this.updateViewerPermission(
+                    folderId, userFolderId,
+                    when (body) {
+                        FolderPermission.VIEWER -> "viewer"
+                        FolderPermission.WRITER -> "writer"
+                        FolderPermission.OWNER -> "owner"
+                        FolderPermission.NONE -> "none"
+                    }
+                )
+            }
+        }catch (e: Exception){
+            Log.d("updateViewerPermission", "error: $e")
+            throw e
+        }
+
+        Log.d("updateViewerPermission", "updateViewerPermission success")
+    }
 }

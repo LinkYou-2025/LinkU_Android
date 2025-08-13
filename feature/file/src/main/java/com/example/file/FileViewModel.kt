@@ -3,7 +3,9 @@ package com.example.file
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.error.UserIdNullException
 import com.example.core.model.CategoryColorList
+import com.example.core.model.FolderPermission
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
@@ -67,6 +69,9 @@ class FileViewModel @Inject constructor(
     // 4. 하위 폴더 리스트
     private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val subFolders: StateFlow<List<FolderSimpleInfo>> = _subFolders.asStateFlow()
+
+    private val _shareBottomSheetSubFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+    val shareBottomSheetSubFolders: StateFlow<List<FolderSimpleInfo>> = _shareBottomSheetSubFolders.asStateFlow()
 
     // 4-1. 하위 폴더 요청 커서
     private val _subFoldersCursor = MutableStateFlow<String?>(null)
@@ -369,10 +374,8 @@ class FileViewModel @Inject constructor(
 
     // ---------- fetch method ----------
     // 외부로 소분류 폴더들을 반환하는 메소드
-    fun fetchSubfolders(parentFolderId: Long):List<FolderSimpleInfo>{
+    fun fetchSubfolders(parentFolderId: Long){
         Log.d("FileViewModel", "fetchSubfolders")
-
-        var folders: List<FolderSimpleInfo> = emptyList()
 
         viewModelScope.launch {
             Log.d("FileViewModel", "fetchSubfolders launch")
@@ -383,16 +386,14 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "fetchSubfolders try")
 
-                folders = folderRepository.getSubfolders(parentFolderId)
+                _shareBottomSheetSubFolders.value = folderRepository.getSubfolders(parentFolderId)
 
-                Log.d("FileViewModel", "fetchSubfolders try result: $folders")
+                Log.d("FileViewModel", "fetchSubfolders try result: $_shareBottomSheetSubFolders")
 
             }catch (e: Exception){
                 Log.d("FileViewModel", "fetchSubfolders catch: $e.message")
 
                 _errorMessage.value = e.message
-
-                folders = emptyList()
             }
             finally {
                 Log.d("FileViewModel", "fetchSubfolders finally")
@@ -401,8 +402,6 @@ class FileViewModel @Inject constructor(
             }
         }
         Log.d("FileViewModel", "fetchSubfolders return")
-
-        return folders
     }
     // ---------- fetch method ----------
 
@@ -661,7 +660,7 @@ class FileViewModel @Inject constructor(
 
     // ---------- share method ----------
     // 폴더 공유하기
-    fun shareFolder(folderId: Long){
+    fun shareFolder(folderId: Long):String{
         Log.d("FileViewModel", "shareFolder")
 
         viewModelScope.launch {
@@ -680,6 +679,8 @@ class FileViewModel @Inject constructor(
                 Log.d("FileViewModel", "shareFolder catch: $e.message")
 
                 _errorMessage.value = e.message
+
+                throw e
             }finally {
                 Log.d("FileViewModel", "shareFolder finally")
 
@@ -689,6 +690,48 @@ class FileViewModel @Inject constructor(
             Log.d("FileViewModel", "shareFolder end")
         }
         Log.d("FileViewModel", "shareFolder return")
+
+        return "linku://open?action=share&folderId=$folderId"
     }
+
+    // 폴더 공유 받기
+    fun receiveSharedFolder(folderId: Long){
+        Log.d("FileViewModel", "receiveSharedFolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "receiveSharedFolder launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "receiveSharedFolder try")
+
+                val userId = authPreference.userId
+
+                if(userId == null){
+                    throw UserIdNullException()
+                }
+
+                folderRepository.updateViewerPermission(
+                    folderId,
+                    userId,
+                    FolderPermission.VIEWER
+                )
+
+                Log.d("FileViewModel", "receiveSharedFolder try result")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "receiveSharedFolder catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "receiveSharedFolder finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "receiveSharedFolder return")
+    }
+
     // ---------- share method ----------
 }

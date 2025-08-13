@@ -82,12 +82,12 @@ interface FolderApi {
     ): Response<Unit>
 
     // 공유 받은 폴더 목록 조회
-    // 콜백 함수 등록
+    // ✅
     @GET("/api/folders/shared")
     suspend fun getSharedFolders(): BaseResponse<List<GetSharedFoldersDTO>>
 
     // 공유 받은 폴더 삭제
-    // 콜백 함수 등록
+    // ✅
     @DELETE("/api/folders/shared/{folderId}")
     suspend fun deleteSharedFolder(
         @Path("folderId") folderId: Long
@@ -113,7 +113,7 @@ interface FolderApi {
     suspend fun updateViewerPermission(
         @Path("folderId") folderId: Long,
         @Path("userFolderId") userFolderId: Long,
-        @Body body: FolderPermissionRequestDTO
+        @Body body: String
     ): BaseResponse<ShareFolderResponseDTO>
 
     // 폴더 비공개 전환
