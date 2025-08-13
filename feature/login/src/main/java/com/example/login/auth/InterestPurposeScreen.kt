@@ -39,6 +39,7 @@ import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 
 
@@ -48,11 +49,11 @@ data class Purpose(val emoji: String, val label: String, val size: Float, val of
 // 예시 리스트 (위치 정보 추가!) *위치 수정 필요 -> 피그마에 맞춤. 부족한 점 있으면 추후 수정 -*
 val purposes = listOf(
     Purpose("📚", "자기계발\n정보 수집", 130f, DpOffset(190.dp, 10.dp)),
-    Purpose("📝", "학업/리포트 정리", 140f, DpOffset(250.dp, 190.dp)),
-    Purpose("💼", "업무자료 아카이브", 150f, DpOffset(220.dp, 350.dp)),
-    Purpose("💡", "사이트 프로젝트\n창업 준비", 180f, DpOffset(60.dp, 120.dp)),
+    Purpose("📝", "학업/리포트 정리", 130f, DpOffset(230.dp, 180.dp)),
+    Purpose("💼", "업무자료 아카이브", 130f, DpOffset(220.dp, 350.dp)),
+    Purpose("💡", "사이트 프로젝트\n창업 준비", 160f, DpOffset(60.dp, 120.dp)),
     Purpose("📅", "그냥 나중에\n보고 싶은 글 저장", 220f, DpOffset(-70.dp, 290.dp)),
-    Purpose("❓", "기타", 70f, DpOffset(160.dp, 310.dp)),
+    Purpose("❓", "기타", 70f, DpOffset(160.dp, 300.dp)),
     Purpose("💻", "블로그/콘텐츠 작성 참고용", 110f, DpOffset(330.dp, 50.dp)),
     Purpose("🧠", "인사이트 모으기", 120f, DpOffset(380.dp, 300.dp)),
     Purpose("🎓", "취업·커리어 준비", 140f, DpOffset(-70.dp, 40.dp))
@@ -369,7 +370,23 @@ private fun PurposeCloudScrollable(
         right + 80.dp //스크롤 좌우 간격
     }
 
-    val scroll = rememberScrollState()
+    // ▶ 초기 스크롤을 150dp로 설정
+    val density = LocalDensity.current
+    val initialOffsetDp = 90.dp
+    val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
+
+    val scroll = rememberScrollState(initial = initialOffsetPx)
+
+    // 측정/재컴포지션 때 0으로 돌아가는 걸 방지(사용자가 이미 스크롤했다면 건드리지 않음)
+    LaunchedEffect(canvasWidth) {
+        if (scroll.value == 0) {
+            scroll.scrollTo(initialOffsetPx)
+        }
+    }
+
+
+
+//    val scroll = rememberScrollState()
 
     Box(
         modifier = Modifier
