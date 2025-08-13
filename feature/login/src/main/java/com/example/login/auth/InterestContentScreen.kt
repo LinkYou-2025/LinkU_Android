@@ -58,7 +58,9 @@ val contents = listOf(
     Content("📓", "책/인사이트\n요약", 140f, DpOffset(350.dp, 200.dp)),
     Content("🧠", "심리/자기계발", 140f, DpOffset(-50.dp, 310.dp)),
     Content("📰", "시사/트렌드", 110f, DpOffset(100.dp, 330.dp)),
+
     Content("📂", "그냥 모아두고\n싶은 글들", 130f, DpOffset(210.dp, 260.dp)),
+
     Content("🎯", "커리어/채용", 100f, DpOffset(-150.dp, 280.dp))
 
 
