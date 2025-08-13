@@ -118,4 +118,22 @@ class LinkuRepositoryImpl @Inject constructor(
             )
         }
     }
+
+    // 링크 상세 보기 구현
+    override suspend fun getLinkDetail(linkuId: Long): LinkSimpleInfo {
+        val dto = serverApi.withAuth(authPreference) {
+            viewDetailLink(linkuid = linkuId)
+        }
+
+        return LinkSimpleInfo(
+            linkuId = dto.linkuId ?: 0L,
+            categoryId = dto.categoryId,
+            memo = dto.memo,
+            emotionId = dto.emotionId,
+            title = dto.title.orEmpty(),
+            domain = dto.domain.orEmpty(),
+            domainImageUrl = dto.domainImageUrl,
+            linkuImageUrl = dto.linkuImageUrl
+        )
+    }
 }

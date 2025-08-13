@@ -330,6 +330,7 @@ fun MainApp(
                             vm.saveLink(
                                 onSucceed = { saved ->
                                     Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
+                                    vm.loadLinkDetail(saved.linkuId)
                                     vm.resetForm()
                                     navigator.navigate("savelinkresult")
                                 },
@@ -347,7 +348,17 @@ fun MainApp(
                 }
 
                 composable("savelinkresult") {
-                    SaveLinkResultScreen()
+                    val vm: HomeViewModel = hiltViewModel()
+
+                    SaveLinkResultScreen(
+                        // 선택 이미지(없으면 null 유지)
+                        selectedImageUri = null,
+                        // 뷰모델이 들고 있는 상세 데이터
+                        link = vm.linkDetail,
+                        // 로딩 중 여부
+                        isLoading = vm.isLoadingLinkDetail,
+                        onBack = { navigator.popBackStack() }
+                    )
                 }
             }
         }

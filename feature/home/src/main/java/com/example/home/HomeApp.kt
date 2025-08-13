@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -96,10 +97,12 @@ fun HomeApp(viewModel: HomeViewModel) {
                 onEmotionSelect = viewModel::selectEmotion,
                 onSaveClick = {
                     viewModel.saveLink(
-                        onSucceed = {
+                        onSucceed = { saved ->
                             Log.d("SaveLinkDebug", "저장 성공: $it")
                             viewModel.resetForm()
-                            navController.navigate("savelinkresult")
+//                            navController.navigate("savelinkresult")
+                            // 저장 직후 상세화면으로 id 전달
+                            navController.navigate("savelinkresult/${saved.linkuId}")
                         },
                         onFailed = { e ->
                             Log.e("SaveLinkDebug", "저장 실패", e)
@@ -118,8 +121,26 @@ fun HomeApp(viewModel: HomeViewModel) {
             )
         }
 
-        composable("savelinkresult") {
-            SaveLinkResultScreen()
+        composable("savelinkresult/{linkuId}") { backStackEntry ->
+            val linkuId = backStackEntry.arguments?.getString("linkuId")?.toLongOrNull()
+
+            if (id == null) {
+                // 잘못 들어온 경우 안전하게 되돌리기
+                Log.d("HomeAppLinkResult", "id가 null입니다.")
+                LaunchedEffect(Unit) { navController.popBackStack() }
+            } else {
+                // 화면 진입 시 상세 로드
+                LaunchedEffect(linkuId) {
+                    linkuId?.let { viewModel.loadLinkDetail(it) }
+                }
+
+                // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
+                SaveLinkResultScreen(
+                    link = viewModel.linkDetail,
+                    isLoading = viewModel.isLoadingLinkDetail,
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }

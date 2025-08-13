@@ -25,4 +25,7 @@ interface LinkuRepository {
 
     // 최근 조회 링크 조회(10개)
     suspend fun getRecentLinks(limit: Int = 10): List<LinkSimpleInfo>
+
+    // 링크 상세 보기
+    suspend fun getLinkDetail(linkuId: Long): LinkSimpleInfo
 }
