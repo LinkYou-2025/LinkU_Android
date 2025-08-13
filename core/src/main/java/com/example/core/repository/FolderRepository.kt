@@ -1,10 +1,12 @@
 package com.example.core.repository
 
 import com.example.core.model.FolderInfo
+import com.example.core.model.FolderPermission
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.SharedFolderSimpleInfo
+import com.example.core.model.FolderPermissionInfo
 
 interface FolderRepository {
 
@@ -58,15 +60,15 @@ interface FolderRepository {
     // 폴더 공유 (뷰어 권한 설정)
     suspend fun setFolderViewerPermission(folderId: Long): SharedFolderSimpleInfo
 
-//    // <임의추가> 폴더 뷰어 조회
-//    suspend fun getFolderViewers(folderId: Long): List<SharedFolderSimpleInfo>
+    // <임의추가> 폴더 뷰어 조회
+    suspend fun getFolderViewers(folderId: Long): List<FolderPermissionInfo>
 
-//    // <임의추가> 뷰어 권한 수정
-//    suspend fun updateViewerPermission(
-//        folderId: Long,
-//        userFolderId: Long,
-//        body: FolderPermissionRequestDTO
-//    ): ShareFolderResponseDTO
+    // <임의추가> 뷰어 권한 수정
+    suspend fun updateViewerPermission(
+        folderId: Long,
+        userFolderId: Long,
+        body: FolderPermission
+    )//: ShareFolderResponseDTO
 
     // 폴더 비공개 전환 (예외 던질 수 있음)
     suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo

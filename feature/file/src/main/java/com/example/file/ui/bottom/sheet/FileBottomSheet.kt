@@ -17,8 +17,10 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,20 +50,23 @@ import com.example.file.ui.theme.White
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FileBottomSheet(
+    modifier: Modifier = Modifier,
+    sheetState: SheetState = rememberModalBottomSheetState(),
     title: String,
     body: String,
     buttonText: String,
     visible: Boolean,
-    isShareMode: Boolean = false,
+    isReady: Boolean = true,
     onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
     if(visible) {
         ModalBottomSheet(
-            modifier = Modifier
+            modifier = modifier
                 //.height(900.dp) // 바텀 시트의 스튜디오 렌더링 시 주석 해제
             ,
+            sheetState = sheetState,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
             containerColor = White,
@@ -105,10 +110,10 @@ fun FileBottomSheet(
                         .clip(shape = RoundedCornerShape(18.dp))
                         .background(
                             brush = MainColor,
-                            alpha = if (isShareMode) 0.5f else 1f
-                        )
+                            alpha = if (isReady) 1f else 0.5f
+                )
                         .noRippleClickable {
-                            if (!isShareMode){
+                            if (isReady){
                                 onOkay()
                                 onDismiss()
                             }
@@ -130,6 +135,7 @@ fun FileBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, heightDp = 2000)
 @Composable
 private fun FileEditBottomSheetTest(){
@@ -138,7 +144,7 @@ private fun FileEditBottomSheetTest(){
         body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
         buttonText = "저장",
         visible = true,
-        isShareMode = true,
+        isReady = true,
         onDismiss = {}
     ){
         Row(
