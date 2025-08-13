@@ -22,6 +22,8 @@ class CurationViewModel @Inject constructor(
     private val authPreference: AuthPreference
 ) : ViewModel() {
 
+    private var hasPrefetched = false //한 번만 실행.
+
     private val _isGenerating = MutableStateFlow(false)
     val isGenerating: StateFlow<Boolean> = _isGenerating
 
@@ -34,48 +36,308 @@ class CurationViewModel @Inject constructor(
     private val _recentCuration = MutableStateFlow<CurationItem?>(null)
     val recentCuration: StateFlow<CurationItem?> = _recentCuration
 
+    // 추가: 네비게이션용 ID들
+    private val _userId = MutableStateFlow(-1L)
+    val userId: StateFlow<Long> = _userId
+
+    private val _currentCurationId = MutableStateFlow(-1L)
+    val currentCurationId: StateFlow<Long> = _currentCurationId
+
+    // 하이라이트(현재 큐레이션) 좋아요 상태
+    private val _highlightLiked = MutableStateFlow<Boolean?>(null)
+    val highlightLiked: StateFlow<Boolean?> = _highlightLiked
+
+    // 로딩/중복탭 방지 플래그(선택)
+    private val _likeBusy = MutableStateFlow(false)
+    val likeBusy: StateFlow<Boolean> = _likeBusy
+
+    // --- 공통 uid 가드
+    private fun requireUserId(): Long {
+        val uid = authPreference.userId ?: -1L
+        _userId.value = uid
+        return uid
+    }
+
 
     //닉네임 가져오기.
     fun loadNickname() {
         viewModelScope.launch {
-            val userId = authPreference.userId ?: -1L
-            if (userId != -1L) {
-                val name = userRepository.getUserInfo(userId)
-                _nickname.value = name
-            }
+            val uid = requireUserId()
+            if (uid <= 0L) { _nickname.value = "세나"; return@launch }
+
+            runCatching { userRepository.getUserInfo(uid) }
+                .onSuccess { _nickname.value = it }
+                .onFailure { e ->
+                    Log.e("UserRepository", "닉네임 가져오기 실패", e)
+                    _nickname.value = "세나" // 실패해도 화면은 뜨게
+                }
         }
     }
     fun loadMonthlyCuration() {
         viewModelScope.launch {
+            // 한 번만 로드, 실패 시엔 다시 시도 가능하도록 플래그 관리
+            if (hasPrefetched) return@launch
+
             _isGenerating.value = true
             _errorMessage.value = null
 
-            val userId = authPreference.userId
-            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $userId")
+            val uid = requireUserId()
+            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
 
-            if (userId == null || userId == -1L) {
+            if (uid <= 0L) {
                 _errorMessage.value = "로그인이 필요합니다."
                 _isGenerating.value = false
-                Log.w("CurationVM", "userId가 null 또는 -1L")
                 return@launch
             }
 
             try {
-                val response = repository.getMyRecentCuration(userId)
-                _recentCuration.value = response
-                Log.d("CurationVM", "큐레이션 불러오기 성공: $response")
+                val item = repository.getMyRecentCuration(uid)
+                _recentCuration.value = item
+                _currentCurationId.value = item.id
+
+                // 현재 큐레이션 좋아요 상태
+                runCatching { repository.isCurationLiked(item.id, uid) }
+                    .onSuccess { _highlightLiked.value = it }
+                    .onFailure { _highlightLiked.value = false }
+
+                // Top2/좋아요 리스트
+                loadHomeRecommendedLinksTop2(uid, item.id)
+                loadLikedCurations()
+
+                Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
+                hasPrefetched = true // 성공했을 때만 true
             } catch (e: Exception) {
-                _errorMessage.value = e.message ?: "큐레이션 조회 실패"
+                // 토큰 만료/401 문구는 사용자에게 명확히
+                val msg = e.message.orEmpty()
+                _errorMessage.value = when {
+                    msg.contains("Token", true) && msg.contains("expired", true) ->
+                        "세션이 만료됐어요. 다시 로그인해 주세요."
+                    else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+                }
                 Log.e("CurationVM", "큐레이션 불러오기 실패", e)
+                hasPrefetched = false // 실패하면 재시도 가능
             } finally {
                 _isGenerating.value = false
             }
         }
     }
+//    fun loadMonthlyCuration() {
+//        viewModelScope.launch {
+//            _isGenerating.value = true
+//            _errorMessage.value = null
+//
+//            val uid = authPreference.userId ?: -1L
+//            _userId.value = uid
+//            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
+//
+//            if (uid == -1L) {
+//                _errorMessage.value = "로그인이 필요합니다."
+//                _isGenerating.value = false
+//                Log.w("CurationVM", "userId가 null 또는 -1L")
+//                return@launch
+//            }
+//
+//            try {
+//                val response = repository.getMyRecentCuration(uid)
+//                _recentCuration.value = response
+//                // 현재 큐레이션 ID도 갱신 (CurationItem의 실제 필드명에 맞춰 수정)
+//                _currentCurationId.value = response.id
+//
+//                // 현재 큐레이션 좋아요 상태도 로드
+//                runCatching { repository.isCurationLiked(response.id, uid) }
+//                    .onSuccess { _highlightLiked.value = it }
+//                    .onFailure { _highlightLiked.value = false } // 실패 시 미선호로 기본
+//
+//                // 첫 진입에 바로 추천 Top2 로드
+//                loadHomeRecommendedLinksTop2(uid, response.id)
+//                loadLikedCurations()
+//
+//                Log.d("CurationVM", "큐레이션 불러오기 성공: $response")
+//            } catch (e: Exception) {
+//                _errorMessage.value = e.message ?: "큐레이션 조회 실패"
+//                Log.e("CurationVM", "큐레이션 불러오기 실패", e)
+//            } finally {
+//                _isGenerating.value = false
+//            }
+//        }
+//    }
+//    init {
+//        loadNickname()
+//        loadMonthlyCuration()
+//    }
+//  하이라이트 하트 토글
+    fun toggleHighlightLike() {
+        val cid = _currentCurationId.value
+        val uid = requireUserId()
+        val current = _highlightLiked.value ?: false
+        if (cid <= 0 || uid <= 0 || _likeBusy.value) return
+
+        viewModelScope.launch {
+            _likeBusy.value = true
+            // 낙관적 업데이트
+            _highlightLiked.value = !current
+
+            val result = runCatching {
+                if (current) repository.unlikeCuration(cid, uid)
+                else repository.likeCuration(cid, uid)
+            }
+
+            result.onSuccess {
+                loadLikedCurations() // 필요 시 생략 가능
+            }.onFailure { e ->
+                _highlightLiked.value = current // 롤백
+                val msg = e.message.orEmpty()
+                _likedError.value = when {
+                    msg.contains("Token", true) && msg.contains("expired", true) ->
+                        "세션이 만료됐어요. 다시 로그인해 주세요."
+                    else -> "좋아요 처리에 실패했어요"
+                }
+            }
+
+            _likeBusy.value = false
+        }
+    }
+//    fun toggleHighlightLike() {
+//        val cid = _currentCurationId.value
+//        val uid = authPreference.userId ?: -1L
+//        val current = _highlightLiked.value ?: false
+//        if (cid <= 0 || uid <= 0 || _likeBusy.value) return
+//
+//        viewModelScope.launch {
+//            _likeBusy.value = true
+//            // 낙관적 업데이트
+//            _highlightLiked.value = !current
+//
+//            val result = runCatching {
+//                if (current) repository.unlikeCuration(cid, uid)
+//                else repository.likeCuration(cid, uid)
+//            }
+//
+//            result.onSuccess {
+//                // 성공 시 목록 리프레시(선택: 비용 줄이려면 생략 가능)
+//                loadLikedCurations()
+//            }.onFailure { e ->
+//                // 실패하면 롤백
+//                _highlightLiked.value = current
+//                _likedError.value = e.message ?: "좋아요 처리에 실패했어요"
+//            }
+//
+//            _likeBusy.value = false
+//        }
+//    }
+
+    //큐레이션 추천(2개)
+    private val _homeLinks = MutableStateFlow(CurationLinksUiState())
+    val homeLinks: StateFlow<CurationLinksUiState> = _homeLinks
+
+    fun loadHomeRecommendedLinksTop2(userId: Long, curationId: Long) {
+        viewModelScope.launch {
+            _homeLinks.value = _homeLinks.value.copy(loading = true, error = null)
+            runCatching { repository.getHomeRecommendedLinksTop2(userId, curationId) }
+                .onSuccess { list ->
+                    _homeLinks.value = CurationLinksUiState(
+                        loading = false,
+                        items = list.take(2), // 방어
+                        error = null
+                    )
+                }
+                .onFailure { e ->
+                    _homeLinks.value = CurationLinksUiState(
+                        loading = false,
+                        items = emptyList(),
+                        error = e.message
+                    )
+                }
+        }
+    }
+
+//    fun loadHomeRecommendedLinksTop2(userId: Long, curationId: Long) {
+//        viewModelScope.launch {
+//            _homeLinks.value = _homeLinks.value.copy(loading = true, error = null)
+//            runCatching { repository.getHomeRecommendedLinksTop2(userId, curationId) }
+//                .onSuccess { list ->
+//                    _homeLinks.value = CurationLinksUiState(
+//                        loading = false,
+//                        items = list,   // 최대 2개
+//                        error = null
+//                    )
+//                }
+//                .onFailure { e ->
+//                    _homeLinks.value = CurationLinksUiState(
+//                        loading = false,
+//                        items = emptyList(),
+//                        error = e.message
+//                    )
+//                }
+//        }
+//    }
+
+    //큐레이션 추천
+    private val _likedCurations = MutableStateFlow<List<CurationItem>>(emptyList())
+    val likedCurations: StateFlow<List<CurationItem>> = _likedCurations
+
+    private val _likedLoading = MutableStateFlow(false)
+    val likedLoading: StateFlow<Boolean> = _likedLoading
+
+    private val _likedError = MutableStateFlow<String?>(null)
+    val likedError: StateFlow<String?> = _likedError
+
+    fun loadLikedCurations() {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0L) { _likedCurations.value = emptyList(); return@launch }
+            _likedLoading.value = true
+            _likedError.value = null
+            runCatching { repository.getLikedCurations(uid) }
+                .onSuccess { _likedCurations.value = it }
+                .onFailure { _likedError.value = it.message }
+            _likedLoading.value = false
+        }
+    }
+
     init {
         loadNickname()
         loadMonthlyCuration()
+
     }
+
+
+    fun unlikeFromLikedList(curationId: Long) {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0) return@launch
+
+            val before = _likedCurations.value
+            _likedCurations.value = before.filterNot { it.id == curationId } // 낙관적 제거
+
+            runCatching { repository.unlikeCuration(curationId, uid) }
+                .onFailure { e ->
+                    _likedCurations.value = before // 롤백
+                    _likedError.value = e.message ?: "좋아요 취소에 실패했어요"
+                }
+        }
+    }
+
+    // (옵션) 상세 화면 등에서 좋아요 등록이 필요할 때 사용
+    fun likeCuration(curationId: Long) {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0) return@launch
+            runCatching { repository.likeCuration(curationId, uid) }
+                .onFailure { e -> _likedError.value = e.message ?: "좋아요에 실패했어요" }
+        }
+    }
+    //새로고침 함수 추가.
+    fun refreshHighlightLike(curationId: Long) {
+        viewModelScope.launch {
+            val uid = authPreference.userId ?: -1L
+            if (uid <= 0 || curationId <= 0) return@launch
+            runCatching { repository.isCurationLiked(curationId, uid) }
+                .onSuccess { _highlightLiked.value = it }
+                .onFailure { _highlightLiked.value = false }
+        }
+    }
+    fun setCurrentCurationId(id: Long) { _currentCurationId.value = id }
 }
 
 
