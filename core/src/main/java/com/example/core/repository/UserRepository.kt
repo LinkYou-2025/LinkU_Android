@@ -1,6 +1,7 @@
 package com.example.core.repository
 
 import com.example.core.model.LoginResult
+import com.example.core.model.UserInfo
 
 
 interface UserRepository {
@@ -20,4 +21,6 @@ interface UserRepository {
     suspend fun verifyEmailCode(email: String, code: String): Boolean
     suspend fun deleteUser(reason: String): Boolean
 
+    // 마이페이지 조회
+    suspend fun getUserInfo(userId: Long): UserInfo
 }

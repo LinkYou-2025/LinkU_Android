@@ -43,7 +43,8 @@ import com.example.mypage.component.ServiceQuitModal
 
 @Composable
 fun ServiceQuitScreen(
-    navController: NavController
+    navController: NavController,
+    onRequestQuit: (reason: String) -> Unit
 ) {
     var username by remember { mutableStateOf("세나") }
 
@@ -218,6 +219,7 @@ fun ServiceQuitScreen(
                     onConfirm = {
                         showDialog = false
                         // 실제 탈퇴 로직 호출
+                        onRequestQuit(reasonText)
                     }
                 )
             }
@@ -229,5 +231,8 @@ fun ServiceQuitScreen(
 @Composable
 fun PreviewServiceQuitScreen() {
     val navController = rememberNavController()
-    ServiceQuitScreen(navController = navController)
+    ServiceQuitScreen(
+        navController = navController,
+        onRequestQuit = { /* preview: no-op */ }
+    )
 }

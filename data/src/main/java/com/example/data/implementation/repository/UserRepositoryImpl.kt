@@ -2,12 +2,14 @@ package com.example.data.implementation.repository
 
 import android.util.Log
 import com.example.core.model.LoginResult
+import com.example.core.model.UserInfo
 import com.example.core.repository.UserRepository
 import com.example.data.api.UserApi
 import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.server.DeleteReasonDTO
+import com.example.data.api.dto.server.UserInfoDTO
 import retrofit2.HttpException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -198,4 +200,25 @@ class UserRepositoryImpl @Inject constructor(
         return response.isSuccess == true
     }
 
+
+    // 마이페이지 조회
+    override suspend fun getUserInfo(userId: Long): UserInfo {
+        // val response = userApi.withAuth(authPreference) { getUserInfo(userId) }
+        val response = userApi.getUserInfo(userId)
+
+        val dto: UserInfoDTO = response.result
+            ?: throw IllegalStateException("마이페이지 조회 실패: ${response.message}")
+
+        // DTO -> 도메인 매핑을 여기서 바로 처리
+        return UserInfo(
+            nickname  = dto.nickname,
+            email     = dto.email,
+            gender    = dto.gender.value,   // "MALE" | "FEMALE"
+            jobId     = dto.job.id,
+            jobName   = dto.job.name,
+            myLinku   = dto.myLinku,
+            myFolder  = dto.myFolder,
+            myAiLinku = dto.myAiLinku
+        )
+    }
 }
