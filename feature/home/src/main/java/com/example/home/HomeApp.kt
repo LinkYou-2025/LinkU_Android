@@ -24,27 +24,27 @@ fun HomeApp(viewModel: HomeViewModel) {
     val context = LocalContext.current
     val navController = rememberNavController()
 
-    // === 감정/상황 키 → 서버 ID 매핑 ===
-    fun emotionKeyToId(key: String): Long = when (key) {
-        "joy" -> 1L
-        "calm" -> 2L
-        "excitement" -> 3L
-        "sadness" -> 4L
-        "irritation" -> 5L
-        "anger" -> 6L
-        else -> 0L
-    }
-    fun taskKeyToSituationId(key: String): Long = when (key) {
-        "트렌드 확인" -> 11L
-        "과제 중"   -> 12L
-        "쇼핑 중"   -> 13L
-        "데이트 중" -> 14L
-        "통학 중"   -> 15L
-        "알바 중"   -> 16L
-        "휴식 중"   -> 17L
-        "자기 전"   -> 18L
-        else -> 0L
-    }
+//    // === 감정/상황 키 → 서버 ID 매핑 ===
+//    fun emotionKeyToId(key: String): Long = when (key) {
+//        "joy" -> 1L
+//        "calm" -> 2L
+//        "excitement" -> 3L
+//        "sadness" -> 4L
+//        "irritation" -> 5L
+//        "anger" -> 6L
+//        else -> 0L
+//    }
+//    fun taskKeyToSituationId(key: String): Long = when (key) {
+//        "트렌드 확인" -> 11L
+//        "과제 중"   -> 12L
+//        "쇼핑 중"   -> 13L
+//        "데이트 중" -> 14L
+//        "통학 중"   -> 15L
+//        "알바 중"   -> 16L
+//        "휴식 중"   -> 17L
+//        "자기 전"   -> 18L
+//        else -> 0L
+//    }
 
     // 외부 브라우저 열기
     fun openUrl(url: String) {
@@ -80,6 +80,9 @@ fun HomeApp(viewModel: HomeViewModel) {
                 needMoreForRecommendation = viewModel.needMoreForRecommendation,
                 onClearNeedMoreNotice = viewModel::clearNeedMoreNotice,
                 jobId = viewModel.jobId ?: 2L,
+                onLinkClick = { id ->                    // ✅ 추가
+                    navController.navigate("savelinkresult/$id")
+                }
             )
         }
 
