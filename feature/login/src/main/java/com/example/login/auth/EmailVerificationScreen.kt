@@ -184,12 +184,14 @@ fun EmailVerificationScreen(
                     singleLine = true,
                     enabled = !isVerifying, // 검증 중 입력 잠금 -> 성격 급한 사용자 감안 수정.
                     trailingIcon = {
+                        val textModifier = Modifier.padding(end = 12.dp)
                         if (sendResult == "서버 오류") {
                             Text(
                                 text = "서버 오류",
                                 color = Color(0xFFFF5E5E),
                                 fontSize = 13.sp,
-                                fontFamily = Paperlogy
+                                fontFamily = Paperlogy,
+                                modifier = textModifier
                             )
                         } else {
                             Text(

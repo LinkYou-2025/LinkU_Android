@@ -7,6 +7,7 @@ import com.example.data.implementation.preference.AuthPreferenceImpl
 import com.example.data.implementation.repository.CurationRepositoryImpl
 import com.example.data.preference.AuthPreference
 import dagger.Module
+import com.example.data.api.CurationApi
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -18,15 +19,28 @@ import javax.inject.Singleton
 object CurationRepositoryModule {
 
 
-    @Provides
-    @Singleton
-    fun provideLinkuRepository(
-        serverApi: ServerApi,
-        authPreference: AuthPreference
-    ): CurationRepository {
-        return CurationRepositoryImpl(
-            serverApi = serverApi,
-            authPreference = authPreference
-        )
-    }
+//    @Provides
+//    @Singleton
+//    fun provideLinkuRepository(
+//        serverApi: ServerApi,
+//        authPreference: AuthPreference
+//    ): CurationRepository {
+//        return CurationRepositoryImpl(
+//            serverApi = serverApi,
+//            authPreference = authPreference
+//        )
+//    }
+@Provides
+@Singleton
+fun provideCurationRepository(                // 함수명도 의미 맞게 변경 권장
+    serverApi: ServerApi,
+    curationApi: CurationApi,                 // ★ 추가
+    authPreference: AuthPreference
+): CurationRepository {
+    return CurationRepositoryImpl(
+        serverApi = serverApi,
+        curationApi = curationApi,            // ★ 전달
+        authPreference = authPreference
+    )
+}
 }

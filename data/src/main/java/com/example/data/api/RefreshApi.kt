@@ -1,4 +1,5 @@
-package com.example.data.api.dto
+package com.example.data.api
+import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.server.RefreshTokenRequest
 import com.example.data.api.dto.server.TokenPair
 import retrofit2.http.Body

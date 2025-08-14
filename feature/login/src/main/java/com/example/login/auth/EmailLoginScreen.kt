@@ -35,8 +35,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
-
-
+import androidx.navigation.NavGraph.Companion.findStartDestination
 
 
 @Composable
@@ -53,16 +52,31 @@ fun EmailLoginScreen(
 
     LaunchedEffect(loginResult) {
         val result = loginResult
-        Log.d("Login", "현재 loginResult = $result") // 디버깅 추가
         if (result?.userId != null && result.userId != -1) {
-            Log.d("Login", "로그인 성공 → Home 이동")
+            //  성공
             isLoginRequested = false
             navigator.navigate("home") {
-                popUpTo("email_login") { inclusive = true } // 올바른 현재 라우트 사용
+                popUpTo(navigator.graph.findStartDestination().id) { inclusive = true }
                 launchSingleTop = true
             }
+        } else {
+            // 실패 or null → 다시 시도 가능하게 해제
+            if (isLoginRequested) isLoginRequested = false
         }
     }
+//    LaunchedEffect(loginResult?.userId, isLoginRequested) {
+//        val result = loginResult
+//        if (isLoginRequested && result?.userId != null && result.userId != -1) {
+//            Log.d("Login", " 로그인 성공 → Home 이동")
+//            isLoginRequested = false
+//
+//            // NavHost에서 실제 라우트명을 정확히 사용!
+//            navigator.navigate("home") {
+//                popUpTo(0) { inclusive = true }   // 모든 스택 제거 후 홈으로
+//                launchSingleTop = true
+//            }
+//        }
+//    }
 
 //@Composable
 //fun EmailLoginScreen(
@@ -245,13 +259,10 @@ fun EmailLoginScreen(
                         ),
                         shape = RoundedCornerShape(24.dp)
                     )
-                    .clickable(enabled = isFormValid) {
+                    .clickable(enabled = isFormValid && !isLoginRequested) {
                         if (!isLoginRequested) {
                             isLoginRequested = true
-                            // 앞뒤 공백 제거
-                            val cleanEmail = email.trim()
-                            val cleanPassword = password.trim()
-                            loginViewModel.login(cleanEmail, cleanPassword)
+                            loginViewModel.login(email.trim(), password.trim())
                         }
                     },
                 contentAlignment = Alignment.Center

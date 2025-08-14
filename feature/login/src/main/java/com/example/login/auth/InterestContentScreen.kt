@@ -7,6 +7,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -38,6 +40,7 @@ import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.unit.Dp
 
 
 // 데이터 클래스
@@ -48,14 +51,16 @@ val contents = listOf(
     Content("💼", "비즈니스/마케팅", 140f, DpOffset(-190.dp, 10.dp)),
     Content("🎨", "디자인/\n크리에이티브", 140f, DpOffset(-20.dp, 10.dp)),
     Content("💻", "IT/개발", 100f, DpOffset(140.dp, 50.dp)),
-    Content("🚀", "스타트업/창업", 120f, DpOffset(230.dp, 130.dp)),
+    Content("🚀", "스타트업/창업", 100f, DpOffset(230.dp, 130.dp)),
     Content("🌍", "사회/문화/환경", 140f, DpOffset(-50.dp, 310.dp)),
     Content("📚", "학업/\n리포트 참고", 120f, DpOffset(-80.dp, 150.dp)),
     Content("✍️", "글쓰기/콘텐츠\n작성", 160f, DpOffset(60.dp, 150.dp)),
     Content("📓", "책/인사이트\n요약", 140f, DpOffset(350.dp, 200.dp)),
     Content("🧠", "심리/자기계발", 140f, DpOffset(-50.dp, 310.dp)),
     Content("📰", "시사/트렌드", 110f, DpOffset(100.dp, 330.dp)),
-    Content("📂", "그냥 모아두고\n싶은 글들", 140f, DpOffset(210.dp, 260.dp)),
+
+    Content("📂", "그냥 모아두고\n싶은 글들", 130f, DpOffset(210.dp, 260.dp)),
+
     Content("🎯", "커리어/채용", 100f, DpOffset(-150.dp, 280.dp))
 
 
@@ -77,6 +82,17 @@ val contentLabelToCode = mapOf(
     "커리어/채용" to "CAREER"
 )
 
+//줄바꿈 및 공백으로 서버에 empty로 들어가는 문제 방지
+// 정규화 함수 (파일 위쪽 어딘가)
+private fun normalizeLabel(raw: String) =
+    raw.replace("\n", "").replace(" ", "")
+
+// 정규화된 키로 보관하는 맵
+val contentLabelToCodeNormalized: Map<String, String> =
+    contentLabelToCode.entries.associate { (k, v) -> normalizeLabel(k) to v }
+
+
+
 
 @Composable
 fun InterestContentScreen(
@@ -86,6 +102,7 @@ fun InterestContentScreen(
     val selectedContents = remember { mutableStateListOf<String>() }
 
     val canProceed = selectedContents.isNotEmpty()
+
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.Start
@@ -96,7 +113,7 @@ fun InterestContentScreen(
 
         Text(
             buildAnnotatedString {
-                append("어떤 목적으로 콘텐츠를\n저장하고 싶으신가요? ")
+                append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
                 withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
                     append("(복수 선택 가능)")
                 }
@@ -108,35 +125,45 @@ fun InterestContentScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        //
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
-                .horizontalScroll(rememberScrollState())
-        ) {
+        InterestCloudScrollable(
+            contents = contents,
+            selected = selectedContents,
+            onToggle = { label ->
+                if (selectedContents.contains(label)) selectedContents.remove(label)
+                else selectedContents.add(label)
+            },
+            height = 500.dp
+        )
 
-            Box(
-                modifier = Modifier
-                    .width(1000.dp) // 충분히 넓게 확보 (필요 시 늘리세요)
-                    .height(500.dp)
-            ) {
-                contents.forEach { content ->
-                    ContentItem(
-                        content = content,
-                        isSelected = selectedContents.contains(content.label),
-                        onClick = {
-                            if (selectedContents.contains(content.label)) {
-                                selectedContents.remove(content.label)
-                            } else {
-                                selectedContents.add(content.label)
-                            }
-                        },
-                        modifier = Modifier.offset(content.offset.x, content.offset.y)
-                    )
-                }
-            }
-        }
+        //
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(500.dp)
+//                .horizontalScroll(rememberScrollState())
+//        ) {
+//
+//            Box(
+//                modifier = Modifier
+//                    .width(1000.dp) // 충분히 넓게 확보 (필요 시 늘리세요)
+//                    .height(500.dp)
+//            ) {
+//                contents.forEach { content ->
+//                    ContentItem(
+//                        content = content,
+//                        isSelected = selectedContents.contains(content.label),
+//                        onClick = {
+//                            if (selectedContents.contains(content.label)) {
+//                                selectedContents.remove(content.label)
+//                            } else {
+//                                selectedContents.add(content.label)
+//                            }
+//                        },
+//                        modifier = Modifier.offset(content.offset.x, content.offset.y)
+//                    )
+//                }
+//            }
+//        }
 
         Spacer(modifier = Modifier.weight(1f))
 
@@ -154,12 +181,21 @@ fun InterestContentScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
                 .clickable(enabled = canProceed) {
-                    //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
-                    // 줄 바꿈으로 서버 인식 불가 -> 변경.
-                    //signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
-                    signUpViewModel?.interestList = selectedContents.mapNotNull {
-                        contentLabelToCode[it.replace("\n", "")]
-                    }
+                    signUpViewModel?.interestList = selectedContents
+                        .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
+                        .distinct()
+
+                    //선택이 잘 들어가는지 로그 확인
+                    android.util.Log.d("Interest", "selected=${selectedContents}")
+                    android.util.Log.d("Interest", "interestList=${signUpViewModel?.interestList}")
+
+//                .clickable(enabled = canProceed) {
+//                    //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
+//                    // 줄 바꿈으로 서버 인식 불가 -> 변경.
+//                    //signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
+//                    signUpViewModel?.interestList = selectedContents.mapNotNull {
+//                        contentLabelToCode[it.replace("\n", "")]
+//                    }
 
                     navigator.navigate("welcome")
                 },
@@ -325,4 +361,115 @@ fun InterestContentScreenPreview() {
         navigator = fakeNavController,
 
     )
+}
+
+//버블 섹션 좌우 스크롤 되게 수정
+@Composable
+private fun InterestCloudScrollable(
+    contents: List<Content>,
+    selected: SnapshotStateList<String>,
+    onToggle: (String) -> Unit,
+    height: Dp = 500.dp
+) {
+    // 좌표 보정
+    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
+    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+
+    // 캔버스 너비 계산
+    val canvasWidth = remember(contents, shiftX) {
+        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+        right + 80.dp
+    }
+
+    // ▶ 초기 스크롤을 150dp로 설정
+    val density = LocalDensity.current
+    val initialOffsetDp = 10.dp
+    val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
+
+    val scroll = rememberScrollState(initial = initialOffsetPx)
+
+    // 측정/재컴포지션 때 0으로 돌아가는 걸 방지(사용자가 이미 스크롤했다면 건드리지 않음)
+    LaunchedEffect(canvasWidth) {
+        if (scroll.value == 0) {
+            scroll.scrollTo(initialOffsetPx)
+        }
+    }
+
+    val scrollState = rememberScrollState()
+
+    //val density = LocalDensity.current
+
+    LaunchedEffect(Unit) {
+
+        scrollState.scrollTo(with(density) { 200.dp.roundToPx() })
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .horizontalScroll(scrollState)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(canvasWidth)
+                .height(height)
+        ) {
+            contents.forEach { content ->
+                val isSelected = content.label in selected
+                ContentItem(
+                    content = content,
+                    isSelected = isSelected,
+                    onClick = { onToggle(content.label) },
+                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
+                )
+//    // 좌표 보정: 음수 x가 있으면 전체를 +shiftX만큼 이동
+//    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
+//    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+//
+//    // 우측 끝 계산해서 캔버스 폭 확보 (여유 80dp)
+//    val canvasWidth = remember(contents, shiftX) {
+//        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+//        (right + 80.dp) //여기 스크롤 수정
+//    }
+//    val scroll = rememberScrollState()
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(height)
+//            .horizontalScroll(rememberScrollState())
+//            //.horizontalScroll(scroll)
+//        //contentAlignment = Alignment.Center
+//
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height)
+//        ) {
+//            contents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
+//                )
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height)
+//        ) {
+//            contents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
+//                )
+            }
+        }
+    }
 }

@@ -300,6 +300,25 @@ fun MainApp(
                     }
                 }
 
+//                with(NavigationRoute.Curation) {
+//                    setNavGraph {
+//                        LaunchedEffect(Unit) {
+//                            showNavBar = true
+//                            currentNavigationItem = NavigationItem.CURATION
+//                        }
+//                        FinishHandler()
+//                        CurationScreen(
+//                            onOpenDetail = { navigator.navigate("curation_detail") }   //  디테일로 이동
+//                        )
+//                    }
+//                }
+//                composable("curation_detail") {
+//                    // 바텀바 그대로 보이고 싶으면 showNavBar=true 유지
+//                    CurationDetailScreen(
+//                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
+//                    )
+//                }
+
                 with(NavigationRoute.Curation) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
@@ -307,18 +326,51 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.CURATION
                         }
                         FinishHandler()
+
+//                        CurationScreen(
+//                            onOpenDetail = { userId: Long, curationId: Long ->
+//                                // 상세로 넘길 값 저장
+//                                navigator.currentBackStackEntry?.savedStateHandle?.set("userId", userId)
+//                                navigator.currentBackStackEntry?.savedStateHandle?.set("curationId", curationId)
+//                                // 파라미터 없는 단순 라우트로 이동
+//                                navigator.navigate("curation_detail")
+//                            }
+//                        )
                         CurationScreen(
-                            onOpenDetail = { navigator.navigate("curation_detail") }   // ✅ 디테일로 이동
+                            onOpenDetail = { userId: Long, curationId: Long ->
+                                navigator.navigate("curation_detail/$userId/$curationId")
+                            }
                         )
                     }
                 }
-                composable("curation_detail") {
-                    // 바텀바 그대로 보이고 싶으면 showNavBar=true 유지
+//                composable("curation_detail") {
+//                    // 이전 화면에서 저장한 값 꺼내기
+//                    val userId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("userId")
+//                    val curationId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("curationId")
+//
+//                    if (userId == null || curationId == null) {
+//                        // 값이 없으면 그냥 뒤로 가도 됨
+//                        navigator.popBackStack()
+//                        return@composable
+//                    }
+//
+//                    CurationDetailScreen(
+//                        userId = userId,
+//                        curationId = curationId,
+//                        onBack = { navigator.popBackStack() }
+//                    )
+//                }
+                // "curation_detail" → "curation_detail/{userId}/{curationId}"
+                composable("curation_detail/{userId}/{curationId}") { backStack ->
+                    val userId = backStack.arguments?.getString("userId")!!.toLong()
+                    val curationId = backStack.arguments?.getString("curationId")!!.toLong()
+
                     CurationDetailScreen(
-                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
+                        userId = userId,
+                        curationId = curationId,
+                        onBack = { navigator.popBackStack() }
                     )
                 }
-
                 with(NavigationRoute.MyPage) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
