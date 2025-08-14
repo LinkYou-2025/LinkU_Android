@@ -1,21 +1,43 @@
 package com.example.data.api.dto.server
 
+import com.squareup.moshi.Json
+
 data class FolderDTO(
-    val folderId: Long,               // 폴더 고유 ID
-    val folderName: String            // 폴더 이름
+
+    @Json(name = "folderId")
+    val folderId: Long,     // 폴더 고유 ID
+
+    @Json(name = "folderName")
+    val folderName: String, // 폴더 이름
+
+    @Json(name = "isSharing")
+    val isSharing: String // 공유 여부 (null 가능)
 )
 
 // 링크 정보
-// 수정해야함
 data class LinkDTO(
-    val linkuId: Long,           // 링크의 고유 ID
-    val title: String,           // 링크 제목
-    val url: String,             // 링크 URL
-    val createdAt: String        // 생성일시
+
+    @Json(name = "linkuId")
+    val linkuId: Long,   // 링크의 고유 ID
+
+    @Json(name = "title")
+    val title: String,   // 링크 제목
+
+    @Json(name = "url")
+    val url: String,     // 링크 URL
+
+    @Json(name = "createdAt")
+    val createdAt: String? // 생성일시 (null 가능)
 )
 
 data class LinksFoldersResponseDTO(
-    val folders: List<FolderDTO> = emptyList(), // 폴더 목록, 비어 있을 수 있음
-    val links: List<LinkDTO> = emptyList(),     // 링크 목록, 비어 있을 수 있음
-    val nextCursor: String? = null,             // 다음 페이지 커서 (null 가능)
+
+    @Json(name = "folders")
+    val folders: List<FolderDTO> = emptyList(), // 폴더 목록
+
+    @Json(name = "links")
+    val links: List<LinkDTO> = emptyList(),     // 링크 목록
+
+    @Json(name = "nextCursor")
+    val nextCursor: String? = null,             // 다음 페이지 커서
 )

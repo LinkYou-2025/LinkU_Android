@@ -703,5 +703,40 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "receiveSharedFolder return")
     }
 
+    // 공개/비공개 전환
+    fun changeSharing(folder: FolderSimpleInfo){
+        Log.d("FileViewModel", "changeSharing")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "changeSharing launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try{
+                Log.d("FileViewModel", "changeSharing try")
+
+                val isSharing = folder.isSharing == "share"
+
+                if(!isSharing){
+                    folderRepository.setFolderViewerPermission(folder.folderId)
+                }else{
+                    folderRepository.setFolderPrivatePermission(folder.folderId)
+                }
+
+                Log.d("FileViewModel", "changeSharing try result")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "changeSharing catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "changeSharing finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "changeSharing return")
+    }
+
     // ---------- share method ----------
 }

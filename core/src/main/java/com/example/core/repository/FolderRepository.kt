@@ -71,5 +71,5 @@ interface FolderRepository {
     )//: ShareFolderResponseDTO
 
     // 폴더 비공개 전환 (예외 던질 수 있음)
-    suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo
+    suspend fun setFolderPrivatePermission(folderId: Long): SharedFolderSimpleInfo
 }
