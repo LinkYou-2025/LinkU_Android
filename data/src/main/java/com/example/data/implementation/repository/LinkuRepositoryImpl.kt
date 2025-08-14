@@ -1,9 +1,12 @@
 package com.example.data.implementation.repository
 
+import android.util.Log
 import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.LinkuRepository
 import com.example.data.api.ServerApi
+import com.example.data.api.dto.BaseResponse
+import com.example.data.api.dto.server.LinkuSimpleDTO
 import com.example.data.api.withAuth
 import com.example.data.preference.AuthPreference
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -126,11 +129,22 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 최근 열람 링크 조회
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> {
-        val response = serverApi.withAuth(authPreference) {
-            recentLinks(limit = limit)   // BaseResponse<List<LinkuSimpleDTO>>
+//        val response = serverApi.withAuth(authPreference) {
+//            recentLinks(limit = limit)   // BaseResponse<List<LinkuSimpleDTO>>
+//        }
+
+        val raw = serverApi.withAuth(authPreference) { recentLinks(limit = limit) }
+
+        // BaseResponse<T> / T(List) 둘 다 커버
+        val list: List<LinkuSimpleDTO> = when (raw) {
+            is BaseResponse<*> -> (raw.result as? List<LinkuSimpleDTO>).orEmpty()
+            is List<*> -> raw.filterIsInstance<LinkuSimpleDTO>()
+            else -> emptyList()
         }
 
-        return response.map { dto ->
+        Log.d("RepoRecent", "recent size=${list.size}")
+
+        return list.map { dto ->
             LinkSimpleInfo(
                 linkuId = dto.linkuId,
                 categoryId = dto.categoryId,

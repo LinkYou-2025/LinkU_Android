@@ -25,6 +25,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     // 최초 진입 시 프로필 로드
     init {
+        loadRecentLinks()
         // TODO: 추후 프로필 로드 부분 연결 후 넣기
     }
 
@@ -125,9 +126,6 @@ class HomeViewModel @Inject constructor(
     private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
     val recentLinks get() = recentLinksState.value
 
-    init {
-        loadRecentLinks()
-    }
 
     // 링크 저장
     fun saveLink(
@@ -218,7 +216,10 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { linkuRepository.getRecentLinks(limit = 10) }
                 .onSuccess { recentLinksState.value = it }
-                .onFailure { recentLinksState.value = emptyList() }
+                .onFailure {
+                    Log.e("HomeVM", "loadRecentLinks failed", it)
+                    recentLinksState.value = emptyList()
+                }
         }
     }
 

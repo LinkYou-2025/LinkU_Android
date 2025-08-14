@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -50,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil3.compose.AsyncImage
 import com.example.core.model.LinkSimpleInfo
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
@@ -96,6 +98,16 @@ fun situationsFor(jobId: Long): List<Situation> = when (jobId) {
     else -> situationsFor(3L) // 혹시 모를 기본값(직장인 세트)
 }
 
+private fun emotionName(id: Long?): String? = when (id) {
+    1L -> "즐거움"
+    2L -> "평온"
+    3L -> "설렘"
+    4L -> "슬픔"
+    5L -> "짜증"
+    6L -> "분노"
+    else -> null
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
@@ -108,6 +120,7 @@ fun HomeScreen(
     needMoreForRecommendation: Boolean,
     onClearNeedMoreNotice: () -> Unit,
     jobId: Long,
+    onLinkClick: (linkuId: Long) -> Unit,
 ) {
     var showRecs by remember { mutableStateOf(showRecommendations) }
     LaunchedEffect(showRecommendations) { showRecs = showRecommendations }
@@ -226,26 +239,26 @@ fun HomeScreen(
     }
 
     // String 키 → 서버 ID 매핑 (필요 시 서버 정의에 맞춰 숫자만 바꾸면 됨)
-    fun emotionKeyToId(key: String?): Long? = when (key) {
-        "joy" -> 1L
-        "calm" -> 2L
-        "excitement" -> 3L
-        "sadness" -> 4L
-        "irritation" -> 5L
-        "anger" -> 6L
-        else -> null
-    }
-    fun taskNameToSituationId(task: String?): Long? = when (task) {
-        "트렌드 확인" -> 1L
-        "과제 중"   -> 2L
-        "쇼핑 중"   -> 3L
-        "데이트 중" -> 4L
-        "통학 중"   -> 5L
-        "알바 중"   -> 6L
-        "휴식 중"   -> 7L
-        "자기 전"   -> 8L
-        else -> null
-    }
+//    fun emotionKeyToId(key: String?): Long? = when (key) {
+//        "joy" -> 1L
+//        "calm" -> 2L
+//        "excitement" -> 3L
+//        "sadness" -> 4L
+//        "irritation" -> 5L
+//        "anger" -> 6L
+//        else -> null
+//    }
+//    fun taskNameToSituationId(task: String?): Long? = when (task) {
+//        "트렌드 확인" -> 1L
+//        "과제 중"   -> 2L
+//        "쇼핑 중"   -> 3L
+//        "데이트 중" -> 4L
+//        "통학 중"   -> 5L
+//        "알바 중"   -> 6L
+//        "휴식 중"   -> 7L
+//        "자기 전"   -> 8L
+//        else -> null
+//    }
 
 //    // 추천 버튼 클릭 → ID 매핑해서 상위 콜백 호출
 //    val onRecommendClick: () -> Unit = {
@@ -305,15 +318,13 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.padding(20.dp, 24.dp)
             ) {
-                val itemsToRender =
-                    if (showRecs) recommendedLinks.map { it.toLinkItem() }
-                    else recentLinks.map { it.toLinkItem() }      // 최근 조회 사용
+                val itemsToRender = if (showRecs) recommendedLinks else recentLinks
                 val titleText = if (showRecs) "세나님의 오늘에 어울리는 콘텐츠예요!"
                                 else "${userName}님이 최근에 열람한 링크"
 
                 when {
                     // 1) 링크 3개 미만 안내
-                    needMoreForRecommendation -> {
+                    showRecs && needMoreForRecommendation -> {
                         Column {
                             Image(
                                 painter = painterResource(R.drawable.ic_no_recents),
@@ -426,8 +437,10 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(20.dp))
 
                             itemsToRender.forEach { link ->
-
-                                LinkCard(link)
+                                LinkCard(
+                                    link = link,
+                                    onClick = { onLinkClick(link.linkuId) }
+                                )
 
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
@@ -437,28 +450,6 @@ fun HomeScreen(
             }
         }
     }
-}
-
-// 서버 모델 → 카드 UI 모델 매핑
-private fun LinkSimpleInfo.toLinkItem(): LinkItem {
-    val tags = buildList {
-        categoryType?.name?.let { add(it) }
-        emotionType?.name?.let { add(it) }
-    }.take(2)
-    val icon = when {
-        domain.contains("naver", ignoreCase = true) -> R.drawable.ic_naver
-        domain.contains("blog", ignoreCase = true)  -> R.drawable.ic_naverblog
-        domain.contains("youtube", ignoreCase = true) -> R.drawable.ic_naverblog
-        else -> R.drawable.ic_naver // 기본 아이콘 대체
-    }
-    return LinkItem(
-        imageResId = null, // 서버 이미지가 있을 경우 AsyncImage로 바꾸는 걸 권장
-        title = title,
-        tags = tags,
-        siteIconResId = icon,
-        siteName = domain.ifBlank { "LINKU" },
-        aiSummarized = false
-    )
 }
 
 @Composable
@@ -480,35 +471,49 @@ private fun EmptyRecentBox() {
 }
 
 @Composable
-private fun LinkCard(link: LinkItem) {
+private fun LinkCard(
+    link: LinkSimpleInfo,
+    onClick: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(LocalColorTheme.current.white)
             .padding(10.dp)
+            .clickable { onClick() }
     ) {
         Box() {
-            Image(
-                painter = painterResource(id = link.imageResId ?: R.drawable.img_default),
+//            Image(
+//                painter = painterResource(id = link.imageResId ?: R.drawable.img_default),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .size(85.dp)
+//                    .clip(RoundedCornerShape(12.dp))
+//            )
+            AsyncImage(
+                model = link.linkuImageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .size(85.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.img_default),
+//                error = painterResource(id = R.drawable.img_default)
             )
 
             // AI 요약 뱃지
-            if (link.aiSummarized) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_ai_summarize),
-                    contentDescription = "AI 요약됨",
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .size(20.dp)
-                        .padding(6.dp),
-                    tint = Color.Unspecified
-                )
-            }
+//            if (link.aiSummarized) {
+//                Icon(
+//                    painter = painterResource(id = R.drawable.ic_ai_summarize),
+//                    contentDescription = "AI 요약됨",
+//                    modifier = Modifier
+//                        .align(Alignment.TopEnd)
+//                        .size(20.dp)
+//                        .padding(6.dp),
+//                    tint = Color.Unspecified
+//                )
+//            }
         }
 
         Spacer(modifier = Modifier.width(14.dp))
@@ -522,39 +527,61 @@ private fun LinkCard(link: LinkItem) {
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
-//
-                Row {
-                    link.tags.forEach { tag ->
-                        Box(
-                            modifier = Modifier
-                                .background(LocalColorTheme.current.gray[100], RoundedCornerShape(6.dp))
-                                .padding(horizontal = 6.dp, vertical = 3.dp)
-                        ) {
-                            Text(
-                                text = "$tag",
-                                style = TextStyle(fontSize = 10.sp, fontWeight = FontWeight.Medium, color = LocalColorTheme.current.gray[600])
-                            )
-                        }
 
-                        Spacer(modifier = Modifier.width(5.dp))
-                    }
+                // 태그(옵션): emotionId만 라벨 매핑해서 노출 (categoryId 라벨 없으면 생략)
+                val tags = buildList {
+                    link.categoryType?.tagName?.let { add(it) }
+                    link.emotionType?.tagName?.let { add(it) }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
-//
+                if (tags.isNotEmpty()) {
+                    Row {
+                        tags.forEach { tag ->
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        LocalColorTheme.current.gray[100],
+                                        RoundedCornerShape(6.dp)
+                                    )
+                                    .padding(horizontal = 6.dp, vertical = 3.dp)
+                            ) {
+                                Text(
+                                    text = tag,
+                                    style = TextStyle(
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = LocalColorTheme.current.gray[600]
+                                    )
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.width(5.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = link.siteIconResId),
+//                    Image(
+//                        painter = painterResource(id = link.siteIconResId),
+//                        contentDescription = "사이트 아이콘",
+//                        modifier = Modifier.size(22.dp)
+//                    )
+                    AsyncImage(
+                        model = link.domainImageUrl,
                         contentDescription = "사이트 아이콘",
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier.size(22.dp),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.ic_domain_default), // 기본 아이콘 대체
+//                        error = painterResource(id = R.drawable.ic_naver)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = link.siteName,
+                        text = link.domain,
                         style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800])
                     )
                 }
@@ -1435,6 +1462,7 @@ fun PreviewHomeScreen() {
         onRecommendRequest = { _, _, _ -> }, // no-op
         needMoreForRecommendation = false,
         onClearNeedMoreNotice = {},
-        jobId = 2L
+        jobId = 2L,
+        onLinkClick = { /* no-op in preview */ }
     )
 }
