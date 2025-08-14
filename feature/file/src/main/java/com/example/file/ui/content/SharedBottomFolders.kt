@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.FileViewModel
@@ -38,7 +39,7 @@ fun SharedBottomFolderGrid(
     folderStateViewModel: FolderStateViewModel,
     editStateViewModel: EditStateViewModel
 ) {
-    val folderList = fileViewModel.sharedBottomFolders.collectAsState().value
+    val folderList by fileViewModel.sharedBottomFolders.collectAsStateWithLifecycle()
     val interactionSource = remember { MutableInteractionSource() }
 
     VerticalGrid(

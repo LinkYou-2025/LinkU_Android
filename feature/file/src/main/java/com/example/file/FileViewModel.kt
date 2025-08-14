@@ -430,7 +430,9 @@ class FileViewModel @Inject constructor(
                     )
                 }
 
-                _subFolders.value = _subFolders.value + newFolder
+                _subFolders.value = _subFolders.value.toMutableList().apply {
+                    add(newFolder)
+                }
 
                 Log.d("FileViewModel", "createSubfolder try result: $newFolder")
 

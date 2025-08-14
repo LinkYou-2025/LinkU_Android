@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
@@ -34,7 +35,7 @@ fun LinksGrid(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ){
-    val linkList = fileViewModel.links.collectAsState().value
+    val linkList = fileViewModel.links.collectAsStateWithLifecycle().value
 
     VerticalGrid(
         modifier = Modifier

@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.FileViewModel
 import com.example.file.R
@@ -54,7 +55,7 @@ fun LinkCategorizationBottomSheet(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
-    val links = fileViewModel.notCategorizationLinks.collectAsState().value
+    val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     FileBottomSheet(
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
