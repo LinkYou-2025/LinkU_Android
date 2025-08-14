@@ -9,8 +9,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
@@ -26,11 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.FileViewModel
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun TopFolderListMenu(
@@ -38,7 +37,7 @@ fun TopFolderListMenu(
     fileViewModel: FileViewModel
 ){
     val items = listOf("나의 폴더", "공유받은 폴더")
-    var selectedText = remember { mutableStateOf(items[0]) }
+    var selectedText = if (folderStateViewModel.isSharedFolders) "공유받은 폴더" else "나의 폴더"
 
     DropdownMenu(
         modifier = Modifier
@@ -61,7 +60,7 @@ fun TopFolderListMenu(
                                     onDrawWithContent {
                                         drawContent() // 기본 아이콘 먼저 그림
                                         drawRect(
-                                            brush = if (selectedOption == selectedText.value) MainColor
+                                            brush = if (selectedOption == selectedText) MainColor
                                             else Brush.horizontalGradient(listOf(White, White)),
                                             blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
                                         )
@@ -84,7 +83,7 @@ fun TopFolderListMenu(
                                     fontWeight = FontWeight(500),
 
                                     // 텍스트 그라데이션 색상(링큐 메인 색상)
-                                    brush = if (selectedOption == selectedText.value) MainColor
+                                    brush = if (selectedOption == selectedText) MainColor
                                     else Brush.horizontalGradient(listOf(Black, Black))
                                 )
                             ) {
@@ -96,7 +95,7 @@ fun TopFolderListMenu(
                     )
                 },
                 onClick = {
-                    if (selectedOption != selectedText.value){
+                    if (selectedOption != selectedText){
                         if (i == 0) {
                             // 나의 폴더 클릭 시
                             folderStateViewModel.updateIsSharedFolders(false)
@@ -106,7 +105,7 @@ fun TopFolderListMenu(
                             folderStateViewModel.updateIsSharedFolders(true)
                         }
                         folderStateViewModel.updateTopMenuExpanded(false)
-                        selectedText.value = selectedOption
+                        folderStateViewModel.updateFolderState(FolderState.TOP)
                     }
                 }
             )

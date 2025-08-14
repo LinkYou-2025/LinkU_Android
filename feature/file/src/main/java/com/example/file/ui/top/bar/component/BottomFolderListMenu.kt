@@ -37,8 +37,8 @@ fun BottomFolderListMenu(
     onChangeFolder: () -> Unit
 ){
     val isLinks = folderStateViewModel.currentFolderState == FolderState.LINKS
-    val folders = fileViewModel.parentFolders.collectAsState().value
-    val links = fileViewModel.subFolders.collectAsState().value
+    val parentFolders = fileViewModel.parentFolders.collectAsState().value
+    val subFolders = fileViewModel.subFolders.collectAsState().value
 
     DropdownMenu(
         modifier = Modifier
@@ -51,7 +51,7 @@ fun BottomFolderListMenu(
         containerColor = White
     ) {
         if(!isLinks){
-            for ((i, folder) in folders.withIndex()) {
+            for ((i, folder) in parentFolders.withIndex()) {
                 DropdownMenuItem(
                     leadingIcon = {
                             Box(
@@ -82,7 +82,7 @@ fun BottomFolderListMenu(
                 )
             }
         }else{
-            for ((i, folder) in links.withIndex()) {
+            for ((i, folder) in subFolders.withIndex()) {
                 DropdownMenuItem(
                     text = {
                         Text(

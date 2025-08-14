@@ -83,12 +83,12 @@ class FolderRepositoryImpl @Inject constructor(
         return folderList
     }
 
-//    // 2. 내 폴더(트리) 전체 조회
+//    // 내 폴더(트리) 전체 조회
 //    override suspend fun getMyFolders(): List<FolderTreeResponseDTO> =
 //        serverApi.withAuth(authPreference) {
 //            getMyFolders()
 //        }
-//
+
     // 소분류 폴더 조회
     override suspend fun getSubfolders(
         parentFolderId: Long

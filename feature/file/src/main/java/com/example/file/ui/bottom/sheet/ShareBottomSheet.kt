@@ -54,6 +54,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.core.model.FolderSimpleInfo
 import com.example.file.FileViewModel
@@ -87,7 +88,7 @@ fun ShareBottomSheet(
     var selectedBottomFolder by remember { mutableStateOf<FolderSimpleInfo?>(null) }
 
     // 카테고리 내 소분류 폴더들
-    val bottomFolderList = fileViewModel.subFolders.collectAsState().value
+    val bottomFolderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
 
     // 고른 상태
     var state by remember { mutableStateOf(FolderState.TOP) }

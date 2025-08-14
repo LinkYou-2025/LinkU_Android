@@ -36,12 +36,12 @@ fun BottomFolderListLayout(
     folderStateViewModel: FolderStateViewModel
 ) {
     var text = if(!folderStateViewModel.isSharedFolders)(
-        folderStateViewModel.selectedTopFolder!!.folderName +
+        folderStateViewModel.selectedTopFolder?.folderName +
                 if (folderStateViewModel.currentFolderState == FolderState.LINKS)
                     folderStateViewModel.selectedBottomFolder?.let { " > ${it.folderName}" }
                 else ""
     )else(
-        "${folderStateViewModel.selectedTopSharedFolder!!.nickname}의 폴더" +
+        "${folderStateViewModel.selectedTopSharedFolder?.nickname?:""}의 폴더" +
                 if (folderStateViewModel.currentFolderState == FolderState.LINKS)
                     folderStateViewModel.selectedBottomSharedFolder?.let { " > ${it.folderName}" }
                 else ""
