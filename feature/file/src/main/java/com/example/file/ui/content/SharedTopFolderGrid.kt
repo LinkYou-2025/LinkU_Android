@@ -1,5 +1,6 @@
 package com.example.file.ui.content
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,6 +33,7 @@ fun SharedTopFolderGrid(
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
         for ((i, folder) in folderList.withIndex()) {
+            Log.d("SharedTopFolderGrid", "folder: $folder")
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

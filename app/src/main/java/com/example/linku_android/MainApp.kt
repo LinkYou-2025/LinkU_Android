@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -398,22 +401,32 @@ fun MainApp(
 
                 // 딥링크 접속 시, 로그인이 안됐을 때 로그인 화면
                 composable(
-                    "${NavigationRoute.Login.route}?showModal={showModal}",
-                    arguments = listOf(navArgument("showModal"){ type = NavType.BoolType; defaultValue = false })
+                    route = "${NavigationRoute.Login.route}?showModal={showModal}",
+                    arguments = listOf(navArgument("showModal") { type = NavType.BoolType; defaultValue = false })
                 ) { backStackEntry ->
+                    Log.d("MainApp", "딥링크 접속 시, 로그인이 안됐을 때 로그인 화면")
 
-                    LaunchedEffect(Unit) { showNavBar = false }
-                    FinishHandler()
-                    AnimatedLoginScreen(navigator = navigator)
+                    // ❶ 쓸데없는 자기-네비게이션 제거 (!!! 중요)
+                    //   → 여기서는 머무르며 모달을 보여주고 로그인만 처리한다.
 
+                    // ❷ showModal 안전하게 파싱
                     val showModal = backStackEntry.arguments?.getBoolean("showModal") ?: false
-                    var visible by remember { mutableStateOf(true) }
-                    if (showModal) {
+
+                    Log.d("MainApp", "showModal: $showModal")
+
+                    // ❸ 모달 표시 상태는 저장 가능하게
+                    var visible by rememberSaveable { mutableStateOf(true) }
+
+                    Log.d("MainApp", "visible: $visible")
+
+                    if (showModal && visible) {
+                        Log.d("MainApp", "On Modal")
+
                         FileModalWindow(
                             visible = visible,
                             title = "접근 권한이 없습니다.",
-                            onOkay = {visible = false},
-                            onDismiss = {},
+                            onOkay = { visible = false },
+                            onDismiss = { visible = false },
                             positiveText = "확인"
                         ) {
                             Text(
@@ -428,26 +441,46 @@ fun MainApp(
                         }
                     }
 
-                    LaunchedEffect(loginViewModel.loginState) {
-                        val loggedIn = loginViewModel.loginState != null
+                    // ❹ 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
+                    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+
+                    Log.d("MainApp", "loginState: $loginState")
+
+                    LaunchedEffect(loginState) {
+                        val loggedIn = loginState != null
+                        Log.d("MainApp", "loggedIn: $loggedIn")
+
                         if (loggedIn) {
-                            // 1) 대기 중인 폴더가 있으면 꺼내서
+                            Log.d("MainApp", "로그인 완료")
+                            // pending 공유 폴더가 있으면 처리
                             deepLinkViewModel.consumePendingShare()?.let { pendingFolderId ->
-                                // 2) 재실행
                                 try {
+                                    Log.d("MainApp", "pendingFolderId: $pendingFolderId")
+                                    // pending 공유 폴더 처리
                                     fileViewModel.receiveSharedFolder(pendingFolderId)
-                                } catch (_: Exception) {
-                                    // 여기까지 왔는데 또 실패하면(아주 이례적) 폴백만
+
+                                    // 공유 받은 폴더 목록 및 상태 갱신
+                                    fileViewModel.getSharedFolders()
+                                    folderStateViewModel.updateIsSharedFolders(true)
+                                } catch (e: Exception) {
+                                    // 네트워크/서버 오류 등은 로그인 유도와 구분해서 처리
                                 }
-                                // 3) 파일 화면으로 이동
-                                navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo(navigator.graph.findStartDestination().id) { inclusive = false }
-                                    launchSingleTop = true
-                                }
+                            }
+
+                            Log.d("MainApp", "pending 공유 폴더 처리 완료")
+
+                            // 파일 화면으로 이동하면서 Login 제거
+                            navigator.navigate(NavigationRoute.File.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
                             }
                         }
                     }
+
+                    // ❺ 실제 로그인 UI(AnimatedLoginScreen 등) 렌더링
+                    AnimatedLoginScreen(navigator = navigator)
                 }
+
 
 
                 // TODO: 앱 링크 처리
@@ -456,15 +489,15 @@ fun MainApp(
                     route = "open?action={action}&folderId={folderId}",
                     arguments = listOf(
                         navArgument("action") { type = NavType.StringType; nullable = true },
-                        navArgument("folderId") { type = NavType.StringType; nullable = true },
+                        navArgument("folderId") { type = NavType.LongType; nullable = false },
                     ),
                     deepLinks = listOf(
-                        // HTTPS 앱링크
+                        // 앱링크
                         navDeepLink { uriPattern = "linku://open?action={action}&folderId={folderId}" }
                     )
                 ) { backStackEntry ->
                     val action = backStackEntry.arguments?.getString("action")
-                    val folderId = backStackEntry.arguments?.getString("folderId")?.toLongOrNull()
+                    val folderId = backStackEntry.arguments?.getLong("folderId")
 
                     Log.d("MainApp", "action: $action, folderId: $folderId")
 
@@ -477,13 +510,18 @@ fun MainApp(
 
                             // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
                             try{
+                                Log.d("MainApp", "파일 화면으로 이동")
 
                                 // 공유 받는 폴더 처리
                                 fileViewModel.receiveSharedFolder(folderId)
 
+                                Log.d("MainApp", "공유 받는 폴더 처리 완료")
+
                                 // 파일 항목의 탑 바에 공유 받은 폴더 클릭 시와 같은 콜백
                                 fileViewModel.getSharedFolders()
                                 folderStateViewModel.updateIsSharedFolders(true)
+
+                                Log.d("MainApp", "공유 받은 폴더 목록 및 상태 갱신 완료")
 
                                 // 파일 화면으로 이동
                                 navigator.navigate(NavigationRoute.File.route) {
@@ -491,6 +529,7 @@ fun MainApp(
                                     launchSingleTop = true
                                 }
                             }catch (e: Exception/*UserIdNullException*/) {
+                                Log.e("MainApp", "Exception 발생: $e")
                                 // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
                                 deepLinkViewModel.setPendingShare(folderId)
                                 navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {

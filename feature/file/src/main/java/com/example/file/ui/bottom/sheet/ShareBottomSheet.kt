@@ -306,7 +306,7 @@ fun ShareBottomSheet(
             ShareFolderMenu(
                 text = selectedBottomFolder?.folderName?:"공유하실 폴더를 선택해주세요.",
                 folderList = bottomFolderList,
-                selectable = state == FolderState.BOTTOM,
+                selectable = state != FolderState.TOP,
                 colorStyle = categoryColorStyle
             ) {
                 selectedBottomFolder = it
@@ -356,7 +356,7 @@ fun ShareBottomSheet(
                     )
                 ) {
                     // 실제 표시할 텍스트
-                    append(/*TODO: 링크*/"")
+                    append(link)
                 }
             },
             textAlign = TextAlign.Center

@@ -663,34 +663,6 @@ class FileViewModel @Inject constructor(
     fun shareFolder(folderId: Long):String{
         Log.d("FileViewModel", "shareFolder")
 
-        viewModelScope.launch {
-            Log.d("FileViewModel", "shareFolder launch")
-
-            startLoading()
-            _errorMessage.value = null
-
-            try {
-                Log.d("FileViewModel", "shareFolder try")
-
-                folderRepository.setFolderViewerPermission(folderId)
-
-                Log.d("FileViewModel", "shareFolder try result")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "shareFolder catch: $e.message")
-
-                _errorMessage.value = e.message
-
-                throw e
-            }finally {
-                Log.d("FileViewModel", "shareFolder finally")
-
-                stopLoading()
-            }
-
-            Log.d("FileViewModel", "shareFolder end")
-        }
-        Log.d("FileViewModel", "shareFolder return")
-
         return "linku://open?action=share&folderId=$folderId"
     }
 
@@ -713,13 +685,9 @@ class FileViewModel @Inject constructor(
                     throw UserIdNullException()
                 }
 
-                folderRepository.updateViewerPermission(
-                    folderId,
-                    userId,
-                    FolderPermission.VIEWER
-                )
+                val result = folderRepository.setFolderViewerPermission(folderId)
 
-                Log.d("FileViewModel", "receiveSharedFolder try result")
+                Log.d("FileViewModel", "receiveSharedFolder try result: $result")
             }catch (e: Exception){
                 Log.d("FileViewModel", "receiveSharedFolder catch: $e.message")
 
