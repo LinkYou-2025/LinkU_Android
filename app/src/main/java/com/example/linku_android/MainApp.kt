@@ -294,7 +294,17 @@ fun MainApp(
                         FinishHandler()
 
                         val mypageViewModel: MyPageViewModel = hiltViewModel()
-                        MyPageApp(mypageViewModel)
+                        MyPageApp(
+                            viewModel = mypageViewModel,
+                            onLogoutToLogin = {
+                                // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
+                                // 전역 스택을 지우고 로그인 루트로 이동
+                                navigator.navigate(NavigationRoute.Login.route) {
+                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
                     }
                 }
 
@@ -332,7 +342,7 @@ fun MainApp(
                                     Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
                                     vm.loadLinkDetail(saved.linkuId)
                                     vm.resetForm()
-                                    navigator.navigate("savelinkresult")
+                                    navigator.navigate("savelinkresult/${saved.linkuId}")
                                 },
                                 onFailed = { e ->
                                     Log.e("SaveLink", "failed: ${e.message}", e)
@@ -347,15 +357,32 @@ fun MainApp(
                     )
                 }
 
-                composable("savelinkresult") {
+//                composable("savelinkresult") {
+//                    val vm: HomeViewModel = hiltViewModel()
+//
+//                    SaveLinkResultScreen(
+//                        // 선택 이미지(없으면 null 유지)
+//                        selectedImageUri = null,
+//                        // 뷰모델이 들고 있는 상세 데이터
+//                        link = vm.linkDetail,
+//                        // 로딩 중 여부
+//                        isLoading = vm.isLoadingLinkDetail,
+//                        onBack = { navigator.popBackStack() }
+//                    )
+//                }
+                composable(
+                    route = "savelinkresult/{linkuId}",
+                    arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
+                ) { backStackEntry ->
                     val vm: HomeViewModel = hiltViewModel()
+                    val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
+
+                    LaunchedEffect(linkuId) {
+                        vm.loadLinkDetail(linkuId)
+                    }
 
                     SaveLinkResultScreen(
-                        // 선택 이미지(없으면 null 유지)
-                        selectedImageUri = null,
-                        // 뷰모델이 들고 있는 상세 데이터
                         link = vm.linkDetail,
-                        // 로딩 중 여부
                         isLoading = vm.isLoadingLinkDetail,
                         onBack = { navigator.popBackStack() }
                     )

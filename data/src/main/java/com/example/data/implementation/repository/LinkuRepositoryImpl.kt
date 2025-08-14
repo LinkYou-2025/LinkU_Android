@@ -1,5 +1,6 @@
 package com.example.data.implementation.repository
 
+import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.LinkuRepository
 import com.example.data.api.ServerApi
@@ -17,6 +18,10 @@ class LinkuRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
 ): LinkuRepository {
+    // 빈 문자열(또는 공백) -> null 정리용
+    private fun String?.nullIfBlank(): String? =
+        if (this.isNullOrBlank()) null else this
+
     // 새로운 링크 저장
     override suspend fun saveNewLink(
         image: File?,
@@ -24,21 +29,37 @@ class LinkuRepositoryImpl @Inject constructor(
         memo: String?,
         emotionId: Long?
     ): LinkSimpleInfo {
-        val imagePart: MultipartBody.Part? = image?.let {
+        // 이미지 파트: 있을 때만 첨부
+        val imagePart: MultipartBody.Part? = image?.let { file ->
             MultipartBody.Part.createFormData(
                 name = "image",
-                filename = it.name,
-                body = it.asRequestBody("image/*".toMediaTypeOrNull())
+                filename = (file.name.takeIf { it.isNotBlank() } ?: "image.jpg"),
+                body = file.asRequestBody("image/*".toMediaTypeOrNull())
             )
         }
+
+        // 필수 URL 파트(서버에서 "linku" or "url"로 받는 이름 확인 필수)
         val linkuBody: RequestBody =
             url.toRequestBody("text/plain".toMediaTypeOrNull())
-        val memoBody: RequestBody? =
-            memo?.takeIf { it.isNotBlank() }?.toRequestBody("text/plain".toMediaTypeOrNull())
-        val emotionBody: RequestBody? =
-            emotionId?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull())
 
+        // 메모: 빈 문자열이면 null 로 처리하여 @Part 자체를 생략
+        val memoBody: RequestBody? =
+            memo.nullIfBlank()
+                ?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        // 감정: null 이면 @Part 생략
+        val emotionBody: RequestBody? =
+            emotionId?.toString()
+                ?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        // --- API 호출 ---
+        // addLink 의 반환 타입이 BaseResponse<LinkuSimpleDTO> 인 경우와
+        // LinkuSimpleDTO 자체를 반환하는 경우 둘 다 대응할 수 있게 주석 남깁니다.
         val dto = serverApi.withAuth(authPreference) {
+            // 반환이 BaseResponse<LinkuSimpleDTO> 인 경우:
+            // addLink(imagePart, linkuBody, memoBody, emotionBody).result
+
+            // 반환이 LinkuSimpleDTO 인 경우:
             addLink(
                 image = imagePart,
                 linku = linkuBody,
@@ -47,10 +68,14 @@ class LinkuRepositoryImpl @Inject constructor(
             )
         }
 
+        // dto 가 null 가능할 수 있으므로 안전 매핑
+        // (withAuth 블록에서 .result 를 꺼냈다면 dto 가 nullable 일 수 있음)
+        requireNotNull(dto) { "addLink() response was null" }
+
         return LinkSimpleInfo(
             linkuId = dto.linkuId ?: 0L,
             categoryId = dto.categoryId,
-            memo = dto.memo,
+            memo = dto.memo?.nullIfBlank(),     // "" -> null 로 통일
             emotionId = dto.emotionId,
             title = dto.title.orEmpty(),
             domain = dto.domain.orEmpty(),
@@ -107,7 +132,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
         return response.map { dto ->
             LinkSimpleInfo(
-                linkuId = dto.linkuId ?: 0L,
+                linkuId = dto.linkuId,
                 categoryId = dto.categoryId,
                 memo = dto.memo,
                 emotionId = dto.emotionId,
@@ -120,20 +145,27 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // 링크 상세 보기 구현
-    override suspend fun getLinkDetail(linkuId: Long): LinkSimpleInfo {
+    override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
+        // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
         val dto = serverApi.withAuth(authPreference) {
             viewDetailLink(linkuid = linkuId)
         }
+        requireNotNull(dto) { "Link detail result was null" }
 
-        return LinkSimpleInfo(
-            linkuId = dto.linkuId ?: 0L,
+        return LinkResultInfo(
+            userId = dto.userId,
+            linkuId = dto.linkuId,
+            linkuFolderId = dto.linkuFolderId,
             categoryId = dto.categoryId,
-            memo = dto.memo,
+            linku = dto.linku,
+            memo = dto.memo?.takeIf { it.isNotBlank() },
             emotionId = dto.emotionId,
-            title = dto.title.orEmpty(),
-            domain = dto.domain.orEmpty(),
+            domain = dto.domain ?: "",
+            title = dto.title,
             domainImageUrl = dto.domainImageUrl,
-            linkuImageUrl = dto.linkuImageUrl
+            linkuImageUrl = dto.linkuImageUrl,
+            createdAt = dto.createdAt,
+            updatedAt = dto.updatedAt
         )
     }
 }
