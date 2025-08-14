@@ -46,6 +46,17 @@ fun HomeApp(viewModel: HomeViewModel) {
         else -> 0L
     }
 
+    // 외부 브라우저 열기
+    fun openUrl(url: String) {
+        runCatching {
+            val fixed = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
+            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed))
+            context.startActivity(intent)
+        }.onFailure {
+            Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = "onboarding",
@@ -98,7 +109,11 @@ fun HomeApp(viewModel: HomeViewModel) {
                 onSaveClick = {
                     viewModel.saveLink(
                         onSucceed = { saved ->
-                            Log.d("SaveLinkDebug", "저장 성공: $it")
+//                            Log.d("SaveLinkDebug", "저장 성공: $it")
+                            // ✅ 넘긴 값: 저장 성공한 객체와, 네비게이션에 넘길 linkuId
+                            Log.d("SaveLinkFlow", "넘긴 값 -> saved(LinkSimpleInfo) = $saved")
+                            Log.d("SaveLinkFlow", "넘긴 값 -> navigate param linkuId = ${saved.linkuId}")
+
                             viewModel.resetForm()
 //                            navController.navigate("savelinkresult")
                             // 저장 직후 상세화면으로 id 전달
@@ -122,23 +137,29 @@ fun HomeApp(viewModel: HomeViewModel) {
         }
 
         composable("savelinkresult/{linkuId}") { backStackEntry ->
+            val raw = backStackEntry.arguments?.getString("linkuId")
             val linkuId = backStackEntry.arguments?.getString("linkuId")?.toLongOrNull()
 
-            if (id == null) {
+            // ✅ 네비게이션으로 넘어온 값(문자열/파싱 결과) 확인
+            Log.d("SaveLinkFlow", "넘어온 값 -> route arg (raw) = $raw")
+            Log.d("SaveLinkFlow", "넘어온 값 -> route arg (parsed) = $linkuId")
+
+            if (linkuId == null) {
                 // 잘못 들어온 경우 안전하게 되돌리기
                 Log.d("HomeAppLinkResult", "id가 null입니다.")
                 LaunchedEffect(Unit) { navController.popBackStack() }
             } else {
                 // 화면 진입 시 상세 로드
                 LaunchedEffect(linkuId) {
-                    linkuId?.let { viewModel.loadLinkDetail(it) }
+                    viewModel.loadLinkDetail(linkuId)
                 }
 
                 // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
                 SaveLinkResultScreen(
-                    link = viewModel.linkDetail,
+                    link = viewModel.linkDetail,                     // ✅ LinkResultInfo?
                     isLoading = viewModel.isLoadingLinkDetail,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onOpenLink = { url -> openUrl(url) }             // ✅ 원본 linku 우선
                 )
             }
         }

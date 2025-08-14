@@ -21,22 +21,22 @@ data class LinkuResultDTO(
     val linku: String,
 
     @Json(name = "memo")
-    val memo: String,
+    val memo: String?,
 
     @Json(name = "emotionId")
-    val emotionId: Long,
+    val emotionId: Long?,
 
     @Json(name = "domain")
-    val domain: String,
+    val domain: String?,
 
     @Json(name = "title")
     val title: String,
 
     @Json(name = "domainImageUrl")
-    val domainImageUrl: String,
+    val domainImageUrl: String?,
 
     @Json(name = "linkuImageUrl")
-    val linkuImageUrl: String,
+    val linkuImageUrl: String?,
 
     @Json(name = "createdAt")
     val createdAt: OffsetDateTime,

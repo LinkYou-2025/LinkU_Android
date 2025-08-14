@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
+import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.UserRepository
@@ -123,13 +125,6 @@ class HomeViewModel @Inject constructor(
     private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
     val recentLinks get() = recentLinksState.value
 
-    // 링크 상세 보기 상태
-    private val linkDetailState = mutableStateOf<LinkSimpleInfo?>(null)
-    val linkDetail get() = linkDetailState.value
-
-    private val isLoadingLinkDetailState = mutableStateOf(false)
-    val isLoadingLinkDetail get() = isLoadingLinkDetailState.value
-
     init {
         loadRecentLinks()
     }
@@ -228,12 +223,30 @@ class HomeViewModel @Inject constructor(
     }
 
     // 상세 불러오기
+    private val linkDetailState = mutableStateOf<LinkResultInfo?>(null)
+    val linkDetail get() = linkDetailState.value
+
+    private val isLoadingLinkDetailState = mutableStateOf(false)
+    val isLoadingLinkDetail get() = isLoadingLinkDetailState.value
+
     fun loadLinkDetail(linkuId: Long) {
         viewModelScope.launch {
             isLoadingLinkDetailState.value = true
+
+            // ✅ 상세 요청 전에 요청 파라미터 로깅
+            Log.d("SaveLinkFlow", "상세 요청 -> linkuId = $linkuId")
+
             runCatching { linkuRepository.getLinkDetail(linkuId) }
-                .onSuccess { linkDetailState.value = it }
-                .onFailure { linkDetailState.value = null }
+                .onSuccess { info ->
+                    // ✅ 상세 응답(도메인 모델) 로깅
+                    Log.d("SaveLinkFlow", "상세 응답 -> LinkResultInfo = $info")
+                    linkDetailState.value = info
+                }
+                .onFailure { e ->
+                    Log.e("SaveLinkFlow", "상세 응답 실패", e)
+                    linkDetailState.value = null
+                }
+
             isLoadingLinkDetailState.value = false
         }
     }

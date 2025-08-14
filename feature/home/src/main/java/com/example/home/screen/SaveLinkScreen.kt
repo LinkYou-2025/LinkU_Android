@@ -60,9 +60,9 @@ fun SaveLinkScreen(
     val isButtonEnabled =
         url.isNotBlank() &&
         !isCheckingUrl &&
-        (isDuplicateUrl == false) &&
         !showVideoWarning &&
-        !isInvalidLink
+        !isInvalidLink &&
+        (isDuplicateUrl != true)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -138,7 +138,6 @@ fun SaveLinkScreen(
                 )
                 isInvalidLink -> {
                     WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
-                    true
                 }
                 isDuplicateUrl == true -> WarningText("이미 저장된 링크예요.")
                 isDuplicateUrl == false -> Text(

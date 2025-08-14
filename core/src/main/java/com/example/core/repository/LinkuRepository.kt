@@ -1,5 +1,6 @@
 package com.example.core.repository
 
+import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import java.io.File
 
@@ -27,5 +28,5 @@ interface LinkuRepository {
     suspend fun getRecentLinks(limit: Int = 10): List<LinkSimpleInfo>
 
     // 링크 상세 보기
-    suspend fun getLinkDetail(linkuId: Long): LinkSimpleInfo
+    suspend fun getLinkDetail(linkuId: Long): LinkResultInfo
 }
