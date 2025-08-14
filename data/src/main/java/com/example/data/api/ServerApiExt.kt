@@ -6,6 +6,12 @@ import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.server.RefreshTokenRequest
 import com.example.data.preference.AuthPreference
 import retrofit2.Response
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import retrofit2.Call
+import retrofit2.HttpException
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 suspend fun <T> ServerApi.withCheck(
     getter: suspend ServerApi.() -> BaseResponse<T>
@@ -15,21 +21,37 @@ suspend fun <T> ServerApi.withCheck(
     return response.result
 }
 
-// refreshToken 갱신 有 (로그인 로직 변경 없음)
+// refreshToken 갱신 (로그인 로직 변경 없음)
 suspend fun <T> ServerApi.withAuth(
     authPreference: AuthPreference,
     routine: suspend ServerApi.() -> BaseResponse<T>,
 ): T {
-    try {
-        return withCheck { routine() }
-    } catch (_: Exception) {
-        val refresh = authPreference.refreshToken
-            ?: throw TokenExpiredException("Access token expired. Please log in again.")
-        val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
-        pair.refreshToken?.let { authPreference.refreshToken = it }
-        pair.accessToken?.let  { authPreference.accessToken  = it }
-        return withCheck { routine() }
+    // 1차 시도
+    val first = runCatching { withCheck { routine() } }
+    if (first.isSuccess) return first.getOrThrow()
+
+    // 실패 원인 판별
+    val cause = first.exceptionOrNull()
+
+    val shouldRefresh = when (cause) {
+        is retrofit2.HttpException -> cause.code() == 401           // HTTP 401
+        is TokenExpiredException   -> true                          // 명시적 토큰 만료
+        else -> false                                                // 그 외는 리프레시 X
     }
+
+    if (!shouldRefresh) throw cause ?: Exception("Unknown error")
+
+    // 리프레시 토큰 확인
+    val refresh = authPreference.refreshToken
+        ?: throw TokenExpiredException("Access token expired. Please log in again.")
+
+    // 1회 리프레시
+    val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
+    pair.refreshToken?.let { authPreference.refreshToken = it }
+    pair.accessToken ?.let { authPreference.accessToken  = it }
+
+    // 최종 1회 재시도 (여기서도 실패하면 그대로 예외 throw)
+    return withCheck { routine() }
 }
 
 /**
@@ -41,21 +63,137 @@ suspend fun <T> ServerApi.withAuthResp204Raw(
     authPreference: AuthPreference,
     routine: suspend ServerApi.() -> Response<T>
 ): T? {
-    try {
-        val r1 = routine()
-        if (r1.code() == 204) return null
-        val b1 = r1.body() ?: throw Exception("Empty body")
-        return b1
-    } catch (_: Exception) {
+    // 1차 시도
+    val r1 = routine()
+    if (r1.code() == 204) return null
+    if (r1.code() == 401) {
+        // 401에서만 refresh
+        val refresh = authPreference.refreshToken
+            ?: throw TokenExpiredException("Access token expired. Please log in again.")
+        val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
+        pair.refreshToken?.let { authPreference.refreshToken = it }
+        pair.accessToken ?.let { authPreference.accessToken  = it }
+
+        val r2 = routine()
+        if (r2.code() == 204) return null
+        if (!r2.isSuccessful) throw HttpException(r2)
+        return r2.body() ?: throw Exception("Empty body")
+    }
+    if (!r1.isSuccessful) throw HttpException(r1)
+    return r1.body() ?: throw Exception("Empty body")
+}
+//suspend fun <T> ServerApi.withAuthResp204Raw(
+//    authPreference: AuthPreference,
+//    routine: suspend ServerApi.() -> Response<T>
+//): T? {
+//    try {
+//        val r1 = routine()
+//        if (r1.code() == 204) return null
+//        val b1 = r1.body() ?: throw Exception("Empty body")
+//        return b1
+//    } catch (_: Exception) {
+//        val refresh = authPreference.refreshToken
+//            ?: throw TokenExpiredException("Access token expired. Please log in again.")
+//        val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
+//        pair.refreshToken?.let { authPreference.refreshToken = it }
+//        pair.accessToken?.let  { authPreference.accessToken  = it }
+//
+//        val r2 = routine()
+//        if (r2.code() == 204) return null
+//        val b2 = r2.body() ?: throw Exception("Empty body")
+//        return b2
+//    }
+//}
+
+/**
+ * Authorization 헤더 문자열("Bearer xxx")을 routine 에 넘기고
+ * 임의 타입 T 를 그대로 반환. 401/만료 시 refresh 후 1회 재시도.
+ */
+suspend fun <T> ServerApi.withAuthHeaderRaw(
+    authPreference: AuthPreference,
+    routine: suspend ServerApi.(String) -> T
+): T {
+    val access = authPreference.accessToken
+        ?: throw TokenExpiredException("Access token missing. Please log in.")
+
+    // 1차 시도
+    return try {
+        routine("Bearer $access")
+    } catch (e: Exception) {
+        val shouldRefresh = when (e) {
+            is HttpException -> e.code() == 401
+            is TokenExpiredException -> true
+            else -> false
+        }
+        if (!shouldRefresh) throw e
+
+        val refresh = authPreference.refreshToken
+            ?: throw TokenExpiredException("Access token expired. Please log in again.")
+        val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
+        pair.refreshToken?.let { authPreference.refreshToken = it }
+        pair.accessToken ?.let { authPreference.accessToken  = it }
+
+        val access2 = authPreference.accessToken
+            ?: throw TokenExpiredException("Failed to refresh token.")
+        routine("Bearer $access2") // 최종 1회 재시도
+    }
+}
+//suspend fun <T> ServerApi.withAuthHeaderRaw(
+//    authPreference: AuthPreference,
+//    routine: suspend ServerApi.(String) -> T
+//): T {
+//    try {
+//        val access = authPreference.accessToken
+//            ?: throw TokenExpiredException("Access token missing. Please log in.")
+//        return routine("Bearer $access")
+//    } catch (_: Exception) {
+//        val refresh = authPreference.refreshToken
+//            ?: throw TokenExpiredException("Access token expired. Please log in again.")
+//        val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
+//        pair.refreshToken?.let { authPreference.refreshToken = it }
+//        pair.accessToken?.let  { authPreference.accessToken  = it }
+//
+//        val access2 = authPreference.accessToken
+//            ?: throw TokenExpiredException("Failed to refresh token.")
+//        return routine("Bearer $access2")
+//    }
+//}
+
+// --- Call 전용: per-call timeout + 401시 refresh 후 1회 재시도 (Raw T 반환) ---
+suspend fun <T> ServerApi.withAuthCallRaw(
+    authPreference: AuthPreference,
+    timeoutSec: Long = 60,
+    build: ServerApi.() -> Call<T>
+): T = withContext(Dispatchers.IO) {
+    fun Call<T>.execWithTimeout(): Response<T> {
+        timeout().timeout(timeoutSec, TimeUnit.SECONDS) // ← 이 호출만 타임아웃
+        return execute()
+    }
+
+    var resp = build().execWithTimeout()
+
+    // 401이면 refresh 후 1회 재시도
+    if (resp.code() == 401) {
         val refresh = authPreference.refreshToken
             ?: throw TokenExpiredException("Access token expired. Please log in again.")
         val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
         pair.refreshToken?.let { authPreference.refreshToken = it }
         pair.accessToken?.let  { authPreference.accessToken  = it }
 
-        val r2 = routine()
-        if (r2.code() == 204) return null
-        val b2 = r2.body() ?: throw Exception("Empty body")
-        return b2
+        resp = build().execWithTimeout() // Call은 재사용 불가 → 새로 build()
     }
+
+    if (!resp.isSuccessful) throw HttpException(resp)
+    resp.body() ?: throw IOException("Empty body")
+}
+
+// --- BaseResponse<R>를 받아 isSuccess 확인 후 R만 반환 ---
+suspend fun <R> ServerApi.withAuthCallChecked(
+    authPreference: AuthPreference,
+    timeoutSec: Long = 60,
+    build: ServerApi.() -> Call<BaseResponse<R>>
+): R = withContext(Dispatchers.IO) {
+    val base = withAuthCallRaw(authPreference, timeoutSec, build)
+    if (!base.isSuccess) throw Exception(base.message)
+    base.result ?: throw IOException("Empty result")
 }

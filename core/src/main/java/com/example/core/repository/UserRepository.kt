@@ -23,4 +23,8 @@ interface UserRepository {
     // 유저 id 가져오기
     suspend fun getUserInfo(userId: Long): String?
 
+    //유저 비밀번호 재설정
+    suspend fun requestTempPassword(email: String): Boolean
+
+
 }
