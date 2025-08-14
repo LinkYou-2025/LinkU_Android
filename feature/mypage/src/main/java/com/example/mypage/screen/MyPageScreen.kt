@@ -54,6 +54,13 @@ import com.example.design.R as Res
 @Composable
 fun MyPageScreen(
     navController: NavController,
+    nickname: String,
+    email: String,
+    gender: String,   // "MALE" | "FEMALE"
+    jobName: String,
+    myLinku: Long,
+    myFolder: Long,
+    myAiLinku: Long,
     onNavigateAccount: () -> Unit = {},
     onNavigateAlarm: () -> Unit = {},
     onNavigateQuit: () -> Unit = {}
@@ -71,7 +78,16 @@ fun MyPageScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        TopBar(infoCardVisible = infoCardVisible)
+        TopBar(
+            infoCardVisible = infoCardVisible,
+            nickname = nickname,
+            email = email,
+            gender = gender,
+            jobName = jobName,
+            myLinku = myLinku,
+            myFolder = myFolder,
+            myAiLinku = myAiLinku
+        )
 
         LazyColumn(
             state = listState,
@@ -458,7 +474,14 @@ fun MyPageScreen(
 
 @Composable
 fun TopBar(
-    infoCardVisible: Boolean
+    infoCardVisible: Boolean,
+    nickname: String,
+    email: String,
+    gender: String,
+    jobName: String,
+    myLinku: Long,
+    myFolder: Long,
+    myAiLinku: Long
 ) {
     val buttonBrush = Brush.horizontalGradient(
             listOf(
@@ -520,7 +543,7 @@ fun TopBar(
 
                 Column {
                     Text(
-                        text = "세나",
+                        text = nickname,
                         style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                         color = LocalColorTheme.current.black
                     )
@@ -528,7 +551,7 @@ fun TopBar(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "linkU2025@gmail.com",
+                        text = email,
                         style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
                         color = LocalColorTheme.current.gray[400]
                     )
@@ -539,7 +562,7 @@ fun TopBar(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "여성",
+                            text = if (gender == "FEMALE") "여성" else "남성",
                             style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
                             color = LocalColorTheme.current.purple[200]
                         )
@@ -555,7 +578,7 @@ fun TopBar(
                         Spacer(modifier = Modifier.width(5.dp))
 
                         Text(
-                            text = "대학생",
+                            text = jobName,
                             style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
                             color = LocalColorTheme.current.blue[200]
                         )
@@ -581,13 +604,13 @@ fun TopBar(
                     .fillMaxWidth()
                     .padding(horizontal = 18.dp)
             ) {
-                InfoCard(title = "나의 링크", count = "0")
+                InfoCard(title = "나의 링크", count = myLinku.toString())
                 Spacer(modifier = Modifier.width(8.dp))
 
-                InfoCard(title = "나의 폴더", count = "0")
+                InfoCard(title = "나의 폴더", count = myFolder.toString())
                 Spacer(modifier = Modifier.width(8.dp))
 
-                InfoCard(title = "AI 요약 링크", count = "0", borderBrush = buttonBrush)
+                InfoCard(title = "AI 요약 링크", count = myAiLinku.toString(), borderBrush = buttonBrush)
             }
         }
     }
