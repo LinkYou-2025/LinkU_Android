@@ -106,7 +106,8 @@ class FolderRepositoryImpl @Inject constructor(
                     folderId = it.folderId,
                     folderName = it.folderName,
                     parentFolderId = parentFolderId,
-                    isBookmarked = false
+                    isBookmarked = false,
+                    isSharing = it.isSharing
                 )
             }
         }catch (e: Exception){
@@ -144,8 +145,8 @@ class FolderRepositoryImpl @Inject constructor(
                         folderId = it.folderId,
                         folderName = it.folderName,
                         parentFolderId = parentFolderId,
-                        isBookmarked = false
-
+                        isBookmarked = false,
+                        isSharing = it.isSharing
                     )
                 }
             )
@@ -354,7 +355,7 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     // 폴더 비공개 전환
-    override suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo {
+    override suspend fun setFolderPrivatePermission(folderId: Long): SharedFolderSimpleInfo {
         Log.d("setFolderPrivate", "folderId: $folderId")
 
         val response: SharedFolderSimpleInfo
@@ -431,7 +432,7 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("updateViewerPermission", "try")
 
             serverApi.withAuth(authPreference) {
-                this.updateViewerPermission(
+                updateViewerPermission(
                     folderId, userFolderId,
                     when (body) {
                         FolderPermission.VIEWER -> "viewer"

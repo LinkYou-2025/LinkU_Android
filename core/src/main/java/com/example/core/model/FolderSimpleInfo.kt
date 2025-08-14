@@ -7,5 +7,6 @@ data class FolderSimpleInfo(
     val folderId: Long,
     val folderName: String,
     val parentFolderId: Long,
-    val isBookmarked: Boolean
+    val isBookmarked: Boolean,
+    val isSharing: String? = null,
 )
