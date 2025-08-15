@@ -11,7 +11,7 @@ data class LinkuSimpleDTO(
     val categoryId: Long,
 
     @Json(name = "memo")
-    val memo: String,
+    val memo: String?,
 
     @Json(name = "emotionId")
     val emotionId: Long,
@@ -20,12 +20,14 @@ data class LinkuSimpleDTO(
     val title: String,
 
     @Json(name = "domain")
-    val domain: String,
+    val domain: String?,
 
     @Json(name = "domainImageUrl")
-    val domainImageUrl: String,
+    val domainImageUrl: String?,
 
     @Json(name = "linkuImageUrl")
-    val linkuImageUrl: String
+    val linkuImageUrl: String?,
 
+    @Json(name = "aiArticleExists")
+    val aiArticleExists: Boolean
 )

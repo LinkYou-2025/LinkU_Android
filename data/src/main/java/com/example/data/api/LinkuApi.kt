@@ -5,6 +5,7 @@ import com.example.data.api.dto.server.LinkuIsExistDTO
 import com.example.data.api.dto.server.LinkuResultDTO
 import com.example.data.api.dto.server.LinkuSimpleDTO
 import com.example.data.api.dto.server.LinkuUpdateDTO
+import com.example.data.api.dto.server.QuickSearchResult
 import com.example.data.api.dto.server.UpdateLinkFolderDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -22,7 +23,7 @@ interface LinkuApi {
     @Multipart
     @POST("/api/linku")
     suspend fun addLink(
-        @Part image: MultipartBody.Part,
+        @Part image: MultipartBody.Part?,
         @Part("linku") linku: RequestBody,
         @Part("memo") memo: RequestBody?,
         @Part("emotionId") emotionId: RequestBody?
@@ -65,10 +66,14 @@ interface LinkuApi {
     suspend fun recommendLink(
         @Query("situationId") situationId: Long,
         @Query("emotionId") emotionId: Long,
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 5
-    ) : BaseResponse<LinkuSimpleDTO>
+        @Query("page") page: Int? = 0,
+        @Query("size") size: Int? = 5
+    ) : BaseResponse<List<LinkuSimpleDTO>>
 
-    // 빠른 링크 검색 -> 스웨거에 추가되는대로 업뎃 예정
-//    @GET("/api/search/quick")
+    // 빠른 링크 검색
+    @GET("/api/linku/api/search/quick")
+    suspend fun quickSearch(
+        @Query("keyword") keyword: String,
+        @Query("userId") userId: Long
+    ) : BaseResponse<QuickSearchResult>
 }

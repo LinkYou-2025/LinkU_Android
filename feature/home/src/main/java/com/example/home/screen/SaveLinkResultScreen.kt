@@ -44,32 +44,89 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.rememberAsyncImagePainter
+import com.example.core.model.LinkResultInfo
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.home.R
 import com.example.home.component.AIArticleModal
 import kotlinx.coroutines.delay
+import java.time.OffsetDateTime
+
+private fun emotionDisplayName(id: Long?): String? = when (id) {
+    1L -> "기쁨"
+    2L -> "차분"
+    3L -> "설렘"
+    4L -> "슬픔"
+    5L -> "짜증"
+    6L -> "분노"
+    else -> null
+}
+
+private val CATEGORY_NAMES: Map<Long, String> = mapOf(
+    1L to "어학",
+    2L to "뉴스",
+    3L to "공부법",
+    4L to "IT·개발",
+    5L to "자기계발",
+    6L to "취업·이직",
+    7L to "비즈니스 인사이트",
+    8L to "생산성·툴",
+    9L to "라이프스타일",
+    10L to "심리·자기이해",
+    11L to "에세이·칼럼",
+    12L to "트렌드",
+    13L to "디자인·예술",
+    14L to "영상·뮤직",
+    15L to "맛집·여행",
+    16L to "기타"
+)
+
+private fun categoryDisplayName(id: Long?): String? =
+    id?.let { CATEGORY_NAMES[it] } // 매핑 없으면 null -> 태그 숨김
 
 @Composable
 fun SaveLinkResultScreen(
-    selectedImageUri: String? = null // 외부에서 전달받은 URI
+    selectedImageUri: String? = null, // 외부에서 전달받은 URI
+    link: LinkResultInfo?,
+    isLoading: Boolean = false,
+    onBack: () -> Unit = {},
+    onOpenLink: (String) -> Unit = {}
 ) {
+    // 🔹 서버 데이터 바인딩 (널/로딩 방어)
+    val titleFromServer = link?.title.orEmpty()
+    val memoFromServer = link?.memo.orEmpty()
+    val imageUrl = link?.linkuImageUrl
+    val domain = link?.domain.orEmpty()
+    val linku = link?.linku.orEmpty()
+
+    // 상단 태그(카테고리/감정)
+    val topBarTags = listOfNotNull(
+        categoryDisplayName(link?.categoryId),
+        emotionDisplayName(link?.emotionId)
+    )
+
     var showAISummary by remember { mutableStateOf(false) }
     var showAIArticleModal by remember { mutableStateOf(false) }
 
     var isEditMode by remember { mutableStateOf(false) }
 
-    var memoText by remember { mutableStateOf("본격적으로 오픽 시험 준비하기 전에 봐야할 영상!!!!") }
+    // 메모/제목은 서버값으로 초기화
+    var memoText by remember { mutableStateOf(memoFromServer) }
     var isMemoEditing by remember { mutableStateOf(false) }
 
-    // ✅ 수정 완료 시 텍스트 입력 종료
+    LaunchedEffect(link) {
+        // 상세가 갱신되면 UI 상태도 동기화(사용자가 수정 중이 아닐 때만)
+        if (!isMemoEditing) memoText = memoFromServer
+    }
+
+    // 수정 완료 시 텍스트 입력 종료
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
             isMemoEditing = false
         }
     }
 
-    // ✅ showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
+    // showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
     LaunchedEffect(showAIArticleModal) {
         if (showAIArticleModal) {
             delay(3000)
@@ -86,7 +143,10 @@ fun SaveLinkResultScreen(
             TopBar(
                 isEditMode = isEditMode,
                 showAISummary = showAISummary,
-                onEditClick = { isEditMode = !isEditMode } // 🔹 토글 처리
+                onEditClick = { isEditMode = !isEditMode },
+                onBack = onBack,
+                titleText = titleFromServer,
+                tags = topBarTags
             )
 
             Column(
@@ -106,14 +166,14 @@ fun SaveLinkResultScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(51.dp)
+                        .heightIn(min = 51.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border(1.dp, LocalColorTheme.current.gray[200])
+                        .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp))
                         .padding(horizontal = 22.dp, vertical = 15.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
-                        text = "링크",
+                        text = linku,
                         style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
                         color = LocalColorTheme.current.black
                     )
@@ -130,9 +190,9 @@ fun SaveLinkResultScreen(
                     .border(1.dp, LocalColorTheme.current.gray[200]),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (selectedImageUri != null) {
+                if (!imageUrl.isNullOrBlank()) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = selectedImageUri),
+                        painter = rememberAsyncImagePainter(model = imageUrl),
                         contentDescription = "선택된 이미지",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop // ✅ 박스에 꽉 차도록
@@ -432,7 +492,11 @@ fun SaveLinkResultScreen(
                     .height(50.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(brush = Basic.maincolor)
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = 16.dp)
+                    .clickable {
+                        val target = linku
+                        if (target.isNotBlank()) onOpenLink(target)
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -479,13 +543,23 @@ fun SaveLinkResultScreen(
 fun TopBar(
     isEditMode: Boolean = false,
     showAISummary: Boolean = false,
-    onEditClick: () -> Unit = {}
+    onEditClick: () -> Unit = {},
+    onBack: () -> Unit = {},
+    titleText: String = "",
+    tags: List<String> = emptyList()
 ) {
     // 태그 샘플
-    val tags = listOf("카테고리", "감정")
+//    val tags = listOf("카테고리", "감정")
 
-    var titleText by remember { mutableStateOf("3일만에 오픽 AL") }
+    var title by remember { mutableStateOf(titleText) }
     var isTitleEditing by remember { mutableStateOf(false) }
+
+    LaunchedEffect(titleText) { if (!isTitleEditing) title = titleText }
+    LaunchedEffect(isEditMode) { if (!isEditMode) isTitleEditing = false }
+
+    LaunchedEffect(titleText) {
+        if (!isTitleEditing) title = titleText
+    }
 
     // ✅ 수정 완료 시 텍스트 입력 종료
     LaunchedEffect(isEditMode) {
@@ -523,6 +597,7 @@ fun TopBar(
                         contentDescription = null,
                         modifier = Modifier
                             .size(width = 10.dp, height = 16.25.dp)
+                            .clickable { onBack() }
                     )
                 }
 
@@ -552,7 +627,7 @@ fun TopBar(
 
             Row(
                 modifier = Modifier
-                    .padding(start = 24.dp),
+                    .padding(start = 24.dp, end = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (showAISummary) {
@@ -571,7 +646,7 @@ fun TopBar(
                             if (isEditMode) {
                                 Modifier
                                     .clip(RoundedCornerShape(13.dp))
-                                    .border(1.dp, LocalColorTheme.current.blue[100])
+                                    .border(1.dp, LocalColorTheme.current.blue[100], RoundedCornerShape(13.dp))
                                     .padding(top = 4.dp, start = 15.dp, end = 15.dp, bottom = 4.dp)
                             } else {
                                 Modifier
@@ -581,13 +656,13 @@ fun TopBar(
                 ) {
                     if (isTitleEditing) {
                         BasicTextField(
-                            value = titleText,
-                            onValueChange = { titleText = it },
+                            value = title,
+                            onValueChange = { title = it },
                             textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white)
                         )
                     } else {
                         Text(
-                            text = titleText,
+                            text = title,
                             style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
                             color = LocalColorTheme.current.white
                         )
@@ -602,7 +677,7 @@ fun TopBar(
                             modifier = Modifier
                                 .size(18.dp)
                                 .clickable {
-                                    titleText = ""
+                                    title = ""
                                     isTitleEditing = true
                                 }
                         )
@@ -613,41 +688,43 @@ fun TopBar(
             Spacer(modifier = Modifier.height(19.dp))
 
             // tags
-            Row(
-                modifier = Modifier
-                    .padding(start = 24.dp)
-            ) {
-                tags.forEach { tag ->
-                    Row(
-                        modifier = Modifier
-                            .background(
-                                LocalColorTheme.current.blue[50],
-                                RoundedCornerShape(10.dp)
+            if (tags.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .padding(start = 24.dp)
+                ) {
+                    tags.forEach { tag ->
+                        Row(
+                            modifier = Modifier
+                                .background(
+                                    LocalColorTheme.current.blue[50],
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(horizontal = 10.dp, vertical = 8.5.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = tag,
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = LocalColorTheme.current.blue[300]
+                                )
                             )
-                            .padding(horizontal = 10.dp, vertical = 8.5.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = tag,
-                            style = TextStyle(
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.blue[300]
-                            )
-                        )
 
-                        if (isEditMode) {
-                            Spacer(modifier = Modifier.width(6.dp))
+                            if (isEditMode) {
+                                Spacer(modifier = Modifier.width(6.dp))
 
-                            Image(
-                                painter = painterResource(R.drawable.ic_toggle),
-                                contentDescription = null,
-                                modifier = Modifier.height(6.dp)
-                            )
+                                Image(
+                                    painter = painterResource(R.drawable.ic_toggle),
+                                    contentDescription = null,
+                                    modifier = Modifier.height(6.dp)
+                                )
+                            }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
                 }
             }
 
@@ -659,5 +736,22 @@ fun TopBar(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSaveLinkResultScreen() {
-    SaveLinkResultScreen()
+    SaveLinkResultScreen(
+        link = LinkResultInfo(
+            userId = 1L,
+            linkuId = 2L,
+            linkuFolderId = 2L,
+            categoryId = 16L,
+            linku = "https://blog.naver.com/s2ethan/223941554164",
+            memo = "프리뷰 메모",
+            emotionId = 3L,
+            domain = "blog.naver",
+            title = "프리뷰 제목",
+            domainImageUrl = null,
+            linkuImageUrl = null,
+            createdAt = OffsetDateTime.parse("2025-07-21T23:13:41.354053+09:00"),
+            updatedAt = OffsetDateTime.parse("2025-07-21T23:13:41.354053+09:00")
+        ),
+        isLoading = false
+    )
 }

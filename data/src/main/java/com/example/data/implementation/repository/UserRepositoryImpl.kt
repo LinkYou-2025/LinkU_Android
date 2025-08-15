@@ -2,12 +2,17 @@ package com.example.data.implementation.repository
 
 import android.util.Log
 import com.example.core.model.LoginResult
+import com.example.core.model.UserInfo
 import com.example.core.repository.UserRepository
+import com.example.data.api.ServerApi
 import com.example.data.api.UserApi
 import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.server.DeleteReasonDTO
+import com.example.data.api.dto.server.UserInfoDTO
+import com.example.data.api.withAuth
+import com.example.data.api.withAuthHeaderRaw
 import com.example.data.api.dto.server.TempPasswordRequestDTO
 import retrofit2.HttpException
 import java.time.OffsetDateTime
@@ -16,6 +21,7 @@ import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val userApi: UserApi,
+    private val serverApi: ServerApi,
     private val authPreference: AuthPreference
 ) : UserRepository {
 
@@ -201,6 +207,46 @@ class UserRepositoryImpl @Inject constructor(
         return response.isSuccess == true
     }
 
+    // 마이페이지 조회
+    override suspend fun getUserInfo(userId: Long): UserInfo {
+        // val response = userApi.withAuth(authPreference) { getUserInfo(userId) }
+        val response = userApi.getUserInfo(userId)
+
+        val dto: UserInfoDTO = response.result
+            ?: throw IllegalStateException("마이페이지 조회 실패: ${response.message}")
+
+        // DTO -> 도메인 매핑을 여기서 바로 처리
+        return UserInfo(
+            nickname  = dto.nickname,
+            email     = dto.email,
+            gender    = dto.gender.value,   // "MALE" | "FEMALE"
+            jobId     = dto.job.id,
+            jobName   = dto.job.name,
+            myLinku   = dto.myLinku,
+            myFolder  = dto.myFolder,
+            myAiLinku = dto.myAiLinku
+        )
+    }
+
+    // 로그아웃
+    override suspend fun logout() {
+        // 서버 로그아웃: 401이면 refresh 후 1회 재시도
+        runCatching {
+            serverApi.withAuthHeaderRaw(authPreference) { _ ->
+                // logout 이 suspend fun logout(): Unit 인 경우
+                logout()
+            }
+        }.onFailure { e ->
+            Log.w("UserRepository", "logout API failed: ${e.message}")
+            // 서버 실패여도 로컬 세션은 아래에서 정리
+        }
+
+        // 로컬 세션은 항상 정리
+        authPreference.accessToken = null
+        authPreference.refreshToken = null
+        authPreference.userId = null
+    }
+
     override suspend fun getUserInfo(userId: Long): String? {
         return try {
             val response = userApi.getUserInfo(userId)
@@ -229,5 +275,4 @@ class UserRepositoryImpl @Inject constructor(
             false
         }
     }
-
 }
