@@ -43,10 +43,14 @@ interface CurationApi {
 //     suspend fun getMyRecentCuration(
 //         @Path("userId") userId: Long
 //     ): BaseResponse<CurationLatestResponse?> //  null 가능성 반영
+//     @GET("/api/curations/latest/{userId}")
+//     suspend fun getMyRecentCuration(
+//         @Path("userId") userId: Long
+//     ): Response<CurationLatestResponse> // <- BaseResponse 제거
      @GET("/api/curations/latest/{userId}")
      suspend fun getMyRecentCuration(
          @Path("userId") userId: Long
-     ): Response<CurationLatestResponse> // <- BaseResponse 제거
+     ): BaseResponse<CurationLatestResponse?>
 
     // 큐레이션 좋아요 등록
 //    @POST("/api/curations/{curationId}/like")

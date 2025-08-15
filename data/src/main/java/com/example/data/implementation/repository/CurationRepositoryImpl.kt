@@ -31,11 +31,25 @@ class CurationRepositoryImpl @Inject constructor(
 ) : CurationRepository {
 
 
+//    override suspend fun getMyRecentCuration(userId: Long): CurationItem {
+//        val dto = serverApi.withAuthResp204Raw(authPreference) {
+//            getMyRecentCuration(userId)   // 이제 Response<CurationLatestResponse> 반환
+//        } ?: throw IllegalStateException("최근 큐레이션이 없습니다. (204 No Content)")
+//
+//        return CurationItem(
+//            id = dto.curationId,
+//            month = dto.month,
+//            thumbnailUrl = dto.thumbnailUrl
+//        )
+//    }
     override suspend fun getMyRecentCuration(userId: Long): CurationItem {
-        val dto = serverApi.withAuthResp204Raw(authPreference) {
-            getMyRecentCuration(userId)   // 이제 Response<CurationLatestResponse> 반환
-        } ?: throw IllegalStateException("최근 큐레이션이 없습니다. (204 No Content)")
+        val res = curationApi.getMyRecentCuration(userId)
 
+        if (!res.isSuccess) {
+            throw IllegalStateException(res.message ?: "최근 큐레이션 호출 실패")
+        }
+
+        val dto = res.result ?: throw IllegalStateException("최근 큐레이션이 없습니다.")
         return CurationItem(
             id = dto.curationId,
             month = dto.month,
