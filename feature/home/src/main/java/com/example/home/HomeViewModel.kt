@@ -10,6 +10,7 @@ import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.UserRepository
+import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -21,17 +22,37 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val linkuRepository: LinkuRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authPreference: AuthPreference,
 ) : ViewModel() {
-    // 최초 진입 시 프로필 로드
-    init {
-        loadRecentLinks()
-        // TODO: 추후 프로필 로드 부분 연결 후 넣기
-    }
+    // 사용자 닉네임
+    private val userNameState = mutableStateOf<String?>(null)
+    val userName get() = userNameState.value
 
     // 직업 ID 보관
     private val jobIdState = mutableStateOf<Long?>(null)
     val jobId get() = jobIdState.value
+
+    // 최초 진입 시 프로필 로드
+    init {
+        loadRecentLinks()
+        loadUserBasics()
+    }
+
+    private fun loadUserBasics() {
+        viewModelScope.launch {
+            runCatching {
+                val userId = authPreference.userId ?: error("userId is null")
+                require(userId > 0L) { "invalid userId=$userId" }   // ✅ 음수/0 차단
+                userRepository.getUserInfo(userId)                  // ✅ 파라미터 전달
+            }.onSuccess { info ->
+                userNameState.value = info.nickname
+                jobIdState.value = info.jobId.toLong()
+            }.onFailure { e ->
+                Log.e("HomeVM", "loadUserBasics failed", e)
+            }
+        }
+    }
 
     private fun Throwable.isLinku4003(): Boolean {
         // 예외 메시지에 코드가 섞여 오는 경우

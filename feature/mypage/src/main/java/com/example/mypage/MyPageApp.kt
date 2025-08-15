@@ -24,7 +24,7 @@ fun MyPageApp(
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
     LaunchedEffect(Unit) {
-        viewModel.loadUserInfo(userId =2L) // TODO 실제 로그인 유저 ID로 교체
+        viewModel.loadUserInfo()
     }
 
     val ui by viewModel.uiState.collectAsState()

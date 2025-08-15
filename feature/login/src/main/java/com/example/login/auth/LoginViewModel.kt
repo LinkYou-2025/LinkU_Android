@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.model.LoginResult
 import com.example.core.repository.UserRepository
+import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,7 +16,8 @@ import android.util.Log
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authPreference: AuthPreference
 ) : ViewModel() {
 
     private val _loginState = MutableStateFlow<LoginResult?>(null)
@@ -29,6 +31,14 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = userRepository.login(email, password)
+
+                // ✅ 로그인 성공 → userId를 영속 저장
+                val id = result.userId
+                if (id != null && id > 0) {
+                    authPreference.userId = id.toLong()
+                } else {
+                    authPreference.userId = null
+                }
 
                 //  Compose 변경 감지를 위해 새 객체로 복사
                 _loginState.value = LoginResult(
