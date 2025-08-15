@@ -18,8 +18,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,35 +35,52 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.request.error
+import coil3.request.fallback
+import coil3.request.placeholder
+import com.example.core.model.LinkSimpleInfo
 import com.example.file.R
-import com.example.file.ui.FileModalWindow
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray200
 import com.example.file.ui.theme.Gray400
-import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
+import com.example.file.ui.theme.domainLogoPainterOrNull
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkItemLayout(
-    painter: Painter? = painterResource(R.drawable.link_categorization_default),
-    title: String = "제목",
-    tags: List<String> = listOf("태그1", "태그2"),
-    domainIcon: Painter? = null,
-    domain: String = "도메인",
+    link: LinkSimpleInfo? = null,
 ) {
+    val tags = link?.tags?:emptyList()
     var showDialog by remember { mutableStateOf(false) }
+
+    val domainIcon = link?.let{ domainLogoPainterOrNull(it.domain) }?:painterResource(R.drawable.link_categorization_default)
+
+    val isNotAdder = link != null
+
+    val painter = ImageRequest.Builder(LocalContext.current)
+        .data(link?.linkuImageUrl) // url이 null일 수도 있음
+        .crossfade(true)
+        .placeholder(R.drawable.link_categorization_default)
+        .error(R.drawable.link_categorization_default)
+        .fallback(R.drawable.link_categorization_default) // null이면 이거 표시
+        .build()
 
     // 링크 분류 태그(Chip) 컴포저블
     @Composable
@@ -100,13 +120,13 @@ fun LinkItemLayout(
         modifier = Modifier
             .width(181.dp)
             .height(267.dp)
-            .pointerInput(Unit) {
+            /*.pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
                         showDialog = true // 꾹 누르면 Dialog 띄우기
                     }
                 )
-            },
+            }*/,
         // 모서리 둥글게(18dp)
         shape = RoundedCornerShape(18.dp),
         // 카드 배경색(White)
@@ -120,7 +140,7 @@ fun LinkItemLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(11.dp)
-                .alpha(if(painter == null) 0.35f else 1f)
+                .alpha(if (isNotAdder) 1f else 0.35f)
         ) {
 
             // (1) 링크의 메인 이미지
@@ -130,14 +150,14 @@ fun LinkItemLayout(
                     .clip(RoundedCornerShape(18.dp))
                     .size(157.dp)
                     .align(Alignment.CenterHorizontally)
-                    .background(color = if(painter != null) Gray100 else White),
+                    .background(color = if (isNotAdder) Gray100 else White),
                 contentAlignment = Alignment.Center
             ){
-                if(painter != null){
-                    Image(
+                if(isNotAdder){
+                    AsyncImage(
                         modifier = Modifier.fillMaxSize(),
                         // 사용할 이미지 리소스
-                        painter = painter,  // 테스트 이미지
+                        model = painter,
                         contentDescription = null
                     )
                 }else{
@@ -155,7 +175,7 @@ fun LinkItemLayout(
                 // 위쪽 여백(10dp)
                 modifier = Modifier
                     .padding(top = 10.dp),
-                text = title,
+                text = link?.title?:"제목",
                 // 폰트 크기(15sp)
                 fontSize = 15.sp,
                 // 폰트
@@ -163,14 +183,15 @@ fun LinkItemLayout(
                 // 폰트 굵기(Medium, 500)
                 fontWeight = FontWeight(500),
                 // 글자색(Black)
-                color = Black
+                color = Black,
+                maxLines = 1, // 최대 2줄
+                overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
             )
 
             // (3) 링크 분류 태그(여러 개를 Row에 배치)
-            Row(
+            LazyRow(
                 // 가로 전체 채우기, 위쪽 여백(8dp)
                 modifier = Modifier
-                    .fillMaxWidth()
                     .padding(top = 8.dp),
                 // 태그 간 5dp 간격, 왼쪽 정렬
                 horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
@@ -178,7 +199,7 @@ fun LinkItemLayout(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 // 전달받은 tags 리스트를 순회하며 LinkItemTag 생성
-                tags.forEach {
+                items(tags){
                     LinkItemTag(it)
                 }
             }
@@ -205,16 +226,15 @@ fun LinkItemLayout(
                         .background(color = Gray200),
                     contentAlignment = Alignment.Center
                 ){
-                    // 도메인 아이콘 (ex. 트위터)
-                    if (domainIcon != null) {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            // 아이콘 이미지 리소스
-                            painter = domainIcon,  // 트위터 로고(테스트)
-                            contentDescription = null
-                        )
-                    }
+                    // 도메인 아이콘
+                    Image(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        // 아이콘 이미지 리소스
+                        painter = domainIcon,  // 트위터 로고(테스트)
+                        contentDescription = null
+                    )
+
                 }
 
                 // 링크의 도메인 텍스트
@@ -222,7 +242,7 @@ fun LinkItemLayout(
                     modifier = Modifier,
 
                     // 텍스트 내용
-                    text = domain,
+                    text = link?.domain?:"도메인",
 
                     // 폰트 크기 (12sp)
                     fontSize = 12.sp,
@@ -234,7 +254,9 @@ fun LinkItemLayout(
                     fontWeight = FontWeight.Bold,
 
                     // 글자색 (Gray800)
-                    color = Gray800
+                    color = Gray800,
+                    maxLines = 1, // 최대 2줄
+                    overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
                 )
             }
         }
@@ -251,8 +273,7 @@ private fun LinkItemTest() {
             modifier = Modifier.alpha(0.35f),
         ){
             LinkItemLayout(
-                painter = null,
-                tags = listOf("태그1", "태그2"),
+                link = null,
             )
         }
 

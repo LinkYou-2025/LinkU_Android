@@ -24,10 +24,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +61,7 @@ import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldFileBottomSheet(
     title: String,
@@ -65,16 +69,33 @@ fun TextFieldFileBottomSheet(
     placeholderText: String,
     isEditable: Boolean = false,
     visible: Boolean,
+    onTextDeliver: (String) -> Unit = {},
+    onColorIdDeliver: (Int) -> Unit = {},
     onDismiss: () -> Unit,
 ){
+    var colorId by remember { mutableIntStateOf(-1) }
     var expanded by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(Gray300) }
+    var text by remember { mutableStateOf("") }
+
+    LaunchedEffect(visible) {
+        if (visible) {
+            text = "" // 바텀 시트 열릴 때 초기화
+        }
+    }
 
     FileBottomSheet(
         title = title,
         body = body,
         buttonText = "저장",
         visible = visible,
+        isReady = if(isEditable) colorId != -1 else text.isNotEmpty(),
+        onOkay = {
+            onTextDeliver(text)
+            if(isEditable) {
+                onColorIdDeliver(colorId)
+            }
+        },
         onDismiss = {
             selectedColor = Gray300
             expanded = false
@@ -89,8 +110,8 @@ fun TextFieldFileBottomSheet(
                 .padding(horizontal = 21.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            var text by remember { mutableStateOf("") }
             BasicTextField(
+                enabled = !isEditable,
                 value = text,
                 onValueChange = { text = it },
                 textStyle = TextStyle(
@@ -200,7 +221,7 @@ fun TextFieldFileBottomSheet(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(7.5.dp)
                 ) {
-                    for (colorStyle in CategoryColorStyle.categoryStyleList) {
+                    for ((i, colorStyle) in CategoryColorStyle.categoryStyleList.withIndex()) {
 
                         Box(
                             modifier = Modifier.fillMaxWidth()
@@ -211,7 +232,10 @@ fun TextFieldFileBottomSheet(
                                     .clip(CircleShape)
                                     .background(colorStyle.color4)
                                     .align(Alignment.Center)
-                                    .noRippleClickable { selectedColor = colorStyle.color4 },
+                                    .noRippleClickable {
+                                        selectedColor = colorStyle.color4
+                                        colorId = i
+                                   },
                                 contentAlignment = Alignment.Center
                             ) {}
                         }
@@ -230,6 +254,6 @@ private fun TextFieldFileBottomSheetTest(){
         "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
         "카테고리명은 최대 10자입니다",
         true,
-        true
+        true,
     ){}
 }
