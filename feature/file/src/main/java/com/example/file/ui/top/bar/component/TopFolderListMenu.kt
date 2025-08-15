@@ -51,23 +51,23 @@ fun TopFolderListMenu(
         for ((i, selectedOption) in items.withIndex()){
             DropdownMenuItem(
                 leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .graphicsLayer(alpha = 0.99f) // 강제 레이어
-                                .drawWithCache {
-                                    onDrawWithContent {
-                                        drawContent() // 기본 아이콘 먼저 그림
-                                        drawRect(
-                                            brush = if (selectedOption == selectedText) MainColor
-                                            else Brush.horizontalGradient(listOf(White, White)),
-                                            blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
-                                        )
-                                    }
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.99f) // 강제 레이어
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent() // 기본 아이콘 먼저 그림
+                                    drawRect(
+                                        brush = if (selectedOption == selectedText) MainColor
+                                        else Brush.horizontalGradient(listOf(White, White)),
+                                        blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
+                                    )
                                 }
-                        )
-                    },
+                            }
+                    )
+                },
                 text = {
                     Text(
                         text = buildAnnotatedString {

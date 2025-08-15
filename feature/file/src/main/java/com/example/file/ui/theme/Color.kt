@@ -70,6 +70,13 @@ data class CategoryColorStyle(
     )
 
     companion object {
+        val DEFAULT = CategoryColorStyle(
+            color1 = White,
+            color2 = Gray200,
+            color3 = Gray300,
+            color4 = Gray500
+        )
+
         val categoryStyleList: List<CategoryColorStyle> = listOf(
             CategoryColorStyle(
                 color1 = Color(0xFFFFEEEE),

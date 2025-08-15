@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.FileViewModel
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
@@ -37,8 +38,10 @@ fun BottomFolderListMenu(
     onChangeFolder: () -> Unit
 ){
     val isLinks = folderStateViewModel.currentFolderState == FolderState.LINKS
-    val parentFolders = fileViewModel.parentFolders.collectAsState().value
-    val subFolders = fileViewModel.subFolders.collectAsState().value
+    val parentFolders = fileViewModel.parentFolders.collectAsStateWithLifecycle().value
+    val subFolders = fileViewModel.subFolders.collectAsStateWithLifecycle().value
+
+    val colorStyles = fileViewModel.categoryColorMap.collectAsStateWithLifecycle().value
 
     DropdownMenu(
         modifier = Modifier
@@ -52,13 +55,15 @@ fun BottomFolderListMenu(
     ) {
         if(!isLinks){
             for ((i, folder) in parentFolders.withIndex()) {
+                val colorStyle = colorStyles[folder.folderName]?: CategoryColorStyle.DEFAULT
+
                 DropdownMenuItem(
                     leadingIcon = {
                             Box(
                                 modifier = Modifier
                                     .size(25.dp)
                                     .clip(CircleShape)
-                                    .background(color = CategoryColorStyle.categoryStyleList[i].color4)
+                                    .background(color = colorStyle.color4)
                             )
                         },
                     text = {
@@ -74,10 +79,12 @@ fun BottomFolderListMenu(
                         )
                     },
                     onClick = {
-                        fileViewModel.getLinksFolders(folder.folderId)
-                        folderStateViewModel.updateSelectedTopFolder(folder)
-                        folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                        folderStateViewModel.updateBottomMenuExpanded(false)
+                        if(folder.folderId!=folderStateViewModel.selectedTopFolder?.folderId){
+                            fileViewModel.getLinksFolders(folder.folderId)
+                            folderStateViewModel.updateSelectedTopFolder(folder)
+                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                            folderStateViewModel.updateBottomMenuExpanded(false)
+                        }
                     }
                 )
             }
@@ -97,10 +104,12 @@ fun BottomFolderListMenu(
                         )
                     },
                     onClick = {
-                        fileViewModel.getLinksFolders(folder.folderId)
-                        folderStateViewModel.updateSelectedBottomFolder(folder)
-                        folderStateViewModel.updateFolderState(FolderState.LINKS)
-                        folderStateViewModel.updateBottomMenuExpanded(false)
+                        if(folder.folderId!=folderStateViewModel.selectedBottomFolder?.folderId){
+                            fileViewModel.getLinks(folder.folderId)
+                            folderStateViewModel.updateSelectedBottomFolder(folder)
+                            folderStateViewModel.updateFolderState(FolderState.LINKS)
+                            folderStateViewModel.updateBottomMenuExpanded(false)
+                        }
                     }
                 )
             }

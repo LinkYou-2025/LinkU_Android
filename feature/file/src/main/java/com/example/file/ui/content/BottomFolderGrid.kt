@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
@@ -53,8 +54,8 @@ fun BottomFolderGrid(
 ){
     val interactionSource = remember { MutableInteractionSource() }
 
-    val folderList = fileViewModel.subFolders.collectAsState().value
-    val linkList = fileViewModel.notCategorizationLinks.collectAsState().value
+    val folderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
+    val linkList by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     Column {
         // Folder Grid
@@ -99,36 +100,45 @@ fun BottomFolderGrid(
             for((i, folder) in folderList.withIndex()) {
                 var visible by remember { mutableStateOf(false) }
 
+                val parentModifier = if (!editStateViewModel.isEditMode) {
+                    Modifier.combinedClickable(
+                        indication = null,
+                        interactionSource = interactionSource,
+                        onClick = {
+                            fileViewModel.getLinks(folder.folderId)
+                            folderStateViewModel.updateSelectedBottomFolder(folder)
+                            folderStateViewModel.updateFolderState(FolderState.LINKS)
+                          },
+                        onLongClick = { visible = true }
+                    )
+                } else {
+                    Modifier.combinedClickable(
+                        indication = null,
+                        interactionSource = interactionSource,
+                        onClick = { /* ... */ },
+                        onLongClick = { visible = true }
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable(
-                            indication = null,
-                            interactionSource = interactionSource,
-                            onClick = {
-                                if(!editStateViewModel.isEditMode) {
-                                    // 기본 상태
-                                    fileViewModel.getLinks(folder.folderId)
-                                    folderStateViewModel.updateSelectedBottomFolder(folder)
-                                    folderStateViewModel.updateFolderState(FolderState.LINKS)
-                                }else{
-                                    // 수정 상태
-                                    folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
-                                    folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                                }
-                            },
-                            onLongClick = {
-                                visible = true
-                            }
-                        ),
+                        .then(parentModifier),
                     contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
                 ) {
                     val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]
 
                     BottomFolderItemLayout(
                         categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        categoryName = folder.folderName,
-                        editStateViewModel = editStateViewModel
+                        folder = folder,
+                        editStateViewModel = editStateViewModel,
+                        onEdit = {
+                            folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
+                            folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                        },
+                        onChangeSharing = {
+                            fileViewModel.changeSharing(folder)
+                        }
                     )
                 }
 

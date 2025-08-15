@@ -38,10 +38,13 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.core.model.FolderSimpleInfo
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.content.BookMarkStar
+import com.example.file.ui.content.LockFolderIcon
 import com.example.file.ui.content.PencilIcon
+import com.example.file.ui.content.ShareFolderIcon
 import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
@@ -51,6 +54,7 @@ import com.example.file.ui.theme.Gray200
 import com.example.file.ui.theme.Gray300
 import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.White
+import com.example.file.viewmodel.folder.state.FolderState
 
 @Composable
 fun FolderItemLayout(
@@ -266,8 +270,10 @@ fun TopFolderItemLayout(
 @Composable
 fun BottomFolderItemLayout(
     categoryColorStyle: CategoryColorStyle,
-    categoryName: String,
-    editStateViewModel: EditStateViewModel
+    folder: FolderSimpleInfo,
+    editStateViewModel: EditStateViewModel,
+    onEdit: ()-> Unit = {},
+    onChangeSharing: () -> Unit = {}
 ){
     FolderItemLayout(
         backgroundColor = categoryColorStyle.color1,
@@ -275,18 +281,38 @@ fun BottomFolderItemLayout(
         color2 = categoryColorStyle.color1,
         color3 = White,
         folderMaskBrush = categoryColorStyle.verticalGradient(),
-        leftIcon = {},
+        leftIcon = {
+            Box(
+                modifier = Modifier.noRippleClickable{
+                    if(editStateViewModel.isEditMode){
+                        onChangeSharing()
+                    }
+                }
+            ){
+                folder.isSharing?.let{ sharing ->
+                    if(sharing=="share"){
+                        ShareFolderIcon(categoryColorStyle.color1)
+                    } else {
+                        LockFolderIcon(categoryColorStyle.color1)
+                    }
+                }
+            }
+        },
         rightIcon = {
             if(editStateViewModel.isEditMode){
                 Box(
-                    modifier = Modifier
+                    modifier = Modifier.noRippleClickable{
+                        if(editStateViewModel.isEditMode) {
+                            onEdit()
+                        }
+                    }
                 ) {
                     PencilIcon(categoryColorStyle.color2)
                 }
             }
         },
         textBackgroundColor = categoryColorStyle.color4,
-        categoryName = categoryName
+        categoryName = folder.folderName
     )
 }
 
@@ -301,8 +327,14 @@ fun FolderItemTest() {
             editStateViewModel = viewModel()
         ){}
         BottomFolderItemLayout(
+            folder = FolderSimpleInfo(
+                folderId = 0,
+                folderName = "기본",
+                parentFolderId = 0,
+                isBookmarked = false,
+                isSharing = "share"
+            ),
             categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
-            categoryName = "기본",
             editStateViewModel = viewModel()
         )
     }

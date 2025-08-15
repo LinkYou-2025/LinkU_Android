@@ -9,4 +9,5 @@ data class FolderSimpleInfo(
     val parentFolderId: Long,
     val isBookmarked: Boolean,
     val isSharing: String? = null,
+    val tags: List<String> = emptyList(),
 )

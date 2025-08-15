@@ -39,8 +39,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.core.model.LinkSimpleInfo
 import com.example.file.FileViewModel
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
@@ -57,12 +59,14 @@ fun LinkCategorizationBottomSheet(
 ) {
     val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
+    var link by remember { mutableStateOf<LinkSimpleInfo?>(null) }
+
     FileBottomSheet(
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
         visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
-        onOkay = {/*TODO: 폴더에 링크 추가*/},
+        onOkay = {fileViewModel.updateLinkFolder(link!!, folderStateViewModel.selectedBottomFolder?.folderId!!)},
         onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
     ) {
         LazyColumn(
@@ -78,14 +82,17 @@ fun LinkCategorizationBottomSheet(
                 val img = painterResource(R.drawable.link_categorization_default)//it.img
                 Row(
                     modifier = Modifier
-                        .height(60.dp),
+                        .height(60.dp)
+                        .noRippleClickable{
+                            link = it
+                        },
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     var checked by remember { mutableStateOf(true) }
                     Checkbox(
                         modifier = Modifier
                             .clip(RoundedCornerShape(18.dp)),
-                        checked = checked,
+                        checked = link == it,
                         onCheckedChange = { checked = it },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Purple200,

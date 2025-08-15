@@ -1,5 +1,6 @@
 package com.example.file.ui.content
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -46,23 +47,22 @@ fun LinksGrid(
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .noRippleClickable {
+                    Log.d("LinksGrid", "링크 추가하기 클릭")
+                    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                },
             contentAlignment = Alignment.TopStart
         ) {
             Box(
-                modifier = Modifier
-                    .noRippleClickable {
-                        folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                    },
+                modifier = Modifier,
                 contentAlignment = Alignment.TopCenter
             ) {
                 Box(
                     modifier = Modifier.alpha(1f),
                 ) {
                     LinkItemLayout(
-                        painter = null,
                         link = null,
-                        tags = listOf("태그1", "태그2"),
                     )
                 }
 
