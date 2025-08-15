@@ -4,8 +4,13 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 data class UserInfoDTO(
+//    @Json(name = "nickname")
+//    val nickname: String,
+
     @Json(name = "nickname")
-    val nickname: String,
+    val nickname: String? = null,
+    @Json(name = "nickName")
+    val nickName: String? = null,
 
     @Json(name = "email")
     val email: String,

@@ -59,17 +59,22 @@ class CurationViewModel @Inject constructor(
     }
 
 
-    //닉네임 가져오기.
+    // 닉네임 가져오기
     fun loadNickname() {
         viewModelScope.launch {
             val uid = requireUserId()
-            if (uid <= 0L) { _nickname.value = "세나"; return@launch }
+            if (uid <= 0L) {
+                _nickname.value = "세나"
+                return@launch
+            }
 
-            runCatching { userRepository.getUserInfo(uid) }
-                .onSuccess { _nickname.value = it }
+            runCatching { userRepository.getNickname(uid) }
+                .onSuccess { nick ->
+                    _nickname.value = nick ?: "세나"
+                }
                 .onFailure { e ->
                     Log.e("UserRepository", "닉네임 가져오기 실패", e)
-                    _nickname.value = "세나" // 실패해도 화면은 뜨게
+                    _nickname.value = "세나"
                 }
         }
     }
