@@ -39,7 +39,16 @@ class MyPageViewModel @Inject constructor(
     val error: StateFlow<String?> = _error
 
     // 마이페이지 조회
-    fun loadUserInfo(userId: Long) {
+    fun loadUserInfo() {
+        val id = authPreference.userId
+        if (id == null || id <= 0L) {
+            _uiState.value = UiState(
+                isLoading = false,
+                userInfo = null,
+                error = "로그인이 필요합니다."
+            )
+            return
+        }
 //        viewModelScope.launch {
 //            _isLoading.value = true
 //            _error.value = null
@@ -50,12 +59,12 @@ class MyPageViewModel @Inject constructor(
 //        }
         _uiState.value = _uiState.value.copy(isLoading = true, error = null)
         viewModelScope.launch {
-            runCatching { userRepository.getUserInfo(userId) }
+            runCatching { userRepository.getUserInfo(id) }
                 .onSuccess { info ->
                     _uiState.value = UiState(isLoading = false, userInfo = info)
                 }
                 .onFailure { e ->
-                    _uiState.value = UiState(isLoading = false, error = e.message)
+                    _uiState.value = UiState(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
                 }
         }
     }
