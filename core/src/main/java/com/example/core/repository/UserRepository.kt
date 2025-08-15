@@ -6,6 +6,7 @@ import com.example.core.model.UserInfo
 
 interface UserRepository {
     suspend fun checkNickname(nickname: String): Boolean
+    //suspend fun getNickname(userId: Long): String?
     suspend fun login(email: String, password: String): LoginResult
     suspend fun signUp(
         nickname: String,
@@ -21,8 +22,11 @@ interface UserRepository {
     suspend fun verifyEmailCode(email: String, code: String): Boolean
     suspend fun deleteUser(reason: String): Boolean
 
+    // 닉네임 전용 메서드 추가
+    suspend fun getNickname(userId: Long): String?
+
     // 유저 id 가져오기
-    suspend fun getUserInfo(userId: Long): String?
+    //suspend fun getUserInfo(userId: Long): String?
 
     //유저 비밀번호 재설정
     suspend fun requestTempPassword(email: String): Boolean

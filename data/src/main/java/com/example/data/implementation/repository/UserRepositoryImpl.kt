@@ -216,8 +216,12 @@ class UserRepositoryImpl @Inject constructor(
             ?: throw IllegalStateException("마이페이지 조회 실패: ${response.message}")
 
         // DTO -> 도메인 매핑을 여기서 바로 처리
+        val nick = dto.nickname ?: dto.nickName ?: ""   // ← Fallback 추가
+
+        // DTO -> 도메인 매핑을 여기서 바로 처리
         return UserInfo(
-            nickname  = dto.nickname,
+//            nickname  = dto.nickname,
+            nickname  = nick,
             email     = dto.email,
             gender    = dto.gender.value,   // "MALE" | "FEMALE"
             jobId     = dto.job.id,
@@ -227,6 +231,7 @@ class UserRepositoryImpl @Inject constructor(
             myAiLinku = dto.myAiLinku
         )
     }
+
 
     // 로그아웃
     override suspend fun logout() {
@@ -247,14 +252,16 @@ class UserRepositoryImpl @Inject constructor(
         authPreference.userId = null
     }
 
-    override suspend fun getUserInfo(userId: Long): String? {
+    //  닉네임 전용 메서드로 분리
+    override suspend fun getNickname(userId: Long): String? {
         return try {
-            val response = userApi.getUserInfo(userId)
-
-            // 여기서 실제 nickname이 뭔지 로그 찍기
-            Log.d("getUserInfo", "닉네임=${response.result?.nickname}")
-
-            response.result?.nickname
+            val res = userApi.getUserInfo(userId) // BaseResponse<UserInfoDTO>
+            // 서버 DTO 필드명 대응 (nickname 혹은 nickName)
+            val nick = res.result?.nickname ?: res.result?.nickName
+            Log.d("UserRepository", "닉네임=$nick")
+            nick?.takeIf { it.isNotBlank() }
+        } catch (e: retrofit2.HttpException) {
+            if (e.code() == 500) null else throw e
         } catch (e: Exception) {
             Log.e("UserRepository", "닉네임 가져오기 실패", e)
             null
