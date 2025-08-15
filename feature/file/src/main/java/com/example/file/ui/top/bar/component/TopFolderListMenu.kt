@@ -9,8 +9,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
@@ -25,18 +23,22 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
+import com.example.file.FileViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun TopFolderListMenu(
     folderStateViewModel: FolderStateViewModel,
-    items: List<String>,
-    onChangeFolder: () -> Unit
+    fileViewModel: FileViewModel
 ){
+    val items = listOf("나의 폴더", "공유받은 폴더")
+    var selectedText = if (folderStateViewModel.isSharedFolders) "공유받은 폴더" else "나의 폴더"
+
     DropdownMenu(
         modifier = Modifier
             .width(150.dp),
@@ -46,29 +48,26 @@ fun TopFolderListMenu(
         onDismissRequest = { folderStateViewModel.updateTopMenuExpanded(false) },
         containerColor = White
     ) {
-        var selectedText = remember { mutableStateOf(items[0]) }
-        items.forEach{ selectedOption ->
+        for ((i, selectedOption) in items.withIndex()){
             DropdownMenuItem(
-                leadingIcon = if (selectedOption == selectedText.value){
-                    @Composable
-                    {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .graphicsLayer(alpha = 0.99f) // 강제 레이어
-                                .drawWithCache {
-                                    onDrawWithContent {
-                                        drawContent() // 기본 아이콘 먼저 그림
-                                        drawRect(
-                                            MainColor,
-                                            blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
-                                        )
-                                    }
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.99f) // 강제 레이어
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent() // 기본 아이콘 먼저 그림
+                                    drawRect(
+                                        brush = if (selectedOption == selectedText) MainColor
+                                        else Brush.horizontalGradient(listOf(White, White)),
+                                        blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!
+                                    )
                                 }
-                        )
-                    }
-                }else null,
+                            }
+                    )
+                },
                 text = {
                     Text(
                         text = buildAnnotatedString {
@@ -84,7 +83,7 @@ fun TopFolderListMenu(
                                     fontWeight = FontWeight(500),
 
                                     // 텍스트 그라데이션 색상(링큐 메인 색상)
-                                    brush = if (selectedOption == selectedText.value) MainColor
+                                    brush = if (selectedOption == selectedText) MainColor
                                     else Brush.horizontalGradient(listOf(Black, Black))
                                 )
                             ) {
@@ -96,8 +95,18 @@ fun TopFolderListMenu(
                     )
                 },
                 onClick = {
-                    selectedText.value = selectedOption
-                    onChangeFolder()
+                    if (selectedOption != selectedText){
+                        if (i == 0) {
+                            // 나의 폴더 클릭 시
+                            folderStateViewModel.updateIsSharedFolders(false)
+                        } else {
+                            // 공유 받은 폴더 클릭 시
+                            fileViewModel.getSharedFolders()
+                            folderStateViewModel.updateIsSharedFolders(true)
+                        }
+                        folderStateViewModel.updateTopMenuExpanded(false)
+                        folderStateViewModel.updateFolderState(FolderState.TOP)
+                    }
                 }
             )
         }
@@ -106,11 +115,10 @@ fun TopFolderListMenu(
 
 @Preview()
 @Composable
-fun FolderListMenuTest(){
+private fun FolderListMenuTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
     TopFolderListMenu(
         folderStateViewModel = folderStateViewModel,
-        listOf("나의 폴더", "공유받은 폴더"),
-        {}
+        fileViewModel = viewModel()
     )
 }

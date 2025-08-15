@@ -2,20 +2,12 @@ package com.example.core.model
 
 import java.time.OffsetDateTime
 
-// com.example.data.api.dto.server.FolderListResponseDTO -> FolderSimpleInfo
+// com.example.data.api.dto.server.FolderListResponseDTO -> 구조를 공유
 data class FolderSimpleInfo(
     val folderId: Long,
-    var folderName: String,
-    val parentFolderId: Long
-)
-
-// 예상 폴더 최종 구조
-data class _FolderSimpleInfo(
-    val folderId: Long,
-    var folderName: String,
+    val folderName: String,
     val parentFolderId: Long,
-    var colorCode: String,
-    var isBookmarked: Boolean = false,
-    val createdAt: OffsetDateTime,
-    val updatedAt: OffsetDateTime
+    val isBookmarked: Boolean,
+    val isSharing: String? = null,
+    val tags: List<String> = emptyList(),
 )

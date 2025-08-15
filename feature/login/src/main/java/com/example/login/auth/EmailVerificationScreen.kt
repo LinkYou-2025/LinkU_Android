@@ -1,5 +1,6 @@
 package com.example.login.auth
 
+
 import android.R.attr.textStyle
 import android.util.Patterns
 import android.widget.Toast
@@ -49,13 +50,17 @@ fun EmailVerificationScreen(
 
 
 
-        val context = LocalContext.current
+    val context = LocalContext.current
 
     val sendResult by viewModel.sendCodeResult.collectAsState()
     val verifyResult by viewModel.verifyCodeResult.collectAsState()
 
     var errorMessage by remember { mutableStateOf("") }
     var timer by remember { mutableStateOf(180) }
+
+    //버튼 여러번 누르는 사용자 버그 있음. 한번만 적용되도록 수정하기!
+    var isSending by remember { mutableStateOf(false) }     // 코드 전송 중
+    var isVerifying by remember { mutableStateOf(false) }   // 코드 검증 중
 
     val isCodeSent = sendResult == "인증 코드 전송 성공"
     val isCodeValid = code.value.length == 6
@@ -132,6 +137,7 @@ fun EmailVerificationScreen(
                         fontWeight = FontWeight.Normal
                     ),
                     singleLine = true,
+                    enabled = !isSending && !isVerifying, //  입력 잠깐 잠그기 -> 성격 급한 사용자 감안.
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(16.dp)),
@@ -176,13 +182,16 @@ fun EmailVerificationScreen(
                         ),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
+                    enabled = !isVerifying, // 검증 중 입력 잠금 -> 성격 급한 사용자 감안 수정.
                     trailingIcon = {
+                        val textModifier = Modifier.padding(end = 12.dp)
                         if (sendResult == "서버 오류") {
                             Text(
                                 text = "서버 오류",
                                 color = Color(0xFFFF5E5E),
                                 fontSize = 13.sp,
-                                fontFamily = Paperlogy
+                                fontFamily = Paperlogy,
+                                modifier = textModifier
                             )
                         } else {
                             Text(
@@ -211,8 +220,11 @@ fun EmailVerificationScreen(
                 )
             }
         }
+        // 🔒 버튼 활성 조건에 잠금 플래그 포함
         val isButtonEnabled = sendResult != "서버 오류" &&
+                !isSending && !isVerifying &&
                 (if (isCodeSent) isCodeValid else emailValid)
+
 
         // 하단 버튼 (메일 발송 또는 인증)
         // 하단 버튼
@@ -235,8 +247,12 @@ fun EmailVerificationScreen(
                 .clickable(enabled = isButtonEnabled) {   //  여기서 변경됨
                     val cleanEmail = email.value.trim()
                     if (isCodeSent) {
+                        if (isVerifying) return@clickable
+                        isVerifying = true
                         viewModel.verifyEmailCode(cleanEmail, code.value.trim())
                     } else {
+                        if (isSending) return@clickable
+                        isSending = true
                         viewModel.sendEmailCode(cleanEmail)
                     }
                 },
@@ -260,19 +276,33 @@ fun EmailVerificationScreen(
         }
     }
 
-    // Send 결과 토스트
+//    // Send 결과 토스트
+//    LaunchedEffect(sendResult) {
+//        sendResult?.let { msg ->
+//            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//        }
+//    }
+//
+//    // Verify 결과 토스트
+//    LaunchedEffect(verifyResult) {
+//        verifyResult?.let { msg ->
+//            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//        }
+//    }
+    // 결과 오면 토스트 + 잠금 해제
     LaunchedEffect(sendResult) {
         sendResult?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            isSending = false
         }
     }
-
-    // Verify 결과 토스트
     LaunchedEffect(verifyResult) {
         verifyResult?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            isVerifying = false
         }
     }
+
 
     // 인증 성공 시 다음 화면으로
     val isVerifySuccess by viewModel.isVerifySuccess.collectAsState()

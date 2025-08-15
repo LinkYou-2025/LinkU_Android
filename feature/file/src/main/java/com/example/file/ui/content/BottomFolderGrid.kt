@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,12 +24,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.FileModalWindow
+import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.LinkItemLayout
@@ -38,19 +42,20 @@ import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
+import com.example.file.viewmodel.folder.state.FolderState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomFolderGrid(
-    folderList: List<String>,
-    linkList: List<String>,
+    fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
-    onFolderAdd: () -> Unit,
-    onFolderClick: (String) -> Unit
+    onFolderAdd: () -> Unit
 ){
-    var visible by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
+
+    val folderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
+    val linkList by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     Column {
         // Folder Grid
@@ -69,7 +74,7 @@ fun BottomFolderGrid(
                 Box(
                     modifier = Modifier
                         .noRippleClickable{
-                            onFolderAdd()
+                            if(!editStateViewModel.isEditMode){ onFolderAdd() }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -93,25 +98,66 @@ fun BottomFolderGrid(
             }
             // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
             for((i, folder) in folderList.withIndex()) {
+                var visible by remember { mutableStateOf(false) }
+
+                val parentModifier = if (!editStateViewModel.isEditMode) {
+                    Modifier.combinedClickable(
+                        indication = null,
+                        interactionSource = interactionSource,
+                        onClick = {
+                            fileViewModel.getLinks(folder.folderId)
+                            folderStateViewModel.updateSelectedBottomFolder(folder)
+                            folderStateViewModel.updateFolderState(FolderState.LINKS)
+                          },
+                        onLongClick = { visible = true }
+                    )
+                } else {
+                    Modifier.combinedClickable(
+                        indication = null,
+                        interactionSource = interactionSource,
+                        onClick = { /* ... */ },
+                        onLongClick = { visible = true }
+                    )
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable(
-                            indication = null,
-                            interactionSource = interactionSource,
-                            onClick = {
-                                onFolderClick(folder)
-                            },
-                            onLongClick = {
-                                visible = true
-                            }
-                        ),
+                        .then(parentModifier),
                     contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
                 ) {
+                    val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]
+
                     BottomFolderItemLayout(
-                        categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
-                        categoryName = folder,
-                        editStateViewModel = editStateViewModel
+                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        folder = folder,
+                        editStateViewModel = editStateViewModel,
+                        onEdit = {
+                            folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
+                            folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                        },
+                        onChangeSharing = {
+                            fileViewModel.changeSharing(folder)
+                        }
+                    )
+                }
+
+                FileModalWindow(
+                    visible = visible,
+                    onOkay = {fileViewModel.deleteSubfolder(folder.folderId, i)},
+                    onDismiss = {visible = false},
+                    positiveText = "삭제하기",
+                    negativeText = "취소하기",
+                    title = "해당 폴더를 삭제하시겠습니까?"
+                ) {
+                    Text(
+                        text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        fontFamily = DefaultFont,
+                        fontWeight = FontWeight(400),
+                        color = Gray600,
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
@@ -146,41 +192,39 @@ fun BottomFolderGrid(
                     contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
                 ) {
                     LinkItemLayout(
-                        title = link
+                        link = link
                     )
                 }
             }
         }
     }
 
-    FileModalWindow(
-        visible = visible,
-        onDismiss = {visible = false},
-        positiveText = "삭제하기",
-        negativeText = "취소하기",
-        title = "해당 폴더를 삭제하시겠습니까?"
-    ) {
-        Text(
-            text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
-            fontSize = 15.sp,
-            lineHeight = 22.sp,
-            fontFamily = DefaultFont,
-            fontWeight = FontWeight(400),
-            color = Gray600,
-            textAlign = TextAlign.Center,
-        )
-    }
+//    FileModalWindow(
+//        visible = visible,
+//        onOkay = {},
+//        onDismiss = {visible = false},
+//        positiveText = "삭제하기",
+//        negativeText = "취소하기",
+//        title = "해당 폴더를 삭제하시겠습니까?"
+//    ) {
+//        Text(
+//            text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
+//            fontSize = 15.sp,
+//            lineHeight = 22.sp,
+//            fontFamily = DefaultFont,
+//            fontWeight = FontWeight(400),
+//            color = Gray600,
+//            textAlign = TextAlign.Center,
+//        )
+//    }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun BottomFolderGridTest(){
     BottomFolderGrid(
-        listOf("카테고리 1","카테고리 2","카테고리 3","카테고리 4","카테고리 5"),
-        listOf("태그1", "태그2"),
+        fileViewModel = hiltViewModel(),
         editStateViewModel = viewModel(),
         folderStateViewModel = viewModel(),
-        {},
-        {}
-    )
+    ){}
 }

@@ -31,7 +31,7 @@ class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val result = userRepository.login(email, password)
-
+                
                 // ✅ 로그인 성공 → userId를 영속 저장
                 val id = result.userId
                 if (id != null && id > 0) {
@@ -48,14 +48,35 @@ class LoginViewModel @Inject constructor(
                     inactiveDate = result.inactiveDate
                 )
 
-                // 디버깅 로그 추가 (emit 직후)
-                Log.d("LoginVM", "emit loginState userId=${result.userId} token=${result.token}")
-
+                Log.d("LoginVM", " emit loginState userId=${result.userId}, token=${result.token}")
                 _isInactiveAccount.value = (result.status == "INACTIVE")
-            } catch (e: Exception) {
+
+            } catch (e: retrofit2.HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("LoginVM", " HTTP ${e.code()} 로그인 실패\nMessage: ${e.message()}\nErrorBody: $errorBody")
+
+
                 _loginState.value = null
+
+                _loginState.value = LoginResult(
+                    userId = -1,
+                    token = "",
+                    status = "ERROR_HTTP_${e.code()}",
+                    inactiveDate = null
+                )
                 _isInactiveAccount.value = false
-                Log.e("LoginVM", "login 실패", e) // 실패 로그도 추가
+
+            } catch (e: Exception) {
+                Log.e("LoginVM", " 로그인 실패(기타 예외): ${e.localizedMessage}", e)
+
+                _loginState.value = null
+                _loginState.value = LoginResult(
+                    userId = -1,
+                    token = "",
+                    status = "ERROR",
+                    inactiveDate = null
+                )
+                _isInactiveAccount.value = false
             }
         }
     }

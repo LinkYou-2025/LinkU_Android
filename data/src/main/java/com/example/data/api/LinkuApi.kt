@@ -6,6 +6,7 @@ import com.example.data.api.dto.server.LinkuResultDTO
 import com.example.data.api.dto.server.LinkuSimpleDTO
 import com.example.data.api.dto.server.LinkuUpdateDTO
 import com.example.data.api.dto.server.QuickSearchResult
+import com.example.data.api.dto.server.UpdateLinkFolderDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -47,8 +48,12 @@ interface LinkuApi {
         @Body body: LinkuUpdateDTO
     ): BaseResponse<LinkuResultDTO>
 
-    // 링크의 폴더 바꾸기 -> 후순위 개발
-//    @PATCH("/api/linku/{linkuid}/folder")
+    // 링크의 폴더 바꾸기
+    @PATCH("/api/linku/{linkuid}")
+    suspend fun updateLinkFolder(
+        @Path("linkuid") linkuId: Long,
+        @Body body: UpdateLinkFolderDTO
+    ): BaseResponse<LinkuResultDTO>
 
     // 최근 열람한 링크 불러오기
     @GET("/api/linku/recent")

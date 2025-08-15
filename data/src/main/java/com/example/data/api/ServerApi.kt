@@ -1,10 +1,11 @@
 package com.example.data.api
 
+
 import java.io.IOException
 import com.example.core.error.TokenExpiredException
 import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.RefreshApi
-import com.example.data.preference.AuthPreference
+import com.example.data.preference.AuthPeference
 
 // --- 기존 ServerApi + RefreshApi 확장 (AuthApi 제거) ---
 interface ServerApi :
@@ -15,6 +16,8 @@ interface ServerApi :
     FolderApi,
     CategoryApi,
     RefreshApi
+
+
 
 // 이전 리프레쉬 없을 때, 혹시 오류 발생시 참고.
 //suspend fun <T> ServerApi.withCheck(
@@ -49,7 +52,5 @@ interface ServerApi :
 //    } catch (e: Exception) {
 //        // refreshToken 없이 처리 → 로그인 유도
 //        throw TokenExpiredException("Access token expired. Please log in again.")
-
-
 //    }
 //}

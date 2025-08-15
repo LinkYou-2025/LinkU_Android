@@ -11,20 +11,28 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.curation.CurationScreen
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
 import com.example.home.screen.HomeScreen
@@ -32,10 +40,10 @@ import com.example.home.HomeViewModel
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
 import com.example.linku_android.component.NavigationItem
+
 //import com.example.login.LoginScreen
 import com.example.mypage.MyPageApp
 import com.example.mypage.MyPageViewModel
-import com.example.mypage.screen.MyPageScreen
 //import com.example.mypage.MyPageScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
@@ -43,6 +51,8 @@ import androidx.navigation.navArgument
 
 import androidx.navigation.compose.composable
 import com.example.home.HomeApp
+import com.example.curation.ui.CurationDetailScreen
+import com.example.curation.ui.CurationScreen
 import com.example.login.auth.AnimatedLoginScreen
 import com.example.login.auth.EmailVerificationScreen
 import com.example.login.auth.ServiceTermsScreen
@@ -62,13 +72,38 @@ import com.example.login.auth.SignUpViewModel
 import java.io.File
 import java.io.FileOutputStream
 
+// 링크 공유 앱링크
+import androidx.navigation.navDeepLink
+import com.example.core.error.UserIdNullException
+import com.example.file.FileViewModel
+import com.example.file.ui.modal.FileModalWindow
+import com.example.file.ui.theme.DefaultFont
+import com.example.file.ui.theme.Gray600
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
+import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
+import com.example.login.auth.LoginViewModel
+
+
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
 ) {
     val navigator = rememberNavController()
 //    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
+
+    // 회원가입에서 사용할 뷰모델
     val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
+
+    // 로그인에서 사용할 뷰모델
+    val loginViewModel: LoginViewModel = hiltViewModel()
+
+    // 파일 화면에서 사용할 뷰모델
+    val fileViewModel: FileViewModel = hiltViewModel()
+    val folderStateViewModel: FolderStateViewModel = viewModel()
+
+    // 딥링크 접속 시 사용할 뷰모델
+    val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
+
     var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
 
@@ -221,6 +256,7 @@ fun MainApp(
                 composable("email_login") {
                     //EmailLoginScreen(navigator = navigator)
                     EmailLoginScreen(
+                        loginViewModel = loginViewModel,
                         navigator = navigator,
 //                        onLoginSuccess = {
 //                            //  네비게이션 로직은 app 모듈에서만 관리
@@ -244,7 +280,7 @@ fun MainApp(
                 }
 
 
-                
+
 
                 with(NavigationRoute.Home) {
                     setNavGraph {
@@ -267,10 +303,30 @@ fun MainApp(
                         }
                         FinishHandler()
                         FileScreen(
-//                            viewModel = hiltViewModel()
+                            fileViewModel = fileViewModel,
+                            folderStateViewModel = folderStateViewModel
                         )
                     }
                 }
+
+//                with(NavigationRoute.Curation) {
+//                    setNavGraph {
+//                        LaunchedEffect(Unit) {
+//                            showNavBar = true
+//                            currentNavigationItem = NavigationItem.CURATION
+//                        }
+//                        FinishHandler()
+//                        CurationScreen(
+//                            onOpenDetail = { navigator.navigate("curation_detail") }   //  디테일로 이동
+//                        )
+//                    }
+//                }
+//                composable("curation_detail") {
+//                    // 바텀바 그대로 보이고 싶으면 showNavBar=true 유지
+//                    CurationDetailScreen(
+//                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
+//                    )
+//                }
 
                 with(NavigationRoute.Curation) {
                     setNavGraph {
@@ -279,12 +335,51 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.CURATION
                         }
                         FinishHandler()
+
+//                        CurationScreen(
+//                            onOpenDetail = { userId: Long, curationId: Long ->
+//                                // 상세로 넘길 값 저장
+//                                navigator.currentBackStackEntry?.savedStateHandle?.set("userId", userId)
+//                                navigator.currentBackStackEntry?.savedStateHandle?.set("curationId", curationId)
+//                                // 파라미터 없는 단순 라우트로 이동
+//                                navigator.navigate("curation_detail")
+//                            }
+//                        )
                         CurationScreen(
-//                            viewModel = hiltViewModel()
+                            onOpenDetail = { userId: Long, curationId: Long ->
+                                navigator.navigate("curation_detail/$userId/$curationId")
+                            }
                         )
                     }
                 }
+//                composable("curation_detail") {
+//                    // 이전 화면에서 저장한 값 꺼내기
+//                    val userId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("userId")
+//                    val curationId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("curationId")
+//
+//                    if (userId == null || curationId == null) {
+//                        // 값이 없으면 그냥 뒤로 가도 됨
+//                        navigator.popBackStack()
+//                        return@composable
+//                    }
+//
+//                    CurationDetailScreen(
+//                        userId = userId,
+//                        curationId = curationId,
+//                        onBack = { navigator.popBackStack() }
+//                    )
+//                }
+                // "curation_detail" → "curation_detail/{userId}/{curationId}"
+                composable("curation_detail/{userId}/{curationId}") { backStack ->
+                    val userId = backStack.arguments?.getString("userId")!!.toLong()
+                    val curationId = backStack.arguments?.getString("curationId")!!.toLong()
 
+                    CurationDetailScreen(
+                        userId = userId,
+                        curationId = curationId,
+                        onBack = { navigator.popBackStack() }
+                    )
+                }
                 with(NavigationRoute.MyPage) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
@@ -387,6 +482,153 @@ fun MainApp(
                         onBack = { navigator.popBackStack() }
                     )
                 }
+
+                // 딥링크 접속 시, 로그인이 안됐을 때 로그인 화면
+                composable(
+                    route = "${NavigationRoute.Login.route}?showModal={showModal}",
+                    arguments = listOf(navArgument("showModal") { type = NavType.BoolType; defaultValue = false })
+                ) { backStackEntry ->
+                    Log.d("MainApp", "딥링크 접속 시, 로그인이 안됐을 때 로그인 화면")
+
+                    // ❶ 쓸데없는 자기-네비게이션 제거 (!!! 중요)
+                    //   → 여기서는 머무르며 모달을 보여주고 로그인만 처리한다.
+
+                    // ❷ showModal 안전하게 파싱
+                    val showModal = backStackEntry.arguments?.getBoolean("showModal") ?: false
+
+                    Log.d("MainApp", "showModal: $showModal")
+
+                    // ❸ 모달 표시 상태는 저장 가능하게
+                    var visible by rememberSaveable { mutableStateOf(true) }
+
+                    Log.d("MainApp", "visible: $visible")
+
+                    if (showModal && visible) {
+                        Log.d("MainApp", "On Modal")
+
+                        FileModalWindow(
+                            visible = visible,
+                            title = "접근 권한이 없습니다.",
+                            onOkay = { visible = false },
+                            onDismiss = { visible = false },
+                            positiveText = "확인"
+                        ) {
+                            Text(
+                                text = "링큐 회원만 폴더를 공유받을 수 있습니다.\n폴더를 확인하기 위해 로그인/회원가입 해주세요.",
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp,
+                                fontFamily = DefaultFont,
+                                fontWeight = FontWeight.Normal,
+                                color = Gray600,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
+
+                    // ❹ 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
+                    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+
+                    Log.d("MainApp", "loginState: $loginState")
+
+                    LaunchedEffect(loginState) {
+                        val loggedIn = loginState != null
+                        Log.d("MainApp", "loggedIn: $loggedIn")
+
+                        if (loggedIn) {
+                            Log.d("MainApp", "로그인 완료")
+                            // pending 공유 폴더가 있으면 처리
+                            deepLinkViewModel.consumePendingShare()?.let { pendingFolderId ->
+                                try {
+                                    Log.d("MainApp", "pendingFolderId: $pendingFolderId")
+                                    // pending 공유 폴더 처리
+                                    fileViewModel.receiveSharedFolder(pendingFolderId)
+
+                                    // 공유 받은 폴더 목록 및 상태 갱신
+                                    fileViewModel.getSharedFolders()
+                                    folderStateViewModel.updateIsSharedFolders(true)
+                                } catch (e: Exception) {
+                                    // 네트워크/서버 오류 등은 로그인 유도와 구분해서 처리
+                                }
+                            }
+
+                            Log.d("MainApp", "pending 공유 폴더 처리 완료")
+
+                            // 파일 화면으로 이동하면서 Login 제거
+                            navigator.navigate(NavigationRoute.File.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
+                    // ❺ 실제 로그인 UI(AnimatedLoginScreen 등) 렌더링
+                    AnimatedLoginScreen(navigator = navigator)
+                }
+
+
+
+                // TODO: 앱 링크 처리
+                // 링크 공유 앱링크
+                composable(
+                    route = "open?action={action}&folderId={folderId}",
+                    arguments = listOf(
+                        navArgument("action") { type = NavType.StringType; nullable = true },
+                        navArgument("folderId") { type = NavType.LongType; nullable = false },
+                    ),
+                    deepLinks = listOf(
+                        // 앱링크
+                        navDeepLink { uriPattern = "linku://open?action={action}&folderId={folderId}" }
+                    )
+                ) { backStackEntry ->
+                    val action = backStackEntry.arguments?.getString("action")
+                    val folderId = backStackEntry.arguments?.getLong("folderId")
+
+                    Log.d("MainApp", "action: $action, folderId: $folderId")
+
+                    // 딱 한 번만 실행되게 LaunchedEffect 사용
+                    LaunchedEffect(action, folderId) {
+                        Log.d("MainApp", "LaunchedEffect 실행")
+
+                        if (action == "share" && folderId != null) {
+                            Log.d("MainApp", "파일 화면으로 이동")
+
+                            // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
+                            try{
+                                Log.d("MainApp", "파일 화면으로 이동")
+
+                                // 공유 받는 폴더 처리
+                                fileViewModel.receiveSharedFolder(folderId)
+
+                                Log.d("MainApp", "공유 받는 폴더 처리 완료")
+
+                                // 파일 항목의 탑 바에 공유 받은 폴더 클릭 시와 같은 콜백
+                                fileViewModel.getSharedFolders()
+                                folderStateViewModel.updateIsSharedFolders(true)
+
+                                Log.d("MainApp", "공유 받은 폴더 목록 및 상태 갱신 완료")
+
+                                // 파일 화면으로 이동
+                                navigator.navigate(NavigationRoute.File.route) {
+                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            }catch (e: Exception/*UserIdNullException*/) {
+                                Log.e("MainApp", "Exception 발생: $e")
+                                // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
+                                deepLinkViewModel.setPendingShare(folderId)
+                                navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {
+                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+//                                navigator.navigate(NavigationRoute.Login.route) {
+//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+//                                    launchSingleTop = true
+//                                }
+                            }
+                        }
+                    }
+                }
+
             }
         }
     }

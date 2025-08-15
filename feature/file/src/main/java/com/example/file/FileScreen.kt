@@ -21,8 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.design.BottomNavigationBar
-import com.example.design.NavigationItem
 import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
@@ -39,6 +37,9 @@ import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
 import com.example.file.ui.top.sheet.FileSearchBarTopSheet
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.file.ui.bottom.sheet.ShareBottomSheet
+import com.example.file.ui.content.SharedBottomFolderGrid
+import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.theme.MainColor
 
 @Composable
@@ -51,22 +52,25 @@ fun FileScreen(
     // 한 번만 데이터 로딩 (최초 진입 시)
     LaunchedEffect(Unit) {
         Log.d("FileScreen", "LaunchedEffect")
-        fileViewModel.getCategoryList()
+        fileViewModel.getParentfolders()
+        fileViewModel.loadNickname()
+        fileViewModel.getCategoryColor()
+        Log.d("FileScreen", "LaunchedEffect end")
     }
 
     Log.d("FileScreen", "FileScreen")
 
     // 뒤로가기 핸들러
-    BackHandler(enabled = folderStateViewModel.currentFolderState != FolderState.TOP) {
+    BackHandler(enabled = folderStateViewModel.currentFolderState in listOf(FolderState.BOTTOM, FolderState.LINKS)) {
         editStateViewModel.updateEditMode(false)
         when (folderStateViewModel.currentFolderState) {
-            FolderState.LINK -> {
-                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                folderStateViewModel.updateSelectedBottomFolder(null)
-            }
             FolderState.BOTTOM -> {
                 folderStateViewModel.updateFolderState(FolderState.TOP)
                 folderStateViewModel.updateSelectedTopFolder(null)
+            }
+            FolderState.LINKS -> {
+                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                folderStateViewModel.updateSelectedBottomFolder(null)
             }
             else -> {}
         }
@@ -97,50 +101,59 @@ fun FileScreen(
                 item {
                     when(folderStateViewModel.currentFolderState) {
                         FolderState.TOP -> {
-                            TopFolderGrid(
-                                fileViewModel = fileViewModel,
-                                folderStateViewModel = folderStateViewModel,
-                                editStateViewModel = editStateViewModel,
-                                onFolderEdit = {
-                                    folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)
-                                }
-                            )
+                            if(!folderStateViewModel.isSharedFolders){
+                                TopFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    folderStateViewModel = folderStateViewModel,
+                                    editStateViewModel = editStateViewModel
+                                )
+                            }else{
+                                SharedTopFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    folderStateViewModel = folderStateViewModel,
+                                    editStateViewModel = editStateViewModel
+                                )
+                            }
                         }
                         FolderState.BOTTOM -> {
-                            BottomFolderGrid(
-                                folderList = listOf("나의 폴더", "공유받은 폴더"), // 실제 폴더 데이터로
-                                linkList = listOf("링크1", "링크2"),
-                                editStateViewModel = editStateViewModel,
-                                folderStateViewModel = folderStateViewModel,
-                                onFolderAdd = {
-                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                                },
-                                onFolderClick = {folder ->
-                                    folderStateViewModel.updateSelectedBottomFolder(folder)
-                                    if(editStateViewModel.isEditMode){
-                                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                                    }else{
-                                        folderStateViewModel.updateFolderState(FolderState.LINK)
+                            if(!folderStateViewModel.isSharedFolders){
+                                BottomFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    editStateViewModel = editStateViewModel,
+                                    folderStateViewModel = folderStateViewModel,
+                                    onFolderAdd = {
+                                        folderStateViewModel.updateNewFolderBottomSheetVisible(true)
                                     }
-                                }
-                            )
+                                )
+                            }else{
+                                SharedBottomFolderGrid(
+                                    fileViewModel = fileViewModel,
+                                    editStateViewModel = editStateViewModel,
+                                    folderStateViewModel = folderStateViewModel
+                                )
+                            }
                         }
-                        FolderState.LINK -> {
+                        FolderState.LINKS -> {
                             LinksGrid(
+                                fileViewModel = fileViewModel,
                                 folderStateViewModel = folderStateViewModel,
-                                linkList = listOf("링크1", "링크2", "링크3")
                             )
                         }
                     }
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 19.dp, bottom = 8.dp)
-            ) {
-                ShareButton()
+            if((folderStateViewModel.currentFolderState == FolderState.BOTTOM)&&(!folderStateViewModel.isSharedFolders)){
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 19.dp, bottom = 8.dp)
+                        .noRippleClickable {
+                            folderStateViewModel.updateShareBottomSheetVisible(true)
+                        }
+                ) {
+                    ShareButton()
+                }
             }
         }
 
@@ -154,8 +167,25 @@ fun FileScreen(
                     .background(Color.Black.copy(alpha = 0.3f))
             )
         }
+
+        // 로딩창
+        if (fileViewModel.loading.collectAsState().value) {
+            // 로딩 로직
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MainColor),
+                contentAlignment = Alignment.Center
+            ){
+                Image(
+                    painter = painterResource(R.drawable.linku_logo),
+                    contentDescription = "로딩중"
+                )
+            }
+        }
     }
 
+    // ---------- bottom sheets ----------
     // 검색창 탑 시트
     FileSearchBarTopSheet(
         visible = folderStateViewModel.searchTopSheetVisible,
@@ -164,39 +194,39 @@ fun FileScreen(
 
     // 중분류 폴더 수정 바텀 시트
     TopFolderEditBottomSheet(
-        folderStateViewModel = folderStateViewModel
+        folderStateViewModel = folderStateViewModel,
+        fileViewModel = fileViewModel
     )
 
-    // 폴더 추가하기 바텀 시트
+    // 소분류 폴더 추가하기 바텀 시트
     NewBottomFolderBottomSheet(
+        onTextDeliver = {
+            fileViewModel.createSubfolder(folderStateViewModel.selectedTopFolder!!.folderId,it)
+        },
         folderStateViewModel = folderStateViewModel
     )
 
-    // 중분류 폴더 수정 바텀 시트
+    // 소분류 폴더 수정 바텀 시트
     BottomFolderEditBottomSheet(
+        onTextDeliver = {
+            fileViewModel.updateSubfolder(folderStateViewModel.readyToUpdateBottomFolder!!.folderId,it)
+        },
         folderStateViewModel = folderStateViewModel
     )
 
     // 링크 추가하기 바텀 시트
     LinkCategorizationBottomSheet(
+        fileViewModel = fileViewModel,
         folderStateViewModel = folderStateViewModel
     )
 
-    // 로딩창
-    if (fileViewModel.loading.collectAsState().value) {
-        // 로딩 로직
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MainColor),
-            contentAlignment = Alignment.Center
-        ){
-            Image(
-                painter = painterResource(R.drawable.linku_logo),
-                contentDescription = "로딩중"
-            )
-        }
-    }
+    // 폴더 공유 바텀 시트
+    ShareBottomSheet(
+        userName = fileViewModel.nickname.collectAsState().value?:"",
+        folderStateViewModel = folderStateViewModel,
+        fileViewModel = fileViewModel,
+    )
+    // ---------- bottom sheets ----------
 }
 
 @Preview(

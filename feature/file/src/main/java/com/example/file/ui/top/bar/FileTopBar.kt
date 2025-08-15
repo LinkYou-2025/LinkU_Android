@@ -1,7 +1,9 @@
 package com.example.file.ui.top.bar
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -23,10 +25,6 @@ import androidx.compose.ui.unit.sp
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.content.categories
-import com.example.file.viewmodel.edit.state.EditStateViewModel
-import com.example.file.viewmodel.folder.state.FolderState
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
@@ -37,6 +35,9 @@ import com.example.file.ui.top.bar.component.EditButton
 import com.example.file.ui.top.bar.component.FileSearchBar
 import com.example.file.ui.top.bar.component.TopFolderListLayout
 import com.example.file.ui.top.bar.component.TopFolderListMenu
+import com.example.file.viewmodel.edit.state.EditStateViewModel
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 
 @Composable
@@ -44,7 +45,7 @@ fun FileTopBar(
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
-    ) {
+) {
     // 내부 요소들을 겹쳐서 배치하는 Box
     Box(
         // 전체 영역을 가득 채우도록
@@ -112,48 +113,52 @@ fun FileTopBar(
         }
 
         // 4. 폴더 리스트 레이아웃
-        Box(
-            // 왼쪽 위에 정렬
+        Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 // 왼쪽 20dp, 위쪽 153dp 여백
-                .padding(start = 20.dp, top = 153.dp)
-                .noRippleClickable {
-                    folderStateViewModel.updateTopMenuExpanded(true)
-                },
-        ) {
-            // 폴더 리스트 컴포저블
-            TopFolderListLayout()
-
-            TopFolderListMenu(
-                folderStateViewModel = folderStateViewModel,
-                listOf("나의 폴더", "공유받은 폴더"),
-            ){}
-
-        }
-
-        if(folderStateViewModel.currentFolderState != FolderState.TOP){
+                .padding(start = 20.dp, top = 153.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ){
             Box(
                 // 왼쪽 위에 정렬
                 modifier = Modifier
-                    .align(Alignment.TopStart)
-                    // 왼쪽 20dp, 위쪽 153dp 여백
-                    .padding(start = 139.29.dp, top = 153.dp)
                     .noRippleClickable {
-                        folderStateViewModel.updateBottomMenuExpanded(true)
+                        folderStateViewModel.updateTopMenuExpanded(true)
                     },
             ) {
                 // 폴더 리스트 컴포저블
-                BottomFolderListLayout(
-                    colorStyle = CategoryColorStyle.categoryStyleList[0],
+                TopFolderListLayout(
                     folderStateViewModel = folderStateViewModel
                 )
 
-                BottomFolderListMenu(
+                TopFolderListMenu(
                     folderStateViewModel = folderStateViewModel,
-                    items = categories,
-                    onChangeFolder = {}
+                    fileViewModel = fileViewModel
                 )
+
+            }
+
+            if (folderStateViewModel.currentFolderState != FolderState.TOP) {
+                Box(
+                    // 왼쪽 위에 정렬
+                    modifier = Modifier
+                        .noRippleClickable {
+                            folderStateViewModel.updateBottomMenuExpanded(true)
+                        },
+                ) {
+                    // 폴더 리스트 컴포저블
+                    BottomFolderListLayout(
+                        fileViewModel = fileViewModel,
+                        folderStateViewModel = folderStateViewModel
+                    )
+
+                    BottomFolderListMenu(
+                        fileViewModel = fileViewModel,
+                        folderStateViewModel = folderStateViewModel,
+                        onChangeFolder = {}
+                    )
+                }
             }
         }
 
@@ -175,19 +180,21 @@ fun FileTopBar(
         )
 
         // 6. 수정 버튼 (오른쪽 아래)
-        Box(
-            // 오른쪽 위에 정렬(실제 위치는 아래임)
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                // 오른쪽 30dp, 위 165dp 여백
-                .padding(end = 30.dp, top = 165.dp)
+        if(folderStateViewModel.isEditable){
+            Box(
+                // 오른쪽 위에 정렬(실제 위치는 아래임)
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    // 오른쪽 30dp, 위 165dp 여백
+                    .padding(end = 30.dp, top = 165.dp)
                 //.noRippleClickable { onOpenBottomSheet() },
-        ) {
-            // 수정 버튼 컴포저블
-            EditButton(
-                editStateViewModel = editStateViewModel,
-                folderViewModel = folderStateViewModel
-            )
+            ) {
+                // 수정 버튼 컴포저블
+                EditButton(
+                    editStateViewModel = editStateViewModel,
+                    folderViewModel = folderStateViewModel
+                )
+            }
         }
     }
 
@@ -200,5 +207,5 @@ fun FileTopBar(
     heightDp = 915,
     showBackground = true)
 @Composable
-fun FileTopBarTest() {
+private fun FileTopBarTest() {
 }
