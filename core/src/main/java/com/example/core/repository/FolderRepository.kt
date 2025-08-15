@@ -1,10 +1,12 @@
 package com.example.core.repository
 
 import com.example.core.model.FolderInfo
+import com.example.core.model.FolderPermission
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.SharedFolderSimpleInfo
+import com.example.core.model.FolderPermissionInfo
 
 interface FolderRepository {
 
@@ -25,28 +27,28 @@ interface FolderRepository {
         parentFolderId: Long
     ): List<FolderSimpleInfo>
 
-    // (소분류) 폴더 내부 링크 조회 (커서) -> In Progress
+    // (소분류) 폴더 내부 링크 조회 (커서)
     suspend fun getLinksFolders(
         folderId: Long,
-        limit: Int? = 10,
+        limit: Int? = 20,
         cursor: String? = null,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkSimpleInfo>) -> Unit
     ): String?
 
-    // (소분류) 폴더 생성 (소분류 폴더 생성)
+    // (소분류) 폴더 생성 (소분류 폴더 생성) (예외 던질 수 있음)
     suspend fun createSubfolder(
         parentFolderId: Long,
         folderName: String
     ): FolderInfo
 
-    // (소분류) 폴더 수정 (소분류 폴더 수정)
+    // (소분류) 폴더 수정 (소분류 폴더 수정) (예외 던질 수 있음)
     suspend fun updateSubfolder(
         folderId: Long,
         folderName: String
     ): FolderInfo
 
-    // (소분류) 폴더 삭제 (소분류 폴더 삭제)
+    // (소분류) 폴더 삭제 (소분류 폴더 삭제) (예외 던질 수 있음)
     suspend fun deleteSubfolder(folderId: Long)
 
     // 공유 받은 폴더 목록 조회
@@ -58,16 +60,22 @@ interface FolderRepository {
     // 폴더 공유 (뷰어 권한 설정)
     suspend fun setFolderViewerPermission(folderId: Long): SharedFolderSimpleInfo
 
-//    // <임의추가> 폴더 뷰어 조회
-//    suspend fun getFolderViewers(folderId: Long): List<SharedFolderSimpleInfo>
+    // <임의추가> 폴더 뷰어 조회
+    suspend fun getFolderViewers(folderId: Long): List<FolderPermissionInfo>
 
-//    // <임의추가> 뷰어 권한 수정
-//    suspend fun updateViewerPermission(
-//        folderId: Long,
-//        userFolderId: Long,
-//        body: FolderPermissionRequestDTO
-//    ): ShareFolderResponseDTO
-//
-    // 폴더 비공개 전환
-    suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo
+    // <임의추가> 뷰어 권한 수정
+    suspend fun updateViewerPermission(
+        folderId: Long,
+        userFolderId: Long,
+        body: FolderPermission
+    )//: ShareFolderResponseDTO
+
+    // 폴더 비공개 전환 (예외 던질 수 있음)
+    suspend fun setFolderPrivatePermission(folderId: Long): SharedFolderSimpleInfo
+
+    // 링크 소분류
+    suspend fun updateLinkFolder(
+        linku: LinkSimpleInfo,
+        folderId: Long
+    ): LinkSimpleInfo
 }

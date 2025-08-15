@@ -2,18 +2,21 @@ package com.example.data.implementation.repository
 
 import android.util.Log
 import com.example.core.model.FolderInfo
-import com.example.core.model.FolderOwner
 import com.example.core.model.FolderPermission
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.SharedFolderSimpleInfo
+import com.example.core.model.FolderPermissionInfo
 import com.example.core.repository.FolderRepository
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.server.FolderCreateRequestDTO
 import com.example.data.api.dto.server.FolderUpdateRequestDTO
+import com.example.data.api.dto.server.LinksFoldersResponseDTO
 import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
+import com.example.data.api.dto.server.UpdateLinkFolderDTO
 import com.example.data.api.withAuth
+import com.example.data.api.withAuthResp204Raw
 import com.example.data.preference.AuthPreference
 import javax.inject.Inject
 
@@ -29,83 +32,122 @@ class FolderRepositoryImpl @Inject constructor(
     ): Boolean {
         Log.d("updateBookmark", "folderId: $folderId, isBookmarked: $isBookmarked")
 
-        val folderResponse = serverApi.withAuth(authPreference) {
-            updateBookmark(folderId, UpdateBookmarkRequestDTO(isBookmarked))
+        val folderResponse: Boolean
+
+        try{
+            Log.d("updateBookmark", "try")
+
+            folderResponse = serverApi.withAuth(authPreference){
+                updateBookmark(
+                    folderId,
+                    UpdateBookmarkRequestDTO(isBookmarked)
+                )
+            }.isBookmarked
+
+        }catch (e: Exception){
+            Log.d("updateBookmark", "error: $e")
+            throw e
         }
 
         Log.d("updateBookmark", "folderResponse: $folderResponse")
 
-        return folderResponse.isBookmarked
+        return folderResponse
     }
 
     // 중분류 폴더 조회
     override suspend fun getParentfolders(): List<FolderSimpleInfo> {
         Log.d("getParentfolders", "getParentfolders")
 
-        val folderList = serverApi.withAuth(authPreference) {
-            getParentfolders()
+        val folderList: List<FolderSimpleInfo>
+
+        try{
+            Log.d("getParentfolders", "try")
+
+            folderList = serverApi.withAuth(authPreference) {
+                getParentfolders()
+            }.map {
+                FolderSimpleInfo(
+                    folderId = it.folderId,
+                    folderName = it.folderName,
+                    parentFolderId = 0,
+                    isBookmarked = it.isBookmarked
+                )
+            }
+
+        }catch (e: Exception){
+            Log.d("getParentfolders", "error: $e")
+            throw e
         }
 
         Log.d("getParentfolders", "folderList: $folderList")
 
-        return folderList.map {
-            FolderSimpleInfo(
-                folderId = it.folderId,
-                folderName = it.folderName,
-                parentFolderId = it.parentFolderId
-            )
-        }
+        return folderList
     }
 
-//    // 2. 내 폴더(트리) 전체 조회
+//    // 내 폴더(트리) 전체 조회
 //    override suspend fun getMyFolders(): List<FolderTreeResponseDTO> =
 //        serverApi.withAuth(authPreference) {
 //            getMyFolders()
 //        }
-//
+
     // 소분류 폴더 조회
     override suspend fun getSubfolders(
         parentFolderId: Long
     ): List<FolderSimpleInfo> {
         Log.d("getSubfolders", "parentFolderId: $parentFolderId")
 
-        val folderList = serverApi.withAuth(authPreference) {
-            getSubfolders(parentFolderId)
+        val folderList: List<FolderSimpleInfo>
+        try{
+            Log.d("getSubfolders", "try")
+
+            folderList = serverApi.withAuth(authPreference){
+                getLinksFolders(parentFolderId)
+            }.folders.map {
+                FolderSimpleInfo(
+                    folderId = it.folderId,
+                    folderName = it.folderName,
+                    parentFolderId = parentFolderId,
+                    isBookmarked = false,
+                    isSharing = it.isSharing
+                )
+            }
+        }catch (e: Exception){
+            Log.d("getSubfolders", "error: $e")
+            throw e
         }
 
         Log.d("getSubfolders", "folderList: $folderList")
 
-        return folderList.map {
-            FolderSimpleInfo(
-                folderId = it.folderId,
-                folderName = it.folderName,
-                parentFolderId = it.parentFolderId
-            )
-        }
+        return folderList
     }
 
     // (중/소분류) 폴더 내부 폴더, 링크 조회
     override suspend fun getLinksFolders(
-        folderId: Long,
+        parentFolderId: Long,
         limit: Int?,
         cursor: String?,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkSimpleInfo>) -> Unit
     ): String? {
-        Log.d("getLinksFolders", "folderId: $folderId, limit: $limit, cursor: $cursor")
+        Log.d("getLinksFolders", "folderId: $parentFolderId, limit: $limit, cursor: $cursor")
 
-        val response = serverApi.withAuth(authPreference) {
-            getLinksFolders(folderId, limit, cursor)
-        }
-
-        Log.d("getLinksFolders", "response: $response")
+        val response: LinksFoldersResponseDTO
 
         try{
+            Log.d("getLinksFolders", "try")
+
+            response = serverApi.withAuth(authPreference) {
+                getLinksFolders(parentFolderId, limit, cursor)
+            }
+            Log.d("getLinksFolders", "response: $response")
+
             onGetFolders(response.folders.map {
                     FolderSimpleInfo(
-                        folderId = it.id,
-                        folderName = it.name,
-                        parentFolderId = folderId
+                        folderId = it.folderId,
+                        folderName = it.folderName,
+                        parentFolderId = parentFolderId,
+                        isBookmarked = false,
+                        isSharing = it.isSharing,
                     )
                 }
             )
@@ -121,7 +163,9 @@ class FolderRepositoryImpl @Inject constructor(
                         title = it.title,
                         domain = it.url,
                         domainImageUrl = "",
-                        linkuImageUrl = ""
+                        linkuImageUrl = "",
+                        tags = it.keyword.split(",")
+                            .map { it.trim() }
                     )
                 }
             )
@@ -129,6 +173,7 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("getLinksFolders", "well done onGetLinks(${response.links})")
         }catch(e: Exception){
             Log.d("getLinksFolders", "error: $e")
+            throw e
         }
 
         return response.nextCursor
@@ -141,23 +186,35 @@ class FolderRepositoryImpl @Inject constructor(
     ): FolderInfo {
         Log.d("createSubfolder", "parentFolderId: $parentFolderId, folderName: $folderName")
 
-        val response = serverApi.withAuth(authPreference) {
-            createSubfolder(parentFolderId, FolderCreateRequestDTO(folderName))
+        val response: FolderInfo
+
+        try{
+            Log.d("createSubfolder", "try")
+
+            response = serverApi.withAuth(authPreference){
+                createSubfolder(
+                    parentFolderId,
+                    FolderCreateRequestDTO(folderName)
+                )
+            }.run {
+                    FolderInfo(
+                        folderId = this.folderId,
+                        folderName = this.folderName,
+                        categoryId = this.categoryId,
+                        categoryName = this.categoryName,
+                        parentFolderId = this.parentFolderId,
+                        createdAt = this.createdAt,
+                        updatedAt = this.updatedAt,
+                    )
+                }
+        }catch (e: Exception){
+            Log.d("createSubfolder", "error: $e")
+            throw e
         }
 
         Log.d("createSubfolder", "response: $response")
 
-        return response.run{
-            FolderInfo(
-                folderId = this.folderId,
-                folderName = this.folderName,
-                categoryId = this.categoryId,
-                categoryName = this.categoryName,
-                parentFolderId = this.parentFolderId,
-                createdAt = this.createdAt,
-                updatedAt = this.updatedAt,
-            )
-        }
+        return response
     }
 
     // 하위 폴더 수정
@@ -167,31 +224,48 @@ class FolderRepositoryImpl @Inject constructor(
     ): FolderInfo {
         Log.d("updateSubfolder", "folderId: $folderId, folderName: $folderName")
 
-        val response = serverApi.withAuth(authPreference) {
-            updateSubfolder(folderId, FolderUpdateRequestDTO(folderName))
+        val response: FolderInfo
+
+        try{
+            Log.d("updateSubfolder", "try")
+
+            response = serverApi.withAuth(authPreference){
+                updateSubfolder(folderId, FolderUpdateRequestDTO(folderName))
+            }.run {
+                FolderInfo(
+                    folderId = this.folderId,
+                    folderName = this.folderName,
+                    categoryId = this.categoryId,
+                    categoryName = this.categoryName,
+                    parentFolderId = this.parentFolderId,
+                    createdAt = this.createdAt,
+                    updatedAt = this.updatedAt,
+                )
+            }
+        }catch (e: Exception){
+            Log.d("updateSubfolder", "error: $e")
+            throw e
         }
 
         Log.d("updateSubfolder", "response: $response")
 
-        return response.run{
-            FolderInfo(
-                folderId = this.folderId,
-                folderName = this.folderName,
-                categoryId = this.categoryId,
-                categoryName = this.categoryName,
-                parentFolderId = this.parentFolderId,
-                createdAt = this.createdAt,
-                updatedAt = this.updatedAt,
-            )
-        }
+        return response
     }
 
-    // 하위 폴더 삭제 -> In Progress
+    // 하위 폴더 삭제
     override suspend fun deleteSubfolder(folderId: Long) {
         Log.d("deleteSubfolder", "folderId: $folderId")
 
-        serverApi.withAuth(authPreference) {
-            deleteSubfolder(folderId)
+        try{
+            Log.d("deleteSubfolder", "try")
+
+            serverApi.withAuthResp204Raw(authPreference){
+                deleteSubfolder(folderId)
+            }
+
+        }catch (e: Exception){
+            Log.d("deleteSubfolder", "error: $e")
+            throw e
         }
 
         Log.d("deleteSubfolder", "deleteSubfolder success")
@@ -201,41 +275,48 @@ class FolderRepositoryImpl @Inject constructor(
     override suspend fun getSharedFolders(): List<SharedFolderInfo> {
         Log.d("getSharedFolders", "getSharedFolders")
 
-        val folderList = serverApi.withAuth(authPreference) {
-            getSharedFolders()
+        val folderList: List<SharedFolderInfo>
+
+        try{
+            folderList = serverApi.withAuth(authPreference) {
+                getSharedFolders()
+            }.map {
+                SharedFolderInfo(
+                    userId = it.userId,
+                    nickname = it.nickname,
+                    folders = it.folders.map {
+                        FolderSimpleInfo(
+                            folderId = it.folderId,
+                            folderName = it.folderName,
+                            parentFolderId = it.categoryId,
+                            isBookmarked = false
+                        )
+                    }
+                )
+            }
+        } catch (e: Exception){
+            Log.d("getSharedFolders", "error: $e")
+            throw e
         }
 
         Log.d("getSharedFolders", "folderList: $folderList")
 
-        return folderList.map {
-            SharedFolderInfo(
-                folderId = it.folderId,
-                folderName = it.folderName,
-                categoryId = it.categoryId,
-                owner = it.owner.run {
-                    FolderOwner(
-                        userId = this.userId,
-                        nickname = this.nickname
-                    )
-                },
-                permission = when (it.permission) {
-                    "viewer" -> FolderPermission.VIEWER
-                    "writer" -> FolderPermission.WRITER
-                    "owner" -> FolderPermission.OWNER
-                    "none" -> FolderPermission.NONE
-                    else -> FolderPermission.NONE
-                }
-
-            )
-        }
+        return folderList
     }
 
     // 공유 받은 폴더 삭제
     override suspend fun deleteSharedFolder(folderId: Long) {
         Log.d("deleteSharedFolder", "folderId: $folderId")
 
-        serverApi.withAuth(authPreference) {
-            deleteSharedFolder(folderId)
+        try{
+            Log.d("deleteSharedFolder", "try")
+
+            serverApi.withAuthResp204Raw(authPreference){
+                deleteSharedFolder(folderId)
+            }
+        }catch (e: Exception){
+            Log.d("deleteSharedFolder", "error: $e")
+            throw e
         }
 
         Log.d("deleteSharedFolder", "deleteSharedFolder success")
@@ -245,86 +326,168 @@ class FolderRepositoryImpl @Inject constructor(
     override suspend fun setFolderViewerPermission(folderId: Long): SharedFolderSimpleInfo {
         Log.d("setFolderViewerPermission", "folderId: $folderId")
 
-        val response = serverApi.withAuth(authPreference) {
-            setFolderViewerPermission(folderId)
+        val response: SharedFolderSimpleInfo
+
+        try{
+            Log.d("setFolderViewerPermission", "try")
+
+            response = serverApi.withAuth(authPreference){
+                setFolderViewerPermission(folderId)
+            }.run {
+                SharedFolderSimpleInfo(
+                    folderId = this.folderId,
+                    userId = this.userId,
+                    permission = when (this.permission) {
+                        "viewer" -> FolderPermission.VIEWER
+                        "writer" -> FolderPermission.WRITER
+                        "owner" -> FolderPermission.OWNER
+                        "none" -> FolderPermission.NONE
+                        else -> FolderPermission.NONE
+                    },
+                    sharedAt = this.sharedAt
+                )
+            }
+        }catch (e: Exception){
+            Log.d("setFolderViewerPermission", "error: $e")
+            throw e
         }
 
         Log.d("setFolderViewerPermission", "response: $response")
 
-        return response.run {
-            SharedFolderSimpleInfo(
-                folderId = this.folderId,
-                userId = this.userId,
-                permission = when (this.permission) {
-                    "viewer" -> FolderPermission.VIEWER
-                    "writer" -> FolderPermission.WRITER
-                    "owner" -> FolderPermission.OWNER
-                    "none" -> FolderPermission.NONE
-                    else -> FolderPermission.NONE
-                },
-                sharedAt = this.sharedAt
-            )
-        }
+        return response
     }
 
     // 폴더 비공개 전환
-    override suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo {
+    override suspend fun setFolderPrivatePermission(folderId: Long): SharedFolderSimpleInfo {
         Log.d("setFolderPrivate", "folderId: $folderId")
 
-        val response = serverApi.withAuth(authPreference) {
-            setFolderPrivate(folderId)
+        val response: SharedFolderSimpleInfo
+        try{
+            Log.d("setFolderPrivate", "try")
+
+            response = serverApi.withAuth(authPreference){
+                setFolderPrivate(folderId)
+            }.run {
+                SharedFolderSimpleInfo(
+                    folderId = this.folderId,
+                    userId = this.userId,
+                    permission = when (this.permission) {
+                        "viewer" -> FolderPermission.VIEWER
+                        "writer" -> FolderPermission.WRITER
+                        "owner" -> FolderPermission.OWNER
+                        "none" -> FolderPermission.NONE
+                        else -> FolderPermission.NONE
+                    },
+                    sharedAt = this.sharedAt
+                )
+            }
+        }catch (e: Exception){
+            Log.d("setFolderPrivate", "error: $e")
+            throw e
         }
 
         Log.d("setFolderPrivate", "response: $response")
 
-        return response.run {
-            SharedFolderSimpleInfo(
-                folderId = this.folderId,
-                userId = this.userId,
-                permission = when (this.permission) {
-                    "viewer" -> FolderPermission.VIEWER
-                    "writer" -> FolderPermission.WRITER
-                    "owner" -> FolderPermission.OWNER
-                    "none" -> FolderPermission.NONE
-                    else -> FolderPermission.NONE
-                },
-                sharedAt = this.sharedAt
-            )
-        }
+        return response
     }
 
-//    // 폴더 뷰어 전체 조회
-//    override suspend fun getFolderViewers(folderId: Long): List<SharedFolderSimpleInfo> {
-//        Log.d("getFolderViewers", "folderId: $folderId")
-//
-//        val response = serverApi.withAuth(authPreference) {
-//            getFolderViewers(folderId)
-//        }
-//
-//        Log.d("getFolderViewers", "response: $response")
-//
-//        return response.map{
-//            SharedFolderSimpleInfo(
-//                folderId = it.folderId,
-//                userId = it.userId,
-//                permission = when (this.permission) {
-//                    "viewer" -> FolderPermission.VIEWER
-//                    "writer" -> FolderPermission.WRITER
-//                    "owner" -> FolderPermission.OWNER
-//                    "none" -> FolderPermission.NONE
-//                    else -> FolderPermission.NONE
-//                },
-//                sharedAt = ""   // <- 추후 수정
-//            )
-//        }
-//    }
+    // 폴더 뷰어 전체 조회
+    override suspend fun getFolderViewers(folderId: Long): List<FolderPermissionInfo> {
+        Log.d("getFolderViewers", "folderId: $folderId")
 
-//    // 뷰어 권한 수정
-//    override suspend fun updateViewerPermission(
-//        folderId: Long,
-//        userFolderId: Long,
-//        body: FolderPermissionRequestDTO
-//    ): ShareFolderResponseDTO = serverApi.withAuth(authPreference) {
-//        updateViewerPermission(folderId, userFolderId, body)
-//    }
+        val response: List<FolderPermissionInfo>
+        try{
+            Log.d("getFolderViewers", "try")
+
+            response = serverApi.withAuth(authPreference) {
+                getFolderViewers(folderId)
+            }.map {
+                FolderPermissionInfo(
+                    userId = it.userId,
+                    userName = it.userName,
+                    permission = when (it.permission) {
+                        "viewer" -> FolderPermission.VIEWER
+                        "writer" -> FolderPermission.WRITER
+                        "owner" -> FolderPermission.OWNER
+                        else -> FolderPermission.NONE
+                    }
+                )
+            }
+        }catch (e: Exception){
+            Log.d("getFolderViewers", "error: $e")
+            throw e
+            // return emptyList()
+        }
+
+        Log.d("getFolderViewers", "response: $response")
+
+        return response
+    }
+
+    // 뷰어 권한 수정
+    override suspend fun updateViewerPermission(
+        folderId: Long,
+        userFolderId: Long,
+        body: FolderPermission
+    )/*: ShareFolderResponseDTO*/ {
+        Log.d("updateViewerPermission", "folderId: $folderId, userFolderId: $userFolderId, body: $body")
+        try{
+            Log.d("updateViewerPermission", "try")
+
+            serverApi.withAuth(authPreference) {
+                updateViewerPermission(
+                    folderId, userFolderId,
+                    when (body) {
+                        FolderPermission.VIEWER -> "viewer"
+                        FolderPermission.WRITER -> "writer"
+                        FolderPermission.OWNER -> "owner"
+                        FolderPermission.NONE -> "none"
+                    }
+                )
+            }
+        }catch (e: Exception){
+            Log.d("updateViewerPermission", "error: $e")
+            throw e
+        }
+
+        Log.d("updateViewerPermission", "updateViewerPermission success")
+    }
+
+    override suspend fun updateLinkFolder(
+        linku: LinkSimpleInfo,
+        folderId: Long
+    ): LinkSimpleInfo {
+        Log.d("updateLink", "folderId: $folderId")
+
+        try {
+            Log.d("updateLink", "try")
+
+            val result = serverApi.withAuth(authPreference) {
+                updateLinkFolder(
+                    linku.linkuId,
+                    UpdateLinkFolderDTO(folderId)
+                )
+            }.run{
+                LinkSimpleInfo(
+                    linkuId = this.linkuId,
+                    categoryId = 0,
+                    memo = "",
+                    emotionId = 0,
+                    title = this.title,
+                    domain = this.domain,
+                    domainImageUrl = "",
+                    linkuImageUrl = "",
+                    tags = emptyList()
+                )
+            }
+
+            Log.d("updateLink", "well done: $result")
+        } catch (e: Exception) {
+            Log.d("updateLink", "error: $e")
+            throw e
+        }
+
+        Log.d("updateLink", "updateLink success")
+        return linku
+    }
 }

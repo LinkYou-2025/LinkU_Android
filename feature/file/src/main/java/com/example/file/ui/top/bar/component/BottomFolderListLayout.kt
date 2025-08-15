@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,22 +24,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.viewmodel.folder.state.FolderState
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.White
+import kotlin.collections.get
 
 @Composable
 fun BottomFolderListLayout(
-    colorStyle: CategoryColorStyle,
+    fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel
 ) {
-    var text = folderStateViewModel.selectedTopFolder!! +
-            if(folderStateViewModel.currentFolderState==FolderState.LINK)
-                folderStateViewModel.selectedBottomFolder?.let{ " > $it" }
-            else ""
+    var text = if(!folderStateViewModel.isSharedFolders)(
+        folderStateViewModel.selectedTopFolder?.folderName +
+                if (folderStateViewModel.currentFolderState == FolderState.LINKS)
+                    folderStateViewModel.selectedBottomFolder?.let { " > ${it.folderName}" }
+                else ""
+    )else(
+        "${folderStateViewModel.selectedTopSharedFolder?.nickname?:""}의 폴더" +
+                if (folderStateViewModel.currentFolderState == FolderState.LINKS)
+                    folderStateViewModel.selectedBottomSharedFolder?.let { " > ${it.folderName}" }
+                else ""
+    )
+
+    val colorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]?: CategoryColorStyle.DEFAULT
 
     // 레이아웃의 배경틀
     Box(
@@ -93,12 +105,11 @@ fun BottomFolderListLayout(
 
 @Preview(showBackground = true)
 @Composable
-fun BottomFolderListLayoutTest() {
+private fun BottomFolderListLayoutTest() {
     val folderStateViewModel: FolderStateViewModel = viewModel()
-    folderStateViewModel.updateSelectedTopFolder("어학")
     // folderStateViewModel.updateSelectedBottomFolder("단어장")
     BottomFolderListLayout(
-        colorStyle = CategoryColorStyle.categoryStyleList[0],
+        viewModel(),
         folderStateViewModel = folderStateViewModel
     )
 }
