@@ -5,6 +5,7 @@ import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun NewBottomFolderBottomSheet(
+    onTextDeliver: (String) -> Unit,
     folderStateViewModel: FolderStateViewModel
 ){
     TextFieldFileBottomSheet(
@@ -12,6 +13,7 @@ fun NewBottomFolderBottomSheet(
         body = "폴더명을 입력해주세요!",
         placeholderText = "폴더명은 최대 10자입니다.",
         visible = folderStateViewModel.newFolderBottomSheetVisible,
+        onTextDeliver = { onTextDeliver(it) },
         onDismiss = { folderStateViewModel.updateNewFolderBottomSheetVisible(false) }
     )
 }

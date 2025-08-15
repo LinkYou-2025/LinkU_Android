@@ -21,6 +21,12 @@ interface UserRepository {
     suspend fun verifyEmailCode(email: String, code: String): Boolean
     suspend fun deleteUser(reason: String): Boolean
 
+    // 유저 id 가져오기
+    suspend fun getUserInfo(userId: Long): String?
+
+    //유저 비밀번호 재설정
+    suspend fun requestTempPassword(email: String): Boolean
+
     // 마이페이지 조회
     suspend fun getUserInfo(userId: Long): UserInfo
 

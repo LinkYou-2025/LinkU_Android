@@ -13,6 +13,7 @@ import com.example.data.api.dto.server.DeleteReasonDTO
 import com.example.data.api.dto.server.UserInfoDTO
 import com.example.data.api.withAuth
 import com.example.data.api.withAuthHeaderRaw
+import com.example.data.api.dto.server.TempPasswordRequestDTO
 import retrofit2.HttpException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -72,7 +73,9 @@ class UserRepositoryImpl @Inject constructor(
     }
     override suspend fun login(email: String, password: String): LoginResult {
         val response = userApi.signIn(LoginRequestDTO(email, password))
+        Log.d("UserRepository", "[로그인 응답] isSuccess=${response.isSuccess}, message=${response.message}, result=${response.result}")
         val result = response.result ?: throw IllegalStateException("로그인 실패: ${response.message}")
+        authPreference.userId = result.userId?.toLong() ?: -1L //로그인할 때, userId 저장하기! -> 추후 큐레이션에 닉네임 표시용.
 
         //  accessToken 저장 (if 사용 → 타입 추론 오류 방지)
         val accessToken: String? = result.accessToken
@@ -204,7 +207,6 @@ class UserRepositoryImpl @Inject constructor(
         return response.isSuccess == true
     }
 
-
     // 마이페이지 조회
     override suspend fun getUserInfo(userId: Long): UserInfo {
         // val response = userApi.withAuth(authPreference) { getUserInfo(userId) }
@@ -243,5 +245,34 @@ class UserRepositoryImpl @Inject constructor(
         authPreference.accessToken = null
         authPreference.refreshToken = null
         authPreference.userId = null
+    }
+
+    override suspend fun getUserInfo(userId: Long): String? {
+        return try {
+            val response = userApi.getUserInfo(userId)
+
+            // 여기서 실제 nickname이 뭔지 로그 찍기
+            Log.d("getUserInfo", "닉네임=${response.result?.nickname}")
+
+            response.result?.nickname
+        } catch (e: Exception) {
+            Log.e("UserRepository", "닉네임 가져오기 실패", e)
+            null
+        }
+    }
+
+    //유저 비밀번호 재설정
+    override suspend fun requestTempPassword(email: String): Boolean {
+        return try {
+            val res = userApi.requestTempPassword(email) // ← @Query 호출
+            Log.d("UserRepository", "[임시PW 응답] success=${res.isSuccess} code=${res.code} msg=${res.message}")
+            res.isSuccess == true
+        } catch (e: HttpException) {
+            Log.e("UserRepository", "[임시PW API 오류] code=${e.code()} msg=${e.message()}")
+            false
+        } catch (e: Exception) {
+            Log.e("UserRepository", "[임시PW 호출 실패]", e)
+            false
+        }
     }
 }

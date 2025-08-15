@@ -1,0 +1,1155 @@
+Index: core/src/main/java/com/example/core/repository/FolderRepository.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.core.repository\r\n\r\nimport com.example.core.model.FolderSimpleInfo\r\n\r\ninterface FolderRepository {\r\n\r\n    // 폴더 북마크 등록/해제 (북마크 설정/해제)\r\n    suspend fun updateBookmark(\r\n        folderId: Long,\r\n        isBookmarked: Boolean\r\n    ): Boolean\r\n//\r\n//    // 2. 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)\r\n//    suspend fun getMyFolders(): List<FolderTreeResponseDTO>\r\n//\r\n//    // 3. (중분류) 중분류 폴더 조회 -> Not Started\r\n//    // suspend fun getMiddleFolders(): ??? // API 미구현 (추후 확정되면 추가)\r\n//\r\n//    // 4. (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)\r\n//    suspend fun getSubfolders(parentFolderId: Long): List<FolderListResponseDTO>\r\n//\r\n//    // 5. (소분류) 폴더 내부 링크 조회 (커서) -> In Progress\r\n//    // suspend fun getLinksInSubfolder(folderId: Long, ...): ??? // API 미구현 (추후 추가)\r\n//\r\n//    // 6. (소분류) 폴더 생성 (소분류 폴더 생성)\r\n//    suspend fun createSubfolder(\r\n//        parentFolderId: Long,\r\n//        body: FolderCreateRequestDTO\r\n//    ): FolderResponseDTO\r\n//\r\n//    // 7. (소분류) 폴더 수정 (소분류 폴더 수정)\r\n//    suspend fun updateSubfolder(\r\n//        folderId: Long,\r\n//        body: FolderUpdateRequestDTO\r\n//    ): FolderResponseDTO\r\n//\r\n//    // 8. (소분류) 폴더 삭제 (소분류 폴더 삭제)\r\n//    suspend fun deleteSubfolder(folderId: Long): FolderResponseDTO\r\n//\r\n//    // 9. 공유 받은 폴더 목록 조회 -> In Progress\r\n//    // suspend fun getSharedFolders(): ??? // API 미구현 (추후 추가)\r\n//\r\n//    // 10. 공유 받은 폴더 삭제 -> In Progress\r\n//    // suspend fun deleteSharedFolder(folderId: Long): ??? // API 미구현 (추후 추가)\r\n//\r\n//    // 11. 폴더 공유 (뷰어 권한 설정)\r\n//    suspend fun setFolderViewerPermission(folderId: Long): ShareFolderResponseDTO\r\n//\r\n//    // 12. <임의추가> 폴더 뷰어 조회\r\n//    suspend fun getFolderViewers(folderId: Long): List<ViewerResponseDTO>\r\n//\r\n//    // 13. <임의추가> 뷰어 권한 수정\r\n//    suspend fun updateViewerPermission(\r\n//        folderId: Long,\r\n//        userFolderId: Long,\r\n//        body: FolderPermissionRequestDTO\r\n//    ): ShareFolderResponseDTO\r\n//\r\n//    // 14. 폴더 비공개 전환 -> Not Started\r\n//    // suspend fun setFolderPrivate(folderId: Long): ??? // API 미구현 (추후 추가)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/src/main/java/com/example/core/repository/FolderRepository.kt b/core/src/main/java/com/example/core/repository/FolderRepository.kt
+--- a/core/src/main/java/com/example/core/repository/FolderRepository.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/core/src/main/java/com/example/core/repository/FolderRepository.kt	(date 1754472886375)
+@@ -1,6 +1,10 @@
+ package com.example.core.repository
+ 
++import com.example.core.model.FolderInfo
+ import com.example.core.model.FolderSimpleInfo
++import com.example.core.model.LinkSimpleInfo
++import com.example.core.model.SharedFolderInfo
++import com.example.core.model.SharedFolderSimpleInfo
+ 
+ interface FolderRepository {
+ 
+@@ -9,53 +13,61 @@
+         folderId: Long,
+         isBookmarked: Boolean
+     ): Boolean
+-//
+-//    // 2. 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
++
++//    // 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
+ //    suspend fun getMyFolders(): List<FolderTreeResponseDTO>
+-//
+-//    // 3. (중분류) 중분류 폴더 조회 -> Not Started
+-//    // suspend fun getMiddleFolders(): ??? // API 미구현 (추후 확정되면 추가)
+-//
+-//    // 4. (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
+-//    suspend fun getSubfolders(parentFolderId: Long): List<FolderListResponseDTO>
+-//
+-//    // 5. (소분류) 폴더 내부 링크 조회 (커서) -> In Progress
+-//    // suspend fun getLinksInSubfolder(folderId: Long, ...): ??? // API 미구현 (추후 추가)
+-//
+-//    // 6. (소분류) 폴더 생성 (소분류 폴더 생성)
+-//    suspend fun createSubfolder(
+-//        parentFolderId: Long,
+-//        body: FolderCreateRequestDTO
+-//    ): FolderResponseDTO
+-//
+-//    // 7. (소분류) 폴더 수정 (소분류 폴더 수정)
+-//    suspend fun updateSubfolder(
+-//        folderId: Long,
+-//        body: FolderUpdateRequestDTO
+-//    ): FolderResponseDTO
+-//
+-//    // 8. (소분류) 폴더 삭제 (소분류 폴더 삭제)
+-//    suspend fun deleteSubfolder(folderId: Long): FolderResponseDTO
+-//
+-//    // 9. 공유 받은 폴더 목록 조회 -> In Progress
+-//    // suspend fun getSharedFolders(): ??? // API 미구현 (추후 추가)
+-//
+-//    // 10. 공유 받은 폴더 삭제 -> In Progress
+-//    // suspend fun deleteSharedFolder(folderId: Long): ??? // API 미구현 (추후 추가)
+-//
+-//    // 11. 폴더 공유 (뷰어 권한 설정)
+-//    suspend fun setFolderViewerPermission(folderId: Long): ShareFolderResponseDTO
+-//
+-//    // 12. <임의추가> 폴더 뷰어 조회
+-//    suspend fun getFolderViewers(folderId: Long): List<ViewerResponseDTO>
+-//
+-//    // 13. <임의추가> 뷰어 권한 수정
++
++    // (중분류) 중분류 폴더 조회
++    suspend fun getParentfolders(): List<FolderSimpleInfo>
++
++    // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
++    suspend fun getSubfolders(
++        parentFolderId: Long
++    ): List<FolderSimpleInfo>
++
++    // (소분류) 폴더 내부 링크 조회 (커서) -> In Progress
++    suspend fun getLinksFolders(
++        folderId: Long,
++        limit: Int? = 10,
++        cursor: String? = null,
++        onGetFolders: (List<FolderSimpleInfo>) -> Unit,
++        onGetLinks: (List<LinkSimpleInfo>) -> Unit
++    ): String?
++
++    // (소분류) 폴더 생성 (소분류 폴더 생성)
++    suspend fun createSubfolder(
++        parentFolderId: Long,
++        folderName: String
++    ): FolderInfo
++
++    // (소분류) 폴더 수정 (소분류 폴더 수정)
++    suspend fun updateSubfolder(
++        folderId: Long,
++        folderName: String
++    ): FolderInfo
++
++    // (소분류) 폴더 삭제 (소분류 폴더 삭제)
++    suspend fun deleteSubfolder(folderId: Long)
++
++    // 공유 받은 폴더 목록 조회
++    suspend fun getSharedFolders(): List<SharedFolderInfo>
++
++    // 공유 받은 폴더 삭제
++    suspend fun deleteSharedFolder(folderId: Long)
++
++    // 폴더 공유 (뷰어 권한 설정)
++    suspend fun setFolderViewerPermission(folderId: Long): SharedFolderSimpleInfo
++
++//    // <임의추가> 폴더 뷰어 조회
++//    suspend fun getFolderViewers(folderId: Long): List<SharedFolderSimpleInfo>
++
++//    // <임의추가> 뷰어 권한 수정
+ //    suspend fun updateViewerPermission(
+ //        folderId: Long,
+ //        userFolderId: Long,
+ //        body: FolderPermissionRequestDTO
+ //    ): ShareFolderResponseDTO
+ //
+-//    // 14. 폴더 비공개 전환 -> Not Started
+-//    // suspend fun setFolderPrivate(folderId: Long): ??? // API 미구현 (추후 추가)
++    // 폴더 비공개 전환
++    suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo
+ }
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/ui/content/TopFolderGrid.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.content\r\n\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.collectAsState\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.hilt.navigation.compose.hiltViewModel\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.cheonjaeung.compose.grid.SimpleGridCells\r\nimport com.cheonjaeung.compose.grid.VerticalGrid\r\nimport com.example.file.FileViewModel\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.ui.item.TopFolderItemLayout\r\nimport com.example.file.viewmodel.EditStateViewModel\r\nimport com.example.file.viewmodel.FolderState\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.CategoryColorStyle\r\n\r\nval categories = listOf(\r\n    \"어학\",\r\n    \"뉴스\",\r\n    \"공부법\",\r\n    \"IT·개발\",\r\n    \"자기계발\",\r\n    \"취업·이직\",\r\n    \"비즈니스 인사이트\",\r\n    \"생산성·툴\",\r\n    \"라이프스타일\",\r\n    \"심리·자기이해\",\r\n    \"에세이·칼럼\",\r\n    \"트렌드\",\r\n    \"디자인·예술\",\r\n    \"영상·뮤직\",\r\n    \"맛집·여행\",\r\n    \"기타\"\r\n)\r\n\r\n@Composable\r\nfun TopFolderGrid(\r\n    fileViewModel: FileViewModel,\r\n    folderStateViewModel: FolderStateViewModel,\r\n    editStateViewModel: EditStateViewModel,\r\n    onFolderEdit: () -> Unit,\r\n){\r\n    val categoryList = fileViewModel.categoryList.collectAsState().value\r\n    VerticalGrid(\r\n        modifier = Modifier\r\n            .fillMaxWidth(),\r\n        columns = SimpleGridCells.Fixed(2),\r\n        horizontalArrangement = Arrangement.SpaceBetween,\r\n        verticalArrangement = Arrangement.spacedBy(18.51.dp),\r\n    ) {\r\n        for ((i, folder) in categoryList.withIndex()) {\r\n            var isBookmarked by remember { mutableStateOf(false) }\r\n            val categoryName = folder.categoryName\r\n            Box(\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .noRippleClickable {\r\n                        if (editStateViewModel.isEditMode) {\r\n                            onFolderEdit()\r\n                        } else {\r\n                            folderStateViewModel.updateSelectedTopFolder(categoryName)\r\n                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)\r\n                        }\r\n                    },\r\n                contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd\r\n            ){\r\n                TopFolderItemLayout(\r\n                    categoryColorStyle = CategoryColorStyle.categoryStyleList[i],\r\n                    categoryName = categoryName,\r\n                    isBookmarked = false,\r\n                    fileViewModel = fileViewModel,\r\n                    editStateViewModel = editStateViewModel\r\n                ){\r\n                    isBookmarked = fileViewModel.updateBookmark(\r\n                        folderId = folder.categoryId,\r\n                        isBookmarked = !isBookmarked\r\n                    )\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Preview(\r\n    showBackground = true,\r\n    heightDp = 2000\r\n)\r\n@Composable\r\nfun TopFolderGridTest(){\r\n    TopFolderGrid(\r\n        fileViewModel = hiltViewModel(),\r\n        folderStateViewModel = viewModel(),\r\n        editStateViewModel = viewModel(),\r\n    ){}\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/content/TopFolderGrid.kt b/feature/file/src/main/java/com/example/file/ui/content/TopFolderGrid.kt
+--- a/feature/file/src/main/java/com/example/file/ui/content/TopFolderGrid.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/content/TopFolderGrid.kt	(date 1754383473067)
+@@ -20,9 +20,9 @@
+ import com.example.file.FileViewModel
+ import com.example.file.modifier.noRippleClickable
+ import com.example.file.ui.item.TopFolderItemLayout
+-import com.example.file.viewmodel.EditStateViewModel
+-import com.example.file.viewmodel.FolderState
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.edit.state.EditStateViewModel
++import com.example.file.viewmodel.folder.state.FolderState
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.CategoryColorStyle
+ 
+ val categories = listOf(
+Index: data/src/main/java/com/example/data/api/FolderApi.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.data.api\r\n\r\nimport com.example.data.api.dto.BaseResponse\r\nimport com.example.data.api.dto.server.FolderCreateRequestDTO\r\nimport com.example.data.api.dto.server.FolderListResponseDTO\r\nimport com.example.data.api.dto.server.FolderPermissionRequestDTO\r\nimport com.example.data.api.dto.server.FolderResponseDTO\r\nimport com.example.data.api.dto.server.FolderTreeResponseDTO\r\nimport com.example.data.api.dto.server.FolderUpdateRequestDTO\r\nimport com.example.data.api.dto.server.ShareFolderResponseDTO\r\nimport com.example.data.api.dto.server.UpdateBookmarkRequestDTO\r\nimport com.example.data.api.dto.server.UpdateBookmarkResponseDTO\r\nimport com.example.data.api.dto.server.ViewerResponseDTO\r\nimport retrofit2.http.Body\r\nimport retrofit2.http.DELETE\r\nimport retrofit2.http.GET\r\nimport retrofit2.http.POST\r\nimport retrofit2.http.PUT\r\nimport retrofit2.http.Path\r\n\r\ninterface FolderApi {\r\n    // 폴더 북마크 등록/해제 (북마크 설정/해제)\r\n    @PUT(\"/api/folders/{folderId}/bookmark\")\r\n    suspend fun updateBookmark(\r\n        @Path(\"folderId\") folderId: Long,\r\n        @Body body: UpdateBookmarkRequestDTO\r\n    ): BaseResponse<UpdateBookmarkResponseDTO>\r\n\r\n    // 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)\r\n    @GET(\"/api/folders/my\")\r\n    suspend fun getMyFolders(): BaseResponse<List<FolderTreeResponseDTO>>\r\n\r\n    // (중분류) 중분류 폴더 조회 -> Not Started\r\n//    @GET(\"\")\r\n\r\n    // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회\r\n    @GET(\"/api/folders/{parentFolderId}/subfolders\")\r\n    suspend fun getSubfolders(\r\n        @Path(\"parentFolderId\") parentFolderId: Long\r\n    ): BaseResponse<List<FolderListResponseDTO>>\r\n\r\n    // (소분류) 폴더 내부 링크 조회 (커서) -> In Progress\r\n//    @GET(\"\")\r\n\r\n    // (소분류) 폴더 생성 (소분류 폴더 생성)\r\n    @POST(\"/api/folders/{parentFolderId}/subfolders\")\r\n    suspend fun createSubfolder(\r\n        @Path(\"parentFolderId\") parentFolderId: Long,\r\n        @Body body: FolderCreateRequestDTO\r\n    ): BaseResponse<FolderResponseDTO>\r\n\r\n    // (소분류) 폴더 수정 (소분류 폴더 수정)\r\n    @PUT(\"/api/folders/subfolders/{folderId}\")\r\n    suspend fun updateSubfolder(\r\n        @Path(\"folderId\") folderId: Long,\r\n        @Body body: FolderUpdateRequestDTO\r\n    ): BaseResponse<FolderResponseDTO>\r\n\r\n    // (소분류) 폴더 삭제 (소분류 폴더 삭제)\r\n    @DELETE(\"/api/folders/subfolders/{folderId}\")\r\n    suspend fun deleteSubfolder(\r\n        @Path(\"folderId\") folderId: Long\r\n    ): BaseResponse<FolderResponseDTO>\r\n\r\n    // 공유 받은 폴더 목록 조회 -> In Progress\r\n//    @GET(\"\")\r\n\r\n    // 공유 받은 폴더 삭제 -> In Progress\r\n//    @DELETE(\"\")\r\n\r\n    // 폴더 공유 (뷰어 권한 설정)\r\n    @POST(\"/api/folders/share/{folderId}\")\r\n    suspend fun setFolderViewerPermission(\r\n        @Path(\"folderId\") folderId: Long\r\n    ): BaseResponse<ShareFolderResponseDTO>\r\n\r\n    // <임의추가> 폴더 뷰어 조회\r\n    @GET(\"/api/folders/share/{folderId}/members\")\r\n    suspend fun getFolderViewers(\r\n        @Path(\"folderID\") folderId: Long\r\n    ): BaseResponse<List<ViewerResponseDTO>>\r\n\r\n    // <임의추가> 뷰어 권한 수정\r\n    @PUT(\"/api/folders/share/{folderId}/members/{userFolderId}\")\r\n    suspend fun updateViewerPermission(\r\n        @Path(\"folderId\") folderId: Long,\r\n        @Path(\"userFolderId\") userFolderId: Long,\r\n        @Body body: FolderPermissionRequestDTO\r\n    ): BaseResponse<ShareFolderResponseDTO>\r\n\r\n    // 폴더 비공개 전환 -> Not Started\r\n//    @POST(\"\")\r\n\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/src/main/java/com/example/data/api/FolderApi.kt b/data/src/main/java/com/example/data/api/FolderApi.kt
+--- a/data/src/main/java/com/example/data/api/FolderApi.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/data/src/main/java/com/example/data/api/FolderApi.kt	(date 1754472779166)
+@@ -7,6 +7,8 @@
+ import com.example.data.api.dto.server.FolderResponseDTO
+ import com.example.data.api.dto.server.FolderTreeResponseDTO
+ import com.example.data.api.dto.server.FolderUpdateRequestDTO
++import com.example.data.api.dto.server.GetSharedFoldersDTO
++import com.example.data.api.dto.server.LinksFoldersResponseDTO
+ import com.example.data.api.dto.server.ShareFolderResponseDTO
+ import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
+ import com.example.data.api.dto.server.UpdateBookmarkResponseDTO
+@@ -17,9 +19,11 @@
+ import retrofit2.http.POST
+ import retrofit2.http.PUT
+ import retrofit2.http.Path
++import retrofit2.http.Query
+ 
+ interface FolderApi {
+     // 폴더 북마크 등록/해제 (북마크 설정/해제)
++    // 콜백 함수 등록
+     @PUT("/api/folders/{folderId}/bookmark")
+     suspend fun updateBookmark(
+         @Path("folderId") folderId: Long,
+@@ -27,22 +31,33 @@
+     ): BaseResponse<UpdateBookmarkResponseDTO>
+ 
+     // 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
++    // 콜백 함수 등록
+     @GET("/api/folders/my")
+     suspend fun getMyFolders(): BaseResponse<List<FolderTreeResponseDTO>>
+ 
+-    // (중분류) 중분류 폴더 조회 -> Not Started
+-//    @GET("")
++    // (중분류) 중분류 폴더 조회
++    // 콜백 함수 등록
++    @GET("/api/folders/parentFolders")
++    suspend fun getParentfolders(): BaseResponse<List<FolderListResponseDTO>>
+ 
+-    // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회
++    // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
++    // 콜백 함수 등록
+     @GET("/api/folders/{parentFolderId}/subfolders")
+     suspend fun getSubfolders(
+         @Path("parentFolderId") parentFolderId: Long
+     ): BaseResponse<List<FolderListResponseDTO>>
+ 
+-    // (소분류) 폴더 내부 링크 조회 (커서) -> In Progress
+-//    @GET("")
++    // (소분류) 폴더 내부 링크 조회 (커서)
++    // 콜백 함수 등록
++    @GET("/api/folders/{folderId}/linkus")
++    suspend fun getLinksFolders(
++        @Path("folderId") folderId: Long,
++        @Query("limit") limit: Int? = 10,
++        @Query("cursor") cursor: String? = null
++    ): BaseResponse<LinksFoldersResponseDTO>
+ 
+     // (소분류) 폴더 생성 (소분류 폴더 생성)
++    // 콜백 함수 등록
+     @POST("/api/folders/{parentFolderId}/subfolders")
+     suspend fun createSubfolder(
+         @Path("parentFolderId") parentFolderId: Long,
+@@ -50,6 +65,7 @@
+     ): BaseResponse<FolderResponseDTO>
+ 
+     // (소분류) 폴더 수정 (소분류 폴더 수정)
++    // 콜백 함수 등록
+     @PUT("/api/folders/subfolders/{folderId}")
+     suspend fun updateSubfolder(
+         @Path("folderId") folderId: Long,
+@@ -57,30 +73,39 @@
+     ): BaseResponse<FolderResponseDTO>
+ 
+     // (소분류) 폴더 삭제 (소분류 폴더 삭제)
++    // 콜백 함수 등록
+     @DELETE("/api/folders/subfolders/{folderId}")
+     suspend fun deleteSubfolder(
+         @Path("folderId") folderId: Long
+-    ): BaseResponse<FolderResponseDTO>
++    ): BaseResponse<Unit>
+ 
+-    // 공유 받은 폴더 목록 조회 -> In Progress
+-//    @GET("")
++    // 공유 받은 폴더 목록 조회
++    // 콜백 함수 등록
++    @GET("/api/folders/shared")
++    suspend fun getSharedFolders(): BaseResponse<List<GetSharedFoldersDTO>>
+ 
+     // 공유 받은 폴더 삭제 -> In Progress
+-//    @DELETE("")
++    @DELETE("/api/folders/shared/{folderId}")
++    suspend fun deleteSharedFolder(
++        @Path("folderId") folderId: Long
++    ): BaseResponse<Unit>
+ 
+     // 폴더 공유 (뷰어 권한 설정)
++    // 콜백 함수 등록
+     @POST("/api/folders/share/{folderId}")
+     suspend fun setFolderViewerPermission(
+         @Path("folderId") folderId: Long
+     ): BaseResponse<ShareFolderResponseDTO>
+ 
+     // <임의추가> 폴더 뷰어 조회
++    // 작업중
+     @GET("/api/folders/share/{folderId}/members")
+     suspend fun getFolderViewers(
+         @Path("folderID") folderId: Long
+     ): BaseResponse<List<ViewerResponseDTO>>
+ 
+     // <임의추가> 뷰어 권한 수정
++    // 작업중
+     @PUT("/api/folders/share/{folderId}/members/{userFolderId}")
+     suspend fun updateViewerPermission(
+         @Path("folderId") folderId: Long,
+@@ -88,7 +113,11 @@
+         @Body body: FolderPermissionRequestDTO
+     ): BaseResponse<ShareFolderResponseDTO>
+ 
+-    // 폴더 비공개 전환 -> Not Started
+-//    @POST("")
++    // 폴더 비공개 전환
++    // 콜백 함수 등록
++    @POST("/api/folders/share/{folderId}/unshare")
++    suspend fun setFolderPrivate(
++        @Path("folderId") folderId: Long
++    ): BaseResponse<ShareFolderResponseDTO>
+ 
+ }
+\ No newline at end of file
+Index: data/src/main/java/com/example/data/api/dto/server/ShareFolderResponseDTO.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.data.api.dto.server\r\n\r\nimport com.example.core.model.FolderPermission\r\nimport com.squareup.moshi.Json\r\n\r\ndata class ShareFolderResponseDTO(\r\n\r\n    @Json(name = \"folderId\")\r\n    val folderId: Long,\r\n\r\n    @Json(name = \"userId\")\r\n    val userId: Long,\r\n\r\n    @Json(name = \"permission\")\r\n    val permission: FolderPermission,\r\n\r\n    @Json(name = \"sharedAt\")\r\n    val sharedAt: String\r\n\r\n)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/src/main/java/com/example/data/api/dto/server/ShareFolderResponseDTO.kt b/data/src/main/java/com/example/data/api/dto/server/ShareFolderResponseDTO.kt
+--- a/data/src/main/java/com/example/data/api/dto/server/ShareFolderResponseDTO.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/data/src/main/java/com/example/data/api/dto/server/ShareFolderResponseDTO.kt	(date 1754469092951)
+@@ -12,7 +12,7 @@
+     val userId: Long,
+ 
+     @Json(name = "permission")
+-    val permission: FolderPermission,
++    val permission: String,
+ 
+     @Json(name = "sharedAt")
+     val sharedAt: String
+Index: data/src/main/java/com/example/data/implementation/repository/FolderRepositoryImpl.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.data.implementation.repository\r\n\r\nimport android.util.Log\r\nimport com.example.core.repository.FolderRepository\r\nimport com.example.data.api.ServerApi\r\nimport com.example.data.api.dto.server.UpdateBookmarkRequestDTO\r\nimport com.example.data.api.withAuth\r\nimport com.example.data.preference.AuthPreference\r\nimport javax.inject.Inject\r\n\r\nclass FolderRepositoryImpl @Inject constructor(\r\n    private val serverApi: ServerApi,\r\n    private val authPreference: AuthPreference,\r\n) : FolderRepository {\r\n\r\n    // 폴더 북마크 등록/해제\r\n    override suspend fun updateBookmark(\r\n        folderId: Long,\r\n        isBookmarked: Boolean\r\n    ): Boolean {\r\n        Log.d(\"updateBookmark\", \"folderId: $folderId, isBookmarked: $isBookmarked\")\r\n\r\n        val folderResponse = serverApi.withAuth(authPreference) {\r\n            updateBookmark(folderId, UpdateBookmarkRequestDTO(isBookmarked))\r\n        }\r\n\r\n        Log.d(\"updateBookmark\", \"folderResponse: $folderResponse\")\r\n\r\n        return folderResponse.isBookmarked\r\n\r\n    }\r\n//\r\n//    // 2. 내 폴더(트리) 전체 조회\r\n//    override suspend fun getMyFolders(): List<FolderTreeResponseDTO> =\r\n//        serverApi.withAuth(authPreference) {\r\n//            getMyFolders()\r\n//        }\r\n//\r\n//    // 3. 하위 폴더 조회\r\n//    override suspend fun getSubfolders(parentFolderId: Long): List<FolderListResponseDTO> =\r\n//        serverApi.withAuth(authPreference) {\r\n//            getSubfolders(parentFolderId)\r\n//        }\r\n//\r\n//    // 4. 하위 폴더 생성\r\n//    override suspend fun createSubfolder(\r\n//        parentFolderId: Long,\r\n//        body: FolderCreateRequestDTO\r\n//    ): FolderResponseDTO = serverApi.withAuth(authPreference) {\r\n//        createSubfolder(parentFolderId, body)\r\n//    }\r\n//\r\n//    // 5. 하위 폴더 수정\r\n//    override suspend fun updateSubfolder(\r\n//        folderId: Long,\r\n//        body: FolderUpdateRequestDTO\r\n//    ): FolderResponseDTO = serverApi.withAuth(authPreference) {\r\n//        updateSubfolder(folderId, body)\r\n//    }\r\n//\r\n//    // 6. 하위 폴더 삭제\r\n//    override suspend fun deleteSubfolder(folderId: Long): FolderResponseDTO =\r\n//        serverApi.withAuth(authPreference) {\r\n//            deleteSubfolder(folderId)\r\n//        }\r\n//\r\n//    // 7. 폴더 공유(뷰어 권한 설정)\r\n//    override suspend fun setFolderViewerPermission(folderId: Long): ShareFolderResponseDTO =\r\n//        serverApi.withAuth(authPreference) {\r\n//            setFolderViewerPermission(folderId)\r\n//        }\r\n//\r\n//    // 8. 폴더 뷰어 전체 조회\r\n//    override suspend fun getFolderViewers(folderId: Long): List<ViewerResponseDTO> =\r\n//        serverApi.withAuth(authPreference) {\r\n//            getFolderViewers(folderId)\r\n//        }\r\n//\r\n//    // 9. 뷰어 권한 수정\r\n//    override suspend fun updateViewerPermission(\r\n//        folderId: Long,\r\n//        userFolderId: Long,\r\n//        body: FolderPermissionRequestDTO\r\n//    ): ShareFolderResponseDTO = serverApi.withAuth(authPreference) {\r\n//        updateViewerPermission(folderId, userFolderId, body)\r\n//    }\r\n}\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/src/main/java/com/example/data/implementation/repository/FolderRepositoryImpl.kt b/data/src/main/java/com/example/data/implementation/repository/FolderRepositoryImpl.kt
+--- a/data/src/main/java/com/example/data/implementation/repository/FolderRepositoryImpl.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/data/src/main/java/com/example/data/implementation/repository/FolderRepositoryImpl.kt	(date 1754472886391)
+@@ -1,8 +1,17 @@
+ package com.example.data.implementation.repository
+ 
+ import android.util.Log
++import com.example.core.model.FolderInfo
++import com.example.core.model.FolderOwner
++import com.example.core.model.FolderPermission
++import com.example.core.model.FolderSimpleInfo
++import com.example.core.model.LinkSimpleInfo
++import com.example.core.model.SharedFolderInfo
++import com.example.core.model.SharedFolderSimpleInfo
+ import com.example.core.repository.FolderRepository
+ import com.example.data.api.ServerApi
++import com.example.data.api.dto.server.FolderCreateRequestDTO
++import com.example.data.api.dto.server.FolderUpdateRequestDTO
+ import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
+ import com.example.data.api.withAuth
+ import com.example.data.preference.AuthPreference
+@@ -27,56 +36,290 @@
+         Log.d("updateBookmark", "folderResponse: $folderResponse")
+ 
+         return folderResponse.isBookmarked
++    }
++
++    // 중분류 폴더 조회
++    override suspend fun getParentfolders(): List<FolderSimpleInfo> {
++        Log.d("getParentfolders", "getParentfolders")
+ 
++        val folderList = serverApi.withAuth(authPreference) {
++            getParentfolders()
++        }
++
++        Log.d("getParentfolders", "folderList: $folderList")
++
++        return folderList.map {
++            FolderSimpleInfo(
++                folderId = it.folderId,
++                folderName = it.folderName,
++                parentFolderId = it.parentFolderId
++            )
++        }
+     }
+-//
++
+ //    // 2. 내 폴더(트리) 전체 조회
+ //    override suspend fun getMyFolders(): List<FolderTreeResponseDTO> =
+ //        serverApi.withAuth(authPreference) {
+ //            getMyFolders()
+ //        }
+ //
+-//    // 3. 하위 폴더 조회
+-//    override suspend fun getSubfolders(parentFolderId: Long): List<FolderListResponseDTO> =
+-//        serverApi.withAuth(authPreference) {
+-//            getSubfolders(parentFolderId)
+-//        }
+-//
+-//    // 4. 하위 폴더 생성
+-//    override suspend fun createSubfolder(
+-//        parentFolderId: Long,
+-//        body: FolderCreateRequestDTO
+-//    ): FolderResponseDTO = serverApi.withAuth(authPreference) {
+-//        createSubfolder(parentFolderId, body)
+-//    }
+-//
+-//    // 5. 하위 폴더 수정
+-//    override suspend fun updateSubfolder(
+-//        folderId: Long,
+-//        body: FolderUpdateRequestDTO
+-//    ): FolderResponseDTO = serverApi.withAuth(authPreference) {
+-//        updateSubfolder(folderId, body)
+-//    }
+-//
+-//    // 6. 하위 폴더 삭제
+-//    override suspend fun deleteSubfolder(folderId: Long): FolderResponseDTO =
+-//        serverApi.withAuth(authPreference) {
+-//            deleteSubfolder(folderId)
+-//        }
++    // 소분류 폴더 조회
++    override suspend fun getSubfolders(
++        parentFolderId: Long
++    ): List<FolderSimpleInfo> {
++        Log.d("getSubfolders", "parentFolderId: $parentFolderId")
++
++        val folderList = serverApi.withAuth(authPreference) {
++            getSubfolders(parentFolderId)
++        }
++
++        Log.d("getSubfolders", "folderList: $folderList")
++
++        return folderList.map {
++            FolderSimpleInfo(
++                folderId = it.folderId,
++                folderName = it.folderName,
++                parentFolderId = it.parentFolderId
++            )
++        }
++    }
++
++    // (중/소분류) 폴더 내부 폴더, 링크 조회
++    override suspend fun getLinksFolders(
++        folderId: Long,
++        limit: Int?,
++        cursor: String?,
++        onGetFolders: (List<FolderSimpleInfo>) -> Unit,
++        onGetLinks: (List<LinkSimpleInfo>) -> Unit
++    ): String? {
++        Log.d("getLinksFolders", "folderId: $folderId, limit: $limit, cursor: $cursor")
++
++        val response = serverApi.withAuth(authPreference) {
++            getLinksFolders(folderId, limit, cursor)
++        }
++
++        Log.d("getLinksFolders", "response: $response")
++
++        try{
++            onGetFolders(response.folders.map {
++                    FolderSimpleInfo(
++                        folderId = it.id,
++                        folderName = it.name,
++                        parentFolderId = folderId
++                    )
++                }
++            )
++
++            Log.d("getLinksFolders", "well done onGetFolders(${response.folders})")
++
++            onGetLinks(response.links.map {
++                    LinkSimpleInfo(
++                        linkuId = it.linkuId,
++                        categoryId = 0,
++                        memo = "",
++                        emotionId = 0,
++                        title = it.title,
++                        domain = it.url,
++                        domainImageUrl = "",
++                        linkuImageUrl = ""
++                    )
++                }
++            )
++
++            Log.d("getLinksFolders", "well done onGetLinks(${response.links})")
++        }catch(e: Exception){
++            Log.d("getLinksFolders", "error: $e")
++        }
++
++        return response.nextCursor
++    }
++
++    // 하위 폴더 생성
++    override suspend fun createSubfolder(
++        parentFolderId: Long,
++        folderName: String
++    ): FolderInfo {
++        Log.d("createSubfolder", "parentFolderId: $parentFolderId, folderName: $folderName")
++
++        val response = serverApi.withAuth(authPreference) {
++            createSubfolder(parentFolderId, FolderCreateRequestDTO(folderName))
++        }
++
++        Log.d("createSubfolder", "response: $response")
++
++        return response.run{
++            FolderInfo(
++                folderId = this.folderId,
++                folderName = this.folderName,
++                categoryId = this.categoryId,
++                categoryName = this.categoryName,
++                parentFolderId = this.parentFolderId,
++                createdAt = this.createdAt,
++                updatedAt = this.updatedAt,
++            )
++        }
++    }
++
++    // 하위 폴더 수정
++    override suspend fun updateSubfolder(
++        folderId: Long,
++        folderName: String
++    ): FolderInfo {
++        Log.d("updateSubfolder", "folderId: $folderId, folderName: $folderName")
++
++        val response = serverApi.withAuth(authPreference) {
++            updateSubfolder(folderId, FolderUpdateRequestDTO(folderName))
++        }
++
++        Log.d("updateSubfolder", "response: $response")
++
++        return response.run{
++            FolderInfo(
++                folderId = this.folderId,
++                folderName = this.folderName,
++                categoryId = this.categoryId,
++                categoryName = this.categoryName,
++                parentFolderId = this.parentFolderId,
++                createdAt = this.createdAt,
++                updatedAt = this.updatedAt,
++            )
++        }
++    }
++
++    // 하위 폴더 삭제 -> In Progress
++    override suspend fun deleteSubfolder(folderId: Long) {
++        Log.d("deleteSubfolder", "folderId: $folderId")
++
++        serverApi.withAuth(authPreference) {
++            deleteSubfolder(folderId)
++        }
++
++        Log.d("deleteSubfolder", "deleteSubfolder success")
++    }
++
++    // 공유 받은 폴더 목록 조회
++    override suspend fun getSharedFolders(): List<SharedFolderInfo> {
++        Log.d("getSharedFolders", "getSharedFolders")
++
++        val folderList = serverApi.withAuth(authPreference) {
++            getSharedFolders()
++        }
++
++        Log.d("getSharedFolders", "folderList: $folderList")
++
++        return folderList.map {
++            SharedFolderInfo(
++                folderId = it.folderId,
++                folderName = it.folderName,
++                categoryId = it.categoryId,
++                owner = it.owner.run {
++                    FolderOwner(
++                        userId = this.userId,
++                        nickname = this.nickname
++                    )
++                },
++                permission = when (it.permission) {
++                    "viewer" -> FolderPermission.VIEWER
++                    "writer" -> FolderPermission.WRITER
++                    "owner" -> FolderPermission.OWNER
++                    "none" -> FolderPermission.NONE
++                    else -> FolderPermission.NONE
++                }
++
++            )
++        }
++    }
++
++    // 공유 받은 폴더 삭제
++    override suspend fun deleteSharedFolder(folderId: Long) {
++        Log.d("deleteSharedFolder", "folderId: $folderId")
++
++        serverApi.withAuth(authPreference) {
++            deleteSharedFolder(folderId)
++        }
++
++        Log.d("deleteSharedFolder", "deleteSharedFolder success")
++    }
++
++    // 폴더 공유(뷰어 권한 설정)
++    override suspend fun setFolderViewerPermission(folderId: Long): SharedFolderSimpleInfo {
++        Log.d("setFolderViewerPermission", "folderId: $folderId")
++
++        val response = serverApi.withAuth(authPreference) {
++            setFolderViewerPermission(folderId)
++        }
++
++        Log.d("setFolderViewerPermission", "response: $response")
++
++        return response.run {
++            SharedFolderSimpleInfo(
++                folderId = this.folderId,
++                userId = this.userId,
++                permission = when (this.permission) {
++                    "viewer" -> FolderPermission.VIEWER
++                    "writer" -> FolderPermission.WRITER
++                    "owner" -> FolderPermission.OWNER
++                    "none" -> FolderPermission.NONE
++                    else -> FolderPermission.NONE
++                },
++                sharedAt = this.sharedAt
++            )
++        }
++    }
++
++    // 폴더 비공개 전환
++    override suspend fun setFolderPrivate(folderId: Long): SharedFolderSimpleInfo {
++        Log.d("setFolderPrivate", "folderId: $folderId")
++
++        val response = serverApi.withAuth(authPreference) {
++            setFolderPrivate(folderId)
++        }
++
++        Log.d("setFolderPrivate", "response: $response")
++
++        return response.run {
++            SharedFolderSimpleInfo(
++                folderId = this.folderId,
++                userId = this.userId,
++                permission = when (this.permission) {
++                    "viewer" -> FolderPermission.VIEWER
++                    "writer" -> FolderPermission.WRITER
++                    "owner" -> FolderPermission.OWNER
++                    "none" -> FolderPermission.NONE
++                    else -> FolderPermission.NONE
++                },
++                sharedAt = this.sharedAt
++            )
++        }
++    }
++
++//    // 폴더 뷰어 전체 조회
++//    override suspend fun getFolderViewers(folderId: Long): List<SharedFolderSimpleInfo> {
++//        Log.d("getFolderViewers", "folderId: $folderId")
+ //
+-//    // 7. 폴더 공유(뷰어 권한 설정)
+-//    override suspend fun setFolderViewerPermission(folderId: Long): ShareFolderResponseDTO =
+-//        serverApi.withAuth(authPreference) {
+-//            setFolderViewerPermission(folderId)
+-//        }
+-//
+-//    // 8. 폴더 뷰어 전체 조회
+-//    override suspend fun getFolderViewers(folderId: Long): List<ViewerResponseDTO> =
+-//        serverApi.withAuth(authPreference) {
++//        val response = serverApi.withAuth(authPreference) {
+ //            getFolderViewers(folderId)
+ //        }
+ //
+-//    // 9. 뷰어 권한 수정
++//        Log.d("getFolderViewers", "response: $response")
++//
++//        return response.map{
++//            SharedFolderSimpleInfo(
++//                folderId = it.folderId,
++//                userId = it.userId,
++//                permission = when (this.permission) {
++//                    "viewer" -> FolderPermission.VIEWER
++//                    "writer" -> FolderPermission.WRITER
++//                    "owner" -> FolderPermission.OWNER
++//                    "none" -> FolderPermission.NONE
++//                    else -> FolderPermission.NONE
++//                },
++//                sharedAt = ""   // <- 추후 수정
++//            )
++//        }
++//    }
++
++//    // 뷰어 권한 수정
+ //    override suspend fun updateViewerPermission(
+ //        folderId: Long,
+ //        userFolderId: Long,
+Index: feature/file/src/main/java/com/example/file/viewmodel/EditStateViewModel.kt
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/viewmodel/EditStateViewModel.kt b/feature/file/src/main/java/com/example/file/viewmodel/EditStateViewModel.kt
+deleted file mode 100644
+--- a/feature/file/src/main/java/com/example/file/viewmodel/EditStateViewModel.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ /dev/null	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
+@@ -1,15 +0,0 @@
+-package com.example.file.viewmodel
+-
+-import androidx.compose.runtime.getValue
+-import androidx.compose.runtime.mutableStateOf
+-import androidx.compose.runtime.setValue
+-import androidx.lifecycle.ViewModel
+-
+-class EditStateViewModel : ViewModel(){
+-    var isEditMode by mutableStateOf(false)
+-        private set
+-
+-    fun updateEditMode(value: Boolean) {
+-        isEditMode = value
+-    }
+-}
+\ No newline at end of file
+Index: feature/file/src/main/java/com/example/file/FileViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/FileViewModel.kt b/feature/file/src/main/java/com/example/file/FileViewModel.kt
+deleted file mode 100644
+--- a/feature/file/src/main/java/com/example/file/FileViewModel.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ /dev/null	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
+@@ -1,126 +0,0 @@
+-package com.example.file
+-
+-import android.util.Log
+-import androidx.lifecycle.ViewModel
+-import androidx.lifecycle.viewModelScope
+-import com.example.core.model.CategorySimpleInfo
+-import com.example.core.model.FolderSimpleInfo
+-import com.example.core.model.LinkSimpleInfo
+-import com.example.core.repository.CategoryRepository
+-import com.example.core.repository.FolderRepository
+-import com.example.data.api.dto.server.*
+-import dagger.hilt.android.lifecycle.HiltViewModel
+-import kotlinx.coroutines.flow.*
+-import kotlinx.coroutines.launch
+-import javax.inject.Inject
+-
+-@HiltViewModel
+-class FileViewModel @Inject constructor(
+-    private val categoryRepository: CategoryRepository,
+-    private val folderRepository: FolderRepository,
+-) : ViewModel() {
+-
+-    // 1. 카테고리 리스트
+-    private val _categoryList = MutableStateFlow<List<CategorySimpleInfo>>(emptyList())
+-    val categoryList: StateFlow<List<CategorySimpleInfo>> = _categoryList.asStateFlow()
+-
+-    // 2. 내 폴더 트리
+-    private val _folderTree = MutableStateFlow<List<FolderTreeResponseDTO>>(emptyList())
+-    val folderTree: StateFlow<List<FolderTreeResponseDTO>> = _folderTree.asStateFlow()
+-
+-    // 3. 상위 폴더 리스트
+-    private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+-    val parentFolders: StateFlow<List<FolderSimpleInfo>> = _parentFolders.asStateFlow()
+-
+-    // 4. 하위 폴더 리스트
+-    private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+-    val subFolders: StateFlow<List<FolderSimpleInfo>> = _subFolders.asStateFlow()
+-
+-    // 5. 링크 리스트
+-    private val _links = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
+-    val links: StateFlow<List<LinkSimpleInfo>> = _links.asStateFlow()
+-
+-    // 6. 로딩/에러 상태 예시 (원하면 커스텀하게)
+-    private val _loading = MutableStateFlow(false)
+-    val loading: StateFlow<Boolean> = _loading.asStateFlow()
+-
+-    private val _errorMessage = MutableStateFlow<String?>(null)
+-    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+-
+-    // ------------- 주요 함수 -------------
+-
+-    // 카테고리 전체 불러오기
+-    fun getCategoryLisy() {
+-        Log.d("fetchCategories", "fetchCategories")
+-
+-        viewModelScope.launch {
+-            Log.d("fetchCategories", "fetchCategories launch")
+-
+-            _loading.value = true
+-            _errorMessage.value = null
+-
+-            try {
+-                Log.d("fetchCategories", "fetchCategories try")
+-
+-                val result = categoryRepository.getCategoryList()
+-
+-                Log.d("fetchCategories", "fetchCategories try result: $result")
+-
+-                _categoryList.value = result
+-
+-            } catch (e: Exception) {
+-                Log.d("fetchCategories", "fetchCategories catch: $e.message")
+-
+-                _errorMessage.value = e.message
+-
+-            } finally {
+-                Log.d("fetchCategories", "fetchCategories finally")
+-
+-                _loading.value = false
+-
+-            }
+-
+-            Log.d("fetchCategories", "fetchCategories end")
+-        }
+-        Log.d("fetchCategories", "fetchCategories return")
+-    }
+-
+-    // 북마크 등록/해제
+-    fun updateBookmark(
+-        folderId: Long,
+-        isBookmarked: Boolean
+-    ): Boolean {
+-        Log.d("updateBookmark", "updateBookmark")
+-
+-        var result = isBookmarked
+-
+-        viewModelScope.launch {
+-            Log.d("updateBookmark", "updateBookmark launch")
+-
+-            _loading.value = true
+-            _errorMessage.value = null
+-
+-            try {
+-                Log.d("updateBookmark", "updateBookmark try")
+-
+-                result = folderRepository.updateBookmark(folderId, isBookmarked)
+-
+-                Log.d("updateBookmark", "updateBookmark try result: $result")
+-
+-            } catch (e: Exception) {
+-                Log.d("updateBookmark", "updateBookmark catch: $e.message")
+-
+-                _errorMessage.value = e.message
+-            }finally {
+-                Log.d("updateBookmark", "updateBookmark finally")
+-
+-                _loading.value = false
+-            }
+-
+-            Log.d("updateBookmark", "updateBookmark end")
+-        }
+-        Log.d("updateBookmark", "updateBookmark return")
+-
+-        return result
+-    }
+-}
+Index: feature/file/src/main/java/com/example/file/ui/item/FolderItemLayout.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// 폴더 단위의 레이아웃\r\n\r\npackage com.example.file.ui.item\r\n\r\nimport androidx.compose.foundation.Image\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.PaddingValues\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.offset\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.layout.width\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material3.Surface\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.draw.drawWithCache\r\nimport androidx.compose.ui.draw.rotate\r\nimport androidx.compose.ui.draw.shadow\r\nimport androidx.compose.ui.graphics.BlendMode\r\nimport androidx.compose.ui.graphics.Brush\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.graphics.graphicsLayer\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.Dp\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.file.FileViewModel\r\nimport com.example.file.R\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.ui.content.BookMarkStar\r\nimport com.example.file.ui.content.PencilIcon\r\nimport com.example.file.viewmodel.EditStateViewModel\r\nimport com.example.file.ui.theme.Black\r\nimport com.example.file.ui.theme.CategoryColorStyle\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.Gray100\r\nimport com.example.file.ui.theme.Gray200\r\nimport com.example.file.ui.theme.Gray300\r\nimport com.example.file.ui.theme.Gray500\r\nimport com.example.file.ui.theme.White\r\n\r\n@Composable\r\nfun FolderItemLayout(\r\n    backgroundColor: Color,\r\n    color1: Color,\r\n    color2: Color,\r\n    color3: Color,\r\n    folderMaskBrush: Brush,\r\n    leftIcon: @Composable () -> Unit,\r\n    rightIcon: @Composable () -> Unit,\r\n    textBackgroundColor: Color,\r\n    categoryName: String = \"\",\r\n) {\r\n\r\n    @Composable\r\n    fun FolderLayerBox(\r\n        color: Color,\r\n        size: Dp,\r\n        height: Dp = size,\r\n        padding: PaddingValues = PaddingValues(0.dp),\r\n        rotation: Float = 0f,\r\n    ) {\r\n        Surface(\r\n            modifier = Modifier\r\n                .padding(padding)\r\n                .rotate(rotation)\r\n                .width(size)\r\n                .height(height)\r\n                .shadow(\r\n                    elevation = 4.dp,\r\n                    ambientColor = Color.Black.copy(alpha = 0.5f), // 그림자 강도 조절!\r\n                    spotColor = Color.Black.copy(alpha = 0.5f),\r\n                    shape = RoundedCornerShape(18.dp)\r\n                ),\r\n            shape = RoundedCornerShape(18.dp),\r\n            color = color,\r\n        ) {}\r\n    }\r\n\r\n    Surface(\r\n        modifier = Modifier\r\n            .width(165.3.dp)\r\n            .height(145.8535.dp),\r\n        shape = RoundedCornerShape(28.5.dp),\r\n        color = backgroundColor,\r\n        shadowElevation = 3.8.dp\r\n    ) {\r\n        Box(\r\n            Modifier.fillMaxSize(),\r\n            contentAlignment = Alignment.Center\r\n        ) {\r\n            FolderLayerBox(\r\n                color = color1,\r\n                size = 105.45.dp,\r\n                padding = PaddingValues(bottom = 5.7.dp),\r\n                rotation = -7.39f\r\n            )\r\n            FolderLayerBox(\r\n                color = color2,\r\n                size = 105.45.dp,\r\n                padding = PaddingValues(bottom = 3.1825.dp),\r\n                rotation = 4.86f\r\n            )\r\n            FolderLayerBox(\r\n                color = color3,\r\n                size = 126.407.dp,\r\n                height = 107.9605.dp,\r\n                padding = PaddingValues(top = 7.6.dp),\r\n                rotation = 0f\r\n            )\r\n\r\n            Box(\r\n                Modifier\r\n                    .fillMaxWidth()\r\n                    .align(Alignment.BottomCenter)\r\n            ) {\r\n                Image(\r\n                    painter = painterResource(R.drawable.folder_mask),\r\n                    contentDescription = null,\r\n                    modifier = Modifier\r\n                        .fillMaxWidth()\r\n                        .align(Alignment.BottomCenter)\r\n                        .graphicsLayer(alpha = 0.99f)\r\n                        .drawWithCache {\r\n                            onDrawWithContent {\r\n                                drawContent()\r\n                                drawRect(folderMaskBrush, blendMode = BlendMode.SrcAtop)\r\n                            }\r\n                        }\r\n                        .shadow(\r\n                            elevation = 9.5.dp,\r\n                            ambientColor = Color.Black.copy(alpha = 0.5f),\r\n                            spotColor = Color.Black.copy(alpha = 0.5f),\r\n                        )\r\n                )\r\n\r\n                Box(\r\n                    modifier = Modifier\r\n                        .align(Alignment.TopStart)\r\n                        .padding(top = 12.5495.dp, start = 19.95.dp)\r\n                ) {\r\n                    leftIcon()\r\n                }\r\n\r\n                Box(\r\n                    modifier = Modifier\r\n                        .align(Alignment.TopEnd)\r\n                        .padding(top = 25.8685.dp, end = 19.dp)\r\n                ) {\r\n                    rightIcon()\r\n                }\r\n\r\n                if(categoryName.isNotEmpty()){\r\n                    Row(\r\n                        modifier = Modifier\r\n                            .align(Alignment.BottomStart)\r\n                            .offset(x = 17.499.dp, y = (-17.499).dp),\r\n                        verticalAlignment = Alignment.CenterVertically,\r\n                        horizontalArrangement = Arrangement.spacedBy(7.7805.dp)\r\n                    ) {\r\n                        Box(\r\n                            modifier = Modifier\r\n                                .size(29.1745.dp)\r\n                                .clip(CircleShape)\r\n                                .background(color = textBackgroundColor),\r\n                            contentAlignment = Alignment.Center\r\n                        ) {\r\n                            Text(\r\n                                text = categoryName.first().toString(),\r\n                                fontSize = 15.sp,\r\n                                fontFamily = DefaultFont,\r\n                                fontWeight = FontWeight.Bold,\r\n                                color = White,\r\n                            )\r\n                        }\r\n\r\n                        Text(\r\n                            text = categoryName,\r\n                            fontSize = 15.sp,\r\n                            fontFamily = DefaultFont,\r\n                            fontWeight = FontWeight.Medium,\r\n                            color = Black,\r\n                        )\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\nval topFolderMaskBrush = Brush.verticalGradient(\r\n    colorStops = arrayOf(\r\n        1.0f to Gray100.copy(alpha = 0.7f),\r\n        0.2f to Gray200.copy(alpha = 1.0f),\r\n    )\r\n)\r\n\r\n@Composable\r\nfun EmptyFolderItemLayout(\r\n    categoryName: String = \"\"\r\n){\r\n    FolderItemLayout(\r\n        backgroundColor = Gray200,\r\n        color1 = Gray300,\r\n        color2 = Gray200,\r\n        color3 = White,\r\n        folderMaskBrush = topFolderMaskBrush,\r\n        leftIcon = {},\r\n        rightIcon = {},\r\n        textBackgroundColor = Gray500,\r\n        categoryName = categoryName\r\n    )\r\n}\r\n\r\n@Composable\r\nfun TopFolderItemLayout(\r\n    categoryColorStyle: CategoryColorStyle,\r\n    categoryName: String = \"\",\r\n    isBookmarked: Boolean = false,\r\n    fileViewModel: FileViewModel,\r\n    editStateViewModel: EditStateViewModel,\r\n    onClick: () -> Unit\r\n){\r\n    FolderItemLayout(\r\n        backgroundColor = Gray200,\r\n        color1 = categoryColorStyle.color3,\r\n        color2 = categoryColorStyle.color2,\r\n        color3 = categoryColorStyle.color1,\r\n        folderMaskBrush = topFolderMaskBrush,\r\n        leftIcon = {},\r\n        rightIcon = {\r\n            if(editStateViewModel.isEditMode){\r\n                Box(\r\n                    modifier = Modifier\r\n                ) {\r\n                    PencilIcon(categoryColorStyle.color2)\r\n                }\r\n            }else {\r\n                Box(\r\n                    modifier = Modifier\r\n                        .noRippleClickable {\r\n                            onClick()\r\n                        }\r\n                ) {\r\n                    BookMarkStar(isBookmarked)\r\n                }\r\n            }\r\n        },\r\n        textBackgroundColor = categoryColorStyle.color4,\r\n        categoryName = categoryName\r\n    )\r\n}\r\n\r\n@Composable\r\nfun BottomFolderItemLayout(\r\n    categoryColorStyle: CategoryColorStyle,\r\n    categoryName: String,\r\n    editStateViewModel: EditStateViewModel\r\n){\r\n    FolderItemLayout(\r\n        backgroundColor = categoryColorStyle.color1,\r\n        color1 = categoryColorStyle.color2,\r\n        color2 = categoryColorStyle.color1,\r\n        color3 = White,\r\n        folderMaskBrush = categoryColorStyle.verticalGradient(),\r\n        leftIcon = {},\r\n        rightIcon = {\r\n            if(editStateViewModel.isEditMode){\r\n                Box(\r\n                    modifier = Modifier\r\n                ) {\r\n                    PencilIcon(categoryColorStyle.color2)\r\n                }\r\n            }\r\n        },\r\n        textBackgroundColor = categoryColorStyle.color4,\r\n        categoryName = categoryName\r\n    )\r\n}\r\n\r\n@Preview(showBackground = true)\r\n@Composable\r\nfun FolderItemTest() {\r\n    Column{\r\n        EmptyFolderItemLayout()\r\n        TopFolderItemLayout(\r\n            categoryColorStyle = CategoryColorStyle.categoryStyleList[0],\r\n            categoryName = \"기본\",\r\n            fileViewModel = viewModel(),\r\n            editStateViewModel = viewModel()\r\n        ){}\r\n        BottomFolderItemLayout(\r\n            categoryColorStyle = CategoryColorStyle.categoryStyleList[0],\r\n            categoryName = \"기본\",\r\n            editStateViewModel = viewModel()\r\n        )\r\n    }\r\n}\r\n\r\n
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/item/FolderItemLayout.kt b/feature/file/src/main/java/com/example/file/ui/item/FolderItemLayout.kt
+--- a/feature/file/src/main/java/com/example/file/ui/item/FolderItemLayout.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/item/FolderItemLayout.kt	(date 1754383473000)
+@@ -43,7 +43,7 @@
+ import com.example.file.modifier.noRippleClickable
+ import com.example.file.ui.content.BookMarkStar
+ import com.example.file.ui.content.PencilIcon
+-import com.example.file.viewmodel.EditStateViewModel
++import com.example.file.viewmodel.edit.state.EditStateViewModel
+ import com.example.file.ui.theme.Black
+ import com.example.file.ui.theme.CategoryColorStyle
+ import com.example.file.ui.theme.DefaultFont
+Index: feature/file/src/main/java/com/example/file/ui/content/BottomFolderGrid.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.content\r\n\r\nimport androidx.compose.foundation.ExperimentalFoundationApi\r\nimport androidx.compose.foundation.Image\r\nimport androidx.compose.foundation.combinedClickable\r\nimport androidx.compose.foundation.interaction.MutableInteractionSource\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextAlign\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.cheonjaeung.compose.grid.SimpleGridCells\r\nimport com.cheonjaeung.compose.grid.VerticalGrid\r\nimport com.example.file.R\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.ui.FileModalWindow\r\nimport com.example.file.ui.item.BottomFolderItemLayout\r\nimport com.example.file.ui.item.EmptyFolderItemLayout\r\nimport com.example.file.ui.item.LinkItemLayout\r\nimport com.example.file.viewmodel.EditStateViewModel\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.Black\r\nimport com.example.file.ui.theme.CategoryColorStyle\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.Gray600\r\n\r\n@OptIn(ExperimentalFoundationApi::class)\r\n@Composable\r\nfun BottomFolderGrid(\r\n    folderList: List<String>,\r\n    linkList: List<String>,\r\n    editStateViewModel: EditStateViewModel,\r\n    folderStateViewModel: FolderStateViewModel,\r\n    onFolderAdd: () -> Unit,\r\n    onFolderClick: (String) -> Unit\r\n){\r\n    var visible by remember { mutableStateOf(false) }\r\n    val interactionSource = remember { MutableInteractionSource() }\r\n\r\n    Column {\r\n        // Folder Grid\r\n        VerticalGrid(\r\n            modifier = Modifier\r\n                .fillMaxWidth(),\r\n            columns = SimpleGridCells.Fixed(2),\r\n            horizontalArrangement = Arrangement.SpaceBetween,\r\n            verticalArrangement = Arrangement.spacedBy(18.51.dp),\r\n        ) {\r\n            Box(\r\n                modifier = Modifier\r\n                    .fillMaxWidth(),\r\n                contentAlignment = Alignment.TopStart\r\n            ) {\r\n                Box(\r\n                    modifier = Modifier\r\n                        .noRippleClickable{\r\n                            onFolderAdd()\r\n                        },\r\n                    contentAlignment = Alignment.Center\r\n                ) {\r\n                    EmptyFolderItemLayout()\r\n\r\n                    Image(\r\n                        modifier = Modifier.padding(top = 71.dp),\r\n                        painter = painterResource(R.drawable.add_folder_icon),\r\n                        contentDescription = null\r\n                    )\r\n\r\n                    Text(\r\n                        text = \"폴더 추가하기\",\r\n                        fontSize = 15.sp,\r\n                        fontFamily = DefaultFont,\r\n                        fontWeight = FontWeight(500),\r\n                        color = Black,\r\n                        textAlign = TextAlign.Center,\r\n                    )\r\n                }\r\n            }\r\n            // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!\r\n            for((i, folder) in folderList.withIndex()) {\r\n                Box(\r\n                    modifier = Modifier\r\n                        .fillMaxWidth()\r\n                        .combinedClickable(\r\n                            indication = null,\r\n                            interactionSource = interactionSource,\r\n                            onClick = {\r\n                                onFolderClick(folder)\r\n                            },\r\n                            onLongClick = {\r\n                                visible = true\r\n                            }\r\n                        ),\r\n                    contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd\r\n                ) {\r\n                    BottomFolderItemLayout(\r\n                        categoryColorStyle = CategoryColorStyle.categoryStyleList[0],\r\n                        categoryName = folder,\r\n                        editStateViewModel = editStateViewModel\r\n                    )\r\n                }\r\n            }\r\n        }\r\n\r\n\r\n        // \"분류되지 않은 링크\" 텍스트\r\n        Text(\r\n            text = \"분류되지 않은 링크\",\r\n            fontSize = 20.sp,\r\n            lineHeight = 30.sp,\r\n            fontFamily = DefaultFont,\r\n            fontWeight = FontWeight(700),\r\n            color = Black,\r\n            modifier = Modifier.padding(top = 40.dp, bottom = 20.dp) // 위아래 간격 추가\r\n        )\r\n\r\n\r\n        // Link Grid\r\n        VerticalGrid(\r\n            modifier = Modifier\r\n                .fillMaxWidth(),\r\n            columns = SimpleGridCells.Fixed(2),\r\n            horizontalArrangement = Arrangement.spacedBy(9.dp),\r\n            verticalArrangement = Arrangement.spacedBy(18.51.dp)\r\n        ) {\r\n            // items 람다 안에 file을 넘겨줘야 LinkItemLayout에서 사용할 수 있어!\r\n            for((i, link) in linkList.withIndex()){\r\n                Box(\r\n                    modifier = Modifier\r\n                        .fillMaxWidth(),\r\n                    contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd\r\n                ) {\r\n                    LinkItemLayout(\r\n                        title = link\r\n                    )\r\n                }\r\n            }\r\n        }\r\n    }\r\n\r\n    FileModalWindow(\r\n        visible = visible,\r\n        onDismiss = {visible = false},\r\n        positiveText = \"삭제하기\",\r\n        negativeText = \"취소하기\",\r\n        title = \"해당 폴더를 삭제하시겠습니까?\"\r\n    ) {\r\n        Text(\r\n            text = \"삭제 시 폴더 내 모든 링크가 영구적으로\\n제거되며 복구가 불가능합니다.\",\r\n            fontSize = 15.sp,\r\n            lineHeight = 22.sp,\r\n            fontFamily = DefaultFont,\r\n            fontWeight = FontWeight(400),\r\n            color = Gray600,\r\n            textAlign = TextAlign.Center,\r\n        )\r\n    }\r\n}\r\n\r\n@Preview(showBackground = true)\r\n@Composable\r\nprivate fun BottomFolderGridTest(){\r\n    BottomFolderGrid(\r\n        listOf(\"카테고리 1\",\"카테고리 2\",\"카테고리 3\",\"카테고리 4\",\"카테고리 5\"),\r\n        listOf(\"태그1\", \"태그2\"),\r\n        editStateViewModel = viewModel(),\r\n        folderStateViewModel = viewModel(),\r\n        {},\r\n        {}\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/content/BottomFolderGrid.kt b/feature/file/src/main/java/com/example/file/ui/content/BottomFolderGrid.kt
+--- a/feature/file/src/main/java/com/example/file/ui/content/BottomFolderGrid.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/content/BottomFolderGrid.kt	(date 1754383472960)
+@@ -32,8 +32,8 @@
+ import com.example.file.ui.item.BottomFolderItemLayout
+ import com.example.file.ui.item.EmptyFolderItemLayout
+ import com.example.file.ui.item.LinkItemLayout
+-import com.example.file.viewmodel.EditStateViewModel
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.edit.state.EditStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.Black
+ import com.example.file.ui.theme.CategoryColorStyle
+ import com.example.file.ui.theme.DefaultFont
+Index: data/src/main/java/com/example/data/api/dto/server/FolderListResponseDTO.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.data.api.dto.server\r\n\r\nimport com.squareup.moshi.Json\r\n\r\ndata class FolderListResponseDTO(\r\n\r\n    @Json(name = \"folderId\")\r\n    val folderId: Long,\r\n\r\n    @Json(name = \"folderName\")\r\n    val folderName: String,\r\n\r\n    @Json(name = \"parentFolderId\")\r\n    val parentFolderId: Long\r\n\r\n)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/data/src/main/java/com/example/data/api/dto/server/FolderListResponseDTO.kt b/data/src/main/java/com/example/data/api/dto/server/FolderListResponseDTO.kt
+--- a/data/src/main/java/com/example/data/api/dto/server/FolderListResponseDTO.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/data/src/main/java/com/example/data/api/dto/server/FolderListResponseDTO.kt	(date 1754388397456)
+@@ -2,6 +2,7 @@
+ 
+ import com.squareup.moshi.Json
+ 
++// com.example.core.model.FolderSimpleInfo -> FolderListResponseDTO
+ data class FolderListResponseDTO(
+ 
+     @Json(name = "folderId")
+Index: feature/file/src/main/java/com/example/file/ui/content/LinksGrid.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.content\r\n\r\nimport androidx.compose.foundation.Image\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.alpha\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextAlign\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.cheonjaeung.compose.grid.SimpleGridCells\r\nimport com.cheonjaeung.compose.grid.VerticalGrid\r\nimport com.example.file.R\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.ui.item.LinkItemLayout\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.Black\r\nimport com.example.file.ui.theme.DefaultFont\r\n\r\n@Composable\r\nfun LinksGrid(\r\n    folderStateViewModel: FolderStateViewModel,\r\n    linkList: List<String>\r\n){\r\n    VerticalGrid(\r\n        modifier = Modifier\r\n            .fillMaxWidth(),\r\n        columns = SimpleGridCells.Fixed(2),\r\n        horizontalArrangement = Arrangement.spacedBy(9.dp),\r\n        verticalArrangement = Arrangement.spacedBy(18.51.dp),\r\n    ) {\r\n        Box(\r\n            modifier = Modifier\r\n                .fillMaxWidth(),\r\n            contentAlignment = Alignment.TopStart\r\n        ) {\r\n            Box(\r\n                modifier = Modifier\r\n                    .noRippleClickable {\r\n                        folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)\r\n                    },\r\n                contentAlignment = Alignment.TopCenter\r\n            ) {\r\n                Box(\r\n                    modifier = Modifier.alpha(1f),\r\n                ) {\r\n                    LinkItemLayout(\r\n                        painter = null,\r\n                        tags = listOf(\"태그1\", \"태그2\"),\r\n                    )\r\n                }\r\n\r\n                Image(\r\n                    modifier = Modifier.padding(top = 103.dp),\r\n                    painter = painterResource(R.drawable.add_folder_icon),\r\n                    contentDescription = null\r\n                )\r\n\r\n                Text(\r\n                    modifier = Modifier.padding(top = 147.dp),\r\n                    text = \"링크 추가하기\",\r\n                    fontSize = 15.sp,\r\n                    fontFamily = DefaultFont,\r\n                    fontWeight = FontWeight(500),\r\n                    color = Black,\r\n                    textAlign = TextAlign.Center,\r\n                )\r\n            }\r\n        }\r\n\r\n\r\n        // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!\r\n        for((i, link) in linkList.withIndex()) {\r\n            Box(\r\n                modifier = Modifier\r\n                    .fillMaxWidth(),\r\n                contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd\r\n            ) {\r\n                LinkItemLayout(\r\n                    title = link\r\n                )\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Preview(showBackground = true)\r\n@Composable\r\nprivate fun LinksGridTest(){\r\n    LinksGrid(\r\n        viewModel(),\r\n        listOf(\"나의 폴더\", \"공유받은 폴더\")\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/content/LinksGrid.kt b/feature/file/src/main/java/com/example/file/ui/content/LinksGrid.kt
+--- a/feature/file/src/main/java/com/example/file/ui/content/LinksGrid.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/content/LinksGrid.kt	(date 1754383473023)
+@@ -22,7 +22,7 @@
+ import com.example.file.R
+ import com.example.file.modifier.noRippleClickable
+ import com.example.file.ui.item.LinkItemLayout
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.Black
+ import com.example.file.ui.theme.DefaultFont
+ 
+Index: feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListMenu.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.top.bar.component\r\n\r\nimport androidx.compose.foundation.layout.width\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.filled.Check\r\nimport androidx.compose.material3.DropdownMenu\r\nimport androidx.compose.material3.DropdownMenuItem\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.drawWithCache\r\nimport androidx.compose.ui.graphics.BlendMode\r\nimport androidx.compose.ui.graphics.Brush\r\nimport androidx.compose.ui.graphics.graphicsLayer\r\nimport androidx.compose.ui.text.SpanStyle\r\nimport androidx.compose.ui.text.buildAnnotatedString\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.withStyle\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.DpOffset\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.Black\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.MainColor\r\nimport com.example.file.ui.theme.White\r\n\r\n@Composable\r\nfun TopFolderListMenu(\r\n    folderStateViewModel: FolderStateViewModel,\r\n    items: List<String>,\r\n    onChangeFolder: () -> Unit\r\n){\r\n    DropdownMenu(\r\n        modifier = Modifier\r\n            .width(150.dp),\r\n        shape = RoundedCornerShape(18.dp),\r\n        offset = DpOffset(0.dp, 10.dp),\r\n        expanded = folderStateViewModel.topMenuExpanded,\r\n        onDismissRequest = { folderStateViewModel.updateTopMenuExpanded(false) },\r\n        containerColor = White\r\n    ) {\r\n        var selectedText = remember { mutableStateOf(items[0]) }\r\n        items.forEach{ selectedOption ->\r\n            DropdownMenuItem(\r\n                leadingIcon = if (selectedOption == selectedText.value){\r\n                    @Composable\r\n                    {\r\n                        Icon(\r\n                            imageVector = Icons.Default.Check,\r\n                            contentDescription = null,\r\n                            modifier = Modifier\r\n                                .graphicsLayer(alpha = 0.99f) // 강제 레이어\r\n                                .drawWithCache {\r\n                                    onDrawWithContent {\r\n                                        drawContent() // 기본 아이콘 먼저 그림\r\n                                        drawRect(\r\n                                            MainColor,\r\n                                            blendMode = BlendMode.SrcAtop // 아이콘 영역만 그라데이션 입힘!\r\n                                        )\r\n                                    }\r\n                                }\r\n                        )\r\n                    }\r\n                }else null,\r\n                text = {\r\n                    Text(\r\n                        text = buildAnnotatedString {\r\n                            withStyle(\r\n                                SpanStyle(\r\n                                    // 폰트 크기 (15sp)\r\n                                    fontSize = 15.sp,\r\n\r\n                                    // 사용할 폰트 (paperlogy 폰트)\r\n                                    fontFamily = DefaultFont,\r\n\r\n                                    // 폰트 굵기 (500)\r\n                                    fontWeight = FontWeight(500),\r\n\r\n                                    // 텍스트 그라데이션 색상(링큐 메인 색상)\r\n                                    brush = if (selectedOption == selectedText.value) MainColor\r\n                                    else Brush.horizontalGradient(listOf(Black, Black))\r\n                                )\r\n                            ) {\r\n                                // 실제 표시할 텍스트\r\n                                append(selectedOption)\r\n                            }\r\n                        },\r\n                        lineHeight = 22.sp,\r\n                    )\r\n                },\r\n                onClick = {\r\n                    selectedText.value = selectedOption\r\n                    onChangeFolder()\r\n                }\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Preview()\r\n@Composable\r\nfun FolderListMenuTest(){\r\n    val folderStateViewModel: FolderStateViewModel = viewModel()\r\n    TopFolderListMenu(\r\n        folderStateViewModel = folderStateViewModel,\r\n        listOf(\"나의 폴더\", \"공유받은 폴더\"),\r\n        {}\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListMenu.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListMenu.kt
+--- a/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListMenu.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/component/TopFolderListMenu.kt	(date 1754383473050)
+@@ -25,7 +25,7 @@
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+ import androidx.lifecycle.viewmodel.compose.viewModel
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.Black
+ import com.example.file.ui.theme.DefaultFont
+ import com.example.file.ui.theme.MainColor
+Index: feature/file/src/main/java/com/example/file/FileScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file\r\n\r\nimport android.util.Log\r\nimport androidx.activity.compose.BackHandler\r\nimport androidx.compose.foundation.Image\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.PaddingValues\r\nimport androidx.compose.foundation.layout.fillMaxSize\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.lazy.LazyColumn\r\nimport androidx.compose.material3.Scaffold\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.LaunchedEffect\r\nimport androidx.compose.runtime.collectAsState\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.graphics.Color\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.design.BottomNavigationBar\r\nimport com.example.design.NavigationItem\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet\r\nimport com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet\r\nimport com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet\r\nimport com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet\r\nimport com.example.file.ui.content.BottomFolderGrid\r\nimport com.example.file.ui.content.LinksGrid\r\nimport com.example.file.ui.content.TopFolderGrid\r\nimport com.example.file.viewmodel.EditStateViewModel\r\nimport com.example.file.viewmodel.FolderState\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.White\r\nimport com.example.file.ui.top.bar.FileTopBar\r\nimport com.example.file.ui.top.bar.component.ShareButton\r\nimport com.example.file.ui.top.sheet.FileSearchBarTopSheet\r\nimport androidx.hilt.navigation.compose.hiltViewModel\r\nimport com.example.file.ui.theme.MainColor\r\n\r\n@Composable\r\nfun FileScreen(\r\n    fileViewModel: FileViewModel = hiltViewModel(),\r\n    editStateViewModel:EditStateViewModel = viewModel(),\r\n    folderStateViewModel: FolderStateViewModel = viewModel()\r\n) {\r\n    Log.d(\"FileScreen\", \"FileScreen\")\r\n    // 한 번만 데이터 로딩 (최초 진입 시)\r\n    LaunchedEffect(Unit) {\r\n        Log.d(\"FileScreen\", \"LaunchedEffect\")\r\n        fileViewModel.getCategoryLisy()\r\n    }\r\n\r\n    Log.d(\"FileScreen\", \"FileScreen\")\r\n\r\n    // 뒤로가기 핸들러\r\n    BackHandler(enabled = folderStateViewModel.currentFolderState != FolderState.TOP) {\r\n        editStateViewModel.updateEditMode(false)\r\n        when (folderStateViewModel.currentFolderState) {\r\n            FolderState.LINK -> {\r\n                folderStateViewModel.updateFolderState(FolderState.BOTTOM)\r\n                folderStateViewModel.updateSelectedBottomFolder(null)\r\n            }\r\n            FolderState.BOTTOM -> {\r\n                folderStateViewModel.updateFolderState(FolderState.TOP)\r\n                folderStateViewModel.updateSelectedTopFolder(null)\r\n            }\r\n            else -> {}\r\n        }\r\n    }\r\n\r\n    Scaffold (\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .noRippleClickable { },\r\n        containerColor = White,\r\n        topBar = {\r\n            FileTopBar(\r\n                fileViewModel = fileViewModel,\r\n                editStateViewModel = editStateViewModel,\r\n                folderStateViewModel = folderStateViewModel\r\n            )},\r\n        bottomBar = { BottomNavigationBar(\r\n            selectedTab = NavigationItem.FILE,\r\n            onTabSelected = {},\r\n            onFabClick = {}\r\n        ) }\r\n    ){ innerPadding ->\r\n\r\n        Box(\r\n            modifier = Modifier\r\n                .fillMaxSize()\r\n                .padding(innerPadding)\r\n        ) {\r\n            LazyColumn(\r\n                modifier = Modifier.fillMaxWidth(),\r\n                contentPadding = PaddingValues(20.dp)\r\n            ) {\r\n                item {\r\n                    when(folderStateViewModel.currentFolderState) {\r\n                        FolderState.TOP -> {\r\n                            TopFolderGrid(\r\n                                fileViewModel = fileViewModel,\r\n                                folderStateViewModel = folderStateViewModel,\r\n                                editStateViewModel = editStateViewModel,\r\n                                onFolderEdit = {\r\n                                    folderStateViewModel.upadateTopFolderEditBottomSheetVisible(true)\r\n                                }\r\n                            )\r\n                        }\r\n                        FolderState.BOTTOM -> {\r\n                            BottomFolderGrid(\r\n                                folderList = listOf(\"나의 폴더\", \"공유받은 폴더\"), // 실제 폴더 데이터로\r\n                                linkList = listOf(\"링크1\", \"링크2\"),\r\n                                editStateViewModel = editStateViewModel,\r\n                                folderStateViewModel = folderStateViewModel,\r\n                                onFolderAdd = {\r\n                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)\r\n                                },\r\n                                onFolderClick = {folder ->\r\n                                    folderStateViewModel.updateSelectedBottomFolder(folder)\r\n                                    if(editStateViewModel.isEditMode){\r\n                                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)\r\n                                    }else{\r\n                                        folderStateViewModel.updateFolderState(FolderState.LINK)\r\n                                    }\r\n                                }\r\n                            )\r\n                        }\r\n                        FolderState.LINK -> {\r\n                            LinksGrid(\r\n                                folderStateViewModel = folderStateViewModel,\r\n                                linkList = listOf(\"링크1\", \"링크2\", \"링크3\")\r\n                            )\r\n                        }\r\n                    }\r\n                }\r\n            }\r\n\r\n            Box(\r\n                modifier = Modifier\r\n                    .align(Alignment.BottomEnd)\r\n                    .padding(end = 19.dp, bottom = 8.dp)\r\n            ) {\r\n                ShareButton()\r\n            }\r\n        }\r\n\r\n        if (\r\n            folderStateViewModel.topMenuExpanded ||\r\n            folderStateViewModel.bottomMenuExpanded\r\n        ) {\r\n            Box(\r\n                modifier = Modifier\r\n                    .fillMaxSize()\r\n                    .background(Color.Black.copy(alpha = 0.3f))\r\n            )\r\n        }\r\n    }\r\n\r\n    // 검색창 탑 시트\r\n    FileSearchBarTopSheet(\r\n        visible = folderStateViewModel.searchTopSheetVisible,\r\n        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) }\r\n    )\r\n\r\n    // 중분류 폴더 수정 바텀 시트\r\n    TopFolderEditBottomSheet(\r\n        folderStateViewModel = folderStateViewModel\r\n    )\r\n\r\n    // 폴더 추가하기 바텀 시트\r\n    NewBottomFolderBottomSheet(\r\n        folderStateViewModel = folderStateViewModel\r\n    )\r\n\r\n    // 중분류 폴더 수정 바텀 시트\r\n    BottomFolderEditBottomSheet(\r\n        folderStateViewModel = folderStateViewModel\r\n    )\r\n\r\n    // 링크 추가하기 바텀 시트\r\n    LinkCategorizationBottomSheet(\r\n        folderStateViewModel = folderStateViewModel\r\n    )\r\n\r\n    // 로딩창\r\n    if (fileViewModel.loading.collectAsState().value) {\r\n        // 로딩 로직\r\n        Box(\r\n            modifier = Modifier\r\n                .fillMaxSize()\r\n                .background(MainColor),\r\n            contentAlignment = Alignment.Center\r\n        ){\r\n            Image(\r\n                painter = painterResource(R.drawable.linku_logo),\r\n                contentDescription = \"로딩중\"\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Preview(\r\n    name = \"Pixel 8 Size\",\r\n    widthDp = 412,\r\n    heightDp = 915,\r\n    showBackground = true)\r\n@Composable\r\nprivate fun PreviewFileScreen() {\r\n    FileScreen()\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/FileScreen.kt b/feature/file/src/main/java/com/example/file/FileScreen.kt
+--- a/feature/file/src/main/java/com/example/file/FileScreen.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/FileScreen.kt	(date 1754384564392)
+@@ -31,9 +31,9 @@
+ import com.example.file.ui.content.BottomFolderGrid
+ import com.example.file.ui.content.LinksGrid
+ import com.example.file.ui.content.TopFolderGrid
+-import com.example.file.viewmodel.EditStateViewModel
+-import com.example.file.viewmodel.FolderState
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.edit.state.EditStateViewModel
++import com.example.file.viewmodel.folder.state.FolderState
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.White
+ import com.example.file.ui.top.bar.FileTopBar
+ import com.example.file.ui.top.bar.component.ShareButton
+@@ -51,7 +51,7 @@
+     // 한 번만 데이터 로딩 (최초 진입 시)
+     LaunchedEffect(Unit) {
+         Log.d("FileScreen", "LaunchedEffect")
+-        fileViewModel.getCategoryLisy()
++        fileViewModel.getCategoryList()
+     }
+ 
+     Log.d("FileScreen", "FileScreen")
+Index: feature/file/src/main/java/com/example/file/ui/top/bar/FileTopBar.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.top.bar\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.offset\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.alpha\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.example.file.FileViewModel\r\nimport com.example.file.R\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.ui.content.categories\r\nimport com.example.file.viewmodel.EditStateViewModel\r\nimport com.example.file.viewmodel.FolderState\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.CategoryColorStyle\r\nimport com.example.file.ui.theme.FileTopBarLinkUFont\r\nimport com.example.file.ui.theme.MainColor\r\nimport com.example.file.ui.theme.White\r\nimport com.example.file.ui.top.bar.component.BottomFolderListLayout\r\nimport com.example.file.ui.top.bar.component.BottomFolderListMenu\r\nimport com.example.file.ui.top.bar.component.EditButton\r\nimport com.example.file.ui.top.bar.component.FileSearchBar\r\nimport com.example.file.ui.top.bar.component.TopFolderListLayout\r\nimport com.example.file.ui.top.bar.component.TopFolderListMenu\r\n\r\n\r\n@Composable\r\nfun FileTopBar(\r\n    fileViewModel: FileViewModel,\r\n    editStateViewModel: EditStateViewModel,\r\n    folderStateViewModel: FolderStateViewModel,\r\n    ) {\r\n    // 내부 요소들을 겹쳐서 배치하는 Box\r\n    Box(\r\n        // 전체 영역을 가득 채우도록\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            // 세로 길이 지정 (206dp)\r\n            .height(206.dp)\r\n            .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))\r\n            // Box 배경에 메인 그라데이션 적용\r\n            .background(brush = MainColor)\r\n    ) {\r\n\r\n        // 1. 흐린 로고 (배경 맨 뒤)\r\n        Icon(\r\n            // 투명도 낮게 (alpha=0.2f)\r\n            modifier = Modifier\r\n                .alpha(0.2f)\r\n                // 오른쪽 위에 정렬\r\n                .align(Alignment.TopEnd)\r\n                // 위쪽 여백 (80dp), 오른쪽으로 22.5dp 밀기\r\n                .padding(top = 80.dp)\r\n                .offset(x = 22.5.dp)\r\n                // 아이콘 크기 지정 (149.49 x 106 dp)\r\n                .size(width = 149.49561.dp, height = 106.dp),\r\n            // 아이콘 색상 (흰색)\r\n            tint = White,\r\n            // 사용할 아이콘 이미지 리소스\r\n            painter = painterResource(id = R.drawable.linku_logo),\r\n            // 이미지 설명 (\"링큐 투명 로고\")\r\n            contentDescription = \"링큐 투명 로고\"\r\n        )\r\n\r\n        // 2. 타이틀(링큐)\r\n        Text(\r\n            // 왼쪽 위에 정렬\r\n            modifier = Modifier\r\n                .align(Alignment.TopStart)\r\n                // 왼쪽 35dp, 위 52dp 여백\r\n                .padding(start = 35.dp, top = 52.dp),\r\n            // 텍스트 내용 (\"링큐\")\r\n            text = \"링큐\",\r\n            // 폰트 크기 (24sp)\r\n            fontSize = 24.sp,\r\n            // 사용할 폰트\r\n            fontFamily = FileTopBarLinkUFont,\r\n            // 폰트 굵기 (Normal)\r\n            fontWeight = FontWeight(400),\r\n            // 글자색 (흰색)\r\n            color = White,\r\n        )\r\n\r\n        // 3. 검색창 (FileSearchBar)\r\n        Box(\r\n            // 상단 중앙에 정렬\r\n            modifier = Modifier\r\n                .align(Alignment.TopCenter)\r\n                // 위쪽 여백 (91dp)\r\n                .padding(top = 91.dp)\r\n                .noRippleClickable {\r\n                    folderStateViewModel.updateSearchTopSheetVisible(true)\r\n                },\r\n        ) {\r\n            // 커스텀 검색창\r\n            FileSearchBar()\r\n        }\r\n\r\n        // 4. 폴더 리스트 레이아웃\r\n        Box(\r\n            // 왼쪽 위에 정렬\r\n            modifier = Modifier\r\n                .align(Alignment.TopStart)\r\n                // 왼쪽 20dp, 위쪽 153dp 여백\r\n                .padding(start = 20.dp, top = 153.dp)\r\n                .noRippleClickable {\r\n                    folderStateViewModel.updateTopMenuExpanded(true)\r\n                },\r\n        ) {\r\n            // 폴더 리스트 컴포저블\r\n            TopFolderListLayout()\r\n\r\n            TopFolderListMenu(\r\n                folderStateViewModel = folderStateViewModel,\r\n                listOf(\"나의 폴더\", \"공유받은 폴더\"),\r\n            ){}\r\n\r\n        }\r\n\r\n        if(folderStateViewModel.currentFolderState != FolderState.TOP){\r\n            Box(\r\n                // 왼쪽 위에 정렬\r\n                modifier = Modifier\r\n                    .align(Alignment.TopStart)\r\n                    // 왼쪽 20dp, 위쪽 153dp 여백\r\n                    .padding(start = 139.29.dp, top = 153.dp)\r\n                    .noRippleClickable {\r\n                        folderStateViewModel.updateBottomMenuExpanded(true)\r\n                    },\r\n            ) {\r\n                // 폴더 리스트 컴포저블\r\n                BottomFolderListLayout(\r\n                    colorStyle = CategoryColorStyle.categoryStyleList[0],\r\n                    folderStateViewModel = folderStateViewModel\r\n                )\r\n\r\n                BottomFolderListMenu(\r\n                    folderStateViewModel = folderStateViewModel,\r\n                    items = categories,\r\n                    onChangeFolder = {}\r\n                )\r\n            }\r\n        }\r\n\r\n        // 5. 알람 아이콘 (오른쪽 위)\r\n        Icon(\r\n            // 오른쪽 위에 정렬\r\n            modifier = Modifier\r\n                .align(Alignment.TopEnd)\r\n                // 오른쪽 29.8dp, 위 50.38dp 여백\r\n                .padding(end = 29.8.dp, top = 50.38.dp)\r\n                // 아이콘 크기 (22.26 x 27.18 dp)\r\n                .size(width = 22.25668.dp, height = 27.17871.dp),\r\n            // 아이콘 색상 (흰색)\r\n            tint = White,\r\n            // 사용할 아이콘 이미지 리소스\r\n            painter = painterResource(id = com.example.design.R.drawable.ic_alarm),\r\n            // 이미지 설명 (\"알람\")\r\n            contentDescription = \"알람\",\r\n        )\r\n\r\n        // 6. 수정 버튼 (오른쪽 아래)\r\n        Box(\r\n            // 오른쪽 위에 정렬(실제 위치는 아래임)\r\n            modifier = Modifier\r\n                .align(Alignment.TopEnd)\r\n                // 오른쪽 30dp, 위 165dp 여백\r\n                .padding(end = 30.dp, top = 165.dp)\r\n                //.noRippleClickable { onOpenBottomSheet() },\r\n        ) {\r\n            // 수정 버튼 컴포저블\r\n            EditButton(\r\n                editStateViewModel = editStateViewModel,\r\n                folderViewModel = folderStateViewModel\r\n            )\r\n        }\r\n    }\r\n\r\n}\r\n\r\n\r\n@Preview(\r\n    name = \"Pixel 8 Size\",\r\n    widthDp = 412,\r\n    heightDp = 915,\r\n    showBackground = true)\r\n@Composable\r\nfun FileTopBarTest() {\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/top/bar/FileTopBar.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/FileTopBar.kt
+--- a/feature/file/src/main/java/com/example/file/ui/top/bar/FileTopBar.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/FileTopBar.kt	(date 1754383472976)
+@@ -24,9 +24,9 @@
+ import com.example.file.R
+ import com.example.file.modifier.noRippleClickable
+ import com.example.file.ui.content.categories
+-import com.example.file.viewmodel.EditStateViewModel
+-import com.example.file.viewmodel.FolderState
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.edit.state.EditStateViewModel
++import com.example.file.viewmodel.folder.state.FolderState
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.CategoryColorStyle
+ import com.example.file.ui.theme.FileTopBarLinkUFont
+ import com.example.file.ui.theme.MainColor
+Index: feature/file/src/main/java/com/example/file/ui/bottom/sheet/BottomFolderEditBottomSheet.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.bottom.sheet\r\n\r\nimport androidx.compose.runtime.Composable\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\n\r\n@Composable\r\nfun BottomFolderEditBottomSheet(\r\n    folderStateViewModel: FolderStateViewModel\r\n){\r\n    TextFieldFileBottomSheet(\r\n        title = \"폴더명을 변경하시겠습니까?\",\r\n        body = \"변경할 폴더명을 입력해주세요!\",\r\n        placeholderText = folderStateViewModel.selectedBottomFolder?:\"\",\r\n        visible = folderStateViewModel.bottomFolderEditBottomSheetVisible,\r\n        onDismiss = { folderStateViewModel.updateBottomFolderEditBottomSheetVisible(false) }\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/BottomFolderEditBottomSheet.kt b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/BottomFolderEditBottomSheet.kt
+--- a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/BottomFolderEditBottomSheet.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/BottomFolderEditBottomSheet.kt	(date 1754383472944)
+@@ -1,7 +1,7 @@
+ package com.example.file.ui.bottom.sheet
+ 
+ import androidx.compose.runtime.Composable
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ 
+ @Composable
+ fun BottomFolderEditBottomSheet(
+Index: feature/file/src/main/java/com/example/file/ui/bottom/sheet/NewBottomFolderBottomSheet.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.bottom.sheet\r\n\r\nimport androidx.compose.runtime.Composable\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\n\r\n@Composable\r\nfun NewBottomFolderBottomSheet(\r\n    folderStateViewModel: FolderStateViewModel\r\n){\r\n    TextFieldFileBottomSheet(\r\n        title = \"새로운 폴더를 추가하시겠습니까?\",\r\n        body = \"폴더명을 입력해주세요!\",\r\n        placeholderText = \"폴더명은 최대 10자입니다.\",\r\n        visible = folderStateViewModel.newFolderBottomSheetVisible,\r\n        onDismiss = { folderStateViewModel.updateNewFolderBottomSheetVisible(false) }\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/NewBottomFolderBottomSheet.kt b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/NewBottomFolderBottomSheet.kt
+--- a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/NewBottomFolderBottomSheet.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/NewBottomFolderBottomSheet.kt	(date 1754383473077)
+@@ -1,7 +1,7 @@
+ package com.example.file.ui.bottom.sheet
+ 
+ import androidx.compose.runtime.Composable
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ 
+ @Composable
+ fun NewBottomFolderBottomSheet(
+Index: feature/file/src/main/java/com/example/file/viewmodel/FolderStateViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/viewmodel/FolderStateViewModel.kt b/feature/file/src/main/java/com/example/file/viewmodel/folder/state/FolderStateViewModel.kt
+rename from feature/file/src/main/java/com/example/file/viewmodel/FolderStateViewModel.kt
+rename to feature/file/src/main/java/com/example/file/viewmodel/folder/state/FolderStateViewModel.kt
+--- a/feature/file/src/main/java/com/example/file/viewmodel/FolderStateViewModel.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/viewmodel/folder/state/FolderStateViewModel.kt	(date 1754383472976)
+@@ -1,4 +1,4 @@
+-package com.example.file.viewmodel
++package com.example.file.viewmodel.folder.state
+ 
+ import android.util.Log
+ import androidx.compose.runtime.getValue
+Index: feature/file/src/main/java/com/example/file/ui/bottom/sheet/TopFolderEditBottomSheet.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.bottom.sheet\r\n\r\nimport androidx.compose.runtime.Composable\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\n\r\n@Composable\r\nfun TopFolderEditBottomSheet(\r\n    folderStateViewModel: FolderStateViewModel\r\n){\r\n    TextFieldFileBottomSheet(\r\n        title = \"해당 카테고리를 수정하시겠습니까?\",\r\n        body = \"새 카테고리명을 입력하고 대표 색상을 지정해주세요!\",\r\n        placeholderText = \"저장\",\r\n        isEditable = true,\r\n        visible = folderStateViewModel.topFolderEditBottomSheetVisible,\r\n        onDismiss = { folderStateViewModel.upadateTopFolderEditBottomSheetVisible(false) }\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/TopFolderEditBottomSheet.kt b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/TopFolderEditBottomSheet.kt
+--- a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/TopFolderEditBottomSheet.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/TopFolderEditBottomSheet.kt	(date 1754383472976)
+@@ -1,7 +1,7 @@
+ package com.example.file.ui.bottom.sheet
+ 
+ import androidx.compose.runtime.Composable
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ 
+ @Composable
+ fun TopFolderEditBottomSheet(
+Index: feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// 수정 버튼\r\n\r\npackage com.example.file.ui.top.bar.component\r\n\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextAlign\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.file.modifier.noRippleClickable\r\nimport com.example.file.viewmodel.EditStateViewModel\r\nimport com.example.file.viewmodel.FolderState\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.White\r\n\r\n\r\n@Composable\r\nfun EditButton(\r\n    editStateViewModel: EditStateViewModel,\r\n    folderViewModel: FolderStateViewModel\r\n) {\r\n\r\n    // 수정 버튼\r\n    Text(\r\n        modifier = Modifier\r\n            .noRippleClickable {\r\n                if (folderViewModel.currentFolderState != FolderState.LINK){\r\n                    editStateViewModel.updateEditMode(!editStateViewModel.isEditMode)\r\n                }\r\n            },\r\n\r\n        // 텍스트 내용 (\"수정\")\r\n        text = if(editStateViewModel.isEditMode) \"완료\" else \"수정\",\r\n\r\n        // 텍스트 크기 (15sp)\r\n        fontSize = 15.sp,\r\n\r\n        // 한 줄 높이 (22sp)\r\n        lineHeight = 22.sp,\r\n\r\n        // 사용할 폰트 (paperlogy 폰트)\r\n        fontFamily = DefaultFont,\r\n\r\n        // 폰트 굵기 (보통)\r\n        fontWeight = FontWeight.Normal,\r\n\r\n        // 글자색 (White)\r\n        color = White,\r\n\r\n        // 텍스트 정렬 방식 (오른쪽 정렬)\r\n        textAlign = TextAlign.Right,\r\n    )\r\n}\r\n\r\n@Preview(showBackground = true)\r\n@Composable\r\nfun EditButtonTest() {\r\n    EditButton(viewModel(), viewModel())\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt
+--- a/feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/component/EditButton.kt	(date 1754383472960)
+@@ -11,9 +11,9 @@
+ import androidx.compose.ui.unit.sp
+ import androidx.lifecycle.viewmodel.compose.viewModel
+ import com.example.file.modifier.noRippleClickable
+-import com.example.file.viewmodel.EditStateViewModel
+-import com.example.file.viewmodel.FolderState
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.edit.state.EditStateViewModel
++import com.example.file.viewmodel.folder.state.FolderState
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.DefaultFont
+ import com.example.file.ui.theme.White
+ 
+Index: feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListMenu.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.top.bar.component\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.heightIn\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.layout.width\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material3.DropdownMenu\r\nimport androidx.compose.material3.DropdownMenuItem\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextOverflow\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.DpOffset\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.file.ui.content.categories\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.CategoryColorStyle\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.Gray800\r\nimport com.example.file.ui.theme.White\r\n\r\n@Composable\r\nfun BottomFolderListMenu(\r\n    folderStateViewModel: FolderStateViewModel,\r\n    items: List<String> = categories,\r\n    isLinks: Boolean = false,\r\n    onChangeFolder: () -> Unit\r\n){\r\n    DropdownMenu(\r\n        modifier = Modifier\r\n            .heightIn(max = 264.dp)\r\n            .width(205.dp),\r\n        shape = RoundedCornerShape(18.dp),\r\n        offset = DpOffset(0.dp, 10.dp),\r\n        expanded = folderStateViewModel.bottomMenuExpanded,\r\n        onDismissRequest = { folderStateViewModel.updateBottomMenuExpanded(false) },\r\n        containerColor = White\r\n    ) {\r\n        for((i, category) in items.withIndex()){\r\n            DropdownMenuItem(\r\n                leadingIcon = if (isLinks) null else {\r\n                    @Composable {\r\n                        Box(\r\n                            modifier = Modifier\r\n                                .size(25.dp)\r\n                                .clip(CircleShape)\r\n                                .background(color = CategoryColorStyle.categoryStyleList[i].color4)\r\n                        )\r\n                    }\r\n                },\r\n                text = {\r\n                    Text(\r\n                        text = category,\r\n                        fontSize = 15.sp,\r\n                        lineHeight = 22.sp,\r\n                        fontFamily = DefaultFont,\r\n                        fontWeight = FontWeight(400),\r\n                        color = Gray800,\r\n                        maxLines = 1,  // 한 줄만 보여주고\r\n                        overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체\r\n                    )\r\n                },\r\n                onClick = {\r\n                    onChangeFolder()\r\n                }\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Preview()\r\n@Composable\r\nfun BottomFolderListMenuTest(){\r\n    val folderStateViewModel: FolderStateViewModel = viewModel()\r\n    BottomFolderListMenu(\r\n        folderStateViewModel = folderStateViewModel,\r\n//        items = listOf(\"나의 폴더\", \"공유받은 폴더\"),\r\n        isLinks = true,\r\n        onChangeFolder = {}\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListMenu.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListMenu.kt
+--- a/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListMenu.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListMenu.kt	(date 1754383473084)
+@@ -21,7 +21,7 @@
+ import androidx.compose.ui.unit.sp
+ import androidx.lifecycle.viewmodel.compose.viewModel
+ import com.example.file.ui.content.categories
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.CategoryColorStyle
+ import com.example.file.ui.theme.DefaultFont
+ import com.example.file.ui.theme.Gray800
+Index: core/src/main/java/com/example/core/model/FolderSimpleInfo.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.core.model\r\n\r\nimport java.time.OffsetDateTime\r\n\r\ndata class FolderSimpleInfo(\r\n    val folderId: Long,\r\n    val folderName: String,\r\n    val categoryId: Long,\r\n    val categoryName: String,\r\n    val parentFolderId: Long,\r\n    val createdAt: OffsetDateTime,\r\n    val updatedAt: OffsetDateTime\r\n)\r\n\r\n// 예상 폴더 최종 구조\r\ndata class _FolderSimpleInfo(\r\n    val folderId: Long,\r\n    var folderName: String,\r\n    val parentFolderId: Long,\r\n    var colorCode: String,\r\n    var isBookmarked: Boolean = false,\r\n    val createdAt: OffsetDateTime,\r\n    val updatedAt: OffsetDateTime\r\n)
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/core/src/main/java/com/example/core/model/FolderSimpleInfo.kt b/core/src/main/java/com/example/core/model/FolderSimpleInfo.kt
+--- a/core/src/main/java/com/example/core/model/FolderSimpleInfo.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/core/src/main/java/com/example/core/model/FolderSimpleInfo.kt	(date 1754388397420)
+@@ -2,14 +2,11 @@
+ 
+ import java.time.OffsetDateTime
+ 
++// com.example.data.api.dto.server.FolderListResponseDTO -> FolderSimpleInfo
+ data class FolderSimpleInfo(
+     val folderId: Long,
+-    val folderName: String,
+-    val categoryId: Long,
+-    val categoryName: String,
+-    val parentFolderId: Long,
+-    val createdAt: OffsetDateTime,
+-    val updatedAt: OffsetDateTime
++    var folderName: String,
++    val parentFolderId: Long
+ )
+ 
+ // 예상 폴더 최종 구조
+Index: feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListLayout.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>// 폴더 목록을 보이는 탭의 레이아웃\r\n\r\npackage com.example.file.ui.top.bar.component\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.wrapContentSize\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material3.Icon\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.text.style.TextAlign\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.file.R\r\nimport com.example.file.viewmodel.FolderState\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.CategoryColorStyle\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.White\r\n\r\n@Composable\r\nfun BottomFolderListLayout(\r\n    colorStyle: CategoryColorStyle,\r\n    folderStateViewModel: FolderStateViewModel\r\n) {\r\n    var text = folderStateViewModel.selectedTopFolder!! +\r\n            if(folderStateViewModel.currentFolderState==FolderState.LINK)\r\n                folderStateViewModel.selectedBottomFolder?.let{ \" > $it\" }\r\n            else \"\"\r\n\r\n    // 레이아웃의 배경틀\r\n    Box(\r\n        modifier = Modifier\r\n            .height(35.dp)\r\n            .clip(RoundedCornerShape(14.dp))\r\n            .background(White)\r\n            .background(brush = colorStyle.horizontalGradient())\r\n            // 가로 111.28947dp, 세로 35dp로 전체 크기 지정\r\n            .padding(horizontal = 15.dp),\r\n        contentAlignment = Alignment.Center\r\n    ) {\r\n\r\n        // 내부 배치 레이아웃\r\n        Row(\r\n            modifier = Modifier\r\n                // 전체 영역을 가득 채우도록\r\n                .wrapContentSize(),\r\n\r\n            // 가로 정렬 방법 (요소 간 10dp 간격, 가로 중앙 정렬)\r\n            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),\r\n\r\n            // 세로 정렬 방법 (세로 중앙 정렬)\r\n            verticalAlignment = Alignment.CenterVertically,\r\n        ) {\r\n\r\n            // 현재, 상위 폴더명\r\n            Text(\r\n                text = text,\r\n                fontSize = 16.sp,\r\n                lineHeight = 20.sp,\r\n                fontFamily = DefaultFont,\r\n                fontWeight = FontWeight(500),\r\n                color = colorStyle.color4,\r\n                textAlign = TextAlign.Center,\r\n            )\r\n\r\n            // 아래 화살표 모양 아이콘\r\n            Icon(\r\n                // 아이콘 색상 (Gray500)\r\n                tint = colorStyle.color3,\r\n\r\n                // 사용할 아이콘 이미지 리소스 (drawable/check_img.xml)\r\n                painter = painterResource(id = R.drawable.check_img),\r\n\r\n                // 이미지 설명 (\"아래 화살표\")\r\n                contentDescription = \"아래 화살표\"\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Preview(showBackground = true)\r\n@Composable\r\nfun BottomFolderListLayoutTest() {\r\n    val folderStateViewModel: FolderStateViewModel = viewModel()\r\n    folderStateViewModel.updateSelectedTopFolder(\"어학\")\r\n    // folderStateViewModel.updateSelectedBottomFolder(\"단어장\")\r\n    BottomFolderListLayout(\r\n        colorStyle = CategoryColorStyle.categoryStyleList[0],\r\n        folderStateViewModel = folderStateViewModel\r\n    )\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListLayout.kt b/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListLayout.kt
+--- a/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListLayout.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/top/bar/component/BottomFolderListLayout.kt	(date 1754383472957)
+@@ -24,8 +24,8 @@
+ import androidx.compose.ui.unit.sp
+ import androidx.lifecycle.viewmodel.compose.viewModel
+ import com.example.file.R
+-import com.example.file.viewmodel.FolderState
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderState
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.CategoryColorStyle
+ import com.example.file.ui.theme.DefaultFont
+ import com.example.file.ui.theme.White
+Index: feature/file/src/main/java/com/example/file/ui/bottom/sheet/LinkCategorizationBottomSheet.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.file.ui.bottom.sheet\r\n\r\nimport androidx.compose.foundation.Image\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.layout.Arrangement\r\nimport androidx.compose.foundation.layout.Box\r\nimport androidx.compose.foundation.layout.Column\r\nimport androidx.compose.foundation.layout.Row\r\nimport androidx.compose.foundation.layout.Spacer\r\nimport androidx.compose.foundation.layout.fillMaxHeight\r\nimport androidx.compose.foundation.layout.fillMaxWidth\r\nimport androidx.compose.foundation.layout.height\r\nimport androidx.compose.foundation.layout.heightIn\r\nimport androidx.compose.foundation.layout.padding\r\nimport androidx.compose.foundation.layout.size\r\nimport androidx.compose.foundation.lazy.LazyColumn\r\nimport androidx.compose.foundation.lazy.items\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material3.Checkbox\r\nimport androidx.compose.material3.CheckboxDefaults\r\nimport androidx.compose.material3.ExperimentalMaterial3Api\r\nimport androidx.compose.material3.Text\r\nimport androidx.compose.runtime.Composable\r\nimport androidx.compose.runtime.getValue\r\nimport androidx.compose.runtime.mutableStateOf\r\nimport androidx.compose.runtime.remember\r\nimport androidx.compose.runtime.setValue\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.graphics.painter.Painter\r\nimport androidx.compose.ui.res.painterResource\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.tooling.preview.Preview\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport androidx.lifecycle.viewmodel.compose.viewModel\r\nimport com.example.file.R\r\nimport com.example.file.viewmodel.FolderStateViewModel\r\nimport com.example.file.ui.theme.Black\r\nimport com.example.file.ui.theme.DefaultFont\r\nimport com.example.file.ui.theme.Gray100\r\nimport com.example.file.ui.theme.Gray800\r\nimport com.example.file.ui.theme.Purple200\r\n\r\ndata class Link(\r\n    val title: String,\r\n    val domain: String,\r\n    val icon: Painter?,\r\n    val img: Painter?\r\n)\r\n\r\n@OptIn(ExperimentalMaterial3Api::class)\r\n@Composable\r\nfun LinkCategorizationBottomSheet(\r\n    folderStateViewModel: FolderStateViewModel,\r\n) {\r\n    val links: List<Link> = listOf(\r\n        Link(\"title\", \"domain\", painterResource(id = R.drawable.twiter_logo_img), null),\r\n        Link(\"title\", \"domain\", null, painterResource(id = R.drawable.test_img)),\r\n        Link(\r\n            \"title\",\r\n            \"domain\",\r\n            painterResource(id = R.drawable.twiter_logo_img),\r\n            painterResource(id = R.drawable.test_img)\r\n        ),\r\n        Link(\"title\", \"domain\", null, null),\r\n        Link(\r\n            \"title\",\r\n            \"domain\",\r\n            painterResource(id = R.drawable.twiter_logo_img),\r\n            painterResource(id = R.drawable.test_img)\r\n        ),\r\n        Link(\r\n            \"title\",\r\n            \"domain\",\r\n            painterResource(id = R.drawable.twiter_logo_img),\r\n            painterResource(id = R.drawable.test_img)\r\n        ),\r\n        Link(\r\n            \"title\",\r\n            \"domain\",\r\n            painterResource(id = R.drawable.twiter_logo_img),\r\n            painterResource(id = R.drawable.test_img)\r\n        ),\r\n    )\r\n\r\n    FileBottomSheet(\r\n        title = \"${folderStateViewModel.selectedTopFolder} 폴더의 미분류 링크 목록\",\r\n        body = \"하위폴더에 추가하실 링크를 선택해주세요!\",\r\n        buttonText = \"추가\",\r\n        visible = folderStateViewModel.linkCategorizationBottomSheetVisible,\r\n        onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }\r\n    ) {\r\n        LazyColumn(\r\n            modifier = Modifier\r\n                .fillMaxWidth()\r\n                .heightIn(max = 210.dp),\r\n            verticalArrangement = Arrangement.spacedBy(10.dp)\r\n        ) {\r\n            items(links) {\r\n                val title = it.title\r\n                val domain = it.domain\r\n                val icon = it.icon\r\n                val img = it.img\r\n                Row(\r\n                    modifier = Modifier\r\n                        .height(60.dp),\r\n                    horizontalArrangement = Arrangement.spacedBy(14.dp)\r\n                ) {\r\n                    var checked by remember { mutableStateOf(true) }\r\n                    Checkbox(\r\n                        modifier = Modifier\r\n                            .clip(RoundedCornerShape(18.dp)),\r\n                        checked = checked,\r\n                        onCheckedChange = { checked = it },\r\n                        colors = CheckboxDefaults.colors(\r\n                            checkedColor = Purple200,\r\n                        )\r\n                    )\r\n\r\n                    Box(\r\n                        modifier = Modifier\r\n                            .fillMaxHeight()\r\n                            .background(Gray100),\r\n                        contentAlignment = Alignment.Center\r\n                    ) {\r\n                        Image(\r\n                            modifier = Modifier\r\n                                .fillMaxHeight()\r\n                                .clip(RoundedCornerShape(18.dp)),\r\n                            painter = img\r\n                                ?: painterResource(id = R.drawable.link_categorization_default),\r\n                            contentDescription = null\r\n                        )\r\n                    }\r\n\r\n                    Column(\r\n                        modifier = Modifier\r\n                            .fillMaxHeight()\r\n                            .padding(vertical = 8.dp),\r\n                    ) {\r\n                        Text(\r\n                            text = title,\r\n                            fontSize = 15.sp,\r\n                            lineHeight = 22.sp,\r\n                            fontFamily = DefaultFont,\r\n                            fontWeight = FontWeight(500),\r\n                            color = Black,\r\n                        )\r\n\r\n                        Spacer(modifier = Modifier.weight(1f))\r\n\r\n                        Row(\r\n                            horizontalArrangement = Arrangement.spacedBy(6.dp),\r\n                            verticalAlignment = Alignment.CenterVertically\r\n                        ) {\r\n                            Box(\r\n                                modifier = Modifier\r\n                                    .size(22.dp)\r\n                                    .clip(CircleShape)\r\n                                    .background(Gray100),\r\n                                contentAlignment = Alignment.Center\r\n                            ) {\r\n                                if (icon != null) {\r\n                                    Image(\r\n                                        modifier = Modifier\r\n                                            .size(22.dp)\r\n                                            .clip(CircleShape),\r\n                                        painter = icon,\r\n                                        contentDescription = null\r\n                                    )\r\n                                }\r\n                            }\r\n\r\n                            Text(\r\n                                text = domain,\r\n                                fontSize = 12.sp,\r\n                                lineHeight = 14.sp,\r\n                                fontFamily = DefaultFont,\r\n                                fontWeight = FontWeight(400),\r\n                                color = Gray800\r\n                            )\r\n                        }\r\n                    }\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Preview(showBackground = true, heightDp = 2000)\r\n@Composable\r\nprivate fun LinkCategorizationBottomSheetTest(){\r\n    val folderStateViewModel: FolderStateViewModel = viewModel()\r\n    folderStateViewModel.updateSelectedTopFolder(\"호호호\")\r\n    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)\r\n    LinkCategorizationBottomSheet(folderStateViewModel)\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/LinkCategorizationBottomSheet.kt b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/LinkCategorizationBottomSheet.kt
+--- a/feature/file/src/main/java/com/example/file/ui/bottom/sheet/LinkCategorizationBottomSheet.kt	(revision d2a4f5b995ee297ca9ee8603512fb2a0b27a59d9)
++++ b/feature/file/src/main/java/com/example/file/ui/bottom/sheet/LinkCategorizationBottomSheet.kt	(date 1754383473044)
+@@ -37,7 +37,7 @@
+ import androidx.compose.ui.unit.sp
+ import androidx.lifecycle.viewmodel.compose.viewModel
+ import com.example.file.R
+-import com.example.file.viewmodel.FolderStateViewModel
++import com.example.file.viewmodel.folder.state.FolderStateViewModel
+ import com.example.file.ui.theme.Black
+ import com.example.file.ui.theme.DefaultFont
+ import com.example.file.ui.theme.Gray100

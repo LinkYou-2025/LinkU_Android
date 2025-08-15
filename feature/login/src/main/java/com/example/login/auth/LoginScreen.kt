@@ -110,7 +110,9 @@ fun LoginScreen(
                     fontSize = 14.sp,
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Normal,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable {
+                        navigator.navigate("resetPassword")
+                    }
                 )
                 Text("  |  ", color = Color.White, fontSize = 14.sp)
                 Text(

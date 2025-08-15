@@ -1,6 +1,5 @@
 package com.example.data.api.dto.server
 
-
 data class RefreshTokenRequest(
     val refreshToken: String
 )

@@ -11,6 +11,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
@@ -19,21 +20,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.file.ui.content.categories
+import com.example.file.FileViewModel
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
+import com.example.file.viewmodel.folder.state.FolderState
 
 @Composable
 fun BottomFolderListMenu(
+    fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
-    items: List<String> = categories,
-    isLinks: Boolean = false,
     onChangeFolder: () -> Unit
 ){
+    val isLinks = folderStateViewModel.currentFolderState == FolderState.LINKS
+    val parentFolders = fileViewModel.parentFolders.collectAsStateWithLifecycle().value
+    val subFolders = fileViewModel.subFolders.collectAsStateWithLifecycle().value
+
+    val colorStyles = fileViewModel.categoryColorMap.collectAsStateWithLifecycle().value
+
     DropdownMenu(
         modifier = Modifier
             .heightIn(max = 264.dp)
@@ -44,34 +53,67 @@ fun BottomFolderListMenu(
         onDismissRequest = { folderStateViewModel.updateBottomMenuExpanded(false) },
         containerColor = White
     ) {
-        for((i, category) in items.withIndex()){
-            DropdownMenuItem(
-                leadingIcon = if (isLinks) null else {
-                    @Composable {
-                        Box(
-                            modifier = Modifier
-                                .size(25.dp)
-                                .clip(CircleShape)
-                                .background(color = CategoryColorStyle.categoryStyleList[i].color4)
+        if(!isLinks){
+            for ((i, folder) in parentFolders.withIndex()) {
+                val colorStyle = colorStyles[folder.folderName]?: CategoryColorStyle.DEFAULT
+
+                DropdownMenuItem(
+                    leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .clip(CircleShape)
+                                    .background(color = colorStyle.color4)
+                            )
+                        },
+                    text = {
+                        Text(
+                            text = folder.folderName,
+                            fontSize = 15.sp,
+                            lineHeight = 22.sp,
+                            fontFamily = DefaultFont,
+                            fontWeight = FontWeight(400),
+                            color = Gray800,
+                            maxLines = 1,  // 한 줄만 보여주고
+                            overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
                         )
+                    },
+                    onClick = {
+                        if(folder.folderId!=folderStateViewModel.selectedTopFolder?.folderId){
+                            fileViewModel.getLinksFolders(folder.folderId)
+                            folderStateViewModel.updateSelectedTopFolder(folder)
+                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                            folderStateViewModel.updateBottomMenuExpanded(false)
+                        }
                     }
-                },
-                text = {
-                    Text(
-                        text = category,
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        fontFamily = DefaultFont,
-                        fontWeight = FontWeight(400),
-                        color = Gray800,
-                        maxLines = 1,  // 한 줄만 보여주고
-                        overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
-                    )
-                },
-                onClick = {
-                    onChangeFolder()
-                }
-            )
+                )
+            }
+        }else{
+            for ((i, folder) in subFolders.withIndex()) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = folder.folderName,
+                            fontSize = 15.sp,
+                            lineHeight = 22.sp,
+                            fontFamily = DefaultFont,
+                            fontWeight = FontWeight(400),
+                            color = Gray800,
+                            maxLines = 1,  // 한 줄만 보여주고
+                            overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
+                        )
+                    },
+                    onClick = {
+                        if(folder.folderId!=folderStateViewModel.selectedBottomFolder?.folderId){
+                            fileViewModel.getLinks(folder.folderId)
+                            folderStateViewModel.updateSelectedBottomFolder(folder)
+                            folderStateViewModel.updateFolderState(FolderState.LINKS)
+                            folderStateViewModel.updateBottomMenuExpanded(false)
+                        }
+                    }
+                )
+            }
+
         }
     }
 }
@@ -81,9 +123,8 @@ fun BottomFolderListMenu(
 fun BottomFolderListMenuTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
     BottomFolderListMenu(
+        fileViewModel = hiltViewModel(),
         folderStateViewModel = folderStateViewModel,
-//        items = listOf("나의 폴더", "공유받은 폴더"),
-        isLinks = true,
         onChangeFolder = {}
     )
 }

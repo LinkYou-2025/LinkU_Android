@@ -22,6 +22,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,62 +36,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.core.model.LinkSimpleInfo
+import com.example.file.FileViewModel
 import com.example.file.R
+import com.example.file.modifier.noRippleClickable
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.Purple200
-
-data class Link(
-    val title: String,
-    val domain: String,
-    val icon: Painter?,
-    val img: Painter?
-)
+import com.example.file.ui.theme.domainLogoPainterOrNull
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkCategorizationBottomSheet(
+    fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
-    val links: List<Link> = listOf(
-        Link("title", "domain", painterResource(id = R.drawable.twiter_logo_img), null),
-        Link("title", "domain", null, painterResource(id = R.drawable.test_img)),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-        Link("title", "domain", null, null),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-        Link(
-            "title",
-            "domain",
-            painterResource(id = R.drawable.twiter_logo_img),
-            painterResource(id = R.drawable.test_img)
-        ),
-    )
+    val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
+
+    var link by remember { mutableStateOf<LinkSimpleInfo?>(null) }
 
     FileBottomSheet(
-        title = "${folderStateViewModel.selectedTopFolder} 폴더의 미분류 링크 목록",
+        title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
         visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
+        onOkay = {fileViewModel.updateLinkFolder(link!!, folderStateViewModel.selectedBottomFolder?.folderId!!)},
         onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
     ) {
         LazyColumn(
@@ -102,18 +78,21 @@ fun LinkCategorizationBottomSheet(
             items(links) {
                 val title = it.title
                 val domain = it.domain
-                val icon = it.icon
-                val img = it.img
+                val icon = domainLogoPainterOrNull(it.domain)?:painterResource(R.drawable.link_categorization_default)
+                val img = painterResource(R.drawable.link_categorization_default)//it.img
                 Row(
                     modifier = Modifier
-                        .height(60.dp),
+                        .height(60.dp)
+                        .noRippleClickable{
+                            link = it
+                        },
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     var checked by remember { mutableStateOf(true) }
                     Checkbox(
                         modifier = Modifier
                             .clip(RoundedCornerShape(18.dp)),
-                        checked = checked,
+                        checked = link == it,
                         onCheckedChange = { checked = it },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Purple200,
@@ -130,8 +109,7 @@ fun LinkCategorizationBottomSheet(
                             modifier = Modifier
                                 .fillMaxHeight()
                                 .clip(RoundedCornerShape(18.dp)),
-                            painter = img
-                                ?: painterResource(id = R.drawable.link_categorization_default),
+                            painter = img,
                             contentDescription = null
                         )
                     }
@@ -163,15 +141,13 @@ fun LinkCategorizationBottomSheet(
                                     .background(Gray100),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (icon != null) {
-                                    Image(
-                                        modifier = Modifier
-                                            .size(22.dp)
-                                            .clip(CircleShape),
-                                        painter = icon,
-                                        contentDescription = null
-                                    )
-                                }
+                                Image(
+                                    modifier = Modifier
+                                        .size(22.dp)
+                                        .clip(CircleShape),
+                                    painter = icon,
+                                    contentDescription = null
+                                )
                             }
 
                             Text(
@@ -194,7 +170,9 @@ fun LinkCategorizationBottomSheet(
 @Composable
 private fun LinkCategorizationBottomSheetTest(){
     val folderStateViewModel: FolderStateViewModel = viewModel()
-    folderStateViewModel.updateSelectedTopFolder("호호호")
     folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-    LinkCategorizationBottomSheet(folderStateViewModel)
+    LinkCategorizationBottomSheet(
+        hiltViewModel(),
+        folderStateViewModel
+    )
 }
