@@ -46,7 +46,26 @@ fun MyPageApp(
                     myAiLinku = user.myAiLinku,
                     onNavigateAccount = { navController.navigate("account") },
                     onNavigateAlarm = { navController.navigate("alarm") },
-                    onNavigateQuit = { navController.navigate("quit") }
+                    onNavigateQuit = { navController.navigate("quit") },
+                    onRequestLogout = {
+                        viewModel.logout(
+                            onSuccess = {
+                                android.widget.Toast
+                                    .makeText(context, "로그아웃 되었습니다.", android.widget.Toast.LENGTH_SHORT)
+                                    .show()
+
+                                // 1) 내부 MyPageApp 스택 정리(선택)
+                                navController.popBackStack(route = "mypage", inclusive = true)
+                                // 2) 상위 네비게이터에 로그인 화면으로 이동 요청
+                                onLogoutToLogin()
+                            },
+                            onError = { msg ->
+                                android.widget.Toast
+                                    .makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        )
+                    }
                 )
             }
         }

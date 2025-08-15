@@ -4,12 +4,15 @@ import android.util.Log
 import com.example.core.model.LoginResult
 import com.example.core.model.UserInfo
 import com.example.core.repository.UserRepository
+import com.example.data.api.ServerApi
 import com.example.data.api.UserApi
 import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.server.DeleteReasonDTO
 import com.example.data.api.dto.server.UserInfoDTO
+import com.example.data.api.withAuth
+import com.example.data.api.withAuthHeaderRaw
 import retrofit2.HttpException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -17,6 +20,7 @@ import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
     private val userApi: UserApi,
+    private val serverApi: ServerApi,
     private val authPreference: AuthPreference
 ) : UserRepository {
 
@@ -220,5 +224,24 @@ class UserRepositoryImpl @Inject constructor(
             myFolder  = dto.myFolder,
             myAiLinku = dto.myAiLinku
         )
+    }
+
+    // 로그아웃
+    override suspend fun logout() {
+        // 서버 로그아웃: 401이면 refresh 후 1회 재시도
+        runCatching {
+            serverApi.withAuthHeaderRaw(authPreference) { _ ->
+                // logout 이 suspend fun logout(): Unit 인 경우
+                logout()
+            }
+        }.onFailure { e ->
+            Log.w("UserRepository", "logout API failed: ${e.message}")
+            // 서버 실패여도 로컬 세션은 아래에서 정리
+        }
+
+        // 로컬 세션은 항상 정리
+        authPreference.accessToken = null
+        authPreference.refreshToken = null
+        authPreference.userId = null
     }
 }

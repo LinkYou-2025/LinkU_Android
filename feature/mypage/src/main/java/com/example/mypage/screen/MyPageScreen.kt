@@ -63,7 +63,8 @@ fun MyPageScreen(
     myAiLinku: Long,
     onNavigateAccount: () -> Unit = {},
     onNavigateAlarm: () -> Unit = {},
-    onNavigateQuit: () -> Unit = {}
+    onNavigateQuit: () -> Unit = {},
+    onRequestLogout: () -> Unit = {}
 ) {
     val TopBarHeightExpanded = 319.dp // InfoCard 보일 때 TopBar 전체 높이
     val TopBarHeightCollapsed = 235.dp // InfoCard 숨겨질 때 남기는 TopBar 높이
@@ -465,6 +466,7 @@ fun MyPageScreen(
                     onConfirm = {
                         showLogoutDialog = false
                         // 실제 로그아웃 로직 호출
+                        onRequestLogout()
                     }
                 )
             }
