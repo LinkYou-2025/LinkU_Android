@@ -89,7 +89,7 @@ fun TextFieldFileBottomSheet(
         body = body,
         buttonText = "저장",
         visible = visible,
-        isReady = colorId == -1,
+        isReady = if(isEditable) colorId != -1 else text.isNotEmpty(),
         onOkay = {
             onTextDeliver(text)
             if(isEditable) {
@@ -254,6 +254,6 @@ private fun TextFieldFileBottomSheetTest(){
         "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
         "카테고리명은 최대 10자입니다",
         true,
-        true
+        true,
     ){}
 }

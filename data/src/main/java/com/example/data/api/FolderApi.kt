@@ -7,6 +7,7 @@ import com.example.data.api.dto.server.FolderPermissionRequestDTO
 import com.example.data.api.dto.server.FolderResponseDTO
 import com.example.data.api.dto.server.FolderTreeResponseDTO
 import com.example.data.api.dto.server.FolderUpdateRequestDTO
+import com.example.data.api.dto.server.GetParentFoldersDTO
 import com.example.data.api.dto.server.GetSharedFoldersDTO
 import com.example.data.api.dto.server.LinksFoldersResponseDTO
 import com.example.data.api.dto.server.ShareFolderResponseDTO
@@ -40,7 +41,7 @@ interface FolderApi {
     // (중분류) 중분류 폴더 조회
     // ✅
     @GET("/api/folders/parentFolders")
-    suspend fun getParentfolders(): BaseResponse<List<FolderListResponseDTO>>
+    suspend fun getParentfolders(): BaseResponse<List<GetParentFoldersDTO>>
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
     // ✅

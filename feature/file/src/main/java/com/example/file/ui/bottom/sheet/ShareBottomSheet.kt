@@ -126,108 +126,116 @@ fun ShareBottomSheet(
         var expanded by remember { mutableStateOf(false) }
         val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "")
 
-        Row(
+        Box(
             modifier = Modifier
-                .width(300.dp)
-                .height(51.dp)
-                .border(
-                    1.dp,
-                    if (selectable) MainColor else Brush.horizontalGradient(
-                        listOf(Gray400, Gray400)
-                    ),
-                    RoundedCornerShape(18.dp)
-                )
-                .padding(horizontal = 21.dp)
-                .noRippleClickable {
-                    if (selectable) {
-                        expanded = true
-                        menuOpen = true
-                    }
-                },
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .wrapContentHeight()
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
         ){
-            Text(
-                text = text,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontFamily = DefaultFont,
-                fontWeight = FontWeight(400),
-                color = if(selectable) Black else Gray400,
-            )
-
-            val modifier = if(expanded) Modifier
-                .width(14.dp)
-                .graphicsLayer(alpha = 0.99f)
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawRect(
-                            brush = MainColor,
-                            blendMode = BlendMode.SrcAtop,
-                            alpha = if (selectable) 1f else 0.5f
-                        )
-                    }
-                } else Modifier.width(14.dp)
-
-            Image(
-                painter = painterResource(R.drawable.check_img),
-                contentDescription = null,
-                modifier = modifier.rotate(rotation)
-            )
-        }
-
-        DropdownMenu(
-            modifier = Modifier
-                .width(300.dp)
-                .heightIn(max = 224.dp),
-            shape = RoundedCornerShape(18.dp),
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                menuOpen = false
-            },
-            containerColor = White
-        ) {
-            for ((i, folder) in folderList.withIndex()) {
-                val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folder.folderName]
-
-                DropdownMenuItem(
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier
-                                .size(25.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    color = colorStyle?.color1
-                                        ?: categoryColorStyle!!.color4
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    color = colorStyle?.color4
-                                        ?: categoryColorStyle!!.color4,
-                                    shape = CircleShape
-                                )
-                        )
+            Row(
+                modifier = Modifier
+                    .width(300.dp)
+                    .height(51.dp)
+                    .border(
+                        1.dp,
+                        if (selectable) MainColor else Brush.horizontalGradient(
+                            listOf(Gray400, Gray400)
+                        ),
+                        RoundedCornerShape(18.dp)
+                    )
+                    .padding(horizontal = 21.dp)
+                    .noRippleClickable {
+                        if (selectable) {
+                            expanded = true
+                            menuOpen = true
+                        }
                     },
-                    text = {
-                        Text(
-                            text = folder.folderName,
-                            fontSize = 15.sp,
-                            lineHeight = 22.sp,
-                            fontFamily = DefaultFont,
-                            fontWeight = FontWeight(400),
-                            color = Gray800,
-                            maxLines = 1,  // 한 줄만 보여주고
-                            overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
-                        )
-                    },
-                    onClick = {
-                        onClick(folder)
-                        expanded = false
-                        menuOpen = false
-                    }
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = text,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    fontFamily = DefaultFont,
+                    fontWeight = FontWeight(400),
+                    color = if (selectable) Black else Gray400,
                 )
+
+                val modifier = if (expanded) Modifier
+                    .width(14.dp)
+                    .graphicsLayer(alpha = 0.99f)
+                    .drawWithCache {
+                        onDrawWithContent {
+                            drawContent()
+                            drawRect(
+                                brush = MainColor,
+                                blendMode = BlendMode.SrcAtop,
+                                alpha = if (selectable) 1f else 0.5f
+                            )
+                        }
+                    } else Modifier.width(14.dp)
+
+                Image(
+                    painter = painterResource(R.drawable.check_img),
+                    contentDescription = null,
+                    modifier = modifier.rotate(rotation)
+                )
+            }
+
+            DropdownMenu(
+                modifier = Modifier
+                    .width(300.dp)
+                    .heightIn(max = 224.dp),
+                shape = RoundedCornerShape(18.dp),
+                expanded = expanded,
+                onDismissRequest = {
+                    expanded = false
+                    menuOpen = false
+                },
+                containerColor = White
+            ) {
+                for ((i, folder) in folderList.withIndex()) {
+                    val categoryColorStyle =
+                        fileViewModel.categoryColorMap.collectAsState().value[folder.folderName]
+
+                    DropdownMenuItem(
+                        leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .size(25.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        color = colorStyle?.color1
+                                            ?: categoryColorStyle!!.color4
+                                    )
+                                    .border(
+                                        width = 1.dp,
+                                        color = colorStyle?.color4
+                                            ?: categoryColorStyle!!.color4,
+                                        shape = CircleShape
+                                    )
+                            )
+                        },
+                        text = {
+                            Text(
+                                text = folder.folderName,
+                                fontSize = 15.sp,
+                                lineHeight = 22.sp,
+                                fontFamily = DefaultFont,
+                                fontWeight = FontWeight(400),
+                                color = Gray800,
+                                maxLines = 1,  // 한 줄만 보여주고
+                                overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
+                            )
+                        },
+                        onClick = {
+                            onClick(folder)
+                            expanded = false
+                            menuOpen = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -281,7 +289,7 @@ fun ShareBottomSheet(
                 FolderState.LINKS -> {
                     BottomFolderItemLayout(
                         categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        categoryName = selectedBottomFolder!!.folderName,
+                        folder = selectedBottomFolder!!,
                         editStateViewModel = dummyVM,
                     )
                 }

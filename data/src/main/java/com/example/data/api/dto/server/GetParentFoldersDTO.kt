@@ -2,8 +2,7 @@ package com.example.data.api.dto.server
 
 import com.squareup.moshi.Json
 
-// com.example.core.model.FolderSimpleInfo -> 구조를 공유
-data class FolderListResponseDTO(
+data class GetParentFoldersDTO(
 
     @Json(name = "folderId")
     val folderId: Long,
@@ -16,7 +15,4 @@ data class FolderListResponseDTO(
 
     @Json(name = "isBookmarked")
     val isBookmarked: Boolean,
-
-    @Json(name = "isSharing")
-    val isSharing: String? = ""
 )

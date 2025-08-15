@@ -13,7 +13,7 @@ fun TopFolderEditBottomSheet(
     TextFieldFileBottomSheet(
         title = "해당 카테고리를 수정하시겠습니까?",
         body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
-        placeholderText = "저장",
+        placeholderText = "카테고리명은 현재 변경 불가능합니다.",
         isEditable = true,
         visible = folderStateViewModel.topFolderEditBottomSheetVisible,
         onColorIdDeliver = { colorId ->

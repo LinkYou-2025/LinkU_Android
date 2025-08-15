@@ -149,7 +149,7 @@ fun FileTopBar(
                 ) {
                     // 폴더 리스트 컴포저블
                     BottomFolderListLayout(
-                        colorStyle = CategoryColorStyle.categoryStyleList[0],
+                        fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel
                     )
 

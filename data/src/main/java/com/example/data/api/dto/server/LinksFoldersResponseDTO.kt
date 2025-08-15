@@ -26,6 +26,12 @@ data class LinkDTO(
     @Json(name = "url")
     val url: String,     // 링크 URL
 
+    @Json(name = "keyword")
+    val keyword: String,  // 링크 도메인
+
+    @Json(name = "linkuImageUrl")
+    val linkuImageUrl: String,  // 링크 도메인
+
     @Json(name = "createdAt")
     val createdAt: String? // 생성일시 (null 가능)
 )

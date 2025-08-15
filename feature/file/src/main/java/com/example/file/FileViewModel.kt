@@ -256,10 +256,10 @@ class FileViewModel @Inject constructor(
                     limit = null,
                     cursor = _subFoldersCursor.value,
                     onGetFolders = { },
-                    onGetLinks = { list -> _notCategorizationLinks.value = list.map { it.copy() } }
+                    onGetLinks = { list -> _links.value = list.map { it.copy() } }
                 )
 
-                Log.d("FileViewModel", "getLinks try result: ${_notCategorizationLinks.value}")
+                Log.d("FileViewModel", "getLinks try result: ${_links.value}")
 
             } catch (e: Exception) {
                 Log.d("FileViewModel", "getLinks catch: $e.message")
@@ -588,6 +588,41 @@ class FileViewModel @Inject constructor(
         }
         Log.d("FileViewModel", "updateSubfolder return")
     }
+
+    // 링크 소분류
+    fun updateLinkFolder(link: LinkSimpleInfo, folderId: Long){
+        Log.d("FileViewModel", "updateLinkFolder")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "updateLinkFolder launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "updateLinkFolder try")
+
+                folderRepository.updateLinkFolder(link, folderId)
+
+                _links.value = _links.value.toMutableList().apply {
+                    add(link)
+                }
+
+                _notCategorizationLinks.value = _notCategorizationLinks.value.filter { it.linkuId != link.linkuId }
+
+                Log.d("FileViewModel", "updateLinkFolder try result")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "updateLinkFolder catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "updateLinkFolder finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "updateLinkFolder return")
+    }
     // ---------- update method ----------
 
     // ---------- delete method ----------
@@ -720,8 +755,29 @@ class FileViewModel @Inject constructor(
 
                 if(!isSharing){
                     folderRepository.setFolderViewerPermission(folder.folderId)
+
+                    _subFolders.update { list ->
+                        list.map {
+                            if (it.folderId == folder.folderId) {
+                                it.copy(isSharing = "share")
+                            } else {
+                                it
+                            }
+                        }
+                    }
+
                 }else{
                     folderRepository.setFolderPrivatePermission(folder.folderId)
+
+                    _subFolders.update { list ->
+                        list.map {
+                            if (it.folderId == folder.folderId) {
+                                it.copy(isSharing = "private")
+                            } else {
+                                it
+                            }
+                        }
+                    }
                 }
 
                 Log.d("FileViewModel", "changeSharing try result")

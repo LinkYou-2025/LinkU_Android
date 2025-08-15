@@ -14,6 +14,7 @@ import com.example.data.api.dto.server.FolderCreateRequestDTO
 import com.example.data.api.dto.server.FolderUpdateRequestDTO
 import com.example.data.api.dto.server.LinksFoldersResponseDTO
 import com.example.data.api.dto.server.UpdateBookmarkRequestDTO
+import com.example.data.api.dto.server.UpdateLinkFolderDTO
 import com.example.data.api.withAuth
 import com.example.data.api.withAuthResp204Raw
 import com.example.data.preference.AuthPreference
@@ -146,7 +147,7 @@ class FolderRepositoryImpl @Inject constructor(
                         folderName = it.folderName,
                         parentFolderId = parentFolderId,
                         isBookmarked = false,
-                        isSharing = it.isSharing
+                        isSharing = it.isSharing,
                     )
                 }
             )
@@ -162,7 +163,9 @@ class FolderRepositoryImpl @Inject constructor(
                         title = it.title,
                         domain = it.url,
                         domainImageUrl = "",
-                        linkuImageUrl = ""
+                        linkuImageUrl = "",
+                        tags = it.keyword.split(",")
+                            .map { it.trim() }
                     )
                 }
             )
@@ -448,5 +451,43 @@ class FolderRepositoryImpl @Inject constructor(
         }
 
         Log.d("updateViewerPermission", "updateViewerPermission success")
+    }
+
+    override suspend fun updateLinkFolder(
+        linku: LinkSimpleInfo,
+        folderId: Long
+    ): LinkSimpleInfo {
+        Log.d("updateLink", "folderId: $folderId")
+
+        try {
+            Log.d("updateLink", "try")
+
+            val result = serverApi.withAuth(authPreference) {
+                updateLinkFolder(
+                    linku.linkuId,
+                    UpdateLinkFolderDTO(folderId)
+                )
+            }.run{
+                LinkSimpleInfo(
+                    linkuId = this.linkuId,
+                    categoryId = 0,
+                    memo = "",
+                    emotionId = 0,
+                    title = this.title,
+                    domain = this.domain,
+                    domainImageUrl = "",
+                    linkuImageUrl = "",
+                    tags = emptyList()
+                )
+            }
+
+            Log.d("updateLink", "well done: $result")
+        } catch (e: Exception) {
+            Log.d("updateLink", "error: $e")
+            throw e
+        }
+
+        Log.d("updateLink", "updateLink success")
+        return linku
     }
 }

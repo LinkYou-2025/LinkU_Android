@@ -72,4 +72,10 @@ interface FolderRepository {
 
     // 폴더 비공개 전환 (예외 던질 수 있음)
     suspend fun setFolderPrivatePermission(folderId: Long): SharedFolderSimpleInfo
+
+    // 링크 소분류
+    suspend fun updateLinkFolder(
+        linku: LinkSimpleInfo,
+        folderId: Long
+    ): LinkSimpleInfo
 }
