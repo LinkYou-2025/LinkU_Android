@@ -38,6 +38,9 @@ data class LinkuResultDTO(
     @Json(name = "linkuImageUrl")
     val linkuImageUrl: String?,
 
+    @Json(name = "aiArticleExists")
+    val aiArticleExists: Boolean,
+
     @Json(name = "createdAt")
     val createdAt: OffsetDateTime,
 
