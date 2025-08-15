@@ -1,9 +1,13 @@
 package com.example.linku_android
 
-
+import android.R.attr.type
+import android.content.Context
+import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.ThemeProvider
 import com.example.file.FileScreen
-import com.example.home.HomeScreen
+import com.example.home.screen.HomeScreen
 import com.example.home.HomeViewModel
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
@@ -45,6 +49,8 @@ import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
 
+import androidx.navigation.compose.composable
+import com.example.home.HomeApp
 import com.example.curation.ui.CurationDetailScreen
 import com.example.curation.ui.CurationScreen
 import com.example.login.auth.AnimatedLoginScreen
@@ -63,6 +69,8 @@ import com.example.login.auth.TermsAgreementScreen
 import com.example.login.auth.WelcomeScreen
 import com.example.login.auth.ResetPasswordScreen
 import com.example.login.auth.SignUpViewModel
+import java.io.File
+import java.io.FileOutputStream
 
 // 링크 공유 앱링크
 import androidx.navigation.navDeepLink
@@ -281,11 +289,9 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.HOME
                         }
                         FinishHandler()
+
                         val homeViewModel: HomeViewModel = hiltViewModel()
-                        HomeScreen(
-                            userName = "지현",
-                            recentLinks = homeViewModel.recentLinks
-                        )
+                        HomeApp(viewModel = homeViewModel)
                     }
                 }
 
@@ -383,20 +389,98 @@ fun MainApp(
                         FinishHandler()
 
                         val mypageViewModel: MyPageViewModel = hiltViewModel()
-                        MyPageApp(mypageViewModel)
+                        MyPageApp(
+                            viewModel = mypageViewModel,
+                            onLogoutToLogin = {
+                                // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
+                                // 전역 스택을 지우고 로그인 루트로 이동
+                                navigator.navigate(NavigationRoute.Login.route) {
+                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
                     }
                 }
 
                 composable("savelink") {
-                    SaveLinkScreen(
-                        onSaveSuccess = {
-                            navigator.navigate("savelinkresult")
+                    val context = LocalContext.current
+                    val vm: HomeViewModel = hiltViewModel()
+
+                    // 갤러리 런처: Uri -> 임시 File 로 복사해서 뷰모델에 전달
+                    val imagePicker = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()
+                    ) { uri: Uri? ->
+                        if (uri != null) {
+                            runCatching { uri.toTempFile(context) }
+                                .onSuccess { file -> vm.setImage(file) }
+                                .onFailure {
+                                    Toast.makeText(context, "이미지 로드에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
                         }
+                    }
+
+                    SaveLinkScreen(
+                        image = vm.image,
+                        url = vm.url,
+                        memo = vm.memo,
+                        selectedEmotionId = vm.selectedEmotionId,
+                        onPickImage = { imagePicker.launch("image/*") },
+                        onUrlChange = vm::setUrl,
+                        onMemoChange = vm::setMemo,
+                        onEmotionSelect = vm::selectEmotion,
+                        onSaveClick = {
+                            // 저장 버튼 로그 + API 호출
+                            Log.d("SaveLink", "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, image=${vm.image?.name}")
+                            vm.saveLink(
+                                onSucceed = { saved ->
+                                    Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
+                                    vm.loadLinkDetail(saved.linkuId)
+                                    vm.resetForm()
+                                    navigator.navigate("savelinkresult/${saved.linkuId}")
+                                },
+                                onFailed = { e ->
+                                    Log.e("SaveLink", "failed: ${e.message}", e)
+                                    Toast.makeText(context, e.message ?: "저장에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        },
+                        onBack = { navigator.popBackStack() },
+                        isCheckingUrl = vm.isCheckingUrl,
+                        isDuplicateUrl = vm.isDuplicateUrl,
+                        isInvalidLink = vm.isInvalidUrl
                     )
                 }
 
-                composable("savelinkresult") {
-                    SaveLinkResultScreen()
+//                composable("savelinkresult") {
+//                    val vm: HomeViewModel = hiltViewModel()
+//
+//                    SaveLinkResultScreen(
+//                        // 선택 이미지(없으면 null 유지)
+//                        selectedImageUri = null,
+//                        // 뷰모델이 들고 있는 상세 데이터
+//                        link = vm.linkDetail,
+//                        // 로딩 중 여부
+//                        isLoading = vm.isLoadingLinkDetail,
+//                        onBack = { navigator.popBackStack() }
+//                    )
+//                }
+                composable(
+                    route = "savelinkresult/{linkuId}",
+                    arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val vm: HomeViewModel = hiltViewModel()
+                    val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
+
+                    LaunchedEffect(linkuId) {
+                        vm.loadLinkDetail(linkuId)
+                    }
+
+                    SaveLinkResultScreen(
+                        link = vm.linkDetail,
+                        isLoading = vm.isLoadingLinkDetail,
+                        onBack = { navigator.popBackStack() }
+                    )
                 }
 
                 // 딥링크 접속 시, 로그인이 안됐을 때 로그인 화면
@@ -588,4 +672,15 @@ fun android.content.Context.findActivity(): android.app.Activity? {
         ctx = ctx.baseContext
     }
     return null
+}
+
+private fun Uri.toTempFile(context: Context): File {
+    val fileName = "picked_${System.currentTimeMillis()}.jpg"
+    val tempFile = File(context.cacheDir, fileName)
+    context.contentResolver.openInputStream(this).use { input ->
+        FileOutputStream(tempFile).use { output ->
+            input?.copyTo(output)
+        }
+    }
+    return tempFile
 }

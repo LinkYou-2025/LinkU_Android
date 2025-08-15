@@ -1,6 +1,7 @@
 package com.example.core.repository
 
 import com.example.core.model.LoginResult
+import com.example.core.model.UserInfo
 
 
 interface UserRepository {
@@ -26,5 +27,9 @@ interface UserRepository {
     //유저 비밀번호 재설정
     suspend fun requestTempPassword(email: String): Boolean
 
+    // 마이페이지 조회
+    suspend fun getUserInfo(userId: Long): UserInfo
 
+    // 로그아웃
+    suspend fun logout()
 }

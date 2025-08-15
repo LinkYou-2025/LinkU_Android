@@ -1,7 +1,5 @@
 package com.example.home.screen
 
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -22,10 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,35 +32,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import android.net.Uri
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.rememberAsyncImagePainter
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.home.R
+import java.io.File
 
 @Composable
 fun SaveLinkScreen(
-    onSaveSuccess: () -> Unit
+    image: File?,
+    url: String,
+    memo: String,
+    selectedEmotionId: Long?,
+    onPickImage: () -> Unit,
+    onUrlChange: (String) -> Unit,
+    onMemoChange: (String) -> Unit,
+    onEmotionSelect: (Long?) -> Unit,
+    onSaveClick: () -> Unit,
+    onBack: () -> Unit,
+    isCheckingUrl: Boolean,
+    isDuplicateUrl: Boolean?,
+    isInvalidLink: Boolean,
 ) {
-    val isInvalidLink = false  // 임의로 false로 값을 주고 추후 API 연결 시 교체 예정
-    val linkText = remember { mutableStateOf("") }
     val bannedDomains = listOf("youtube.com", "youtu.be")
-    val showVideoWarning = bannedDomains.any { linkText.value.contains(it, ignoreCase = true) }
+    val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
+    val isButtonEnabled =
+        url.isNotBlank() &&
+        !isCheckingUrl &&
+        !showVideoWarning &&
+        !isInvalidLink &&
+        (isDuplicateUrl != true)
 
-    var selectedEmotion by remember { mutableStateOf<String?>(null) }
-    val isButtonEnabled = linkText.value.isNotBlank()
-
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-    val imagePickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        selectedImageUri = uri
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -83,6 +81,7 @@ fun SaveLinkScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .size(width = 10.dp, height = 16.25.dp)
+                        .clickable { onBack() }
                 )
 
                 Spacer(modifier = Modifier.width(131.dp))
@@ -106,16 +105,11 @@ fun SaveLinkScreen(
                     .fillMaxWidth()
                     .padding(top = 15.dp, start = 20.dp, end = 20.dp, bottom = 12.dp)
                     .height(50.dp)
-                    .border(
-                        width = 1.dp,
-                        brush = Basic.maincolor,
-                        shape = RoundedCornerShape(18.dp)
-                    )
+                    .border(width = 1.dp, brush = Basic.maincolor, shape = RoundedCornerShape(18.dp))
                     .padding(horizontal = 22.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-
-                if (linkText.value.isEmpty()) {
+                if (url.isEmpty()) {
                     Text(
                         text = "링크를 입력하거나 붙여넣어 주세요.",
                         style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
@@ -124,25 +118,44 @@ fun SaveLinkScreen(
                 }
 
                 BasicTextField(
-                    value = linkText.value,
-                    onValueChange = { linkText.value = it },
+                    value = url,
+                    onValueChange = onUrlChange,
                     singleLine = true,
-                    textStyle = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.black
-                    ),
+                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
 
-            if (isInvalidLink) {
-                WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
+            // URL 검사 결과 메시지
+            when {
+                url.isBlank() -> Unit
+                showVideoWarning -> WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
+                isCheckingUrl -> Text(
+                    text = "링크를 확인 중입니다…",
+                    style = TextStyle(fontSize = 13.sp),
+                    color = LocalColorTheme.current.gray[600],
+                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
+                )
+                isInvalidLink -> {
+                    WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
+                }
+                isDuplicateUrl == true -> WarningText("이미 저장된 링크예요.")
+                isDuplicateUrl == false -> Text(
+                    text = "저장 가능한 링크예요.",
+                    style = TextStyle(fontSize = 13.sp),
+                    color = LocalColorTheme.current.blue[200],
+                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
+                )
+                else -> Unit
             }
 
-            if (showVideoWarning) {
-                WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
-            }
+//            if (isInvalidLink) {
+//                WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
+//            }
+//
+//            if (showVideoWarning) {
+//                WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
+//            }
 
             // 둘 다 false일 때만 Spacer 추가
             if (!isInvalidLink && !showVideoWarning) {
@@ -156,13 +169,13 @@ fun SaveLinkScreen(
                     .padding(top = 18.dp, start = 20.dp, end = 20.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(LocalColorTheme.current.gray[100])
-                    .border(1.dp, LocalColorTheme.current.gray[200])
-                    .clickable { imagePickerLauncher.launch("image/*") }, // ✅ 클릭 시 이미지 선택
+                    .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp))
+                    .clickable { onPickImage() },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (selectedImageUri != null) {
+                if (image != null) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = selectedImageUri),
+                        painter = rememberAsyncImagePainter(model = image),
                         contentDescription = "선택된 이미지",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop // ✅ 박스에 꽉 차도록
@@ -209,26 +222,17 @@ fun SaveLinkScreen(
                 )
             }
 
-            val text = remember { mutableStateOf("") }
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 15.dp, start = 20.dp, end = 20.dp)
                     .height(50.dp)
                     .then(
-                        if (text.value.isEmpty()) {
-                            Modifier.border(
-                                width = 1.dp,
-                                color = LocalColorTheme.current.gray[200],
-                                shape = RoundedCornerShape(18.dp)
-                            )
+                        if (memo.isEmpty()) {
+                            Modifier.border(width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
                         } else {
                             Modifier.border(
-                                border = BorderStroke(
-                                    width = 1.dp,
-                                    brush = Basic.maincolor
-                                ),
+                                border = BorderStroke(width = 1.dp, brush = Basic.maincolor),
                                 shape = RoundedCornerShape(18.dp)
                             )
                         }
@@ -237,7 +241,7 @@ fun SaveLinkScreen(
                 contentAlignment = Alignment.CenterStart
             ) {
 
-                if (text.value.isEmpty()) {
+                if (memo.isEmpty()) {
                     Text(
                         text = "메모할 내용을 입력해주세요.",
                         style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
@@ -246,16 +250,10 @@ fun SaveLinkScreen(
                 }
 
                 BasicTextField(
-                    value = text.value,
-                    onValueChange = {
-                        if (it.length <= 200) text.value = it
-                    },
+                    value = memo,
+                    onValueChange = { if (it.length <= 200) onMemoChange(it) },
                     singleLine = true,
-                    textStyle = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.black
-                    ),
+                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -268,7 +266,7 @@ fun SaveLinkScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = text.value.length.toString(),
+                    text = memo.length.toString(),
                     style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
                     color = LocalColorTheme.current.gray[700]
                 )
@@ -302,8 +300,8 @@ fun SaveLinkScreen(
             }
 
             EmotionSelect(
-                selectedEmotion = selectedEmotion,
-                onEmotionChange = { selectedEmotion = it }
+                selectedEmotionId = selectedEmotionId,
+                onEmotionSelect = onEmotionSelect
             )
         }
 
@@ -329,13 +327,8 @@ fun SaveLinkScreen(
                             )
                         }
                     )
-                    .clickable(
-                        enabled = isButtonEnabled,
-                        onClick = {
-                            // 저장 로직 후 이동
-                            onSaveSuccess()
-                        }
-                    ),
+
+                    .clickable(enabled = isButtonEnabled) { onSaveClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -365,16 +358,16 @@ fun WarningText(
 
 @Composable
 fun EmotionSelect(
-    selectedEmotion: String?,
-    onEmotionChange: (String?) -> Unit
+    selectedEmotionId: Long?,
+    onEmotionSelect: (Long?) -> Unit
 ) {
     val emotions = listOf(
-        "😃" to "즐거움",
-        "😐" to "평온",
-        "😍" to "설렘",
-        "🥲" to "우울",
-        "😫" to "짜증",
-        "😡" to "분노"
+        1L to ("😃" to "즐거움"),
+        2L to ("😐" to "평온"),
+        3L to ("😍" to "설렘"),
+        4L to ("🥲" to "우울"),
+        5L to ("😫" to "짜증"),
+        6L to ("😡" to "분노")
     )
 
     Column(
@@ -382,8 +375,12 @@ fun EmotionSelect(
     ) {
         // 첫 번째 줄: 4개
         Row {
-            emotions.take(4).forEach { (emoji, label) ->
-                EmotionBadge(emoji, label, selectedEmotion, onEmotionChange)
+            emotions.take(4).forEach { (id, pair) ->
+                EmotionBadge(
+                    emoji = pair.first, label = pair.second,
+                    selected = selectedEmotionId == id,
+                    onToggle = { onEmotionSelect(if (selectedEmotionId == id) null else id) }
+                )
                 Spacer(modifier = Modifier.width(10.dp))
             }
         }
@@ -392,8 +389,12 @@ fun EmotionSelect(
 
         // 두 번째 줄: 2개
         Row {
-            emotions.drop(4).forEach { (emoji, label) ->
-                EmotionBadge(emoji, label, selectedEmotion, onEmotionChange)
+            emotions.drop(4).forEach { (id, pair) ->
+                EmotionBadge(
+                    emoji = pair.first, label = pair.second,
+                    selected = selectedEmotionId == id,
+                    onToggle = { onEmotionSelect(if (selectedEmotionId == id) null else id) }
+                )
                 Spacer(modifier = Modifier.width(10.dp))
             }
         }
@@ -404,10 +405,9 @@ fun EmotionSelect(
 private fun EmotionBadge(
     emoji: String,
     label: String,
-    selectedEmotion: String?,
-    onEmotionChange: (String?) -> Unit
+    selected: Boolean,
+    onToggle: () -> Unit
 ) {
-    val isSelected = selectedEmotion == emoji
     val boxBackground = Brush.horizontalGradient(
         listOf(
             Color(0x1A2C6FFF),
@@ -419,11 +419,11 @@ private fun EmotionBadge(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(
-                brush = if (isSelected) boxBackground
+                brush = if (selected) boxBackground
                 else SolidColor(LocalColorTheme.current.white)
             )
             .then(
-                if (isSelected) Modifier.border(
+                if (selected) Modifier.border(
                     width = 1.dp,
                     brush = Basic.maincolor,
                     shape = RoundedCornerShape(20.dp)
@@ -433,9 +433,7 @@ private fun EmotionBadge(
                     shape = RoundedCornerShape(20.dp)
                 )
             )
-            .clickable {
-                onEmotionChange(if (isSelected) null else emoji)
-            }
+            .clickable { onToggle() }
             .padding(horizontal = 15.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -455,7 +453,7 @@ private fun EmotionBadge(
             style = TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (isSelected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800]
+                color = if (selected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800]
             )
         )
     }
@@ -464,5 +462,19 @@ private fun EmotionBadge(
 @Preview(showBackground = true)
 @Composable
 fun PreviewSaveLinkScreen() {
-    SaveLinkScreen(onSaveSuccess = {})
+    SaveLinkScreen(
+        image = null,
+        url = "",
+        memo = "",
+        selectedEmotionId = null,
+        onPickImage = {},
+        onUrlChange = {},
+        onMemoChange = {},
+        onEmotionSelect = {},
+        onSaveClick = {},
+        onBack = {},
+        isCheckingUrl = false,
+        isDuplicateUrl = null,
+        isInvalidLink = false
+    )
 }
