@@ -93,4 +93,16 @@ class MyPageViewModel @Inject constructor(
             }
         }
     }
+
+    // 로그아웃 */
+        fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
+            viewModelScope.launch {
+                try {
+                    userRepository.logout() // 서버 로그아웃 + 토큰/유저ID 정리까지 Repository에서 처리
+                    onSuccess()
+                } catch (e: Exception) {
+                    onError("로그아웃에 실패했습니다.")
+                }
+            }
+        }
 }

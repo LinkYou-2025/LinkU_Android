@@ -23,4 +23,7 @@ interface UserRepository {
 
     // 마이페이지 조회
     suspend fun getUserInfo(userId: Long): UserInfo
+
+    // 로그아웃
+    suspend fun logout()
 }
