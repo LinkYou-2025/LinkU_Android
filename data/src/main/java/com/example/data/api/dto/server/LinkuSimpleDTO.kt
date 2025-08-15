@@ -26,6 +26,8 @@ data class LinkuSimpleDTO(
     val domainImageUrl: String?,
 
     @Json(name = "linkuImageUrl")
-    val linkuImageUrl: String?
+    val linkuImageUrl: String?,
 
+    @Json(name = "aiArticleExists")
+    val aiArticleExists: Boolean
 )
