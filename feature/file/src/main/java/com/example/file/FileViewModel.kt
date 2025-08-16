@@ -5,8 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.error.UserIdNullException
 import com.example.core.model.CategoryColorList
-import com.example.core.model.FolderPermission
 import com.example.core.model.FolderSimpleInfo
+import com.example.core.model.LinkItemInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.repository.CategoryRepository
@@ -78,12 +78,12 @@ class FileViewModel @Inject constructor(
     val subFoldersCursor: StateFlow<String?> = _subFoldersCursor.asStateFlow()
 
     // 5. 링크 리스트
-    private val _links = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
-    val links: StateFlow<List<LinkSimpleInfo>> = _links.asStateFlow()
+    private val _links = MutableStateFlow<List<LinkItemInfo>>(emptyList())
+    val links: StateFlow<List<LinkItemInfo>> = _links.asStateFlow()
 
     // 5-1. 분류되지않은 링크 리스트
-    private val _notCategorizationLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
-    val notCategorizationLinks: StateFlow<List<LinkSimpleInfo>> = _notCategorizationLinks.asStateFlow()
+    private val _notCategorizationLinks = MutableStateFlow<List<LinkItemInfo>>(emptyList())
+    val notCategorizationLinks: StateFlow<List<LinkItemInfo>> = _notCategorizationLinks.asStateFlow()
 
     // 6. 로딩/에러 상태
     private val _loadingCount = MutableStateFlow(0)
@@ -121,8 +121,8 @@ class FileViewModel @Inject constructor(
             try{
                 val userId = authPreference.userId!!
 
-                val name = userRepository.getUserInfo(userId)
-                _nickname.value = name
+                val userInfo = userRepository.getUserInfo(userId)
+                _nickname.value = userInfo.nickname
             }catch (e: Exception){
                 Log.d("FileViewModel", "loadNickname catch: $e.message")
 
@@ -276,7 +276,7 @@ class FileViewModel @Inject constructor(
     }
 
     // 링크, 폴더 불러오기
-    fun getLinksFolders(folderId: Long) {
+    fun getFoldersAndNotCategorizationLinks(folderId: Long) {
         Log.d("FileViewModel", "getNotCategorizationLinks")
 
         viewModelScope.launch {
@@ -590,7 +590,7 @@ class FileViewModel @Inject constructor(
     }
 
     // 링크 소분류
-    fun updateLinkFolder(link: LinkSimpleInfo, folderId: Long){
+    fun updateLinkFolder(link: LinkItemInfo, folderId: Long){
         Log.d("FileViewModel", "updateLinkFolder")
 
         viewModelScope.launch {

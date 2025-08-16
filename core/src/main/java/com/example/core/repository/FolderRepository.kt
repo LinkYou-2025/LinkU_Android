@@ -7,6 +7,7 @@ import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.SharedFolderSimpleInfo
 import com.example.core.model.FolderPermissionInfo
+import com.example.core.model.LinkItemInfo
 
 interface FolderRepository {
 
@@ -33,7 +34,7 @@ interface FolderRepository {
         limit: Int? = 20,
         cursor: String? = null,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
-        onGetLinks: (List<LinkSimpleInfo>) -> Unit
+        onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String?
 
     // (소분류) 폴더 생성 (소분류 폴더 생성) (예외 던질 수 있음)
@@ -75,7 +76,7 @@ interface FolderRepository {
 
     // 링크 소분류
     suspend fun updateLinkFolder(
-        linku: LinkSimpleInfo,
+        linku: LinkItemInfo,
         folderId: Long
-    ): LinkSimpleInfo
+    ): LinkItemInfo
 }

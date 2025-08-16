@@ -5,7 +5,7 @@ import java.io.IOException
 import com.example.core.error.TokenExpiredException
 import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.RefreshApi
-import com.example.data.preference.AuthPeference
+import com.example.data.preference.AuthPreference
 
 // --- 기존 ServerApi + RefreshApi 확장 (AuthApi 제거) ---
 interface ServerApi :
