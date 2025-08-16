@@ -1,6 +1,7 @@
 package com.example.data.api.dto.server
 
 import com.squareup.moshi.Json
+import java.time.OffsetDateTime
 
 data class FolderDTO(
 
@@ -33,7 +34,7 @@ data class LinkDTO(
     val linkuImageUrl: String,  // 링크 도메인
 
     @Json(name = "createdAt")
-    val createdAt: String? // 생성일시 (null 가능)
+    val createdAt: OffsetDateTime? // 생성일시 (null 가능)
 )
 
 data class LinksFoldersResponseDTO(

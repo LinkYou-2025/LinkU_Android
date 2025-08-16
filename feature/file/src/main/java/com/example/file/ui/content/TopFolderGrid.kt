@@ -46,7 +46,7 @@ fun TopFolderGrid(
                             folderStateViewModel.updateReadyToUpdateTopFolder(folder)
                             folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
                         } else {
-                            fileViewModel.getLinksFolders(folder.folderId)
+                            fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
                             folderStateViewModel.updateSelectedTopFolder(folder)
                             folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                         }
