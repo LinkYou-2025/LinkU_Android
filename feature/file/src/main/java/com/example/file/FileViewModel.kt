@@ -1,19 +1,25 @@
 package com.example.file
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.error.UserIdNullException
 import com.example.core.model.CategoryColorList
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkItemInfo
-import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.SharedFolderInfo
+import com.example.core.model.search.RecentQuery
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.FolderRepository
+import com.example.core.repository.LinkuRepository
+import com.example.core.repository.RecentSearchRepository
 import com.example.core.repository.UserRepository
 import com.example.data.api.dto.server.*
 import com.example.data.preference.AuthPreference
+import com.example.design.FastSearchItem
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +32,10 @@ class FileViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val folderRepository: FolderRepository,
     private val userRepository: UserRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+
+    private val recentRepo: RecentSearchRepository,
+    private val linkuRepo: LinkuRepository,
 ) : ViewModel() {
 
     // *닉네임*
@@ -795,4 +804,120 @@ class FileViewModel @Inject constructor(
     }
 
     // ---------- share method ----------
+
+    // ---------- search method ----------
+    // 검색창 탑 시트 가시성 상태
+    var searchTopSheetVisible by mutableStateOf(false)
+        private set
+    fun updateSearchTopSheetVisible(newState: Boolean) {
+        Log.d("searchTopSheetVisible", newState.toString())
+        searchTopSheetVisible = newState
+    }
+
+    // 빠른 링크 검색 목록
+    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
+    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
+
+    // 빠른 링크 검색
+    fun fastSearch(keyword: String){
+        Log.d("FileViewModel", "fastSearch")
+
+        viewModelScope.launch{
+            Log.d("FileViewModel", "fastSearch launch")
+
+            _errorMessage.value = null
+            try{
+                Log.d("FileViewModel", "fastSearch try")
+
+                _fastSearchItems.value = linkuRepo.fastSearch(keyword).map{
+                    FastSearchItem(
+                        title = it.title,
+                        url = it.linkUrl
+                    )
+                }
+
+                Log.d("FileViewModel", "fastSearch try result: ${_fastSearchItems.value}")
+            }catch (e: Exception){
+                Log.d("FileViewModel", "fastSearch catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "fastSearch finally")
+            }
+        }
+    }
+
+    //최근 검색 목록
+    val recentQueryList: StateFlow<List<RecentQuery>> =
+        recentRepo.observe(limit = 20)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    // 최근 검색 기록 추가
+    fun addRecentQuery(query: String) {
+        Log.d("FileViewModel", "addRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "addRecentQuery launch")
+
+            try{
+                Log.d("FileViewModel", "addRecentQuery try")
+
+                recentRepo.add(query)
+            }catch (e: Exception){
+                Log.d("FileViewModel", "addRecentQuery catch: $e.message")
+            }finally {
+                Log.d("FileViewModel", "addRecentQuery finally")
+            }
+        }
+        Log.d("FileViewModel", "addRecentQuery return")
+    }
+
+    // 최근 검색 기록 삭제
+    fun removeRecentQuery(query: String) {
+        Log.d("FileViewModel", "removeRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "removeRecentQuery launch")
+
+            try{
+                Log.d("FileViewModel", "removeRecentQuery try")
+
+                recentRepo.remove(query)
+
+            }catch (e: Exception){
+                Log.d("FileViewModel", "removeRecentQuery catch: $e.message")
+            }finally {
+                Log.d("FileViewModel", "removeRecentQuery finally")
+                }
+            }
+        Log.d("FileViewModel", "removeRecentQuery return")
+    }
+
+
+    // 최근 검색 기록 전체 삭제
+    fun clearRecentQuery() {
+        Log.d("FileViewModel", "clearRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "clearRecentQuery launch")
+
+            try{
+                Log.d("FileViewModel", "clearRecentQuery try")
+
+                recentRepo.clear()
+
+            }catch (e: Exception){
+                Log.d("FileViewModel", "clearRecentQuery catch: $e.message")
+            }finally {
+                Log.d("FileViewModel", "clearRecentQuery finally")
+            }
+            }
+        Log.d("FileViewModel", "clearRecentQuery return")
+    }
+    // ---------- search method ----------
+
 }

@@ -186,11 +186,6 @@ fun FileScreen(
     }
 
     // ---------- bottom sheets ----------
-    // 검색창 탑 시트
-    SearchBarTopSheet(
-        visible = folderStateViewModel.searchTopSheetVisible,
-        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) }
-    )
 
     // 중분류 폴더 수정 바텀 시트
     TopFolderEditBottomSheet(
@@ -227,6 +222,18 @@ fun FileScreen(
         fileViewModel = fileViewModel,
     )
     // ---------- bottom sheets ----------
+
+    // 검색창 탑 시트
+    SearchBarTopSheet(
+        visible = folderStateViewModel.searchTopSheetVisible,
+        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) },
+        onQueryChange = { fileViewModel.fastSearch(it) },
+        onQuerySave = { fileViewModel.addRecentQuery(it) },
+        onQueryDelete = { fileViewModel.removeRecentQuery(it) },
+        onQueryClear = { fileViewModel.clearRecentQuery() },
+        fastSearchItems = fileViewModel.fastSearchItems.collectAsState().value,
+        recentQuerys = fileViewModel.recentQueryList.collectAsState().value.map{it.text}
+    )
 }
 
 @Preview(

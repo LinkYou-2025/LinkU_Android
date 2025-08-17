@@ -253,7 +253,7 @@ fun LinkItemLayout(
 
                     // 글자색 (Gray800)
                     color = Gray800,
-                    maxLines = 1, // 최대 2줄
+                    maxLines = 1, // 최대 1줄
                     overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
                 )
             }
