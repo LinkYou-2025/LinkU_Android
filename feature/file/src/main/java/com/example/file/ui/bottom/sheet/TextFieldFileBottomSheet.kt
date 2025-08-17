@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont

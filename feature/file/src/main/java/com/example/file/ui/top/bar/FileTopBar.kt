@@ -24,8 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.file.FileViewModel
 import com.example.file.R
-import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White

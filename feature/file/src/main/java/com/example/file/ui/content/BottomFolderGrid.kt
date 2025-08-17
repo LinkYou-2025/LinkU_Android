@@ -31,7 +31,7 @@ import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.FileViewModel
 import com.example.file.R
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout

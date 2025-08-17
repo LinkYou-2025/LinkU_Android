@@ -1,4 +1,4 @@
-package com.example.file.ui.top.sheet
+package com.example.design
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -33,17 +33,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.file.R
-import com.example.file.modifier.noRippleClickable
-import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.DefaultFont
-import com.example.file.ui.theme.Gray100
-import com.example.file.ui.theme.Gray500
-import com.example.file.ui.theme.Gray600
-import com.example.file.ui.theme.White
+import com.example.design.modifier.noRippleClickable
+import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
+import com.example.design.theme.color.ThemeColorScheme
 
 @Composable
-fun FileSearchBarTopSheet(
+fun SearchBarTopSheet(
     visible: Boolean,
     onDismiss: () -> Unit
 ) {
@@ -160,9 +156,9 @@ fun FileSearchBarTopSheet(
                                                     text = " 빠른 링크 검색",
                                                     fontSize = 15.sp,
                                                     lineHeight = 22.sp,
-                                                    fontFamily = DefaultFont,
+                                                    fontFamily = LocalFontTheme.current.font,
                                                     fontWeight = FontWeight.Normal,
-                                                    color = Black.copy(alpha = 0.4f) // placeholder는 살짝 연하게
+                                                    color = LocalColorTheme.current.black.copy(alpha = 0.4f) // placeholder는 살짝 연하게
                                                 )
                                             }
                                             innerTextField() // 실제 입력창
@@ -174,7 +170,7 @@ fun FileSearchBarTopSheet(
                                     modifier = Modifier
                                         .padding(end = 18.dp)
                                         .size(18.dp),
-                                    painter = painterResource(R.drawable.clear_icon_img),
+                                    painter = painterResource(R.drawable.ic_text_clear),
                                     contentDescription = null
                                 )
                             }
@@ -188,6 +184,6 @@ fun FileSearchBarTopSheet(
 
 @Preview(showBackground = true)
 @Composable
-fun FileSearchBarTopSheetTest(){
-    FileSearchBarTopSheet(true) { }
+private fun SearchBarTopSheetTest(){
+    SearchBarTopSheet(true) { }
 }

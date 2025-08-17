@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,7 +22,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.FileViewModel
-import com.example.file.modifier.noRippleClickable
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.DefaultFont
