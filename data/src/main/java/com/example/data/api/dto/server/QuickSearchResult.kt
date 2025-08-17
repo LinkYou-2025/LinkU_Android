@@ -4,13 +4,13 @@ import com.squareup.moshi.Json
 
 data class QuickSearchResult(
 
-    @Json(name = "searchKeyword")
-    val searchKeyword: String,
+    @Json(name = "title")
+    val title: String,
 
-    @Json(name = "recentKeywords")
-    val recentKeywords: List<String>,
+    @Json(name = "domainImageUrl")
+    val domainImageUrl: String,
 
-    @Json(name = "links")
-    val links: List<LinkDetailDTO>
+    @Json(name = "linkUrl")
+    val linkUrl: String
 
 )
