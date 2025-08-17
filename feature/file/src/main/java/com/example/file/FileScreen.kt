@@ -21,7 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet
@@ -35,7 +35,7 @@ import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
-import com.example.file.ui.top.sheet.FileSearchBarTopSheet
+import com.example.design.SearchBarTopSheet
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.file.ui.bottom.sheet.ShareBottomSheet
 import com.example.file.ui.content.SharedBottomFolderGrid
@@ -186,11 +186,6 @@ fun FileScreen(
     }
 
     // ---------- bottom sheets ----------
-    // 검색창 탑 시트
-    FileSearchBarTopSheet(
-        visible = folderStateViewModel.searchTopSheetVisible,
-        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) }
-    )
 
     // 중분류 폴더 수정 바텀 시트
     TopFolderEditBottomSheet(
@@ -227,6 +222,18 @@ fun FileScreen(
         fileViewModel = fileViewModel,
     )
     // ---------- bottom sheets ----------
+
+    // 검색창 탑 시트
+    SearchBarTopSheet(
+        visible = folderStateViewModel.searchTopSheetVisible,
+        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) },
+        onQueryChange = { fileViewModel.fastSearch(it) },
+        onQuerySave = { fileViewModel.addRecentQuery(it) },
+        onQueryDelete = { fileViewModel.removeRecentQuery(it) },
+        onQueryClear = { fileViewModel.clearRecentQuery() },
+        fastSearchItems = fileViewModel.fastSearchItems.collectAsState().value,
+        recentQuerys = fileViewModel.recentQueryList.collectAsState().value.map{it.text}
+    )
 }
 
 @Preview(

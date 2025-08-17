@@ -14,7 +14,8 @@ val DefaultFont = FontFamily(
     Font(R.font.paperlogy_medium, FontWeight.Medium, FontStyle.Normal),
     Font(R.font.paperlogy_regular, FontWeight.Normal, FontStyle.Normal),
     Font(R.font.paperlogy_semi_bold, FontWeight.SemiBold, FontStyle.Normal),
-    Font(R.font.paperlogy_thin, FontWeight.Thin, FontStyle.Normal)
+    Font(R.font.paperlogy_thin, FontWeight.Thin, FontStyle.Normal),
+    Font(R.font.paperlogy_extra_light, FontWeight.ExtraLight, FontStyle.Normal)
 )
 
 val FileTopBarLinkUFont = FontFamily(

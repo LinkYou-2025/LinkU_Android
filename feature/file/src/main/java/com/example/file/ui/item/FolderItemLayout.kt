@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.core.model.FolderSimpleInfo
 import com.example.file.R
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.content.BookMarkStar
 import com.example.file.ui.content.LockFolderIcon
 import com.example.file.ui.content.PencilIcon
@@ -54,7 +54,6 @@ import com.example.file.ui.theme.Gray200
 import com.example.file.ui.theme.Gray300
 import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.White
-import com.example.file.viewmodel.folder.state.FolderState
 
 @Composable
 fun FolderItemLayout(

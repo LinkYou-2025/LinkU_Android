@@ -3,6 +3,7 @@ package com.example.data.implementation.repository
 import android.util.Log
 import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.search.FastSearchLinkInfo
 import com.example.core.repository.LinkuRepository
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.BaseResponse
@@ -181,5 +182,34 @@ class LinkuRepositoryImpl @Inject constructor(
             createdAt = dto.createdAt,
             updatedAt = dto.updatedAt
         )
+    }
+
+    override suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo> {
+        Log.d("fastSearch", "keyword: $keyword")
+
+        val response: List<FastSearchLinkInfo>
+        try{
+            Log.d("fastSearch", "try")
+
+            response = serverApi.withAuth(authPreference) {
+                quickSearch(keyword = keyword)
+            }.map{
+                FastSearchLinkInfo(
+                    title = it.title,
+                    domainImageUrl = it.domainImageUrl,
+                    linkUrl = it.linkUrl
+                )
+            }
+
+            Log.d("fastSearch", "response: $response")
+        }catch (e: Exception){
+            Log.d("fastSearch", "error: $e")
+
+            return emptyList()
+        }
+
+        Log.d("fastSearch", "return: $response")
+
+        return response
     }
 }

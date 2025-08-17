@@ -3,11 +3,11 @@ package com.example.data.implementation.repository
 import android.util.Log
 import com.example.core.model.FolderInfo
 import com.example.core.model.FolderPermission
+import com.example.core.model.FolderPermissionInfo
 import com.example.core.model.FolderSimpleInfo
-import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.LinkItemInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.SharedFolderSimpleInfo
-import com.example.core.model.FolderPermissionInfo
 import com.example.core.repository.FolderRepository
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.server.FolderCreateRequestDTO
@@ -127,7 +127,7 @@ class FolderRepositoryImpl @Inject constructor(
         limit: Int?,
         cursor: String?,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
-        onGetLinks: (List<LinkSimpleInfo>) -> Unit
+        onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String? {
         Log.d("getLinksFolders", "folderId: $parentFolderId, limit: $limit, cursor: $cursor")
 
@@ -155,17 +155,15 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("getLinksFolders", "well done onGetFolders(${response.folders})")
 
             onGetLinks(response.links.map {
-                    LinkSimpleInfo(
+                    LinkItemInfo(
                         linkuId = it.linkuId,
-                        categoryId = 0,
-                        memo = "",
-                        emotionId = 0,
+                        parentFolderId = parentFolderId,
                         title = it.title,
-                        domain = it.url,
-                        domainImageUrl = "",
-                        linkuImageUrl = "",
                         tags = it.keyword.split(",")
-                            .map { it.trim() }
+                            .map { it.trim() },
+                        url = it.url,
+                        linkuImageUrl = it.linkuImageUrl,
+                        createdAt = it.createdAt,
                     )
                 }
             )
@@ -454,9 +452,9 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateLinkFolder(
-        linku: LinkSimpleInfo,
+        linku: LinkItemInfo,
         folderId: Long
-    ): LinkSimpleInfo {
+    ): LinkItemInfo {
         Log.d("updateLink", "folderId: $folderId")
 
         try {
@@ -468,16 +466,15 @@ class FolderRepositoryImpl @Inject constructor(
                     UpdateLinkFolderDTO(folderId)
                 )
             }.run{
-                LinkSimpleInfo(
+                LinkItemInfo(
                     linkuId = this.linkuId,
-                    categoryId = 0,
-                    memo = "",
-                    emotionId = 0,
+                    parentFolderId = folderId,
                     title = this.title,
-                    domain = this.domain,
-                    domainImageUrl = "",
-                    linkuImageUrl = "",
-                    tags = emptyList()
+                    tags = emptyList()/*this.keyword.split(",")
+                        .map { it.trim() }*/,
+                    url = this.domain?:"",
+                    linkuImageUrl = this.linkuImageUrl,
+                    createdAt = this.createdAt,
                 )
             }
 

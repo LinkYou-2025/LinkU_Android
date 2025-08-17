@@ -10,9 +10,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.viewmodel.edit.state.EditStateViewModel
-import com.example.file.viewmodel.folder.state.FolderState
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.White

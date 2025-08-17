@@ -2,6 +2,7 @@ package com.example.core.repository
 
 import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.search.FastSearchLinkInfo
 import java.io.File
 
 interface LinkuRepository {
@@ -29,4 +30,7 @@ interface LinkuRepository {
 
     // 링크 상세 보기
     suspend fun getLinkDetail(linkuId: Long): LinkResultInfo
+
+    // 빠른 링크 검색
+    suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo>
 }

@@ -4,7 +4,6 @@ package com.example.file.ui.item
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,7 +48,7 @@ import coil3.request.crossfade
 import coil3.request.error
 import coil3.request.fallback
 import coil3.request.placeholder
-import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.LinkItemInfo
 import com.example.file.R
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
@@ -65,12 +63,12 @@ import com.example.file.ui.theme.domainLogoPainterOrNull
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LinkItemLayout(
-    link: LinkSimpleInfo? = null,
+    link: LinkItemInfo? = null,
 ) {
     val tags = link?.tags?:emptyList()
     var showDialog by remember { mutableStateOf(false) }
 
-    val domainIcon = link?.let{ domainLogoPainterOrNull(it.domain) }?:painterResource(R.drawable.link_categorization_default)
+    val domainIcon = link?.let{ domainLogoPainterOrNull(it.url) }?:painterResource(R.drawable.link_categorization_default)
 
     val isNotAdder = link != null
 
@@ -242,7 +240,7 @@ fun LinkItemLayout(
                     modifier = Modifier,
 
                     // 텍스트 내용
-                    text = link?.domain?:"도메인",
+                    text = link?.url?:"도메인",
 
                     // 폰트 크기 (12sp)
                     fontSize = 12.sp,
@@ -255,7 +253,7 @@ fun LinkItemLayout(
 
                     // 글자색 (Gray800)
                     color = Gray800,
-                    maxLines = 1, // 최대 2줄
+                    maxLines = 1, // 최대 1줄
                     overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
                 )
             }
