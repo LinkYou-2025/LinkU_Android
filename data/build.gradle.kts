@@ -90,4 +90,9 @@ dependencies {
 
     // SharedPreference
     implementation(libs.preference.ktx)
+
+    // datastore
+    implementation("androidx.datastore:datastore-preferences:1.1.7")
+
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 }
