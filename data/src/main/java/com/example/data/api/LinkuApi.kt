@@ -71,9 +71,8 @@ interface LinkuApi {
     ) : BaseResponse<List<LinkuSimpleDTO>>
 
     // 빠른 링크 검색
-    @GET("/api/linku/api/search/quick")
+    @GET("/api/linku/search/quick")
     suspend fun quickSearch(
-        @Query("keyword") keyword: String,
-        @Query("userId") userId: Long
-    ) : BaseResponse<QuickSearchResult>
+        @Query("keyword") keyword: String
+    ) : BaseResponse<List<QuickSearchResult>>
 }
