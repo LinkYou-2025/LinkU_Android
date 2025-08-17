@@ -2,14 +2,25 @@ package com.example.design.theme.font
 
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import com.example.design.R
 
 data object Paperlogy: ThemeFontScheme(
     font = FontFamily(
-        Font(R.font.paperlogy_bold, FontWeight.Bold),
-        Font(R.font.paperlogy_medium, FontWeight.Medium),
-        Font(R.font.paperlogy_regular, FontWeight.Normal),
-        Font(R.font.paperlogy_light, FontWeight.Light),
+//        Font(R.font.paperlogy_bold, FontWeight.Bold),
+//        Font(R.font.paperlogy_medium, FontWeight.Medium),
+//        Font(R.font.paperlogy_regular, FontWeight.Normal),
+//        Font(R.font.paperlogy_light, FontWeight.Light),
+
+        Font(R.font.paperlogy_black, FontWeight.Black, FontStyle.Normal),
+        Font(R.font.paperlogy_bold, FontWeight.Bold, FontStyle.Normal),
+        Font(R.font.paperlogy_extra_bold, FontWeight.ExtraBold, FontStyle.Normal),
+        Font(R.font.paperlogy_light, FontWeight.Light, FontStyle.Normal),
+        Font(R.font.paperlogy_medium, FontWeight.Medium, FontStyle.Normal),
+        Font(R.font.paperlogy_regular, FontWeight.Normal, FontStyle.Normal),
+        Font(R.font.paperlogy_semi_bold, FontWeight.SemiBold, FontStyle.Normal),
+        Font(R.font.paperlogy_thin, FontWeight.Thin, FontStyle.Normal),
+        Font(R.font.paperlogy_extra_light, FontWeight.ExtraLight, FontStyle.Normal)
     )
 )
