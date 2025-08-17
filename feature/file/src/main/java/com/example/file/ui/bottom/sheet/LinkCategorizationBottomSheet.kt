@@ -22,7 +22,6 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,17 +37,17 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.LinkItemInfo
 import com.example.file.FileViewModel
 import com.example.file.R
-import com.example.file.modifier.noRippleClickable
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.Purple200
 import com.example.file.ui.theme.domainLogoPainterOrNull
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +57,7 @@ fun LinkCategorizationBottomSheet(
 ) {
     val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
-    var link by remember { mutableStateOf<LinkSimpleInfo?>(null) }
+    var link by remember { mutableStateOf<LinkItemInfo?>(null) }
 
     FileBottomSheet(
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
@@ -77,8 +75,8 @@ fun LinkCategorizationBottomSheet(
         ) {
             items(links) {
                 val title = it.title
-                val domain = it.domain
-                val icon = domainLogoPainterOrNull(it.domain)?:painterResource(R.drawable.link_categorization_default)
+                val url = it.url
+                val icon = domainLogoPainterOrNull(it.url)?:painterResource(R.drawable.link_categorization_default)
                 val img = painterResource(R.drawable.link_categorization_default)//it.img
                 Row(
                     modifier = Modifier
@@ -151,7 +149,7 @@ fun LinkCategorizationBottomSheet(
                             }
 
                             Text(
-                                text = domain,
+                                text = url,
                                 fontSize = 12.sp,
                                 lineHeight = 14.sp,
                                 fontFamily = DefaultFont,

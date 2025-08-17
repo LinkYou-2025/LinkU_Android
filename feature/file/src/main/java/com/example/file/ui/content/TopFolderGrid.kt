@@ -14,7 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.FileViewModel
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.viewmodel.folder.state.FolderState
@@ -46,7 +46,7 @@ fun TopFolderGrid(
                             folderStateViewModel.updateReadyToUpdateTopFolder(folder)
                             folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
                         } else {
-                            fileViewModel.getLinksFolders(folder.folderId)
+                            fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
                             folderStateViewModel.updateSelectedTopFolder(folder)
                             folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                         }

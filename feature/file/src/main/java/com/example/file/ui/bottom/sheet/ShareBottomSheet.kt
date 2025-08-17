@@ -59,7 +59,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.core.model.FolderSimpleInfo
 import com.example.file.FileViewModel
 import com.example.file.R
-import com.example.file.modifier.noRippleClickable
+import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.TopFolderItemLayout
