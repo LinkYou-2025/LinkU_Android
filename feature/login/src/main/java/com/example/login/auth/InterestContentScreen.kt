@@ -147,6 +147,7 @@ fun InterestContentScreen(
                     fontSize = 16.sp
                 )
             }
+
         }
     ) { innerPadding ->
         LazyColumn(
