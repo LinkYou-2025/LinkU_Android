@@ -214,6 +214,7 @@ fun ResetPasswordScreen(
             }
         }
     }
+    Spacer(modifier = Modifier.height(32.dp))
 
     // 성공 팝업
     if (showSuccessDialog) {

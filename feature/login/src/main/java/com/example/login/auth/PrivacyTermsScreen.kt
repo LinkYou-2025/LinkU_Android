@@ -80,7 +80,7 @@ fun PrivacyTermsScreenFixed(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Image(
-                        painter = painterResource(id = R.drawable.privacy_table),
+                        painter = painterResource(id = R.drawable.img_personal_table),
                         contentDescription = "개인정보 수집 항목 표",
                         contentScale = ContentScale.FillWidth,
                         modifier = Modifier

@@ -296,7 +296,9 @@ fun EmailVerificationScreen(
                 fontFamily = Paperlogy
             )
         }
+
     }
+    Spacer(modifier = Modifier.height(32.dp))
 
 //    // Send 결과 토스트
 //    LaunchedEffect(sendResult) {

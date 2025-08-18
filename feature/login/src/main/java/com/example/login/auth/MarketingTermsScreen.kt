@@ -82,7 +82,7 @@ fun MarketingTermsScreenComposable(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Image(
-                        painter = painterResource(id = R.drawable.marketing_table),
+                        painter = painterResource(id = R.drawable.img_marketing_table),
                         contentDescription = "개인정보 수집 항목 표",
                         contentScale = ContentScale.FillWidth,
                         modifier = Modifier
