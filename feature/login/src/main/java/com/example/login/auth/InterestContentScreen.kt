@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.platform.LocalDensity
@@ -14,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -51,15 +54,15 @@ val contents = listOf(
     Content("💼", "비즈니스/마케팅", 140f, DpOffset(-190.dp, 10.dp)),
     Content("🎨", "디자인/\n크리에이티브", 140f, DpOffset(-20.dp, 10.dp)),
     Content("💻", "IT/개발", 100f, DpOffset(140.dp, 50.dp)),
-    Content("🚀", "스타트업/창업", 100f, DpOffset(230.dp, 130.dp)),
+    Content("🚀", "스타트업/창업", 100f, DpOffset(230.dp, 140.dp)),
     Content("🌍", "사회/문화/환경", 140f, DpOffset(-50.dp, 310.dp)),
-    Content("📚", "학업/\n리포트 참고", 120f, DpOffset(-80.dp, 150.dp)),
-    Content("✍️", "글쓰기/콘텐츠\n작성", 160f, DpOffset(60.dp, 150.dp)),
+    Content("📚", "학업/리포트\n참고", 120f, DpOffset(-60.dp, 160.dp)),
+    Content("✍️", "글쓰기/콘텐츠\n작성", 160f, DpOffset(70.dp, 160.dp)),
     Content("📓", "책/인사이트\n요약", 140f, DpOffset(350.dp, 200.dp)),
     Content("🧠", "심리/자기계발", 140f, DpOffset(-50.dp, 310.dp)),
     Content("📰", "시사/트렌드", 110f, DpOffset(100.dp, 330.dp)),
 
-    Content("📂", "그냥 모아두고\n싶은 글들", 130f, DpOffset(210.dp, 260.dp)),
+    Content("📂", "그냥 모아두고\n싶은 글들", 140f, DpOffset(220.dp, 260.dp)),
 
     Content("🎯", "커리어/채용", 100f, DpOffset(-150.dp, 280.dp))
 
@@ -91,125 +94,227 @@ private fun normalizeLabel(raw: String) =
 val contentLabelToCodeNormalized: Map<String, String> =
     contentLabelToCode.entries.associate { (k, v) -> normalizeLabel(k) to v }
 
-
-
-
 @Composable
 fun InterestContentScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel ?= null
 ) {
     val selectedContents = remember { mutableStateListOf<String>() }
-
     val canProceed = selectedContents.isNotEmpty()
 
-    Column(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        ContentStepIndicator()
+    // 🔥 Column → Scaffold + LazyColumn
+    //  - 본문은 세로 스크롤
+    //  - 하단 버튼은 bottomBar에 고정
+    Scaffold(
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp, vertical = 14.dp)
+                    .navigationBarsPadding()
+                    .imePadding()
+                    .height(48.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = if (canProceed)
+                                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            else
+                                listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    // 🔕 버튼 리플/회색 프레스 제거
+                    .clickable(
+                        enabled = canProceed,
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        signUpViewModel?.interestList = selectedContents
+                            .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
+                            .distinct()
 
-        Spacer(modifier = Modifier.height(16.dp))
+                        android.util.Log.d("Interest", "selected=${selectedContents}")
+                        android.util.Log.d("Interest", "interestList=${signUpViewModel?.interestList}")
 
-        Text(
-            buildAnnotatedString {
-                append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
-                withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
-                    append("(복수 선택 가능)")
-                }
-            },
-            fontSize = 22.sp,
-            fontFamily = Paperlogy,
-            fontWeight = FontWeight.Bold,
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        InterestCloudScrollable(
-            contents = contents,
-            selected = selectedContents,
-            onToggle = { label ->
-                if (selectedContents.contains(label)) selectedContents.remove(label)
-                else selectedContents.add(label)
-            },
-            height = 500.dp
-        )
-
-        //
-//        Row(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(500.dp)
-//                .horizontalScroll(rememberScrollState())
-//        ) {
-//
-//            Box(
-//                modifier = Modifier
-//                    .width(1000.dp) // 충분히 넓게 확보 (필요 시 늘리세요)
-//                    .height(500.dp)
-//            ) {
-//                contents.forEach { content ->
-//                    ContentItem(
-//                        content = content,
-//                        isSelected = selectedContents.contains(content.label),
-//                        onClick = {
-//                            if (selectedContents.contains(content.label)) {
-//                                selectedContents.remove(content.label)
-//                            } else {
-//                                selectedContents.add(content.label)
-//                            }
-//                        },
-//                        modifier = Modifier.offset(content.offset.x, content.offset.y)
-//                    )
-//                }
-//            }
-//        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (canProceed)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                    ),
-                    shape = RoundedCornerShape(24.dp)
+                        navigator.navigate("welcome")
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    "다음",
+                    color = Color.White,
+                    fontFamily = Paperlogy,
+                    fontSize = 16.sp
                 )
-                .clickable(enabled = canProceed) {
-                    signUpViewModel?.interestList = selectedContents
-                        .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
-                        .distinct()
-
-                    //선택이 잘 들어가는지 로그 확인
-                    android.util.Log.d("Interest", "selected=${selectedContents}")
-                    android.util.Log.d("Interest", "interestList=${signUpViewModel?.interestList}")
-
-//                .clickable(enabled = canProceed) {
-//                    //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
-//                    // 줄 바꿈으로 서버 인식 불가 -> 변경.
-//                    //signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
-//                    signUpViewModel?.interestList = selectedContents.mapNotNull {
-//                        contentLabelToCode[it.replace("\n", "")]
-//                    }
-
-                    navigator.navigate("welcome")
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                "다음",
-                color = Color.White,
-                fontFamily = Paperlogy,
-                fontSize = 16.sp
+            }
+        }
+    ) { innerPadding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentPadding = PaddingValues(
+                start = 32.dp, end = 32.dp,
+                top = 40.dp,
+                bottom = 96.dp // bottomBar(48) + 외곽 패딩(14*2) 만큼 여유
             )
+        ) {
+            item { ContentStepIndicator() }
+
+            item { Spacer(modifier = Modifier.height(16.dp)) }
+
+            item {
+                Text(
+                    buildAnnotatedString {
+                        // ✍️ 사용하신 텍스트 그대로 유지 (“괸심” 포함)
+                        append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
+                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
+                            append("(복수 선택 가능)")
+                        }
+                    },
+                    fontSize = 22.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(32.dp)) }
+
+            item {
+                InterestCloudScrollable(
+                    contents = contents,
+                    selected = selectedContents,
+                    onToggle = { label ->
+                        if (selectedContents.contains(label)) selectedContents.remove(label)
+                        else selectedContents.add(label)
+                    },
+                    height = 500.dp
+                )
+            }
+
+            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
+
+
+
+//@Composable
+//fun InterestContentScreen(
+//    navigator: NavHostController,
+//    signUpViewModel: SignUpViewModel ?= null
+//) {
+//    val selectedContents = remember { mutableStateListOf<String>() }
+//
+//    val canProceed = selectedContents.isNotEmpty()
+//
+//    Column(
+//        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
+//        horizontalAlignment = Alignment.Start
+//    ) {
+//        ContentStepIndicator()
+//
+//        Spacer(modifier = Modifier.height(16.dp))
+//
+//        Text(
+//            buildAnnotatedString {
+//                append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
+//                withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
+//                    append("(복수 선택 가능)")
+//                }
+//            },
+//            fontSize = 22.sp,
+//            fontFamily = Paperlogy,
+//            fontWeight = FontWeight.Bold,
+//        )
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        InterestCloudScrollable(
+//            contents = contents,
+//            selected = selectedContents,
+//            onToggle = { label ->
+//                if (selectedContents.contains(label)) selectedContents.remove(label)
+//                else selectedContents.add(label)
+//            },
+//            height = 500.dp
+//        )
+//
+//        //
+////        Row(
+////            modifier = Modifier
+////                .fillMaxWidth()
+////                .height(500.dp)
+////                .horizontalScroll(rememberScrollState())
+////        ) {
+////
+////            Box(
+////                modifier = Modifier
+////                    .width(1000.dp) // 충분히 넓게 확보 (필요 시 늘리세요)
+////                    .height(500.dp)
+////            ) {
+////                contents.forEach { content ->
+////                    ContentItem(
+////                        content = content,
+////                        isSelected = selectedContents.contains(content.label),
+////                        onClick = {
+////                            if (selectedContents.contains(content.label)) {
+////                                selectedContents.remove(content.label)
+////                            } else {
+////                                selectedContents.add(content.label)
+////                            }
+////                        },
+////                        modifier = Modifier.offset(content.offset.x, content.offset.y)
+////                    )
+////                }
+////            }
+////        }
+//
+//        Spacer(modifier = Modifier.weight(1f))
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(48.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = if (canProceed)
+//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        else
+//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                    ),
+//                    shape = RoundedCornerShape(24.dp)
+//                )
+//                .clickable(enabled = canProceed) {
+//                    signUpViewModel?.interestList = selectedContents
+//                        .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
+//                        .distinct()
+//
+//                    //선택이 잘 들어가는지 로그 확인
+//                    android.util.Log.d("Interest", "selected=${selectedContents}")
+//                    android.util.Log.d("Interest", "interestList=${signUpViewModel?.interestList}")
+//
+////                .clickable(enabled = canProceed) {
+////                    //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
+////                    // 줄 바꿈으로 서버 인식 불가 -> 변경.
+////                    //signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
+////                    signUpViewModel?.interestList = selectedContents.mapNotNull {
+////                        contentLabelToCode[it.replace("\n", "")]
+////                    }
+//
+//                    navigator.navigate("welcome")
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                "다음",
+//                color = Color.White,
+//                fontFamily = Paperlogy,
+//                fontSize = 16.sp
+//            )
+//        }
+//    }
+//}
 
 // 원형 아이템 -> * 수정하기 *
 @Composable
@@ -231,23 +336,22 @@ fun ContentItem(
                 brush = if (isSelected)
                     Brush.horizontalGradient(
                         colors = listOf(
-                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 연한 파랑 (왼쪽)
-                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 연한 분홍 (오른쪽)
+                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 왼쪽 연파랑
+                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 오른쪽 연분홍
                         )
                     )
-                else
-                    SolidColor(Color.White),
+                else SolidColor(Color.White),
                 shape = CircleShape
             )
-            .clickable { onClick() },
+            // 🔕 리플/회색 프레스 제거
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onClick() },
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = content.emoji,
-                fontFamily = Paperlogy,
-                fontSize = 24.sp
-            )
+            Text(text = content.emoji, fontFamily = Paperlogy, fontSize = 24.sp)
             Text(
                 text = content.label,
                 fontSize = 14.sp,
@@ -258,6 +362,104 @@ fun ContentItem(
         }
     }
 }
+//@Composable
+//fun ContentItem(
+//    content: Content,
+//    isSelected: Boolean,
+//    onClick: () -> Unit,
+//    modifier: Modifier = Modifier
+//) {
+//    Box(
+//        modifier = modifier
+//            .size(content.size.dp)
+//            .border(
+//                width = 1.dp,
+//                brush = Brush.sweepGradient(listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
+//                shape = CircleShape
+//            )
+//            .background(
+//                brush = if (isSelected)
+//                    Brush.horizontalGradient(
+//                        colors = listOf(
+//                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 연한 파랑 (왼쪽)
+//                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 연한 분홍 (오른쪽)
+//                        )
+//                    )
+//                else
+//                    SolidColor(Color.White),
+//                shape = CircleShape
+//            )
+//            .clickable { onClick() },
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+//            Text(
+//                text = content.emoji,
+//                fontFamily = Paperlogy,
+//                fontSize = 24.sp
+//            )
+//            Text(
+//                text = content.label,
+//                fontSize = 14.sp,
+//                fontFamily = Paperlogy,
+//                textAlign = TextAlign.Center,
+//                color = if (isSelected) Color.White else Color.Black
+//            )
+//        }
+//    }
+//}
+
+@Composable
+private fun PurposeCloudScrollable(
+    purposes: List<Purpose>,
+    selected: SnapshotStateList<String>,
+    onToggle: (String) -> Unit,
+    height: Dp = 500.dp
+) {
+    // 좌표 음수 보정(왼쪽으로 삐져나간 아이템 있으면 전체를 우측으로 이동)
+    val minX = remember(purposes) { purposes.minOfOrNull { it.offset.x } ?: 0.dp }
+    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+
+    // 우측 끝 좌표로 캔버스 폭 계산(여유 80dp)
+    val canvasWidth = remember(purposes, shiftX) {
+        val right = purposes.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+        right + 80.dp
+    }
+
+    // 초기 가로 스크롤 오프셋(진입 시만 적용)
+    val density = LocalDensity.current
+    val initialOffsetPx = remember { with(density) { 90.dp.roundToPx() } }
+    val scrollState = rememberScrollState(initial = initialOffsetPx)
+
+    LaunchedEffect(canvasWidth) {
+        if (scrollState.value == 0) scrollState.scrollTo(initialOffsetPx)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height)
+            .horizontalScroll(scrollState),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .width(canvasWidth)
+                .height(height)
+        ) {
+            purposes.forEach { p ->
+                val isSelected = p.label in selected
+                PurposeItem(
+                    purpose = p,
+                    isSelected = isSelected,
+                    onClick = { onToggle(p.label) },
+                    modifier = Modifier.offset(p.offset.x + shiftX, p.offset.y)
+                )
+            }
+        }
+    }
+}
+
 
 // 상단 관심사 단계 표시
 @Composable
@@ -269,7 +471,7 @@ fun ContentStepIndicator() {
             // 1번 체크
             Box(
                 modifier = Modifier
-                    .padding(start = 8.dp)
+                    .padding(start = 0.dp)
                     .size(28.dp)
                     .background(Color(0xFFE5ACF4), CircleShape),
                 contentAlignment = Alignment.Center
@@ -342,7 +544,7 @@ fun ContentStepIndicator() {
 
         Text(
             text = "관심사 설정",
-            modifier = Modifier.padding(start = 128.dp, top = 4.dp),
+            modifier = Modifier.padding(start = 128.dp, top = 6.dp),
             fontSize = 12.sp,
             color = Color(0xFFCB59EB),
             fontFamily = Paperlogy,

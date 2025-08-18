@@ -17,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,13 +90,15 @@ fun ServiceTermsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(top = 56.dp, bottom = 100.dp) // 앱바 높이와 버튼 높이에 대한 여백 확보
+                //.padding(top = 56.dp, bottom = 100.dp) // 앱바 높이와 버튼 높이에 대한 여백 확보
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(top = 56.dp, bottom = 100.dp)
                 .padding(horizontal = 16.dp)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
+                    //.border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
                     .padding(16.dp)
             ) {
                 Text(
@@ -108,21 +112,32 @@ fun ServiceTermsScreen(
         }
 
         // 상단 앱바
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = {
                 Text(
                     text = "서비스 이용약관",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
                     fontFamily = Paperlogy
                 )
             },
+//            navigationIcon = {
+//                IconButton(onClick = onBackClicked) {
+//                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+//                }
+//            },
             navigationIcon = {
                 IconButton(onClick = onBackClicked) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_back), // ⬅️ 커스텀 아이콘
+                        contentDescription = "뒤로가기",
+                        modifier = Modifier.size(16.dp) // ⬅️ Material 기본 ArrowBack 과 동일 사이즈
+                    )
                 }
             },
-            modifier = Modifier.align(Alignment.TopStart)
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .statusBarsPadding()
         )
 
         // 하단 고정 버튼
@@ -130,7 +145,8 @@ fun ServiceTermsScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 26.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 50.dp)
+                //.padding(horizontal = 16.dp, vertical = 26.dp)
                 .height(50.dp)
                 .background(
                     brush = Brush.horizontalGradient(

@@ -59,7 +59,7 @@ fun MarketingTermsScreenComposable(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
+                    //.border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
                     .padding(16.dp)
             ) {
                 Column {
@@ -116,29 +116,35 @@ fun MarketingTermsScreenComposable(
         }
 
         // 상단 앱바
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = {
                 Text(
                     text = "마케팅 수신 동의",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
                     fontFamily = Paperlogy
                 )
             },
             navigationIcon = {
                 IconButton(onClick = onBackClicked) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_back), // ⬅️ 커스텀 아이콘
+                        contentDescription = "뒤로가기",
+                        modifier = Modifier.size(16.dp) // ⬅️ Material 기본 ArrowBack 과 동일 사이즈
+                    )
                 }
             },
             modifier = Modifier.align(Alignment.TopStart)
         )
+
 
         // 하단 고정 버튼
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 26.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 50.dp)
+                //.padding(horizontal = 16.dp, vertical = 26.dp)
                 .height(50.dp)
                 .background(
                     brush = Brush.horizontalGradient(

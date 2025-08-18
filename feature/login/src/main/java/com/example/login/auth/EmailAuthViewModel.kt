@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.SharingStarted
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlin.random.Random
+import retrofit2.HttpException
+import okhttp3.ResponseBody
+import org.json.JSONObject
 
 // 이메일 인증과 관련된 로직을 담당하는 ViewModel
 
@@ -63,6 +66,14 @@ class EmailAuthViewModel @Inject constructor(
             .toString()
             .padStart(6, '0')
     }
+
+    // ResponseBody → 서버에서 내려주는 JSON 중 "message" 키값만 안전하게 추출
+    private fun ResponseBody.safeStringMessage(): String? = try {
+        val s = string() // 전체 response body 문자열
+        JSONObject(s).optString("message", null)
+    } catch (_: Throwable) {
+        null
+    }
     /** 이메일 인증 코드 전송 */
     fun sendEmailCode(email: String) {
         viewModelScope.launch {
@@ -72,18 +83,24 @@ class EmailAuthViewModel @Inject constructor(
             }
             val code = generateRandomSixDigitCode()
             try {
-                val success = userRepository.sendEmailCode(email, code)
-                if (success) {
-                    _sendCodeResult.value = "인증 코드 전송 성공"
-                } else {
-                    _sendCodeResult.value = "서버 오류"
+                val ok = userRepository.sendEmailCode(email, code)
+                _sendCodeResult.value = if (ok) "인증 코드 전송 성공" else "서버 오류"
+            } catch (e: HttpException) {
+                _sendCodeResult.value = when (e.code()) {
+                    409 -> { // 중복 이메일
+                        // (선택) 서버 메시지 파싱해서 UI로 보낼 수도 있음
+                        val msg = e.response()?.errorBody()?.safeStringMessage()
+                        if (msg?.contains("중복") == true) "이미 가입된 이메일입니다."
+                        else "이미 가입된 이메일입니다."
+                    }
+                    else -> "서버 오류"
                 }
             } catch (e: Exception) {
-                Log.e("EmailAuthVM", "sendEmailCode error", e)
                 _sendCodeResult.value = "서버 오류"
             }
         }
     }
+
 
     /** 이메일 인증 코드 검증 */
     fun verifyEmailCode(email: String, code: String) {
