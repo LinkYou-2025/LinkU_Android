@@ -65,6 +65,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import androidx.compose.ui.platform.LocalUriHandler
 
 data class FastSearchItem(
     val title: String,
@@ -232,11 +233,13 @@ fun SearchBarTopSheet(
 
         val domainImg = domainLogoPainterOrNull(fastSearchItem.url)
 
+        val uri = LocalUriHandler.current
+
         // 링크 내용
         Row(
             modifier = Modifier
                 .noRippleClickable{
-                    // TODO: 링크 이동
+                    runCatching { uri.openUri(fastSearchItem.url) }
                 },
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -524,6 +527,8 @@ fun SearchBarTopSheet(
         }
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable

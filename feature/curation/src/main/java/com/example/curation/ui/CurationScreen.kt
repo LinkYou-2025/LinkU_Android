@@ -52,6 +52,14 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.setValue
+import com.example.design.FastSearchItem
+import com.example.design.SearchTopSheetHost
+
+import com.example.design.SearchTopSheetHost
 
 // 간단 확장함수
 private fun String.toLabel(): String = runCatching {
@@ -69,6 +77,8 @@ fun CurationScreen(
     viewModel: CurationViewModel = hiltViewModel(),
     onOpenDetail: (Long, Long) -> Unit = { _, _ -> }
 ) {
+    // 추가: TopSheet 표시 여부
+    var showSearch by remember { mutableStateOf(false) }
     val uri = LocalUriHandler.current
     val nickname by viewModel.nickname.collectAsState()
 
@@ -78,6 +88,18 @@ fun CurationScreen(
     val canOpenDetail = userId > 0 && currentCurationId > 0
 
     val homeLinksState by viewModel.homeLinks.collectAsState()
+
+    // 네가 가진 링크 데이터 → 검색 대상 리스트로 변환
+    val allFastLinks = remember(homeLinksState.items) {
+        homeLinksState.items.map { link ->
+            FastSearchItem(
+                title = link.title,
+                url   = ensureHttpScheme(link.url)
+            )
+        }
+    }
+
+
 
     //좋아요 리스트 상태 수집
     val likedItems by viewModel.likedCurations.collectAsState()
@@ -93,178 +115,194 @@ fun CurationScreen(
         viewModel.loadNickname()
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LocalColorTheme.current.white),
-        contentPadding = PaddingValues(bottom = 32.dp)
-    ) {
-        // 홈스크린처럼 TopBar를 item {} 안에 배치
-        item {
-            CurationTopBar()
-        }
-        // 현재 날짜에서 전달 구하기
-        val prevMonthLabel = LocalDate.now()
-            .minusMonths(1)
-            .format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
+    Box(Modifier.fillMaxSize()) {
 
-        item {
-            Column(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
-            ) {
-                // 1. 큐레이션 하이라이트 텍스트
-                Text(
-                    text = "${nickname}님을 위한 ${prevMonthLabel}의 큐레이션",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    ),
-                    color = LocalColorTheme.current.black
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(LocalColorTheme.current.white),
+            contentPadding = PaddingValues(bottom = 32.dp)
+        ) {
+            // 홈스크린처럼 TopBar를 item {} 안에 배치
+            item {
+                //CurationTopBar()
+                CurationTopBar(
+                    onClickSearch = { showSearch = true }
                 )
-                CurationHighlightSection(
-                    modifier = Modifier.fillMaxWidth(),
-                    onOpenDetail = { onOpenDetail(userId, currentCurationId) }  //  파라미터 없는 람다로 변환해서 전달
-                )
-                Spacer(modifier = Modifier.height(20.dp))
+            }
+            // 현재 날짜에서 전달 구하기
+            val prevMonthLabel = LocalDate.now()
+                .minusMonths(1)
+                .format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
+
+            item {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
+                ) {
+                    // 1. 큐레이션 하이라이트 텍스트
+                    Text(
+                        text = "${nickname}님을 위한 ${prevMonthLabel}의 큐레이션",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = Paperlogy,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        color = LocalColorTheme.current.black
+                    )
+                    CurationHighlightSection(
+                        modifier = Modifier.fillMaxWidth(),
+                        onOpenDetail = { onOpenDetail(userId, currentCurationId) }  //  파라미터 없는 람다로 변환해서 전달
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
 
 
 
-                // 2. 추천 링크
-                // 내부에서 padding 제거하고 modifier로 전달
-//                CurationRecommendedLinksSection(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    links = emptyList(),        //  홈화면은 아직 데이터 없으니 빈 리스트
-//                    loading = false,            // 필요 시 viewModel 상태로 교체
-//                    onRetry = { /* TODO: 새로고침 액션 */ },
-//                    onClick = { url -> runCatching { uri.openUri(url) } }
-//                )
-                // 2. 추천 링크
-                // 내부에서 padding 제거하고 modifier로 전달
-                when {
-                    homeLinksState.loading && homeLinksState.items.isEmpty() -> {
-                        // ⏳ 로딩 중 + 아직 결과 없음 → 준비중 UI
-                        LinksPreparingHome(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(Color.White)
-                                .padding(horizontal = 16.dp)
-                        )
+                    // 2. 추천 링크
+                    // 내부에서 padding 제거하고 modifier로 전달
+    //                CurationRecommendedLinksSection(
+    //                    modifier = Modifier.fillMaxWidth(),
+    //                    links = emptyList(),        //  홈화면은 아직 데이터 없으니 빈 리스트
+    //                    loading = false,            // 필요 시 viewModel 상태로 교체
+    //                    onRetry = { /* TODO: 새로고침 액션 */ },
+    //                    onClick = { url -> runCatching { uri.openUri(url) } }
+    //                )
+                    // 2. 추천 링크
+                    // 내부에서 padding 제거하고 modifier로 전달
+                    when {
+                        homeLinksState.loading && homeLinksState.items.isEmpty() -> {
+                            // ⏳ 로딩 중 + 아직 결과 없음 → 준비중 UI
+                            LinksPreparingHome(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(Color.White)
+                                    .padding(horizontal = 16.dp)
+                            )
+                        }
+                        else -> {
+                            CurationRecommendedLinksSection(
+                                modifier = Modifier.fillMaxWidth(),
+                                links = homeLinksState.items,          // 🔗 API 결과(top2)
+                                loading = homeLinksState.loading,      // 섹션 내부 스켈레톤/상태에 사용
+                                onRetry = {
+                                    if (canOpenDetail) {
+                                        viewModel.loadHomeRecommendedLinksTop2(userId, currentCurationId)
+                                    }
+                                },
+                                onClick = { url -> runCatching { uri.openUri(url) } }
+                            )
+                        }
                     }
-                    else -> {
-                        CurationRecommendedLinksSection(
-                            modifier = Modifier.fillMaxWidth(),
-                            links = homeLinksState.items,          // 🔗 API 결과(top2)
-                            loading = homeLinksState.loading,      // 섹션 내부 스켈레톤/상태에 사용
-                            onRetry = {
-                                if (canOpenDetail) {
-                                    viewModel.loadHomeRecommendedLinksTop2(userId, currentCurationId)
-                                }
-                            },
-                            onClick = { url -> runCatching { uri.openUri(url) } }
-                        )
-                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // 3. 좋아요한 큐레이션 텍스트
+                    Text(
+                        text = "${nickname}님이 좋아요 한 큐레이션",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontFamily = Paperlogy,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp
+                        ),
+                        color = LocalColorTheme.current.black
+                    )
+
+                    Spacer(modifier = Modifier.height(0.dp))
+                }
+            }
+
+            // 4. 좋아요 큐레이션 카드 리스트
+    //        val likedCurations = listOf(
+    //            UICurationItem("트럼프 큐레이션", "2025년 7월호", Res.drawable.img_trump_card, liked = true),
+    //            UICurationItem("트럼프 큐레이션", "2025년 6월호", Res.drawable.img_trump_card, liked = true),
+    //            UICurationItem("트럼프 큐레이션", "2025년 5월호", Res.drawable.img_trump_card, liked = true)
+    //        )
+
+
+            // 좋아요한 큐레이션 리스트
+    //        item {
+    //            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    //                likedCurations.forEach { item ->
+    //                    LikedCurationCard(item)
+    //                    Spacer(modifier = Modifier.height(10.dp))
+    //                }
+    //            }
+    //        }
+            item {
+                // 어댑터로 변환 (title은 고정문구/월 라벨 포맷)
+                val uiItems = likedItems.map {
+                    UICurationItem(
+                        title = "링큐 큐레이션",
+                        date = it.month.toLabel(),      // "2025-07" -> "2025년 7월호"
+                        imageUrl = it.thumbnailUrl,
+                        liked = true
+                    )
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+    //                Text(
+    //                    text = "${nickname}님이 좋아요 한 큐레이션",
+    //                    style = MaterialTheme.typography.titleMedium.copy(
+    //                        fontFamily = Paperlogy, fontWeight = FontWeight.Bold, fontSize = 20.sp
+    //                    ),
+    //                    color = LocalColorTheme.current.black
+    //                )
+    //                Spacer(Modifier.height(8.dp))
 
-                // 3. 좋아요한 큐레이션 텍스트
-                Text(
-                    text = "${nickname}님이 좋아요 한 큐레이션",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
-                    ),
-                    color = LocalColorTheme.current.black
-                )
-
-                Spacer(modifier = Modifier.height(0.dp))
-            }
-        }
-
-        // 4. 좋아요 큐레이션 카드 리스트
-//        val likedCurations = listOf(
-//            UICurationItem("트럼프 큐레이션", "2025년 7월호", Res.drawable.img_trump_card, liked = true),
-//            UICurationItem("트럼프 큐레이션", "2025년 6월호", Res.drawable.img_trump_card, liked = true),
-//            UICurationItem("트럼프 큐레이션", "2025년 5월호", Res.drawable.img_trump_card, liked = true)
-//        )
-
-
-        // 좋아요한 큐레이션 리스트
-//        item {
-//            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-//                likedCurations.forEach { item ->
-//                    LikedCurationCard(item)
-//                    Spacer(modifier = Modifier.height(10.dp))
-//                }
-//            }
-//        }
-        item {
-            // 어댑터로 변환 (title은 고정문구/월 라벨 포맷)
-            val uiItems = likedItems.map {
-                UICurationItem(
-                    title = "링큐 큐레이션",
-                    date = it.month.toLabel(),      // "2025-07" -> "2025년 7월호"
-                    imageUrl = it.thumbnailUrl,
-                    liked = true
-                )
-            }
-
-            Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-//                Text(
-//                    text = "${nickname}님이 좋아요 한 큐레이션",
-//                    style = MaterialTheme.typography.titleMedium.copy(
-//                        fontFamily = Paperlogy, fontWeight = FontWeight.Bold, fontSize = 20.sp
-//                    ),
-//                    color = LocalColorTheme.current.black
-//                )
-//                Spacer(Modifier.height(8.dp))
-
-                when {
-                    likedLoading && uiItems.isEmpty() -> {
-                        // 간단 플레이스홀더
-                        Spacer(Modifier.height(10.dp))
-                        repeat(2) { Spacer(Modifier.height(150.dp).fillMaxWidth()) }
-                    }
-                    uiItems.isEmpty() -> {
-                        LikedCurationEmptyState(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp)
-                        )
-                    }
-                    else ->
-//                        {
-//                        uiItems.forEachIndexed { idx, item ->
-//                            // 기존 카드 그대로 사용
-//                            LikedCurationCard(item)
-//                            Spacer(Modifier.height(10.dp))
-//                        }
-                    {
-                        uiItems.forEachIndexed { idx, item ->
-                            LikedCurationCard(
-                                item = item,
-                                onHeartClick = {
-                                    likedItems.getOrNull(idx)?.let { domain ->
-                                        viewModel.unlikeFromLikedList(domain.id)   // 서버 취소 + 낙관적 제거
-                                    }
-                                }
-                            )
+                    when {
+                        likedLoading && uiItems.isEmpty() -> {
+                            // 간단 플레이스홀더
                             Spacer(Modifier.height(10.dp))
+                            repeat(2) { Spacer(Modifier.height(150.dp).fillMaxWidth()) }
+                        }
+                        uiItems.isEmpty() -> {
+                            LikedCurationEmptyState(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 16.dp)
+                            )
+                        }
+                        else ->
+    //                        {
+    //                        uiItems.forEachIndexed { idx, item ->
+    //                            // 기존 카드 그대로 사용
+    //                            LikedCurationCard(item)
+    //                            Spacer(Modifier.height(10.dp))
+    //                        }
+                        {
+                            uiItems.forEachIndexed { idx, item ->
+                                LikedCurationCard(
+                                    item = item,
+                                    onHeartClick = {
+                                        likedItems.getOrNull(idx)?.let { domain ->
+                                            viewModel.unlikeFromLikedList(domain.id)   // 서버 취소 + 낙관적 제거
+                                        }
+                                    }
+                                )
+                                Spacer(Modifier.height(10.dp))
+                            }
                         }
                     }
                 }
             }
+
+
+
+
         }
-
-
-    }
+        // 추가: 검색 TopSheet 오버레이
+        SearchTopSheetHost(
+            visible = showSearch,
+            allItems = allFastLinks,
+            onDismiss = { showSearch = false }
+        )
+        }
 }
 
 @Composable
-fun CurationTopBar() {
+fun CurationTopBar(
+    onClickSearch: () -> Unit = {}
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -308,7 +346,7 @@ fun CurationTopBar() {
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
                     .background(brush = Basic.maincolor)
-                    .clickable { /* TODO: 검색 액션 */ }
+                    .clickable { onClickSearch() }
                     .padding(horizontal = 18.51.dp, vertical = 15.dp)
             ) {
                 Icon(

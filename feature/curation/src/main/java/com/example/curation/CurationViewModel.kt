@@ -186,18 +186,34 @@ class CurationViewModel @Inject constructor(
                 if (current) repository.unlikeCuration(cid, uid)
                 else repository.likeCuration(cid, uid)
             }
-
-            result.onSuccess {
-                loadLikedCurations() // 필요 시 생략 가능
-            }.onFailure { e ->
-                _highlightLiked.value = current // 롤백
+            result.onFailure { e ->
                 val msg = e.message.orEmpty()
-                _likedError.value = when {
-                    msg.contains("Token", true) && msg.contains("expired", true) ->
-                        "세션이 만료됐어요. 다시 로그인해 주세요."
-                    else -> "좋아요 처리에 실패했어요"
+                if (msg.contains("이미 좋아요를 눌렀습니다")) {
+                    // 이미 좋아요 상태이므로 UI liked 값 유지
+                    _highlightLiked.value = true
+                    // 그리고 서버의 최신 좋아요 리스트를 즉시 갱신
+                    loadLikedCurations()
+                    _likedError.value = null
+                } else if (msg.contains("Token", true) && msg.contains("expired", true)) {
+                    _likedError.value = "세션이 만료됐어요. 다시 로그인해 주세요."
+                    _highlightLiked.value = current // 실패 시 롤백
+                } else {
+                    _highlightLiked.value = current // 실패 시 롤백
+                    _likedError.value = "좋아요 처리에 실패했어요"
                 }
             }
+
+//            result.onSuccess {
+//                loadLikedCurations() // 필요 시 생략 가능
+//            }.onFailure { e ->
+//                _highlightLiked.value = current // 롤백
+//                val msg = e.message.orEmpty()
+//                _likedError.value = when {
+//                    msg.contains("Token", true) && msg.contains("expired", true) ->
+//                        "세션이 만료됐어요. 다시 로그인해 주세요."
+//                    else -> "좋아요 처리에 실패했어요"
+//                }
+//            }
 
             _likeBusy.value = false
         }

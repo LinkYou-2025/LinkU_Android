@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.model.UserInfo
 import com.example.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -141,13 +142,31 @@ class SignUpViewModel @Inject constructor(
         ) = true
 
         override suspend fun sendEmailCode(email: String, code: String) = true
+
         override suspend fun verifyEmailCode(email: String, code: String) = true
+
         override suspend fun deleteUser(reason: String) = true
 
-        override suspend fun getUserInfo(userId: Long): String? = "dummy_id"
-        //사용자 임시 비밀번호
+        override suspend fun getUserInfo(userId: Long): UserInfo = UserInfo(
+            nickname = "dummy_nick",
+            email = "dummy@example.com",
+            gender = "MALE",   // String 타입
+            jobId = 0L,        // Long
+            jobName = "developer",
+            myLinku = 0L,      // Long
+            myFolder = 0L,     // Long
+            myAiLinku = 0L     // Long
+        )
+
+        override suspend fun getNickname(userId: Long): String? = "dummy_nick"
+
         override suspend fun requestTempPassword(email: String) = true
+
+        override suspend fun logout() {
+            // Dummy 로그아웃 처리
+        }
     })
+
 }
 
 
