@@ -151,6 +151,28 @@ fun EmailVerificationScreen(
                 )
             }
 
+            // 여기 추가: 에러 문구 (입력 박스와의 간격 6dp)
+            val emailErrorText: String? = when {
+                email.value.isNotBlank() && !emailValid ->
+                    "이메일 양식이 올바르지 않습니다!"
+                // 서버에서 중복 이메일을 알려주는 경우(문자 그대로 비교)
+                sendResult == "이미 가입된 이메일입니다." || sendResult == "이미 가입된 이메일입니다" ->
+                    "이미 가입된 이메일입니다."
+                else -> null
+            }
+
+            emailErrorText?.let {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = it,
+                    color = Color(0xFFFF5E5E),
+                    fontSize = 13.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.offset(x = 4.dp)
+                )
+            }
+
             // 인증 코드 입력 영역
             if (isCodeSent) {
                 Spacer(modifier = Modifier.height(24.dp))
