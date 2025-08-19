@@ -88,6 +88,12 @@ import com.example.login.auth.LoginViewModel
 fun MainApp(
     viewModel: MainViewModel,
 ) {
+
+    // 앱 실행 시 실행하여 이전 계정 기록 삭제
+    LaunchedEffect(Unit) {
+        viewModel.clearRecentQuery()
+    }
+
     val navigator = rememberNavController()
 //    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
 

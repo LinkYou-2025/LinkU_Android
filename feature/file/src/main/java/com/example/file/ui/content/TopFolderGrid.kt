@@ -19,7 +19,7 @@ import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.viewmodel.folder.state.FolderState
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 
 @Composable
 fun TopFolderGrid(
@@ -54,8 +54,8 @@ fun TopFolderGrid(
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 TopFolderItemLayout(
-                    categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                    categoryName = folder.folderName,
+                    colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                    folderName = folder.folderName,
                     isBookmarked = folder.isBookmarked,
                     editStateViewModel = editStateViewModel
                 ){
