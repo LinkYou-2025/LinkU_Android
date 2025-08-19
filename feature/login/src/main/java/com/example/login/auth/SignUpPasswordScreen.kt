@@ -97,7 +97,8 @@ fun SignUpPasswordScreen(
                     },
                     singleLine = true,
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
+                        //.fillMaxWidth()
                         .background(Color.White, RoundedCornerShape(16.dp)),
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
@@ -197,7 +198,7 @@ fun SignUpPasswordScreen(
                         else
                             listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
                 .clickable(enabled = canProceed) {
                     signUpViewModel.password = password

@@ -103,7 +103,7 @@ fun SignUpGenderScreen(
                         else
                             listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(16.dp)
                 )
                 .clickable(enabled = isButtonEnabled) {
                     signUpViewModel.gender = selectedGender ?: 1
@@ -156,7 +156,8 @@ fun GenderOptionButton(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
+//                    //.fillMaxWidth()
                     .padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween

@@ -74,7 +74,7 @@ fun LoginScreen(
                 )
             } else {
                 Image(
-                    painter = painterResource(R.drawable.img_logo_white),
+                    painter = painterResource(R.drawable.img_login_logo),
                     contentDescription = "Logo",
                     modifier = Modifier
                         .offset(y = logoOffsetY.dp)
@@ -88,7 +88,7 @@ fun LoginScreen(
             Button(
                 onClick = { navigator.navigate("email_login") },
                 colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(32),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
