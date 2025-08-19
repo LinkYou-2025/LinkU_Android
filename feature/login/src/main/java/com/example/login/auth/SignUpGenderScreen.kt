@@ -27,6 +27,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.login.R
 import com.example.login.Paperlogy
 
+
 @Composable
 fun SignUpGenderScreen(
     navigator: NavHostController,
@@ -35,6 +36,11 @@ fun SignUpGenderScreen(
     // 성별 선택 상태: 1 = 남성, 2 = 여성
     var selectedGender by remember { mutableStateOf<Int?>(null) }
 
+    //var selectedGender by remember { mutableStateOf<Int?>(null) }
+    val isButtonEnabled = selectedGender != null
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,7 +48,7 @@ fun SignUpGenderScreen(
                 start = 20.dp,
                 end = 20.dp,
                 top = 52.dp,   // ⬆️ 위쪽만 52
-                bottom = 40.dp // ⬇️ 아래는 40 유지
+                bottom = 48.dp + 24.dp // ⬇️ 아래는 40 유지
             ),
             //.padding(horizontal = 20.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.Start
@@ -79,45 +85,44 @@ fun SignUpGenderScreen(
             onClick = { selectedGender = 2 }
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))}
 
-        // 하단 "다음" 버튼
+        // ✅ 하단 고정 버튼 (닉네임 화면과 동일)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 64.dp) // ✅ 하단 여백 통일
-                .offset(y = -16.dp) // ✅ 위로 16 올림
+                .align(Alignment.BottomCenter)
+                .imePadding()
+                .navigationBarsPadding()
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = if (selectedGender != null)
+                        colors = if (isButtonEnabled)
                             listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
                         else
                             listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
-                .clickable(enabled = selectedGender != null) {
-                    //  ViewModel에 선택된 성별 저장
+                .clickable(enabled = isButtonEnabled) {
                     signUpViewModel.gender = selectedGender ?: 1
-
-                    // 다음 화면으로 이동
-                    navigator.navigate("sign_up_job")
+                    navigator.navigate("sign_up_job") {
+                        launchSingleTop = true
+                    }
                 },
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "다음",
                 color = Color.White,
-                fontFamily = Paperlogy,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy,
+                textAlign = TextAlign.Center
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
     }
-
-
 }
 
 @Composable
