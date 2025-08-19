@@ -155,12 +155,15 @@ fun InterestContentScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             contentPadding = PaddingValues(
-                start = 32.dp, end = 32.dp,
-                top = 40.dp,
+                start = 0.dp, end = 0.dp,
+                //start = 32.dp, end = 32.dp,
+                top = 52.dp,
                 bottom = 96.dp // bottomBar(48) + 외곽 패딩(14*2) 만큼 여유
             )
         ) {
-            item { ContentStepIndicator() }
+            item { ContentStepIndicator(
+                modifier = Modifier.padding(horizontal = 20.dp)
+            ) }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
@@ -176,6 +179,7 @@ fun InterestContentScreen(
                     fontSize = 22.sp,
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
 
@@ -464,10 +468,12 @@ private fun PurposeCloudScrollable(
 
 // 상단 관심사 단계 표시
 @Composable
-fun ContentStepIndicator() {
+fun ContentStepIndicator(modifier: Modifier = Modifier) {
     val isPreview = LocalInspectionMode.current //폰트 표시
 
-    Column(horizontalAlignment = Alignment.Start) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.Start) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 1번 체크
             Box(

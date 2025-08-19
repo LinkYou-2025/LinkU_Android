@@ -54,7 +54,7 @@ fun MarketingTermsScreenComposable(
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(top = 56.dp, bottom = 100.dp)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -122,7 +122,8 @@ fun MarketingTermsScreenComposable(
                     text = "마케팅 수신 동의",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = Paperlogy
+                    fontFamily = Paperlogy,
+                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
             },
             navigationIcon = {
@@ -138,13 +139,13 @@ fun MarketingTermsScreenComposable(
         )
 
 
-        // 하단 고정 버튼
+        // 하단 고정 버튼 (PrivacyTermsScreenFixed)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(start = 16.dp, end = 16.dp, bottom = 50.dp)
-                //.padding(horizontal = 16.dp, vertical = 26.dp)
+                .padding(start = 20.dp, end = 20.dp, bottom = 50.dp) // 마케팅과 동일
+                .offset(y = -16.dp) // ⬅️ 더 아래로 내림 (기기 따라 12~18dp 사이 미세조정 가능)
                 .height(50.dp)
                 .background(
                     brush = Brush.horizontalGradient(

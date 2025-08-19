@@ -71,7 +71,15 @@ fun ResetPasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp, vertical = 40.dp)
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = 52.dp,   // ⬆️ 위쪽만 52
+                bottom = 40.dp // ⬇️ 아래는 40 유지
+            )
+
+
+            //.padding(horizontal = 20.dp, vertical = 52.dp)
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
