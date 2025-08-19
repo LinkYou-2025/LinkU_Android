@@ -178,30 +178,63 @@ fun MainApp(
                 composable("terms/service") {
                     ServiceTermsScreen(
                         onBackClicked = { navigator.popBackStack() },
-                        onAgreeClicked = { navigator.navigate("terms/privacy") } // 다음 약관으로 이동
+                        onAgreeClicked = {
+                            navigator.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("agree_terms", true)
+                            navigator.popBackStack() // 약관 선택 화면으로 복귀
+                        }
                     )
                 }
+//                composable("terms/service") {
+//                    ServiceTermsScreen(
+//                        onBackClicked = { navigator.popBackStack() },
+//                        onAgreeClicked = { navigator.navigate("terms/privacy") } // 다음 약관으로 이동
+//                    )
+//                }
 
                 // 개인정보 처리방침
                 composable("terms/privacy") {
                     PrivacyTermsScreenFixed(
                         onBackClicked = { navigator.popBackStack() },
-                        onAgreeClicked = { navigator.navigate("terms/marketing") } // 다음 약관으로 이동
+                        onAgreeClicked = {
+                            navigator.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("agree_privacy", true)
+                            navigator.popBackStack()
+                        }
                     )
                 }
+//                composable("terms/privacy") {
+//                    PrivacyTermsScreenFixed(
+//                        onBackClicked = { navigator.popBackStack() },
+//                        onAgreeClicked = { navigator.navigate("terms/marketing") } // 다음 약관으로 이동
+//                    )
+//                }
 
                 // 마케팅 수신 동의
                 composable("terms/marketing") {
                     MarketingTermsScreenComposable(
                         onBackClicked = { navigator.popBackStack() },
                         onAgreeClicked = {
-                            // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
-                            navigator.navigate("email_verification") {
-                                popUpTo("terms/service") { inclusive = true }
-                            }
+                            navigator.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("agree_marketing", true)
+                            navigator.popBackStack()
                         }
                     )
                 }
+//                composable("terms/marketing") {
+//                    MarketingTermsScreenComposable(
+//                        onBackClicked = { navigator.popBackStack() },
+//                        onAgreeClicked = {
+//                            // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
+//                            navigator.navigate("email_verification") {
+//                                popUpTo("terms/service") { inclusive = true }
+//                            }
+//                        }
+//                    )
+//                }
 
 
                 // 이메일 인증

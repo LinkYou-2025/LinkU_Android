@@ -194,15 +194,17 @@ fun InterestContentScreen(
             item { Spacer(modifier = Modifier.height(32.dp)) }
 
             item {
-                InterestCloudScrollable(
-                    contents = contents,
-                    selected = selectedContents,
-                    onToggle = { label ->
-                        if (selectedContents.contains(label)) selectedContents.remove(label)
-                        else selectedContents.add(label)
-                    },
-                    height = 500.dp
-                )
+                Box(Modifier.padding(horizontal = 20.dp)) {
+                    InterestCloudScrollable(
+                        contents = contents,
+                        selected = selectedContents,
+                        onToggle = { label ->
+                            if (selectedContents.contains(label)) selectedContents.remove(label)
+                            else selectedContents.add(label)
+                        },
+                        height = 500.dp
+                    )
+                }
             }
 
             item { Spacer(modifier = Modifier.height(24.dp)) }

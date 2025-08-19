@@ -146,7 +146,8 @@ fun EmailVerificationScreen(
                     singleLine = true,
                     enabled = !isSending && !isVerifying, //  입력 잠깐 잠그기 -> 성격 급한 사용자 감안.
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxSize()
+                        //.fillMaxWidth()
                         .background(Color.White, shape = RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
                     colors = TextFieldDefaults.colors(
@@ -214,7 +215,8 @@ fun EmailVerificationScreen(
                     singleLine = true,
                     enabled = !isVerifying, // 검증 중 입력 잠금 -> 성격 급한 사용자 감안 수정.
                     trailingIcon = {
-                        val textModifier = Modifier.padding(end = 12.dp)
+                        val textModifier = Modifier.padding(end = 12.dp) // ← 오른쪽 여백 확보
+
                         if (sendResult == "서버 오류") {
                             Text(
                                 text = "서버 오류",
@@ -228,10 +230,12 @@ fun EmailVerificationScreen(
                                 text = timerText,
                                 color = Color(0xFFFF5E5E),
                                 fontSize = 13.sp,
-                                fontFamily = Paperlogy
+                                fontFamily = Paperlogy,
+                                modifier = textModifier   // ← 여기 추가
                             )
                         }
-                    },
+                    }
+                    ,
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
@@ -300,7 +304,7 @@ fun EmailVerificationScreen(
                                 else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                             }
                         ),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(16.dp)
                     )
                     .clickable(enabled = isButtonEnabled) {
                         val cleanEmail = email.value.trim()
