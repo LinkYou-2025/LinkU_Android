@@ -17,6 +17,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,6 +48,7 @@ import com.example.file.ui.content.SharedBottomFolderGrid
 import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.MainColor
+import kotlinx.coroutines.launch
 
 @Composable
 fun FileScreen(
@@ -65,6 +67,8 @@ fun FileScreen(
     }
 
     Log.d("FileScreen", "FileScreen")
+
+    val scope = rememberCoroutineScope()
 
     // 뒤로가기 핸들러
     BackHandler(enabled = folderStateViewModel.currentFolderState in listOf(FolderState.BOTTOM, FolderState.LINKS)) {
@@ -174,22 +178,25 @@ fun FileScreen(
             )
         }
 
-        // 로딩창
-        if (fileViewModel.loading.collectAsState().value) {
-            // 로딩 로직
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MainColor),
-                contentAlignment = Alignment.Center
-            ){
-                Image(
-                    painter = painterResource(R.drawable.linku_logo),
-                    contentDescription = "로딩중"
-                )
-            }
-        }
+//        // 로딩창
+//        if (fileViewModel.loading.collectAsState().value) {
+//            // 로딩 로직
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(MainColor),
+//                contentAlignment = Alignment.Center
+//            ){
+//                Image(
+//                    painter = painterResource(R.drawable.linku_logo),
+//                    contentDescription = "로딩중"
+//                )
+//            }
+//        }
     }
+
+    // 소분류 수정/추가 시 이름 중복 경고 모달창 상태
+    var sameNameExceptionModalVisible by remember { mutableStateOf(false) }
 
     // ---------- bottom sheets ----------
 
@@ -202,28 +209,47 @@ fun FileScreen(
     // 소분류 폴더 추가하기 바텀 시트
     NewBottomFolderBottomSheet(
         onTextDeliver = {
-            fileViewModel.createSubfolder(folderStateViewModel.selectedTopFolder!!.folderId,it)
+            val d = fileViewModel.createSubfolder(folderStateViewModel.selectedTopFolder!!.folderId,it)
+
+            scope.launch {
+                try {
+                    d.await() // 여기서 예외 전파 받음
+                } catch (e: SameNameException) {
+                    sameNameExceptionModalVisible = true
+                } catch (e: Exception) {
+                    Log.d("NewBottomFolderBottomSheet", "onTextDeliver catch: $e.message")
+                }
+            }
+
+            Log.d("NewBottomFolderBottomSheet", "onTextDeliver end")
         },
         folderStateViewModel = folderStateViewModel
     )
 
     // 소분류 폴더 수정 바텀 시트
-    var sameNameExceptionModalVisible by remember { mutableStateOf(false) }
-
     BottomFolderEditBottomSheet(
         onTextDeliver = {
-            try{
-                fileViewModel.updateSubfolder(
-                    folderStateViewModel.readyToUpdateBottomFolder!!.folderId,
-                    it
-                )
-            }catch (e:SameNameException){
-                sameNameExceptionModalVisible = true
+            val d = fileViewModel.updateSubfolder(
+                folderStateViewModel.readyToUpdateBottomFolder!!.folderId,
+                it
+            )
+
+            scope.launch {
+                try {
+                    d.await() // 여기서 예외 전파 받음
+                } catch (e: SameNameException) {
+                    sameNameExceptionModalVisible = true
+                } catch (e: Exception) {
+                    Log.d("BottomFolderEditBottomSheet", "onTextDeliver catch: $e.message")
+                }
             }
+
+            Log.d("BottomFolderEditBottomSheet", "onTextDeliver end")
         },
         folderStateViewModel = folderStateViewModel
     )
 
+    // 소분류 수정/추가 시 이름 중복 경고 모달창
     FileModalWindow(
         visible = sameNameExceptionModalVisible,
         onDismiss = { sameNameExceptionModalVisible = false },

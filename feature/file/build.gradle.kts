@@ -77,5 +77,10 @@ dependencies {
     implementation("io.coil-kt.coil3:coil-compose:3.0.4")
     implementation("io.coil-kt.coil3:coil-svg:3.0.4")
 
+    // lazy grid
     implementation("com.cheonjaeung.compose.grid:grid:2.0.0")
+
+    // Retrofit
+    implementation(libs.retrofit2)
+
 }

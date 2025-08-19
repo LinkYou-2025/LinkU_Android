@@ -54,8 +54,8 @@ fun TopFolderGrid(
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 TopFolderItemLayout(
-                    categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                    categoryName = folder.folderName,
+                    colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                    folderName = folder.folderName,
                     isBookmarked = folder.isBookmarked,
                     editStateViewModel = editStateViewModel
                 ){
