@@ -274,12 +274,15 @@ fun InterestPurposeScreen(
                 .fillMaxSize()
                 .padding(innerPadding),
             contentPadding = PaddingValues(
-                start = 32.dp, end = 32.dp,
-                top = 40.dp,
+                //start = 32.dp, end = 32.dp,
+                start = 0.dp, end = 0.dp,
+                top = 52.dp,
                 bottom = 96.dp // bottomBar 높이만큼 확보
             )
         ) {
-            item { InterestStepIndicator() }
+            item {
+                Box(modifier = Modifier.padding(horizontal = 20.dp))
+                InterestStepIndicator() }
             item { Spacer(Modifier.height(16.dp)) }
 
             item {
@@ -293,6 +296,7 @@ fun InterestPurposeScreen(
                     fontSize = 22.sp,
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
 

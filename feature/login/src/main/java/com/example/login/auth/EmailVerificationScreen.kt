@@ -87,7 +87,7 @@ fun EmailVerificationScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 32.dp, top = 40.dp, end = 32.dp, bottom = 48.dp + 32.dp + 24.dp),
+                .padding(start = 20.dp, top = 52.dp, end = 20.dp, bottom = 48.dp + 32.dp + 24.dp),
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator()
@@ -252,7 +252,8 @@ fun EmailVerificationScreen(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .imePadding() // 키보드 대응 유지
-                .padding(horizontal = 32.dp, vertical = 32.dp) // 좌우 32, 아래 32
+                .padding(start = 20.dp, end = 20.dp, bottom = 64.dp) // 좌우 32, 아래 32
+                .offset(y = -16.dp) // ✅ 위로 16 올림
                 .height(48.dp) // ↔ SignUpJobScreen 과 동일
                 .background(
                     brush = Brush.horizontalGradient(
