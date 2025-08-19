@@ -36,7 +36,6 @@ import androidx.compose.material3.Icon
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-
 @Composable
 fun CurationHighlightSection(
     modifier: Modifier = Modifier,
@@ -51,54 +50,132 @@ fun CurationHighlightSection(
     val highlightLiked by viewModel.highlightLiked.collectAsState()
     val likeBusy by viewModel.likeBusy.collectAsState()
 
-
+    // ─────────────────────────────────────────────────────────────
+    // 🔎 초기에 데이터가 없고 생성 중도 아니면 로드
+    // ─────────────────────────────────────────────────────────────
     LaunchedEffect(viewModel) {
         if (recentCuration == null && !isGenerating) {
             viewModel.loadMonthlyCuration()
         }
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // 🔔 서버 성공이지만 result=null 인 경우를 '정상 무(無)데이터'로 간주
+    //     → 빈 상태 전용 이미지 노출: img_curation_null
+    //     (errorMessage == null, isGenerating == false, recentCuration == null)
+    // ─────────────────────────────────────────────────────────────
+    val isEmptySuccess = recentCuration == null && !isGenerating && errorMessage == null
+
     when {
-        // 1) 데이터가 있으면 무조건 이미지 먼저!
+        // 1) 데이터가 있으면 이미지 카드
         recentCuration != null -> {
             Log.d("CurationUI", "큐레이션 표시 - URL: ${recentCuration!!.thumbnailUrl}")
             HighlightCardOnlyImage(
                 imageUrl = recentCuration!!.thumbnailUrl,
-                liked = highlightLiked,                  //  VM 상태 전달
-                likeBusy = likeBusy,                     // 중복탭 방지
+                liked = highlightLiked,
+                likeBusy = likeBusy,
                 onToggleLike = { viewModel.toggleHighlightLike() },
-                onCardClick = onOpenDetail,            //  여기서 그대로 전달
+                onCardClick = onOpenDetail,
                 modifier = modifier
             )
         }
 
-        // 2) 그 다음 로딩
+        // 2) 로딩 중
         isGenerating -> {
             Log.d("CurationUI", "큐레이션 생성 중")
-            // 필요하면 로딩용 임시 카드도 가능:
-            // HighlightCardWithFallback(imageRes = R.drawable.img_trump_card_main, modifier = modifier)
             Text(text = "큐레이션 생성 중...", modifier = Modifier.padding(horizontal = 20.dp))
         }
 
-        // 3) 에러
-        errorMessage != null -> {
-            Log.w("CurationUI", "오류 발생: $errorMessage")
+        // 3) 성공이지만 result=null → 빈 상태 이미지로 대체
+        isEmptySuccess -> {
+            Log.d("CurationUI", "큐레이션 없음(result=null) → null 이미지 표시")
             HighlightCardWithFallback(
-                imageRes = R.drawable.img_trump_card_main,
+                imageRes = R.drawable.img_curation_null, // ✨ 여기 핵심 변경!
                 modifier = modifier
             )
         }
 
-        // 4) 아무 것도 없을 때
-        else -> {
-            Log.d("CurationUI", "큐레이션 없음")
+        // 4) 에러 (원래 로직 유지 — 필요 시 같은 null 이미지를 써도 됨)
+        errorMessage != null -> {
+            Log.w("CurationUI", "오류 발생: $errorMessage")
             HighlightCardWithFallback(
-                imageRes = R.drawable.img_trump_card_main,
+                imageRes = R.drawable.img_curation_null, // 이전엔 trump 이미지를 썼다면 여기서도 통일 가능
+                modifier = modifier
+            )
+        }
+
+        // 5) 기타 대비(이상 상태) — 안전망
+        else -> {
+            Log.d("CurationUI", "큐레이션 없음(기타 경로)")
+            HighlightCardWithFallback(
+                imageRes = R.drawable.img_curation_null, // ✨ 안전망도 null 이미지로
                 modifier = modifier
             )
         }
     }
 }
+//@Composable
+//fun CurationHighlightSection(
+//    modifier: Modifier = Modifier,
+//    viewModel: CurationViewModel = hiltViewModel(),
+//    onOpenDetail: (() -> Unit)? = null
+//) {
+//    val isGenerating by viewModel.isGenerating.collectAsState()
+//    val errorMessage by viewModel.errorMessage.collectAsState()
+//    val recentCuration by viewModel.recentCuration.collectAsState()
+//
+//    //  추가: 하트 상태/로딩 상태
+//    val highlightLiked by viewModel.highlightLiked.collectAsState()
+//    val likeBusy by viewModel.likeBusy.collectAsState()
+//
+//
+//    LaunchedEffect(viewModel) {
+//        if (recentCuration == null && !isGenerating) {
+//            viewModel.loadMonthlyCuration()
+//        }
+//    }
+//
+//    when {
+//        // 1) 데이터가 있으면 무조건 이미지 먼저!
+//        recentCuration != null -> {
+//            Log.d("CurationUI", "큐레이션 표시 - URL: ${recentCuration!!.thumbnailUrl}")
+//            HighlightCardOnlyImage(
+//                imageUrl = recentCuration!!.thumbnailUrl,
+//                liked = highlightLiked,                  //  VM 상태 전달
+//                likeBusy = likeBusy,                     // 중복탭 방지
+//                onToggleLike = { viewModel.toggleHighlightLike() },
+//                onCardClick = onOpenDetail,            //  여기서 그대로 전달
+//                modifier = modifier
+//            )
+//        }
+//
+//        // 2) 그 다음 로딩
+//        isGenerating -> {
+//            Log.d("CurationUI", "큐레이션 생성 중")
+//            // 필요하면 로딩용 임시 카드도 가능:
+//            // HighlightCardWithFallback(imageRes = R.drawable.img_trump_card_main, modifier = modifier)
+//            Text(text = "큐레이션 생성 중...", modifier = Modifier.padding(horizontal = 20.dp))
+//        }
+//
+//        // 3) 에러
+//        errorMessage != null -> {
+//            Log.w("CurationUI", "오류 발생: $errorMessage")
+//            HighlightCardWithFallback(
+//                imageRes = R.drawable.img_trump_card_main,
+//                modifier = modifier
+//            )
+//        }
+//
+//        // 4) 아무 것도 없을 때
+//        else -> {
+//            Log.d("CurationUI", "큐레이션 없음")
+//            HighlightCardWithFallback(
+//                imageRes = R.drawable.img_trump_card_main,
+//                modifier = modifier
+//            )
+//        }
+//    }
+//}
 
 //@Composable
 //fun HighlightCardOnlyImage(imageUrl: String?) {
@@ -216,87 +293,50 @@ fun getCurrentKoreanCurationDate(): String {
     val formatter = DateTimeFormatter.ofPattern("yyyy년 M월호", Locale.KOREAN)
     return today.format(formatter)
 }
-
+// 8월이면 7월호를 반환하는 util 함수
+fun getPreviousKoreanCurationDate(): String {
+    val today = LocalDate.now()
+    val previousMonth = today.minusMonths(1)
+    val formatter = DateTimeFormatter.ofPattern("yyyy년 M월호", Locale.KOREAN)
+    return previousMonth.format(formatter)
+}
 @Composable
 fun HighlightCardWithFallback(
     imageRes: Int,
-    title: String = "링큐 큐레이션",
-    //date: String = "2025년 8월호"
-    date: String = getCurrentKoreanCurationDate(),
+    title: String = "링큐 큐레이션",                 // 시그니처 유지 (미사용)
+    date: String = getPreviousKoreanCurationDate(), // 시그니처 유지 (미사용)
     modifier: Modifier = Modifier
 ) {
-    var liked by remember { mutableStateOf(false) } // 좋아요 상태 기억
+    // 원본 비율 계산 (없으면 16:9 기본)
+    val painter = painterResource(id = imageRes)
+    val intrinsic = painter.intrinsicSize
+    val aspect = remember(intrinsic) {
+        val w = intrinsic.width
+        val h = intrinsic.height
+        if (w > 0f && h > 0f) w / h else 16f / 9f
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(200.dp)
-            .padding(top = 16.dp) // ← 위 여백 + 좌우 여백
-            .clip(RoundedCornerShape(12.dp))
+            .padding(top = 16.dp)            // 기존 여백 유지
+            .clip(RoundedCornerShape(12.dp)) // 기존 라운드 유지
+            .aspectRatio(aspect)             // ✅ 원본 비율 고정(세로 자동)
     ) {
-        // 배경 이미지
+        // ✅ 노크롭: 이미지가 잘리지 않도록 Fit 사용
         Image(
-            painter = painterResource(id = imageRes),
-            contentDescription = "$title 이미지",
-            contentScale = ContentScale.Crop,
+            painter = painter,
+            contentDescription = null,
+            contentScale = ContentScale.Fit, // 잘림 없음(레터박스 가능)
             modifier = Modifier.fillMaxSize()
         )
-
-        // 좋아요 하트 (우측 상단)
-        Icon(
-            painter = painterResource(id = if (liked) R.drawable.ic_heart else R.drawable.ic_heart_outline),
-            contentDescription = "좋아요",
-            tint = Color.White,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(12.dp)
-                .size(24.dp)
-                .clickable { liked = !liked } // 클릭 시 토글!
-        )
-
-        // 텍스트 (왼쪽 하단)
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(16.dp)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-            )
-            Text(
-                text = date,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontSize = 14.sp,
-                    color = Color.White
-                )
-            )
-        }
-
-        // 보러가기 > (오른쪽 하단)
-        Text(
-            text = "보러가기 >",
-            style = MaterialTheme.typography.bodyMedium.copy(
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                color = Color.White
-            ),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(16.dp)
-        )
+        // ⛔️ 텍스트/하트 전부 제거 (완전히 비어있는 이미지 카드)
     }
 }
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun PreviewHighlightCardWithFallback() {
-    HighlightCardWithFallback(imageRes = R.drawable.img_trump_card_main)
+    HighlightCardWithFallback(imageRes = R.drawable.img_curation_null)
 }
 
 @Preview(showBackground = true)

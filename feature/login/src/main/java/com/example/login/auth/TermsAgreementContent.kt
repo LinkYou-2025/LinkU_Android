@@ -82,7 +82,8 @@ fun TermsAgreementContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(24.dp)
+            .padding(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 6.dp)
+            //.padding(24.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
@@ -117,7 +118,7 @@ fun TermsAgreementContent(
 
         Divider(
             color = Color(0xFFE5E5E5),
-            modifier = Modifier.padding(vertical = 8.dp)
+            modifier = Modifier.padding(vertical = 6.dp)
         )
 
         Column(
@@ -146,7 +147,7 @@ fun TermsAgreementContent(
             )
         }
 
-        Spacer(modifier = Modifier.height(20.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         Box(
             modifier = Modifier
@@ -173,6 +174,8 @@ fun TermsAgreementContent(
                 fontWeight = FontWeight.Bold
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 

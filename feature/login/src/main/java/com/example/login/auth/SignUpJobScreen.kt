@@ -102,6 +102,7 @@ fun SignUpJobScreen(
                 fontWeight = FontWeight.Bold
             )
         }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
