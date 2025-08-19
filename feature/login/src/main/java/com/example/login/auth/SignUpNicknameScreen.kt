@@ -42,9 +42,14 @@ fun SignUpNicknameScreen(
 
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 10
 
+    // ✅ 버튼 활성 조건 (EmailVerificationScreen의 isButtonEnabled와 동일한 느낌)
+    val isButtonEnabled = isNicknameValid &&
+            (isNicknameAvailable != false) && // false만 비활성, null(미확인) 허용
+            !isLoading
+
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // 본문 (기존 UI 유지)
+        // 본문
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -52,8 +57,8 @@ fun SignUpNicknameScreen(
                     start = 20.dp,
                     end = 20.dp,
                     top = 52.dp,
-                    // 버튼 영역만큼 여유
-                    bottom = 48.dp + 32.dp + 24.dp
+                    // ✅ 버튼과 겹치지 않도록 여유(버튼 48 + 하단간격 24, 필요시 더 넉넉히)
+                    bottom = 48.dp + 24.dp
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -90,7 +95,12 @@ fun SignUpNicknameScreen(
                         if (isNicknameValid) signUpViewModel.checkNickname()
                     },
                     placeholder = {
-                        Text("닉네임을 입력해주세요.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
+                        Text(
+                            "닉네임을 입력해주세요.",
+                            fontSize = 13.sp,
+                            fontFamily = Paperlogy,
+                            color = Color(0xFF757575)
+                        )
                     },
                     singleLine = true,
                     modifier = Modifier
@@ -107,10 +117,20 @@ fun SignUpNicknameScreen(
             }
 
             if (isNicknameAvailable == false) {
-                Text("중복된 닉네임 입니다.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFFFF5E5E))
+                Text(
+                    "중복된 닉네임 입니다.",
+                    fontSize = 13.sp,
+                    fontFamily = Paperlogy,
+                    color = Color(0xFFFF5E5E)
+                )
             }
             if (nicknameMessage == "서버 요청 실패") {
-                Text("서버 요청 실패", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFFFF5E5E))
+                Text(
+                    "서버 요청 실패",
+                    fontSize = 13.sp,
+                    fontFamily = Paperlogy,
+                    color = Color(0xFFFF5E5E)
+                )
             }
 
             Spacer(Modifier.height(12.dp))
@@ -119,46 +139,197 @@ fun SignUpNicknameScreen(
                 Box(
                     modifier = Modifier
                         .size(20.dp)
-                        .background(if (isNicknameValid) Color(0xFFCB59EB) else Color(0xFFD7D9DF), RoundedCornerShape(4.dp)),
+                        .background(
+                            if (isNicknameValid) Color(0xFFCB59EB) else Color(0xFFD7D9DF),
+                            RoundedCornerShape(4.dp)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Check, contentDescription = "조건 만족", tint = Color.White, modifier = Modifier.size(12.dp))
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = "조건 만족",
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
                 }
                 Spacer(Modifier.width(4.dp))
-                Text("국문/영문 10자 이하", fontSize = 12.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
+                Text(
+                    "국문/영문 10자 이하",
+                    fontSize = 12.sp,
+                    fontFamily = Paperlogy,
+                    color = Color(0xFF757575)
+                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 하단 고정 버튼 (이메일 화면과 동일 위치)
-        val canProceed = isNicknameValid && (isNicknameAvailable == true)
+        // ✅ 하단 고정 버튼 (EmailVerificationScreen과 동일한 방식)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .imePadding()                                   // 키보드 회피
-                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp) // ← 동일 위치
+                .align(Alignment.BottomCenter) // 항상 하단
+                .imePadding()                  // 키보드 올라오면 자동 위로
+                .navigationBarsPadding()       // 제스처/내비 바 안전영역
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = if (canProceed)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                        colors = when {
+                            isButtonEnabled -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            else            -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                        }
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
-                .clickable(enabled = canProceed) {
-                    signUpViewModel.nickname = nickname
-                    navigator.navigate("sign_up_gender")
+                .clickable(enabled = isButtonEnabled) {
+                    // TODO: 다음 화면으로 이동(프로젝트 라우트에 맞게 교체)
+                    // 예: navigator.navigate("sign_up_profile")
                 },
             contentAlignment = Alignment.Center
         ) {
-            Text("다음", fontFamily = Paperlogy, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Text(
+                text = "다음",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
+
+//@Composable
+//fun SignUpNicknameScreen(
+//    navigator: NavHostController,
+//    signUpViewModel: SignUpViewModel = hiltViewModel()
+//) {
+//    var nickname by remember { mutableStateOf("") }
+//
+//    val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState()
+//    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState()
+//    val isLoading by signUpViewModel.isLoading.collectAsState()
+//
+//    val isNicknameValid = nickname.isNotBlank() && nickname.length <= 10
+//
+//    Box(modifier = Modifier.fillMaxSize()) {
+//
+//        // 본문 (기존 UI 유지)
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(
+//                    start = 20.dp,
+//                    end = 20.dp,
+//                    top = 52.dp,
+//                    // 버튼 영역만큼 여유
+//                    bottom = 48.dp + 32.dp + 24.dp
+//                ),
+//            horizontalAlignment = Alignment.Start
+//        ) {
+//            ProfileStepIndicator()
+//            Spacer(Modifier.height(32.dp))
+//
+//            Text(
+//                text = "사용하실 닉네임을\n입력해주세요",
+//                fontSize = 22.sp,
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Bold,
+//                color = Color.Black
+//            )
+//
+//            Spacer(Modifier.height(32.dp))
+//
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(56.dp)
+//                    .background(
+//                        brush = Brush.horizontalGradient(
+//                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        ),
+//                        shape = RoundedCornerShape(16.dp)
+//                    )
+//                    .padding(1.dp)
+//            ) {
+//                OutlinedTextField(
+//                    value = nickname,
+//                    onValueChange = {
+//                        nickname = it
+//                        signUpViewModel.nickname = it
+//                        if (isNicknameValid) signUpViewModel.checkNickname()
+//                    },
+//                    placeholder = {
+//                        Text("닉네임을 입력해주세요.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
+//                    },
+//                    singleLine = true,
+//                    modifier = Modifier
+//                        .fillMaxWidth()
+//                        .background(Color.White, RoundedCornerShape(16.dp)),
+//                    colors = TextFieldDefaults.colors(
+//                        focusedIndicatorColor = Color.Transparent,
+//                        unfocusedIndicatorColor = Color.Transparent,
+//                        focusedContainerColor = Color.Transparent,
+//                        unfocusedContainerColor = Color.Transparent
+//                    ),
+//                    shape = RoundedCornerShape(16.dp)
+//                )
+//            }
+//
+//            if (isNicknameAvailable == false) {
+//                Text("중복된 닉네임 입니다.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFFFF5E5E))
+//            }
+//            if (nicknameMessage == "서버 요청 실패") {
+//                Text("서버 요청 실패", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFFFF5E5E))
+//            }
+//
+//            Spacer(Modifier.height(12.dp))
+//
+//            Row(verticalAlignment = Alignment.CenterVertically) {
+//                Box(
+//                    modifier = Modifier
+//                        .size(20.dp)
+//                        .background(if (isNicknameValid) Color(0xFFCB59EB) else Color(0xFFD7D9DF), RoundedCornerShape(4.dp)),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    Icon(Icons.Default.Check, contentDescription = "조건 만족", tint = Color.White, modifier = Modifier.size(12.dp))
+//                }
+//                Spacer(Modifier.width(4.dp))
+//                Text("국문/영문 10자 이하", fontSize = 12.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
+//            }
+//
+//            Spacer(modifier = Modifier.weight(1f))
+//        }
+//
+//        // 하단 고정 버튼 (이메일 화면과 동일 위치)
+//        val canProceed = isNicknameValid && (isNicknameAvailable == true)
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter)
+//                .imePadding()                                   // 키보드 회피
+//                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp) // ← 동일 위치
+//                .height(48.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = if (canProceed)
+//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        else
+//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                    ),
+//                    shape = RoundedCornerShape(24.dp)
+//                )
+//                .clickable(enabled = canProceed) {
+//                    signUpViewModel.nickname = nickname
+//                    navigator.navigate("sign_up_gender")
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text("다음", fontFamily = Paperlogy, color = Color.White, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+//        }
+//    }
+//}
 //@Composable
 //fun SignUpNicknameScreen(
 //    navigator: NavHostController,

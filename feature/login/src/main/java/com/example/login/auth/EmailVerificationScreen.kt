@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import android.content.Context
+import androidx.compose.ui.platform.LocalDensity
 
 import androidx.navigation.compose.rememberNavController
 import com.example.login.R
@@ -87,7 +88,13 @@ fun EmailVerificationScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 20.dp, top = 52.dp, end = 20.dp, bottom = 48.dp + 32.dp + 24.dp),
+                .padding(
+                    start = 20.dp,
+                    top = 52.dp,
+                    end = 20.dp,
+                    bottom = 48.dp + 24.dp // 버튼 높이(48) + 간격(24) 정도 확보
+                ),
+            //.padding(start = 20.dp, top = 52.dp, end = 20.dp, bottom = 48.dp + 32.dp + 24.dp),
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator()
@@ -247,49 +254,76 @@ fun EmailVerificationScreen(
                 !isSending && !isVerifying &&
                 (if (isCodeSent) isCodeValid else emailValid)
 
+//
+        val density = LocalDensity.current
+        val imeBottomPx = WindowInsets.ime.getBottom(density)
+        val isImeVisible = imeBottomPx > 0
+
+        val bottomGapWhenIme = 8.dp      // 키보드 위 간격
+        val bottomGapDefault = 50.dp     // 평소 바닥 간격
+
+// 내비게이션 바 높이(dp) – IME가 없을 때만 적용
+        val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+        val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
+
+        val bottomPadding =
+            (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) + extraNavPadding
+
+        // ── 하단 고정 버튼: 원래 위치 + 키보드 대응 ─────────
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .imePadding() // ✅ 키보드 올라오면 자동으로 위로 이동
-                .padding(bottom = 32.dp) // ✅ 버튼과 키보드 사이에 여유 공간
-//                .fillMaxWidth()
-//                .align(Alignment.BottomCenter)
-//                .imePadding() // 키보드 대응 유지
-//                .padding(start = 20.dp, end = 20.dp, bottom = 64.dp) // 좌우 32, 아래 32
-//                .offset(y = -16.dp) // ✅ 위로 16 올림
-//                .height(48.dp) // ↔ SignUpJobScreen 과 동일
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = when {
-                            isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                        }
-                    ),
-                    shape = RoundedCornerShape(24.dp) // ↔ 동일
-                )
-                .clickable(enabled = isButtonEnabled) {
-                    val cleanEmail = email.value.trim()
-                    if (isCodeSent) {
-                        if (isVerifying) return@clickable
-                        isVerifying = true
-                        viewModel.verifyEmailCode(cleanEmail, code.value.trim())
-                    } else {
-                        if (isSending) return@clickable
-                        isSending = true
-                        viewModel.sendEmailCode(cleanEmail)
-                    }
-                },
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
         ) {
-            Text(
-                text = if (isCodeSent) "인증하기" else "인증메일 발송",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy
-            )
+            // ... 위의 Column 그대로
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)    // ✅ 화면 하단에 고정
+                    .imePadding()                     // ✅ 키보드가 올라오면 자동으로 위로
+                    .navigationBarsPadding()          // ✅ 제스처/내비 바 안전영역 확보
+                    .padding(start = 20.dp, end = 20.dp, bottom = 16.dp) // 하단 간격
+                    .height(48.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = when {
+                                isCodeSent && isCodeValid -> listOf(
+                                    Color(0xFF2C6FFF),
+                                    Color(0xFFC800FF)
+                                )
+
+                                !isCodeSent && emailValid -> listOf(
+                                    Color(0xFF2C6FFF),
+                                    Color(0xFFC800FF)
+                                )
+
+                                else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                            }
+                        ),
+                        shape = RoundedCornerShape(24.dp)
+                    )
+                    .clickable(enabled = isButtonEnabled) {
+                        val cleanEmail = email.value.trim()
+                        if (isCodeSent) {
+                            if (isVerifying) return@clickable
+                            isVerifying = true
+                            viewModel.verifyEmailCode(cleanEmail, code.value.trim())
+                        } else {
+                            if (isSending) return@clickable
+                            isSending = true
+                            viewModel.sendEmailCode(cleanEmail)
+                        }
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = if (isCodeSent) "인증하기" else "인증메일 발송",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Paperlogy
+                )
+            }
         }
     }
 //        // 🔒 버튼 활성 조건에 잠금 플래그 포함
@@ -582,3 +616,4 @@ fun EmailVerificationScreenPreview() {
         signUpViewModel = fakeSignUpViewModel
     )
 }
+
