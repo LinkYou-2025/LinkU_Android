@@ -14,6 +14,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,9 +41,11 @@ import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
 import com.example.design.SearchBarTopSheet
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.error.SameNameException
 import com.example.file.ui.bottom.sheet.ShareBottomSheet
 import com.example.file.ui.content.SharedBottomFolderGrid
 import com.example.file.ui.content.SharedTopFolderGrid
+import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.MainColor
 
 @Composable
@@ -202,12 +208,28 @@ fun FileScreen(
     )
 
     // 소분류 폴더 수정 바텀 시트
+    var sameNameExceptionModalVisible by remember { mutableStateOf(false) }
+
     BottomFolderEditBottomSheet(
         onTextDeliver = {
-            fileViewModel.updateSubfolder(folderStateViewModel.readyToUpdateBottomFolder!!.folderId,it)
+            try{
+                fileViewModel.updateSubfolder(
+                    folderStateViewModel.readyToUpdateBottomFolder!!.folderId,
+                    it
+                )
+            }catch (e:SameNameException){
+                sameNameExceptionModalVisible = true
+            }
         },
         folderStateViewModel = folderStateViewModel
     )
+
+    FileModalWindow(
+        visible = sameNameExceptionModalVisible,
+        onDismiss = { sameNameExceptionModalVisible = false },
+        title = "이미 존재하는 폴더명입니다.",
+        positiveText = "확인"
+    ) {}
 
     // 링크 추가하기 바텀 시트
     LinkCategorizationBottomSheet(

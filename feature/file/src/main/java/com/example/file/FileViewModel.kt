@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.error.SameNameException
 import com.example.core.error.UserIdNullException
 import com.example.core.model.CategoryColorList
 import com.example.core.model.FolderSimpleInfo
@@ -560,7 +561,7 @@ class FileViewModel @Inject constructor(
     }
 
     // 소분류 폴더 이름 수정
-    fun updateSubfolder(folderId: Long, folderName: String){
+    fun updateSubfolder(folderId: Long, folderName: String) {
         Log.d("FileViewModel", "updateSubfolder")
 
         viewModelScope.launch {
@@ -572,31 +573,40 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "updateSubfolder try")
 
-                folderRepository.updateSubfolder(folderId, folderName)
+                val normalized = folderName.trim()
+                require(normalized.isNotEmpty()) { "폴더 이름은 비어 있을 수 없습니다." }
 
+                val snapshot = _subFolders.value
+                if (snapshot.any { it.folderId != folderId && it.folderName.equals(normalized, ignoreCase = true) }) {
+                    throw SameNameException()
+                }
+
+                folderRepository.updateSubfolder(folderId, normalized)
                 Log.d("FileViewModel", "updateSubfolder try result")
 
                 _subFolders.update { list ->
+                    if (list.any { it.folderId != folderId && it.folderName.equals(normalized, ignoreCase = true) }) {
+                        throw SameNameException()
+                    }
                     list.map { folder ->
-                        if (folder.folderId == folderId) {
-                            folder.copy(folderName = folderName)
-                        } else {
-                            folder
-                        }
+                        if (folder.folderId == folderId) folder.copy(folderName = normalized) else folder
                     }
                 }
-            }catch (e: Exception){
-                Log.d("FileViewModel", "updateSubfolder catch: $e.message")
+            } catch (e:SameNameException){
+                Log.d("FileViewModel", "updateSubfolder catch: ${e.message}")
 
+                throw e
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "updateSubfolder catch: ${e.message}")
                 _errorMessage.value = e.message
-            }finally {
+            } finally {
                 Log.d("FileViewModel", "updateSubfolder finally")
-
                 stopLoading()
             }
         }
         Log.d("FileViewModel", "updateSubfolder return")
     }
+
 
     // 링크 소분류
     fun updateLinkFolder(link: LinkItemInfo, folderId: Long){
