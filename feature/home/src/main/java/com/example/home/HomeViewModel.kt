@@ -6,8 +6,10 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import android.util.Log
+import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
+import com.example.core.repository.AIArticleRepository
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
@@ -24,6 +26,7 @@ class HomeViewModel @Inject constructor(
     private val linkuRepository: LinkuRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
+    private val aiArticleRepository: AIArticleRepository,
 ) : ViewModel() {
     // 사용자 닉네임
     private val userNameState = mutableStateOf<String?>(null)
@@ -147,6 +150,13 @@ class HomeViewModel @Inject constructor(
     private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
     val recentLinks get() = recentLinksState.value
 
+    // AI 요약
+    private val aiArticleDetailState = mutableStateOf<AiArticle?>(null)
+    val aiArticleDetail get() = aiArticleDetailState.value
+
+    private val isLoadingAiArticleState = mutableStateOf(false)
+    val isLoadingAiArticle get() = isLoadingAiArticleState.value
+
 
     // 링크 저장
     fun saveLink(
@@ -255,14 +265,25 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             isLoadingLinkDetailState.value = true
 
-            // ✅ 상세 요청 전에 요청 파라미터 로깅
+            // 상세 요청 전에 요청 파라미터 로깅
             Log.d("SaveLinkFlow", "상세 요청 -> linkuId = $linkuId")
 
             runCatching { linkuRepository.getLinkDetail(linkuId) }
                 .onSuccess { info ->
-                    // ✅ 상세 응답(도메인 모델) 로깅
+                    // 상세 응답(도메인 모델) 로깅
                     Log.d("SaveLinkFlow", "상세 응답 -> LinkResultInfo = $info")
                     linkDetailState.value = info
+
+                    // 조건부 AI 요약 호출
+                    val hasSummary = !info.summary.isNullOrBlank()
+                    val hasKeyword = !info.keyword.isNullOrBlank()
+                    if (!info.aiArticleExists && !hasSummary && !hasKeyword) {
+                        // 서버에 요약이 전혀 없을 때만 생성 API 호출
+                        loadAiArticle(linkuId)
+                    } else {
+                        // 이미 상세에 담겨온 경우: 별도 호출 없이 화면에서 바로 사용
+                        aiArticleDetailState.value = null // 사용 안 함 (UI는 linkDetail의 요약/키워드 사용)
+                    }
                 }
                 .onFailure { e ->
                     Log.e("SaveLinkFlow", "상세 응답 실패", e)
@@ -270,6 +291,20 @@ class HomeViewModel @Inject constructor(
                 }
 
             isLoadingLinkDetailState.value = false
+        }
+    }
+
+    // AI 요약
+    fun loadAiArticle(linkuId: Long) {
+        viewModelScope.launch {
+            isLoadingAiArticleState.value = true
+            runCatching { aiArticleRepository.getAiArticle(linkuId) }
+                .onSuccess { aiArticleDetailState.value = it }
+                .onFailure { e ->
+                    Log.e("SaveLinkFlow", "AI 요약 불러오기 실패", e)
+                    aiArticleDetailState.value = null
+                }
+            isLoadingAiArticleState.value = false
         }
     }
 }

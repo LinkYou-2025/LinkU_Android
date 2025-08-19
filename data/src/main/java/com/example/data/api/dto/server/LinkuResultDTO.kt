@@ -41,6 +41,12 @@ data class LinkuResultDTO(
     @Json(name = "aiArticleExists")
     val aiArticleExists: Boolean,
 
+    @Json(name = "keyword")
+    val keyword: String?,
+
+    @Json(name = "summary")
+    val summary: String?,
+
     @Json(name = "createdAt")
     val createdAt: OffsetDateTime,
 
