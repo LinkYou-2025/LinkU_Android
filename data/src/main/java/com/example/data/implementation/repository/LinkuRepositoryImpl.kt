@@ -179,6 +179,9 @@ class LinkuRepositoryImpl @Inject constructor(
             title = dto.title,
             domainImageUrl = dto.domainImageUrl,
             linkuImageUrl = dto.linkuImageUrl,
+            aiArticleExists = dto.aiArticleExists == true,
+            keyword = dto.keyword?.takeIf { it.isNotBlank() },
+            summary = dto.summary?.takeIf { it.isNotBlank() },
             createdAt = dto.createdAt,
             updatedAt = dto.updatedAt
         )
