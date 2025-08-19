@@ -82,12 +82,12 @@ fun EmailVerificationScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 32.dp)
+
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 40.dp),
+                .padding(start = 32.dp, top = 40.dp, end = 32.dp, bottom = 48.dp + 32.dp + 24.dp),
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator()
@@ -158,6 +158,7 @@ fun EmailVerificationScreen(
                 // 서버에서 중복 이메일을 알려주는 경우(문자 그대로 비교)
                 sendResult == "이미 가입된 이메일입니다." || sendResult == "이미 가입된 이메일입니다" ->
                     "이미 가입된 이메일입니다."
+
                 else -> null
             }
 
@@ -231,8 +232,7 @@ fun EmailVerificationScreen(
                         unfocusedContainerColor = Color.Transparent
                     )
                 )
-            }
-            else if (sendResult == "서버 오류") {
+            } else if (sendResult == "서버 오류") {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "서버 오류: 잠시 후 다시 시도해주세요",
@@ -242,31 +242,29 @@ fun EmailVerificationScreen(
                 )
             }
         }
-        // 🔒 버튼 활성 조건에 잠금 플래그 포함
+        // ── 하단 고정 버튼: SignUpJobScreen 과 동일 규격 ─────────
         val isButtonEnabled = sendResult != "서버 오류" &&
                 !isSending && !isVerifying &&
                 (if (isCodeSent) isCodeValid else emailValid)
 
-
-        // 하단 버튼 (메일 발송 또는 인증)
-        // 하단 버튼
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
-                .height(48.dp)
+                .imePadding() // 키보드 대응 유지
+                .padding(horizontal = 32.dp, vertical = 32.dp) // 좌우 32, 아래 32
+                .height(48.dp) // ↔ SignUpJobScreen 과 동일
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = when {
                             isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            !isCodeSent && emailValid  -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            else                        -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                            !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         }
                     ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(24.dp) // ↔ 동일
                 )
-                .clickable(enabled = isButtonEnabled) {   //  여기서 변경됨
+                .clickable(enabled = isButtonEnabled) {
                     val cleanEmail = email.value.trim()
                     if (isCodeSent) {
                         if (isVerifying) return@clickable
@@ -278,14 +276,6 @@ fun EmailVerificationScreen(
                         viewModel.sendEmailCode(cleanEmail)
                     }
                 },
-//                .clickable(enabled = if (isCodeSent) isCodeValid else emailValid) {
-//                    val cleanEmail = emailState.value.trim()
-//                    if (isCodeSent) {
-//                        viewModel.verifyEmailCode(cleanEmail, codeState.value.trim())
-//                    } else {
-//                        viewModel.sendEmailCode(cleanEmail)
-//                    }
-//                },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -296,9 +286,111 @@ fun EmailVerificationScreen(
                 fontFamily = Paperlogy
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
-
     }
+//        // 🔒 버튼 활성 조건에 잠금 플래그 포함
+//        val isButtonEnabled = sendResult != "서버 오류" &&
+//                !isSending && !isVerifying &&
+//                (if (isCodeSent) isCodeValid else emailValid)
+//
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize() // ⛔️ 여기에서 horizontal 32dp 제거
+//        ) {
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .padding(horizontal = 32.dp) // ✅ 내용 여백은 여기로 이동
+//                    .padding(top = 40.dp),
+//                horizontalAlignment = Alignment.Start
+//            ) {
+//                // ... 기존 내용들 (StepIndicator, Text, 필드들)
+//            }
+//
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .align(Alignment.BottomCenter)
+//                    .imePadding()
+//                    .padding(start = 32.dp, end = 32.dp, bottom = 50.dp) // ⬅️ 여기 16 → 32 로 수정
+//                    .height(50.dp)
+//                    .background(
+//                        brush = Brush.horizontalGradient(
+//                            colors = when {
+//                                isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                                !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                                else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                            }
+//                        ),
+//                        shape = RoundedCornerShape(12.dp) // ⬅️ 동일
+//                    )
+//                    .clickable(enabled = isButtonEnabled) {
+//                        val cleanEmail = email.value.trim()
+//                        if (isCodeSent) {
+//                            if (isVerifying) return@clickable
+//                            isVerifying = true
+//                            viewModel.verifyEmailCode(cleanEmail, code.value.trim())
+//                        } else {
+//                            if (isSending) return@clickable
+//                            isSending = true
+//                            viewModel.sendEmailCode(cleanEmail)
+//                        }
+//                    },
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Text(
+//                    text = if (isCodeSent) "인증하기" else "인증메일 발송",
+//                    color = Color.White,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    fontFamily = Paperlogy
+//                )
+//            }
+//        }
+//    }
+
+
+//        // 하단 버튼 (메일 발송 또는 인증)
+//        // 하단 버튼 (메일 발송 또는 인증)
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter)
+//                .imePadding() // ✅ 키보드 올라올 때 버튼도 같이 이동
+//                .padding(start = 16.dp, end = 16.dp, bottom = 50.dp) // ✅ 마케팅 화면과 동일
+//                .height(50.dp) // ✅ 마케팅 화면과 동일
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = when {
+//                            isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                            !isCodeSent && emailValid  -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                            else                        -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                        }
+//                    ),
+//                    shape = RoundedCornerShape(12.dp) // ✅ 마케팅 화면과 동일
+//                )
+//                .clickable(enabled = isButtonEnabled) {
+//                    val cleanEmail = email.value.trim()
+//                    if (isCodeSent) {
+//                        if (isVerifying) return@clickable
+//                        isVerifying = true
+//                        viewModel.verifyEmailCode(cleanEmail, code.value.trim())
+//                    } else {
+//                        if (isSending) return@clickable
+//                        isSending = true
+//                        viewModel.sendEmailCode(cleanEmail)
+//                    }
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = if (isCodeSent) "인증하기" else "인증메일 발송",
+//                color = Color.White,
+//                fontSize = 16.sp,
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = Paperlogy
+//            )
+//        }
+//    }
 
 
 //    // Send 결과 토스트
