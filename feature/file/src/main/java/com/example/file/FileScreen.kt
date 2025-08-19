@@ -153,17 +153,15 @@ fun FileScreen(
                 }
             }
 
-            if((folderStateViewModel.currentFolderState == FolderState.BOTTOM)&&(!folderStateViewModel.isSharedFolders)){
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .padding(end = 19.dp, bottom = 8.dp)
-                        .noRippleClickable {
-                            folderStateViewModel.updateShareBottomSheetVisible(true)
-                        }
-                ) {
-                    ShareButton()
-                }
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 19.dp, bottom = 8.dp)
+                    .noRippleClickable {
+                        folderStateViewModel.updateShareBottomSheetVisible(true)
+                    }
+            ) {
+                ShareButton()
             }
         }
 

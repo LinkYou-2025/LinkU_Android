@@ -48,7 +48,7 @@ import com.example.file.ui.content.PencilIcon
 import com.example.file.ui.content.ShareFolderIcon
 import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
 import com.example.file.ui.theme.Gray200

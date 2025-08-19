@@ -24,7 +24,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.FileViewModel
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White

@@ -19,7 +19,7 @@ import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.viewmodel.folder.state.FolderState
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 
 @Composable
 fun TopFolderGrid(

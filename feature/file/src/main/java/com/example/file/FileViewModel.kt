@@ -21,8 +21,8 @@ import com.example.core.repository.UserRepository
 import com.example.data.api.dto.server.*
 import com.example.data.preference.AuthPreference
 import com.example.design.FastSearchItem
-import com.example.file.ui.theme.CategoryColorStyle
-import com.example.file.ui.theme.toCategoryColorStyleMap
+import com.example.design.theme.color.CategoryColorStyle
+import com.example.data.util.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*

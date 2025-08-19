@@ -65,7 +65,7 @@ import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray400
 import com.example.file.ui.theme.Gray600
@@ -88,7 +88,7 @@ fun ShareBottomSheet(
     var selectedBottomFolder by remember { mutableStateOf<FolderSimpleInfo?>(null) }
 
     // 카테고리 내 소분류 폴더들
-    val bottomFolderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
+    val bottomFolderList by fileViewModel.shareBottomSheetSubFolders.collectAsStateWithLifecycle()
 
     // 고른 상태
     var state by remember { mutableStateOf(FolderState.TOP) }

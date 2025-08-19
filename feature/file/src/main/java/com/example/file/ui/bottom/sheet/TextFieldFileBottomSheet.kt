@@ -52,7 +52,7 @@ import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray300
 import com.example.file.ui.theme.Gray400
