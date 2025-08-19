@@ -45,7 +45,7 @@ fun SharedTopFolderGrid(
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 EmptyFolderItemLayout(
-                    categoryName = "${folder.nickname}의 폴더",
+                    folderName = "${folder.nickname}의 폴더",
                 )
             }
         }

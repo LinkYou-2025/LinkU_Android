@@ -65,7 +65,7 @@ import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray400
 import com.example.file.ui.theme.Gray600
@@ -88,7 +88,7 @@ fun ShareBottomSheet(
     var selectedBottomFolder by remember { mutableStateOf<FolderSimpleInfo?>(null) }
 
     // 카테고리 내 소분류 폴더들
-    val bottomFolderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
+    val bottomFolderList by fileViewModel.shareBottomSheetSubFolders.collectAsStateWithLifecycle()
 
     // 고른 상태
     var state by remember { mutableStateOf(FolderState.TOP) }
@@ -275,20 +275,20 @@ fun ShareBottomSheet(
             when(state){
                 FolderState.TOP -> {
                     EmptyFolderItemLayout(
-                        categoryName = "${userName}의 폴더"
+                        folderName = "${userName}의 폴더"
                     )
                 }
                 FolderState.BOTTOM -> {
                     TopFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        categoryName = selectedTopFolder!!.folderName,
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        folderName = selectedTopFolder!!.folderName,
                         isBookmarked = selectedTopFolder!!.isBookmarked,
                         editStateViewModel = dummyVM,
                     ) { }
                 }
                 FolderState.LINKS -> {
                     BottomFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedBottomFolder!!,
                         editStateViewModel = dummyVM,
                     )

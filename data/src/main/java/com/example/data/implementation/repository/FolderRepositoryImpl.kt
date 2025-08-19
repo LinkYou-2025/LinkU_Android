@@ -451,6 +451,7 @@ class FolderRepositoryImpl @Inject constructor(
         Log.d("updateViewerPermission", "updateViewerPermission success")
     }
 
+    // 링크 소분류
     override suspend fun updateLinkFolder(
         linku: LinkItemInfo,
         folderId: Long
