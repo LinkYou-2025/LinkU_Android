@@ -250,11 +250,15 @@ fun EmailVerificationScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .imePadding() // 키보드 대응 유지
-                .padding(start = 20.dp, end = 20.dp, bottom = 64.dp) // 좌우 32, 아래 32
-                .offset(y = -16.dp) // ✅ 위로 16 올림
-                .height(48.dp) // ↔ SignUpJobScreen 과 동일
+                .height(48.dp)
+                .imePadding() // ✅ 키보드 올라오면 자동으로 위로 이동
+                .padding(bottom = 32.dp) // ✅ 버튼과 키보드 사이에 여유 공간
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter)
+//                .imePadding() // 키보드 대응 유지
+//                .padding(start = 20.dp, end = 20.dp, bottom = 64.dp) // 좌우 32, 아래 32
+//                .offset(y = -16.dp) // ✅ 위로 16 올림
+//                .height(48.dp) // ↔ SignUpJobScreen 과 동일
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = when {

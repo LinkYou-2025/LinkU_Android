@@ -287,9 +287,10 @@ fun InterestPurposeScreen(
 
             item {
                 Text(
+                    //color = Color(0xFFE5ACF4),
                     buildAnnotatedString {
                         append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
-                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
+                        withStyle(SpanStyle( fontSize = 12.sp)) {
                             append("(복수 선택 가능)")
                         }
                     },
