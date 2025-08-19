@@ -183,8 +183,13 @@ fun SignUpNicknameScreen(
                     shape = RoundedCornerShape(24.dp)
                 )
                 .clickable(enabled = isButtonEnabled) {
-                    // TODO: 다음 화면으로 이동(프로젝트 라우트에 맞게 교체)
-                    // 예: navigator.navigate("sign_up_profile")
+
+                    // 다음 화면으로 이동 (등록하신 라우트 사용)
+                    navigator.navigate("sign_up_gender") {
+                        // 뒤로가기로 되돌아오게 하고 싶으면 이 옵션들 생략
+                        // 중복 스택 방지하고 싶으면 아래처럼 설정 가능
+                        launchSingleTop = true
+                    }
                 },
             contentAlignment = Alignment.Center
         ) {

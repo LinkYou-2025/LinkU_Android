@@ -27,95 +27,178 @@ import androidx.navigation.compose.rememberNavController
 import com.example.login.R
 import com.example.login.Paperlogy
 
-
 @Composable
 fun SignUpJobScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    // 선택된 직업 인덱스 (1부터 시작)
     var selectedJobIndex by remember { mutableStateOf<Int?>(null) }
-
     val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
+    val isButtonEnabled = selectedJobIndex != null
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(
-                start = 20.dp,
-                end = 20.dp,
-                top = 52.dp,   // ⬆️ 위쪽만 52
-                bottom = 40.dp // ⬇️ 아래는 40 유지
-            ),
+    Box(modifier = Modifier.fillMaxSize()) {
 
+        // 본문 (버튼과 겹치지 않게 하단 여유 48+24)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 52.dp,
+                    bottom = 48.dp + 24.dp
+                ),
+            horizontalAlignment = Alignment.Start
+        ) {
+            ProfileStepIndicator()
+            Spacer(modifier = Modifier.height(32.dp))
 
-
-                //.padding(horizontal = 20.dp, vertical = 40.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        ProfileStepIndicator()
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Text(
-            text = "현재 하고 계신 일이나\n활동을 알려주세요",
-            fontSize = 22.sp,
-            fontFamily = Paperlogy,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            textAlign = TextAlign.Start
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        // 직업 목록 버튼
-        jobs.forEachIndexed { index, job ->
-            JobOptionButton(
-                text = job,
-                isSelected = selectedJobIndex == index,
-                onClick = { selectedJobIndex = index }
+            Text(
+                text = "현재 하고 계신 일이나\n활동을 알려주세요",
+                fontSize = 22.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                textAlign = TextAlign.Start
             )
-            Spacer(modifier = Modifier.height(12.dp))
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            jobs.forEachIndexed { index, job ->
+                JobOptionButton(
+                    text = job,
+                    isSelected = selectedJobIndex == index,
+                    onClick = { selectedJobIndex = index }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        // 다음 버튼
+        // 하단 고정 버튼 (닉네임 화면과 동일)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp)
-                .offset(y = -16.dp) // ✅ 위로 16 올림
+                .align(Alignment.BottomCenter)   // BoxScope.align
+                .imePadding()
+                .navigationBarsPadding()
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
-                        colors = if (selectedJobIndex != null)
+                        colors = if (isButtonEnabled)
                             listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
                         else
                             listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
                     shape = RoundedCornerShape(24.dp)
                 )
-                .clickable(enabled = selectedJobIndex != null) {
-                    // ViewModel에 선택된 직업 index 저장 (1부터 시작)
+                .clickable(enabled = isButtonEnabled) {
                     signUpViewModel.jobId = (selectedJobIndex ?: 0) + 1
-
-                    // 다음 화면으로 이동
-                    navigator.navigate("sign_up_purpose") // 다음 라우트에 맞게 수정
+                    navigator.navigate("sign_up_purpose") { launchSingleTop = true }
                 },
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "다음",
-                fontFamily = Paperlogy,
                 color = Color.White,
                 fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy,
+                textAlign = TextAlign.Center
             )
         }
-        Spacer(modifier = Modifier.height(32.dp))
     }
 }
+//@Composable
+//fun SignUpJobScreen(
+//    navigator: NavHostController,
+//    signUpViewModel: SignUpViewModel = hiltViewModel()
+//) {
+//    // 선택된 직업 인덱스 (1부터 시작)
+//    var selectedJobIndex by remember { mutableStateOf<Int?>(null) }
+//
+//    val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(
+//                start = 20.dp,
+//                end = 20.dp,
+//                top = 52.dp,   // ⬆️ 위쪽만 52
+//                bottom = 40.dp // ⬇️ 아래는 40 유지
+//            ),
+//
+//
+//
+//                //.padding(horizontal = 20.dp, vertical = 40.dp),
+//        horizontalAlignment = Alignment.Start
+//    ) {
+//        ProfileStepIndicator()
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        Text(
+//            text = "현재 하고 계신 일이나\n활동을 알려주세요",
+//            fontSize = 22.sp,
+//            fontFamily = Paperlogy,
+//            fontWeight = FontWeight.Bold,
+//            color = Color.Black,
+//            textAlign = TextAlign.Start
+//        )
+//
+//        Spacer(modifier = Modifier.height(32.dp))
+//
+//        // 직업 목록 버튼
+//        jobs.forEachIndexed { index, job ->
+//            JobOptionButton(
+//                text = job,
+//                isSelected = selectedJobIndex == index,
+//                onClick = { selectedJobIndex = index }
+//            )
+//            Spacer(modifier = Modifier.height(12.dp))
+//        }
+//
+//        Spacer(modifier = Modifier.weight(1f))
+//
+//        // 다음 버튼
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .padding(bottom = 32.dp)
+//                .offset(y = -16.dp) // ✅ 위로 16 올림
+//                .height(48.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = if (selectedJobIndex != null)
+//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        else
+//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                    ),
+//                    shape = RoundedCornerShape(24.dp)
+//                )
+//                .clickable(enabled = selectedJobIndex != null) {
+//                    // ViewModel에 선택된 직업 index 저장 (1부터 시작)
+//                    signUpViewModel.jobId = (selectedJobIndex ?: 0) + 1
+//
+//                    // 다음 화면으로 이동
+//                    navigator.navigate("sign_up_purpose") // 다음 라우트에 맞게 수정
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = "다음",
+//                fontFamily = Paperlogy,
+//                color = Color.White,
+//                fontSize = 16.sp,
+//                fontWeight = FontWeight.Bold
+//            )
+//        }
+//        Spacer(modifier = Modifier.height(32.dp))
+//    }
+//}
 
 @Composable
 fun JobOptionButton(

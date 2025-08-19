@@ -272,7 +272,8 @@ fun InterestPurposeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .background(Color.White),
             contentPadding = PaddingValues(
                 //start = 32.dp, end = 32.dp,
                 start = 0.dp, end = 0.dp,
@@ -290,7 +291,13 @@ fun InterestPurposeScreen(
                     //color = Color(0xFFE5ACF4),
                     buildAnnotatedString {
                         append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
-                        withStyle(SpanStyle( fontSize = 12.sp)) {
+                        withStyle(
+                            SpanStyle(
+                                color = Color(0xFFE5ACF4),   // 연보라색
+                                fontSize = 16.sp,           // 16sp
+                                fontWeight = FontWeight.Medium
+                            )
+                        ) {
                             append("(복수 선택 가능)")
                         }
                     },
