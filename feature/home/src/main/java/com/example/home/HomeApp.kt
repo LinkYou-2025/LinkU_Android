@@ -154,15 +154,20 @@ fun HomeApp(viewModel: HomeViewModel) {
             } else {
                 // 화면 진입 시 상세 로드
                 LaunchedEffect(linkuId) {
-                    viewModel.loadLinkDetail(linkuId)
+                    viewModel.loadLinkDetail(linkuId) // 상세 안에 있으면 이걸로 표시, 없으면 내부에서 AI 호출
                 }
 
                 // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
                 SaveLinkResultScreen(
                     link = viewModel.linkDetail,                     // ✅ LinkResultInfo?
-                    isLoading = viewModel.isLoadingLinkDetail,
+                    aiArticle = viewModel.aiArticleDetail,
+                    isLoading = viewModel.isLoadingLinkDetail || viewModel.isLoadingAiArticle,
                     onBack = { navController.popBackStack() },
-                    onOpenLink = { url -> openUrl(url) }             // ✅ 원본 linku 우선
+                    onOpenLink = { url ->
+                        val fixed = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
+                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed))
+                        context.startActivity(intent)
+                    }
                 )
             }
         }

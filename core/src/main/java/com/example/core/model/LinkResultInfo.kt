@@ -14,6 +14,9 @@ data class LinkResultInfo(
     val title: String,
     val domainImageUrl: String?,
     val linkuImageUrl: String?,
+    val aiArticleExists: Boolean = false,
+    val keyword: String? = "",
+    val summary: String? = "",
     val createdAt: OffsetDateTime,
     val updatedAt: OffsetDateTime
 )
