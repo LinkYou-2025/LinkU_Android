@@ -37,8 +37,8 @@ class FileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
 
-    private val recentRepo: RecentSearchRepository,
-    private val linkuRepo: LinkuRepository,
+    private val recentRepository: RecentSearchRepository,
+    private val linkuRepository: LinkuRepository,
 ) : ViewModel() {
 
     // *닉네임*
@@ -634,8 +634,6 @@ class FileViewModel @Inject constructor(
         }
     }
 
-
-
     // 링크 소분류
     fun updateLinkFolder(link: LinkItemInfo, folderId: Long){
         Log.d("FileViewModel", "updateLinkFolder")
@@ -867,7 +865,7 @@ class FileViewModel @Inject constructor(
             try{
                 Log.d("FileViewModel", "fastSearch try")
 
-                _fastSearchItems.value = linkuRepo.fastSearch(keyword).map{
+                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
                     FastSearchItem(
                         title = it.title,
                         url = it.linkUrl
@@ -887,7 +885,7 @@ class FileViewModel @Inject constructor(
 
     //최근 검색 목록
     val recentQueryList: StateFlow<List<RecentQuery>> =
-        recentRepo.observe(limit = 20)
+        recentRepository.observe(limit = 20)
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
@@ -904,7 +902,7 @@ class FileViewModel @Inject constructor(
             try{
                 Log.d("FileViewModel", "addRecentQuery try")
 
-                recentRepo.add(query)
+                recentRepository.add(query)
             }catch (e: Exception){
                 Log.d("FileViewModel", "addRecentQuery catch: $e.message")
             }finally {
@@ -924,7 +922,7 @@ class FileViewModel @Inject constructor(
             try{
                 Log.d("FileViewModel", "removeRecentQuery try")
 
-                recentRepo.remove(query)
+                recentRepository.remove(query)
 
             }catch (e: Exception){
                 Log.d("FileViewModel", "removeRecentQuery catch: $e.message")
@@ -946,7 +944,7 @@ class FileViewModel @Inject constructor(
             try{
                 Log.d("FileViewModel", "clearRecentQuery try")
 
-                recentRepo.clear()
+                recentRepository.clear()
 
             }catch (e: Exception){
                 Log.d("FileViewModel", "clearRecentQuery catch: $e.message")
