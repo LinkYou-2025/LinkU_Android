@@ -170,9 +170,10 @@ fun InterestContentScreen(
             item {
                 Text(
                     buildAnnotatedString {
+                        //color = Color(0xFFE5ACF4)
                         // ✍️ 사용하신 텍스트 그대로 유지 (“괸심” 포함)
                         append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
-                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
+                        withStyle(SpanStyle( fontSize = 12.sp)) {
                             append("(복수 선택 가능)")
                         }
                     },
