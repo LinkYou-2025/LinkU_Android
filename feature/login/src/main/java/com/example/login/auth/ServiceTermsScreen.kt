@@ -17,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -80,79 +82,175 @@ fun ServiceTermsScreen(
         [부칙] 본 약관은 2025년 08월 22일부터 시행됩니다.
     """.trimIndent()
 
-    // 전체 화면을 Box로 감싸고 상단 앱바, 내용, 버튼을 각각 배치
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // 스크롤 가능한 약관 내용
-        Column(
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "서비스 이용약관",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = Paperlogy
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClicked) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_back),
+                            contentDescription = "뒤로가기",
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            )
+        }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(top = 56.dp, bottom = 100.dp) // 앱바 높이와 버튼 높이에 대한 여백 확보
-                .padding(horizontal = 16.dp)
+                .padding(innerPadding) // ✅ 앱바 높이를 자동 반영
         ) {
+            // 스크롤 본문
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 100.dp) // ✅ 버튼 영역만큼 바텀 여백
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = serviceTermsContent,
+                        fontSize = 14.sp,
+                        lineHeight = 22.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Normal
+                    )
+                }
+            }
+
+            // 하단 고정 버튼 (마케팅/이메일 화면과 동일 규격)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
-                    .padding(16.dp)
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
+                    .padding(start = 16.dp, end = 16.dp, bottom = 50.dp)
+                    .height(50.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = if (isAtBottom)
+                                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                            else
+                                listOf(Color(0xFFE1D6F9), Color(0xFFF3E7FB))
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    .clickable(enabled = isAtBottom, onClick = onAgreeClicked),
+                contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = serviceTermsContent,
-                    fontSize = 14.sp,
-                    lineHeight = 22.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Normal
-                )
-            }
-        }
-
-        // 상단 앱바
-        TopAppBar(
-            title = {
-                Text(
-                    text = "서비스 이용약관",
-                    fontSize = 18.sp,
+                    text = "약관에 동의합니다",
+                    color = if (isAtBottom) Color.White else Color.Gray,
                     fontWeight = FontWeight.Bold,
                     fontFamily = Paperlogy
                 )
-            },
-            navigationIcon = {
-                IconButton(onClick = onBackClicked) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
-                }
-            },
-            modifier = Modifier.align(Alignment.TopStart)
-        )
-
-        // 하단 고정 버튼
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 26.dp)
-                .height(50.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (isAtBottom)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFFE1D6F9), Color(0xFFF3E7FB))
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                .clickable(enabled = isAtBottom, onClick = onAgreeClicked),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "약관에 동의합니다",
-                color = if (isAtBottom) Color.White else Color.Gray,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy
-            )
+            }
         }
     }
 }
+
+//    // 전체 화면을 Box로 감싸고 상단 앱바, 내용, 버튼을 각각 배치
+//    Box(modifier = Modifier.fillMaxSize()) {
+//
+//        // 스크롤 가능한 약관 내용
+//        Column(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .verticalScroll(scrollState)
+//                //.padding(top = 56.dp, bottom = 100.dp) // 앱바 높이와 버튼 높이에 대한 여백 확보
+//                .windowInsetsPadding(WindowInsets.statusBars)
+//                .padding(top = 56.dp, bottom = 100.dp)
+//                .padding(horizontal = 16.dp)
+//        ) {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    //.border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
+//                    .padding(16.dp)
+//            ) {
+//                Text(
+//                    text = serviceTermsContent,
+//                    fontSize = 14.sp,
+//                    lineHeight = 22.sp,
+//                    fontFamily = Paperlogy,
+//                    fontWeight = FontWeight.Normal
+//                )
+//            }
+//        }
+//
+//        // 상단 앱바
+//        CenterAlignedTopAppBar(
+//            title = {
+//                Text(
+//                    text = "서비스 이용약관",
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Medium,
+//                    fontFamily = Paperlogy
+//                )
+//            },
+////            navigationIcon = {
+////                IconButton(onClick = onBackClicked) {
+////                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+////                }
+////            },
+//            navigationIcon = {
+//                IconButton(onClick = onBackClicked) {
+//                    Icon(
+//                        painter = painterResource(id = R.drawable.ic_back), // ⬅️ 커스텀 아이콘
+//                        contentDescription = "뒤로가기",
+//                        modifier = Modifier.size(16.dp) // ⬅️ Material 기본 ArrowBack 과 동일 사이즈
+//                    )
+//                }
+//            },
+//            modifier = Modifier
+//                .align(Alignment.TopStart)
+//                .statusBarsPadding()
+//        )
+//
+//        // 하단 고정 버튼
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .align(Alignment.BottomCenter)
+//                .padding(start = 16.dp, end = 16.dp, bottom = 50.dp)
+//                //.padding(horizontal = 16.dp, vertical = 26.dp)
+//                .height(50.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = if (isAtBottom)
+//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        else
+//                            listOf(Color(0xFFE1D6F9), Color(0xFFF3E7FB))
+//                    ),
+//                    shape = RoundedCornerShape(12.dp)
+//                )
+//                .clickable(enabled = isAtBottom, onClick = onAgreeClicked),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = "약관에 동의합니다",
+//                color = if (isAtBottom) Color.White else Color.Gray,
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = Paperlogy
+//            )
+//        }
+//    }
+//}
 
 
 @Preview(showBackground = true)

@@ -54,7 +54,7 @@ fun PrivacyTermsScreenFixed(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
+                    //.border(1.dp, Color(0xFF3399FF), RoundedCornerShape(8.dp))
                     .padding(16.dp)
             ) {
                 Column {
@@ -80,7 +80,7 @@ fun PrivacyTermsScreenFixed(
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Image(
-                        painter = painterResource(id = R.drawable.privacy_table),
+                        painter = painterResource(id = R.drawable.img_personal_table),
                         contentDescription = "개인정보 수집 항목 표",
                         contentScale = ContentScale.FillWidth,
                         modifier = Modifier
@@ -121,18 +121,22 @@ fun PrivacyTermsScreenFixed(
         }
 
         // 상단 앱바 고정
-        TopAppBar(
+        CenterAlignedTopAppBar(
             title = {
                 Text(
                     text = "개인정보 처리방침",
                     fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp
                 )
             },
             navigationIcon = {
                 IconButton(onClick = onBackClicked) {
-                    Icon(Icons.Default.ArrowBack, contentDescription = "뒤로가기")
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_back), // ⬅️ 커스텀 아이콘
+                        contentDescription = "뒤로가기",
+                        modifier = Modifier.size(16.dp) // ⬅️ Material 기본 ArrowBack 과 동일 사이즈
+                    )
                 }
             },
             modifier = Modifier.align(Alignment.TopStart)
@@ -143,7 +147,8 @@ fun PrivacyTermsScreenFixed(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = 16.dp, vertical = 26.dp)
+                .padding(start = 16.dp, end = 16.dp, bottom = 50.dp)
+                //.padding(horizontal = 16.dp, vertical = 26.dp)
                 .height(50.dp)
                 .background(
                     brush = Brush.horizontalGradient(

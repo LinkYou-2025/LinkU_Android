@@ -46,22 +46,29 @@ fun EmailLoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isLoginRequested by remember { mutableStateOf(false) }
-    val loginResult by loginViewModel.loginState.collectAsState()
+    //val loginResult by loginViewModel.loginState.collectAsState()
     val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
 
+    // ViewModel 상태 수집
+    val ui by loginViewModel.loginState.collectAsState()
+    val isLoading = ui.loading
+    val loginResult = ui.result
+
+    // 고정 에러 문구 매핑 (비번 필드 아래 표시)
+    val passwordErrorText: String? = when (ui.errorTag) {
+        "INVALID_CREDENTIALS" -> "이메일 주소 또는 비밀번호를 다시 확인하세요."
+        "SERVER_ERROR"        -> "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
+        else                  -> null
+    }
+
+    //  로그인 성공 시 이동 (Repo가 토큰 저장했고 여기선 이동만)
     LaunchedEffect(loginResult) {
-        val result = loginResult
-        if (result?.userId != null && result.userId != -1) {
-            //  성공
-            isLoginRequested = false
+        if (loginResult != null && loginResult.userId != -1) {
             navigator.navigate("home") {
                 popUpTo(navigator.graph.findStartDestination().id) { inclusive = true }
                 launchSingleTop = true
             }
-        } else {
-            // 실패 or null → 다시 시도 가능하게 해제
-            if (isLoginRequested) isLoginRequested = false
         }
     }
 //    LaunchedEffect(loginResult?.userId, isLoginRequested) {
@@ -243,27 +250,37 @@ fun EmailLoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            passwordErrorText?.let { err ->
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = err,
+                    color = Color(0xFFFF5E5E),
+                    fontSize = 13.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.offset(x = 4.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
             //로그인 버튼
+            val canLogin = !isLoading && isFormValid
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
                     .background(
                         brush = Brush.horizontalGradient(
-                            colors = if (isFormValid)
+                            colors = if (canLogin)
                                 listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
                             else
                                 listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         ),
                         shape = RoundedCornerShape(24.dp)
                     )
-                    .clickable(enabled = isFormValid && !isLoginRequested) {
-                        if (!isLoginRequested) {
-                            isLoginRequested = true
-                            loginViewModel.login(email.trim(), password.trim())
-                        }
+                    .clickable(enabled = canLogin) {
+                        loginViewModel.login(email.trim(), password.trim())
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -276,7 +293,7 @@ fun EmailLoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 비밀번호 재설정 | 회원가입
             Row(

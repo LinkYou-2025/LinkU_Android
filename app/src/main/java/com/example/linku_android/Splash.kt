@@ -71,7 +71,7 @@ fun Splash(onFinish: () -> Unit) {
         if (!isGlowPhase) {
             // 기본 로고
             Image(
-                painter = painterResource(id = R.drawable.logo_white),
+                painter = painterResource(id = R.drawable.img_logo_white),
                 contentDescription = "Splash Logo",
                 modifier = Modifier
                     .size(160.dp)
@@ -82,7 +82,7 @@ fun Splash(onFinish: () -> Unit) {
         } else {
             // Glow 로고 (더 크게!)
             Image(
-                painter = painterResource(id = R.drawable.logo_white_glow),
+                painter = painterResource(id = R.drawable.img_logo_glow),
                 contentDescription = "Splash Logo Glow",
                 modifier = Modifier
                     .size(256.dp)

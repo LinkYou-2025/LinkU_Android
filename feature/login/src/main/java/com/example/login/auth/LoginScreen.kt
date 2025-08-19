@@ -64,31 +64,52 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center
         ) {
             // 로고
-            Image(
-                painter = painterResource(R.drawable.logo_white),
-                contentDescription = "Logo",
-                modifier = Modifier
-                    .offset(y = logoOffsetY.dp)
-                    .size(160.dp),
-                contentScale = ContentScale.Fit
-            )
-
+            // 로고
+            if (isPreview) {
+                // 프리뷰에서만: 이미지 대신 플레이스홀더로 레이아웃 유지
+                Box(
+                    modifier = Modifier
+                        .offset(y = logoOffsetY.dp)
+                        .size(160.dp)
+                )
+            } else {
+                Image(
+                    painter = painterResource(R.drawable.img_logo_white),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        .offset(y = logoOffsetY.dp)
+                        .size(160.dp),
+                    contentScale = ContentScale.Fit
+                )
+            }
             Spacer(modifier = Modifier.height(40.dp))
 
             // 이메일 로그인 버튼
             Button(
-                onClick = {
-                    navigator.navigate("email_login")
-                },
+                onClick = { navigator.navigate("email_login") },
                 colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
                 shape = RoundedCornerShape(50),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(50.dp),
+                contentPadding = PaddingValues(horizontal = 20.dp) // 좌우 여백
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_email_png),
+                        contentDescription = "이메일 로그인",
+                        modifier = Modifier.size(20.dp),
+                        contentScale = ContentScale.Fit
+                        // 만약 흰색 단색 아이콘이 아니라면 아래 Tint는 빼세요
+                        // colorFilter = ColorFilter.tint(Color.White)
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        " ✉ 이메일로 로그인",
+                        text = "이메일로 로그인",
                         fontSize = 16.sp,
                         color = Color.White,
                         fontFamily = Paperlogy,
@@ -97,7 +118,8 @@ fun LoginScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+
+                Spacer(modifier = Modifier.height(16.dp))
 
             // 비밀번호 재설정 | 회원가입
             Row(
@@ -127,7 +149,7 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             // 간편 로그인 안내
             Row(
@@ -155,7 +177,7 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 카카오 / 네이버 로그인 버튼
             Row(
@@ -163,38 +185,29 @@ fun LoginScreen(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
+                // 카카오
+                Image(
+                    painter = painterResource(R.drawable.ic_kakao),
+                    contentDescription = "Kakao",
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Yellow, CircleShape)
-                        .clickable { },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_kakao),
-                        contentDescription = "Kakao",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(100.dp)
-                    )
-                }
+                        .size(46.dp)   // 아이콘 크기 줄임
+                        .clickable { }
+                )
 
                 Spacer(modifier = Modifier.width(24.dp))
 
-                Box(
+                // 네이버
+                Image(
+                    painter = painterResource(R.drawable.ic_naver),
+                    contentDescription = "Naver",
+                    contentScale = ContentScale.Fit,
                     modifier = Modifier
-                        .size(50.dp)
-                        .background(Color.Green, CircleShape)
-                        .clickable { },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_naver),
-                        contentDescription = "Naver",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(100.dp)
-                    )
-                }
+                        .size(46.dp)   // 아이콘 크기 줄임
+                        .clickable { }
+                )
             }
+
         }
     }
 }
