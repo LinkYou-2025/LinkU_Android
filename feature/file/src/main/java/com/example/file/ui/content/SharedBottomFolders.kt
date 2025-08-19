@@ -68,7 +68,7 @@ fun SharedBottomFolderGrid(
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 EmptyFolderItemLayout(
-                    categoryName = folder.folderName,
+                    folderName = folder.folderName,
                 )
             }
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,7 @@ fun FolderItemLayout(
     leftIcon: @Composable () -> Unit,
     rightIcon: @Composable () -> Unit,
     textBackgroundColor: Color,
-    categoryName: String = "",
+    folderName: String = "",
 ) {
 
     @Composable
@@ -166,7 +167,7 @@ fun FolderItemLayout(
                     rightIcon()
                 }
 
-                if(categoryName.isNotEmpty()){
+                if(folderName.isNotEmpty()){
                     Row(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
@@ -182,7 +183,7 @@ fun FolderItemLayout(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = categoryName.first().toString(),
+                                text = folderName.first().toString(),
                                 fontSize = 15.sp,
                                 fontFamily = DefaultFont,
                                 fontWeight = FontWeight.Bold,
@@ -191,11 +192,13 @@ fun FolderItemLayout(
                         }
 
                         Text(
-                            text = categoryName,
+                            text = folderName,
                             fontSize = 15.sp,
                             fontFamily = DefaultFont,
                             fontWeight = FontWeight.Medium,
                             color = Black,
+                            maxLines = 1, // 최대 1줄
+                            overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
                         )
                     }
                 }
@@ -213,7 +216,7 @@ val topFolderMaskBrush = Brush.verticalGradient(
 
 @Composable
 fun EmptyFolderItemLayout(
-    categoryName: String = ""
+    folderName: String = ""
 ){
     FolderItemLayout(
         backgroundColor = Gray200,
@@ -224,23 +227,23 @@ fun EmptyFolderItemLayout(
         leftIcon = {},
         rightIcon = {},
         textBackgroundColor = Gray500,
-        categoryName = categoryName
+        folderName = folderName
     )
 }
 
 @Composable
 fun TopFolderItemLayout(
-    categoryColorStyle: CategoryColorStyle,
-    categoryName: String = "",
+    colorStyle: CategoryColorStyle,
+    folderName: String = "",
     isBookmarked: Boolean = false,
     editStateViewModel: EditStateViewModel,
     onBookmark: () -> Unit
 ){
     FolderItemLayout(
         backgroundColor = Gray200,
-        color1 = categoryColorStyle.color3,
-        color2 = categoryColorStyle.color2,
-        color3 = categoryColorStyle.color1,
+        color1 = colorStyle.color3,
+        color2 = colorStyle.color2,
+        color3 = colorStyle.color1,
         folderMaskBrush = topFolderMaskBrush,
         leftIcon = {},
         rightIcon = {
@@ -248,7 +251,7 @@ fun TopFolderItemLayout(
                 Box(
                     modifier = Modifier
                 ) {
-                    PencilIcon(categoryColorStyle.color2)
+                    PencilIcon(colorStyle.color2)
                 }
             }else {
                 Box(
@@ -261,25 +264,25 @@ fun TopFolderItemLayout(
                 }
             }
         },
-        textBackgroundColor = categoryColorStyle.color4,
-        categoryName = categoryName
+        textBackgroundColor = colorStyle.color4,
+        folderName = folderName
     )
 }
 
 @Composable
 fun BottomFolderItemLayout(
-    categoryColorStyle: CategoryColorStyle,
+    colorStyle: CategoryColorStyle,
     folder: FolderSimpleInfo,
     editStateViewModel: EditStateViewModel,
     onEdit: ()-> Unit = {},
     onChangeSharing: () -> Unit = {}
 ){
     FolderItemLayout(
-        backgroundColor = categoryColorStyle.color1,
-        color1 = categoryColorStyle.color2,
-        color2 = categoryColorStyle.color1,
+        backgroundColor = colorStyle.color1,
+        color1 = colorStyle.color2,
+        color2 = colorStyle.color1,
         color3 = White,
-        folderMaskBrush = categoryColorStyle.verticalGradient(),
+        folderMaskBrush = colorStyle.verticalGradient(),
         leftIcon = {
             Box(
                 modifier = Modifier.noRippleClickable{
@@ -290,9 +293,9 @@ fun BottomFolderItemLayout(
             ){
                 folder.isSharing?.let{ sharing ->
                     if(sharing=="share"){
-                        ShareFolderIcon(categoryColorStyle.color1)
+                        ShareFolderIcon(colorStyle.color1)
                     } else {
-                        LockFolderIcon(categoryColorStyle.color1)
+                        LockFolderIcon(colorStyle.color1)
                     }
                 }
             }
@@ -306,12 +309,12 @@ fun BottomFolderItemLayout(
                         }
                     }
                 ) {
-                    PencilIcon(categoryColorStyle.color2)
+                    PencilIcon(colorStyle.color2)
                 }
             }
         },
-        textBackgroundColor = categoryColorStyle.color4,
-        categoryName = folder.folderName
+        textBackgroundColor = colorStyle.color4,
+        folderName = folder.folderName
     )
 }
 
@@ -321,8 +324,8 @@ fun FolderItemTest() {
     Column{
         EmptyFolderItemLayout()
         TopFolderItemLayout(
-            categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
-            categoryName = "기본",
+            colorStyle = CategoryColorStyle.categoryStyleList[0],
+            folderName = "기본",
             editStateViewModel = viewModel()
         ){}
         BottomFolderItemLayout(
@@ -333,7 +336,7 @@ fun FolderItemTest() {
                 isBookmarked = false,
                 isSharing = "share"
             ),
-            categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
+            colorStyle = CategoryColorStyle.categoryStyleList[0],
             editStateViewModel = viewModel()
         )
     }

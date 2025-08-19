@@ -275,20 +275,20 @@ fun ShareBottomSheet(
             when(state){
                 FolderState.TOP -> {
                     EmptyFolderItemLayout(
-                        categoryName = "${userName}의 폴더"
+                        folderName = "${userName}의 폴더"
                     )
                 }
                 FolderState.BOTTOM -> {
                     TopFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        categoryName = selectedTopFolder!!.folderName,
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        folderName = selectedTopFolder!!.folderName,
                         isBookmarked = selectedTopFolder!!.isBookmarked,
                         editStateViewModel = dummyVM,
                     ) { }
                 }
                 FolderState.LINKS -> {
                     BottomFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedBottomFolder!!,
                         editStateViewModel = dummyVM,
                     )

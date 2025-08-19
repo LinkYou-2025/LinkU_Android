@@ -129,7 +129,7 @@ fun BottomFolderGrid(
                     val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]
 
                     BottomFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = folder,
                         editStateViewModel = editStateViewModel,
                         onEdit = {

@@ -24,8 +24,10 @@ import com.example.design.FastSearchItem
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -416,48 +418,68 @@ class FileViewModel @Inject constructor(
     // ---------- fetch method ----------
 
     // ---------- create method ----------
+    // 소분류 생성
     fun createSubfolder(
         parentFolderId: Long,
         folderName: String
-    ){
-        Log.d("FileViewModel", "createSubfolder")
+    ) = viewModelScope.async {
+        Log.d("FileViewModel", "createSubfolderAsync start")
 
-        viewModelScope.launch {
-            Log.d("FileViewModel", "createSubfolder launch")
+        startLoading()
+        _errorMessage.value = null
 
-            startLoading()
-            _errorMessage.value = null
+        try {
+            val normalized = folderName.trim()
+            require(normalized.isNotEmpty()) { "폴더 이름은 비어 있을 수 없습니다." }
 
-            try {
-                Log.d("FileViewModel", "createSubfolder try")
-
-                val newFolder = folderRepository.createSubfolder(parentFolderId, folderName).run{
-                    FolderSimpleInfo(
-                        folderId = this.folderId,
-                        folderName = this.folderName,
-                        parentFolderId = this.parentFolderId,
-                        isBookmarked = false
-                    )
-                }
-
-                _subFolders.value = _subFolders.value.toMutableList().apply {
-                    add(newFolder)
-                }
-
-                Log.d("FileViewModel", "createSubfolder try result: $newFolder")
-
-            } catch (e: Exception) {
-                Log.d("FileViewModel", "createSubfolder catch: $e.message")
-
-                _errorMessage.value = e.message
-
-            } finally {
-                Log.d("FileViewModel", "createSubfolder finally")
-
-                stopLoading()
+            // 1) 로컬 선제 중복 체크 (같은 부모 폴더 내에서만 비교)
+            val snapshot = _subFolders.value
+            if (snapshot.any {
+                    it.parentFolderId == parentFolderId &&
+                            it.folderName.equals(normalized, ignoreCase = true)
+                }) {
+                throw SameNameException()
             }
+
+            // 2) 서버 생성 (여기서 409 가능)
+            val created = folderRepository.createSubfolder(parentFolderId, normalized)
+
+            // 3) 로컬 상태 반영 (원자적 업데이트)
+            val newFolder = FolderSimpleInfo(
+                folderId = created.folderId,
+                folderName = created.folderName,
+                parentFolderId = created.parentFolderId,
+                isBookmarked = false
+            )
+
+            _subFolders.update { list -> list + newFolder }
+
+            Log.d("FileViewModel", "createSubfolderAsync success: $newFolder")
+
+            // Unit 반환 → await() 성공 시 아무 것도 안 던짐
+        } catch (e: SameNameException) {
+            Log.d("FileViewModel", "createSubfolderAsync SameName: ${e.message}")
+            // ✅ 로컬 중복은 호출자가 처리하게 전파
+            throw e
+
+        } catch (e: HttpException) {
+            Log.d("FileViewModel", "createSubfolderAsync HttpException: code=${e.code()} msg=${e.message()}")
+            if (e.code() == 409) {
+                // ✅ 409만 상위로 전파 → 호출자가 await()에서 잡음
+                throw e
+            } else {
+                // 그 외 HTTP 에러는 내부 처리
+                _errorMessage.value = e.message()
+            }
+
+        } catch (e: Exception) {
+            Log.d("FileViewModel", "createSubfolderAsync Exception: ${e.message}")
+            _errorMessage.value = e.message
+
+        } finally {
+            stopLoading()
+            Log.d("FileViewModel", "createSubfolderAsync finally")
         }
-        Log.d("FileViewModel", "createSubfolder return")
     }
     // ---------- create method ----------
 
@@ -561,51 +583,57 @@ class FileViewModel @Inject constructor(
     }
 
     // 소분류 폴더 이름 수정
-    fun updateSubfolder(folderId: Long, folderName: String) {
-        Log.d("FileViewModel", "updateSubfolder")
+    fun updateSubfolder(folderId: Long, folderName: String) = viewModelScope.async {
+        Log.d("FileViewModel", "updateSubfolderAsync start")
+        startLoading()
+        _errorMessage.value = null
 
-        viewModelScope.launch {
-            Log.d("FileViewModel", "updateSubfolder launch")
+        try {
+            val normalized = folderName.trim()
+            require(normalized.isNotEmpty()) { "폴더 이름은 비어 있을 수 없습니다." }
 
-            startLoading()
-            _errorMessage.value = null
+            // 1) 로컬 선제 체크 (UX 개선용)
+            val snapshot = _subFolders.value
+            if (snapshot.any { it.folderId != folderId && it.folderName.equals(normalized, ignoreCase = true) }) {
+                throw SameNameException()
+            }
 
-            try {
-                Log.d("FileViewModel", "updateSubfolder try")
+            // 2) 서버 변경 (여기서 409 가능)
+            folderRepository.updateSubfolder(folderId, normalized)
 
-                val normalized = folderName.trim()
-                require(normalized.isNotEmpty()) { "폴더 이름은 비어 있을 수 없습니다." }
-
-                val snapshot = _subFolders.value
-                if (snapshot.any { it.folderId != folderId && it.folderName.equals(normalized, ignoreCase = true) }) {
+            // 3) 로컬 상태 반영 + 마지막 방어선
+            _subFolders.update { list ->
+                if (list.any { it.folderId != folderId && it.folderName.equals(normalized, ignoreCase = true) }) {
                     throw SameNameException()
                 }
-
-                folderRepository.updateSubfolder(folderId, normalized)
-                Log.d("FileViewModel", "updateSubfolder try result")
-
-                _subFolders.update { list ->
-                    if (list.any { it.folderId != folderId && it.folderName.equals(normalized, ignoreCase = true) }) {
-                        throw SameNameException()
-                    }
-                    list.map { folder ->
-                        if (folder.folderId == folderId) folder.copy(folderName = normalized) else folder
-                    }
-                }
-            } catch (e:SameNameException){
-                Log.d("FileViewModel", "updateSubfolder catch: ${e.message}")
-
-                throw e
-            } catch (e: Exception) {
-                Log.d("FileViewModel", "updateSubfolder catch: ${e.message}")
-                _errorMessage.value = e.message
-            } finally {
-                Log.d("FileViewModel", "updateSubfolder finally")
-                stopLoading()
+                list.map { f -> if (f.folderId == folderId) f.copy(folderName = normalized) else f }
             }
+
+            Log.d("FileViewModel", "updateSubfolderAsync success")
+            // 반환값이 없다면 Unit로 끝 (await() 성공)
+        } catch (e: SameNameException) {
+            Log.d("FileViewModel", "updateSubfolderAsync SameNameException: ${e.message}")
+            // ✅ 비즈니스 예외는 상위에서 처리하도록 그대로 전파
+            throw e
+        } catch (e: retrofit2.HttpException) {
+            Log.d("FileViewModel", "updateSubfolderAsync HttpException: code=${e.code()} msg=${e.message()}")
+            if (e.code() == 409) {
+                // ✅ 409만 상위로 전파 (호출자가 await()에서 catch)
+                throw SameNameException()
+            } else {
+                // 그 외 HTTP 에러는 내부에서 메시지 처리 (전파하지 않음)
+                _errorMessage.value = e.message()
+            }
+        } catch (e: Exception) {
+            Log.d("FileViewModel", "updateSubfolderAsync Exception: ${e.message}")
+            _errorMessage.value = e.message
+            // 필요하면 전파하지 않고 내부 처리로 끝냄
+        } finally {
+            stopLoading()
+            Log.d("FileViewModel", "updateSubfolderAsync finally")
         }
-        Log.d("FileViewModel", "updateSubfolder return")
     }
+
 
 
     // 링크 소분류
