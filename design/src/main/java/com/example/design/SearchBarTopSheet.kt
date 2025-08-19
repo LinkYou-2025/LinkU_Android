@@ -92,6 +92,7 @@ fun SearchBarTopSheet(
     onQuerySave: (String) -> Unit,
     onQueryDelete: (String) -> Unit,
     onQueryClear: () -> Unit,
+//    onLinkClick: () -> Unit,
     fastSearchItems: List<FastSearchItem> = emptyList(),
     recentQuerys: List<String> = emptyList(),
 ) {

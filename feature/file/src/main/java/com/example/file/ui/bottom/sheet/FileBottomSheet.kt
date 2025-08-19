@@ -111,7 +111,7 @@ fun FileBottomSheet(
                         .background(
                             brush = MainColor,
                             alpha = if (isReady) 1f else 0.5f
-                )
+                        )
                         .noRippleClickable {
                             if (isReady){
                                 onOkay()
