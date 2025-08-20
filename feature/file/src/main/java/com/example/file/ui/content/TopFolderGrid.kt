@@ -2,6 +2,8 @@ package com.example.file.ui.content
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,7 +40,7 @@ fun TopFolderGrid(
         for ((i, folder) in folderList.withIndex()) {
             val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folder.folderName]
 
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .noRippleClickable {
@@ -51,9 +53,11 @@ fun TopFolderGrid(
                             folderStateViewModel.updateFolderState(FolderState.BOTTOM)
                         }
                     },
-                contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
+                horizontalArrangement = if(i%2==0) Arrangement.Start else Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ){
                 TopFolderItemLayout(
+                    modifier = Modifier.fillMaxSize(164f/174f),
                     colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                     folderName = folder.folderName,
                     isBookmarked = folder.isBookmarked,
