@@ -447,18 +447,53 @@ fun MainApp(
                 }
 
                 composable("email_login") {
-                    //EmailLoginScreen(navigator = navigator)
+                    LaunchedEffect(Unit) { showNavBar = false }
+
+                    // ✅ 로그인 상태 관찰
+                    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+
+                    // ✅ 로그인 성공 시 즉시 재로드
+                    LaunchedEffect(loginState) {
+                        val loggedIn = (loginState.result != null) &&
+                                (loginState.errorTag == null) &&
+                                !loginState.loading
+                        if (loggedIn) {
+                            // 큐레이션 재시도 가능하게 잠금 해제 후 로드
+                            curationViewModel.invalidate()
+                            curationViewModel.loadMonthlyCuration()
+
+                            homeViewModel.refreshAfterLogin()
+                            // (최소 변경 원하시면: homeViewModel.loadUserBasics(); homeViewModel.loadRecentLinks())
+
+                            // 필요하면 Home/File 등 다른 화면도 같은 패턴으로 리프레시 트리거
+
+                            // 그리고 홈으로 이동
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
                     EmailLoginScreen(
                         loginViewModel = loginViewModel,
                         navigator = navigator,
-//                        onLoginSuccess = {
-//                            //  네비게이션 로직은 app 모듈에서만 관리
-//                            navigator.navigate(NavigationRoute.Home.route) {
-//                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-//                            }
-//                        }
                     )
                 }
+
+//                composable("email_login") {
+//                    //EmailLoginScreen(navigator = navigator)
+//                    EmailLoginScreen(
+//                        loginViewModel = loginViewModel,
+//                        navigator = navigator,
+////                        onLoginSuccess = {
+////                            //  네비게이션 로직은 app 모듈에서만 관리
+////                            navigator.navigate(NavigationRoute.Home.route) {
+////                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+////                            }
+////                        }
+//                    )
+//                }
 
                 //이메일 로그인 -> 회원가입
 //                composable("terms_agreement") {
