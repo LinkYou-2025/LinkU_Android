@@ -162,6 +162,7 @@ fun HomeApp(viewModel: HomeViewModel) {
                     link = viewModel.linkDetail,                     // ✅ LinkResultInfo?
                     aiArticle = viewModel.aiArticleDetail,
                     isLoading = viewModel.isLoadingLinkDetail || viewModel.isLoadingAiArticle,
+                    isAiLoading = viewModel.isLoadingAiArticle,
                     onBack = { navController.popBackStack() },
                     onOpenLink = { url ->
                         val fixed = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
