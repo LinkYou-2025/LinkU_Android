@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 
 @Composable
@@ -41,21 +42,21 @@ fun ServiceQuitModal(
     ) {
         Text(
             text = "탈퇴하시겠습니까?",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.black,
             modifier = Modifier.padding(top = 45.dp)
         )
 
         Text(
             text = "회원 탈퇴시 모든 데이터가 삭제되며",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600],
             modifier = Modifier.padding(top = 35.dp)
         )
 
         Text(
             text = "이후 복구가 불가능하니 신중히 결정해주세요.",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600]
         )
 
@@ -78,7 +79,8 @@ fun ServiceQuitModal(
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        brush = Basic.maincolor  // ✅ 그라데이션 Brush 사용
+                        brush = Basic.maincolor,  // 그라데이션 Brush 사용
+                        fontFamily = LocalFontTheme.current.font
                     ),
                     modifier = Modifier
                         .graphicsLayer(alpha = 0.99f) // brush 적용 시 필수
@@ -98,7 +100,7 @@ fun ServiceQuitModal(
             ) {
                 Text(
                     text = "탈퇴하기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }

@@ -37,6 +37,7 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.mypage.R
 import com.example.mypage.component.ServiceQuitModal
@@ -46,7 +47,7 @@ fun ServiceQuitScreen(
     navController: NavController,
     onRequestQuit: (reason: String) -> Unit
 ) {
-    var username by remember { mutableStateOf("세나") }
+    var username by remember { mutableStateOf("세나") }  // TODO: 추후 수정
 
     var reasonText by remember { mutableStateOf("") }
 
@@ -74,7 +75,7 @@ fun ServiceQuitScreen(
 
                 Text(
                     text = "회원 탈퇴",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.black
                 )
             }
@@ -83,7 +84,7 @@ fun ServiceQuitScreen(
 
             Text(
                 text = "${username}님, 서비스를 탈퇴하시겠어요?",
-                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.black,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
@@ -92,7 +93,7 @@ fun ServiceQuitScreen(
 
             Text(
                 text = "그동안 링큐 서비스를 이용해주셔서 진심으로 감사해요.",
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.black,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
@@ -112,7 +113,7 @@ fun ServiceQuitScreen(
 
                     append("해요.")
                 },
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.gray[800],
                 lineHeight = 22.sp,
                 modifier = Modifier.padding(horizontal = 24.dp)
@@ -122,7 +123,7 @@ fun ServiceQuitScreen(
 
             Text(
                 text = "조금 더 고민해보고 싶으시다면, 언제든지 돌아오셔도 괜찮아요.",
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.gray[800],
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
@@ -131,7 +132,7 @@ fun ServiceQuitScreen(
 
             Text(
                 text = "정말로 서비스를 탈퇴하시겠어요?",
-                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.black,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
@@ -140,7 +141,7 @@ fun ServiceQuitScreen(
 
             Text(
                 text = "떠나시는 이유를 자유롭게 작성해주세요.",
-                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
+                style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.black,
                 modifier = Modifier.padding(horizontal = 24.dp)
             )
@@ -160,7 +161,8 @@ fun ServiceQuitScreen(
                         text = "회원님의 소중한 피드백을 통해\n링큐는 더 나은 서비스를 제공해드릴 수 있어요.",
                         color = LocalColorTheme.current.gray[400],
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Light
+                        fontWeight = FontWeight.Light,
+                        fontFamily = LocalFontTheme.current.font
                     )
                 }
 
@@ -170,7 +172,8 @@ fun ServiceQuitScreen(
                     textStyle = TextStyle(
                         color = LocalColorTheme.current.black,
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Light
+                        fontWeight = FontWeight.Light,
+                        fontFamily = LocalFontTheme.current.font
                     )
                 )
             }
@@ -187,12 +190,12 @@ fun ServiceQuitScreen(
                     .height(50.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(brush = Basic.maincolor)
-                    .clickable { showDialog = true }, // ✅ 클릭 시 모달 표시
+                    .clickable { showDialog = true }, // 클릭 시 모달 표시
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "탈퇴하기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }
