@@ -222,8 +222,7 @@ fun LinkItemLayout(
                 Box(
                     modifier = Modifier
                         .size(26.dp)
-                        .clip(CircleShape)
-                        .background(color = Gray200),
+                        .clip(CircleShape),
                     contentAlignment = Alignment.Center
                 ){
                     // 도메인 아이콘
