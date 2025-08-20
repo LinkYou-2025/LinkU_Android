@@ -478,28 +478,28 @@ fun MainApp(
 //                        onBack = { navigator.popBackStack() }
 //                    )
 //                }
-//                with(NavigationRoute.MyPage) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) {
-//                            showNavBar = true
-//                            currentNavigationItem = NavigationItem.MY_PAGE
-//                        }
-//                        FinishHandler()
-//
-//                        val mypageViewModel: MyPageViewModel = hiltViewModel()
-//                        MyPageApp(
-//                            viewModel = mypageViewModel,
-//                            onLogoutToLogin = {
-//                                // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
-//                                // 전역 스택을 지우고 로그인 루트로 이동
-//                                navigator.navigate(NavigationRoute.Login.route) {
-//                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
-//                                    launchSingleTop = true
-//                                }
-//                            }
-//                        )
-//                    }
-//                }
+                with(NavigationRoute.MyPage) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) {
+                            showNavBar = true
+                            currentNavigationItem = NavigationItem.MY_PAGE
+                        }
+                        FinishHandler()
+
+                        val mypageViewModel: MyPageViewModel = hiltViewModel()
+                        MyPageApp(
+                            viewModel = mypageViewModel,
+                            onLogoutToLogin = {
+                                // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
+                                // 전역 스택을 지우고 로그인 루트로 이동
+                                navigator.navigate(NavigationRoute.Login.route) {
+                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    }
+                }
 
                 composable("savelink") {
                     val context = LocalContext.current
