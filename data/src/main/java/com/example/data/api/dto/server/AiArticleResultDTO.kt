@@ -38,15 +38,15 @@ data class AiArticleResultDTO(
     val categoryName: String,
 
     @Json(name = "summary")
-    val summary: String,
+    val summary: String?,
 
     @Json(name = "imgUrl")
-    val imgUrl: String,
+    val imgUrl: String?,
 
     @Json(name = "memo")
-    val memo: String,
+    val memo: String?,
 
     @Json(name = "keyword")
-    val keyword: String
+    val keyword: String?
 
 )
