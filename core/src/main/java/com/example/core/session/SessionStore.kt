@@ -78,4 +78,31 @@ class SessionStore @Inject constructor(
             p.remove(Keys.USER_MY_AI_LINKU)
         }
     }
+
+    data class SessionSnapshot(
+        val loggedIn: Boolean,
+        val nickname: String?,
+        val email: String?,
+        val gender: String?,
+        val jobId: Long?,
+        val jobName: String?,
+        val myLinku: Long?,
+        val myFolder: Long?,
+        val myAiLinku: Long?,
+    )
+
+    val session: Flow<SessionSnapshot> =
+        context.dataStore.data.map { p ->
+            SessionSnapshot(
+                loggedIn   = p[Keys.LOGGED_IN] ?: false,
+                nickname   = p[Keys.USER_NICK],
+                email      = p[Keys.USER_EMAIL],
+                gender     = p[Keys.USER_GENDER],
+                jobId      = p[Keys.USER_JOB_ID]?.toLongOrNull(),
+                jobName    = p[Keys.USER_JOB_NAME],
+                myLinku    = p[Keys.USER_MY_LINKU]?.toLongOrNull(),
+                myFolder   = p[Keys.USER_MY_FOLDER]?.toLongOrNull(),
+                myAiLinku  = p[Keys.USER_MY_AI_LINKU]?.toLongOrNull(),
+            )
+        }
 }

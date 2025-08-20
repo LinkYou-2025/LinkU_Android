@@ -144,7 +144,11 @@ fun LoginScreen(
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier.clickable {
-                        onSignUpClick() // 회원가입 클릭 시 바텀시트 콜백 실행
+                        onSignUpClick()
+//                        navigator.navigate("terms_agreement") {
+//                            launchSingleTop = true // 동일 화면 중복 쌓임 방지
+//                        }
+                        //onSignUpClick() // 회원가입 클릭 시 바텀시트 콜백 실행
                     }
                 )
             }

@@ -25,6 +25,27 @@ class SignUpViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    // ===== 동의 상태 추가 (여기만 새로 추가) =====
+    private val _agreeTerms    = MutableStateFlow(false) // 이용약관(필수)
+    val agreeTerms: StateFlow<Boolean> = _agreeTerms
+
+    private val _agreePrivacy  = MutableStateFlow(false) // 개인정보(필수)
+    val agreePrivacy: StateFlow<Boolean> = _agreePrivacy
+
+    private val _agreeMarketing= MutableStateFlow(false) // 마케팅(선택)
+    val agreeMarketing: StateFlow<Boolean> = _agreeMarketing
+
+    fun setAgreeTerms(v: Boolean)     { _agreeTerms.value = v }
+    fun setAgreePrivacy(v: Boolean)   { _agreePrivacy.value = v }
+    fun setAgreeMarketing(v: Boolean) { _agreeMarketing.value = v }
+    fun setAgreeAll(v: Boolean) {
+        _agreeTerms.value = v
+        _agreePrivacy.value = v
+        _agreeMarketing.value = v
+    }
+
+
+
     // 회원가입 전체 데이터
     var email by mutableStateOf("")
     var password by mutableStateOf("")

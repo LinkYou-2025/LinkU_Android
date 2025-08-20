@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 
+
 @HiltViewModel
 class CurationViewModel @Inject constructor(
     private val repository: CurationRepository,
@@ -90,9 +91,17 @@ class CurationViewModel @Inject constructor(
                 }
         }
     }
+    // retrofit2에 의존하지 않고, 예외에 code() 메서드가 있으면 꺼내오는 유틸
+    private fun httpStatusCodeOrMinus1(throwable: Throwable): Int {
+        return runCatching {
+            val m = throwable::class.java.methods
+                .firstOrNull { it.name == "code" && it.parameterCount == 0 }
+            (m?.invoke(throwable) as? Int) ?: -1
+        }.getOrDefault(-1)
+    }
+
     fun loadMonthlyCuration() {
         viewModelScope.launch {
-            // 한 번만 로드, 실패 시엔 다시 시도 가능하도록 플래그 관리
             if (hasPrefetched) return@launch
 
             _isGenerating.value = true
@@ -101,14 +110,19 @@ class CurationViewModel @Inject constructor(
             val uid = requireUserId()
             Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
 
+            // ⬇️ 로그인 안돼 있으면 ‘빈 상태’로 조용히 표시하고 종료
             if (uid <= 0L) {
-                _errorMessage.value = "로그인이 필요합니다."
-                _isGenerating.value = false
+                setEmptyCurationState(markPrefetched = true)
                 return@launch
             }
 
             try {
                 val item = repository.getMyRecentCuration(uid)
+                if (item == null || item.id <= 0L) {
+                    setEmptyCurationState(markPrefetched = true)
+                    return@launch
+                }
+
                 _recentCuration.value = item
                 _currentCurationId.value = item.id
 
@@ -117,27 +131,81 @@ class CurationViewModel @Inject constructor(
                     .onSuccess { _highlightLiked.value = it }
                     .onFailure { _highlightLiked.value = false }
 
-                // Top2/좋아요 리스트
+                // 추천 2개 + 좋아요 리스트
                 loadHomeRecommendedLinksTop2(uid, item.id)
                 loadLikedCurations()
 
                 Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
-                hasPrefetched = true // 성공했을 때만 true
+                hasPrefetched = true
             } catch (e: Exception) {
-                // 토큰 만료/401 문구는 사용자에게 명확히
-                val msg = e.message.orEmpty()
-                _errorMessage.value = when {
-                    msg.contains("Token", true) && msg.contains("expired", true) ->
-                        "세션이 만료됐어요. 다시 로그인해 주세요."
-                    else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+                // ⬇️ retrofit2 없이도 403/404만 골라냄
+                val code = httpStatusCodeOrMinus1(e)
+                if (code == 403 || code == 404) {
+                    Log.w("CurationVM", "큐레이션 없음/권한 없음(HTTP $code) → 빈 상태 표시")
+                    setEmptyCurationState(markPrefetched = true)
+                } else {
+                    val msg = e.message.orEmpty()
+                    _errorMessage.value = when {
+                        msg.contains("Token", true) && msg.contains("expired", true) ->
+                            "세션이 만료됐어요. 다시 로그인해 주세요."
+                        else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+                    }
+                    Log.e("CurationVM", "큐레이션 불러오기 실패(code=$code)", e)
+                    hasPrefetched = false
                 }
-                Log.e("CurationVM", "큐레이션 불러오기 실패", e)
-                hasPrefetched = false // 실패하면 재시도 가능
             } finally {
                 _isGenerating.value = false
             }
         }
     }
+//    fun loadMonthlyCuration() {
+//        viewModelScope.launch {
+//            // 한 번만 로드, 실패 시엔 다시 시도 가능하도록 플래그 관리
+//            if (hasPrefetched) return@launch
+//
+//            _isGenerating.value = true
+//            _errorMessage.value = null
+//
+//            val uid = requireUserId()
+//            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
+//
+//            if (uid <= 0L) {
+//                _errorMessage.value = "로그인이 필요합니다."
+//                _isGenerating.value = false
+//                return@launch
+//            }
+//
+//            try {
+//                val item = repository.getMyRecentCuration(uid)
+//                _recentCuration.value = item
+//                _currentCurationId.value = item.id
+//
+//                // 현재 큐레이션 좋아요 상태
+//                runCatching { repository.isCurationLiked(item.id, uid) }
+//                    .onSuccess { _highlightLiked.value = it }
+//                    .onFailure { _highlightLiked.value = false }
+//
+//                // Top2/좋아요 리스트
+//                loadHomeRecommendedLinksTop2(uid, item.id)
+//                loadLikedCurations()
+//
+//                Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
+//                hasPrefetched = true // 성공했을 때만 true
+//            } catch (e: Exception) {
+//                // 토큰 만료/401 문구는 사용자에게 명확히
+//                val msg = e.message.orEmpty()
+//                _errorMessage.value = when {
+//                    msg.contains("Token", true) && msg.contains("expired", true) ->
+//                        "세션이 만료됐어요. 다시 로그인해 주세요."
+//                    else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+//                }
+//                Log.e("CurationVM", "큐레이션 불러오기 실패", e)
+//                hasPrefetched = false // 실패하면 재시도 가능
+//            } finally {
+//                _isGenerating.value = false
+//            }
+//        }
+//    }
 //    fun loadMonthlyCuration() {
 //        viewModelScope.launch {
 //            _isGenerating.value = true
@@ -474,6 +542,25 @@ fun toggleHighlightLike() {
             }
         }
         Log.d("CurationViewModel", "removeRecentQuery return")
+    }
+
+    //403 빈 상태 오류!(미로그인)
+    private fun setEmptyCurationState(markPrefetched: Boolean = true) {
+        _recentCuration.value = null
+        _currentCurationId.value = -1L
+        _highlightLiked.value = null
+        _homeLinks.value = CurationLinksUiState(loading = false, items = emptyList(), error = null)
+        _likedCurations.value = emptyList()
+        _likedLoading.value = false
+        _likedError.value = null
+        _errorMessage.value = null           // ❗️사용자에겐 조용히
+        _isGenerating.value = false
+        if (markPrefetched) hasPrefetched = true  // 리트라이 루프 방
+    }
+
+    /** 외부에서 로그인/로그아웃 변화 시 호출 */
+    fun invalidate() {
+        hasPrefetched = false
     }
 
 

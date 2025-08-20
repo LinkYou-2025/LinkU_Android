@@ -18,7 +18,8 @@ import retrofit2.HttpException
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val repo: UserRepository
+    private val repo: UserRepository,
+    private val sessionStore: com.example.core.session.SessionStore
 ) : ViewModel() {
 
     // UI가 사용할 단일 상태
@@ -41,6 +42,16 @@ class LoginViewModel @Inject constructor(
             try {
                 // UserRepositoryImpl.login()은 성공 시 LoginResult 리턴, 실패 시 예외 throw
                 val res: LoginResult = repo.login(email, password)
+
+                //  자동로그인 on (최소 수정)
+                sessionStore.setLoggedIn(true)
+
+//                // 유저 상세 정보가 있으면 한 번에 저장 (선택)
+//                sessionStore.saveLogin(
+//                    nickname = res.nickname, email = res.email, gender = res.gender,
+//                     jobId = res.jobId, jobName = res.jobName,
+//                     myLinku = res.myLinkuId, myFolder = res.myFolderId, myAiLinku = res.myAiLinkuId
+//                 )
 
                 // 성공: 결과 반영 (Repo에서 토큰/유저ID 저장은 이미 수행됨)
                 _loginState.value = LoginState(

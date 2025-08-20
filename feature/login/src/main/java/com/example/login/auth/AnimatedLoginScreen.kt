@@ -22,7 +22,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AnimatedLoginScreen(navigator: NavHostController) {
+fun AnimatedLoginScreen(
+    navigator: NavHostController,
+    onSignUpClick: () -> Unit = {}
+
+) {
 
     LaunchedEffect(Unit) { println("AnimatedLoginScreen Loaded") }
 
@@ -62,6 +66,7 @@ fun AnimatedLoginScreen(navigator: NavHostController) {
     }
 
     // 애니메이션 시퀀스
+    // 애니메이션만
     LaunchedEffect(Unit) {
         launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
         launch { contentAlpha.animateTo(1f, tween(400)) }
@@ -69,6 +74,22 @@ fun AnimatedLoginScreen(navigator: NavHostController) {
         delay(1000)
         emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
     }
+//    LaunchedEffect(Unit) {
+//        launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
+//        launch { contentAlpha.animateTo(1f, tween(400)) }
+//        emailButtonColor.animateTo(Color.White, tween(500))
+//        delay(1000)
+//        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
+//    }
+
+    // 로그인 화면 1번만 렌더, 회원가입 클릭은 콜백으로 위로 올림
+    LoginScreen(
+        navigator = navigator,
+        logoOffsetY = logoOffset.value,
+        contentAlpha = contentAlpha.value,
+        emailButtonColor = emailButtonColor.value,
+        onSignUpClick = onSignUpClick
+    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         LoginScreen(

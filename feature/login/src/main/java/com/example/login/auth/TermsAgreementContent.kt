@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -17,16 +18,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.login.R
 import com.example.login.Paperlogy
 
+
 @Composable
 fun TermsAgreementScreen(navController: NavController) {
-    var agreeAll by remember { mutableStateOf(false) }
-    var agreeTerms by remember { mutableStateOf(false) }
-    var agreePrivacy by remember { mutableStateOf(false) }
-    var agreeMarketing by remember { mutableStateOf(false) }
+
+    val vm: SignUpViewModel = hiltViewModel()
+
+    val agreeTerms     by vm.agreeTerms.collectAsStateWithLifecycle()
+    val agreePrivacy   by vm.agreePrivacy.collectAsStateWithLifecycle()
+    val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+
+//    var agreeAll by remember { mutableStateOf(false) }
+//    var agreeTerms by remember { mutableStateOf(false) }
+//    var agreePrivacy by remember { mutableStateOf(false) }
+//    var agreeMarketing by remember { mutableStateOf(false) }
 
     // 약관 화면에서 돌아올 때 결과 받기 (SavedStateHandle)
     val currentEntry = navController.currentBackStackEntry
@@ -37,49 +48,73 @@ fun TermsAgreementScreen(navController: NavController) {
     val agreeMarketingResult = currentEntry?.savedStateHandle
         ?.getStateFlow("agree_marketing", false)?.collectAsState()
 
-    // 약관 화면에서 true가 오면 체크 반영
-    LaunchedEffect(agreeTermsResult?.value) {
-        if (agreeTermsResult?.value == true) agreeTerms = true
-    }
-    LaunchedEffect(agreePrivacyResult?.value) {
-        if (agreePrivacyResult?.value == true) agreePrivacy = true
-    }
-    LaunchedEffect(agreeMarketingResult?.value) {
-        if (agreeMarketingResult?.value == true) agreeMarketing = true
-    }
-
-    // 전체동의 동기화
-    LaunchedEffect(agreeAll) {
-        if (agreeAll) {
-            agreeTerms = true; agreePrivacy = true; agreeMarketing = true
-        }
-    }
-    // 개별 체크가 바뀌면 전체동의 재계산
-    LaunchedEffect(agreeTerms, agreePrivacy, agreeMarketing) {
-        agreeAll = agreeTerms && agreePrivacy && agreeMarketing
-    }
-
     TermsAgreementContent(
         agreeTerms = agreeTerms,
         agreePrivacy = agreePrivacy,
         agreeMarketing = agreeMarketing,
-        onAgreeTermsChange = { agreeTerms = it },
-        onAgreePrivacyChange = { agreePrivacy = it },
-        onAgreeMarketingChange = { agreeMarketing = it },
-        // 각 항목 눌렀을 때 해당 약관 화면으로 이동
+        onAgreeTermsChange = vm::setAgreeTerms,
+        onAgreePrivacyChange = vm::setAgreePrivacy,
+        onAgreeMarketingChange = vm::setAgreeMarketing,
+
+        // 각 항목 → 해당 약관 화면으로 이동 (동의 후 popBack으로 돌아오면 VM 상태 유지)
         onClickTerms = { navController.navigate("terms/service") },
         onClickPrivacy = { navController.navigate("terms/privacy") },
         onClickMarketing = { navController.navigate("terms/marketing") },
-        onNextClicked = { terms, privacy, marketing ->
+
+        onNextClicked = { terms, privacy, _ ->
             if (terms && privacy) {
                 navController.navigate("email_verification") {
-                    // 필요시 뒤로가기로 못 돌아오게 정리
                     popUpTo("terms_agreement") { inclusive = true }
+                    launchSingleTop = true
                 }
             }
         }
     )
 }
+
+//    // 약관 화면에서 true가 오면 체크 반영
+//    LaunchedEffect(agreeTermsResult?.value) {
+//        if (agreeTermsResult?.value == true) agreeTerms = true
+//    }
+//    LaunchedEffect(agreePrivacyResult?.value) {
+//        if (agreePrivacyResult?.value == true) agreePrivacy = true
+//    }
+//    LaunchedEffect(agreeMarketingResult?.value) {
+//        if (agreeMarketingResult?.value == true) agreeMarketing = true
+//    }
+//
+//    // 전체동의 동기화
+//    LaunchedEffect(agreeAll) {
+//        if (agreeAll) {
+//            agreeTerms = true; agreePrivacy = true; agreeMarketing = true
+//        }
+//    }
+//    // 개별 체크가 바뀌면 전체동의 재계산
+//    LaunchedEffect(agreeTerms, agreePrivacy, agreeMarketing) {
+//        agreeAll = agreeTerms && agreePrivacy && agreeMarketing
+//    }
+
+//    TermsAgreementContent(
+//        agreeTerms = agreeTerms,
+//        agreePrivacy = agreePrivacy,
+//        agreeMarketing = agreeMarketing,
+//        onAgreeTermsChange = { agreeTerms = it },
+//        onAgreePrivacyChange = { agreePrivacy = it },
+//        onAgreeMarketingChange = { agreeMarketing = it },
+//        // 각 항목 눌렀을 때 해당 약관 화면으로 이동
+//        onClickTerms = { navController.navigate("terms/service") },
+//        onClickPrivacy = { navController.navigate("terms/privacy") },
+//        onClickMarketing = { navController.navigate("terms/marketing") },
+//        onNextClicked = { terms, privacy, marketing ->
+//            if (terms && privacy) {
+//                navController.navigate("email_verification") {
+//                    // 필요시 뒤로가기로 못 돌아오게 정리
+//                    popUpTo("terms_agreement") { inclusive = true }
+//                }
+//            }
+//        }
+//    )
+//}
 
 @Composable
 fun AgreementItem(
@@ -417,6 +452,162 @@ fun AgreementItem(
         )
     }
 }
+
+@Preview(showBackground = true, name = "약관 동의 - 기본(모두 해제)")
+@Composable
+fun TermsAgreementContentPreview_Default() {
+    TermsAgreementContent(
+        agreeTerms = false,
+        agreePrivacy = false,
+        agreeMarketing = false,
+        onAgreeTermsChange = {},
+        onAgreePrivacyChange = {},
+        onAgreeMarketingChange = {},
+        onClickTerms = {},
+        onClickPrivacy = {},
+        onClickMarketing = {},
+        onNextClicked = { _, _, _ -> }
+    )
+}
+
+@Preview(showBackground = true, name = "약관 동의 - 필수만 체크")
+@Composable
+fun TermsAgreementContentPreview_RequiredOnly() {
+    TermsAgreementContent(
+        agreeTerms = true,
+        agreePrivacy = true,
+        agreeMarketing = false,
+        onAgreeTermsChange = {},
+        onAgreePrivacyChange = {},
+        onAgreeMarketingChange = {},
+        onClickTerms = {},
+        onClickPrivacy = {},
+        onClickMarketing = {},
+        onNextClicked = { _, _, _ -> }
+    )
+}
+
+@Preview(showBackground = true, name = "약관 동의 - 전체 동의")
+@Composable
+fun TermsAgreementContentPreview_AllChecked() {
+    TermsAgreementContent(
+        agreeTerms = true,
+        agreePrivacy = true,
+        agreeMarketing = true,
+        onAgreeTermsChange = {},
+        onAgreePrivacyChange = {},
+        onAgreeMarketingChange = {},
+        onClickTerms = {},
+        onClickPrivacy = {},
+        onClickMarketing = {},
+        onNextClicked = { _, _, _ -> }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TermsAgreementSheet(
+    navController: NavController,
+    vm: SignUpViewModel,
+    onClose: () -> Unit,
+    onClickTerms: () -> Unit,
+    onClickPrivacy: () -> Unit,
+    onClickMarketing: () -> Unit
+) {
+    val agreeTerms by vm.agreeTerms.collectAsStateWithLifecycle()
+    val agreePrivacy by vm.agreePrivacy.collectAsStateWithLifecycle()
+    val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onClose,
+        sheetState = sheetState,
+        containerColor = Color.White,
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        scrimColor = Color.Transparent
+    ) {
+        Column(Modifier.navigationBarsPadding().imePadding()) {
+            TermsAgreementContent(
+                agreeTerms = agreeTerms,
+                agreePrivacy = agreePrivacy,
+                agreeMarketing = agreeMarketing,
+                onAgreeTermsChange = vm::setAgreeTerms,
+                onAgreePrivacyChange = vm::setAgreePrivacy,
+                onAgreeMarketingChange = vm::setAgreeMarketing,
+                onClickTerms = onClickTerms,
+                onClickPrivacy = onClickPrivacy,
+                onClickMarketing = onClickMarketing,
+                onNextClicked = { t, p, _ ->
+                    if (t && p) {
+                        onClose()
+                        navController.navigate("email_verification") {
+                            popUpTo("terms_agreement")    // 필요시 조정
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            )
+        }
+    }
+}
+//@OptIn(ExperimentalMaterial3Api::class)
+//@Composable
+//fun TermsAgreementSheet(
+//    navController: NavController,
+//    onClose: () -> Unit,
+//) {
+//    val vm: SignUpViewModel = hiltViewModel()
+//
+//    val agreeTerms     by vm.agreeTerms.collectAsStateWithLifecycle()
+//    val agreePrivacy   by vm.agreePrivacy.collectAsStateWithLifecycle()
+//    val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+//
+//    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+//    var open by rememberSaveable { mutableStateOf(true) }
+//
+//    if (open) {
+//        ModalBottomSheet(
+//            onDismissRequest = {
+//                open = false
+//                navController.popBackStack()
+//            },
+//            sheetState = sheetState,
+//            containerColor = Color.White,
+//            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+//            // ❌ windowInsets 파라미터 제거
+//        ) {
+//            // ✅ 하단/IME 여백은 콘텐츠 쪽에서 처리
+//            Column(
+//                Modifier
+//                    .navigationBarsPadding()
+//                    .imePadding()
+//            ) {
+//                TermsAgreementContent(
+//                    agreeTerms = agreeTerms,
+//                    agreePrivacy = agreePrivacy,
+//                    agreeMarketing = agreeMarketing,
+//                    onAgreeTermsChange = vm::setAgreeTerms,
+//                    onAgreePrivacyChange = vm::setAgreePrivacy,
+//                    onAgreeMarketingChange = vm::setAgreeMarketing,
+//                    onClickTerms = { navController.navigate("terms/service") },
+//                    onClickPrivacy = { navController.navigate("terms/privacy") },
+//                    onClickMarketing = { navController.navigate("terms/marketing") },
+//                    onNextClicked = { terms, privacy, _ ->
+//                        if (terms && privacy) {
+//                            open = false
+//                            navController.navigate("email_verification") {
+//                                popUpTo("terms_agreement") { inclusive = true }
+//                                launchSingleTop = true
+//                            }
+//                        }
+//                    }
+//                )
+//            }
+//        }
+//    }
+//}
+
 
 //@Preview(showBackground = true)
 //@Composable
