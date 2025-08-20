@@ -76,6 +76,7 @@ import java.io.FileOutputStream
 // 링크 공유 앱링크
 import androidx.navigation.navDeepLink
 import com.example.core.error.UserIdNullException
+import com.example.curation.CurationViewModel
 import com.example.file.FileViewModel
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.DefaultFont
@@ -110,6 +111,9 @@ fun MainApp(
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
     val folderStateViewModel: FolderStateViewModel = viewModel()
+
+    // 큐레이션 화면에서 사용할 뷰모델
+    val curationViewModel: CurationViewModel = hiltViewModel()
 
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
@@ -389,7 +393,7 @@ fun MainApp(
                         val curationVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
 
                         CurationScreen(
-                            viewModel = curationVm,
+                            viewModel = curationViewModel,
                             onOpenDetail = { userId: Long, curationId: Long ->
                                 navigator.navigate("curation_detail/$userId/$curationId") {
                                     launchSingleTop = true

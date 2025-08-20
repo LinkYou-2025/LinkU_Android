@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.setValue
 import com.example.design.FastSearchItem
+import com.example.design.SearchBarTopSheet
 import com.example.design.SearchTopSheetHost
 
 import com.example.design.SearchTopSheetHost
@@ -133,7 +134,7 @@ fun CurationScreen(
             item {
                 //CurationTopBar()
                 CurationTopBar(
-                    onClickSearch = { showSearch = true }
+                    onClickSearch = { viewModel.updateSearchTopSheetVisible(true) }
                 )
             }
             // 현재 날짜에서 전달 구하기
@@ -297,13 +298,25 @@ fun CurationScreen(
 
 
         }
-        // 추가: 검색 TopSheet 오버레이
-        SearchTopSheetHost(
-            visible = showSearch,
-            allItems = allFastLinks,
-            onDismiss = { showSearch = false }
+//        // 추가: 검색 TopSheet 오버레이
+//        SearchTopSheetHost(
+//            visible = showSearch,
+//            allItems = allFastLinks,
+//            onDismiss = { showSearch = false }
+//        )
+
+        // 검색창 탑 시트
+        SearchBarTopSheet(
+            visible = viewModel.searchTopSheetVisible,
+            onDismiss = { viewModel.updateSearchTopSheetVisible(false) },
+            onQueryChange = { viewModel.fastSearch(it) },
+            onQuerySave = { viewModel.addRecentQuery(it) },
+            onQueryDelete = { viewModel.removeRecentQuery(it) },
+            onQueryClear = { viewModel.clearRecentQuery() },
+            fastSearchItems = viewModel.fastSearchItems.collectAsState().value,
+            recentQuerys = viewModel.recentQueryList.collectAsState().value.map{it.text}
         )
-        }
+    }
 }
 
 @Composable

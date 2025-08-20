@@ -12,14 +12,26 @@ import javax.inject.Inject
 import com.example.core.repository.CurationRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
-import kotlinx.coroutines.delay
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.core.model.search.RecentQuery
+import com.example.core.repository.LinkuRepository
+import com.example.core.repository.RecentSearchRepository
+import com.example.design.FastSearchItem
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
 class CurationViewModel @Inject constructor(
     private val repository: CurationRepository,
     private val userRepository: UserRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+
+    private val recentRepository: RecentSearchRepository,
+    private val linkuRepository: LinkuRepository,
 ) : ViewModel() {
 
     private var hasPrefetched = false //한 번만 실행.
@@ -372,7 +384,120 @@ fun toggleHighlightLike() {
     }
     fun setCurrentCurationId(id: Long) { _currentCurationId.value = id }
 
+    // ---------- search method ----------
+    // 검색창 탑 시트 가시성 상태
+    var searchTopSheetVisible by mutableStateOf(false)
+        private set
+    fun updateSearchTopSheetVisible(newState: Boolean) {
+        Log.d("searchTopSheetVisible", newState.toString())
+        searchTopSheetVisible = newState
+    }
 
+    // 빠른 링크 검색 목록
+    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
+    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
+
+    // 빠른 링크 검색
+    fun fastSearch(keyword: String){
+        Log.d("CurationViewModel", "fastSearch")
+
+        viewModelScope.launch{
+            Log.d("CurationViewModel", "fastSearch launch")
+
+            _errorMessage.value = null
+            try{
+                Log.d("CurationViewModel", "fastSearch try")
+
+                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
+                    FastSearchItem(
+                        title = it.title,
+                        url = it.linkUrl
+                    )
+                }
+
+                Log.d("CurationViewModel", "fastSearch try result: ${_fastSearchItems.value}")
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "fastSearch catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("CurationViewModel", "fastSearch finally")
+            }
+        }
+    }
+
+    //최근 검색 목록
+    val recentQueryList: StateFlow<List<RecentQuery>> =
+        recentRepository.observe(limit = 20)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    // 최근 검색 기록 추가
+    fun addRecentQuery(query: String) {
+        Log.d("CurationViewModel", "addRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("CurationViewModel", "addRecentQuery launch")
+
+            try{
+                Log.d("CurationViewModel", "addRecentQuery try")
+
+                recentRepository.add(query)
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "addRecentQuery catch: $e.message")
+            }finally {
+                Log.d("CurationViewModel", "addRecentQuery finally")
+            }
+        }
+        Log.d("CurationViewModel", "addRecentQuery return")
+    }
+
+    // 최근 검색 기록 삭제
+    fun removeRecentQuery(query: String) {
+        Log.d("CurationViewModel", "removeRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("CurationViewModel", "removeRecentQuery launch")
+
+            try{
+                Log.d("CurationViewModel", "removeRecentQuery try")
+
+                recentRepository.remove(query)
+
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "removeRecentQuery catch: $e.message")
+            }finally {
+                Log.d("CurationViewModel", "removeRecentQuery finally")
+            }
+        }
+        Log.d("CurationViewModel", "removeRecentQuery return")
+    }
+
+
+    // 최근 검색 기록 전체 삭제
+    fun clearRecentQuery() {
+        Log.d("CurationViewModel", "clearRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("CurationViewModel", "clearRecentQuery launch")
+
+            try{
+                Log.d("CurationViewModel", "clearRecentQuery try")
+
+                recentRepository.clear()
+
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "clearRecentQuery catch: $e.message")
+            }finally {
+                Log.d("CurationViewModel", "clearRecentQuery finally")
+            }
+        }
+        Log.d("CurationViewModel", "clearRecentQuery return")
+    }
+    // ---------- search method ----------
 }
 
 
