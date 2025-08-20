@@ -103,6 +103,9 @@ fun MainApp(
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
 
+    // 홈 화면에서 사용할 뷰모델
+    val homeViewModel: HomeViewModel = hiltViewModel()
+
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
     val folderStateViewModel: FolderStateViewModel = viewModel()
@@ -329,7 +332,6 @@ fun MainApp(
                         }
                         FinishHandler()
 
-                        val homeViewModel: HomeViewModel = hiltViewModel()
                         HomeApp(viewModel = homeViewModel)
                     }
                 }
@@ -444,7 +446,7 @@ fun MainApp(
 
                 composable("savelink") {
                     val context = LocalContext.current
-                    val vm: HomeViewModel = hiltViewModel()
+                    val vm: HomeViewModel = homeViewModel
 
                     // 갤러리 런처: Uri -> 임시 File 로 복사해서 뷰모델에 전달
                     val imagePicker = rememberLauncherForActivityResult(
@@ -508,7 +510,7 @@ fun MainApp(
                     route = "savelinkresult/{linkuId}",
                     arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
                 ) { backStackEntry ->
-                    val vm: HomeViewModel = hiltViewModel()
+                    val vm: HomeViewModel = homeViewModel
                     val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
 
                     LaunchedEffect(linkuId) {
