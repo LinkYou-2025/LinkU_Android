@@ -10,7 +10,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val recentRepository: RecentSearchRepository
+    private val recentRepository: RecentSearchRepository,
+    val sessionStore: com.example.core.session.SessionStore
 ): ViewModel() {
     
     // 최근 검색 기록 전체 삭제
