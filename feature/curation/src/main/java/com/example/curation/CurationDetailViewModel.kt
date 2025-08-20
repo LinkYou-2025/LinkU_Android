@@ -52,12 +52,14 @@ class CurationDetailViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.getRecommendedLinks(userId, curationId) }
                 .onSuccess { list ->
+                    android.util.Log.d("CurationDetailVM", "추천링크 성공: user=$userId, curation=$curationId, count=${list.size}")
                     _links.value = CurationLinksUiState(
                         loading = false,
                         items = list,
                         error = null)
                 }
                 .onFailure { e ->
+                    android.util.Log.e("CurationDetailVM", "추천링크 실패: user=$userId, curation=$curationId, error=${e.message}", e)
                     _links.value = CurationLinksUiState(
                         loading = false,
                         items = emptyList(),
@@ -83,6 +85,7 @@ class CurationDetailViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { repo.getCurationDetail(curationId) }
                 .onSuccess { d ->
+                    android.util.Log.d("CurationDetailVM", "디테일 성공: curation=$curationId, topTags=${d.topTags}, header=${d.headerMent}")
                     _detail.value = CurationDetailUiState(
                         loading = false,
                         topTags = d.topTags,
@@ -91,6 +94,7 @@ class CurationDetailViewModel @Inject constructor(
                     )
                 }
                 .onFailure { e ->
+                    android.util.Log.e("CurationDetailVM", "디테일 실패: curation=$curationId, error=${e.message}", e)
                     _detail.value = CurationDetailUiState(loading = false, error = e.message)
                 }
         }
@@ -104,9 +108,11 @@ class CurationDetailViewModel @Inject constructor(
 
         viewModelScope.launch {
             runCatching { repo.isCurationLiked(cid, uid) }
-                .onSuccess { liked -> _detail.value = _detail.value.copy(liked = liked) }
-                .onFailure {
-                    // 실패 시 기본 false (UI에서 빈 하트)
+                .onSuccess { liked ->
+                    android.util.Log.d("CurationDetailVM", "좋아요 조회 성공: user=$uid, curation=$cid, liked=$liked")
+                    _detail.value = _detail.value.copy(liked = liked) }
+                .onFailure { e ->
+                    android.util.Log.e("CurationDetailVM", "좋아요 조회 실패: user=$uid, curation=$cid, error=${e.message}", e)
                     _detail.value = _detail.value.copy(liked = false)
                 }
         }

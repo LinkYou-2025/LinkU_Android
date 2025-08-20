@@ -129,7 +129,7 @@ fun WelcomeScreen(
                 .height(48.dp)
                 .background(
                     Color.White,
-                    shape = RoundedCornerShape(50)
+                    shape = RoundedCornerShape(18.dp)
                 )
                 .clickable(enabled = !isSignUpRequested) {
                     if (!isSignUpRequested) {

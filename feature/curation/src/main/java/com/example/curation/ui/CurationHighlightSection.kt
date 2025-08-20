@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,21 +40,18 @@ import java.util.Locale
 @Composable
 fun CurationHighlightSection(
     modifier: Modifier = Modifier,
-    viewModel: CurationViewModel = hiltViewModel(),
+    viewModel: CurationViewModel, //디폴트 제거(좋아요)
+    //viewModel: CurationViewModel = hiltViewModel(),
     onOpenDetail: (() -> Unit)? = null
 ) {
-    val isGenerating by viewModel.isGenerating.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val recentCuration by viewModel.recentCuration.collectAsState()
+    // 수집은 lifecycle-aware 권장
+    val isGenerating by viewModel.isGenerating.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val recentCuration by viewModel.recentCuration.collectAsStateWithLifecycle()
+    val highlightLiked by viewModel.highlightLiked.collectAsStateWithLifecycle()
+    val likeBusy by viewModel.likeBusy.collectAsStateWithLifecycle()
 
-    //  추가: 하트 상태/로딩 상태
-    val highlightLiked by viewModel.highlightLiked.collectAsState()
-    val likeBusy by viewModel.likeBusy.collectAsState()
-
-    // ─────────────────────────────────────────────────────────────
-    // 🔎 초기에 데이터가 없고 생성 중도 아니면 로드
-    // ─────────────────────────────────────────────────────────────
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(recentCuration, isGenerating) {
         if (recentCuration == null && !isGenerating) {
             viewModel.loadMonthlyCuration()
         }
