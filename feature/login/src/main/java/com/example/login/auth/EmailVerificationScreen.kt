@@ -24,6 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.delay
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.ui.platform.LocalDensity
 
 import androidx.navigation.compose.rememberNavController
@@ -38,9 +39,41 @@ fun EmailVerificationScreen(
     viewModel: EmailAuthViewModel = hiltViewModel(),
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
+
     //val signUpViewModel: SignUpViewModel = hiltViewModel()
     val email = remember { mutableStateOf("") }
     val code = remember { mutableStateOf("") }
+
+    var isSending    by remember { mutableStateOf(false) }   // 코드 전송 중
+    var isVerifying  by remember { mutableStateOf(false) }   // 코드 검증 중
+    var timer        by remember { mutableStateOf(180) }     // 타이머
+
+    // 2)  savedStateHandle로부터 '리셋 신호' 구독
+    val resetSignalFlow = remember(navigator) {
+        navigator.currentBackStackEntry
+            ?.savedStateHandle
+            ?.getStateFlow("reset_email_screen", false)
+    }
+    val resetSignal = resetSignalFlow?.collectAsState(initial = false)?.value ?: false
+
+    // 3) 리셋 신호 들어오면 화면/VM 상태 초기화
+    LaunchedEffect(resetSignal) {
+        if (resetSignal) {
+            email.value = ""
+            code.value = ""
+
+            isSending = false
+            isVerifying = false
+            timer = 0                     // 타이머 정지 상태로 (코드 전송 시에만 180부터 재시작)
+
+            viewModel.reset()             // VM 내부 결과 초기화
+
+            // 플래그 소모 (다음 진입 때 중복 초기화 방지)
+            navigator.currentBackStackEntry
+                ?.savedStateHandle
+                ?.set("reset_email_screen", false)
+        }
+    }
 
 //    val emailValid = remember(emailState.value) {
 //        android.util.Patterns.EMAIL_ADDRESS.matcher(emailState.value).matches()
@@ -57,11 +90,11 @@ fun EmailVerificationScreen(
     val verifyResult by viewModel.verifyCodeResult.collectAsState()
 
     var errorMessage by remember { mutableStateOf("") }
-    var timer by remember { mutableStateOf(180) }
+//    var timer by remember { mutableStateOf(180) }
 
     //버튼 여러번 누르는 사용자 버그 있음. 한번만 적용되도록 수정하기!
-    var isSending by remember { mutableStateOf(false) }     // 코드 전송 중
-    var isVerifying by remember { mutableStateOf(false) }   // 코드 검증 중
+//    var isSending by remember { mutableStateOf(false) }     // 코드 전송 중
+//    var isVerifying by remember { mutableStateOf(false) }   // 코드 검증 중
 
     val isCodeSent = sendResult == "인증 코드 전송 성공"
     val isCodeValid = code.value.length == 6
