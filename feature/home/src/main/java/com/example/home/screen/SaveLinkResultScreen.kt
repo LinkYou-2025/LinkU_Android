@@ -60,6 +60,7 @@ import coil3.compose.rememberAsyncImagePainter
 import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.home.R
 import com.example.home.component.AIArticleModal
@@ -151,6 +152,7 @@ fun SaveLinkResultScreen(
     link: LinkResultInfo?,
     aiArticle: AiArticle? = null,
     isLoading: Boolean = false,
+    isAiLoading: Boolean = false,
     onBack: () -> Unit = {},
     onOpenLink: (String) -> Unit = {}
 ) {
@@ -174,7 +176,6 @@ fun SaveLinkResultScreen(
     LaunchedEffect(aiArticle, link?.summary, link?.keyword, isLoading) {
         if (!isLoading) {
             val has = aiArticle != null ||
-                    (link?.aiArticleExists == true) ||
                     !link?.summary.isNullOrBlank() ||
                     !link?.keyword.isNullOrBlank()
             if (has) showAISummary = true
@@ -182,8 +183,8 @@ fun SaveLinkResultScreen(
     }
 
     // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
-    val displayKeyword = aiArticle?.keyword ?: link?.keyword.orEmpty()
-    val displaySummary = aiArticle?.summary ?: link?.summary.orEmpty()
+    val displayKeyword = aiArticle?.keyword?.trim().orEmpty().ifEmpty { link?.keyword.orEmpty() }
+    val displaySummary = aiArticle?.summary?.trim().orEmpty().ifEmpty { link?.summary.orEmpty() }
 
     val isKeywordEmpty = displayKeyword.isBlank()
     val isSummaryEmpty = displaySummary.isBlank()
@@ -271,7 +272,7 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "링크",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[800],
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -289,7 +290,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = linku,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.black
                     )
                 }
@@ -325,7 +326,7 @@ fun SaveLinkResultScreen(
                         )
                         Text(
                             text = "이미지 업로드하기",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.gray[500],
                             modifier = Modifier.padding(top = 8.dp)
                         )
@@ -347,14 +348,14 @@ fun SaveLinkResultScreen(
                     ) {
                         Text(
                             text = "키워드 (AI추출 태그)",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.gray[800]
                         )
 
                         if (isEditMode) {
                             Text(
                                 text = "수정 불가",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.blue[200],
                                 modifier = Modifier.padding(end = 12.dp)
                             )
@@ -372,46 +373,67 @@ fun SaveLinkResultScreen(
                             .padding(horizontal = 22.dp, vertical = 15.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        if (isKeywordEmpty) {
-                            Text(
-                                text = keywordPlaceholder,
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
-                                color = LocalColorTheme.current.gray[400]
-                            )
-                        } else {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawIntoCanvas {
-                                    val text = displayKeyword
-                                    val textSizePx = 14.sp.toPx()
+                        when {
+                            isAiLoading -> {
+                                Text(
+                                    "키워드 추출 중...",
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                                    color = LocalColorTheme.current.gray[400]
+                                )
+                            }
+                            isKeywordEmpty -> {
+                                Text(
+                                    text = keywordPlaceholder,
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                                    color = LocalColorTheme.current.gray[400]
+                                )
+                            }
+                            else -> {
+//                                Canvas(modifier = Modifier.fillMaxSize()) {
+//                                    drawIntoCanvas {
+//                                        val text = displayKeyword
+//                                        val textSizePx = 14.sp.toPx()
+//
+//                                        val paintForWidth = android.graphics.Paint().apply {
+//                                            textSize = textSizePx
+//                                        }
+//                                        val textWidth = paintForWidth.measureText(text)
+//
+//                                        val gradient = android.graphics.LinearGradient(
+//                                            0f, 0f, textWidth, 0f,  // 텍스트 길이에 맞춰 그라데이션
+//                                            intArrayOf(
+//                                                0xFF2C6FFF.toInt(),
+//                                                0xFFCB59EB.toInt()
+//                                            ),
+//                                            null,
+//                                            android.graphics.Shader.TileMode.CLAMP
+//                                        )
+//
+//                                        val paint = android.graphics.Paint().apply {
+//                                            isAntiAlias = true
+//                                            textSize = textSizePx
+//                                            shader = gradient
+//                                        }
+//
+//                                        it.nativeCanvas.drawText(
+//                                            text,
+//                                            0f,
+//                                            size.height / 2 + textSizePx / 2.5f,
+//                                            paint
+//                                        )
+//                                    }
+//                                }
+                                BrushText(
+                                    text = displayKeyword,
+                                    brush = Basic.maincolor, // 이미 쓰는 메인 그라데이션
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        fontFamily = LocalFontTheme.current.font // Paperlogy 적용
+                                    ),
+                                    modifier = Modifier.fillMaxWidth() // 필요시 정렬/패딩 추가
+                                )
 
-                                    val paintForWidth = android.graphics.Paint().apply {
-                                        textSize = textSizePx
-                                    }
-                                    val textWidth = paintForWidth.measureText(text)
-
-                                    val gradient = android.graphics.LinearGradient(
-                                        0f, 0f, textWidth, 0f,  // 텍스트 길이에 맞춰 그라데이션
-                                        intArrayOf(
-                                            0xFF2C6FFF.toInt(),
-                                            0xFFCB59EB.toInt()
-                                        ),
-                                        null,
-                                        android.graphics.Shader.TileMode.CLAMP
-                                    )
-
-                                    val paint = android.graphics.Paint().apply {
-                                        isAntiAlias = true
-                                        textSize = textSizePx
-                                        shader = gradient
-                                    }
-
-                                    it.nativeCanvas.drawText(
-                                        text,
-                                        0f,
-                                        size.height / 2 + textSizePx / 2.5f,
-                                        paint
-                                    )
-                                }
                             }
                         }
                     }
@@ -427,55 +449,76 @@ fun SaveLinkResultScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Canvas(
-                            modifier = Modifier
-                                .height(11.dp)
-                                .padding(start = 4.dp)
-                        ) {
-                            drawIntoCanvas {
-                                val text = "AI 본문 요약"
-                                val textSizePx = 14.sp.toPx()
+//                        Canvas(
+//                            modifier = Modifier
+//                                .height(11.dp)
+//                                .padding(start = 4.dp)
+//                        ) {
+//                            drawIntoCanvas {
+//                                val text = "AI 본문 요약"
+//                                val textSizePx = 14.sp.toPx()
+//
+//                                val paintForWidth = android.graphics.Paint().apply {
+//                                    textSize = textSizePx
+//                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+//                                }
+//                                val textWidth = paintForWidth.measureText(text)
+//
+//                                val gradient = android.graphics.LinearGradient(
+//                                    0f, 0f, textWidth, 0f,
+//                                    intArrayOf(
+//                                        0xFF2C6FFF.toInt(),
+//                                        0xFFCB59EB.toInt()
+//                                    ),
+//                                    null,
+//                                    android.graphics.Shader.TileMode.CLAMP
+//                                )
+//
+//                                val paint = android.graphics.Paint().apply {
+//                                    isAntiAlias = true
+//                                    textSize = textSizePx
+//                                    shader = gradient
+//                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.NORMAL)
+//                                }
+//
+//                                it.nativeCanvas.drawText(
+//                                    text,
+//                                    0f,
+//                                    size.height / 2 + textSizePx / 2.5f,
+//                                    paint
+//                                )
+//                            }
+//                        }
+                        BrushText(
+                            text = "AI 본문 요약",
+                            brush = Basic.maincolor,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = LocalFontTheme.current.font // Paperlogy 적용
+                            ),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
 
-                                val paintForWidth = android.graphics.Paint().apply {
-                                    textSize = textSizePx
-                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-                                }
-                                val textWidth = paintForWidth.measureText(text)
-
-                                val gradient = android.graphics.LinearGradient(
-                                    0f, 0f, textWidth, 0f,
-                                    intArrayOf(
-                                        0xFF2C6FFF.toInt(),
-                                        0xFFCB59EB.toInt()
-                                    ),
-                                    null,
-                                    android.graphics.Shader.TileMode.CLAMP
-                                )
-
-                                val paint = android.graphics.Paint().apply {
-                                    isAntiAlias = true
-                                    textSize = textSizePx
-                                    shader = gradient
-                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.NORMAL)
-                                }
-
-                                it.nativeCanvas.drawText(
-                                    text,
-                                    0f,
-                                    size.height / 2 + textSizePx / 2.5f,
-                                    paint
-                                )
-                            }
-                        }
 
                         if (isEditMode) {
                             Text(
                                 text = "수정 불가",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.blue[200],
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                         }
+                    }
+
+                    val bg = when {
+                        isAiLoading || isSummaryEmpty -> SolidColor(LocalColorTheme.current.gray[100])
+                        else -> Brush.horizontalGradient(
+                            listOf(
+                                LocalColorTheme.current.blue[200].copy(alpha = 0.1f),
+                                LocalColorTheme.current.purple[200].copy(alpha = 0.1f)
+                            )
+                        )
                     }
 
                     Box(
@@ -500,10 +543,16 @@ fun SaveLinkResultScreen(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-//                            text = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",
-                            text = if (isSummaryEmpty) summaryPlaceholder else displaySummary,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
-                            color = if (isSummaryEmpty) LocalColorTheme.current.gray[400] else LocalColorTheme.current.black
+                            text = when {
+                                isAiLoading -> "요약 생성 중..."
+                                isSummaryEmpty -> summaryPlaceholder
+                                else -> displaySummary
+                            },
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                            color = when {
+                                isAiLoading || isSummaryEmpty -> LocalColorTheme.current.gray[400]
+                                else -> LocalColorTheme.current.black
+                            }
                         )
                     }
                 }
@@ -516,7 +565,7 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "메모",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[800],
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -536,13 +585,13 @@ fun SaveLinkResultScreen(
                         BasicTextField(
                             value = memoText,
                             onValueChange = { memoText = it },
-                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black),
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
                             modifier = Modifier.weight(1f)
                         )
                     } else {
                         Text(
                             text = memoText,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.black,
                             modifier = Modifier.weight(1f)
                         )
@@ -587,7 +636,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = "AI 요약 보기",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.white
                     )
                 }
@@ -600,7 +649,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = "AI가 링크 내용을 바탕으로 요약해드려요! 이용해보시겠어요?",
-                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.gray[400]
                     )
                 }
@@ -628,7 +677,7 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "링크 바로 가기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
 
@@ -736,7 +785,7 @@ fun TopBar(
 
                 Text(
                     text = "저장된 링크",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
 
@@ -745,7 +794,7 @@ fun TopBar(
                 Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
                     Text(
                         text = if (isEditMode) "완료" else "수정",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.blue[50],
                         modifier = Modifier
                             .clickable { onEditClick() }
@@ -789,12 +838,12 @@ fun TopBar(
                         BasicTextField(
                             value = title,
                             onValueChange = { title = it },
-                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white)
+                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white, fontFamily = LocalFontTheme.current.font)
                         )
                     } else {
                         Text(
                             text = title,
-                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.white
                         )
                     }
@@ -892,7 +941,8 @@ fun TopBar(
                                 style = TextStyle(
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.blue[300]
+                                    color = LocalColorTheme.current.blue[300],
+                                    fontFamily = LocalFontTheme.current.font
                                 )
                             )
                         }
@@ -927,7 +977,8 @@ private fun CategoryChipEditable(
                 text = label,
                 color = LocalColorTheme.current.blue[300],
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                fontFamily = LocalFontTheme.current.font
             )
             Spacer(Modifier.width(6.dp))
             // ✔ 편집 모드에서만 체브론(지금은 항상 편집모드 블록이라 표시)
@@ -965,7 +1016,8 @@ private fun CategoryChipEditable(
                         color = if (name == label) LocalColorTheme.current.blue[300]
                         else LocalColorTheme.current.gray[800],
                         fontWeight = if (name == label) FontWeight.Medium else FontWeight.Normal,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontFamily = LocalFontTheme.current.font
                     )
                 }
             }
@@ -994,7 +1046,8 @@ private fun EmotionChipEditable(
                 text = label,
                 color = LocalColorTheme.current.blue[300],
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                fontFamily = LocalFontTheme.current.font
             )
             Spacer(Modifier.width(6.dp))
             Image(
@@ -1041,7 +1094,8 @@ private fun EmotionChipEditable(
                         color = if (selected) LocalColorTheme.current.blue[300]
                         else LocalColorTheme.current.gray[800],
                         fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-                        fontSize = 14.sp
+                        fontSize = 14.sp,
+                        fontFamily = LocalFontTheme.current.font
                     )
                 }
             }
