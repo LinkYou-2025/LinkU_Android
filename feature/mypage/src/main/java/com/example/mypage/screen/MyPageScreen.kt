@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.mypage.R
 import com.example.mypage.component.LogoutModal
 import com.example.mypage.component.ServiceQuitModal
@@ -111,7 +112,7 @@ fun MyPageScreen(
                     ) {
                         Text(
                             text = "설정",
-                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.black
                         )
 
@@ -127,7 +128,7 @@ fun MyPageScreen(
                         ) {
                             Text(
                                 text = "서비스 설정",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[500]
                             )
 
@@ -138,7 +139,7 @@ fun MyPageScreen(
                             ) {
                                 Text(
                                     text = "계정 설정",
-                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[800],
                                     modifier = Modifier.padding(start = 6.dp)
                                 )
@@ -159,7 +160,7 @@ fun MyPageScreen(
                             ) {
                                 Text(
                                     text = "알림 설정",
-                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[800],
                                     modifier = Modifier.padding(start = 6.dp)
                                 )
@@ -186,7 +187,7 @@ fun MyPageScreen(
                         ) {
                             Text(
                                 text = "고객 센터",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[500]
                             )
 
@@ -194,7 +195,7 @@ fun MyPageScreen(
 
                             Text(
                                 text = "1 : 1 문의",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[800],
                                 modifier = Modifier.padding(start = 6.dp)
                             )
@@ -203,7 +204,7 @@ fun MyPageScreen(
 
                             Text(
                                 text = "공지사항",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[800],
                                 modifier = Modifier.padding(start = 6.dp)
                             )
@@ -221,7 +222,7 @@ fun MyPageScreen(
                         ) {
                             Text(
                                 text = "기타",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[500]
                             )
 
@@ -229,7 +230,7 @@ fun MyPageScreen(
 
                             Text(
                                 text = "회원탈퇴",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[800],
                                 modifier = Modifier
                                     .padding(start = 6.dp)
@@ -243,7 +244,7 @@ fun MyPageScreen(
 
                             Text(
                                 text = "로그아웃",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[800],
                                 modifier = Modifier
                                     .padding(start = 6.dp)
@@ -546,7 +547,7 @@ fun TopBar(
                 Column {
                     Text(
                         text = nickname,
-                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.black
                     )
 
@@ -554,7 +555,7 @@ fun TopBar(
 
                     Text(
                         text = email,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.gray[400]
                     )
 
@@ -565,7 +566,7 @@ fun TopBar(
                     ) {
                         Text(
                             text = if (gender == "FEMALE") "여성" else "남성",
-                            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.purple[200]
                         )
 
@@ -573,7 +574,7 @@ fun TopBar(
 
                         Text(
                             text = "·",
-                            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.gray[400]
                         )
 
@@ -581,7 +582,7 @@ fun TopBar(
 
                         Text(
                             text = jobName,
-                            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.blue[200]
                         )
                     }
@@ -648,7 +649,7 @@ fun InfoCard(title: String, count: String, borderBrush: Brush? = null) {
         ) {
             Text(
                 text = title,
-                style = TextStyle(fontSize = 13.sp),
+                style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.gray[700]
             )
 
@@ -656,7 +657,7 @@ fun InfoCard(title: String, count: String, borderBrush: Brush? = null) {
 
             Text(
                 text = count,
-                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.gray[700]
             )
         }

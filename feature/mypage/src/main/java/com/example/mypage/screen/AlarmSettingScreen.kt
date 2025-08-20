@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.mypage.R
 
 @Composable
@@ -66,7 +67,7 @@ fun AlarmSettingScreen(
 
             Text(
                 text = "알림 설정",
-                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.black
             )
         }
@@ -128,6 +129,7 @@ fun NotificationSwitch(
             fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
             color = LocalColorTheme.current.black,
+            fontFamily = LocalFontTheme.current.font,
             modifier = Modifier.weight(1f)
         )
 
@@ -193,6 +195,7 @@ fun SubNotificationSwitch(
             fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
             color = LocalColorTheme.current.gray[700],
+            fontFamily = LocalFontTheme.current.font,
             modifier = Modifier
                 .padding(start = 13.dp)
                 .weight(1f)
