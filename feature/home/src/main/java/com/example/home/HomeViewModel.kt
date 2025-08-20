@@ -10,12 +10,18 @@ import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.repository.AIArticleRepository
+import com.example.core.repository.CategoryRepository
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
+import com.example.file.ui.theme.CategoryColorStyle
+import com.example.file.ui.theme.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.File
@@ -27,6 +33,7 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
     private val aiArticleRepository: AIArticleRepository,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
     // 사용자 닉네임
     private val userNameState = mutableStateOf<String?>(null)
@@ -36,10 +43,28 @@ class HomeViewModel @Inject constructor(
     private val jobIdState = mutableStateOf<Long?>(null)
     val jobId get() = jobIdState.value
 
+    // 👇 파일 모듈과 동일한 타입을 그대로 노출(순서가 보장되는 LinkedHashMap이라고 가정)
+    private val _categoryColorMap = MutableStateFlow<Map<String, CategoryColorStyle>>(emptyMap())
+    val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
+
     // 최초 진입 시 프로필 로드
     init {
         loadRecentLinks()
         loadUserBasics()
+        loadCategoryColors()
+    }
+
+    fun loadCategoryColors() {
+        viewModelScope.launch {
+            runCatching {
+                categoryRepository.getCategoryColor().toCategoryColorStyleMap()
+            }.onSuccess { map ->
+                _categoryColorMap.value = map
+            }.onFailure { e ->
+                Log.e("HomeVM", "loadCategoryColors failed", e)
+                _categoryColorMap.value = emptyMap()
+            }
+        }
     }
 
     private fun loadUserBasics() {

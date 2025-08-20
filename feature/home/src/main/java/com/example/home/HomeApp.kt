@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,6 +56,10 @@ fun HomeApp(viewModel: HomeViewModel) {
         }.onFailure {
             Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadCategoryColors()
     }
 
     NavHost(
@@ -155,7 +160,10 @@ fun HomeApp(viewModel: HomeViewModel) {
                 // 화면 진입 시 상세 로드
                 LaunchedEffect(linkuId) {
                     viewModel.loadLinkDetail(linkuId) // 상세 안에 있으면 이걸로 표시, 없으면 내부에서 AI 호출
+                    viewModel.loadCategoryColors()  // 상세 들어올 때마다 최신 색상 재조회
                 }
+
+                val categoryColorMap = viewModel.categoryColorMap.collectAsState().value  // 색상 맵 수집
 
                 // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
                 SaveLinkResultScreen(
@@ -168,7 +176,8 @@ fun HomeApp(viewModel: HomeViewModel) {
                         val fixed = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed))
                         context.startActivity(intent)
-                    }
+                    },
+                    categoryColorMap = categoryColorMap
                 )
             }
         }
