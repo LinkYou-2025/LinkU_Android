@@ -83,6 +83,7 @@ import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
+import com.example.linku_android.navigation.DoubleBackToExitIfTop
 import com.example.login.auth.LoginViewModel
 
 
@@ -90,6 +91,7 @@ import com.example.login.auth.LoginViewModel
 fun MainApp(
     viewModel: MainViewModel,
 ) {
+
 
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     LaunchedEffect(Unit) {
@@ -129,6 +131,8 @@ fun MainApp(
             saveLinkEntryTriggered = false
         }
     }
+
+    DoubleBackToExitIfTop(navigator)
 
     ThemeProvider {
         MainScreen(
@@ -182,7 +186,7 @@ fun MainApp(
                 with(NavigationRoute.Login) {
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
-                        FinishHandler()
+                        //FinishHandler()
                         AnimatedLoginScreen(navigator = navigator)
                     }
                 }
@@ -254,14 +258,14 @@ fun MainApp(
                 // 이메일 인증
                 composable("email_verification") {
                     LaunchedEffect(Unit) { showNavBar = false }
-                    FinishHandler()
+                    //FinishHandler()
                     EmailVerificationScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
                 //ViewModel 사용
                 composable("sign_up_password") {
                     LaunchedEffect(Unit) { showNavBar = false }
-                    FinishHandler()
+                    ///FinishHandler()
                     //SignUpPasswordScreen(navigator = navigator)
                     SignUpPasswordScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
@@ -322,7 +326,7 @@ fun MainApp(
                 //비밀번호 재설정 화면
                 composable("resetPassword") {
                     LaunchedEffect(Unit) { showNavBar = false }
-                    FinishHandler()
+                    //FinishHandler()
                     ResetPasswordScreen(navigator = navigator)
                 }
 
@@ -335,7 +339,7 @@ fun MainApp(
                             showNavBar = true
                             currentNavigationItem = NavigationItem.HOME
                         }
-                        FinishHandler()
+                        //FinishHandler()
 
                         HomeApp(viewModel = homeViewModel)
                     }
@@ -347,7 +351,7 @@ fun MainApp(
                             showNavBar = true
                             currentNavigationItem = NavigationItem.FILE
                         }
-                        FinishHandler()
+                        //FinishHandler()
                         FileScreen(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel
@@ -383,7 +387,7 @@ fun MainApp(
                             showNavBar = true
                             currentNavigationItem = NavigationItem.CURATION
                         }
-                        FinishHandler()
+                        //FinishHandler()
 
                         // 그래프 스코프 BackStackEntry를 기억
                         val parentEntry = remember(backStackEntry) {
@@ -484,7 +488,7 @@ fun MainApp(
                             showNavBar = true
                             currentNavigationItem = NavigationItem.MY_PAGE
                         }
-                        FinishHandler()
+                        //FinishHandler()
 
                         val mypageViewModel: MyPageViewModel = hiltViewModel()
                         MyPageApp(
@@ -745,22 +749,22 @@ fun MainApp(
 //    }
 }
 
-@Composable
-private fun FinishHandler() {
-    val context = LocalContext.current
-    val activity = remember(context) { context.findActivity() }
-    var lastBackPressed by remember { mutableLongStateOf(0L) }
-
-    BackHandler {
-        val now = System.currentTimeMillis()
-        if (now - lastBackPressed < 2000L) {
-            activity?.finish()
-        } else {
-            Toast.makeText(context, "뒤로 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
-            lastBackPressed = now
-        }
-    }
-}
+//@Composable
+//private fun FinishHandler() {
+//    val context = LocalContext.current
+//    val activity = remember(context) { context.findActivity() }
+//    var lastBackPressed by remember { mutableLongStateOf(0L) }
+//
+//    BackHandler {
+//        val now = System.currentTimeMillis()
+//        if (now - lastBackPressed < 2000L) {
+//            activity?.finish()
+//        } else {
+//            Toast.makeText(context, "뒤로 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+//            lastBackPressed = now
+//        }
+//    }
+//}
 
 // 확장 함수: Context -> Activity
 fun android.content.Context.findActivity(): android.app.Activity? {
