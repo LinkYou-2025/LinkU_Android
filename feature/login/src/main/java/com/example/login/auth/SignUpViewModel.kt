@@ -47,6 +47,8 @@ class SignUpViewModel @Inject constructor(
     private val _signUpSuccess = MutableStateFlow<Boolean?>(null)
     val signUpSuccess: StateFlow<Boolean?> = _signUpSuccess
 
+
+
     /**
      * 닉네임 중복 확인 (Boolean으로 단순화)
      */

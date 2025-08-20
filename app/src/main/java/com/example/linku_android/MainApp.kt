@@ -132,7 +132,7 @@ fun MainApp(
         }
     }
 
-    DoubleBackToExitIfTop(navigator)
+    //DoubleBackToExitIfTop(navigator)
 
     ThemeProvider {
         MainScreen(
@@ -265,8 +265,9 @@ fun MainApp(
                 //ViewModel 사용
                 composable("sign_up_password") {
                     LaunchedEffect(Unit) { showNavBar = false }
-                    ///FinishHandler()
-                    //SignUpPasswordScreen(navigator = navigator)
+
+
+
                     SignUpPasswordScreen(navigator = navigator, signUpViewModel = signUpViewModel)
                 }
 
