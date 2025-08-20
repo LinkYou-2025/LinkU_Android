@@ -112,7 +112,7 @@ class CurationViewModel @Inject constructor(
 
             // ⬇️ 로그인 안돼 있으면 ‘빈 상태’로 조용히 표시하고 종료
             if (uid <= 0L) {
-                setEmptyCurationState(markPrefetched = true)
+                setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
                 return@launch
             }
 
@@ -142,7 +142,8 @@ class CurationViewModel @Inject constructor(
                 val code = httpStatusCodeOrMinus1(e)
                 if (code == 403 || code == 404) {
                     Log.w("CurationVM", "큐레이션 없음/권한 없음(HTTP $code) → 빈 상태 표시")
-                    setEmptyCurationState(markPrefetched = true)
+                    setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
+                    return@launch
                 } else {
                     val msg = e.message.orEmpty()
                     _errorMessage.value = when {
