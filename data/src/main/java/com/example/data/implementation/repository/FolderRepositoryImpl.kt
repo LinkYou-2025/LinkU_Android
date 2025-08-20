@@ -159,8 +159,7 @@ class FolderRepositoryImpl @Inject constructor(
                         linkuId = it.linkuId,
                         parentFolderId = parentFolderId,
                         title = it.title,
-                        tags = it.keyword.split(",")
-                            .map { it.trim() },
+                        tags = it.keyword?.let{ keword -> keword.split(",").map { it.trim() } }?:emptyList(),
                         url = it.url,
                         linkuImageUrl = it.linkuImageUrl,
                         createdAt = it.createdAt,
