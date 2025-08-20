@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,8 +54,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.example.core.model.LinkSimpleInfo
+import com.example.design.SearchBarTopSheet
+import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
+import com.example.home.HomeViewModel
 import com.example.home.R
 import kotlinx.coroutines.launch
 import com.example.design.R as Res
@@ -111,6 +115,7 @@ private fun emotionName(id: Long?): String? = when (id) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
+    homeViewModel: HomeViewModel,
     userName: String,
     showRecommendations: Boolean,
     recommendedLinks: List<LinkSimpleInfo>,
@@ -289,6 +294,7 @@ fun HomeScreen(
     ) {
         stickyHeader {
             TopBar(
+                homeViewModel = homeViewModel ,
                 isExpanded = isTopBarExpanded,
                 selectedEmotion = selectedEmotion,
                 selectedTask = selectedTask,
@@ -450,6 +456,18 @@ fun HomeScreen(
             }
         }
     }
+
+    // 검색창 탑 시트
+    SearchBarTopSheet(
+        visible = homeViewModel.searchTopSheetVisible,
+        onDismiss = { homeViewModel.updateSearchTopSheetVisible(false) },
+        onQueryChange = { homeViewModel.fastSearch(it) },
+        onQuerySave = { homeViewModel.addRecentQuery(it) },
+        onQueryDelete = { homeViewModel.removeRecentQuery(it) },
+        onQueryClear = { homeViewModel.clearRecentQuery() },
+        fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
+        recentQuerys = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
+    ) 
 }
 
 @Composable
@@ -592,6 +610,7 @@ private fun LinkCard(
 
 @Composable
 fun TopBar(
+    homeViewModel: HomeViewModel,
     isExpanded: Boolean,
     selectedEmotion: Long?,
     selectedTask: Long?,
@@ -689,6 +708,9 @@ fun TopBar(
                 modifier = Modifier
                     .padding(top = 15.dp, start = 16.dp, end = 16.dp)
                     .height(48.dp)
+                    .noRippleClickable{
+                        homeViewModel.updateSearchTopSheetVisible(true)
+                    }
             ) {
                 Box(
                     modifier = Modifier
@@ -1437,32 +1459,33 @@ fun TaskSelector(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewHomeScreen() {
-    HomeScreen(
-        userName = "세나",
-        showRecommendations = false, // or false
-        recommendedLinks = listOf(
-            LinkSimpleInfo(
-                linkuId = 1L,
-                categoryId = 1L,
-                memo = "",
-                emotionId = 3L,
-                title = "샘플 링크 제목",
-                domain = "naver.com",
-                domainImageUrl = "",
-                linkuImageUrl = ""
-            )
-        ),
-        recentLinks = listOf( // ✅ 프리뷰에 recentLinks 전달
-
-        ),
-        isRecommending = false,
-        onRecommendRequest = { _, _, _ -> }, // no-op
-        needMoreForRecommendation = false,
-        onClearNeedMoreNotice = {},
-        jobId = 2L,
-        onLinkClick = { /* no-op in preview */ }
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewHomeScreen() {
+//    HomeScreen(
+//        homeViewModel = hiltViewModel(),
+//        userName = "세나",
+//        showRecommendations = false, // or false
+//        recommendedLinks = listOf(
+//            LinkSimpleInfo(
+//                linkuId = 1L,
+//                categoryId = 1L,
+//                memo = "",
+//                emotionId = 3L,
+//                title = "샘플 링크 제목",
+//                domain = "naver.com",
+//                domainImageUrl = "",
+//                linkuImageUrl = ""
+//            )
+//        ),
+//        recentLinks = listOf( // ✅ 프리뷰에 recentLinks 전달
+//
+//        ),
+//        isRecommending = false,
+//        onRecommendRequest = { _, _, _ -> }, // no-op
+//        needMoreForRecommendation = false,
+//        onClearNeedMoreNotice = {},
+//        jobId = 2L,
+//        onLinkClick = { /* no-op in preview */ }
+//    )
+//}
