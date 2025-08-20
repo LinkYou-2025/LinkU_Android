@@ -47,6 +47,7 @@ import com.example.mypage.MyPageViewModel
 //import com.example.mypage.MyPageScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
+import androidx.navigation.compose.navigation
 
 
 import androidx.navigation.compose.composable
@@ -368,41 +369,104 @@ fun MainApp(
 //                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
 //                    )
 //                }
-
-                with(NavigationRoute.Curation) {
-                    setNavGraph {
+                navigation(
+                    startDestination = NavigationRoute.Curation.route, // 예: "curation"
+                    route = "curation_graph"                           // 그래프 스코프 이름
+                ) {
+                    // 리스트(하이라이트) 화면
+                    composable(NavigationRoute.Curation.route) { backStackEntry ->
                         LaunchedEffect(Unit) {
                             showNavBar = true
                             currentNavigationItem = NavigationItem.CURATION
                         }
                         FinishHandler()
 
-//                        CurationScreen(
-//                            onOpenDetail = { userId: Long, curationId: Long ->
-//                                // 상세로 넘길 값 저장
-//                                navigator.currentBackStackEntry?.savedStateHandle?.set("userId", userId)
-//                                navigator.currentBackStackEntry?.savedStateHandle?.set("curationId", curationId)
-//                                // 파라미터 없는 단순 라우트로 이동
-//                                navigator.navigate("curation_detail")
-//                            }
-//                        )
+                        // 그래프 스코프 BackStackEntry를 기억
+                        val parentEntry = remember(backStackEntry) {
+                            navigator.getBackStackEntry("curation_graph")
+                        }
+                        //그래프 스코프의 VM (재컴포지션/탭 전환에도 동일 인스턴스 유지)
+                        val curationVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
+
                         CurationScreen(
+                            viewModel = curationVm,
                             onOpenDetail = { userId: Long, curationId: Long ->
-                                navigator.navigate("curation_detail/$userId/$curationId")
+                                navigator.navigate("curation_detail/$userId/$curationId") {
+                                    launchSingleTop = true
+                                }
                             }
                         )
                     }
+
+                    // 디테일 화면
+                    composable("curation_detail/{userId}/{curationId}") { backStack ->
+                        val userId = backStack.arguments?.getString("userId")!!.toLong()
+                        val curationId = backStack.arguments?.getString("curationId")!!.toLong()
+
+                        // 같은 그래프 스코프의 홈 VM은 parent에서
+                        val parentEntry = remember(backStack) {
+                            navigator.getBackStackEntry("curation_graph")
+                        }
+                        val homeVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
+
+                        // 디테일 VM은 "현재 destination(backStack)" 스코프에서 생성해야 함!
+                        val detailVm: com.example.curation.CurationDetailViewModel = hiltViewModel(backStack)
+
+                        CurationDetailScreen(
+                            userId = userId,
+                            curationId = curationId,
+                            detailViewModel = detailVm,   // 디테일 전용 VM
+                            homeViewModel   = homeVm,     // 리스트 화면과 같은 CurationViewModel 공유
+                            onBack = { navigator.popBackStack() }
+                        )
+                    }
                 }
-//                composable("curation_detail") {
-//                    // 이전 화면에서 저장한 값 꺼내기
-//                    val userId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("userId")
-//                    val curationId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("curationId")
+
+//                with(NavigationRoute.Curation) {
+//                    setNavGraph {
+//                        LaunchedEffect(Unit) {
+//                            showNavBar = true
+//                            currentNavigationItem = NavigationItem.CURATION
+//                        }
+//                        FinishHandler()
 //
-//                    if (userId == null || curationId == null) {
-//                        // 값이 없으면 그냥 뒤로 가도 됨
-//                        navigator.popBackStack()
-//                        return@composable
+////                        CurationScreen(
+////                            onOpenDetail = { userId: Long, curationId: Long ->
+////                                // 상세로 넘길 값 저장
+////                                navigator.currentBackStackEntry?.savedStateHandle?.set("userId", userId)
+////                                navigator.currentBackStackEntry?.savedStateHandle?.set("curationId", curationId)
+////                                // 파라미터 없는 단순 라우트로 이동
+////                                navigator.navigate("curation_detail")
+////                            }
+////                        )
+//                        CurationScreen(
+//                            onOpenDetail = { userId: Long, curationId: Long ->
+//                                navigator.navigate("curation_detail/$userId/$curationId")
+//                            }
+//                        )
 //                    }
+//                }
+////                composable("curation_detail") {
+////                    // 이전 화면에서 저장한 값 꺼내기
+////                    val userId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("userId")
+////                    val curationId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("curationId")
+////
+////                    if (userId == null || curationId == null) {
+////                        // 값이 없으면 그냥 뒤로 가도 됨
+////                        navigator.popBackStack()
+////                        return@composable
+////                    }
+////
+////                    CurationDetailScreen(
+////                        userId = userId,
+////                        curationId = curationId,
+////                        onBack = { navigator.popBackStack() }
+////                    )
+////                }
+//                // "curation_detail" → "curation_detail/{userId}/{curationId}"
+//                composable("curation_detail/{userId}/{curationId}") { backStack ->
+//                    val userId = backStack.arguments?.getString("userId")!!.toLong()
+//                    val curationId = backStack.arguments?.getString("curationId")!!.toLong()
 //
 //                    CurationDetailScreen(
 //                        userId = userId,
@@ -410,39 +474,28 @@ fun MainApp(
 //                        onBack = { navigator.popBackStack() }
 //                    )
 //                }
-                // "curation_detail" → "curation_detail/{userId}/{curationId}"
-                composable("curation_detail/{userId}/{curationId}") { backStack ->
-                    val userId = backStack.arguments?.getString("userId")!!.toLong()
-                    val curationId = backStack.arguments?.getString("curationId")!!.toLong()
-
-                    CurationDetailScreen(
-                        userId = userId,
-                        curationId = curationId,
-                        onBack = { navigator.popBackStack() }
-                    )
-                }
-                with(NavigationRoute.MyPage) {
-                    setNavGraph {
-                        LaunchedEffect(Unit) {
-                            showNavBar = true
-                            currentNavigationItem = NavigationItem.MY_PAGE
-                        }
-                        FinishHandler()
-
-                        val mypageViewModel: MyPageViewModel = hiltViewModel()
-                        MyPageApp(
-                            viewModel = mypageViewModel,
-                            onLogoutToLogin = {
-                                // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
-                                // 전역 스택을 지우고 로그인 루트로 이동
-                                navigator.navigate(NavigationRoute.Login.route) {
-                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
-                                    launchSingleTop = true
-                                }
-                            }
-                        )
-                    }
-                }
+//                with(NavigationRoute.MyPage) {
+//                    setNavGraph {
+//                        LaunchedEffect(Unit) {
+//                            showNavBar = true
+//                            currentNavigationItem = NavigationItem.MY_PAGE
+//                        }
+//                        FinishHandler()
+//
+//                        val mypageViewModel: MyPageViewModel = hiltViewModel()
+//                        MyPageApp(
+//                            viewModel = mypageViewModel,
+//                            onLogoutToLogin = {
+//                                // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
+//                                // 전역 스택을 지우고 로그인 루트로 이동
+//                                navigator.navigate(NavigationRoute.Login.route) {
+//                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
+//                                    launchSingleTop = true
+//                                }
+//                            }
+//                        )
+//                    }
+//                }
 
                 composable("savelink") {
                     val context = LocalContext.current

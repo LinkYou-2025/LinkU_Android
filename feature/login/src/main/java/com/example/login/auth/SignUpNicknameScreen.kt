@@ -181,7 +181,7 @@ fun SignUpNicknameScreen(
                             else            -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         }
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(18.dp)
                 )
                 .clickable(enabled = isButtonEnabled) {
 

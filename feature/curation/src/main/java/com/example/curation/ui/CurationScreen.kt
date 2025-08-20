@@ -87,6 +87,12 @@ fun CurationScreen(
 
     val canOpenDetail = userId > 0 && currentCurationId > 0
 
+    LaunchedEffect(canOpenDetail) {
+        if (canOpenDetail) {
+            viewModel.loadHomeRecommendedLinksTop2(userId, currentCurationId)
+        }
+    }
+
     val homeLinksState by viewModel.homeLinks.collectAsState()
 
     // 네가 가진 링크 데이터 → 검색 대상 리스트로 변환
@@ -151,7 +157,8 @@ fun CurationScreen(
                     )
                     CurationHighlightSection(
                         modifier = Modifier.fillMaxWidth(),
-                        onOpenDetail = { onOpenDetail(userId, currentCurationId) }  //  파라미터 없는 람다로 변환해서 전달
+                        viewModel = viewModel,   // 같은 그래프-스코프 VM 전달
+                        onOpenDetail = { onOpenDetail(userId, currentCurationId) }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
 

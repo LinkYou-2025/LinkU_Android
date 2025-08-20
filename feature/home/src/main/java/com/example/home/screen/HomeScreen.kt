@@ -179,6 +179,16 @@ fun HomeScreen(
         jobSituations.firstOrNull { it.id == selectedTask }?.name
     }
 
+    // 아이템 개수와 TopBar 접힘 여부에 따라 필요한 여유(화면 비율) 계산
+    fun slackFractionFor(count: Int, isExpanded: Boolean): Float = when (count) {
+        0 -> 0f
+        1 -> if (isExpanded) 0.55f else 0.48f
+        2 -> if (isExpanded) 0.40f else 0.33f
+        3 -> if (isExpanded) 0.28f else 0.22f
+        else -> 0f
+    }
+
+
 //    // 🔹 샘플 링크 데이터 (향후 실제 데이터로 대체)
 //    val linkList = remember {  // 데이터가 있는 경우
 //        mutableStateOf(
@@ -285,6 +295,13 @@ fun HomeScreen(
             coroutineScope.launch { listState.animateScrollToItem(1) }
         }
     }
+    val itemsToRender = if (showRecs) recommendedLinks else recentLinks
+    val titleText = if (showRecs) "세나님의 오늘에 어울리는 콘텐츠예요!"
+    else "${userName}님이 최근에 열람한 링크"
+    // 비율 계산은 remember로 한 번 더 안정화해도 OK
+    val slackFraction = remember(itemsToRender.size, isTopBarExpanded) {
+        slackFractionFor(itemsToRender.size, isTopBarExpanded)
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -324,9 +341,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.padding(20.dp, 24.dp)
             ) {
-                val itemsToRender = if (showRecs) recommendedLinks else recentLinks
-                val titleText = if (showRecs) "세나님의 오늘에 어울리는 콘텐츠예요!"
-                                else "${userName}님이 최근에 열람한 링크"
+
 
                 when {
                     // 1) 링크 3개 미만 안내
@@ -454,7 +469,20 @@ fun HomeScreen(
                     }
                 }
             }
+
+
         }
+        if (slackFraction > 0f) {
+            item(key = "footer-slack") {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .fillParentMaxHeight(slackFraction)
+                )
+            }
+        }
+
+
     }
 
     // 검색창 탑 시트

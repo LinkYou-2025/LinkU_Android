@@ -126,7 +126,7 @@ fun PasswordResetScreen() {
                             //**이후 제대로 입력하면 컬러를  Color(0xFF2C6FFF),Color(0xFFC800FF)로 변경을 해야함.**
                         )
                     ),
-                    shape = RoundedCornerShape(24.dp)
+                    shape = RoundedCornerShape(18.dp)
                 ),
             contentAlignment = Alignment.Center
         ) {
