@@ -129,7 +129,8 @@ fun ShareBottomSheet(
         Box(
             modifier = Modifier
                 .wrapContentHeight()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(horizontal = 21.dp),
             contentAlignment = Alignment.TopCenter
         ){
             Row(
@@ -371,7 +372,7 @@ fun ShareBottomSheet(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        //Spacer(modifier = Modifier.height(10.dp))
 
         // 설명
         Text(
