@@ -76,7 +76,7 @@ fun BookMarkStar(
 
 @Preview(showBackground = true)
 @Composable
-fun FolderIconsTest() {
+private fun FolderIconsTest() {
     Column {
         ShareFolderIcon(Blue300)
         LockFolderIcon(Purple200)

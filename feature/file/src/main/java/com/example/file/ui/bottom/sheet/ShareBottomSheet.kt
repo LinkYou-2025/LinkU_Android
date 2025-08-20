@@ -325,7 +325,7 @@ fun ShareBottomSheet(
 
         // menuOpen 상태에 따라 높이를 애니메이션
         val bottomSpacerHeight by animateDpAsState(
-            targetValue = if (menuOpen) 264.dp else 43.dp,
+            targetValue = if (menuOpen) 204.dp else 43.dp,
             animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
             label = "bottom spacer height"
         )

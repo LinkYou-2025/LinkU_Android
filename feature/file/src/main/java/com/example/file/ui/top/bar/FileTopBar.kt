@@ -102,7 +102,7 @@ fun FileTopBar(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 // 위쪽 여백 (91dp)
-                .padding(top = 91.dp)
+                .padding(top = 91.dp, start = 16.dp, end = 16.dp)
                 .noRippleClickable {
                     folderStateViewModel.updateSearchTopSheetVisible(true)
                 },
