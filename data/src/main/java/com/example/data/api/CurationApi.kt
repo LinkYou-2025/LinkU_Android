@@ -59,23 +59,33 @@ interface CurationApi {
 //        @Query("userId") userId: Long
 //    ): BaseResponse<Unit>
     // CurationApi.kt
+//    @POST("/api/curations/{curationId}/like")
+//    suspend fun updateLike(
+//        @Path("curationId") curationId: Long,
+//        @Query("userId") userId: Long
+//    ): Response<Unit>    // ◀︎ 변경: Response<Unit>
     @POST("/api/curations/{curationId}/like")
     suspend fun updateLike(
         @Path("curationId") curationId: Long,
         @Query("userId") userId: Long
-    ): Response<Unit>    // ◀︎ 변경: Response<Unit>
-
+    ): retrofit2.Response<Unit>
     // 큐레이션 좋아요 취소
 //    @DELETE("/api/curations/{curationId}/like")
 //    suspend fun deleteLike(
 //        @Path("curationId") curationId: Long,
 //        @Query("userId") userId: Long
 //    ): BaseResponse<Unit>
+//    @DELETE("/api/curations/{curationId}/like")
+//    suspend fun deleteLike(
+//        @Path("curationId") curationId: Long,
+//        @Query("userId") userId: Long
+//    ): Response<Unit>    // ◀︎ 변경: Response<Unit>
+
     @DELETE("/api/curations/{curationId}/like")
     suspend fun deleteLike(
         @Path("curationId") curationId: Long,
         @Query("userId") userId: Long
-    ): Response<Unit>    // ◀︎ 변경: Response<Unit>
+    ): retrofit2.Response<Unit>
 
     // 큐레이션 좋아요 여부 확인
 //    @GET("/api/curations/{curationId}/like")
@@ -83,11 +93,16 @@ interface CurationApi {
 //        @Path("curationId") curationId: Long,
 //        @Query("userId") userId: Long
 //    ): BaseResponse<CurationLikeStatusResponseDTO>
+//    @GET("/api/curations/{curationId}/like")
+//    suspend fun getIsLike(
+//        @Path("curationId") curationId: Long,
+//        @Query("userId") userId: Long
+//    ): Response<CurationLikeStatusResponseDTO>
     @GET("/api/curations/{curationId}/like")
     suspend fun getIsLike(
         @Path("curationId") curationId: Long,
         @Query("userId") userId: Long
-    ): Response<CurationLikeStatusResponseDTO>
+    ): BaseResponse<CurationLikeStatusResponseDTO>
 
     // 좋아요한 큐레이션 조회 (최대 6개)
 //    @GET("/api/curations/likes/recent")
@@ -98,7 +113,11 @@ interface CurationApi {
     @GET("/api/curations/likes/recent")
     suspend fun getLikedCurations(
         @Query("userId") userId: Long
-    ): List<LikedCurationResponse>
+    ): BaseResponse<List<LikedCurationResponse>>
+//    @GET("/api/curations/likes/recent")
+//    suspend fun getLikedCurations(
+//        @Query("userId") userId: Long
+//    ): List<LikedCurationResponse>
 
     // 큐레이션 추천링크 (기본 화면) -> In Progress
 //    @GET("/api/curations/{curationId}/links/saved")
@@ -119,28 +138,45 @@ interface CurationApi {
 //        @Query("userId") userId: Long,
 //        @Query("curationId") curationId: Long
 //    ): BaseResponse<List<RecommendLinkItemDto>>
+//    @GET("/api/curations/recommend-links")
+//    suspend fun getRecommendLinks(
+//        @Query("userId") userId: Long,
+//        @Query("curationId") curationId: Long
+//    ): List<RecommendLinkItemDto>
     @GET("/api/curations/recommend-links")
     suspend fun getRecommendLinks(
         @Query("userId") userId: Long,
         @Query("curationId") curationId: Long
-    ): List<RecommendLinkItemDto>
+    ): BaseResponse<List<RecommendLinkItemDto>>
 
-    @GET("/api/curations/recommend-links")
-    fun getRecommendLinksCall(
-        @Query("userId") userId: Long,
-        @Query("curationId") curationId: Long
-    ): Call<List<RecommendLinkItemDto>>
+
+
+
+//    @GET("/api/curations/recommend-links")
+//    fun getRecommendLinksCall(
+//        @Query("userId") userId: Long,
+//        @Query("curationId") curationId: Long
+//    ): Call<List<RecommendLinkItemDto>>
 
     //큐레이션 디테일
     @GET("/api/curations/detail/{curationId}")
     suspend fun getCurationDetail(
         @Path("curationId") curationId: Long
-    ): CurationDetailResponse
+    ): BaseResponse<CurationDetailResponse>
+//    @GET("/api/curations/detail/{curationId}")
+//    suspend fun getCurationDetail(
+//        @Path("curationId") curationId: Long
+//    ): CurationDetailResponse
 
     //큐레이션 기본 페이지 추천
     @GET("/api/curations/recommend-links/internal/top2")
     suspend fun getInternalTop2(
         @Query("userId") userId: Long,
         @Query("curationId") curationId: Long
-    ): List<RecommendLinkItemDto>
+    ): BaseResponse<List<RecommendLinkItemDto>>
+//    @GET("/api/curations/recommend-links/internal/top2")
+//    suspend fun getInternalTop2(
+//        @Query("userId") userId: Long,
+//        @Query("curationId") curationId: Long
+//    ): List<RecommendLinkItemDto>
 }
