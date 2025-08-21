@@ -79,8 +79,8 @@ fun TopFolderListMenu(
                                     // 사용할 폰트 (paperlogy 폰트)
                                     fontFamily = DefaultFont,
 
-                                    // 폰트 굵기 (500)
-                                    fontWeight = FontWeight(500),
+                                    // 폰트 굵기
+                                    fontWeight = FontWeight(if (selectedOption == selectedText) 500 else 400),
 
                                     // 텍스트 그라데이션 색상(링큐 메인 색상)
                                     brush = if (selectedOption == selectedText) MainColor
@@ -91,7 +91,6 @@ fun TopFolderListMenu(
                                 append(selectedOption)
                             }
                         },
-                        lineHeight = 22.sp,
                     )
                 },
                 onClick = {

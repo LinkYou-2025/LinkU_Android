@@ -551,6 +551,7 @@ fun toggleHighlightLike() {
 
                 _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
                     FastSearchItem(
+                        id = it.linkuId,
                         title = it.title,
                         url = it.linkUrl
                     )

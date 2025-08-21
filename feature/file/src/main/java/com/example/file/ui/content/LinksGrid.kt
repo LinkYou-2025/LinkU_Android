@@ -108,7 +108,7 @@ fun LinksGrid(
                 LinkItemLayout(
                     link = link,
                     onClick = {
-                        fileViewModel.onLinkClick?.invoke(link)
+                        fileViewModel.onLinkClick?.invoke(link.linkuId)
                     }
                 )
             }

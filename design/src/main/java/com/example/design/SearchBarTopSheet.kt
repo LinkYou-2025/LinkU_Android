@@ -68,6 +68,7 @@ import kotlinx.coroutines.flow.mapLatest
 import androidx.compose.ui.platform.LocalUriHandler
 
 data class FastSearchItem(
+    val id: Long,
     val title: String,
     val url: String,
 )
@@ -92,7 +93,7 @@ fun SearchBarTopSheet(
     onQuerySave: (String) -> Unit,
     onQueryDelete: (String) -> Unit,
     onQueryClear: () -> Unit,
-//    onLinkClick: () -> Unit,
+    onLinkClick: (Long) -> Unit,
     fastSearchItems: List<FastSearchItem> = emptyList(),
     recentQuerys: List<String> = emptyList(),
 ) {
@@ -240,7 +241,7 @@ fun SearchBarTopSheet(
         Row(
             modifier = Modifier
                 .noRippleClickable{
-                    runCatching { uri.openUri(fastSearchItem.url) }
+                    runCatching { onLinkClick(fastSearchItem.id) }
                 },
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -540,6 +541,7 @@ private fun SearchBarTopSheetTest(){
         onQueryChange = {},
         onQuerySave = {},
         onQueryDelete = {},
-        onQueryClear = {}
+        onQueryClear = {},
+        onLinkClick = {}
     )
 }

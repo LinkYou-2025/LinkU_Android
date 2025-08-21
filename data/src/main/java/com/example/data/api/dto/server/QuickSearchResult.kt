@@ -4,6 +4,9 @@ import com.squareup.moshi.Json
 
 data class QuickSearchResult(
 
+    @Json(name = "linkuId")
+    val linkuId: Long,
+
     @Json(name = "title")
     val title: String,
 
