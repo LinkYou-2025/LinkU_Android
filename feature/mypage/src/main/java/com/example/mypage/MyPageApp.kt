@@ -74,7 +74,9 @@ fun MyPageApp(
                 AccountSettingScreen(
                     navController = navController,
                     nicknamePlaceholder = user.nickname,
-                    jobPlaceholder = user.jobName
+                    jobPlaceholder = user.jobName,
+                    initialPurposeTags = user.purposes.toSet(),
+                    initialContentTags = user.interests.toSet()
                 )
             }
         }

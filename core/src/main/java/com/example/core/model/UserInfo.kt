@@ -8,5 +8,7 @@ data class UserInfo(
     val jobName: String,
     val myLinku: Long,
     val myFolder: Long,
-    val myAiLinku: Long
+    val myAiLinku: Long,
+    val purposes: List<String> = emptyList(),
+    val interests: List<String> = emptyList()
 )
