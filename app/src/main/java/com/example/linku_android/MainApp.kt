@@ -169,17 +169,39 @@ fun MainApp(
                         // 현재 화면의 route
                         val currentRoute = navigator.currentBackStackEntry?.destination?.route
 
-                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
-                        if (currentRoute != route) {
-                            navigator.navigate(route) {
-                                popUpTo(navigator.graph.findStartDestination().id) {
-                                    saveState = true
-                                    inclusive = false
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+//                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
+//                        if (currentRoute != route) {
+//                            navigator.navigate(route) {
+//                                popUpTo(navigator.graph.findStartDestination().id) {
+//                                    saveState = true
+//                                    inclusive = false
+//                                }
+//                                launchSingleTop = true
+//                                restoreState = true
+//                            }
+//                        }
+                    if (currentRoute == route) {
+                        // 같은 탭 재선택: 내부 스택 리셋
+                        navigator.navigate(route) {
+                            // 해당 탭 루트까지 모두 제거하고
+                            popUpTo(route) { inclusive = true }
                         }
+                        // 다시 동일 라우트 진입 (깨끗한 초기 상태)
+                        navigator.navigate(route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    } else {
+                        // 다른 탭으로 이동: 기존 로직 유지
+                        navigator.navigate(route) {
+                            popUpTo(navigator.graph.findStartDestination().id) {
+                                saveState = true
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
 //                    }
                 },
                 onCenterButtonClicked = {
