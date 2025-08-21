@@ -57,12 +57,13 @@ import com.example.mypage.R
 
 @Composable
 fun AccountSettingScreen(
-    navController: NavController
+    navController: NavController,
+    nicknamePlaceholder: String,
+    jobPlaceholder: String
 ) {
-    val username = "세나"  // TODO: 추후 수정
-    val userjob = "대학생"
-    var name by remember { mutableStateOf("") }
-    var job by remember { mutableStateOf(userjob) }
+    val username = nicknamePlaceholder
+    val userjob  = jobPlaceholder
+    var name by remember(nicknamePlaceholder) { mutableStateOf("") }
 
     val purposeTagRows = listOf(
         listOf("업무자료 아카이빙", "인사이트 모으기"),
@@ -85,10 +86,15 @@ fun AccountSettingScreen(
 
     // 드롭다운 옵션 (직업 목록)
     val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
-    var selectedJob by remember { mutableStateOf(jobOptions[1]) } // "대학생"으로 초기화
+    var selectedJob by remember(jobPlaceholder) {
+        mutableStateOf(
+            jobPlaceholder.takeIf { it.isNotBlank() } ?: jobOptions.first()
+        )
+    }
 
     // 변경 사항이 있는지 여부 확인
-    val isModified = name != "" && name != username || job != "" && job != userjob
+    val isModified =
+        (name.isNotBlank() && name != username) || (selectedJob != userjob)
 
     // 비활성화용 그라데이션 브러시
     val inactiveBrush = Brush.horizontalGradient(
@@ -524,5 +530,9 @@ fun BrushText(
 @Composable
 fun PreviewAccountSettingScreen() {
     val navController = rememberNavController()
-    AccountSettingScreen(navController = navController)
+    AccountSettingScreen(
+        navController = navController,
+        nicknamePlaceholder = "세나",
+        jobPlaceholder = "대학생"
+    )
 }
