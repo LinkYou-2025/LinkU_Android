@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -85,9 +86,14 @@ val iconHeight = 24.dp
 fun NavigationBar(
     currentNavigationItem: NavigationItem?,
     onNavigate: (NavigationItem) -> Unit,
+    applySystemBottomInset: Boolean = true,
 ) {
     val density = LocalDensity.current
-    val padding = WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
+
+    val padding = if (applySystemBottomInset)
+        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() // ⬅️ 여기!
+    else 0.dp
+
     var maxHeight by remember { mutableStateOf<Dp?>(null) }
 
     Box(

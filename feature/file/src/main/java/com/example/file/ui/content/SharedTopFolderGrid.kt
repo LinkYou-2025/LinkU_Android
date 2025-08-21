@@ -3,6 +3,7 @@ package com.example.file.ui.content
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -45,6 +46,7 @@ fun SharedTopFolderGrid(
                 contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
             ){
                 EmptyFolderItemLayout(
+                    modifier = Modifier.fillMaxSize(164f/174f),
                     folderName = "${folder.nickname}의 폴더",
                 )
             }

@@ -97,14 +97,14 @@ fun CurationScreen(
     val homeLinksState by viewModel.homeLinks.collectAsState()
 
     // 네가 가진 링크 데이터 → 검색 대상 리스트로 변환
-    val allFastLinks = remember(homeLinksState.items) {
-        homeLinksState.items.map { link ->
-            FastSearchItem(
-                title = link.title,
-                url   = ensureHttpScheme(link.url)
-            )
-        }
-    }
+//    val allFastLinks = remember(homeLinksState.items) {
+//        homeLinksState.items.map { link ->
+//            FastSearchItem(
+//                title = link.title,
+//                url   = ensureHttpScheme(link.url)
+//            )
+//        }
+//    }
 
 
 
@@ -308,6 +308,7 @@ fun CurationScreen(
         // 검색창 탑 시트
         SearchBarTopSheet(
             visible = viewModel.searchTopSheetVisible,
+            onLinkClick = {},
             onDismiss = { viewModel.updateSearchTopSheetVisible(false) },
             onQueryChange = { viewModel.fastSearch(it) },
             onQuerySave = { viewModel.addRecentQuery(it) },
