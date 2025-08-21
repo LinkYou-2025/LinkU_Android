@@ -1,5 +1,6 @@
 package com.example.data.implementation.repository
 
+import android.util.Log
 import com.example.core.model.CurationItem
 import com.example.core.repository.CurationRepository
 import com.example.data.api.ServerApi
@@ -22,13 +23,22 @@ import java.util.concurrent.TimeUnit
 import retrofit2.HttpException
 import com.example.data.api.withAuthCallChecked
 import com.example.data.api.CurationApi
+import com.example.data.api.dto.BaseResponse
+import com.squareup.moshi.Types
+import com.squareup.moshi.JsonReader
+import okio.Buffer
+import com.squareup.moshi.Moshi
+import com.example.data.api.dto.BaseEmptyResponse
+
 
 
 class CurationRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val curationApi: CurationApi,
     private val authPreference: AuthPreference,
+    private val moshi: Moshi,
 ) : CurationRepository {
+
 
 
 //    override suspend fun getMyRecentCuration(userId: Long): CurationItem {
@@ -42,20 +52,75 @@ class CurationRepositoryImpl @Inject constructor(
 //            thumbnailUrl = dto.thumbnailUrl
 //        )
 //    }
+
     override suspend fun getMyRecentCuration(userId: Long): CurationItem {
-        val res = curationApi.getMyRecentCuration(userId)
+        Log.d("CurationRepo", "getMyRecentCuration() via RAW path")  // ✅ 추가
+        // ✅ Raw 호출
+        val resp = curationApi.getMyRecentCurationRaw(userId)
+        if (!resp.isSuccessful) throw HttpException(resp)
 
-        if (!res.isSuccess) {
-            throw IllegalStateException(res.message ?: "최근 큐레이션 호출 실패")
+        val bodyStr = resp.body()?.string() ?: throw IllegalStateException("빈 응답")
+
+        Log.d("CurationApi", "response body = $bodyStr")
+
+        // ✅ result 키 존재 여부 먼저 확인
+        return if (hasResultKey(bodyStr)) {
+            val type = Types.newParameterizedType(
+                BaseResponse::class.java,
+                CurationLatestResponse::class.java
+            )
+            val adapter = moshi.adapter<BaseResponse<CurationLatestResponse>>(type)
+            val base = adapter.fromJson(bodyStr)
+                ?: throw IllegalStateException("파싱 실패(BaseResponse)")
+            val dto = base.result // 팀 규칙상 non-null
+            CurationItem(
+                id = dto.curationId,
+                month = dto.month,
+                thumbnailUrl = dto.thumbnailUrl
+            )
+        } else {
+            val emptyAdapter = moshi.adapter(BaseEmptyResponse::class.java)
+            val empty = emptyAdapter.fromJson(bodyStr)
+                ?: throw IllegalStateException("파싱 실패(BaseEmptyResponse)")
+            if (!empty.isSuccess) {
+                throw IllegalStateException("최근 큐레이션 호출 실패: ${empty.code}/${empty.message}")
+            }
+            // 최신 없음 → VM에서 생성 플로우로 넘기기
+            throw NoSuchElementException("최근 큐레이션이 없습니다.")
         }
-
-        val dto = res.result ?: throw IllegalStateException("최근 큐레이션이 없습니다.")
-        return CurationItem(
-            id = dto.curationId,
-            month = dto.month,
-            thumbnailUrl = dto.thumbnailUrl
-        )
     }
+
+    private fun hasResultKey(json: String): Boolean {
+        val reader = JsonReader.of(Buffer().writeUtf8(json))
+        if (reader.peek() != JsonReader.Token.BEGIN_OBJECT) return false
+        reader.beginObject()
+        var found = false
+        while (reader.hasNext()) {
+            val name = reader.nextName()
+            if (name == "result") { found = true; reader.skipValue(); break }
+            else reader.skipValue()
+        }
+        while (reader.hasNext()) reader.skipValue()
+        reader.endObject()
+        return found
+    }
+
+
+
+    //    override suspend fun getMyRecentCuration(userId: Long): CurationItem {
+//        val res = curationApi.getMyRecentCuration(userId)
+//
+//        if (!res.isSuccess) {
+//            throw IllegalStateException(res.message ?: "최근 큐레이션 호출 실패")
+//        }
+//
+//        val dto = res.result ?: throw IllegalStateException("최근 큐레이션이 없습니다.")
+//        return CurationItem(
+//            id = dto.curationId,
+//            month = dto.month,
+//            thumbnailUrl = dto.thumbnailUrl
+//        )
+//    }
    //좋아요한 큐레이션 목록
    override suspend fun getLikedCurations(userId: Long): List<CurationItem> {
        val res = curationApi.getLikedCurations(userId) // BaseResponse<List<...>>

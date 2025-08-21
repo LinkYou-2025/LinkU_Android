@@ -1,5 +1,6 @@
 package com.example.data.api
 
+import com.example.data.api.dto.BaseEmptyResponse
 import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.server.CurationDetailResponse
 import com.example.data.api.dto.server.CurationLatestResponse
@@ -15,6 +16,7 @@ import retrofit2.http.Query
 import retrofit2.Response
 import retrofit2.http.Header
 import com.example.data.api.dto.server.RecommendLinksResponse
+import okhttp3.ResponseBody
 
 interface CurationApi {
 
@@ -47,10 +49,15 @@ interface CurationApi {
 //     suspend fun getMyRecentCuration(
 //         @Path("userId") userId: Long
 //     ): Response<CurationLatestResponse> // <- BaseResponse 제거
+//     @GET("/api/curations/latest/{userId}")
+//     suspend fun getMyRecentCuration(
+//         @Path("userId") userId: Long
+//     ): BaseResponse<CurationLatestResponse?>
      @GET("/api/curations/latest/{userId}")
-     suspend fun getMyRecentCuration(
+     suspend fun getMyRecentCurationRaw(
          @Path("userId") userId: Long
-     ): BaseResponse<CurationLatestResponse?>
+     ): Response<ResponseBody>
+
 
     // 큐레이션 좋아요 등록
 //    @POST("/api/curations/{curationId}/like")

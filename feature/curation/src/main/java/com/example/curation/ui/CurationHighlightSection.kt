@@ -48,14 +48,14 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+
 @Composable
 fun CurationHighlightSection(
     modifier: Modifier = Modifier,
-    viewModel: CurationViewModel, //디폴트 제거(좋아요)
-    //viewModel: CurationViewModel = hiltViewModel(),
+    viewModel: CurationViewModel, // hiltViewModel 기본값 제거
     onOpenDetail: (() -> Unit)? = null
 ) {
-    // 수집은 lifecycle-aware 권장
     val isGenerating by viewModel.isGenerating.collectAsStateWithLifecycle()
     val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
     val recentCuration by viewModel.recentCuration.collectAsStateWithLifecycle()
@@ -68,11 +68,6 @@ fun CurationHighlightSection(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // 🔔 서버 성공이지만 result=null 인 경우를 '정상 무(無)데이터'로 간주
-    //     → 빈 상태 전용 이미지 노출: img_curation_null
-    //     (errorMessage == null, isGenerating == false, recentCuration == null)
-    // ─────────────────────────────────────────────────────────────
     val isEmptySuccess = recentCuration == null && !isGenerating && errorMessage == null
 
     when {
@@ -95,34 +90,110 @@ fun CurationHighlightSection(
             Text(text = "큐레이션 생성 중...", modifier = Modifier.padding(horizontal = 20.dp))
         }
 
-        // 3) 성공이지만 result=null → 빈 상태 이미지로 대체
+        // 3) 성공이지만 result=null → 빈 상태 이미지
         isEmptySuccess -> {
             Log.d("CurationUI", "큐레이션 없음(result=null) → null 이미지 표시")
             HighlightCardWithFallback(
-                imageRes = R.drawable.img_curation_null, // ✨ 여기 핵심 변경!
+                imageRes = R.drawable.img_curation_null,
                 modifier = modifier
             )
         }
 
-        // 4) 에러 (원래 로직 유지 — 필요 시 같은 null 이미지를 써도 됨)
+        // 4) 에러
         errorMessage != null -> {
             Log.w("CurationUI", "오류 발생: $errorMessage")
             HighlightCardWithFallback(
-                imageRes = R.drawable.img_curation_null, // 이전엔 trump 이미지를 썼다면 여기서도 통일 가능
+                imageRes = R.drawable.img_curation_null,
                 modifier = modifier
             )
         }
 
-        // 5) 기타 대비(이상 상태) — 안전망
+        // 5) 기타 대비
         else -> {
             Log.d("CurationUI", "큐레이션 없음(기타 경로)")
             HighlightCardWithFallback(
-                imageRes = R.drawable.img_curation_null, // ✨ 안전망도 null 이미지로
+                imageRes = R.drawable.img_curation_null,
                 modifier = modifier
             )
         }
     }
 }
+
+//@Composable
+//fun CurationHighlightSection(
+//    modifier: Modifier = Modifier,
+//    viewModel: CurationViewModel, //디폴트 제거(좋아요)
+//    //viewModel: CurationViewModel = hiltViewModel(),
+//    onOpenDetail: (() -> Unit)? = null
+//) {
+//    // 수집은 lifecycle-aware 권장
+//    val isGenerating by viewModel.isGenerating.collectAsStateWithLifecycle()
+//    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+//    val recentCuration by viewModel.recentCuration.collectAsStateWithLifecycle()
+//    val highlightLiked by viewModel.highlightLiked.collectAsStateWithLifecycle()
+//    val likeBusy by viewModel.likeBusy.collectAsStateWithLifecycle()
+//
+//    LaunchedEffect(recentCuration, isGenerating) {
+//        if (recentCuration == null && !isGenerating) {
+//            viewModel.loadMonthlyCuration()
+//        }
+//    }
+//
+//    // ─────────────────────────────────────────────────────────────
+//    // 🔔 서버 성공이지만 result=null 인 경우를 '정상 무(無)데이터'로 간주
+//    //     → 빈 상태 전용 이미지 노출: img_curation_null
+//    //     (errorMessage == null, isGenerating == false, recentCuration == null)
+//    // ─────────────────────────────────────────────────────────────
+//    val isEmptySuccess = recentCuration == null && !isGenerating && errorMessage == null
+//
+//    when {
+//        // 1) 데이터가 있으면 이미지 카드
+//        recentCuration != null -> {
+//            Log.d("CurationUI", "큐레이션 표시 - URL: ${recentCuration!!.thumbnailUrl}")
+//            HighlightCardOnlyImage(
+//                imageUrl = recentCuration!!.thumbnailUrl,
+//                liked = highlightLiked,
+//                likeBusy = likeBusy,
+//                onToggleLike = { viewModel.toggleHighlightLike() },
+//                onCardClick = onOpenDetail,
+//                modifier = modifier
+//            )
+//        }
+//
+//        // 2) 로딩 중
+//        isGenerating -> {
+//            Log.d("CurationUI", "큐레이션 생성 중")
+//            Text(text = "큐레이션 생성 중...", modifier = Modifier.padding(horizontal = 20.dp))
+//        }
+//
+//        // 3) 성공이지만 result=null → 빈 상태 이미지로 대체
+//        isEmptySuccess -> {
+//            Log.d("CurationUI", "큐레이션 없음(result=null) → null 이미지 표시")
+//            HighlightCardWithFallback(
+//                imageRes = R.drawable.img_curation_null, // ✨ 여기 핵심 변경!
+//                modifier = modifier
+//            )
+//        }
+//
+//        // 4) 에러 (원래 로직 유지 — 필요 시 같은 null 이미지를 써도 됨)
+//        errorMessage != null -> {
+//            Log.w("CurationUI", "오류 발생: $errorMessage")
+//            HighlightCardWithFallback(
+//                imageRes = R.drawable.img_curation_null, // 이전엔 trump 이미지를 썼다면 여기서도 통일 가능
+//                modifier = modifier
+//            )
+//        }
+//
+//        // 5) 기타 대비(이상 상태) — 안전망
+//        else -> {
+//            Log.d("CurationUI", "큐레이션 없음(기타 경로)")
+//            HighlightCardWithFallback(
+//                imageRes = R.drawable.img_curation_null, // ✨ 안전망도 null 이미지로
+//                modifier = modifier
+//            )
+//        }
+//    }
+//}
 //@Composable
 //fun CurationHighlightSection(
 //    modifier: Modifier = Modifier,

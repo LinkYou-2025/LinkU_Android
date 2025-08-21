@@ -100,9 +100,13 @@ class CurationViewModel @Inject constructor(
         }.getOrDefault(-1)
     }
 
-    fun loadMonthlyCuration() {
+    // hasPrefetched == true  ➜ "빈 상태를 확정했고, 재호출 막기" 의미로만 사용
+    fun loadMonthlyCuration(forceReload: Boolean = false) {
         viewModelScope.launch {
-            if (hasPrefetched) return@launch
+            // 1) 동시 중복 방지(여전히 유지)
+            if (_isGenerating.value) return@launch
+            // 2) 빈 상태로 잠가둔 경우만 막는다 (강제 새로고침은 예외)
+            if (hasPrefetched && !forceReload) return@launch
 
             _isGenerating.value = true
             _errorMessage.value = null
@@ -110,55 +114,123 @@ class CurationViewModel @Inject constructor(
             val uid = requireUserId()
             Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
 
-            // ⬇️ 로그인 안돼 있으면 ‘빈 상태’로 조용히 표시하고 종료
+            // 로그인 안됨 → 빈 상태 확정하고 재호출 막기
             if (uid <= 0L) {
-                setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
+                setEmptyCurationState(markPrefetched = true) // ⬅ empty lock ON
+                _isGenerating.value = false
                 return@launch
             }
 
             try {
                 val item = repository.getMyRecentCuration(uid)
-                if (item == null || item.id <= 0L) {
-                    setEmptyCurationState(markPrefetched = true)
+
+                // (방어) 잘못된 값 → 빈 상태 확정(+재호출 막기)
+                if (item.id <= 0L) {
+                    setEmptyCurationState(markPrefetched = true) // ⬅ empty lock ON
                     return@launch
                 }
 
+                // ✅ 정상 데이터: 상태 갱신
                 _recentCuration.value = item
                 _currentCurationId.value = item.id
 
-                // 현재 큐레이션 좋아요 상태
                 runCatching { repository.isCurationLiked(item.id, uid) }
                     .onSuccess { _highlightLiked.value = it }
                     .onFailure { _highlightLiked.value = false }
 
-                // 추천 2개 + 좋아요 리스트
                 loadHomeRecommendedLinksTop2(uid, item.id)
                 loadLikedCurations()
 
                 Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
-                hasPrefetched = true
+
+                // ✅ 데이터가 있으므로 이후에도 재호출 허용
+                hasPrefetched = false // ⬅ empty lock OFF
             } catch (e: Exception) {
-                // ⬇️ retrofit2 없이도 403/404만 골라냄
                 val code = httpStatusCodeOrMinus1(e)
-                if (code == 403 || code == 404) {
-                    Log.w("CurationVM", "큐레이션 없음/권한 없음(HTTP $code) → 빈 상태 표시")
-                    setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
+
+                // “진짜로 최신 없음/권한 없음”은 빈 상태 확정하고 재호출 막기
+                if (e is NoSuchElementException || code == 403 || code == 404) {
+                    val tag = if (e is NoSuchElementException) "NoSuchElement" else "HTTP $code"
+                    Log.i("CurationVM", "최신 큐레이션 없음/권한없음($tag) → 빈 상태 확정")
+                    setEmptyCurationState(markPrefetched = true)  // ⬅ empty lock ON
                     return@launch
-                } else {
-                    val msg = e.message.orEmpty()
-                    _errorMessage.value = when {
-                        msg.contains("Token", true) && msg.contains("expired", true) ->
-                            "세션이 만료됐어요. 다시 로그인해 주세요."
-                        else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
-                    }
-                    Log.e("CurationVM", "큐레이션 불러오기 실패(code=$code)", e)
-                    hasPrefetched = false
                 }
+
+                // 그 외 에러는 사용자 노출 + 재시도 허용 (데이터가 있을 수 있으니 막지 않음)
+                val msg = e.message.orEmpty()
+                _errorMessage.value =
+                    if (msg.contains("Token", true) && msg.contains("expired", true))
+                        "세션이 만료됐어요. 다시 로그인해 주세요."
+                    else
+                        "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+
+                Log.e("CurationVM", "큐레이션 불러오기 실패(code=$code)", e)
+                hasPrefetched = false // ⬅ empty lock OFF (재시도 허용)
             } finally {
                 _isGenerating.value = false
             }
         }
     }
+
+//    fun loadMonthlyCuration() {
+//        viewModelScope.launch {
+//            if (hasPrefetched) return@launch
+//
+//            _isGenerating.value = true
+//            _errorMessage.value = null
+//
+//            val uid = requireUserId()
+//            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
+//
+//            // ⬇️ 로그인 안돼 있으면 ‘빈 상태’로 조용히 표시하고 종료
+//            if (uid <= 0L) {
+//                setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
+//                return@launch
+//            }
+//
+//            try {
+//                val item = repository.getMyRecentCuration(uid)
+//                if (item == null || item.id <= 0L) {
+//                    setEmptyCurationState(markPrefetched = true)
+//                    return@launch
+//                }
+//
+//                _recentCuration.value = item
+//                _currentCurationId.value = item.id
+//
+//                // 현재 큐레이션 좋아요 상태
+//                runCatching { repository.isCurationLiked(item.id, uid) }
+//                    .onSuccess { _highlightLiked.value = it }
+//                    .onFailure { _highlightLiked.value = false }
+//
+//                // 추천 2개 + 좋아요 리스트
+//                loadHomeRecommendedLinksTop2(uid, item.id)
+//                loadLikedCurations()
+//
+//                Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
+//                hasPrefetched = true
+//            } catch (e: Exception) {
+//                // ⬇️ retrofit2 없이도 403/404만 골라냄
+//                val code = httpStatusCodeOrMinus1(e)
+//                if (code == 403 || code == 404) {
+//                    Log.w("CurationVM", "큐레이션 없음/권한 없음(HTTP $code) → 빈 상태 표시")
+//                    setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
+//                    return@launch
+//                } else {
+//                    val msg = e.message.orEmpty()
+//                    _errorMessage.value = when {
+//                        msg.contains("Token", true) && msg.contains("expired", true) ->
+//                            "세션이 만료됐어요. 다시 로그인해 주세요."
+//                        else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+//                    }
+//                    Log.e("CurationVM", "큐레이션 불러오기 실패(code=$code)", e)
+//                    hasPrefetched = false
+//                }
+//            } finally {
+//                _isGenerating.value = false
+//            }
+//        }
+//    }
 //    fun loadMonthlyCuration() {
 //        viewModelScope.launch {
 //            // 한 번만 로드, 실패 시엔 다시 시도 가능하도록 플래그 관리
