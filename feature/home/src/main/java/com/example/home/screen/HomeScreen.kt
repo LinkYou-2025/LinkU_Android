@@ -545,21 +545,22 @@ private fun LinkCard(
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(id = R.drawable.img_default),
-//                error = painterResource(id = R.drawable.img_default)
+                fallback    = painterResource(R.drawable.img_default),
+                error = painterResource(id = R.drawable.img_default)
             )
 
             // AI 요약 뱃지
-//            if (link.aiSummarized) {
-//                Icon(
-//                    painter = painterResource(id = R.drawable.ic_ai_summarize),
-//                    contentDescription = "AI 요약됨",
-//                    modifier = Modifier
-//                        .align(Alignment.TopEnd)
-//                        .size(20.dp)
-//                        .padding(6.dp),
-//                    tint = Color.Unspecified
-//                )
-//            }
+            if (link.aiArticleExists) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_ai_summarize),
+                    contentDescription = "AI 요약됨",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp)
+                        .padding(6.dp),
+                    tint = Color.Unspecified
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(14.dp))
@@ -622,7 +623,8 @@ private fun LinkCard(
                         modifier = Modifier.size(22.dp),
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(id = R.drawable.ic_domain_default), // 기본 아이콘 대체
-//                        error = painterResource(id = R.drawable.ic_naver)
+                        fallback = painterResource(R.drawable.ic_domain_default),
+                        error = painterResource(R.drawable.ic_domain_default)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))

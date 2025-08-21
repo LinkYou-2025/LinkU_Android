@@ -31,6 +31,17 @@ interface LinkuRepository {
     // 링크 상세 보기
     suspend fun getLinkDetail(linkuId: Long): LinkResultInfo
 
+    // 링크 수정
+    suspend fun updateLink(
+        linkuId: Long,
+        categoryId: Long,
+        linku: String,
+        memo: String?,
+        emotionId: Long,
+        domainId: Long,
+        title: String
+    ): LinkResultInfo
+
     // 빠른 링크 검색
     suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo>
 }

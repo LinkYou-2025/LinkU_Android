@@ -42,7 +42,7 @@ interface LinkuApi {
     ): BaseResponse<LinkuIsExistDTO>
 
     // 링크 수정
-    @PATCH("/api/linku/{linkuid}")
+    @PATCH("/api/linku/{linkuId}")
     suspend fun updateLink(
         @Path("linkuId") linkuId: Long,
         @Body body: LinkuUpdateDTO
