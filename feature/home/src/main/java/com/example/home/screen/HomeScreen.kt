@@ -359,7 +359,12 @@ fun HomeScreen(
                     // 1) 링크 3개 미만 안내
                     showRecs && needMoreForRecommendation -> {
                         Column(
-
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(LocalColorTheme.current.gray[100])
+                                .padding(top = 65.dp, bottom = 195.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Image(
                                 painter = painterResource(R.drawable.ic_no_recents),
@@ -379,11 +384,16 @@ fun HomeScreen(
                     // 2) 추천 모드 + 분류 중
                     showRecs && isRecommending -> {
                         Column(
-
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(LocalColorTheme.current.gray[100])
+                                .padding(top = 65.dp, bottom = 195.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             Image(
                                 // TODO: 애니메이션으로 변경
-                                painter = painterResource(Res.drawable.logo_whiteback),
+                                painter = painterResource(R.drawable.ic_recommending),
                                 contentDescription = null,
                                 modifier = Modifier.height(40.dp)
                             )
@@ -399,9 +409,9 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Text(
-                                text = "AI가 ${userName}님의 감정과 상황에 맞춰 추천할 링크를 분류하고 있어요!",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[700]
+                                text = "AI가 ${userName}님의 감정과 상황에 맞춰\n추천할 링크를 분류하고 있어요!",
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
+                                color = LocalColorTheme.current.gray[600]
                             )
                         }
                     }
@@ -448,7 +458,7 @@ fun HomeScreen(
                     }
                     else -> {
                         if (itemsToRender.isEmpty()) {
-                            val emptyMsg = if (showRecs) "추천할 링크가 아직 없어요!" else "최근에 열람한 링크가 없어요!"
+                            val emptyMsg = if (showRecs) "지금 마음과 딱 맞는 콘텐츠는 아직 없지만,\n저장된 링크가 늘어날수록 더 나은 추천이 가능해져요." else "최근에 열람한 링크가 없어요!"
 
                             Box(
                                 modifier = Modifier
@@ -460,7 +470,7 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = emptyMsg,
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[600]
                                 )
                             }
