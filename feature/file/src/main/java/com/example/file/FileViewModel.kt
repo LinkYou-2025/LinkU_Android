@@ -23,12 +23,16 @@ import com.example.core.repository.RecentSearchRepository
 import com.example.core.repository.UserRepository
 import com.example.data.api.dto.server.*
 import com.example.data.preference.AuthPreference
+import com.example.data.util.DomainIdMapper
 import com.example.design.FastSearchItem
 import com.example.design.theme.color.CategoryColorStyle
 import com.example.data.util.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -137,27 +141,197 @@ class FileViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
+    // ==== [로딩 상태: 상세/AI 분리] ====
+    private val _isLoadingLinkDetail = MutableStateFlow(false)
+    val isLoadingLinkDetail: StateFlow<Boolean> = _isLoadingLinkDetail.asStateFlow()
+
+    private val _isLoadingAiArticle = MutableStateFlow(false)
+    val isLoadingAiArticle: StateFlow<Boolean> = _isLoadingAiArticle.asStateFlow()
+
+    // ==== [AI 진행률] ====
+    private val _aiProgress = MutableStateFlow(0f)
+    val aiProgress: StateFlow<Float> = _aiProgress.asStateFlow()
+
+    private var aiJob: Job? = null
+    private var aiProgressJob: Job? = null
+
+//    // ==== [카테고리 색상 불러오기 - HomeVM과 이름을 맞춘 alias] ====
+//    fun loadCategoryColors() = getCategoryColor()
+//
+//    // ==== [상세 불러오기 - AI는 자동 호출하지 않고 초기화만] ====
+//    fun loadLinkDetail(linkuId: Long) {
+//        Log.d("FileVM", "loadLinkDetail 시작 -> linkuId=$linkuId")
+//        viewModelScope.launch {
+//            _isLoadingLinkDetail.value = true
+//            try {
+//                val info = linkuRepository.getLinkDetail(linkuId)
+//                Log.d("FileVM", "상세 응답 -> $info")
+//                _linkDetail.value = info
+//                _aiArticleDetail.value = null // 상세 갱신 시 AI 요약 초기화
+//            } catch (e: Exception) {
+//                Log.e("FileVM", "상세 조회 실패", e)
+//                _linkDetail.value = null
+//                _errorMessage.value = e.message
+//            } finally {
+//                _isLoadingLinkDetail.value = false
+//            }
+//        }
+//    }
+
+    // ==== [AI 요약 호출] ====
+    fun loadAiArticle(linkuId: Long) {
+        Log.d("FileVM", "loadAiArticle 진입: linkuId=$linkuId, 현재 isLoading=${_isLoadingAiArticle.value}")
+        if (_isLoadingAiArticle.value) {
+            Log.d("FileVM", "이미 로딩중 → 리턴")
+            return
+        }
+
+        _isLoadingAiArticle.value = true
+        _aiProgress.value = 0.1f
+
+        // 진행률 타이머 (0.85f까지 서서히 상승)
+        aiProgressJob?.cancel()
+        aiProgressJob = viewModelScope.launch {
+            val cap = 0.85f
+            while (isActive && _aiProgress.value < cap) {
+                delay(100)
+                _aiProgress.value = (_aiProgress.value + 0.02f).coerceAtMost(cap)
+            }
+        }
+
+        aiJob?.cancel()
+        aiJob = viewModelScope.launch {
+            runCatching { aiArticleRepository.getAiArticle(linkuId) }
+                .onSuccess { article ->
+                    Log.d("FileVM", "AI API 성공: $article")
+                    _aiArticleDetail.value = article
+                }
+                .onFailure { e ->
+                    Log.e("FileVM", "AI API 실패", e)
+                    _aiArticleDetail.value = null
+                    _errorMessage.value = e.message
+                }
+
+            // 완료 처리
+            aiProgressJob?.cancel()
+            _aiProgress.value = 1f
+            _isLoadingAiArticle.value = false
+
+            // 100% 잠깐 보여준 뒤 초기화(선택)
+            launch {
+                delay(300)
+                _aiProgress.value = 0f
+            }
+        }
+    }
+
+    // ==== [AI 작업 취소] ====
+    fun cancelAiArticleJob() {
+        Log.d("FileVM", "cancelAiArticleJob 호출")
+        aiJob?.cancel()
+        aiProgressJob?.cancel()
+        _isLoadingAiArticle.value = false
+        _aiProgress.value = 0f
+    }
+
+    // ==== [링크 수정] ====
+    private var isUpdatingLink = false
+    fun updateLink(
+        title: String,
+        memo: String?,
+        categoryId: Long?,
+        emotionId: Long?,
+        onSucceed: (LinkResultInfo) -> Unit = {},
+        onFailed: (Throwable) -> Unit = {},
+    ) {
+        val current = _linkDetail.value ?: run {
+            onFailed(IllegalStateException("링크 상세가 없습니다."))
+            return
+        }
+        if (isUpdatingLink) return
+
+        val fixedLinkuId = current.linkuId
+        val fixedLinku   = current.linku
+
+        // domainId 계산 (URL/도메인 기반)
+        val computedDomainId = DomainIdMapper.resolve(
+            url = fixedLinku,
+            domain = current.domain
+        )
+
+        viewModelScope.launch {
+            isUpdatingLink = true
+            try {
+                val updated = linkuRepository.updateLink(
+                    linkuId    = fixedLinkuId,
+                    categoryId = categoryId ?: (current.categoryId ?: 0L),
+                    linku      = fixedLinku,                     // 서버 URL 고정
+                    memo       = memo,                           // null/"" 그대로
+                    emotionId  = emotionId ?: (current.emotionId ?: 0L),
+                    domainId   = computedDomainId,
+                    title      = title.ifBlank { current.title } // 빈 제목이면 기존 유지
+                )
+                _linkDetail.value = updated
+                onSucceed(updated)
+            } catch (e: Throwable) {
+                onFailed(e)
+                _errorMessage.value = e.message
+            } finally {
+                isUpdatingLink = false
+            }
+        }
+    }
+
     // ---------- get method ----------
     fun setLinkDetail(linkuId: Long){
+//        Log.d("FileViewModel", "setLinkDetail")
+//
+//        viewModelScope.launch{
+//            Log.d("FileViewModel", "setLinkDetail launch")
+//
+//            startLoading()
+//            _errorMessage.value = null
+//
+//            try{
+//                Log.d("FileViewModel", "setLinkDetail try")
+//
+//                _linkDetail.value = linkuRepository.getLinkDetail(linkuId)
+//                _aiArticleDetail.value = aiArticleRepository.getAiArticle(linkuId)
+//
+//                Log.d("FileViewModel", "setLinkDetail try result : ${_linkDetail.value} / ${_aiArticleDetail.value}")
+//            } catch (e: Exception){
+//                Log.d("FileViewModel", "setLinkDetail catch: $e.message")
+//                _errorMessage.value = e.message
+//            }finally {
+//                Log.d("FileViewModel", "setLinkDetail finally")
+//                stopLoading()
+//            }
+//        }
+//        Log.d("FileViewModel", "setLinkDetail return")
         Log.d("FileViewModel", "setLinkDetail")
 
-        viewModelScope.launch{
+        viewModelScope.launch {
             Log.d("FileViewModel", "setLinkDetail launch")
 
             startLoading()
             _errorMessage.value = null
 
-            try{
-                Log.d("FileViewModel", "setLinkDetail try")
+            try {
+                Log.d("FileViewModel", "상세 요청 -> linkuId = $linkuId")
 
-                _linkDetail.value = linkuRepository.getLinkDetail(linkuId)
-                _aiArticleDetail.value = aiArticleRepository.getAiArticle(linkuId)
+                // 상세만 로드 (AI 자동 호출 제거)
+                val detail = linkuRepository.getLinkDetail(linkuId)
+                Log.d("FileViewModel", "상세 응답 -> $detail")
+                _linkDetail.value = detail
 
-                Log.d("FileViewModel", "setLinkDetail try result : ${_linkDetail.value} / ${_aiArticleDetail.value}")
-            } catch (e: Exception){
-                Log.d("FileViewModel", "setLinkDetail catch: $e.message")
+                // 이전 AI 결과는 초기화 (버튼 눌렀을 때만 따로 호출)
+                _aiArticleDetail.value = null
+
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "상세 조회 실패", e)
+                _linkDetail.value = null
                 _errorMessage.value = e.message
-            }finally {
+            } finally {
                 Log.d("FileViewModel", "setLinkDetail finally")
                 stopLoading()
             }

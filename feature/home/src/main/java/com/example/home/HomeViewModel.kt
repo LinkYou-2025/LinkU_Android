@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.File
@@ -218,6 +219,12 @@ class HomeViewModel @Inject constructor(
     private val isLoadingAiArticleState = mutableStateOf(false)
     val isLoadingAiArticle get() = isLoadingAiArticleState.value
 
+    // 진행률
+    private val _aiProgress = MutableStateFlow(0f)
+    val aiProgress: StateFlow<Float> = _aiProgress.asStateFlow()
+
+    private var aiJob: Job? = null
+    private var aiProgressJob: Job? = null
 
     // 링크 저장
     fun saveLink(
@@ -349,16 +356,8 @@ class HomeViewModel @Inject constructor(
                     Log.d("SaveLinkFlow", "상세 응답 -> LinkResultInfo = $info")
                     linkDetailState.value = info
 
-                    // 조건부 AI 요약 호출
-                    val hasSummary = !info.summary.isNullOrBlank()
-                    val hasKeyword = !info.keyword.isNullOrBlank()
-                    if (!info.aiArticleExists && !hasSummary && !hasKeyword) {
-                        // 서버에 요약이 전혀 없을 때만 생성 API 호출
-                        loadAiArticle(linkuId)
-                    } else {
-                        // 이미 상세에 담겨온 경우: 별도 호출 없이 화면에서 바로 사용
-                        aiArticleDetailState.value = null // 사용 안 함 (UI는 linkDetail의 요약/키워드 사용)
-                    }
+                    // 자동 생성은 하지 않고, 항상 초기화만 수행
+                    aiArticleDetailState.value = null
                 }
                 .onFailure { e ->
                     Log.e("SaveLinkFlow", "상세 응답 실패", e)
@@ -371,16 +370,72 @@ class HomeViewModel @Inject constructor(
 
     // AI 요약
     fun loadAiArticle(linkuId: Long) {
-        viewModelScope.launch {
-            isLoadingAiArticleState.value = true
+//        viewModelScope.launch {
+//            isLoadingAiArticleState.value = true
+//            runCatching { aiArticleRepository.getAiArticle(linkuId) }
+//                .onSuccess { aiArticleDetailState.value = it }
+//                .onFailure { e ->
+//                    Log.e("SaveLinkFlow", "AI 요약 불러오기 실패", e)
+//                    aiArticleDetailState.value = null
+//                }
+//            isLoadingAiArticleState.value = false
+//        }
+
+        Log.d("HomeVM", "loadAiArticle 진입: linkuId=$linkuId, 현재 isLoading=${isLoadingAiArticleState.value}")
+        if (isLoadingAiArticleState.value) {
+            Log.d("HomeVM", "이미 로딩중 → 조기 리턴")
+            return
+        }
+
+        isLoadingAiArticleState.value = true
+        Log.d("HomeVM", "isLoadingAiArticle = true 로 세팅 완료")
+        _aiProgress.value = 0.1f
+
+        // 진행률을 0.85f까지 서서히 끌어올리는 타이머
+        aiProgressJob?.cancel()
+        aiProgressJob = viewModelScope.launch {
+            Log.d("HomeVM", "aiProgressJob 시작")
+            val cap = 0.85f
+            while (isActive && _aiProgress.value < cap) {
+                delay(100)
+                _aiProgress.value = (_aiProgress.value + 0.02f).coerceAtMost(cap)
+            }
+            Log.d("HomeVM", "aiProgressJob 종료")
+        }
+
+        aiJob?.cancel()
+        aiJob = viewModelScope.launch {
+            Log.d("HomeVM", "AI API 호출 시작")
             runCatching { aiArticleRepository.getAiArticle(linkuId) }
-                .onSuccess { aiArticleDetailState.value = it }
+                .onSuccess {
+                    Log.d("HomeVM", "AI API 성공: $it")
+                    aiArticleDetailState.value = it
+                }
                 .onFailure { e ->
-                    Log.e("SaveLinkFlow", "AI 요약 불러오기 실패", e)
+                    Log.e("HomeVM", "AI API 실패", e)
                     aiArticleDetailState.value = null
                 }
+
+            // 완료 처리
+            aiProgressJob?.cancel()
+            _aiProgress.value = 1f
             isLoadingAiArticleState.value = false
+            Log.d("HomeVM", "isLoadingAiArticle = false 로 세팅 완료")
+
+            // (선택) 잠깐 100% 보여준 뒤 초기화
+            launch {
+                delay(300)
+                _aiProgress.value = 0f
+                Log.d("HomeVM", "aiProgress 0으로 초기화")
+            }
         }
+    }
+
+    fun cancelAiArticleJob() {
+        aiJob?.cancel()
+        aiProgressJob?.cancel()
+        isLoadingAiArticleState.value = false
+        _aiProgress.value = 0f
     }
 
     // 링크 수정
