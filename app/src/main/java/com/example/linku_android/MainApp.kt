@@ -2,6 +2,7 @@ package com.example.linku_android
 
 import android.R.attr.type
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -168,17 +169,39 @@ fun MainApp(
                         // 현재 화면의 route
                         val currentRoute = navigator.currentBackStackEntry?.destination?.route
 
-                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
-                        if (currentRoute != route) {
-                            navigator.navigate(route) {
-                                popUpTo(navigator.graph.findStartDestination().id) {
-                                    saveState = true
-                                    inclusive = false
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
+//                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
+//                        if (currentRoute != route) {
+//                            navigator.navigate(route) {
+//                                popUpTo(navigator.graph.findStartDestination().id) {
+//                                    saveState = true
+//                                    inclusive = false
+//                                }
+//                                launchSingleTop = true
+//                                restoreState = true
+//                            }
+//                        }
+                    if (currentRoute == route) {
+                        // 같은 탭 재선택: 내부 스택 리셋
+                        navigator.navigate(route) {
+                            // 해당 탭 루트까지 모두 제거하고
+                            popUpTo(route) { inclusive = true }
                         }
+                        // 다시 동일 라우트 진입 (깨끗한 초기 상태)
+                        navigator.navigate(route) {
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    } else {
+                        // 다른 탭으로 이동: 기존 로직 유지
+                        navigator.navigate(route) {
+                            popUpTo(navigator.graph.findStartDestination().id) {
+                                saveState = true
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
 //                    }
                 },
                 onCenterButtonClicked = {
@@ -824,16 +847,56 @@ fun MainApp(
                     arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
                 ) { backStackEntry ->
                     val vm: HomeViewModel = homeViewModel
+                    val context = LocalContext.current
                     val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
 
                     LaunchedEffect(linkuId) {
                         vm.loadLinkDetail(linkuId)
+                        vm.loadCategoryColors()
+                    }
+
+                    // 진행률/색상 맵 수집
+                    val aiProgress = vm.aiProgress.collectAsState().value
+                    val categoryColorMap = vm.categoryColorMap.collectAsState().value
+
+                    // 외부 브라우저 열기
+                    fun openUrl(url: String) {
+                        runCatching {
+                            val fixed = if (url.startsWith("http")) url else "https://$url"
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(fixed)
+                            )
+                            context.startActivity(intent)
+                        }.onFailure {
+                            Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
+                        }
                     }
 
                     SaveLinkResultScreen(
                         link = vm.linkDetail,
-                        isLoading = vm.isLoadingLinkDetail,
-                        onBack = { navigator.popBackStack() }
+                        aiArticle = vm.aiArticleDetail,
+                        isLoading = vm.isLoadingLinkDetail || vm.isLoadingAiArticle,
+                        isAiLoading = vm.isLoadingAiArticle,
+                        onBack = { navigator.popBackStack() },
+                        onOpenLink = { url -> openUrl(url) },
+                        categoryColorMap = categoryColorMap,
+                        onSubmitEdit = { title, memo, categoryId, emotionId ->
+                            vm.updateLink(
+                                title = title,
+                                memo = memo,
+                                categoryId = categoryId,
+                                emotionId = emotionId,
+                                onSucceed = { Toast.makeText(context, "수정 완료", Toast.LENGTH_SHORT).show() },
+                                onFailed = { e ->
+                                    Log.e("SaveLinkResult", "수정 실패", e)
+                                    Toast.makeText(context, e.message ?: "수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        },
+                        onRequestAiSummary = { vm.loadAiArticle(linkuId) },
+                        aiProgress = aiProgress,
+                        onCancelAi = { vm.cancelAiArticleJob() }
                     )
                 }
 
