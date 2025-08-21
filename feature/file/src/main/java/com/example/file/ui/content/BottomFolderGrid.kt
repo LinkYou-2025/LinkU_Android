@@ -79,7 +79,9 @@ fun BottomFolderGrid(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    EmptyFolderItemLayout()
+                    EmptyFolderItemLayout(
+                        modifier = Modifier.fillMaxSize(164f/174f)
+                    )
 
                     Image(
                         modifier = Modifier.padding(top = 71.dp),

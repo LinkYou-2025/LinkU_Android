@@ -487,4 +487,28 @@ class FolderRepositoryImpl @Inject constructor(
         Log.d("updateLink", "updateLink success")
         return linku
     }
+
+    override suspend fun deleteLink(linkuId: Long) {
+        Log.d("deleteLink", "linkuId: $linkuId")
+
+        try {
+            Log.d("deleteLink", "try")
+
+            val userLinkuId = serverApi.withAuth(authPreference) {
+                getDetailLink(linkuId)
+            }.userLinkuId
+
+            Log.d("deleteLink", "userLinkuId: $userLinkuId")
+
+            serverApi.withAuthResp204Raw(authPreference) {
+                deleteLink(userLinkuId)
+            }
+
+            Log.d("deleteLink", "well done")
+        } catch (e: Exception) {
+            Log.d("deleteLink", "error: $e")
+        }
+
+        Log.d("deleteLink", "deleteLink return")
+    }
 }

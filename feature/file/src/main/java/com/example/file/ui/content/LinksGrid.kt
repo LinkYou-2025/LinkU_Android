@@ -1,5 +1,6 @@
 package com.example.file.ui.content
 
+import androidx.lifecycle.lifecycleScope
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +37,7 @@ import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
+import kotlinx.coroutines.launch
 
 @Composable
 fun LinksGrid(
@@ -45,7 +48,10 @@ fun LinksGrid(
 
     val hasNotCategorizationLinks = fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle().value.isNotEmpty()
 
-    var modalWindowVisible by remember { mutableStateOf(false) }
+    var categorizationModalWindowVisible by remember { mutableStateOf(false) }
+    var deleteModalWindowVisible by remember { mutableStateOf(false) }
+
+    var onLinkLongClick: () -> Unit = {}
 
     VerticalGrid(
         modifier = Modifier
@@ -59,10 +65,10 @@ fun LinksGrid(
                 .fillMaxWidth()
                 .noRippleClickable {
                     Log.d("LinksGrid", "링크 추가하기 클릭")
-                    if(hasNotCategorizationLinks){
+                    if (hasNotCategorizationLinks) {
                         folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                    } else{
-                        modalWindowVisible = true
+                    } else {
+                        categorizationModalWindowVisible = true
                     }
                 },
             contentAlignment = Alignment.TopStart
@@ -97,9 +103,17 @@ fun LinksGrid(
             }
         }
 
+        val scope = rememberCoroutineScope()
 
         // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
         for((i, link) in linkList.withIndex()) {
+            onLinkLongClick = {
+                link.linkuId.let {
+                    Log.d("LinkItemLayout", "아이템 롱클릭: \"savelinkresult/${link.linkuId}\"")
+                    fileViewModel.deleteLink(link.linkuId)
+                }
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -109,6 +123,9 @@ fun LinksGrid(
                     link = link,
                     onClick = {
                         fileViewModel.onLinkClick?.invoke(link.linkuId)
+                    },
+                    onLongClick = {
+                        deleteModalWindowVisible = true
                     }
                 )
             }
@@ -117,8 +134,8 @@ fun LinksGrid(
 
     // 분류되지 않는 링크가 없으면 뜨는 모달창
     FileModalWindow(
-        visible = modalWindowVisible,
-        onDismiss = { modalWindowVisible = false },
+        visible = categorizationModalWindowVisible,
+        onDismiss = { categorizationModalWindowVisible = false },
         title = "분류되지 않은 링크가 없습니다.",
         positiveText = "확인"
     ) {
@@ -130,6 +147,28 @@ fun LinksGrid(
             fontWeight = FontWeight.Normal,
             color = Gray600,
             textAlign = TextAlign.Center
+        )
+    }
+
+    // 링크 삭제 모달창
+    FileModalWindow(
+        visible = deleteModalWindowVisible,
+        onOkay = {
+            onLinkLongClick()
+        },
+        onDismiss = { deleteModalWindowVisible = false },
+        title = "해당 링크를 삭제하시겠습니까?",
+        positiveText = "삭제",
+        negativeText = "취소"
+    ) {
+        Text(
+            text = "삭제 시 해당 링크가 영구적으로 제거되며\n복구가 불가능합니다.",
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            fontFamily = DefaultFont,
+            fontWeight = FontWeight(400),
+            color = Gray600,
+            textAlign = TextAlign.Center,
         )
     }
 }
