@@ -61,7 +61,8 @@ fun AccountSettingScreen(
     nicknamePlaceholder: String,
     jobPlaceholder: String,
     initialPurposeTags: Set<String> = emptySet(),
-    initialContentTags: Set<String> = emptySet()
+    initialContentTags: Set<String> = emptySet(),
+    onSubmit: (nickname: String, jobId: Long, purposes: List<String>, interests: List<String>) -> Unit
 ) {
     val username = nicknamePlaceholder
     val userjob  = jobPlaceholder
@@ -325,7 +326,22 @@ fun AccountSettingScreen(
                         if (isModified) Basic.maincolor else inactiveBrush
                     )
                     .clickable(enabled = isModified) {
-                        // TODO: 변경 로직
+                        val finalNickname = if (name.isNotBlank()) name else username
+                        val jobId = when (selectedJob) {
+                            "고등학생" -> 1L
+                            "대학생" -> 2L
+                            "직장인" -> 3L
+                            "자영업자" -> 4L
+                            "프리랜서" -> 5L
+                            "취준생" -> 6L
+                            else -> 0L
+                        }
+                        onSubmit(
+                            finalNickname,
+                            jobId,
+                            selectedPurposeTags.toList(),
+                            selectedContentTags.toList()
+                        )
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -532,13 +548,14 @@ fun BrushText(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAccountSettingScreen() {
-    val navController = rememberNavController()
-    AccountSettingScreen(
-        navController = navController,
-        nicknamePlaceholder = "세나",
-        jobPlaceholder = "대학생"
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAccountSettingScreen() {
+//    val navController = rememberNavController()
+//    AccountSettingScreen(
+//        navController = navController,
+//        nicknamePlaceholder = "세나",
+//        jobPlaceholder = "대학생",
+//        onSubmit = {}
+//    )
+//}
