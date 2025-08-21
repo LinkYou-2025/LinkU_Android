@@ -134,6 +134,7 @@ fun HomeScreen(
     var isTopBarExpanded by remember { mutableStateOf(true) }
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
+    var isTopBarLockedCollapsed by remember { mutableStateOf(false) } // 접힘 고정
 
     val emotionIdMap = mapOf(
         1L to "즐거움",
@@ -246,9 +247,18 @@ fun HomeScreen(
 //    val linkList = remember { mutableStateOf(listOf()) }
 
     // 스크롤 변화 감지해서 TopBar 접기/펼치기
-    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex) {
-        isTopBarExpanded =
-            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+//    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex) {
+//        isTopBarExpanded =
+//            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+//    }
+    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex, isTopBarLockedCollapsed) {
+        if (!isTopBarLockedCollapsed) {
+            isTopBarExpanded =
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        } else {
+            // 고정 접힘이면 스크롤 상관없이 계속 접힘 유지
+            isTopBarExpanded = false
+        }
     }
 
     // String 키 → 서버 ID 매핑 (필요 시 서버 정의에 맞춰 숫자만 바꾸면 됨)
@@ -289,6 +299,7 @@ fun HomeScreen(
             onClearNeedMoreNotice() // 이전 안내 끄기
             onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
             showRecs = true
+            isTopBarLockedCollapsed = true
             isTopBarExpanded = false
             coroutineScope.launch { listState.animateScrollToItem(1) }
         }
@@ -322,6 +333,7 @@ fun HomeScreen(
                     selectedTask = null        // 상황 선택 초기화
                     onClearNeedMoreNotice()  // 문구 초기화
 
+                    isTopBarLockedCollapsed = false  // 고정 해제
                     isTopBarExpanded = true    // 상단 영역 펼치기
                     coroutineScope.launch { listState.animateScrollToItem(0) } // 맨 위로
                 },
@@ -346,7 +358,14 @@ fun HomeScreen(
                 when {
                     // 1) 링크 3개 미만 안내
                     showRecs && needMoreForRecommendation -> {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(LocalColorTheme.current.gray[100])
+                                .padding(top = 65.dp, bottom = 195.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Image(
                                 painter = painterResource(R.drawable.ic_no_recents),
                                 contentDescription = null,
@@ -364,10 +383,17 @@ fun HomeScreen(
                     }
                     // 2) 추천 모드 + 분류 중
                     showRecs && isRecommending -> {
-                        Column {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(LocalColorTheme.current.gray[100])
+                                .padding(top = 65.dp, bottom = 195.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
                             Image(
                                 // TODO: 애니메이션으로 변경
-                                painter = painterResource(Res.drawable.logo_whiteback),
+                                painter = painterResource(R.drawable.ic_recommending),
                                 contentDescription = null,
                                 modifier = Modifier.height(40.dp)
                             )
@@ -383,9 +409,9 @@ fun HomeScreen(
                             Spacer(modifier = Modifier.height(12.dp))
 
                             Text(
-                                text = "AI가 ${userName}님의 감정과 상황에 맞춰 추천할 링크를 분류하고 있어요!",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[700]
+                                text = "AI가 ${userName}님의 감정과 상황에 맞춰\n추천할 링크를 분류하고 있어요!",
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
+                                color = LocalColorTheme.current.gray[600]
                             )
                         }
                     }
@@ -432,7 +458,7 @@ fun HomeScreen(
                     }
                     else -> {
                         if (itemsToRender.isEmpty()) {
-                            val emptyMsg = if (showRecs) "추천할 링크가 아직 없어요!" else "최근에 열람한 링크가 없어요!"
+                            val emptyMsg = if (showRecs) "지금 마음과 딱 맞는 콘텐츠는 아직 없지만,\n저장된 링크가 늘어날수록 더 나은 추천이 가능해져요." else "최근에 열람한 링크가 없어요!"
 
                             Box(
                                 modifier = Modifier
@@ -444,7 +470,7 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = emptyMsg,
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[600]
                                 )
                             }

@@ -53,6 +53,7 @@ import androidx.navigation.compose.navigation
 
 
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.home.HomeApp
 import com.example.curation.ui.CurationDetailScreen
 import com.example.curation.ui.CurationScreen
@@ -106,6 +107,7 @@ fun MainApp(
     val navigator = rememberNavController()
 //    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
 
+
     // 회원가입에서 사용할 뷰모델
     val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
 
@@ -129,6 +131,15 @@ fun MainApp(
     var showNavBar by remember { mutableStateOf(false) }
 
     var saveLinkEntryTriggered by remember { mutableStateOf(false) }
+
+    // 현재 라우트 관찰
+    val navBackStackEntry by navigator.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    // 액티비티 참조 + 두번뒤로 시간 기록
+    val context = LocalContext.current
+    val activity = remember(context) { context.findActivity() }
+    var lastBackPressed by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(saveLinkEntryTriggered) {
         if (saveLinkEntryTriggered) {
@@ -669,7 +680,7 @@ fun MainApp(
                         val curationVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
 
                         CurationScreen(
-                            viewModel = curationViewModel,
+                            viewModel = curationVm,
                             onOpenDetail = { userId: Long, curationId: Long ->
                                 navigator.navigate("curation_detail/$userId/$curationId") {
                                     launchSingleTop = true
@@ -1042,6 +1053,26 @@ fun MainApp(
                     }
                 }
 
+            }
+
+            // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
+            val isAtTabRoot = showNavBar && when (currentRoute) {
+                NavigationRoute.Home.route,
+                NavigationRoute.File.route,
+                NavigationRoute.Curation.route, // curation_graph의 리스트 루트
+                NavigationRoute.MyPage.route -> true
+                else -> false
+            }
+
+            // 루트에서만 '두 번 뒤로 종료'
+            BackHandler(enabled = isAtTabRoot) {
+                val now = System.currentTimeMillis()
+                if (now - lastBackPressed < 2000L) {
+                    activity?.finish()
+                } else {
+                    Toast.makeText(context, "뒤로 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+                    lastBackPressed = now
+                }
             }
         }
     }

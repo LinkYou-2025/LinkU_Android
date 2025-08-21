@@ -63,16 +63,18 @@ class HomeViewModel @Inject constructor(
     private val _categoryColorMap = MutableStateFlow<Map<String, CategoryColorStyle>>(emptyMap())
     val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
 
-    fun loadCategoryColors() {
+    private var categoryLoaded = false
+    fun loadCategoryColors(force: Boolean = false) {
+        if (!force && categoryLoaded && _categoryColorMap.value.isNotEmpty()) return
         viewModelScope.launch {
-            runCatching {
-                categoryRepository.getCategoryColor().toCategoryColorStyleMap()
-            }.onSuccess { map ->
-                _categoryColorMap.value = map
-            }.onFailure { e ->
-                Log.e("HomeVM", "loadCategoryColors failed", e)
-                _categoryColorMap.value = emptyMap()
-            }
+            runCatching { categoryRepository.getCategoryColor().toCategoryColorStyleMap() }
+                .onSuccess { map ->
+                    _categoryColorMap.value = map
+                    categoryLoaded = true
+                }
+                .onFailure {
+                    Log.e("HomeVM", "loadCategoryColors failed", it)
+                }
         }
     }
 
@@ -343,27 +345,66 @@ class HomeViewModel @Inject constructor(
     private val isLoadingLinkDetailState = mutableStateOf(false)
     val isLoadingLinkDetail get() = isLoadingLinkDetailState.value
 
-    fun loadLinkDetail(linkuId: Long) {
+//    fun loadLinkDetail(linkuId: Long) {
+//        viewModelScope.launch {
+//            isLoadingLinkDetailState.value = true
+//
+//            // 상세 요청 전에 요청 파라미터 로깅
+//            Log.d("SaveLinkFlow", "상세 요청 -> linkuId = $linkuId")
+//
+//            runCatching { linkuRepository.getLinkDetail(linkuId) }
+//                .onSuccess { info ->
+//                    // 상세 응답(도메인 모델) 로깅
+//                    Log.d("SaveLinkFlow", "상세 응답 -> LinkResultInfo = $info")
+//                    linkDetailState.value = info
+//
+//                    // 자동 생성은 하지 않고, 항상 초기화만 수행
+//                    aiArticleDetailState.value = null
+//                }
+//                .onFailure { e ->
+//                    Log.e("SaveLinkFlow", "상세 응답 실패", e)
+//                    linkDetailState.value = null
+//                }
+//
+//            isLoadingLinkDetailState.value = false
+//        }
+//    }
+    private data class Cached<T>(val value: T, val ts: Long = System.currentTimeMillis())
+    private val linkCache = mutableMapOf<Long, Cached<LinkResultInfo>>()
+    private val DETAIL_TTL = 60_000L // 60초
+
+    fun loadLinkDetail(linkuId: Long, forceRefresh: Boolean = false) {
+        val now = System.currentTimeMillis()
+        val cached = linkCache[linkuId]
+        if (!forceRefresh && cached != null && now - cached.ts < DETAIL_TTL) {
+            // ✅ 캐시 즉시 노출(스피너 최소화)
+            linkDetailState.value = cached.value
+            isLoadingLinkDetailState.value = false
+            // 백그라운드 갱신 (선택)
+            viewModelScope.launch {
+                runCatching { linkuRepository.getLinkDetail(linkuId) }
+                    .onSuccess {
+                        linkCache[linkuId] = Cached(it)
+                        linkDetailState.value = it
+                        aiArticleDetailState.value = null
+                    }
+                    .onFailure { Log.e("SaveLinkFlow", "refresh failed", it) }
+            }
+            return
+        }
+
         viewModelScope.launch {
-            isLoadingLinkDetailState.value = true
-
-            // 상세 요청 전에 요청 파라미터 로깅
-            Log.d("SaveLinkFlow", "상세 요청 -> linkuId = $linkuId")
-
+            isLoadingLinkDetailState.value = cached == null // 캐시 없을 때만 스피너
             runCatching { linkuRepository.getLinkDetail(linkuId) }
-                .onSuccess { info ->
-                    // 상세 응답(도메인 모델) 로깅
-                    Log.d("SaveLinkFlow", "상세 응답 -> LinkResultInfo = $info")
-                    linkDetailState.value = info
-
-                    // 자동 생성은 하지 않고, 항상 초기화만 수행
+                .onSuccess {
+                    linkCache[linkuId] = Cached(it)
+                    linkDetailState.value = it
                     aiArticleDetailState.value = null
                 }
-                .onFailure { e ->
-                    Log.e("SaveLinkFlow", "상세 응답 실패", e)
-                    linkDetailState.value = null
+                .onFailure {
+                    Log.e("SaveLinkFlow", "상세 실패", it)
+                    if (cached == null) linkDetailState.value = null
                 }
-
             isLoadingLinkDetailState.value = false
         }
     }
