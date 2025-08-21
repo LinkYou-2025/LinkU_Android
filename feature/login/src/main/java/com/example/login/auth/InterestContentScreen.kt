@@ -121,7 +121,7 @@ fun InterestContentScreen(
                             else
                                 listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         ),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(18.dp)
                     )
                     // 🔕 버튼 리플/회색 프레스 제거
                     .clickable(
@@ -153,58 +153,44 @@ fun InterestContentScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(Color.White),
+                .padding(innerPadding),
             contentPadding = PaddingValues(
-                start = 0.dp, end = 0.dp,
-                //start = 32.dp, end = 32.dp,
-                top = 52.dp,
+                start = 32.dp, end = 32.dp,
+                top = 40.dp,
                 bottom = 96.dp // bottomBar(48) + 외곽 패딩(14*2) 만큼 여유
             )
         ) {
-            item { ContentStepIndicator(
-                modifier = Modifier.padding(horizontal = 20.dp)
-            ) }
+            item { ContentStepIndicator() }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }
 
             item {
                 Text(
                     buildAnnotatedString {
-                        //color = Color(0xFFE5ACF4)
                         // ✍️ 사용하신 텍스트 그대로 유지 (“괸심” 포함)
                         append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
-                        withStyle(
-                            SpanStyle(
-                                color = Color(0xFFE5ACF4),   // 연보라색
-                                fontSize = 16.sp,           // 16sp
-                                fontWeight = FontWeight.Medium
-                            )
-                        ) {
+                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
                             append("(복수 선택 가능)")
                         }
                     },
                     fontSize = 22.sp,
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
 
             item { Spacer(modifier = Modifier.height(32.dp)) }
 
             item {
-                Box(Modifier.padding(horizontal = 20.dp)) {
-                    InterestCloudScrollable(
-                        contents = contents,
-                        selected = selectedContents,
-                        onToggle = { label ->
-                            if (selectedContents.contains(label)) selectedContents.remove(label)
-                            else selectedContents.add(label)
-                        },
-                        height = 500.dp
-                    )
-                }
+                InterestCloudScrollable(
+                    contents = contents,
+                    selected = selectedContents,
+                    onToggle = { label ->
+                        if (selectedContents.contains(label)) selectedContents.remove(label)
+                        else selectedContents.add(label)
+                    },
+                    height = 500.dp
+                )
             }
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
@@ -478,12 +464,10 @@ private fun PurposeCloudScrollable(
 
 // 상단 관심사 단계 표시
 @Composable
-fun ContentStepIndicator(modifier: Modifier = Modifier) {
+fun ContentStepIndicator() {
     val isPreview = LocalInspectionMode.current //폰트 표시
 
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.Start) {
+    Column(horizontalAlignment = Alignment.Start) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             // 1번 체크
             Box(

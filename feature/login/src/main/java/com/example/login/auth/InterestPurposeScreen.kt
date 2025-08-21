@@ -232,7 +232,7 @@ fun InterestPurposeScreen(
                             else
                                 listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         ),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(18.dp)
                     )
                     // ❗ [수정 2] 클릭 효과 제거: indication = null, interactionSource 직접 지정
                     .clickable(
@@ -430,7 +430,7 @@ fun InterestStepIndicator() {
             // 1번 체크
             Box(
                 modifier = Modifier
-                    .padding(start = 0.dp)
+                    .padding(start = 20.dp)
                     .size(28.dp)
                     .background(Color(0xFFE5ACF4), CircleShape),
                 contentAlignment = Alignment.Center

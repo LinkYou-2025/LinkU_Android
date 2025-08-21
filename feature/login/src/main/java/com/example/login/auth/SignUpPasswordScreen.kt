@@ -162,7 +162,7 @@ fun SignUpPasswordScreen(
                     Text("영문, 숫자, 특수기호 조합", fontFamily = Paperlogy, fontSize = 12.sp, color = Color(0xFF757575))
                 }
 
-                Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.width(12.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
@@ -224,7 +224,7 @@ fun SignUpPasswordScreen(
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .imePadding()                                   // 키보드 올라오면 함께 상승
-                .padding(start = 20.dp, end = 20.dp, bottom = 32.dp) // ← 동일 위치(살짝 더 낮게)
+                .padding(start = 20.dp, end = 20.dp, bottom = 42.dp) // ← 동일 위치(살짝 더 낮게)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
