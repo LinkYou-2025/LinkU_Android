@@ -9,6 +9,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -148,6 +149,8 @@ fun HomeApp(viewModel: HomeViewModel) {
         composable("savelinkresult/{linkuId}") { backStackEntry ->
             val raw = backStackEntry.arguments?.getString("linkuId")
             val linkuId = backStackEntry.arguments?.getString("linkuId")?.toLongOrNull()
+            val currentLinkuId = rememberUpdatedState(linkuId)
+            val aiProgress = viewModel.aiProgress.collectAsState().value
 
             // ✅ 네비게이션으로 넘어온 값(문자열/파싱 결과) 확인
             Log.d("SaveLinkFlow", "넘어온 값 -> route arg (raw) = $raw")
@@ -174,9 +177,18 @@ fun HomeApp(viewModel: HomeViewModel) {
                     isAiLoading = viewModel.isLoadingAiArticle,
                     onBack = { navController.popBackStack() },
                     onOpenLink = { url ->
-                        val fixed = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
-                        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed))
-                        context.startActivity(intent)
+                        Log.d("HomeApp", "onOpenLink 호출! url=$url")
+                        val fixed = if (url.startsWith("http")) url else "https://$url"
+                        val intent = android.content.Intent(
+                            android.content.Intent.ACTION_VIEW,
+                            Uri.parse(fixed)
+                        )
+                        try {
+                            context.startActivity(intent)
+                        } catch (t: Throwable) {
+                            Toast.makeText(context, "링크를 열 수 없어요.", android.widget.Toast.LENGTH_SHORT).show()
+                            Log.e("HomeApp", "startActivity 실패", t)
+                        }
                     },
                     categoryColorMap = categoryColorMap,
                     onSubmitEdit = { title, memo, categoryId, emotionId ->
@@ -193,7 +205,18 @@ fun HomeApp(viewModel: HomeViewModel) {
                                 Toast.makeText(context, e.message ?: "수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
                             }
                         )
-                    }
+                    },
+                    onRequestAiSummary = {
+                        val id = currentLinkuId.value
+                        android.util.Log.d("HomeApp", "onRequestAiSummary 호출! linkuId=$id, vm=${viewModel.hashCode()}")
+                        if (id != null) {
+                            viewModel.loadAiArticle(id)
+                        } else {
+                            android.util.Log.e("HomeApp", "linkuId가 null이라 AI 호출 불가")
+                        }
+                    },
+                    aiProgress = aiProgress,
+                    onCancelAi = { viewModel.cancelAiArticleJob() },
                 )
             }
         }

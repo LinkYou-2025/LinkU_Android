@@ -1,6 +1,7 @@
 package com.example.home.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,12 +31,12 @@ import com.example.design.theme.color.Basic
 
 @Composable
 fun AIArticleModal(
+    progress: Float,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier // ✅ 외부에서 전달받을 modifier
 ) {
-    val progress by remember { mutableStateOf(0.6f) } // 60% 예시
-
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
             .background(LocalColorTheme.current.white),
@@ -79,7 +80,8 @@ fun AIArticleModal(
                     .height(50.dp)
                     .padding(horizontal = 28.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(brush = Basic.maincolor),
+                    .background(brush = Basic.maincolor)
+                    .clickable { onCancel() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -96,6 +98,12 @@ fun AIArticleModal(
 
 @Composable
 fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
+    val animated = androidx.compose.animation.core.animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = androidx.compose.animation.core.tween(durationMillis = 250),
+        label = "aiProgress"
+    ).value
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -106,15 +114,15 @@ fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
+                .fillMaxWidth(fraction = animated)
                 .clip(RoundedCornerShape(4.dp))
                 .background(Brush.horizontalGradient(listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))))
         )
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAIArticleModal() {
-    AIArticleModal()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAIArticleModal() {
+//    AIArticleModal()
+//}
