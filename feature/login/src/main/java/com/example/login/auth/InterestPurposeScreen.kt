@@ -513,17 +513,17 @@ fun InterestStepIndicator() {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun InterestPurposeScreenPreview() {
-    val fakeNavController = rememberNavController()
-    val fakeViewModel = remember { SignUpViewModel() }
-
-    InterestPurposeScreen(
-        navigator = fakeNavController,
-        signUpViewModel = fakeViewModel
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun InterestPurposeScreenPreview() {
+//    val fakeNavController = rememberNavController()
+//    val fakeViewModel = remember { SignUpViewModel() }
+//
+//    InterestPurposeScreen(
+//        navigator = fakeNavController,
+//        signUpViewModel = fakeViewModel
+//    )
+//}
 
 @Composable
 private fun PurposeCloudScrollable(

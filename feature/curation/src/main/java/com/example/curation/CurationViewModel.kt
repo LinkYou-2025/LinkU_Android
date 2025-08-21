@@ -120,19 +120,32 @@ class CurationViewModel @Inject constructor(
                 _isGenerating.value = false
                 return@launch
             }
-
             try {
                 val item = repository.getMyRecentCuration(uid)
 
-                // (방어) 잘못된 값 → 빈 상태 확정(+재호출 막기)
-                if (item.id <= 0L) {
+                // (방어) "result"가 null이거나 id가 잘못된 값 → 빈 상태 확정(+재호출 막기)
+                if (item == null || item.id <= 0L) {
                     setEmptyCurationState(markPrefetched = true) // ⬅ empty lock ON
+                    _isGenerating.value = false   // 무한로딩 강제종료
                     return@launch
                 }
 
                 // ✅ 정상 데이터: 상태 갱신
                 _recentCuration.value = item
                 _currentCurationId.value = item.id
+
+//            try {
+//                val item = repository.getMyRecentCuration(uid)
+//
+//                // (방어) 잘못된 값 → 빈 상태 확정(+재호출 막기)
+//                if (item.id <= 0L) {
+//                    setEmptyCurationState(markPrefetched = true) // ⬅ empty lock ON
+//                    return@launch
+//                }
+//
+//                // ✅ 정상 데이터: 상태 갱신
+//                _recentCuration.value = item
+//                _currentCurationId.value = item.id
 
                 runCatching { repository.isCurationLiked(item.id, uid) }
                     .onSuccess { _highlightLiked.value = it }
