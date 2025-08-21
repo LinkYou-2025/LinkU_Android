@@ -17,8 +17,6 @@ import com.example.core.repository.RecentSearchRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
 import com.example.data.util.toCategoryColorStyleMap
-//import com.example.file.ui.theme.CategoryColorStyle
-//import com.example.file.ui.theme.toCategoryColorStyleMap
 import com.example.design.FastSearchItem
 import com.example.design.theme.color.CategoryColorStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,8 +26,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException

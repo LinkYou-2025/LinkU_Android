@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -42,25 +41,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.example.core.model.LinkSimpleInfo
+import com.example.design.BrushText
 import com.example.design.SearchBarTopSheet
 import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
-import com.example.design.theme.font.Paperlogy
 import com.example.home.HomeViewModel
 import com.example.home.R
 import kotlinx.coroutines.launch
@@ -1239,40 +1233,6 @@ fun TopBar(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun BrushText(
-    text: String,
-    brush: Brush? = null,
-    color: Color = Color.Unspecified,
-    style: TextStyle = TextStyle.Default,
-    modifier: Modifier = Modifier,
-    fontFamily: FontFamily? = null,
-) {
-    // 기본값: 테마의 폰트 사용 (LocalFontTheme는 당신이 만든 compositionLocal)
-    val family = fontFamily ?: LocalFontTheme.current.font
-
-    // 전체 텍스트에 적용될 스타일에 fontFamily 병합
-    val styleWithFamily = style.merge(TextStyle(fontFamily = family))
-
-    if (brush != null) {
-        BasicText(
-            text = buildAnnotatedString {
-                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight, fontFamily = family )) {
-                    append(text)
-                }
-            },
-            style = styleWithFamily,
-            modifier = modifier,
-        )
-    } else {
-        BasicText(
-            text = text,
-            style = styleWithFamily.copy(color = color),
-            modifier = modifier,
-        )
     }
 }
 

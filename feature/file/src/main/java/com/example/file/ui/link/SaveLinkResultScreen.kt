@@ -1,4 +1,4 @@
-package com.example.home.screen
+package com.example.file.ui.link
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
@@ -50,14 +50,14 @@ import coil3.compose.rememberAsyncImagePainter
 import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.design.BrushText
+import com.example.design.R
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.design.theme.color.CategoryColorStyle
-import com.example.home.R
-import com.example.home.component.AIArticleModal
 import kotlinx.coroutines.delay
 import java.time.OffsetDateTime
+
 
 private fun emotionDisplayName(id: Long?): String? = when (id) {
     1L -> "즐거움"
@@ -174,7 +174,10 @@ fun SaveLinkResultScreen(
 
     val readModeTags = listOfNotNull(
         // 읽기 모드에서 보여줄 태그도 동적 라벨로 변환
-        categoryLabelOf(selectedCategoryId ?: link?.categoryId, categoryLabels),
+        categoryLabelOf(
+            selectedCategoryId ?: link?.categoryId,
+            categoryLabels
+        ),
         emotionDisplayName(selectedEmotionId ?: link?.emotionId)
     )
 

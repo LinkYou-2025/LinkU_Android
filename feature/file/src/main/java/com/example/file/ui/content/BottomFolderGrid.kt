@@ -192,7 +192,10 @@ fun BottomFolderGrid(
                     contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
                 ) {
                     LinkItemLayout(
-                        link = link
+                        link = link,
+                        onClick = {
+                            fileViewModel.onLinkClick?.invoke(link)
+                        }
                     )
                 }
             }
