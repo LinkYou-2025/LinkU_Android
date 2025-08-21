@@ -15,13 +15,41 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
 
     override var accessToken: String?
         get() = pref.getString(ACCESS_TOKEN_KEY, null)
-        set(value) { pref.edit().putString(ACCESS_TOKEN_KEY, value).apply() }
+        set(value) {
+            pref.edit().apply {
+                if (value == null) remove(ACCESS_TOKEN_KEY) else putString(ACCESS_TOKEN_KEY, value)
+            }.apply()
+        }
 
     override var refreshToken: String?
         get() = pref.getString(REFRESH_TOKEN_KEY, null)
-        set(value) { pref.edit().putString(REFRESH_TOKEN_KEY, value).apply() }
+        set(value) {
+            pref.edit().apply {
+                if (value == null) remove(REFRESH_TOKEN_KEY) else putString(REFRESH_TOKEN_KEY, value)
+            }.apply()
+        }
 
     override var userId: Long?
-        get() = pref.getLong(USER_ID_KEY, -1L)
-        set(value) { pref.edit().putLong(USER_ID_KEY, value ?: -1L).apply() }
+        get() = if (!pref.contains(USER_ID_KEY)) {
+            null
+        } else {
+            pref.getLong(USER_ID_KEY, -1L).let { if (it == -1L) null else it }
+        }
+        set(value) {
+            pref.edit().apply {
+                if (value == null) remove(USER_ID_KEY) else putLong(USER_ID_KEY, value)
+            }.apply()
+        }
+
+//    override var accessToken: String?
+//        get() = pref.getString(ACCESS_TOKEN_KEY, null)
+//        set(value) { pref.edit().putString(ACCESS_TOKEN_KEY, value).apply() }
+//
+//    override var refreshToken: String?
+//        get() = pref.getString(REFRESH_TOKEN_KEY, null)
+//        set(value) { pref.edit().putString(REFRESH_TOKEN_KEY, value).apply() }
+//
+//    override var userId: Long?
+//        get() = pref.getLong(USER_ID_KEY, -1L)
+//        set(value) { pref.edit().putLong(USER_ID_KEY, value ?: -1L).apply() }
 }

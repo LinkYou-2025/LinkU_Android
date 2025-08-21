@@ -18,12 +18,44 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import androidx.compose.ui.unit.IntOffset
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import com.example.core.session.SessionStore
+import com.example.data.preference.AuthPreference
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface SplashDeps {
+    fun sessionStore(): SessionStore
+    fun authPreference(): AuthPreference
+}
 
 @Composable
 fun Splash(onFinish: () -> Unit) {
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
+
+    // ✅ deps 준비 (프리뷰/런타임 모두에서 안전하게)
+    val appContext = LocalContext.current.applicationContext
+    val isInPreview = LocalInspectionMode.current
+    val deps = remember {
+        // 프리뷰 모드에서는 Hilt가 없으므로 null 반환
+        if (isInPreview) null
+        else EntryPointAccessors.fromApplication(appContext, SplashDeps::class.java)
+    }
+
+//    val deps = remember {
+//        // 프리뷰 모드에서는 Hilt가 없으므로 null 반환
+//        if (isInPreview) null
+//        else EntryPointAccessors.fromApplication(appContext, SplashDeps::class.java)
+//    }
 
     LaunchedEffect(Unit) {
         println("✅ Splash 시작됨")
@@ -35,6 +67,24 @@ fun Splash(onFinish: () -> Unit) {
         println("✅ Glow Phase 진입")
         isGlowPhase = true
         delay(700)
+
+        // ✅ 이전 로그인 정보 하이드레이션 (프리뷰 제외 + deps 존재 시)
+        if (!isInPreview && deps != null) {
+            runCatching {
+                val authPref = deps.authPreference()   // ← 로컬 변수에 담아서 대입 (Variable expected 방지)
+                if (authPref.userId == null) {
+                    val snap = deps.sessionStore().session.first() // 1회 스냅샷
+                    if (snap.loggedIn && snap.userId != null) {
+                        authPref.userId = snap.userId             // ✅ 핵심 대입
+                        // 필요하면 토큰도 복구:
+                        // authPref.accessToken = ...
+                        // authPref.refreshToken = ...
+                    }
+                }
+            }.onFailure { e ->
+                println("⚠️ Splash hydration failed: $e")
+            }
+        }
 
         delay(800)
         println("✅ Splash onFinish 호출")

@@ -22,6 +22,7 @@ class SessionStore @Inject constructor(
 ) {
     private object Keys {
         val LOGGED_IN      = booleanPreferencesKey("logged_in")
+        val USER_ID   = stringPreferencesKey("user_id")
         val USER_NICK      = stringPreferencesKey("user_nickname")
         val USER_EMAIL     = stringPreferencesKey("user_email")
         val USER_GENDER    = stringPreferencesKey("user_gender")
@@ -43,6 +44,7 @@ class SessionStore @Inject constructor(
         }
 
     suspend fun saveLogin(
+        userId: Long,
         nickname: String,
         email: String,
         gender: String,
@@ -54,6 +56,7 @@ class SessionStore @Inject constructor(
     ) {
         context.dataStore.edit { p ->
             p[Keys.LOGGED_IN] = true
+            p[Keys.USER_ID] = userId.toString()
             p[Keys.USER_NICK] = nickname
             p[Keys.USER_EMAIL] = email
             p[Keys.USER_GENDER] = gender
@@ -68,6 +71,7 @@ class SessionStore @Inject constructor(
     suspend fun clear() {
         context.dataStore.edit { p ->
             p[Keys.LOGGED_IN] = false
+            p.remove(Keys.USER_ID)
             p.remove(Keys.USER_NICK)
             p.remove(Keys.USER_EMAIL)
             p.remove(Keys.USER_GENDER)
@@ -81,6 +85,7 @@ class SessionStore @Inject constructor(
 
     data class SessionSnapshot(
         val loggedIn: Boolean,
+        val userId: Long?,
         val nickname: String?,
         val email: String?,
         val gender: String?,
@@ -95,6 +100,7 @@ class SessionStore @Inject constructor(
         context.dataStore.data.map { p ->
             SessionSnapshot(
                 loggedIn   = p[Keys.LOGGED_IN] ?: false,
+                userId   = p[Keys.USER_ID]?.toLongOrNull(),
                 nickname   = p[Keys.USER_NICK],
                 email      = p[Keys.USER_EMAIL],
                 gender     = p[Keys.USER_GENDER],
@@ -105,4 +111,6 @@ class SessionStore @Inject constructor(
                 myAiLinku  = p[Keys.USER_MY_AI_LINKU]?.toLongOrNull(),
             )
         }
+
+
 }

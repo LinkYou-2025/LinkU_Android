@@ -87,6 +87,7 @@ import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
 import com.example.linku_android.navigation.DoubleBackToExitIfTop
 import com.example.login.auth.LoginViewModel
 import com.example.login.auth.TermsAgreementSheet
+import dagger.hilt.android.EntryPointAccessors
 
 
 @Composable
@@ -159,7 +160,16 @@ fun MainApp(
                 }
             ) else null,
             centerButtonProp = null // 바로 이동하므로 null
+
+
+
         ) {
+
+            val app = LocalContext.current.applicationContext
+            val deps = remember {
+                EntryPointAccessors.fromApplication(app, SplashDeps::class.java)
+            }
+
             NavHost(
                 navController = navigator,
                 startDestination = NavigationRoute.Splash.route,
@@ -174,14 +184,11 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
 
-                        //  DataStore 구독
-                        val isLoggedIn by viewModel.sessionStore
-                            .isLoggedIn
-                            .collectAsStateWithLifecycle(initialValue = false)
 
                         Splash(
                             onFinish = {
-                                if (isLoggedIn) {
+                                val uid = deps.authPreference().userId
+                                if (uid != null && uid > 0L) {
                                     navigator.navigate(NavigationRoute.Home.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         launchSingleTop = true
@@ -194,6 +201,27 @@ fun MainApp(
                                 }
                             }
                         )
+
+//                        //  DataStore 구독
+//                        val isLoggedIn by viewModel.sessionStore
+//                            .isLoggedIn
+//                            .collectAsStateWithLifecycle(initialValue = false)
+//
+//                        Splash(
+//                            onFinish = {
+//                                if (isLoggedIn) {
+//                                    navigator.navigate(NavigationRoute.Home.route) {
+//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+//                                        launchSingleTop = true
+//                                    }
+//                                } else {
+//                                    navigator.navigate("auth_graph") {
+//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+//                                        launchSingleTop = true
+//                                    }
+//                                }
+//                            }
+//                        )
                     }
                 }
 //                with(NavigationRoute.Splash) {
