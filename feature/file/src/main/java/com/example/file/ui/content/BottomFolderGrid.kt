@@ -58,6 +58,9 @@ fun BottomFolderGrid(
     val folderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
     val linkList by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
+    var deleteModalWindowVisible by remember { mutableStateOf(false) }
+    var selectedLinkId by remember { mutableStateOf<Long?>(null) }
+
     Column {
         // Folder Grid
         VerticalGrid(
@@ -199,6 +202,11 @@ fun BottomFolderGrid(
                         link = link,
                         onClick = {
                             fileViewModel.onLinkClick?.invoke(link.linkuId)
+                        },
+                        onLongClick = {
+//                            selectedLinkId = link.linkuId
+//
+//                            deleteModalWindowVisible = true
                         }
                     )
                 }
@@ -206,24 +214,33 @@ fun BottomFolderGrid(
         }
     }
 
-//    FileModalWindow(
-//        visible = visible,
-//        onOkay = {},
-//        onDismiss = {visible = false},
-//        positiveText = "삭제하기",
-//        negativeText = "취소하기",
-//        title = "해당 폴더를 삭제하시겠습니까?"
-//    ) {
-//        Text(
-//            text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
-//            fontSize = 15.sp,
-//            lineHeight = 22.sp,
-//            fontFamily = DefaultFont,
-//            fontWeight = FontWeight(400),
-//            color = Gray600,
-//            textAlign = TextAlign.Center,
-//        )
-//    }
+    // 링크 삭제 모달창
+    FileModalWindow(
+        visible = deleteModalWindowVisible,
+        onOkay = {
+            // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
+            selectedLinkId?.let { id ->
+                fileViewModel.deleteLink(id)
+            }
+            // 상태 정리
+            deleteModalWindowVisible = false
+            selectedLinkId = null
+        },
+        onDismiss = { deleteModalWindowVisible = false },
+        title = "해당 링크를 삭제하시겠습니까?",
+        positiveText = "삭제",
+        negativeText = "취소"
+    ) {
+        Text(
+            text = "삭제 시 해당 링크가 영구적으로 제거되며\n복구가 불가능합니다.",
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            fontFamily = DefaultFont,
+            fontWeight = FontWeight(400),
+            color = Gray600,
+            textAlign = TextAlign.Center,
+        )
+    }
 }
 
 @Preview(showBackground = true)

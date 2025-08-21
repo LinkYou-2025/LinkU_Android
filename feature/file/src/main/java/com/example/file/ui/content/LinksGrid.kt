@@ -51,7 +51,7 @@ fun LinksGrid(
     var categorizationModalWindowVisible by remember { mutableStateOf(false) }
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
 
-    var onLinkLongClick: () -> Unit = {}
+    var selectedLinkId by remember { mutableStateOf<Long?>(null) }
 
     val isShareMode = folderStateViewModel.isSharedFolders
 
@@ -122,15 +122,7 @@ fun LinksGrid(
                     },
                     onLongClick = {
                         if(!isShareMode){
-                            onLinkLongClick = {
-                                link.linkuId.let {
-                                    Log.d(
-                                        "LinkItemLayout",
-                                        "아이템 롱클릭: \"savelinkresult/${link.linkuId}\""
-                                    )
-                                    fileViewModel.deleteLink(link.linkuId)
-                                }
-                            }
+                            selectedLinkId = link.linkuId
 
                             deleteModalWindowVisible = true
                         }
@@ -162,7 +154,13 @@ fun LinksGrid(
     FileModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
-            onLinkLongClick()
+            // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
+            selectedLinkId?.let { id ->
+                fileViewModel.deleteLink(id)
+            }
+            // 상태 정리
+            deleteModalWindowVisible = false
+            selectedLinkId = null
         },
         onDismiss = { deleteModalWindowVisible = false },
         title = "해당 링크를 삭제하시겠습니까?",
