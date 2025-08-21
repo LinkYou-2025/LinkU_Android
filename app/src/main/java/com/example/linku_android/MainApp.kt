@@ -680,7 +680,7 @@ fun MainApp(
                         val curationVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
 
                         CurationScreen(
-                            viewModel = curationViewModel,
+                            viewModel = curationVm,
                             onOpenDetail = { userId: Long, curationId: Long ->
                                 navigator.navigate("curation_detail/$userId/$curationId") {
                                     launchSingleTop = true
