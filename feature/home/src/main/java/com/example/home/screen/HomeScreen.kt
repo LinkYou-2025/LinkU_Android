@@ -134,6 +134,7 @@ fun HomeScreen(
     var isTopBarExpanded by remember { mutableStateOf(true) }
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
+    var isTopBarLockedCollapsed by remember { mutableStateOf(false) } // 접힘 고정
 
     val emotionIdMap = mapOf(
         1L to "즐거움",
@@ -246,9 +247,18 @@ fun HomeScreen(
 //    val linkList = remember { mutableStateOf(listOf()) }
 
     // 스크롤 변화 감지해서 TopBar 접기/펼치기
-    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex) {
-        isTopBarExpanded =
-            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+//    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex) {
+//        isTopBarExpanded =
+//            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+//    }
+    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex, isTopBarLockedCollapsed) {
+        if (!isTopBarLockedCollapsed) {
+            isTopBarExpanded =
+                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        } else {
+            // 고정 접힘이면 스크롤 상관없이 계속 접힘 유지
+            isTopBarExpanded = false
+        }
     }
 
     // String 키 → 서버 ID 매핑 (필요 시 서버 정의에 맞춰 숫자만 바꾸면 됨)
@@ -289,6 +299,7 @@ fun HomeScreen(
             onClearNeedMoreNotice() // 이전 안내 끄기
             onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
             showRecs = true
+            isTopBarLockedCollapsed = true
             isTopBarExpanded = false
             coroutineScope.launch { listState.animateScrollToItem(1) }
         }
@@ -322,6 +333,7 @@ fun HomeScreen(
                     selectedTask = null        // 상황 선택 초기화
                     onClearNeedMoreNotice()  // 문구 초기화
 
+                    isTopBarLockedCollapsed = false  // 고정 해제
                     isTopBarExpanded = true    // 상단 영역 펼치기
                     coroutineScope.launch { listState.animateScrollToItem(0) } // 맨 위로
                 },
@@ -346,7 +358,9 @@ fun HomeScreen(
                 when {
                     // 1) 링크 3개 미만 안내
                     showRecs && needMoreForRecommendation -> {
-                        Column {
+                        Column(
+
+                        ) {
                             Image(
                                 painter = painterResource(R.drawable.ic_no_recents),
                                 contentDescription = null,
@@ -364,7 +378,9 @@ fun HomeScreen(
                     }
                     // 2) 추천 모드 + 분류 중
                     showRecs && isRecommending -> {
-                        Column {
+                        Column(
+
+                        ) {
                             Image(
                                 // TODO: 애니메이션으로 변경
                                 painter = painterResource(Res.drawable.logo_whiteback),
