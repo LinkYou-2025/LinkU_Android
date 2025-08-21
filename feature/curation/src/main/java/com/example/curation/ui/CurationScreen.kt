@@ -279,8 +279,16 @@ fun CurationScreen(
     //                        }
                         {
                             uiItems.forEachIndexed { idx, item ->
+                                val domain = likedItems.getOrNull(idx)
+
                                 LikedCurationCard(
                                     item = item,
+                                    onCardClick = {
+                                        // 카드 탭 → 상세
+                                        if (userId > 0 && domain != null) {
+                                            onOpenDetail(userId, domain.id)
+                                        }
+                                    },
                                     onHeartClick = {
                                         likedItems.getOrNull(idx)?.let { domain ->
                                             viewModel.unlikeFromLikedList(domain.id)   // 서버 취소 + 낙관적 제거
