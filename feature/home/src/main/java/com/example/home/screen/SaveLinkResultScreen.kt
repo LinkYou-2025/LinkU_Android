@@ -1,5 +1,6 @@
 package com.example.home.screen
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -30,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -127,19 +129,36 @@ fun SaveLinkResultScreen(
     isLoading: Boolean = false,
     isAiLoading: Boolean = false,
     onBack: () -> Unit = {},
-    onOpenLink: (String) -> Unit = {},
+    onOpenLink: (String) -> Unit,
     categoryColorMap: Map<String, CategoryColorStyle> = emptyMap(),
     onSubmitEdit: (title: String, memo: String?, categoryId: Long?, emotionId: Long?) -> Unit = { _,_,_,_ -> },
-    onRequestAiSummary: () -> Unit = {}
+    onRequestAiSummary: () -> Unit,
+    aiProgress: Float = 0f,
+    onCancelAi: () -> Unit = {}
 ) {
-    // 🔹 서버 데이터 바인딩 (널/로딩 방어)
+    // 서버 데이터 바인딩 (널/로딩 방어)
     val titleFromServer = link?.title.orEmpty()
     val memoFromServer = link?.memo.orEmpty()
     val imageUrl = link?.linkuImageUrl
     val linku = link?.linku.orEmpty()
 
-    // 이 링크가 AI 요약 가능(허용/생성 완료)한지 여부
-    val aiAllowed = link?.aiArticleExists == true
+    // 항상 최신 콜백을 보관
+    val currentOnRequestAi = rememberUpdatedState(onRequestAiSummary)
+    val currentOnOpenLink = rememberUpdatedState(onOpenLink)
+
+    // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
+    val displayKeyword = aiArticle?.keyword?.trim().orEmpty().ifEmpty { link?.keyword.orEmpty() }
+    val displaySummary = aiArticle?.summary?.trim().orEmpty().ifEmpty { link?.summary.orEmpty() }
+
+    val isKeywordEmpty = displayKeyword.isBlank()
+    val isSummaryEmpty = displaySummary.isBlank()
+
+    val keywordPlaceholder = "AI가 키워드를 추출하지 못하였습니다."
+    val summaryPlaceholder = "AI가 본문을 요약하지 못하였습니다."
+
+    // 요약이 "없을 때" 요청 가능하도록
+    val hasContent = (aiArticle != null) || !displaySummary.isBlank() || !displayKeyword.isBlank()
+    val canRequestAi = !isAiLoading  // 콘텐츠가 없고, 로딩 중이 아닐 때만 생성 가능
 
     var showAISummary by remember { mutableStateOf(false) }
     var showAIArticleModal by remember { mutableStateOf(false) }
@@ -155,6 +174,11 @@ fun SaveLinkResultScreen(
         }
     }
 
+    // isAiLoading 값이 바뀔 때마다 로그 찍기
+    LaunchedEffect(isAiLoading) {
+        Log.d("SaveLinkResultScreen", "isAiLoading changed -> $isAiLoading")
+    }
+
     // 서버에서 내려온 최신 카테고리 이름(순서 보장)을 사용
     val categoryLabels = remember(categoryColorMap) { categoryColorMap.keys.toList() }
 
@@ -162,16 +186,6 @@ fun SaveLinkResultScreen(
     // 선택된 카테고리/감정 ID (초기값은 서버 응답)
     var selectedEmotionId  by remember(link?.emotionId)  { mutableStateOf(link?.emotionId) }
     var selectedCategoryId by remember(link?.categoryId) { mutableStateOf(link?.categoryId) }
-
-    // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
-    val displayKeyword = aiArticle?.keyword?.trim().orEmpty().ifEmpty { link?.keyword.orEmpty() }
-    val displaySummary = aiArticle?.summary?.trim().orEmpty().ifEmpty { link?.summary.orEmpty() }
-
-    val isKeywordEmpty = displayKeyword.isBlank()
-    val isSummaryEmpty = displaySummary.isBlank()
-
-    val keywordPlaceholder = "AI가 키워드를 추출하지 못하였습니다."
-    val summaryPlaceholder = "AI가 본문을 요약하지 못하였습니다."
 
     var isEditMode by remember { mutableStateOf(false) }
 
@@ -196,14 +210,6 @@ fun SaveLinkResultScreen(
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
             isMemoEditing = false
-        }
-    }
-
-    // showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
-    LaunchedEffect(showAIArticleModal) {
-        if (showAIArticleModal) {
-            delay(3000)
-            showAIArticleModal = false
         }
     }
 
@@ -619,9 +625,25 @@ fun SaveLinkResultScreen(
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(18.dp))
                         .background(LocalColorTheme.current.blue[200])
-                        .clickable(enabled = aiAllowed) {
-                            onRequestAiSummary()
-                            showAIArticleModal = true
+                        .clickable {
+//                            if (hasContent) {
+//                                // 이미 요약/키워드가 있으면 네트워크 호출 없이 즉시 펼치기
+//                                showAISummary = true
+//                            } else {
+//                                // 없으면 API 요청 → isAiLoading=true 동안 모달 표시
+//                                onRequestAiSummary()
+//                            }
+                            Log.d("SaveLinkResultScreen", "AI 버튼 클릭! hasContent=$hasContent, isAiLoading=$isAiLoading")
+                            if (isAiLoading) return@clickable
+                            if (hasContent) {
+                                // 이미 키워드/요약 있으면 네트워크 없이 즉시 펼치기
+                                showAISummary = true
+                            } else {
+                                // 없으면 API 요청 → ViewModel이 isLoadingAiArticle=true로 만들고
+                                // 화면은 로딩 오버레이를 띄워줌
+                                android.util.Log.d("SaveLinkResultScreen", "AI 요청 트리거")
+                                currentOnRequestAi.value()
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -649,9 +671,30 @@ fun SaveLinkResultScreen(
             }
         }
 
+        // 모달은 로딩 동안 항상 표시
+        if (isAiLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(1f)
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    AIArticleModal(
+                        progress = aiProgress,
+                        onCancel = onCancelAi,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
+                .zIndex(2f)
                 .padding(bottom = 14.dp, end = 19.71.dp)
         ) {
             Row(
@@ -661,8 +704,16 @@ fun SaveLinkResultScreen(
                     .background(brush = Basic.maincolor)
                     .padding(horizontal = 16.dp)
                     .clickable {
-                        val target = linku
-                        if (target.isNotBlank()) onOpenLink(target)
+//                        Log.d("SaveLinkResultScreen", "링크 버튼 클릭! linku='$linku'")
+//                        val target = linku
+//                        if (target.isNotBlank()) {
+//                            onOpenLink(target)
+//                        } else {
+//                            Log.w("SaveLinkResultScreen", "linku 비어있음(상세 아직 로드 전) -> 무시")
+//                        }
+                        Log.d("SaveLinkResultScreen", "링크 버튼 클릭! linku='$linku'")
+                        // 최신 콜백 호출
+                        currentOnOpenLink.value(linku)
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -682,27 +733,27 @@ fun SaveLinkResultScreen(
             }
         }
 
-        if (showAIArticleModal) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0x66000000)) // 40% 투명한 검정색 배경
-                    .zIndex(1f)
-                    .clickable(enabled = false) {}, // 외부 클릭 막기
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AIArticleModal(
-                        modifier = Modifier
-//                    .align(Alignment.Center)
-                            .padding(horizontal = 20.dp)
-                    )
-                }
-            }
-        }
+//        if (showAIArticleModal) {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(Color(0x66000000)) // 40% 투명한 검정색 배경
+//                    .zIndex(1f)
+//                    .clickable(enabled = false) {}, // 외부 클릭 막기
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Box(
+//                    modifier = Modifier.padding(horizontal = 20.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    AIArticleModal(
+//                        modifier = Modifier
+////                    .align(Alignment.Center)
+//                            .padding(horizontal = 20.dp)
+//                    )
+//                }
+//            }
+//        }
     }
 }
 
@@ -1147,6 +1198,8 @@ private fun PreviewSaveLinkResultScreen() {
             createdAt = OffsetDateTime.parse("2025-07-21T23:13:41.354053+09:00"),
             updatedAt = OffsetDateTime.parse("2025-07-21T23:13:41.354053+09:00")
         ),
-        isLoading = false
+        isLoading = false,
+        onOpenLink = { /* no-op for preview */ },
+        onRequestAiSummary = { /* no-op for preview */ }
     )
 }
