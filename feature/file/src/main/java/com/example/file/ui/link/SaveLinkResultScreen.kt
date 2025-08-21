@@ -1,5 +1,6 @@
 package com.example.file.ui.link
 
+import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -30,10 +31,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -57,7 +61,6 @@ import com.example.design.theme.color.Basic
 import com.example.design.theme.color.CategoryColorStyle
 import kotlinx.coroutines.delay
 import java.time.OffsetDateTime
-
 
 private fun emotionDisplayName(id: Long?): String? = when (id) {
     1L -> "즐거움"
@@ -88,28 +91,17 @@ private val CATEGORY_NAMES: Map<Long, String> = mapOf(
     16L to "기타"
 )
 
-private fun categoryDisplayName(id: Long?): String? =
-    id?.let { CATEGORY_NAMES[it] } // 매핑 없으면 null -> 태그 숨김
-
-private val EMOTION_LABELS = listOf("기쁨","차분","설렘","슬픔","짜증","분노")
-
-private fun emotionLabelOf(id: Long?): String = emotionDisplayName(id) ?: "감정"
+private fun categoryDisplayName(id: Long?): String? = id?.let { CATEGORY_NAMES[it] }
 
 // label -> id
 private fun categoryIdOf(label: String): Long? =
     CATEGORY_NAMES.entries.firstOrNull { it.value == label }?.key
 
 private fun emotionIdOf(label: String): Long? = when (label) {
-    "기쁨" -> 1L; "차분" -> 2L; "설렘" -> 3L
+    "즐거움" -> 1L; "평온" -> 2L; "설렘" -> 3L
     "슬픔" -> 4L; "짜증" -> 5L; "분노" -> 6L
     else -> null
 }
-
-private fun categoryLabelOf(id: Long?, labels: List<String>): String =
-    id?.let { idx -> labels.getOrNull((idx - 1).toInt()) } ?: "카테고리"
-
-private fun categoryIdOf(label: String, labels: List<String>): Long? =
-    labels.indexOf(label).takeIf { it >= 0 }?.plus(1)?.toLong()
 
 // 변경: 벡터 리소스 사용
 private data class EmotionOpt(
@@ -122,7 +114,7 @@ private val EMOTION_OPTIONS = listOf(
     EmotionOpt(1, "즐거움", R.drawable.ic_joy),
     EmotionOpt(2, "평온", R.drawable.ic_calm),
     EmotionOpt(3, "설렘", R.drawable.ic_excite),
-    EmotionOpt(4, "우울", R.drawable.ic_sad),
+    EmotionOpt(4, "슬픔", R.drawable.ic_sad),
     EmotionOpt(5, "짜증", R.drawable.ic_irritation),
     EmotionOpt(6, "분노", R.drawable.ic_anger),
 )
@@ -135,33 +127,63 @@ fun SaveLinkResultScreen(
     isLoading: Boolean = false,
     isAiLoading: Boolean = false,
     onBack: () -> Unit = {},
-    onOpenLink: (String) -> Unit = {},
-    categoryColorMap: Map<String, CategoryColorStyle> = emptyMap()
+    onOpenLink: (String) -> Unit,
+    categoryColorMap: Map<String, CategoryColorStyle> = emptyMap(),
+    onSubmitEdit: (title: String, memo: String?, categoryId: Long?, emotionId: Long?) -> Unit = { _,_,_,_ -> },
+    onRequestAiSummary: () -> Unit,
+    aiProgress: Float = 0f,
+    onCancelAi: () -> Unit = {}
 ) {
-    // 🔹 서버 데이터 바인딩 (널/로딩 방어)
+    // 서버 데이터 바인딩 (널/로딩 방어)
     val titleFromServer = link?.title.orEmpty()
     val memoFromServer = link?.memo.orEmpty()
     val imageUrl = link?.linkuImageUrl
-    val domain = link?.domain.orEmpty()
     val linku = link?.linku.orEmpty()
 
-    // 상단 태그(카테고리/감정)
-    val topBarTags = listOfNotNull(
-        categoryDisplayName(link?.categoryId),
-        emotionDisplayName(link?.emotionId)
-    )
+    // 항상 최신 콜백을 보관
+    val currentOnRequestAi = rememberUpdatedState(onRequestAiSummary)
+    val currentOnOpenLink = rememberUpdatedState(onOpenLink)
+
+    // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
+    val aiExists = link?.aiArticleExists == true
+
+    val displayKeyword = when {
+        !aiArticle?.keyword.isNullOrBlank() -> aiArticle!!.keyword!!.trim()
+        aiExists -> link?.keyword.orEmpty()
+        else -> ""
+    }
+
+    val displaySummary = when {
+        !aiArticle?.summary.isNullOrBlank() -> aiArticle!!.summary!!.trim()
+        aiExists -> link?.summary.orEmpty()
+        else -> ""
+    }
+
+    val isKeywordEmpty = displayKeyword.isBlank()
+    val isSummaryEmpty = displaySummary.isBlank()
+
+    val keywordPlaceholder = "AI가 키워드를 추출하지 못하였습니다."
+    val summaryPlaceholder = "AI가 본문을 요약하지 못하였습니다."
+
+    // 요약이 "없을 때" 요청 가능하도록
+    val hasContent = (aiArticle != null) || aiExists
+    val canRequestAi = !isAiLoading  // 콘텐츠가 없고, 로딩 중이 아닐 때만 생성 가능
 
     var showAISummary by remember { mutableStateOf(false) }
     var showAIArticleModal by remember { mutableStateOf(false) }
 
     // 요약이 이미 있거나(aiArticle or link.summary/keyword) 로딩 완료되면 자동 펼치기
-    LaunchedEffect(aiArticle, link?.summary, link?.keyword, isLoading) {
+    // (자동 펼침은 “이미 존재하는 요약/키워드가 있을 때만” 유지. 새 호출은 하지 않음)
+    LaunchedEffect(aiArticle, link?.aiArticleExists, isLoading) {
         if (!isLoading) {
-            val has = aiArticle != null ||
-                    !link?.summary.isNullOrBlank() ||
-                    !link?.keyword.isNullOrBlank()
-            if (has) showAISummary = true
+            val hasExisting = (aiArticle != null) || (link?.aiArticleExists == true)
+            if (hasExisting) showAISummary = true
         }
+    }
+
+    // isAiLoading 값이 바뀔 때마다 로그 찍기
+    LaunchedEffect(isAiLoading) {
+        Log.d("SaveLinkResultScreen", "isAiLoading changed -> $isAiLoading")
     }
 
     // 서버에서 내려온 최신 카테고리 이름(순서 보장)을 사용
@@ -172,25 +194,6 @@ fun SaveLinkResultScreen(
     var selectedEmotionId  by remember(link?.emotionId)  { mutableStateOf(link?.emotionId) }
     var selectedCategoryId by remember(link?.categoryId) { mutableStateOf(link?.categoryId) }
 
-    val readModeTags = listOfNotNull(
-        // 읽기 모드에서 보여줄 태그도 동적 라벨로 변환
-        categoryLabelOf(
-            selectedCategoryId ?: link?.categoryId,
-            categoryLabels
-        ),
-        emotionDisplayName(selectedEmotionId ?: link?.emotionId)
-    )
-
-    // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
-    val displayKeyword = aiArticle?.keyword?.trim().orEmpty().ifEmpty { link?.keyword.orEmpty() }
-    val displaySummary = aiArticle?.summary?.trim().orEmpty().ifEmpty { link?.summary.orEmpty() }
-
-    val isKeywordEmpty = displayKeyword.isBlank()
-    val isSummaryEmpty = displaySummary.isBlank()
-
-    val keywordPlaceholder = "AI가 키워드를 추출하지 못하였습니다."
-    val summaryPlaceholder = "AI가 본문을 요약하지 못하였습니다."
-
     var isEditMode by remember { mutableStateOf(false) }
 
     // 메모/제목은 서버값으로 초기화
@@ -198,13 +201,12 @@ fun SaveLinkResultScreen(
     var isMemoEditing by remember { mutableStateOf(false) }
 
 
-    // 드롭다운에 보여줄 현재 라벨
-    var categoryLabel by remember(selectedCategoryId, categoryLabels) {
-        mutableStateOf(categoryLabelOf(selectedCategoryId, categoryLabels))
-    }
-    var emotionLabel by remember(selectedEmotionId) {
-        mutableStateOf(emotionLabelOf(selectedEmotionId))
-    }
+    // 매 렌더마다 계산
+    val effectiveCategoryId = selectedCategoryId ?: link?.categoryId
+    val effectiveEmotionId  = selectedEmotionId  ?: link?.emotionId
+
+    val categoryLabel = categoryDisplayName(effectiveCategoryId) ?: "카테고리"
+    val emotionLabel  = emotionDisplayName(effectiveEmotionId)  ?: "감정"
 
     LaunchedEffect(link) {
         // 상세가 갱신되면 UI 상태도 동기화(사용자가 수정 중이 아닐 때만)
@@ -218,14 +220,6 @@ fun SaveLinkResultScreen(
         }
     }
 
-    // showAIArticleModal 상태 변화 감지하여 3초 뒤 자동 닫힘
-    LaunchedEffect(showAIArticleModal) {
-        if (showAIArticleModal) {
-            delay(3000)
-            showAIArticleModal = false
-        }
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -233,16 +227,22 @@ fun SaveLinkResultScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             val readModeTags = listOfNotNull(
-                categoryDisplayName(selectedCategoryId ?: link?.categoryId),
-                emotionDisplayName(selectedEmotionId ?: link?.emotionId)
+                categoryDisplayName(effectiveCategoryId),
+                emotionDisplayName(effectiveEmotionId)
             )
 
             TopBar(
                 isEditMode = isEditMode,
                 showAISummary = showAISummary,
-                onEditClick = {
+                onEditClick = {latestTitle ->
                     if (isEditMode) {
-                        // TODO: viewModel.updateCategoryEmotion(link?.linkuId, selectedCategoryId, selectedEmotionId)
+                        // 편집 종료 시 저장 호출
+                        onSubmitEdit(
+                            latestTitle,
+                            memoText.ifBlank { null },
+                            selectedCategoryId,
+                            selectedEmotionId
+                        )
                     }
                     isEditMode = !isEditMode
                 },
@@ -256,11 +256,9 @@ fun SaveLinkResultScreen(
                     categoryColorMap[label]?.color4 ?: LocalColorTheme.current.gray[300]
                 },
                 onCategorySelected = { label ->
-                    categoryLabel = label
-                    selectedCategoryId = categoryIdOf(label, categoryLabels)
+                    selectedCategoryId = categoryIdOf(label)
                 },
                 onEmotionSelected = { label ->
-                    emotionLabel = label
                     selectedEmotionId = emotionIdOf(label)
                 }
             )
@@ -290,7 +288,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = linku,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                         color = LocalColorTheme.current.black
                     )
                 }
@@ -311,7 +309,7 @@ fun SaveLinkResultScreen(
                         painter = rememberAsyncImagePainter(model = imageUrl),
                         contentDescription = "선택된 이미지",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop // ✅ 박스에 꽉 차도록
+                        contentScale = ContentScale.Crop // 박스에 꽉 차도록
                     )
                 } else {
                     Column(
@@ -367,7 +365,7 @@ fun SaveLinkResultScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(51.dp)
+                            .heightIn(min = 51.dp)
                             .clip(RoundedCornerShape(18.dp))
                             .background(LocalColorTheme.current.gray[100])
                             .padding(horizontal = 22.dp, vertical = 15.dp),
@@ -511,16 +509,6 @@ fun SaveLinkResultScreen(
                         }
                     }
 
-                    val bg = when {
-                        isAiLoading || isSummaryEmpty -> SolidColor(LocalColorTheme.current.gray[100])
-                        else -> Brush.horizontalGradient(
-                            listOf(
-                                LocalColorTheme.current.blue[200].copy(alpha = 0.1f),
-                                LocalColorTheme.current.purple[200].copy(alpha = 0.1f)
-                            )
-                        )
-                    }
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -548,7 +536,7 @@ fun SaveLinkResultScreen(
                                 isSummaryEmpty -> summaryPlaceholder
                                 else -> displaySummary
                             },
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                             color = when {
                                 isAiLoading || isSummaryEmpty -> LocalColorTheme.current.gray[400]
                                 else -> LocalColorTheme.current.black
@@ -572,26 +560,42 @@ fun SaveLinkResultScreen(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
+                // 포커스 요청자 준비
+                val memoFocusRequester = remember { FocusRequester() }
+
+                // 편집 진입하면 자동 포커스 (다음 프레임에 요청)
+                LaunchedEffect(isMemoEditing) {
+                    if (isMemoEditing) {
+                        kotlinx.coroutines.yield()
+                        memoFocusRequester.requestFocus()
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 51.dp)
                         .clip(RoundedCornerShape(18.dp))
                         .background(LocalColorTheme.current.gray[100])
-                        .padding(horizontal = 22.dp, vertical = 15.dp),
+                        .padding(horizontal = 22.dp, vertical = 15.dp)
+                        .then(
+                            if (isEditMode) Modifier.clickable { isMemoEditing = true } else Modifier
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isMemoEditing) {
                         BasicTextField(
                             value = memoText,
                             onValueChange = { memoText = it },
-                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
-                            modifier = Modifier.weight(1f)
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(memoFocusRequester)
                         )
                     } else {
                         Text(
                             text = memoText,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                             color = LocalColorTheme.current.black,
                             modifier = Modifier.weight(1f)
                         )
@@ -629,8 +633,24 @@ fun SaveLinkResultScreen(
                         .clip(RoundedCornerShape(18.dp))
                         .background(LocalColorTheme.current.blue[200])
                         .clickable {
-                            showAIArticleModal = true
-                            showAISummary = true
+//                            if (hasContent) {
+//                                // 이미 요약/키워드가 있으면 네트워크 호출 없이 즉시 펼치기
+//                                showAISummary = true
+//                            } else {
+//                                // 없으면 API 요청 → isAiLoading=true 동안 모달 표시
+//                                onRequestAiSummary()
+//                            }
+                            Log.d("SaveLinkResultScreen", "AI 버튼 클릭! hasContent=$hasContent, isAiLoading=$isAiLoading")
+                            if (isAiLoading) return@clickable
+                            if (hasContent) {
+                                // 이미 키워드/요약 있으면 네트워크 없이 즉시 펼치기
+                                showAISummary = true
+                            } else {
+                                // 없으면 API 요청 → ViewModel이 isLoadingAiArticle=true로 만들고
+                                // 화면은 로딩 오버레이를 띄워줌
+                                android.util.Log.d("SaveLinkResultScreen", "AI 요청 트리거")
+                                currentOnRequestAi.value()
+                            }
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -658,9 +678,30 @@ fun SaveLinkResultScreen(
             }
         }
 
+        // 모달은 로딩 동안 항상 표시
+        if (isAiLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(1f)
+                    .clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                    AIArticleModal(
+                        progress = aiProgress,
+                        onCancel = onCancelAi,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
+            }
+        }
+
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
+                .zIndex(2f)
                 .padding(bottom = 14.dp, end = 19.71.dp)
         ) {
             Row(
@@ -670,8 +711,16 @@ fun SaveLinkResultScreen(
                     .background(brush = Basic.maincolor)
                     .padding(horizontal = 16.dp)
                     .clickable {
-                        val target = linku
-                        if (target.isNotBlank()) onOpenLink(target)
+//                        Log.d("SaveLinkResultScreen", "링크 버튼 클릭! linku='$linku'")
+//                        val target = linku
+//                        if (target.isNotBlank()) {
+//                            onOpenLink(target)
+//                        } else {
+//                            Log.w("SaveLinkResultScreen", "linku 비어있음(상세 아직 로드 전) -> 무시")
+//                        }
+                        Log.d("SaveLinkResultScreen", "링크 버튼 클릭! linku='$linku'")
+                        // 최신 콜백 호출
+                        currentOnOpenLink.value(linku)
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -691,27 +740,27 @@ fun SaveLinkResultScreen(
             }
         }
 
-        if (showAIArticleModal) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color(0x66000000)) // 40% 투명한 검정색 배경
-                    .zIndex(1f)
-                    .clickable(enabled = false) {}, // 외부 클릭 막기
-                contentAlignment = Alignment.Center
-            ) {
-                Box(
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AIArticleModal(
-                        modifier = Modifier
-//                    .align(Alignment.Center)
-                            .padding(horizontal = 20.dp)
-                    )
-                }
-            }
-        }
+//        if (showAIArticleModal) {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(Color(0x66000000)) // 40% 투명한 검정색 배경
+//                    .zIndex(1f)
+//                    .clickable(enabled = false) {}, // 외부 클릭 막기
+//                contentAlignment = Alignment.Center
+//            ) {
+//                Box(
+//                    modifier = Modifier.padding(horizontal = 20.dp),
+//                    contentAlignment = Alignment.Center
+//                ) {
+//                    AIArticleModal(
+//                        modifier = Modifier
+////                    .align(Alignment.Center)
+//                            .padding(horizontal = 20.dp)
+//                    )
+//                }
+//            }
+//        }
     }
 }
 
@@ -719,7 +768,7 @@ fun SaveLinkResultScreen(
 private fun TopBar(
     isEditMode: Boolean = false,
     showAISummary: Boolean = false,
-    onEditClick: () -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     onBack: () -> Unit = {},
     titleText: String = "",
     tags: List<String> = emptyList(),
@@ -743,7 +792,7 @@ private fun TopBar(
         if (!isTitleEditing) title = titleText
     }
 
-    // ✅ 수정 완료 시 텍스트 입력 종료
+    // 수정 완료 시 텍스트 입력 종료
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
             isTitleEditing = false
@@ -799,7 +848,9 @@ private fun TopBar(
                         style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.blue[50],
                         modifier = Modifier
-                            .clickable { onEditClick() }
+                            .clickable {
+                                onEditClick(title)
+                            }
                     )
                 }
             }
@@ -1154,6 +1205,8 @@ private fun PreviewSaveLinkResultScreen() {
             createdAt = OffsetDateTime.parse("2025-07-21T23:13:41.354053+09:00"),
             updatedAt = OffsetDateTime.parse("2025-07-21T23:13:41.354053+09:00")
         ),
-        isLoading = false
+        isLoading = false,
+        onOpenLink = { /* no-op for preview */ },
+        onRequestAiSummary = { /* no-op for preview */ }
     )
 }
