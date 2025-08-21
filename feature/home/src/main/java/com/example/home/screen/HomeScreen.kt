@@ -687,7 +687,7 @@ fun TopBar(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
             .background(LocalColorTheme.current.white)
-            .padding(bottom = if (!isExpanded) 13.5.dp else 0.dp) // 하단 여백 확보
+            .padding(bottom = if (!isExpanded) 5.dp else 0.dp) // 하단 여백 확보
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // 상단 로고 및 알림 아이콘
@@ -1064,12 +1064,12 @@ fun TopBar(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 19.dp, bottom = 8.dp)
+                        .padding(top = 16.dp, bottom = 0.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 10.dp),
+                            .padding(horizontal = 24.dp, vertical = 0.dp),
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1218,7 +1218,7 @@ fun TopBar(
 
             // 화살표 버튼 (접힌 상태에서만 표시)
             if (!isExpanded) {
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Box(
                     modifier = Modifier
