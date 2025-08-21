@@ -69,7 +69,15 @@ fun MyPageApp(
                 )
             }
         }
-        composable("account") { AccountSettingScreen(navController = navController) }
+        composable("account") {
+            ui.userInfo?.let { user ->
+                AccountSettingScreen(
+                    navController = navController,
+                    nicknamePlaceholder = user.nickname,
+                    jobPlaceholder = user.jobName
+                )
+            }
+        }
         composable("alarm") { AlarmSettingScreen(navController = navController) }
         composable("quit") {
             ServiceQuitScreen(
