@@ -217,7 +217,7 @@ fun EmailVerificationScreen(
 
             // 인증 코드 입력 영역
             if (isCodeSent) {
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 OutlinedTextField(
                     value = code.value,
