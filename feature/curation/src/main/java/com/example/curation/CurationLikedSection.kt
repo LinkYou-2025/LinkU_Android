@@ -40,7 +40,7 @@ fun CurationLikedSection(nickname: String) {
     Column(modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp)) {
         // 제목
         Text(
-            text = "${nickname}님이 좋아요 한 큐레이션",
+            text = "${nickname}님이 좋아요한 큐레이션",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Bold,
@@ -74,6 +74,7 @@ fun CurationLikedSection(nickname: String) {
 @Composable
 fun LikedCurationCard(
     item: UICurationItem,
+    onCardClick: (() -> Unit)? = null,
     onHeartClick: (() -> Unit)? = null
 ) {
     Box(
@@ -81,6 +82,7 @@ fun LikedCurationCard(
             .fillMaxWidth()
             .height(190.dp)
             .clip(RoundedCornerShape(12.dp))
+            .clickable(enabled = onCardClick != null) { onCardClick?.invoke() } // 카드 탭 → 상세
     ) {
         // 1) 이미지: URL > 리소스 > 폴백
         val painter = when {

@@ -59,9 +59,9 @@ fun HomeApp(viewModel: HomeViewModel) {
         }
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.loadCategoryColors()
-    }
+//    LaunchedEffect(Unit) {
+//        viewModel.loadCategoryColors()
+//    }
 
     NavHost(
         navController = navController,
@@ -164,7 +164,7 @@ fun HomeApp(viewModel: HomeViewModel) {
                 // 화면 진입 시 상세 로드
                 LaunchedEffect(linkuId) {
                     viewModel.loadLinkDetail(linkuId) // 상세 안에 있으면 이걸로 표시, 없으면 내부에서 AI 호출
-                    viewModel.loadCategoryColors()  // 상세 들어올 때마다 최신 색상 재조회
+                    viewModel.loadCategoryColors(force = true)  // 상세 들어올 때마다 최신 색상 재조회
                 }
 
                 val categoryColorMap = viewModel.categoryColorMap.collectAsState().value  // 색상 맵 수집

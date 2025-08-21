@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -52,6 +53,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.design.BrushText
@@ -140,6 +143,15 @@ fun SaveLinkResultScreen(
     val titleFromServer = link?.title.orEmpty()
     val memoFromServer = link?.memo.orEmpty()
     val imageUrl = link?.linkuImageUrl
+    val context = LocalContext.current
+    val imageRequest = remember(imageUrl, link?.linkuId) {
+        ImageRequest.Builder(context)
+            .data(imageUrl)
+            .memoryCacheKey("linku_image_mem_${link?.linkuId}")
+            .diskCacheKey("linku_image_disk_${link?.linkuId}")
+            .crossfade(true)
+            .build()
+    }
     val linku = link?.linku.orEmpty()
 
     // 항상 최신 콜백을 보관
@@ -299,7 +311,7 @@ fun SaveLinkResultScreen(
             ) {
                 if (!imageUrl.isNullOrBlank()) {
                     Image(
-                        painter = rememberAsyncImagePainter(model = imageUrl),
+                        painter = rememberAsyncImagePainter(model = imageRequest),
                         contentDescription = "선택된 이미지",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop // 박스에 꽉 차도록
