@@ -110,8 +110,8 @@ class FileViewModel @Inject constructor(
     val aiArticleDetail: StateFlow<AiArticle?> = _aiArticleDetail.asStateFlow()
 
     // 5-3. 링크 클릭 콜백
-    var onLinkClick: ((LinkItemInfo) -> Unit)? = null
-    fun registeronLinkClick(callback: (LinkItemInfo) -> Unit) {
+    var onLinkClick: ((Long) -> Unit)? = null
+    fun registeronLinkClick(callback: (Long) -> Unit) {
         onLinkClick = callback
     }
 
@@ -138,7 +138,7 @@ class FileViewModel @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     // ---------- get method ----------
-    fun setLinkDetail(link: LinkItemInfo){
+    fun setLinkDetail(linkuId: Long){
         Log.d("FileViewModel", "setLinkDetail")
 
         viewModelScope.launch{
@@ -150,8 +150,8 @@ class FileViewModel @Inject constructor(
             try{
                 Log.d("FileViewModel", "setLinkDetail try")
 
-                _linkDetail.value = linkuRepository.getLinkDetail(link.linkuId)
-                _aiArticleDetail.value = aiArticleRepository.getAiArticle(link.linkuId)
+                _linkDetail.value = linkuRepository.getLinkDetail(linkuId)
+                _aiArticleDetail.value = aiArticleRepository.getAiArticle(linkuId)
 
                 Log.d("FileViewModel", "setLinkDetail try result : ${_linkDetail.value} / ${_aiArticleDetail.value}")
             } catch (e: Exception){
@@ -912,6 +912,7 @@ class FileViewModel @Inject constructor(
 
                 _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
                     FastSearchItem(
+                        id = it.linkuId,
                         title = it.title,
                         url = it.linkUrl
                     )

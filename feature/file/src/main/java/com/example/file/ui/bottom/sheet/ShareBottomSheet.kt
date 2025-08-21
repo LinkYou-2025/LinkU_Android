@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -276,11 +277,13 @@ fun ShareBottomSheet(
             when(state){
                 FolderState.TOP -> {
                     EmptyFolderItemLayout(
+                        modifier = Modifier.fillMaxSize(201.10968f/412f),
                         folderName = "${userName}의 폴더"
                     )
                 }
                 FolderState.BOTTOM -> {
                     TopFolderItemLayout(
+                        modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folderName = selectedTopFolder!!.folderName,
                         isBookmarked = selectedTopFolder!!.isBookmarked,
@@ -289,6 +292,7 @@ fun ShareBottomSheet(
                 }
                 FolderState.LINKS -> {
                     BottomFolderItemLayout(
+                        modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedBottomFolder!!,
                         editStateViewModel = dummyVM,

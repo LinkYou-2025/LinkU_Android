@@ -488,6 +488,7 @@ fun HomeScreen(
     // 검색창 탑 시트
     SearchBarTopSheet(
         visible = homeViewModel.searchTopSheetVisible,
+        onLinkClick = { onLinkClick(it) },
         onDismiss = { homeViewModel.updateSearchTopSheetVisible(false) },
         onQueryChange = { homeViewModel.fastSearch(it) },
         onQuerySave = { homeViewModel.addRecentQuery(it) },

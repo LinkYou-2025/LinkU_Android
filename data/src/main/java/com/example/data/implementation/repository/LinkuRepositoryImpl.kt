@@ -203,6 +203,7 @@ class LinkuRepositoryImpl @Inject constructor(
                 quickSearch(keyword = keyword)
             }.map{
                 FastSearchLinkInfo(
+                    linkuId = it.linkuId,
                     title = it.title,
                     domainImageUrl = it.domainImageUrl,
                     linkUrl = it.linkUrl

@@ -140,7 +140,8 @@ fun BottomNavigationBar(
 
         // ✅ 플로팅 버튼 추가
         Box(
-            contentAlignment = Alignment.BottomCenter
+            modifier = Modifier.align(Alignment.Center),
+            contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier

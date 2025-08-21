@@ -6,6 +6,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -22,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -102,11 +105,16 @@ fun FileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(
+                    start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
+                    top = innerPadding.calculateTopPadding(),
+                    end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                    bottom = 0.dp // bottom만 제거
+                )
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(20.dp)
+                contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp)
             ) {
                 item {
                     when(folderStateViewModel.currentFolderState) {
@@ -272,6 +280,7 @@ fun FileScreen(
     // 검색창 탑 시트
     SearchBarTopSheet(
         visible = folderStateViewModel.searchTopSheetVisible,
+        onLinkClick = { fileViewModel.onLinkClick?.invoke(it)},
         onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) },
         onQueryChange = { fileViewModel.fastSearch(it) },
         onQuerySave = { fileViewModel.addRecentQuery(it) },

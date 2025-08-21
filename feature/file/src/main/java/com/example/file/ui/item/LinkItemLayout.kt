@@ -75,7 +75,7 @@ fun LinkItemLayout(
     val tags = link?.tags?:emptyList()
     var showDialog by remember { mutableStateOf(false) }
 
-    val domainIcon = link?.let{ domainLogoPainterOrNull(it.url) }?:painterResource(R.drawable.link_categorization_default)
+    val domainIcon = link?.let{ domainLogoPainterOrNull(it.url) }
 
     val isNotAdder = link != null
 
@@ -105,7 +105,7 @@ fun LinkItemLayout(
                 // 태그 텍스트를 Box 중앙에 정렬, 내부 여백(가로 6dp, 세로 3dp)
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .padding(horizontal = 6.dp, vertical = 3.dp),
+                    .padding(horizontal = 6.dp, vertical = 1.dp),
                 text = tag,
                 // 폰트 크기(10sp)
                 fontSize = 10.sp,
@@ -119,18 +119,20 @@ fun LinkItemLayout(
         }
     }
 
+    val modifier = if(link != null) Modifier.noRippleClickable {
+        link?.linkuId?.let {
+            Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
+            onClick(link)
+        }
+    } else Modifier
+
     // 전체 카드 바탕 Surface
     Surface(
         // 카드 크기: 가로 181dp, 세로 267dp
         modifier = Modifier
             .width(181.dp)
-            .height(267.dp)
-            .noRippleClickable {
-                link?.linkuId?.let {
-                    Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
-                    onClick(link)
-                }
-            }
+            //.height(267.dp)
+            then(modifier)
             /*.pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
@@ -217,7 +219,7 @@ fun LinkItemLayout(
             }
 
             // (4) 남은 공간 모두 차지하는 Spacer (아래로 밀어내기)
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // (5) 링크 설명 프레임 (도메인, 아이콘 등)
             Row(
@@ -234,19 +236,21 @@ fun LinkItemLayout(
                 Box(
                     modifier = Modifier
                         .size(26.dp)
-                        .clip(CircleShape),
+                        .clip(CircleShape)
+                        .background(Gray200),
                     contentAlignment = Alignment.Center
                 ){
                     // 도메인 아이콘
-                    Image(
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        // 아이콘 이미지 리소스
-                        painter = domainIcon,  // 트위터 로고(테스트)
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
-                    )
-
+                    domainIcon?.let {
+                        Image(
+                            modifier = Modifier
+                                .fillMaxSize(),
+                            // 아이콘 이미지 리소스
+                            painter = it,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
 
                 // 링크의 도메인 텍스트
