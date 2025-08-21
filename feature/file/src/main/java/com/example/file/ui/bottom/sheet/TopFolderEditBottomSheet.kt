@@ -2,7 +2,7 @@ package com.example.file.ui.bottom.sheet
 
 import androidx.compose.runtime.Composable
 import com.example.file.FileViewModel
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable

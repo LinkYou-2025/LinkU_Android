@@ -12,14 +12,27 @@ import javax.inject.Inject
 import com.example.core.repository.CurationRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
-import kotlinx.coroutines.delay
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.example.core.model.search.RecentQuery
+import com.example.core.repository.LinkuRepository
+import com.example.core.repository.RecentSearchRepository
+import com.example.design.FastSearchItem
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
+
 
 @HiltViewModel
 class CurationViewModel @Inject constructor(
     private val repository: CurationRepository,
     private val userRepository: UserRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+
+    private val recentRepository: RecentSearchRepository,
+    private val linkuRepository: LinkuRepository,
 ) : ViewModel() {
 
     private var hasPrefetched = false //한 번만 실행.
@@ -78,9 +91,17 @@ class CurationViewModel @Inject constructor(
                 }
         }
     }
+    // retrofit2에 의존하지 않고, 예외에 code() 메서드가 있으면 꺼내오는 유틸
+    private fun httpStatusCodeOrMinus1(throwable: Throwable): Int {
+        return runCatching {
+            val m = throwable::class.java.methods
+                .firstOrNull { it.name == "code" && it.parameterCount == 0 }
+            (m?.invoke(throwable) as? Int) ?: -1
+        }.getOrDefault(-1)
+    }
+
     fun loadMonthlyCuration() {
         viewModelScope.launch {
-            // 한 번만 로드, 실패 시엔 다시 시도 가능하도록 플래그 관리
             if (hasPrefetched) return@launch
 
             _isGenerating.value = true
@@ -89,14 +110,19 @@ class CurationViewModel @Inject constructor(
             val uid = requireUserId()
             Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
 
+            // ⬇️ 로그인 안돼 있으면 ‘빈 상태’로 조용히 표시하고 종료
             if (uid <= 0L) {
-                _errorMessage.value = "로그인이 필요합니다."
-                _isGenerating.value = false
+                setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
                 return@launch
             }
 
             try {
                 val item = repository.getMyRecentCuration(uid)
+                if (item == null || item.id <= 0L) {
+                    setEmptyCurationState(markPrefetched = true)
+                    return@launch
+                }
+
                 _recentCuration.value = item
                 _currentCurationId.value = item.id
 
@@ -105,27 +131,82 @@ class CurationViewModel @Inject constructor(
                     .onSuccess { _highlightLiked.value = it }
                     .onFailure { _highlightLiked.value = false }
 
-                // Top2/좋아요 리스트
+                // 추천 2개 + 좋아요 리스트
                 loadHomeRecommendedLinksTop2(uid, item.id)
                 loadLikedCurations()
 
                 Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
-                hasPrefetched = true // 성공했을 때만 true
+                hasPrefetched = true
             } catch (e: Exception) {
-                // 토큰 만료/401 문구는 사용자에게 명확히
-                val msg = e.message.orEmpty()
-                _errorMessage.value = when {
-                    msg.contains("Token", true) && msg.contains("expired", true) ->
-                        "세션이 만료됐어요. 다시 로그인해 주세요."
-                    else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+                // ⬇️ retrofit2 없이도 403/404만 골라냄
+                val code = httpStatusCodeOrMinus1(e)
+                if (code == 403 || code == 404) {
+                    Log.w("CurationVM", "큐레이션 없음/권한 없음(HTTP $code) → 빈 상태 표시")
+                    setEmptyCurationState(markPrefetched = false) // ← false 로 변경 (재시도 허용)
+                    return@launch
+                } else {
+                    val msg = e.message.orEmpty()
+                    _errorMessage.value = when {
+                        msg.contains("Token", true) && msg.contains("expired", true) ->
+                            "세션이 만료됐어요. 다시 로그인해 주세요."
+                        else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+                    }
+                    Log.e("CurationVM", "큐레이션 불러오기 실패(code=$code)", e)
+                    hasPrefetched = false
                 }
-                Log.e("CurationVM", "큐레이션 불러오기 실패", e)
-                hasPrefetched = false // 실패하면 재시도 가능
             } finally {
                 _isGenerating.value = false
             }
         }
     }
+//    fun loadMonthlyCuration() {
+//        viewModelScope.launch {
+//            // 한 번만 로드, 실패 시엔 다시 시도 가능하도록 플래그 관리
+//            if (hasPrefetched) return@launch
+//
+//            _isGenerating.value = true
+//            _errorMessage.value = null
+//
+//            val uid = requireUserId()
+//            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
+//
+//            if (uid <= 0L) {
+//                _errorMessage.value = "로그인이 필요합니다."
+//                _isGenerating.value = false
+//                return@launch
+//            }
+//
+//            try {
+//                val item = repository.getMyRecentCuration(uid)
+//                _recentCuration.value = item
+//                _currentCurationId.value = item.id
+//
+//                // 현재 큐레이션 좋아요 상태
+//                runCatching { repository.isCurationLiked(item.id, uid) }
+//                    .onSuccess { _highlightLiked.value = it }
+//                    .onFailure { _highlightLiked.value = false }
+//
+//                // Top2/좋아요 리스트
+//                loadHomeRecommendedLinksTop2(uid, item.id)
+//                loadLikedCurations()
+//
+//                Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
+//                hasPrefetched = true // 성공했을 때만 true
+//            } catch (e: Exception) {
+//                // 토큰 만료/401 문구는 사용자에게 명확히
+//                val msg = e.message.orEmpty()
+//                _errorMessage.value = when {
+//                    msg.contains("Token", true) && msg.contains("expired", true) ->
+//                        "세션이 만료됐어요. 다시 로그인해 주세요."
+//                    else -> "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
+//                }
+//                Log.e("CurationVM", "큐레이션 불러오기 실패", e)
+//                hasPrefetched = false // 실패하면 재시도 가능
+//            } finally {
+//                _isGenerating.value = false
+//            }
+//        }
+//    }
 //    fun loadMonthlyCuration() {
 //        viewModelScope.launch {
 //            _isGenerating.value = true
@@ -170,54 +251,52 @@ class CurationViewModel @Inject constructor(
 //        loadNickname()
 //        loadMonthlyCuration()
 //    }
-//  하이라이트 하트 토글
-    fun toggleHighlightLike() {
-        val cid = _currentCurationId.value
-        val uid = requireUserId()
-        val current = _highlightLiked.value ?: false
-        if (cid <= 0 || uid <= 0 || _likeBusy.value) return
 
-        viewModelScope.launch {
-            _likeBusy.value = true
-            // 낙관적 업데이트
-            _highlightLiked.value = !current
-
-            val result = runCatching {
-                if (current) repository.unlikeCuration(cid, uid)
-                else repository.likeCuration(cid, uid)
-            }
-            result.onFailure { e ->
-                val msg = e.message.orEmpty()
-                if (msg.contains("이미 좋아요를 눌렀습니다")) {
-                    // 이미 좋아요 상태이므로 UI liked 값 유지
-                    _highlightLiked.value = true
-                    // 그리고 서버의 최신 좋아요 리스트를 즉시 갱신
-                    loadLikedCurations()
-                    _likedError.value = null
-                } else if (msg.contains("Token", true) && msg.contains("expired", true)) {
-                    _likedError.value = "세션이 만료됐어요. 다시 로그인해 주세요."
-                    _highlightLiked.value = current // 실패 시 롤백
-                } else {
-                    _highlightLiked.value = current // 실패 시 롤백
-                    _likedError.value = "좋아요 처리에 실패했어요"
-                }
-            }
-
-//            result.onSuccess {
-//                loadLikedCurations() // 필요 시 생략 가능
-//            }.onFailure { e ->
-//                _highlightLiked.value = current // 롤백
-//                val msg = e.message.orEmpty()
-//                _likedError.value = when {
-//                    msg.contains("Token", true) && msg.contains("expired", true) ->
-//                        "세션이 만료됐어요. 다시 로그인해 주세요."
-//                    else -> "좋아요 처리에 실패했어요"
-//                }
-//            }
-
-            _likeBusy.value = false
-        }
+    fun toggleLikeFor(curationId: Long) {
+        setCurrentCurationId(curationId)
+        toggleHighlightLike()
     }
+//  하이라이트 하트 토글
+fun toggleHighlightLike() {
+    val cid = _currentCurationId.value
+    val uid = requireUserId()
+    val current = _highlightLiked.value ?: false
+    if (cid <= 0 || uid <= 0 || _likeBusy.value) return
+
+    viewModelScope.launch {
+        _likeBusy.value = true
+        _highlightLiked.value = !current
+
+        val result = runCatching {
+            if (current) repository.unlikeCuration(cid, uid)
+            else repository.likeCuration(cid, uid)
+        }
+
+        result.onSuccess {
+            // ✅ 좋아요 상태에 맞춰 홈의 liked 리스트도 즉시 반영
+            if (current) {
+                // 해지 → 리스트에서 제거
+                _likedCurations.value = _likedCurations.value.filterNot { it.id == cid }
+            } else {
+                // 등록 → 새로고침(간단) 또는 즉시 추가(고급)
+                refreshLikedCurations(uid) // 간단: 서버 리스트 재조회
+                // 또는 즉시 추가하려면 recentCuration 스냅샷으로 add:
+                // recentCuration.value?.let { cur ->
+                //     val item = LikedCuration(id = cid, month = cur.month, thumbnailUrl = cur.thumbnailUrl)
+                //     _likedCurations.value = (_likedCurations.value + item).distinctBy { it.id }
+                // }
+            }
+        }.onFailure { e ->
+            // 롤백
+            _highlightLiked.value = current
+            _likedError.value = if (e.message?.contains("Token", true) == true &&
+                e.message?.contains("expired", true) == true
+            ) "세션이 만료됐어요. 다시 로그인해 주세요." else "좋아요 처리에 실패했어요"
+        }
+
+        _likeBusy.value = false
+    }
+}
 //    fun toggleHighlightLike() {
 //        val cid = _currentCurationId.value
 //        val uid = authPreference.userId ?: -1L
@@ -246,6 +325,20 @@ class CurationViewModel @Inject constructor(
 //            _likeBusy.value = false
 //        }
 //    }
+
+    fun refreshLikedCurations(userId: Long = requireUserId()) {
+        viewModelScope.launch {
+            try {
+                _likedLoading.value = true
+                val list = repository.getLikedCurations(userId) // <- 실제 API 호출명에 맞게
+                _likedCurations.value = list                     // list: List<LikedCuration>
+            } catch (e: Exception) {
+                _likedError.value = "좋아요 목록을 불러오지 못했어요"
+            } finally {
+                _likedLoading.value = false
+            }
+        }
+    }
 
     //큐레이션 추천(2개)
     private val _homeLinks = MutableStateFlow(CurationLinksUiState())
@@ -359,6 +452,140 @@ class CurationViewModel @Inject constructor(
         }
     }
     fun setCurrentCurationId(id: Long) { _currentCurationId.value = id }
+
+    // ---------- search method ----------
+    // 검색창 탑 시트 가시성 상태
+    var searchTopSheetVisible by mutableStateOf(false)
+        private set
+    fun updateSearchTopSheetVisible(newState: Boolean) {
+        Log.d("searchTopSheetVisible", newState.toString())
+        searchTopSheetVisible = newState
+    }
+
+    // 빠른 링크 검색 목록
+    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
+    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
+
+    // 빠른 링크 검색
+    fun fastSearch(keyword: String){
+        Log.d("CurationViewModel", "fastSearch")
+
+        viewModelScope.launch{
+            Log.d("CurationViewModel", "fastSearch launch")
+
+            _errorMessage.value = null
+            try{
+                Log.d("CurationViewModel", "fastSearch try")
+
+                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
+                    FastSearchItem(
+                        title = it.title,
+                        url = it.linkUrl
+                    )
+                }
+
+                Log.d("CurationViewModel", "fastSearch try result: ${_fastSearchItems.value}")
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "fastSearch catch: $e.message")
+
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("CurationViewModel", "fastSearch finally")
+            }
+        }
+    }
+
+    //최근 검색 목록
+    val recentQueryList: StateFlow<List<RecentQuery>> =
+        recentRepository.observe(limit = 20)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    // 최근 검색 기록 추가
+    fun addRecentQuery(query: String) {
+        Log.d("CurationViewModel", "addRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("CurationViewModel", "addRecentQuery launch")
+
+            try{
+                Log.d("CurationViewModel", "addRecentQuery try")
+
+                recentRepository.add(query)
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "addRecentQuery catch: $e.message")
+            }finally {
+                Log.d("CurationViewModel", "addRecentQuery finally")
+            }
+        }
+        Log.d("CurationViewModel", "addRecentQuery return")
+    }
+
+    // 최근 검색 기록 삭제
+    fun removeRecentQuery(query: String) {
+        Log.d("CurationViewModel", "removeRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("CurationViewModel", "removeRecentQuery launch")
+
+            try{
+                Log.d("CurationViewModel", "removeRecentQuery try")
+
+                recentRepository.remove(query)
+
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "removeRecentQuery catch: $e.message")
+            }finally {
+                Log.d("CurationViewModel", "removeRecentQuery finally")
+            }
+        }
+        Log.d("CurationViewModel", "removeRecentQuery return")
+    }
+
+    //403 빈 상태 오류!(미로그인)
+    private fun setEmptyCurationState(markPrefetched: Boolean = true) {
+        _recentCuration.value = null
+        _currentCurationId.value = -1L
+        _highlightLiked.value = null
+        _homeLinks.value = CurationLinksUiState(loading = false, items = emptyList(), error = null)
+        _likedCurations.value = emptyList()
+        _likedLoading.value = false
+        _likedError.value = null
+        _errorMessage.value = null           // ❗️사용자에겐 조용히
+        _isGenerating.value = false
+        if (markPrefetched) hasPrefetched = true  // 리트라이 루프 방
+    }
+
+    /** 외부에서 로그인/로그아웃 변화 시 호출 */
+    fun invalidate() {
+        hasPrefetched = false
+    }
+
+
+    // 최근 검색 기록 전체 삭제
+    fun clearRecentQuery() {
+        Log.d("CurationViewModel", "clearRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("CurationViewModel", "clearRecentQuery launch")
+
+            try{
+                Log.d("CurationViewModel", "clearRecentQuery try")
+
+                recentRepository.clear()
+
+            }catch (e: Exception){
+                Log.d("CurationViewModel", "clearRecentQuery catch: $e.message")
+            }finally {
+                Log.d("CurationViewModel", "clearRecentQuery finally")
+            }
+        }
+        Log.d("CurationViewModel", "clearRecentQuery return")
+    }
+    // ---------- search method ----------
 }
 
 

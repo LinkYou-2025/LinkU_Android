@@ -70,6 +70,7 @@ fun HomeApp(viewModel: HomeViewModel) {
     ) {
         composable("onboarding") {
             HomeScreen(
+                homeViewModel = viewModel,
                 userName = viewModel.userName.orEmpty().ifBlank { "링큐" },
                 showRecommendations = viewModel.showRecommendations,
                 recommendedLinks = viewModel.recommendedLinks,

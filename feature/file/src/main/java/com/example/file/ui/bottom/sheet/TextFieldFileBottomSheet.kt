@@ -52,7 +52,7 @@ import com.cheonjaeung.compose.grid.VerticalGrid
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray300
 import com.example.file.ui.theme.Gray400
@@ -153,23 +153,14 @@ fun TextFieldFileBottomSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "색상",
+                    text = "색상 변경",
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
                     fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
                     color = Gray800,
                 )
-                Text(
-                    modifier = Modifier
-                        .padding(start = 1.dp),
-                    text = "(색상은 한 번 지정하면 변경 불가합니다)",
-                    fontSize = 13.sp,
-                    lineHeight = 15.sp,
-                    fontFamily = DefaultFont,
-                    fontWeight = FontWeight.Normal,
-                    color = Gray400,
-                )
+
                 Spacer(modifier = Modifier.weight(1f))
 
                 Box(

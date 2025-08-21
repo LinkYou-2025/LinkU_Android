@@ -34,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -156,7 +157,8 @@ fun LinkItemLayout(
                         modifier = Modifier.fillMaxSize(),
                         // 사용할 이미지 리소스
                         model = painter,
-                        contentDescription = null
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop
                     )
                 }else{
                     Icon(
@@ -220,8 +222,7 @@ fun LinkItemLayout(
                 Box(
                     modifier = Modifier
                         .size(26.dp)
-                        .clip(CircleShape)
-                        .background(color = Gray200),
+                        .clip(CircleShape),
                     contentAlignment = Alignment.Center
                 ){
                     // 도메인 아이콘
@@ -230,7 +231,8 @@ fun LinkItemLayout(
                             .fillMaxSize(),
                         // 아이콘 이미지 리소스
                         painter = domainIcon,  // 트위터 로고(테스트)
-                        contentDescription = null
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop
                     )
 
                 }

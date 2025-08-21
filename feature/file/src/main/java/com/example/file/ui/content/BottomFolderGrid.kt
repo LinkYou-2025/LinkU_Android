@@ -39,7 +39,7 @@ import com.example.file.ui.item.LinkItemLayout
 import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.folder.state.FolderState
@@ -129,7 +129,7 @@ fun BottomFolderGrid(
                     val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]
 
                     BottomFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = folder,
                         editStateViewModel = editStateViewModel,
                         onEdit = {

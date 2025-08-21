@@ -74,7 +74,7 @@ fun LoginScreen(
                 )
             } else {
                 Image(
-                    painter = painterResource(R.drawable.img_logo_white),
+                    painter = painterResource(R.drawable.img_login_logo),
                     contentDescription = "Logo",
                     modifier = Modifier
                         .offset(y = logoOffsetY.dp)
@@ -88,7 +88,7 @@ fun LoginScreen(
             Button(
                 onClick = { navigator.navigate("email_login") },
                 colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
-                shape = RoundedCornerShape(50),
+                shape = RoundedCornerShape(32),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -144,7 +144,11 @@ fun LoginScreen(
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier.clickable {
-                        onSignUpClick() // 회원가입 클릭 시 바텀시트 콜백 실행
+                        onSignUpClick()
+//                        navigator.navigate("terms_agreement") {
+//                            launchSingleTop = true // 동일 화면 중복 쌓임 방지
+//                        }
+                        //onSignUpClick() // 회원가입 클릭 시 바텀시트 콜백 실행
                     }
                 )
             }

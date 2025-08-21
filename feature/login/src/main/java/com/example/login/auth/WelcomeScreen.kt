@@ -118,24 +118,27 @@ fun WelcomeScreen(
                 textAlign = TextAlign.Center
             )
         }
-
         // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
-        Button(
-            onClick = {
-                if (!isSignUpRequested) { // 한 번만 호출되도록 체크
-                    isSignUpRequested = true
-                    Log.d("WelcomeScreen", "회원가입 API 호출 시도")
-                    signUpViewModel.signUp()
-                }
-            },
-            enabled = !isSignUpRequested, // 요청 중일 때 비활성화
-            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-            shape = RoundedCornerShape(50),
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 32.dp, vertical = 32.dp)
                 .fillMaxWidth()
+                .align(Alignment.BottomCenter) // 항상 하단 고정
+                .imePadding()                  // 키보드 올라오면 자동 위로
+                .navigationBarsPadding()       // 내비/제스처 바 안전 영역
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 .height(48.dp)
+                .background(
+                    Color.White,
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .clickable(enabled = !isSignUpRequested) {
+                    if (!isSignUpRequested) {
+                        isSignUpRequested = true
+                        Log.d("WelcomeScreen", "회원가입 API 호출 시도")
+                        signUpViewModel.signUp()
+                    }
+                },
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "회원가입 완료하기",
@@ -149,6 +152,37 @@ fun WelcomeScreen(
                 fontFamily = Paperlogy
             )
         }
+
+//        // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
+//        Button(
+//            onClick = {
+//                if (!isSignUpRequested) { // 한 번만 호출되도록 체크
+//                    isSignUpRequested = true
+//                    Log.d("WelcomeScreen", "회원가입 API 호출 시도")
+//                    signUpViewModel.signUp()
+//                }
+//            },
+//            enabled = !isSignUpRequested, // 요청 중일 때 비활성화
+//            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+//            shape = RoundedCornerShape(50),
+//            modifier = Modifier
+//                .align(Alignment.BottomCenter)
+//                .padding(horizontal = 32.dp, vertical = 32.dp)
+//                .fillMaxWidth()
+//                .height(48.dp)
+//        ) {
+//            Text(
+//                text = "회원가입 완료하기",
+//                fontSize = 16.sp,
+//                fontWeight = FontWeight.Bold,
+//                style = TextStyle(
+//                    brush = Brush.horizontalGradient(
+//                        colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                    )
+//                ),
+//                fontFamily = Paperlogy
+//            )
+//        }
     }
 }
 

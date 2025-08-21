@@ -1,5 +1,6 @@
 package com.example.linku_android
 
+import android.net.Uri
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -18,12 +19,50 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import androidx.compose.ui.unit.IntOffset
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
+import coil.ImageLoader
+import coil.request.CachePolicy
+import coil.request.ImageRequest
+import com.example.core.session.SessionStore
+import com.example.data.preference.AuthPreference
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import com.example.core.repository.CurationRepository
+
+
+
+@EntryPoint
+@InstallIn(SingletonComponent::class)
+interface SplashDeps {
+    fun sessionStore(): SessionStore
+    fun authPreference(): AuthPreference
+    fun curationRepository(): CurationRepository
+}
 
 @Composable
 fun Splash(onFinish: () -> Unit) {
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
+
+    // ✅ deps 준비 (프리뷰/런타임 모두에서 안전하게)
+    val appContext = LocalContext.current.applicationContext
+    val isInPreview = LocalInspectionMode.current
+    val deps = remember {
+        // 프리뷰 모드에서는 Hilt가 없으므로 null 반환
+        if (isInPreview) null
+        else EntryPointAccessors.fromApplication(appContext, SplashDeps::class.java)
+    }
+
+//    val deps = remember {
+//        // 프리뷰 모드에서는 Hilt가 없으므로 null 반환
+//        if (isInPreview) null
+//        else EntryPointAccessors.fromApplication(appContext, SplashDeps::class.java)
+//    }
 
     LaunchedEffect(Unit) {
         println("✅ Splash 시작됨")
@@ -35,6 +74,43 @@ fun Splash(onFinish: () -> Unit) {
         println("✅ Glow Phase 진입")
         isGlowPhase = true
         delay(700)
+
+        // ✅ 이전 로그인 정보 하이드레이션 (프리뷰 제외 + deps 존재 시)
+        // ✅ (추가) 로그인 상태라면: 큐레이션/이미지 '선요청'
+        if (!isInPreview && deps != null) {
+            runCatching {
+                val authPref = deps.authPreference()
+                val uid = authPref.userId ?: -1L
+                if (uid > 0L) {
+                    // 1) 서버에서 최신 큐레이션 '미리' 받아오기
+                    val repo = deps.curationRepository()
+                    val item = repo.getMyRecentCuration(uid)
+
+                    // 2) 썸네일 프리페치 (HighlightCard의 캐시 키와 "완전히 동일"하게)
+                    val url = item?.thumbnailUrl.orEmpty()
+                    if (url.isNotBlank()) {
+                        // HighlightCard 규칙: "curation-" + URL 마지막 세그먼트
+                        val last = Uri.parse(url).lastPathSegment ?: url.substringAfterLast('/')
+                        val key  = "curation-$last"
+
+                        val loader = ImageLoader.Builder(appContext).build()
+                        loader.enqueue(
+                            ImageRequest.Builder(appContext)
+                                .data(url)
+                                .memoryCacheKey(key)
+                                .diskCacheKey(key)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .networkCachePolicy(CachePolicy.ENABLED)
+                                .crossfade(true)
+                                .build()
+                        )
+                    }
+                }
+            }.onFailure { e ->
+                println("⚠️ Splash prefetch failed: $e")
+            }
+        }
 
         delay(800)
         println("✅ Splash onFinish 호출")

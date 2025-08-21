@@ -277,7 +277,7 @@ fun EmailLoginScreen(
                             else
                                 listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                         ),
-                        shape = RoundedCornerShape(24.dp)
+                        shape = RoundedCornerShape(18.dp)
                     )
                     .clickable(enabled = canLogin) {
                         loginViewModel.login(email.trim(), password.trim())

@@ -7,7 +7,7 @@ API로 받아온 하나의 큐레이션 이미지 데이터를 표시
 
 */
 
-
+import coil3.compose.rememberAsyncImagePainter
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -32,6 +32,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.Icon
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.ImageLoader
+import androidx.compose.runtime.collectAsState
+
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,21 +51,18 @@ import java.util.Locale
 @Composable
 fun CurationHighlightSection(
     modifier: Modifier = Modifier,
-    viewModel: CurationViewModel = hiltViewModel(),
+    viewModel: CurationViewModel, //디폴트 제거(좋아요)
+    //viewModel: CurationViewModel = hiltViewModel(),
     onOpenDetail: (() -> Unit)? = null
 ) {
-    val isGenerating by viewModel.isGenerating.collectAsState()
-    val errorMessage by viewModel.errorMessage.collectAsState()
-    val recentCuration by viewModel.recentCuration.collectAsState()
+    // 수집은 lifecycle-aware 권장
+    val isGenerating by viewModel.isGenerating.collectAsStateWithLifecycle()
+    val errorMessage by viewModel.errorMessage.collectAsStateWithLifecycle()
+    val recentCuration by viewModel.recentCuration.collectAsStateWithLifecycle()
+    val highlightLiked by viewModel.highlightLiked.collectAsStateWithLifecycle()
+    val likeBusy by viewModel.likeBusy.collectAsStateWithLifecycle()
 
-    //  추가: 하트 상태/로딩 상태
-    val highlightLiked by viewModel.highlightLiked.collectAsState()
-    val likeBusy by viewModel.likeBusy.collectAsState()
-
-    // ─────────────────────────────────────────────────────────────
-    // 🔎 초기에 데이터가 없고 생성 중도 아니면 로드
-    // ─────────────────────────────────────────────────────────────
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(recentCuration, isGenerating) {
         if (recentCuration == null && !isGenerating) {
             viewModel.loadMonthlyCuration()
         }
@@ -202,9 +211,60 @@ fun HighlightCardOnlyImage(
     onCardClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val ctx = LocalContext.current
+    val url = imageUrl.orEmpty()
+
+    val cacheKey = remember(url) { "curation-" + url.substringAfterLast('/') }
+
+    val localLoader = remember {
+        ImageLoader.Builder(ctx)
+            .build()
+    }
+
+    // 프리페치
+    LaunchedEffect(url, cacheKey) {
+        if (url.isNotBlank()) {
+            localLoader.enqueue(
+                ImageRequest.Builder(ctx)
+                    .data(url)
+                    .memoryCacheKey(cacheKey)
+                    .diskCacheKey(cacheKey)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .networkCachePolicy(CachePolicy.ENABLED)
+                    .build()
+            )
+        }
+    }
+
+    // 표시도 같은 키
+    val request = remember(url, cacheKey) {
+        ImageRequest.Builder(ctx)
+            .data(url)
+            .memoryCacheKey(cacheKey)
+            .diskCacheKey(cacheKey)
+            .memoryCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
+            .crossfade(true)
+            .build()
+    }
+    val painter = rememberAsyncImagePainter(model = request, imageLoader = localLoader)
+
+    // ✅ 경고/타입 문제 없는 로깅 (State vs StateFlow 얽힘 방지)
+    val pState by painter.state.collectAsState(initial = AsyncImagePainter.State.Empty)
+    when (pState) {
+        is AsyncImagePainter.State.Success ->
+            Log.d("CurationUI", "이미지 성공: ${(pState as AsyncImagePainter.State.Success).result.request.data}")
+        is AsyncImagePainter.State.Error ->
+            Log.e("CurationUI", "이미지 실패", (pState as AsyncImagePainter.State.Error).result.throwable)
+        is AsyncImagePainter.State.Loading ->
+            Log.d("CurationUI", "이미지 로딩: $url")
+        else -> Unit
+    }
     //var liked by remember { mutableStateOf(false) }
-    val ctx = androidx.compose.ui.platform.LocalContext.current
-    var aspect by remember { mutableStateOf<Float?>(null) }
+//    val ctx = androidx.compose.ui.platform.LocalContext.current
+//    var aspect by remember { mutableStateOf<Float?>(null) }
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -223,16 +283,24 @@ fun HighlightCardOnlyImage(
         // 배경 이미지 + 카드 이동 클릭은 배경에만!
         val imagePainter = rememberAsyncImagePainter(model = imageUrl)
         Image(
-            painter = imagePainter,
+            painter = painter, // ← 여기!
             contentDescription = "추천 큐레이션 이미지",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
-                .clickable(                 // 배경만 이동
-                    enabled = !likeBusy,
-                    onClick = { onCardClick?.invoke() }
-                )
+                .clickable(enabled = !likeBusy) { onCardClick?.invoke() }
         )
+//        Image(
+//            painter = imagePainter,
+//            contentDescription = "추천 큐레이션 이미지",
+//            contentScale = ContentScale.Crop,
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .clickable(                 // 배경만 이동
+//                    enabled = !likeBusy,
+//                    onClick = { onCardClick?.invoke() }
+//                )
+//        )
 
 //        // 좋아요 하트
 //        Icon(

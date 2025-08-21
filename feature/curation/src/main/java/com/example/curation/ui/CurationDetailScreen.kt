@@ -62,11 +62,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.example.core.model.RecommendedLink
 import com.example.curation.CurationLinksUiState
-//import com.example.curation.RecommendedLinkCard
+
 import kotlin.math.ceil
 import kotlin.math.min
 import androidx.compose.ui.platform.LocalUriHandler
 import com.example.curation.CurationViewModel
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.rememberScrollState
 
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
@@ -77,7 +80,9 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
 import com.example.curation.CurationDetailUiState
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
+
 
 //헬퍼
 
@@ -89,8 +94,10 @@ fun CurationDetailScreen(
     curationId: Long,
     nickname: String? = null,
     //viewModel: CurationViewModel = hiltViewModel(),
-    detailViewModel: CurationDetailViewModel = hiltViewModel(),
-    homeViewModel: CurationViewModel = hiltViewModel(),   // 닉네임 전용,하트 상태/토글 재사용
+    detailViewModel: CurationDetailViewModel, // 외부 주입만 사용 -> 수정.
+    homeViewModel: CurationViewModel,
+    //detailViewModel: CurationDetailViewModel = hiltViewModel(),
+    //homeViewModel: CurationViewModel = hiltViewModel(),   // 닉네임 전용,하트 상태/토글 재사용
     onBack: () -> Unit = {},
 
 ) {
@@ -98,26 +105,21 @@ fun CurationDetailScreen(
     LaunchedEffect(Unit) {
         homeViewModel.loadNickname()
     }
+
+
     val nicknameState = homeViewModel.nickname.collectAsState(initial = "")
     val finalNickname = ((nickname ?: nicknameState.value) ?: "").ifBlank { "세나" }
 
     // 추천 링크 로드 (디테일 VM)
     LaunchedEffect(userId, curationId) {
-        detailViewModel.loadRecommendedLinks(userId, curationId)
-    }
-    val linksState = detailViewModel.links.collectAsState().value
-
-    //큐레이션 디테일 사용자 정보 전달.
-    LaunchedEffect(curationId) {
-        detailViewModel.loadCurationDetail(curationId)
+        detailViewModel.loadAll(userId, curationId) // detail + links + like(뷰모델 내부 분기)
     }
 
+    val detail by detailViewModel.detail.collectAsStateWithLifecycle()
+    val linksState by detailViewModel.links.collectAsStateWithLifecycle()
 
-    val detailState = detailViewModel.detail.collectAsState().value
-
-    // 좋아요 상태/바쁨 상태
-    val liked = homeViewModel.highlightLiked.collectAsState(initial = null).value
-    val likeBusy = homeViewModel.likeBusy.collectAsState().value
+    val liked by homeViewModel.highlightLiked.collectAsStateWithLifecycle(initialValue = null)
+    val likeBusy by homeViewModel.likeBusy.collectAsStateWithLifecycle()
 
     //좋아요 상태 로드
     LaunchedEffect(curationId) {
@@ -135,10 +137,11 @@ fun CurationDetailScreen(
         monthLabel = monthLabel,
         linksState = linksState,
         onBack = onBack,
-        detailState = detailState,
+        detailState = detail,
         liked = liked,
         likeBusy = likeBusy,
-        onToggleLike = { homeViewModel.toggleHighlightLike() }
+        onToggleLike = { homeViewModel.toggleLikeFor(curationId) }
+        //onToggleLike = { homeViewModel.toggleHighlightLike() }
     )
 }
 

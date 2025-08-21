@@ -27,15 +27,30 @@ class EmailAuthViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    fun reset() {
+        _sendCodeResult.value = null
+        _verifyCodeResult.value = null
+        // isVerifySuccess는 앞서 1회성으로 바꿨다면 false가 기본이므로 그대로 두면 됨
+    }
+
     private val _sendCodeResult = MutableStateFlow<String?>(null)
     val sendCodeResult: StateFlow<String?> = _sendCodeResult
 
     private val _verifyCodeResult = MutableStateFlow<String?>(null)
     val verifyCodeResult: StateFlow<String?> = _verifyCodeResult
 
-    val isVerifySuccess: StateFlow<Boolean> = _verifyCodeResult
-        .map { it?.contains("성공") == true }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    // 🔸 기존: _verifyCodeResult를 map 해서 영구 true가 됨
+    // val isVerifySuccess: StateFlow<Boolean> = _verifyCodeResult
+    //     .map { it?.contains("성공") == true }
+    //     .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    // 변경: 1회성 신호로 쓰는 전용 플래그
+    private val _isVerifySuccess = MutableStateFlow(false)
+    val isVerifySuccess: StateFlow<Boolean> = _isVerifySuccess
+
+//    val isVerifySuccess: StateFlow<Boolean> = _verifyCodeResult
+//        .map { it?.contains("성공") == true }
+//        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     /** 이메일 인증 코드 전송 (임시 성공 처리) */
 //    fun sendEmailCode(email: String) {
@@ -101,19 +116,40 @@ class EmailAuthViewModel @Inject constructor(
         }
     }
 
-
-    /** 이메일 인증 코드 검증 */
     fun verifyEmailCode(email: String, code: String) {
         viewModelScope.launch {
             try {
                 val ok = userRepository.verifyEmailCode(email, code)
                 _verifyCodeResult.value = if (ok) "인증 성공" else "인증 실패"
+
+                // 여기서 1회성으로 true → 잠깐 후 false로 되돌림
+                _isVerifySuccess.value = ok
+                if (ok) {
+                    // 네비게이션 트리거 후 바로 false로 reset (재진입 자동 네비 방지)
+                    kotlinx.coroutines.delay(200)
+                    _isVerifySuccess.value = false
+                }
             } catch (e: Exception) {
                 Log.e("EmailAuthVM", "verifyEmailCode error", e)
                 _verifyCodeResult.value = "네트워크 오류"
+                _isVerifySuccess.value = false
             }
         }
     }
+
+
+//    /** 이메일 인증 코드 검증 */
+//    fun verifyEmailCode(email: String, code: String) {
+//        viewModelScope.launch {
+//            try {
+//                val ok = userRepository.verifyEmailCode(email, code)
+//                _verifyCodeResult.value = if (ok) "인증 성공" else "인증 실패"
+//            } catch (e: Exception) {
+//                Log.e("EmailAuthVM", "verifyEmailCode error", e)
+//                _verifyCodeResult.value = "네트워크 오류"
+//            }
+//        }
+//    }
 }
 
 //    /** 이메일 인증 코드 검증 (임시 성공 처리) */
