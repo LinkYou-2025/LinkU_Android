@@ -530,35 +530,34 @@ private fun PurposeCloudScrollable(
     purposes: List<Purpose>,
     selected: SnapshotStateList<String>,
     onToggle: (String) -> Unit,
-    height: Dp = 500.dp
+    height: Dp = 500.dp,
+    leftGutter: Dp = 20.dp,   // ✅ 추가: 왼쪽 빈 공간
+    rightGutter: Dp = 20.dp   // ✅ 추가: 오른쪽 빈 공간
 ) {
-    // 왼쪽으로 삐져나간 버블 있을 때 전체를 오른쪽으로 이동
+    // (기존) 음수 x 있으면 보정만
     val minX = remember(purposes) { purposes.minOfOrNull { it.offset.x } ?: 0.dp }
-    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+    val shiftX = if (minX < 0.dp) (-minX) else 0.dp   // ❗️여기에 gutter를 더하지 않음
 
-    // 우측 끝 좌표로 스크롤 캔버스 폭 계산 (여유 80dp)
-    val canvasWidth = remember(purposes, shiftX) {
-        val right = purposes.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-        right + 80.dp //스크롤 좌우 간격
+    // 콘텐츠의 실제 오른쪽 끝
+    val contentRight = remember(purposes) {
+        purposes.maxOfOrNull { it.offset.x + it.size.dp } ?: 0.dp
     }
 
-    // ▶ 초기 스크롤을 150dp로 설정
+    // ✅ 캔버스 폭 = leftGutter + (콘텐츠폭 + 보정) + rightGutter
+    val canvasWidth = remember(purposes, shiftX, leftGutter, rightGutter) {
+        leftGutter + contentRight + shiftX + rightGutter
+    }
+
+    // ✅ 초기 스크롤 = (기존 90dp) + leftGutter → 진입 화면 유지
     val density = LocalDensity.current
-    val initialOffsetDp = 90.dp
+    val initialOffsetDp = 90.dp + leftGutter
     val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
 
     val scroll = rememberScrollState(initial = initialOffsetPx)
 
-    // 측정/재컴포지션 때 0으로 돌아가는 걸 방지(사용자가 이미 스크롤했다면 건드리지 않음)
     LaunchedEffect(canvasWidth) {
-        if (scroll.value == 0) {
-            scroll.scrollTo(initialOffsetPx)
-        }
+        if (scroll.value == 0) scroll.scrollTo(initialOffsetPx)
     }
-
-
-
-//    val scroll = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -578,9 +577,70 @@ private fun PurposeCloudScrollable(
                     purpose = p,
                     isSelected = isSelected,
                     onClick = { onToggle(p.label) },
-                    modifier = Modifier.offset(p.offset.x + shiftX, p.offset.y)
+                    // ✅ 콘텐츠는 leftGutter 만큼 평행이동 (보정 + 왼쪽여백)
+                    modifier = Modifier.offset(leftGutter + p.offset.x + shiftX, p.offset.y)
                 )
             }
         }
     }
 }
+
+//@Composable
+//private fun PurposeCloudScrollable(
+//    purposes: List<Purpose>,
+//    selected: SnapshotStateList<String>,
+//    onToggle: (String) -> Unit,
+//    height: Dp = 500.dp
+//) {
+//    // 왼쪽으로 삐져나간 버블 있을 때 전체를 오른쪽으로 이동
+//    val minX = remember(purposes) { purposes.minOfOrNull { it.offset.x } ?: 0.dp }
+//    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+//
+//    // 우측 끝 좌표로 스크롤 캔버스 폭 계산 (여유 80dp)
+//    val canvasWidth = remember(purposes, shiftX) {
+//        val right = purposes.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+//        right + 80.dp //스크롤 좌우 간격
+//    }
+//
+//    // ▶ 초기 스크롤을 150dp로 설정
+//    val density = LocalDensity.current
+//    val initialOffsetDp = 90.dp
+//    val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
+//
+//    val scroll = rememberScrollState(initial = initialOffsetPx)
+//
+//    // 측정/재컴포지션 때 0으로 돌아가는 걸 방지(사용자가 이미 스크롤했다면 건드리지 않음)
+//    LaunchedEffect(canvasWidth) {
+//        if (scroll.value == 0) {
+//            scroll.scrollTo(initialOffsetPx)
+//        }
+//    }
+//
+//
+//
+////    val scroll = rememberScrollState()
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(height)
+//            .horizontalScroll(scroll),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height)
+//        ) {
+//            purposes.forEach { p ->
+//                val isSelected = p.label in selected
+//                PurposeItem(
+//                    purpose = p,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(p.label) },
+//                    modifier = Modifier.offset(p.offset.x + shiftX, p.offset.y)
+//                )
+//            }
+//        }
+//    }
+//}
