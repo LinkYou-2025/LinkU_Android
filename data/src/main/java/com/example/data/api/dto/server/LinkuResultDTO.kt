@@ -12,7 +12,7 @@ data class LinkuResultDTO(
     val linkuId: Long,
 
     @Json(name = "linkuFolderId")
-    val linkuFolderId: Long,
+    val linkuFolderId: Long?,
 
     @Json(name = "categoryId")
     val categoryId: Long,
