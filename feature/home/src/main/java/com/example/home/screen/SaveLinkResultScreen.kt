@@ -34,10 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -293,7 +296,7 @@ fun SaveLinkResultScreen(
                         painter = rememberAsyncImagePainter(model = imageUrl),
                         contentDescription = "선택된 이미지",
                         modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop // ✅ 박스에 꽉 차도록
+                        contentScale = ContentScale.Crop // 박스에 꽉 차도록
                     )
                 } else {
                     Column(
@@ -349,7 +352,7 @@ fun SaveLinkResultScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(51.dp)
+                            .heightIn(min = 51.dp)
                             .clip(RoundedCornerShape(18.dp))
                             .background(LocalColorTheme.current.gray[100])
                             .padding(horizontal = 22.dp, vertical = 15.dp),
@@ -544,13 +547,27 @@ fun SaveLinkResultScreen(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
+                // 포커스 요청자 준비
+                val memoFocusRequester = remember { FocusRequester() }
+
+                // 편집 진입하면 자동 포커스 (다음 프레임에 요청)
+                LaunchedEffect(isMemoEditing) {
+                    if (isMemoEditing) {
+                        kotlinx.coroutines.yield()
+                        memoFocusRequester.requestFocus()
+                    }
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 51.dp)
                         .clip(RoundedCornerShape(18.dp))
                         .background(LocalColorTheme.current.gray[100])
-                        .padding(horizontal = 22.dp, vertical = 15.dp),
+                        .padding(horizontal = 22.dp, vertical = 15.dp)
+                        .then(
+                            if (isEditMode) Modifier.clickable { isMemoEditing = true } else Modifier
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isMemoEditing) {
@@ -558,7 +575,9 @@ fun SaveLinkResultScreen(
                             value = memoText,
                             onValueChange = { memoText = it },
                             textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .focusRequester(memoFocusRequester)
                         )
                     } else {
                         Text(
@@ -715,7 +734,7 @@ private fun TopBar(
         if (!isTitleEditing) title = titleText
     }
 
-    // ✅ 수정 완료 시 텍스트 입력 종료
+    // 수정 완료 시 텍스트 입력 종료
     LaunchedEffect(isEditMode) {
         if (!isEditMode) {
             isTitleEditing = false
