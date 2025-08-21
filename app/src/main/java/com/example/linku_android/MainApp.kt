@@ -195,23 +195,39 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) { showNavBar = false }
 
-
                         Splash(
                             onFinish = {
-                                val uid = deps.authPreference().userId
-                                if (uid != null && uid > 0L) {
-                                    navigator.navigate(NavigationRoute.Home.route) {
-                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                } else {
-                                    navigator.navigate("auth_graph") {
-                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                        launchSingleTop = true
-                                    }
+                                val auth = deps.authPreference()
+                                val hasUserId = (auth.userId ?: -1L) > 0L
+                                val hasAccess = !auth.accessToken.isNullOrBlank()
+                                val hasRefresh = !auth.refreshToken.isNullOrBlank()
+
+                                val canAutoLogin = hasUserId && hasAccess && hasRefresh   // ⬅️ 둘 다 있어야 자동 로그인
+
+                                val target = if (canAutoLogin) NavigationRoute.Home.route else "auth_graph"
+                                navigator.navigate(target) {
+                                    popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                    launchSingleTop = true
                                 }
                             }
                         )
+
+//                        Splash(
+//                            onFinish = {
+//                                val uid = deps.authPreference().userId
+//                                if (uid != null && uid > 0L) {
+//                                    navigator.navigate(NavigationRoute.Home.route) {
+//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+//                                        launchSingleTop = true
+//                                    }
+//                                } else {
+//                                    navigator.navigate("auth_graph") {
+//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+//                                        launchSingleTop = true
+//                                    }
+//                                }
+//                            }
+//                        )
 
 //                        //  DataStore 구독
 //                        val isLoggedIn by viewModel.sessionStore

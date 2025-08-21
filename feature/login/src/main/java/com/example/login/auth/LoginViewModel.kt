@@ -42,10 +42,9 @@ class LoginViewModel @Inject constructor(
             try {
                 val res: LoginResult = repo.login(email, password)
 
-                // ✅ 유저 ID만 저장
+                // ✅ 토큰 저장은 Repo에서 이미 처리됨. 여기서는 userId/세션만.
                 authPreference.userId = res.userId?.toLong()
 
-                // ✅ 세션에도 userId만 기록
                 sessionStore.saveLogin(
                     userId   = res.userId?.toLong() ?: -1L,
                     nickname = "",
@@ -63,10 +62,7 @@ class LoginViewModel @Inject constructor(
             } catch (e: HttpException) {
                 _loginState.value = LoginState(
                     loading = false,
-                    errorTag = when (e.code()) {
-                        401, 403 -> "INVALID_CREDENTIALS"
-                        else -> "SERVER_ERROR"
-                    }
+                    errorTag = when (e.code()) { 401, 403 -> "INVALID_CREDENTIALS" else -> "SERVER_ERROR" }
                 )
             } catch (_: IllegalStateException) {
                 _loginState.value = LoginState(loading = false, errorTag = "INVALID_CREDENTIALS")

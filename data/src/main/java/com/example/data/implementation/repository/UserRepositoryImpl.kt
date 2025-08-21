@@ -73,24 +73,18 @@ class UserRepositoryImpl @Inject constructor(
     }
     override suspend fun login(email: String, password: String): LoginResult {
         val response = userApi.signIn(LoginRequestDTO(email, password))
-        Log.d("UserRepository", "[로그인 응답] isSuccess=${response.isSuccess}, message=${response.message}, result=${response.result}")
         val result = response.result ?: throw IllegalStateException("로그인 실패: ${response.message}")
-        authPreference.userId = result.userId?.toLong() ?: -1L //로그인할 때, userId 저장하기! -> 추후 큐레이션에 닉네임 표시용.
 
-        //  accessToken 저장 (if 사용 → 타입 추론 오류 방지)
-        val accessToken: String? = result.accessToken
-        if (accessToken != null) {
-            // AuthPreference에 맞는 실제 메서드명으로 교체 필요
-            authPreference.accessToken = accessToken
-        }
-        //inactiveDate(String?) → OffsetDateTime? 안전 변환
-        val parsedInactiveDate: OffsetDateTime? = try {
-            result.inactiveDate?.let { OffsetDateTime.parse(it) }
-        } catch (e: DateTimeParseException) {
-            Log.w("UserRepository", "inactiveDate 파싱 실패 → ${result.inactiveDate}")
-            null
-        }
+        // userId 저장
+        authPreference.userId = result.userId?.toLong() ?: -1L
 
+        // access/refresh 저장 (널/빈값 방어)
+        result.accessToken?.takeIf { it.isNotBlank() }?.let { authPreference.accessToken = it }
+        result.refreshToken?.takeIf { it.isNotBlank() }?.let { authPreference.refreshToken = it } // ⬅️ 추가
+
+        // ⬇️ 리플렉션으로 refresh 찾던 블럭은 전부 제거하세요.
+
+        // (이하 기존 반환 로직 유지)
         return LoginResult(
             userId = result.userId?.toInt() ?: -1,
             token = result.accessToken ?: "",
@@ -98,6 +92,33 @@ class UserRepositoryImpl @Inject constructor(
             inactiveDate = result.inactiveDate?.toString()
         )
     }
+//    override suspend fun login(email: String, password: String): LoginResult {
+//        val response = userApi.signIn(LoginRequestDTO(email, password))
+//        Log.d("UserRepository", "[로그인 응답] isSuccess=${response.isSuccess}, message=${response.message}, result=${response.result}")
+//        val result = response.result ?: throw IllegalStateException("로그인 실패: ${response.message}")
+//        authPreference.userId = result.userId?.toLong() ?: -1L //로그인할 때, userId 저장하기! -> 추후 큐레이션에 닉네임 표시용.
+//
+//        //  accessToken 저장 (if 사용 → 타입 추론 오류 방지)
+//        val accessToken: String? = result.accessToken
+//        if (accessToken != null) {
+//            // AuthPreference에 맞는 실제 메서드명으로 교체 필요
+//            authPreference.accessToken = accessToken
+//        }
+//        //inactiveDate(String?) → OffsetDateTime? 안전 변환
+//        val parsedInactiveDate: OffsetDateTime? = try {
+//            result.inactiveDate?.let { OffsetDateTime.parse(it) }
+//        } catch (e: DateTimeParseException) {
+//            Log.w("UserRepository", "inactiveDate 파싱 실패 → ${result.inactiveDate}")
+//            null
+//        }
+//
+//        return LoginResult(
+//            userId = result.userId?.toInt() ?: -1,
+//            token = result.accessToken ?: "",
+//            status = result.status ?: "",
+//            inactiveDate = result.inactiveDate?.toString()
+//        )
+//    }
     override suspend fun signUp(
         nickname: String,
         email: String,

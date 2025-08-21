@@ -11,6 +11,8 @@ data class LoginResultDTO (
     @Json(name = "accessToken")
     val accessToken: String? = null,
 
+    @Json(name = "refreshToken") val refreshToken: String? = null,
+
     @Json(name = "status")
     val status: String? = null,
 
