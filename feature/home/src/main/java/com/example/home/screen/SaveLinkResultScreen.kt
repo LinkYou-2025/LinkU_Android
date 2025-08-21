@@ -65,7 +65,8 @@ import com.example.core.model.LinkResultInfo
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
+//import com.example.file.ui.theme.CategoryColorStyle
 import com.example.home.R
 import com.example.home.component.AIArticleModal
 import kotlinx.coroutines.delay

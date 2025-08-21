@@ -150,8 +150,18 @@ fun MainApp(
                             NavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
                         }
                         navigator.navigate(route) {
-                            popUpTo(navigator.graph.startDestinationId) { inclusive = false }
+                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
+                            popUpTo(navigator.graph.findStartDestination().id) {
+                                saveState = true
+                                inclusive = false
+                            }
+                            launchSingleTop = true
+                            // 이전에 저장된 상태 복원
+                            restoreState = true
                         }
+//                        navigator.navigate(route) {
+//                            popUpTo(navigator.graph.startDestinationId) { inclusive = false }
+//                        }
                     }
                 },
                 onCenterButtonClicked = {
