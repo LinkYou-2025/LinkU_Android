@@ -44,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -494,7 +495,7 @@ fun HomeScreen(
         onQueryClear = { homeViewModel.clearRecentQuery() },
         fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
         recentQuerys = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
-    ) 
+    )
 }
 
 @Composable
@@ -544,21 +545,22 @@ private fun LinkCard(
                     .clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(id = R.drawable.img_default),
-//                error = painterResource(id = R.drawable.img_default)
+                fallback    = painterResource(R.drawable.img_default),
+                error = painterResource(id = R.drawable.img_default)
             )
 
             // AI 요약 뱃지
-//            if (link.aiSummarized) {
-//                Icon(
-//                    painter = painterResource(id = R.drawable.ic_ai_summarize),
-//                    contentDescription = "AI 요약됨",
-//                    modifier = Modifier
-//                        .align(Alignment.TopEnd)
-//                        .size(20.dp)
-//                        .padding(6.dp),
-//                    tint = Color.Unspecified
-//                )
-//            }
+            if (link.aiArticleExists) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_ai_summarize),
+                    contentDescription = "AI 요약됨",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp)
+                        .padding(6.dp),
+                    tint = Color.Unspecified
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(14.dp))
@@ -621,7 +623,8 @@ private fun LinkCard(
                         modifier = Modifier.size(22.dp),
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(id = R.drawable.ic_domain_default), // 기본 아이콘 대체
-//                        error = painterResource(id = R.drawable.ic_naver)
+                        fallback = painterResource(R.drawable.ic_domain_default),
+                        error = painterResource(R.drawable.ic_domain_default)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
@@ -684,7 +687,7 @@ fun TopBar(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
             .background(LocalColorTheme.current.white)
-            .padding(bottom = if (!isExpanded) 13.5.dp else 0.dp) // 하단 여백 확보
+            .padding(bottom = if (!isExpanded) 5.dp else 0.dp) // 하단 여백 확보
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             // 상단 로고 및 알림 아이콘
@@ -1061,12 +1064,12 @@ fun TopBar(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 19.dp, bottom = 8.dp)
+                        .padding(top = 16.dp, bottom = 0.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
+                            .padding(horizontal = 24.dp, vertical = 0.dp),
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1096,7 +1099,7 @@ fun TopBar(
                                         Image(
                                             painter = painterResource(id = it),
                                             contentDescription = null,
-                                            modifier = Modifier.size(22.86.dp) // 아이콘 크기 조정
+                                            modifier = Modifier.size(20.dp) // 아이콘 크기 조정
                                         )
                                     }
                                 }
@@ -1215,7 +1218,7 @@ fun TopBar(
 
             // 화살표 버튼 (접힌 상태에서만 표시)
             if (!isExpanded) {
-                Spacer(modifier = Modifier.height(14.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
                 Box(
                     modifier = Modifier
@@ -1259,8 +1262,7 @@ fun EmotionSelector(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 9.dp, end = 9.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1270,7 +1272,7 @@ fun EmotionSelector(
 
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(50.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(
                         if (isSelected) LocalColorTheme.current.blue[50] else LocalColorTheme.current.gray[100]
@@ -1291,7 +1293,7 @@ fun EmotionSelector(
                 Image(
                     painter = painterResource(id = resId),
                     contentDescription = null, // 감정 이름 필요하면 emotionKeys[idx] 등 넣어도 됨
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(35.dp)
                 )
             }
 
@@ -1513,7 +1515,7 @@ fun TaskSelector(
 //@Composable
 //fun PreviewHomeScreen() {
 //    HomeScreen(
-//        homeViewModel = hiltViewModel(),
+////        homeViewModel = hiltViewModel(),
 //        userName = "세나",
 //        showRecommendations = false, // or false
 //        recommendedLinks = listOf(
@@ -1528,7 +1530,7 @@ fun TaskSelector(
 //                linkuImageUrl = ""
 //            )
 //        ),
-//        recentLinks = listOf( // ✅ 프리뷰에 recentLinks 전달
+//        recentLinks = listOf( // 프리뷰에 recentLinks 전달
 //
 //        ),
 //        isRecommending = false,

@@ -728,6 +728,8 @@ fun MainApp(
                         MyPageApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
+                                showNavBar = false  // 바텀바 끄기
+                                currentNavigationItem = null
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 navigator.navigate(NavigationRoute.Login.route) {
@@ -824,6 +826,10 @@ fun MainApp(
                     route = "${NavigationRoute.Login.route}?showModal={showModal}",
                     arguments = listOf(navArgument("showModal") { type = NavType.BoolType; defaultValue = false })
                 ) { backStackEntry ->
+
+                    // 로그인 계열에서는 바텀바 숨김
+                    LaunchedEffect(Unit) { showNavBar = false }
+
                     Log.d("MainApp", "딥링크 접속 시, 로그인이 안됐을 때 로그인 화면")
 
                     // ❶ 쓸데없는 자기-네비게이션 제거 (!!! 중요)

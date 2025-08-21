@@ -88,28 +88,17 @@ private val CATEGORY_NAMES: Map<Long, String> = mapOf(
     16L to "기타"
 )
 
-private fun categoryDisplayName(id: Long?): String? =
-    id?.let { CATEGORY_NAMES[it] } // 매핑 없으면 null -> 태그 숨김
-
-private val EMOTION_LABELS = listOf("기쁨","차분","설렘","슬픔","짜증","분노")
-
-private fun emotionLabelOf(id: Long?): String = emotionDisplayName(id) ?: "감정"
+private fun categoryDisplayName(id: Long?): String? = id?.let { CATEGORY_NAMES[it] }
 
 // label -> id
 private fun categoryIdOf(label: String): Long? =
     CATEGORY_NAMES.entries.firstOrNull { it.value == label }?.key
 
 private fun emotionIdOf(label: String): Long? = when (label) {
-    "기쁨" -> 1L; "차분" -> 2L; "설렘" -> 3L
+    "즐거움" -> 1L; "평온" -> 2L; "설렘" -> 3L
     "슬픔" -> 4L; "짜증" -> 5L; "분노" -> 6L
     else -> null
 }
-
-private fun categoryLabelOf(id: Long?, labels: List<String>): String =
-    id?.let { idx -> labels.getOrNull((idx - 1).toInt()) } ?: "카테고리"
-
-private fun categoryIdOf(label: String, labels: List<String>): Long? =
-    labels.indexOf(label).takeIf { it >= 0 }?.plus(1)?.toLong()
 
 // 변경: 벡터 리소스 사용
 private data class EmotionOpt(
@@ -122,7 +111,7 @@ private val EMOTION_OPTIONS = listOf(
     EmotionOpt(1, "즐거움", R.drawable.ic_joy),
     EmotionOpt(2, "평온", R.drawable.ic_calm),
     EmotionOpt(3, "설렘", R.drawable.ic_excite),
-    EmotionOpt(4, "우울", R.drawable.ic_sad),
+    EmotionOpt(4, "슬픔", R.drawable.ic_sad),
     EmotionOpt(5, "짜증", R.drawable.ic_irritation),
     EmotionOpt(6, "분노", R.drawable.ic_anger),
 )
@@ -136,31 +125,30 @@ fun SaveLinkResultScreen(
     isAiLoading: Boolean = false,
     onBack: () -> Unit = {},
     onOpenLink: (String) -> Unit = {},
-    categoryColorMap: Map<String, CategoryColorStyle> = emptyMap()
+    categoryColorMap: Map<String, CategoryColorStyle> = emptyMap(),
+    onSubmitEdit: (title: String, memo: String?, categoryId: Long?, emotionId: Long?) -> Unit = { _,_,_,_ -> },
+    onRequestAiSummary: () -> Unit = {}
 ) {
     // 🔹 서버 데이터 바인딩 (널/로딩 방어)
     val titleFromServer = link?.title.orEmpty()
     val memoFromServer = link?.memo.orEmpty()
     val imageUrl = link?.linkuImageUrl
-    val domain = link?.domain.orEmpty()
     val linku = link?.linku.orEmpty()
 
-    // 상단 태그(카테고리/감정)
-    val topBarTags = listOfNotNull(
-        categoryDisplayName(link?.categoryId),
-        emotionDisplayName(link?.emotionId)
-    )
+    // 이 링크가 AI 요약 가능(허용/생성 완료)한지 여부
+    val aiAllowed = link?.aiArticleExists == true
 
     var showAISummary by remember { mutableStateOf(false) }
     var showAIArticleModal by remember { mutableStateOf(false) }
 
     // 요약이 이미 있거나(aiArticle or link.summary/keyword) 로딩 완료되면 자동 펼치기
+    // (자동 펼침은 “이미 존재하는 요약/키워드가 있을 때만” 유지. 새 호출은 하지 않음)
     LaunchedEffect(aiArticle, link?.summary, link?.keyword, isLoading) {
         if (!isLoading) {
-            val has = aiArticle != null ||
+            val hasExisting = aiArticle != null ||
                     !link?.summary.isNullOrBlank() ||
                     !link?.keyword.isNullOrBlank()
-            if (has) showAISummary = true
+            if (hasExisting) showAISummary = true
         }
     }
 
@@ -171,12 +159,6 @@ fun SaveLinkResultScreen(
     // 선택된 카테고리/감정 ID (초기값은 서버 응답)
     var selectedEmotionId  by remember(link?.emotionId)  { mutableStateOf(link?.emotionId) }
     var selectedCategoryId by remember(link?.categoryId) { mutableStateOf(link?.categoryId) }
-
-    val readModeTags = listOfNotNull(
-        // 읽기 모드에서 보여줄 태그도 동적 라벨로 변환
-        categoryLabelOf(selectedCategoryId ?: link?.categoryId, categoryLabels),
-        emotionDisplayName(selectedEmotionId ?: link?.emotionId)
-    )
 
     // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
     val displayKeyword = aiArticle?.keyword?.trim().orEmpty().ifEmpty { link?.keyword.orEmpty() }
@@ -195,13 +177,12 @@ fun SaveLinkResultScreen(
     var isMemoEditing by remember { mutableStateOf(false) }
 
 
-    // 드롭다운에 보여줄 현재 라벨
-    var categoryLabel by remember(selectedCategoryId, categoryLabels) {
-        mutableStateOf(categoryLabelOf(selectedCategoryId, categoryLabels))
-    }
-    var emotionLabel by remember(selectedEmotionId) {
-        mutableStateOf(emotionLabelOf(selectedEmotionId))
-    }
+    // 매 렌더마다 계산
+    val effectiveCategoryId = selectedCategoryId ?: link?.categoryId
+    val effectiveEmotionId  = selectedEmotionId  ?: link?.emotionId
+
+    val categoryLabel = categoryDisplayName(effectiveCategoryId) ?: "카테고리"
+    val emotionLabel  = emotionDisplayName(effectiveEmotionId)  ?: "감정"
 
     LaunchedEffect(link) {
         // 상세가 갱신되면 UI 상태도 동기화(사용자가 수정 중이 아닐 때만)
@@ -230,17 +211,23 @@ fun SaveLinkResultScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             val readModeTags = listOfNotNull(
-                categoryDisplayName(selectedCategoryId ?: link?.categoryId),
-                emotionDisplayName(selectedEmotionId ?: link?.emotionId)
+                categoryDisplayName(effectiveCategoryId),
+                emotionDisplayName(effectiveEmotionId)
             )
 
             TopBar(
                 isEditMode = isEditMode,
                 showAISummary = showAISummary,
-                onEditClick = {
-                    if (isEditMode) {
-                        // TODO: viewModel.updateCategoryEmotion(link?.linkuId, selectedCategoryId, selectedEmotionId)
-                    }
+                onEditClick = {latestTitle ->
+                        if (isEditMode) {
+                            // 편집 종료 시 저장 호출
+                            onSubmitEdit(
+                                latestTitle,
+                                memoText.ifBlank { null },
+                                selectedCategoryId,
+                                selectedEmotionId
+                            )
+                        }
                     isEditMode = !isEditMode
                 },
                 onBack = onBack,
@@ -253,11 +240,9 @@ fun SaveLinkResultScreen(
                     categoryColorMap[label]?.color4 ?: LocalColorTheme.current.gray[300]
                 },
                 onCategorySelected = { label ->
-                    categoryLabel = label
-                    selectedCategoryId = categoryIdOf(label, categoryLabels)
+                    selectedCategoryId = categoryIdOf(label)
                 },
                 onEmotionSelected = { label ->
-                    emotionLabel = label
                     selectedEmotionId = emotionIdOf(label)
                 }
             )
@@ -287,7 +272,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = linku,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                         color = LocalColorTheme.current.black
                     )
                 }
@@ -508,16 +493,6 @@ fun SaveLinkResultScreen(
                         }
                     }
 
-                    val bg = when {
-                        isAiLoading || isSummaryEmpty -> SolidColor(LocalColorTheme.current.gray[100])
-                        else -> Brush.horizontalGradient(
-                            listOf(
-                                LocalColorTheme.current.blue[200].copy(alpha = 0.1f),
-                                LocalColorTheme.current.purple[200].copy(alpha = 0.1f)
-                            )
-                        )
-                    }
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -545,7 +520,7 @@ fun SaveLinkResultScreen(
                                 isSummaryEmpty -> summaryPlaceholder
                                 else -> displaySummary
                             },
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                             color = when {
                                 isAiLoading || isSummaryEmpty -> LocalColorTheme.current.gray[400]
                                 else -> LocalColorTheme.current.black
@@ -582,13 +557,13 @@ fun SaveLinkResultScreen(
                         BasicTextField(
                             value = memoText,
                             onValueChange = { memoText = it },
-                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                             modifier = Modifier.weight(1f)
                         )
                     } else {
                         Text(
                             text = memoText,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
                             color = LocalColorTheme.current.black,
                             modifier = Modifier.weight(1f)
                         )
@@ -625,9 +600,9 @@ fun SaveLinkResultScreen(
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(18.dp))
                         .background(LocalColorTheme.current.blue[200])
-                        .clickable {
+                        .clickable(enabled = aiAllowed) {
+                            onRequestAiSummary()
                             showAIArticleModal = true
-                            showAISummary = true
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -716,7 +691,7 @@ fun SaveLinkResultScreen(
 private fun TopBar(
     isEditMode: Boolean = false,
     showAISummary: Boolean = false,
-    onEditClick: () -> Unit = {},
+    onEditClick: (String) -> Unit = {},
     onBack: () -> Unit = {},
     titleText: String = "",
     tags: List<String> = emptyList(),
@@ -796,7 +771,9 @@ private fun TopBar(
                         style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.blue[50],
                         modifier = Modifier
-                            .clickable { onEditClick() }
+                            .clickable {
+                                onEditClick(title)
+                            }
                     )
                 }
             }
