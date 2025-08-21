@@ -1,16 +1,21 @@
 package com.example.login.auth
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -28,6 +33,7 @@ import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+
 
 
 @Composable
@@ -58,8 +64,8 @@ fun LoginScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp)
-                .graphicsLayer { alpha = contentAlpha }, // 전체 콘텐츠 페이드 인
+                .padding(horizontal = 32.dp),
+                //.graphicsLayer { alpha = contentAlpha }, // 전체 콘텐츠 페이드 인
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
@@ -85,27 +91,30 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(40.dp))
 
             // 이메일 로그인 버튼
-            Button(
-                onClick = { navigator.navigate("email_login") },
-                colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
+            // 이메일 로그인 "버튼"(Surface + clickable)
+            Surface(
+                color = emailButtonColor,
                 shape = RoundedCornerShape(32),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                contentPadding = PaddingValues(horizontal = 20.dp) // 좌우 여백
+                    .height(50.dp)
+                    .clickable(
+                        indication = null, // ✅ 리플/애니메이션 없음
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) { navigator.navigate("email_login") }
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp) // 기존 contentPadding 역할
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_email_png),
                         contentDescription = "이메일 로그인",
                         modifier = Modifier.size(20.dp),
                         contentScale = ContentScale.Fit
-                        // 만약 흰색 단색 아이콘이 아니라면 아래 Tint는 빼세요
-                        // colorFilter = ColorFilter.tint(Color.White)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
@@ -117,6 +126,40 @@ fun LoginScreen(
                     )
                 }
             }
+//            CompositionLocalProvider(LocalIndication provides NoIndication) {
+//            Button(
+//                onClick = { navigator.navigate("email_login") },
+//                colors = ButtonDefaults.buttonColors(containerColor = emailButtonColor),
+//                shape = RoundedCornerShape(32),
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(50.dp),
+//                contentPadding = PaddingValues(horizontal = 20.dp), // 좌우 여백
+//                interactionSource = remember { MutableInteractionSource() } // 권장: 잔여 상호작용 제거
+//            ) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.Center,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Image(
+//                        painter = painterResource(R.drawable.ic_email_png),
+//                        contentDescription = "이메일 로그인",
+//                        modifier = Modifier.size(20.dp),
+//                        contentScale = ContentScale.Fit
+//                        // 만약 흰색 단색 아이콘이 아니라면 아래 Tint는 빼세요
+//                        // colorFilter = ColorFilter.tint(Color.White)
+//                    )
+//                    Spacer(Modifier.width(8.dp))
+//                    Text(
+//                        text = "이메일로 로그인",
+//                        fontSize = 16.sp,
+//                        color = Color.White,
+//                        fontFamily = Paperlogy,
+//                        fontWeight = FontWeight.Bold
+//                    )
+//                }
+//            }}
 
 
                 Spacer(modifier = Modifier.height(16.dp))

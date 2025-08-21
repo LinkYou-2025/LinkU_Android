@@ -70,9 +70,10 @@ fun AnimatedLoginScreen(
     LaunchedEffect(Unit) {
         launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
         launch { contentAlpha.animateTo(1f, tween(400)) }
-        emailButtonColor.animateTo(Color.White, tween(500))
-        delay(1000)
-        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
+        //이메일로 로그인하기 버튼 애니메이션 끔.
+//        emailButtonColor.animateTo(Color.White, tween(500))
+//        delay(1000)
+//        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
     }
 //    LaunchedEffect(Unit) {
 //        launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
