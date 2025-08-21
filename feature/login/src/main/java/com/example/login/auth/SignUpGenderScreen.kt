@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -125,71 +126,154 @@ fun SignUpGenderScreen(
     }
 }
 //shape = RoundedCornerShape(18.dp)
+
 @Composable
 fun GenderOptionButton(
     text: String,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val shape = RoundedCornerShape(16.dp)
+    val borderGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+
+    // 요구: 왼쪽도 12% → 오른쪽도 12% (동일 투명도)
+    val fillGradientSelected = listOf(
+        Color(0xFF2C6FFF).copy(alpha = 0.18f),
+        Color(0xFFC800FF).copy(alpha = 0.16f)
+    )
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                ),
-                shape = RoundedCornerShape(16.dp)
+            .clip(shape)
+            // 1) 기본 흰 바탕
+            .background(Color.White)
+            // 2) 선택 시 전체 영역 그라데이션(패딩 이전에 칠함)
+            .then(
+                if (isSelected)
+                    Modifier.background(brush = Brush.horizontalGradient(fillGradientSelected))
+                else
+                    Modifier
             )
-            .padding(1.dp)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
+            // 3) 테두리는 맨 위에
+            .border(width = 1.dp, brush = Brush.horizontalGradient(borderGradient), shape = shape)
+            .clickable(onClick = onClick)
+            // 4) 내용 패딩은 마지막에
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    if (isSelected) Color(0xFFF0E8FF) else Color.White,
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            contentAlignment = Alignment.CenterStart
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-//                    //.fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // 텍스트
-                Text(
-                    text = text,
-                    fontSize = 13.sp,
-                    fontFamily = Paperlogy,
-                    color = Color.Black
-                )
-
-                // 선택된 경우에만 체크박스 표시
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .background(Color(0xFFCB59EB), shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "선택됨",
-                            tint = Color.White,
-                            modifier = Modifier.size(12.dp)
-                        )
-                    }
+            Text(
+                text = text,
+                fontSize = 13.sp,
+                fontFamily = Paperlogy,
+                color = Color.Black
+            )
+            if (isSelected) {
+                Box(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .background(Color(0xFFCB59EB), shape = RoundedCornerShape(4.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = "선택됨",
+                        tint = Color.White,
+                        modifier = Modifier.size(12.dp)
+                    )
                 }
             }
         }
     }
 }
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFF5F6F9,
+    name = "성별 선택 - 선택된 버튼만"
+)
+@Composable
+fun GenderOptionButtonPreview_Selected() {
+    Box(Modifier.padding(16.dp)) {
+        GenderOptionButton(
+            text = "여성",
+            isSelected = true,
+            onClick = {}
+        )
+    }
+}
+
+
+//@Composable
+//fun GenderOptionButton(
+//    text: String,
+//    isSelected: Boolean,
+//    onClick: () -> Unit
+//) {
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(56.dp)
+//            .background(
+//                brush = Brush.horizontalGradient(
+//                    colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                ),
+//                shape = RoundedCornerShape(16.dp)
+//            )
+//            .padding(1.dp)
+//            .clickable { onClick() },
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(
+//                    if (isSelected) Color(0xFFF0E8FF) else Color.White,
+//                    shape = RoundedCornerShape(16.dp)
+//                ),
+//            contentAlignment = Alignment.CenterStart
+//        ) {
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxSize()
+////                    //.fillMaxWidth()
+//                    .padding(horizontal = 16.dp),
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.SpaceBetween
+//            ) {
+//                // 텍스트
+//                Text(
+//                    text = text,
+//                    fontSize = 13.sp,
+//                    fontFamily = Paperlogy,
+//                    color = Color.Black
+//                )
+//
+//                // 선택된 경우에만 체크박스 표시
+//                if (isSelected) {
+//                    Box(
+//                        modifier = Modifier
+//                            .size(20.dp)
+//                            .background(Color(0xFFCB59EB), shape = RoundedCornerShape(4.dp)),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Icon(
+//                            imageVector = Icons.Default.Check,
+//                            contentDescription = "선택됨",
+//                            tint = Color.White,
+//                            modifier = Modifier.size(12.dp)
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Preview(showBackground = true)
 @Composable
