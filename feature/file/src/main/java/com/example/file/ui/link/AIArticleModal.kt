@@ -1,6 +1,7 @@
 package com.example.file.ui.link
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,16 +26,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 
 @Composable
 fun AIArticleModal(
+    progress: Float,
+    onCancel: () -> Unit,
     modifier: Modifier = Modifier // ✅ 외부에서 전달받을 modifier
 ) {
-    val progress by remember { mutableStateOf(0.6f) } // 60% 예시
-
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
             .background(LocalColorTheme.current.white),
@@ -42,7 +44,7 @@ fun AIArticleModal(
     ) {
         Text(
             text = "AI 요약 중...",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.black,
             modifier = Modifier.padding(top = 45.dp)
         )
@@ -57,14 +59,14 @@ fun AIArticleModal(
 
         Text(
             text = "AI가 링크 추출 후 본문 내용을 요약하고 있어요!",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600],
             modifier = Modifier.padding(top = 20.dp)
         )
 
         Text(
             text = "잠시만 기다려주세요.",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600]
         )
 
@@ -78,12 +80,13 @@ fun AIArticleModal(
                     .height(50.dp)
                     .padding(horizontal = 28.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(brush = Basic.maincolor),
+                    .background(brush = Basic.maincolor)
+                    .clickable { onCancel() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "그만두기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }
@@ -95,6 +98,12 @@ fun AIArticleModal(
 
 @Composable
 fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
+    val animated = androidx.compose.animation.core.animateFloatAsState(
+        targetValue = progress.coerceIn(0f, 1f),
+        animationSpec = androidx.compose.animation.core.tween(durationMillis = 250),
+        label = "aiProgress"
+    ).value
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -105,15 +114,15 @@ fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .fillMaxWidth(fraction = progress.coerceIn(0f, 1f))
+                .fillMaxWidth(fraction = animated)
                 .clip(RoundedCornerShape(4.dp))
                 .background(Brush.horizontalGradient(listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))))
         )
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAIArticleModal() {
-    AIArticleModal()
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAIArticleModal() {
+//    AIArticleModal()
+//}
