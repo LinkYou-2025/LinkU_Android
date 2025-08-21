@@ -143,27 +143,43 @@ fun MainApp(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentNavigationItem = currentNavigationItem,
                 onNavigate = { item ->
-                    if (item != currentNavigationItem) {
+//                    if (item != currentNavigationItem) {
                         val route = when (item) {
                             NavigationItem.HOME -> NavigationRoute.Home.route
                             NavigationItem.FILE -> NavigationRoute.File.route
                             NavigationItem.CURATION -> NavigationRoute.Curation.route
                             NavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
                         }
-                        navigator.navigate(route) {
-                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
-                            popUpTo(navigator.graph.findStartDestination().id) {
-                                saveState = true
-                                inclusive = false
-                            }
-                            launchSingleTop = true
-                            // 이전에 저장된 상태 복원
-                            restoreState = true
-                        }
 //                        navigator.navigate(route) {
-//                            popUpTo(navigator.graph.startDestinationId) { inclusive = false }
+//                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
+//                            popUpTo(navigator.graph.findStartDestination().id) {
+//                                saveState = true
+//                                inclusive = false
+//                            }
+//                            launchSingleTop = true
+//                            // 이전에 저장된 상태 복원
+//                            restoreState = true
 //                        }
-                    }
+////                        navigator.navigate(route) {
+////                            popUpTo(navigator.graph.startDestinationId) { inclusive = false }
+////                        }
+
+
+                        // 현재 화면의 route
+                        val currentRoute = navigator.currentBackStackEntry?.destination?.route
+
+                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
+                        if (currentRoute != route) {
+                            navigator.navigate(route) {
+                                popUpTo(navigator.graph.findStartDestination().id) {
+                                    saveState = true
+                                    inclusive = false
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+//                    }
                 },
                 onCenterButtonClicked = {
                     // 여기에 중앙 버튼 눌렀을 때 로직 넣기
