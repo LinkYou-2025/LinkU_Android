@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
 import com.example.design.theme.color.Basic
 import com.example.linku_android.R
@@ -173,6 +174,7 @@ fun NavigationBar(
                                 fontSize = 10.sp,
                                 lineHeight = 14.sp,
                                 fontWeight = FontWeight.W400,
+                                fontFamily = LocalFontTheme.current.font,
                                 style = if (currentNavigationItem == item) {
                                     TextStyle(brush = Basic.maincolor)
                                 } else {
@@ -211,6 +213,7 @@ fun NavigationBar(
                                 fontSize = 10.sp,
                                 lineHeight = 14.sp,
                                 fontWeight = FontWeight.W400,
+                                fontFamily = LocalFontTheme.current.font,
                                 style = TextStyle(color = Color.Transparent),
                                 modifier = Modifier.padding(top = 11.dp)
                             )
