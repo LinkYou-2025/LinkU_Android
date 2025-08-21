@@ -56,19 +56,31 @@ class CurationRepositoryImpl @Inject constructor(
             thumbnailUrl = dto.thumbnailUrl
         )
     }
-
-    override suspend fun getLikedCurations(userId: Long): List<CurationItem> {
-        val dtos = curationApi.getLikedCurations(userId)   // ← Retrofit: List<LikedCurationResponse>
-        return dtos
-            .take(6) // 방어적으로 6개 제한
-            .map { dto ->
-                CurationItem(
-                    id = dto.curationId,
-                    month = dto.month,               // ex) "2025-07"
-                    thumbnailUrl = dto.thumbnailUrl  // S3 public URL
-                )
-            }
-    }
+   //좋아요한 큐레이션 목록
+   override suspend fun getLikedCurations(userId: Long): List<CurationItem> {
+       val res = curationApi.getLikedCurations(userId) // BaseResponse<List<...>>
+       if (!res.isSuccess) throw IllegalStateException(res.message ?: "좋아요한 큐레이션 조회 실패")
+       val dtos = res.result ?: emptyList()
+       return dtos.take(6).map { dto ->
+           CurationItem(
+               id = dto.curationId,
+               month = dto.month,
+               thumbnailUrl = dto.thumbnailUrl
+           )
+       }
+   }
+//    override suspend fun getLikedCurations(userId: Long): List<CurationItem> {
+//        val dtos = curationApi.getLikedCurations(userId)   // ← Retrofit: List<LikedCurationResponse>
+//        return dtos
+//            .take(6) // 방어적으로 6개 제한
+//            .map { dto ->
+//                CurationItem(
+//                    id = dto.curationId,
+//                    month = dto.month,               // ex) "2025-07"
+//                    thumbnailUrl = dto.thumbnailUrl  // S3 public URL
+//                )
+//            }
+//    }
 
     private fun CurationLatestResponse.toDomain(): CurationItem {
         return CurationItem(
@@ -141,13 +153,14 @@ class CurationRepositoryImpl @Inject constructor(
         userId: Long,
         curationId: Long
     ): List<RecommendedLink> {
-        val dtos: List<RecommendLinkItemDto> = curationApi.getRecommendLinks(userId, curationId)
+        val res = curationApi.getRecommendLinks(userId, curationId) // BaseResponse< List<...> >
+        if (!res.isSuccess) throw IllegalStateException(res.message ?: "추천 링크 호출 실패")
+        val dtos = res.result ?: emptyList()
 
         return dtos.mapNotNull { dto ->
             val title = dto.title?.trim().orEmpty()
             val url = dto.url?.trim().orEmpty()
             if (title.isBlank() || url.isBlank()) return@mapNotNull null
-
             val normalizedDomain = dto.domain
                 ?.takeIf { it.isNotBlank() && it.lowercase() !in setOf("invalid", "unknown") }
                 ?: runCatching { java.net.URL(url).host }.getOrNull()
@@ -164,10 +177,39 @@ class CurationRepositoryImpl @Inject constructor(
             )
         }.take(9)
     }
+//    override suspend fun getRecommendedLinks(
+//        userId: Long,
+//        curationId: Long
+//    ): List<RecommendedLink> {
+//        val dtos: List<RecommendLinkItemDto> = curationApi.getRecommendLinks(userId, curationId)
+//
+//        return dtos.mapNotNull { dto ->
+//            val title = dto.title?.trim().orEmpty()
+//            val url = dto.url?.trim().orEmpty()
+//            if (title.isBlank() || url.isBlank()) return@mapNotNull null
+//
+//            val normalizedDomain = dto.domain
+//                ?.takeIf { it.isNotBlank() && it.lowercase() !in setOf("invalid", "unknown") }
+//                ?: runCatching { java.net.URL(url).host }.getOrNull()
+//
+//            RecommendedLink(
+//                isInternal = dto.userLinkuId != null,
+//                userLinkuId = dto.userLinkuId,
+//                title = title,
+//                url = url,
+//                imageUrl = dto.imageUrl?.takeIf { it.isNotBlank() },
+//                domain = normalizedDomain,
+//                domainImageUrl = dto.domainImageUrl?.takeIf { it.isNotBlank() },
+//                categories = dto.categories?.filter { it.isNotBlank() }
+//            )
+//        }.take(9)
+//    }
 
     //큐레이션 디테일 사용자 정보 제공
     override suspend fun getCurationDetail(curationId: Long): CurationDetail {
-        val dto = curationApi.getCurationDetail(curationId)
+        val res = curationApi.getCurationDetail(curationId) // BaseResponse<CurationDetailResponse>
+        if (!res.isSuccess) throw IllegalStateException(res.message ?: "큐레이션 상세 조회 실패")
+        val dto = res.result
         return CurationDetail(
             curationId = dto.curationId,
             month = dto.month,
@@ -176,27 +218,35 @@ class CurationRepositoryImpl @Inject constructor(
             footerMent = dto.footerMent
         )
     }
+//    override suspend fun getCurationDetail(curationId: Long): CurationDetail {
+//        val dto = curationApi.getCurationDetail(curationId)
+//        return CurationDetail(
+//            curationId = dto.curationId,
+//            month = dto.month,
+//            topTags = dto.topTags.orEmpty().take(3),
+//            headerMent = dto.headerMent,
+//            footerMent = dto.footerMent
+//        )
+//    }
 
     //큐레이션 기본 페이지 추천
     override suspend fun getHomeRecommendedLinksTop2(
-        userId: Long,
-        curationId: Long
+        userId: Long, curationId: Long
     ): List<RecommendedLink> {
-        val dtos: List<RecommendLinkItemDto> =
-            curationApi.getInternalTop2(userId, curationId) // ← 직접 호출
-
+        val res = curationApi.getInternalTop2(userId, curationId) // BaseResponse<List<...>>
+        if (!res.isSuccess) throw IllegalStateException(res.message ?: "홈 추천 링크 호출 실패")
+        val dtos = res.result ?: emptyList()
         return dtos.mapNotNull { dto ->
             val title = dto.title?.trim().orEmpty()
             val url = dto.url?.trim().orEmpty()
             if (title.isBlank() || url.isBlank()) return@mapNotNull null
-
             val normalizedDomain = dto.domain
                 ?.takeIf { it.isNotBlank() && it.lowercase() !in setOf("invalid", "unknown") }
                 ?: runCatching { java.net.URL(url).host }.getOrNull()
 
             RecommendedLink(
-                isInternal = true,                  // 내부 추천이므로 true
-                userLinkuId = dto.userLinkuId,      // 항상 존재
+                isInternal = true,
+                userLinkuId = dto.userLinkuId,
                 title = title,
                 url = url,
                 imageUrl = dto.imageUrl?.takeIf { it.isNotBlank() },
@@ -206,24 +256,66 @@ class CurationRepositoryImpl @Inject constructor(
             )
         }.take(2)
     }
+//    override suspend fun getHomeRecommendedLinksTop2(
+//        userId: Long,
+//        curationId: Long
+//    ): List<RecommendedLink> {
+//        val dtos: List<RecommendLinkItemDto> =
+//            curationApi.getInternalTop2(userId, curationId) // ← 직접 호출
+//
+//        return dtos.mapNotNull { dto ->
+//            val title = dto.title?.trim().orEmpty()
+//            val url = dto.url?.trim().orEmpty()
+//            if (title.isBlank() || url.isBlank()) return@mapNotNull null
+//
+//            val normalizedDomain = dto.domain
+//                ?.takeIf { it.isNotBlank() && it.lowercase() !in setOf("invalid", "unknown") }
+//                ?: runCatching { java.net.URL(url).host }.getOrNull()
+//
+//            RecommendedLink(
+//                isInternal = true,                  // 내부 추천이므로 true
+//                userLinkuId = dto.userLinkuId,      // 항상 존재
+//                title = title,
+//                url = url,
+//                imageUrl = dto.imageUrl?.takeIf { it.isNotBlank() },
+//                domain = normalizedDomain,
+//                domainImageUrl = dto.domainImageUrl?.takeIf { it.isNotBlank() },
+//                categories = dto.categories?.filter { it.isNotBlank() }
+//            )
+//        }.take(2)
+//    }
     //큐레이션 등록, 취소
     override suspend fun likeCuration(curationId: Long, userId: Long) {
         val resp = curationApi.updateLike(curationId, userId)
         if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
     }
+//    override suspend fun likeCuration(curationId: Long, userId: Long) {
+//        val resp = curationApi.updateLike(curationId, userId)
+//        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
+//    }
 
     override suspend fun unlikeCuration(curationId: Long, userId: Long) {
         val resp = curationApi.deleteLike(curationId, userId)
         if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
     }
 
+//    override suspend fun unlikeCuration(curationId: Long, userId: Long) {
+//        val resp = curationApi.deleteLike(curationId, userId)
+//        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
+//    }
+
     //큐레이션 현재 좋아요 상태 추가
     override suspend fun isCurationLiked(curationId: Long, userId: Long): Boolean {
-        val resp = curationApi.getIsLike(curationId, userId)
-        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
-        val dto = resp.body() ?: return false
-        return dto.liked    // ← 필드명 "liked" 로 접근
+        val res = curationApi.getIsLike(curationId, userId) // BaseResponse<CurationLikeStatusResponseDTO>
+        if (!res.isSuccess) throw IllegalStateException(res.message ?: "좋아요 여부 조회 실패")
+        return res.result.liked
     }
+//    override suspend fun isCurationLiked(curationId: Long, userId: Long): Boolean {
+//        val resp = curationApi.getIsLike(curationId, userId)
+//        if (!resp.isSuccessful) throw retrofit2.HttpException(resp)
+//        val dto = resp.body() ?: return false
+//        return dto.liked    // ← 필드명 "liked" 로 접근
+//    }
 
 
 }

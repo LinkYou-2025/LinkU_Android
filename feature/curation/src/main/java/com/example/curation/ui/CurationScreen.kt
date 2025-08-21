@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.setValue
 import com.example.design.FastSearchItem
+import com.example.design.SearchBarTopSheet
 import com.example.design.SearchTopSheetHost
 
 import com.example.design.SearchTopSheetHost
@@ -86,6 +87,12 @@ fun CurationScreen(
     val currentCurationId by viewModel.currentCurationId.collectAsState(initial = -1L)
 
     val canOpenDetail = userId > 0 && currentCurationId > 0
+
+    LaunchedEffect(canOpenDetail) {
+        if (canOpenDetail) {
+            viewModel.loadHomeRecommendedLinksTop2(userId, currentCurationId)
+        }
+    }
 
     val homeLinksState by viewModel.homeLinks.collectAsState()
 
@@ -127,7 +134,7 @@ fun CurationScreen(
             item {
                 //CurationTopBar()
                 CurationTopBar(
-                    onClickSearch = { showSearch = true }
+                    onClickSearch = { viewModel.updateSearchTopSheetVisible(true) }
                 )
             }
             // 현재 날짜에서 전달 구하기
@@ -151,7 +158,8 @@ fun CurationScreen(
                     )
                     CurationHighlightSection(
                         modifier = Modifier.fillMaxWidth(),
-                        onOpenDetail = { onOpenDetail(userId, currentCurationId) }  //  파라미터 없는 람다로 변환해서 전달
+                        viewModel = viewModel,   // 같은 그래프-스코프 VM 전달
+                        onOpenDetail = { onOpenDetail(userId, currentCurationId) }
                     )
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -290,13 +298,25 @@ fun CurationScreen(
 
 
         }
-        // 추가: 검색 TopSheet 오버레이
-        SearchTopSheetHost(
-            visible = showSearch,
-            allItems = allFastLinks,
-            onDismiss = { showSearch = false }
+//        // 추가: 검색 TopSheet 오버레이
+//        SearchTopSheetHost(
+//            visible = showSearch,
+//            allItems = allFastLinks,
+//            onDismiss = { showSearch = false }
+//        )
+
+        // 검색창 탑 시트
+        SearchBarTopSheet(
+            visible = viewModel.searchTopSheetVisible,
+            onDismiss = { viewModel.updateSearchTopSheetVisible(false) },
+            onQueryChange = { viewModel.fastSearch(it) },
+            onQuerySave = { viewModel.addRecentQuery(it) },
+            onQueryDelete = { viewModel.removeRecentQuery(it) },
+            onQueryClear = { viewModel.clearRecentQuery() },
+            fastSearchItems = viewModel.fastSearchItems.collectAsState().value,
+            recentQuerys = viewModel.recentQueryList.collectAsState().value.map{it.text}
         )
-        }
+    }
 }
 
 @Composable

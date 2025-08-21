@@ -9,19 +9,26 @@ import android.util.Log
 import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
+import com.example.core.model.search.RecentQuery
 import com.example.core.repository.AIArticleRepository
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.LinkuRepository
+import com.example.core.repository.RecentSearchRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
 import com.example.file.ui.theme.CategoryColorStyle
 import com.example.file.ui.theme.toCategoryColorStyleMap
+import com.example.design.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.File
@@ -34,7 +41,16 @@ class HomeViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val aiArticleRepository: AIArticleRepository,
     private val categoryRepository: CategoryRepository,
+    private val recentRepository: RecentSearchRepository,
 ) : ViewModel() {
+
+    // 최초 진입 시 프로필 로드 (유지 가능)
+    init {
+        loadRecentLinks()
+        loadUserBasics() // userId 없으면 조용히 리턴하게 바꿉니다
+    }
+
+
     // 사용자 닉네임
     private val userNameState = mutableStateOf<String?>(null)
     val userName get() = userNameState.value
@@ -67,20 +83,48 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadUserBasics() {
+    // 🔧 1) public 으로, 그리고 userId 없으면 그냥 return
+    fun loadUserBasics() {
         viewModelScope.launch {
-            runCatching {
-                val userId = authPreference.userId ?: error("userId is null")
-                require(userId > 0L) { "invalid userId=$userId" }   // ✅ 음수/0 차단
-                userRepository.getUserInfo(userId)                  // ✅ 파라미터 전달
-            }.onSuccess { info ->
-                userNameState.value = info.nickname
-                jobIdState.value = info.jobId.toLong()
-            }.onFailure { e ->
-                Log.e("HomeVM", "loadUserBasics failed", e)
+            val userId = authPreference.userId
+            if (userId == null || userId <= 0L) {
+                // 로그인 전이므로 조용히 무시. (재진입에서 다시 호출할 것)
+                return@launch
             }
+
+            runCatching { userRepository.getUserInfo(userId) }
+                .onSuccess { info ->
+                    userNameState.value = info.nickname
+                    jobIdState.value = info.jobId.toLong()
+                }
+                .onFailure { e ->
+                    Log.e("HomeVM", "loadUserBasics failed", e)
+                }
         }
     }
+
+    // 🔧 2) 로그인 직후 한 번에 리프레시할 진입점
+    fun refreshAfterLogin() {
+        // userId/토큰이 저장된 '로그인 직후' 다시 호출
+        loadUserBasics()
+        loadRecentLinks()
+    }
+
+
+//    private fun loadUserBasics() {
+//        viewModelScope.launch {
+//            runCatching {
+//                val userId = authPreference.userId ?: error("userId is null")
+//                require(userId > 0L) { "invalid userId=$userId" }   // ✅ 음수/0 차단
+//                userRepository.getUserInfo(userId)                  // ✅ 파라미터 전달
+//            }.onSuccess { info ->
+//                userNameState.value = info.nickname
+//                jobIdState.value = info.jobId.toLong()
+//            }.onFailure { e ->
+//                Log.e("HomeVM", "loadUserBasics failed", e)
+//            }
+//        }
+//    }
 
     private fun Throwable.isLinku4003(): Boolean {
         // 예외 메시지에 코드가 섞여 오는 경우
@@ -332,4 +376,116 @@ class HomeViewModel @Inject constructor(
             isLoadingAiArticleState.value = false
         }
     }
+
+    // ---------- search method ----------
+    // 검색창 탑 시트 가시성 상태
+    var searchTopSheetVisible by mutableStateOf(false)
+        private set
+    fun updateSearchTopSheetVisible(newState: Boolean) {
+        Log.d("searchTopSheetVisible", newState.toString())
+        searchTopSheetVisible = newState
+    }
+
+    // 빠른 링크 검색 목록
+    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
+    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
+
+    // 빠른 링크 검색
+    fun fastSearch(keyword: String){
+        Log.d("HomeViewModel", "fastSearch")
+
+        viewModelScope.launch{
+            Log.d("HomeViewModel", "fastSearch launch")
+            try{
+                Log.d("HomeViewModel", "fastSearch try")
+
+                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
+                    FastSearchItem(
+                        title = it.title,
+                        url = it.linkUrl
+                    )
+                }
+
+                Log.d("HomeViewModel", "fastSearch try result: ${_fastSearchItems.value}")
+            }catch (e: Exception){
+                Log.d("HomeViewModel", "fastSearch catch: $e.message")
+
+            }finally {
+                Log.d("HomeViewModel", "fastSearch finally")
+            }
+        }
+    }
+
+    //최근 검색 목록
+    val recentQueryList: StateFlow<List<RecentQuery>> =
+        recentRepository.observe(limit = 20)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = emptyList()
+            )
+
+    // 최근 검색 기록 추가
+    fun addRecentQuery(query: String) {
+        Log.d("HomeViewModel", "addRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("HomeViewModel", "addRecentQuery launch")
+
+            try{
+                Log.d("HomeViewModel", "addRecentQuery try")
+
+                recentRepository.add(query)
+            }catch (e: Exception){
+                Log.d("HomeViewModel", "addRecentQuery catch: $e.message")
+            }finally {
+                Log.d("HomeViewModel", "addRecentQuery finally")
+            }
+        }
+        Log.d("HomeViewModel", "addRecentQuery return")
+    }
+
+    // 최근 검색 기록 삭제
+    fun removeRecentQuery(query: String) {
+        Log.d("HomeViewModel", "removeRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("HomeViewModel", "removeRecentQuery launch")
+
+            try{
+                Log.d("HomeViewModel", "removeRecentQuery try")
+
+                recentRepository.remove(query)
+
+            }catch (e: Exception){
+                Log.d("HomeViewModel", "removeRecentQuery catch: $e.message")
+            }finally {
+                Log.d("HomeViewModel", "removeRecentQuery finally")
+            }
+        }
+        Log.d("HomeViewModel", "removeRecentQuery return")
+    }
+
+
+    // 최근 검색 기록 전체 삭제
+    fun clearRecentQuery() {
+        Log.d("HomeViewModel", "clearRecentQuery")
+
+        viewModelScope.launch {
+            Log.d("HomeViewModel", "clearRecentQuery launch")
+
+            try{
+                Log.d("HomeViewModel", "clearRecentQuery try")
+
+                recentRepository.clear()
+
+            }catch (e: Exception){
+                Log.d("HomeViewModel", "clearRecentQuery catch: $e.message")
+            }finally {
+                Log.d("HomeViewModel", "clearRecentQuery finally")
+            }
+        }
+        Log.d("HomeViewModel", "clearRecentQuery return")
+    }
+    // ---------- search method ----------
 }

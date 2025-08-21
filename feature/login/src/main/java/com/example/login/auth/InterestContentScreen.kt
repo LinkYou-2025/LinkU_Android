@@ -153,7 +153,8 @@ fun InterestContentScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .background(Color.White),
             contentPadding = PaddingValues(
                 start = 0.dp, end = 0.dp,
                 //start = 32.dp, end = 32.dp,
@@ -173,7 +174,13 @@ fun InterestContentScreen(
                         //color = Color(0xFFE5ACF4)
                         // ✍️ 사용하신 텍스트 그대로 유지 (“괸심” 포함)
                         append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
-                        withStyle(SpanStyle( fontSize = 12.sp)) {
+                        withStyle(
+                            SpanStyle(
+                                color = Color(0xFFE5ACF4),   // 연보라색
+                                fontSize = 16.sp,           // 16sp
+                                fontWeight = FontWeight.Medium
+                            )
+                        ) {
                             append("(복수 선택 가능)")
                         }
                     },
@@ -187,15 +194,17 @@ fun InterestContentScreen(
             item { Spacer(modifier = Modifier.height(32.dp)) }
 
             item {
-                InterestCloudScrollable(
-                    contents = contents,
-                    selected = selectedContents,
-                    onToggle = { label ->
-                        if (selectedContents.contains(label)) selectedContents.remove(label)
-                        else selectedContents.add(label)
-                    },
-                    height = 500.dp
-                )
+                Box(Modifier.padding(horizontal = 20.dp)) {
+                    InterestCloudScrollable(
+                        contents = contents,
+                        selected = selectedContents,
+                        onToggle = { label ->
+                            if (selectedContents.contains(label)) selectedContents.remove(label)
+                            else selectedContents.add(label)
+                        },
+                        height = 500.dp
+                    )
+                }
             }
 
             item { Spacer(modifier = Modifier.height(24.dp)) }

@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -26,9 +30,11 @@ import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.item.LinkItemLayout
+import com.example.file.ui.modal.FileModalWindow
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
+import com.example.file.ui.theme.Gray600
 
 @Composable
 fun LinksGrid(
@@ -36,6 +42,10 @@ fun LinksGrid(
     folderStateViewModel: FolderStateViewModel,
 ){
     val linkList = fileViewModel.links.collectAsStateWithLifecycle().value
+
+    val hasNotCategorizationLinks = fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle().value.isNotEmpty()
+
+    var modalWindowVisible by remember { mutableStateOf(false) }
 
     VerticalGrid(
         modifier = Modifier
@@ -49,7 +59,11 @@ fun LinksGrid(
                 .fillMaxWidth()
                 .noRippleClickable {
                     Log.d("LinksGrid", "링크 추가하기 클릭")
-                    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                    if(hasNotCategorizationLinks){
+                        folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                    } else{
+                        modalWindowVisible = true
+                    }
                 },
             contentAlignment = Alignment.TopStart
         ) {
@@ -96,6 +110,24 @@ fun LinksGrid(
                 )
             }
         }
+    }
+
+    // 분류되지 않는 링크가 없으면 뜨는 모달창
+    FileModalWindow(
+        visible = modalWindowVisible,
+        onDismiss = { modalWindowVisible = false },
+        title = "분류되지 않은 링크가 없습니다.",
+        positiveText = "확인"
+    ) {
+        Text(
+            text = "새 링크를 저장한 뒤 분류해보세요!",
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            fontFamily = DefaultFont,
+            fontWeight = FontWeight.Normal,
+            color = Gray600,
+            textAlign = TextAlign.Center
+        )
     }
 }
 

@@ -29,6 +29,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,10 +55,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.example.core.model.LinkSimpleInfo
+import com.example.design.SearchBarTopSheet
+import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.design.theme.font.Paperlogy
+import com.example.home.HomeViewModel
 import com.example.home.R
 import kotlinx.coroutines.launch
 import com.example.design.R as Res
@@ -114,6 +118,7 @@ private fun emotionName(id: Long?): String? = when (id) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
+    homeViewModel: HomeViewModel,
     userName: String,
     showRecommendations: Boolean,
     recommendedLinks: List<LinkSimpleInfo>,
@@ -176,6 +181,16 @@ fun HomeScreen(
     val selectedTaskLabel = remember(selectedTask, jobSituations) {
         jobSituations.firstOrNull { it.id == selectedTask }?.name
     }
+
+    // 아이템 개수와 TopBar 접힘 여부에 따라 필요한 여유(화면 비율) 계산
+    fun slackFractionFor(count: Int, isExpanded: Boolean): Float = when (count) {
+        0 -> 0f
+        1 -> if (isExpanded) 0.55f else 0.48f
+        2 -> if (isExpanded) 0.40f else 0.33f
+        3 -> if (isExpanded) 0.28f else 0.22f
+        else -> 0f
+    }
+
 
 //    // 🔹 샘플 링크 데이터 (향후 실제 데이터로 대체)
 //    val linkList = remember {  // 데이터가 있는 경우
@@ -283,6 +298,13 @@ fun HomeScreen(
             coroutineScope.launch { listState.animateScrollToItem(1) }
         }
     }
+    val itemsToRender = if (showRecs) recommendedLinks else recentLinks
+    val titleText = if (showRecs) "세나님의 오늘에 어울리는 콘텐츠예요!"
+    else "${userName}님이 최근에 열람한 링크"
+    // 비율 계산은 remember로 한 번 더 안정화해도 OK
+    val slackFraction = remember(itemsToRender.size, isTopBarExpanded) {
+        slackFractionFor(itemsToRender.size, isTopBarExpanded)
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -292,6 +314,7 @@ fun HomeScreen(
     ) {
         stickyHeader {
             TopBar(
+                homeViewModel = homeViewModel ,
                 isExpanded = isTopBarExpanded,
                 selectedEmotion = selectedEmotion,
                 selectedTask = selectedTask,
@@ -451,8 +474,33 @@ fun HomeScreen(
                     }
                 }
             }
+
+
         }
+        if (slackFraction > 0f) {
+            item(key = "footer-slack") {
+                Spacer(
+                    Modifier
+                        .fillMaxWidth()
+                        .fillParentMaxHeight(slackFraction)
+                )
+            }
+        }
+
+
     }
+
+    // 검색창 탑 시트
+    SearchBarTopSheet(
+        visible = homeViewModel.searchTopSheetVisible,
+        onDismiss = { homeViewModel.updateSearchTopSheetVisible(false) },
+        onQueryChange = { homeViewModel.fastSearch(it) },
+        onQuerySave = { homeViewModel.addRecentQuery(it) },
+        onQueryDelete = { homeViewModel.removeRecentQuery(it) },
+        onQueryClear = { homeViewModel.clearRecentQuery() },
+        fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
+        recentQuerys = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
+    ) 
 }
 
 @Composable
@@ -596,6 +644,7 @@ private fun LinkCard(
 
 @Composable
 fun TopBar(
+    homeViewModel: HomeViewModel,
     isExpanded: Boolean,
     selectedEmotion: Long?,
     selectedTask: Long?,
@@ -693,6 +742,9 @@ fun TopBar(
                 modifier = Modifier
                     .padding(top = 15.dp, start = 16.dp, end = 16.dp)
                     .height(48.dp)
+                    .noRippleClickable{
+                        homeViewModel.updateSearchTopSheetVisible(true)
+                    }
             ) {
                 Box(
                     modifier = Modifier
@@ -1497,32 +1549,33 @@ fun TaskSelector(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewHomeScreen() {
-    HomeScreen(
-        userName = "세나",
-        showRecommendations = false, // or false
-        recommendedLinks = listOf(
-            LinkSimpleInfo(
-                linkuId = 1L,
-                categoryId = 1L,
-                memo = "",
-                emotionId = 3L,
-                title = "샘플 링크 제목",
-                domain = "naver.com",
-                domainImageUrl = "",
-                linkuImageUrl = ""
-            )
-        ),
-        recentLinks = listOf( // ✅ 프리뷰에 recentLinks 전달
-
-        ),
-        isRecommending = false,
-        onRecommendRequest = { _, _, _ -> }, // no-op
-        needMoreForRecommendation = false,
-        onClearNeedMoreNotice = {},
-        jobId = 2L,
-        onLinkClick = { /* no-op in preview */ }
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewHomeScreen() {
+//    HomeScreen(
+//        homeViewModel = hiltViewModel(),
+//        userName = "세나",
+//        showRecommendations = false, // or false
+//        recommendedLinks = listOf(
+//            LinkSimpleInfo(
+//                linkuId = 1L,
+//                categoryId = 1L,
+//                memo = "",
+//                emotionId = 3L,
+//                title = "샘플 링크 제목",
+//                domain = "naver.com",
+//                domainImageUrl = "",
+//                linkuImageUrl = ""
+//            )
+//        ),
+//        recentLinks = listOf( // ✅ 프리뷰에 recentLinks 전달
+//
+//        ),
+//        isRecommending = false,
+//        onRecommendRequest = { _, _, _ -> }, // no-op
+//        needMoreForRecommendation = false,
+//        onClearNeedMoreNotice = {},
+//        jobId = 2L,
+//        onLinkClick = { /* no-op in preview */ }
+//    )
+//}

@@ -65,7 +65,7 @@ import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.TopFolderItemLayout
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.Black
-import com.example.file.ui.theme.CategoryColorStyle
+import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray400
 import com.example.file.ui.theme.Gray600
@@ -88,7 +88,7 @@ fun ShareBottomSheet(
     var selectedBottomFolder by remember { mutableStateOf<FolderSimpleInfo?>(null) }
 
     // 카테고리 내 소분류 폴더들
-    val bottomFolderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
+    val bottomFolderList by fileViewModel.shareBottomSheetSubFolders.collectAsStateWithLifecycle()
 
     // 고른 상태
     var state by remember { mutableStateOf(FolderState.TOP) }
@@ -129,7 +129,8 @@ fun ShareBottomSheet(
         Box(
             modifier = Modifier
                 .wrapContentHeight()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(horizontal = 21.dp),
             contentAlignment = Alignment.TopCenter
         ){
             Row(
@@ -275,20 +276,20 @@ fun ShareBottomSheet(
             when(state){
                 FolderState.TOP -> {
                     EmptyFolderItemLayout(
-                        categoryName = "${userName}의 폴더"
+                        folderName = "${userName}의 폴더"
                     )
                 }
                 FolderState.BOTTOM -> {
                     TopFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        categoryName = selectedTopFolder!!.folderName,
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        folderName = selectedTopFolder!!.folderName,
                         isBookmarked = selectedTopFolder!!.isBookmarked,
                         editStateViewModel = dummyVM,
                     ) { }
                 }
                 FolderState.LINKS -> {
                     BottomFolderItemLayout(
-                        categoryColorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedBottomFolder!!,
                         editStateViewModel = dummyVM,
                     )
@@ -325,7 +326,7 @@ fun ShareBottomSheet(
 
         // menuOpen 상태에 따라 높이를 애니메이션
         val bottomSpacerHeight by animateDpAsState(
-            targetValue = if (menuOpen) 264.dp else 43.dp,
+            targetValue = if (menuOpen) 204.dp else 43.dp,
             animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
             label = "bottom spacer height"
         )
@@ -371,7 +372,7 @@ fun ShareBottomSheet(
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(30.dp))
+        //Spacer(modifier = Modifier.height(10.dp))
 
         // 설명
         Text(

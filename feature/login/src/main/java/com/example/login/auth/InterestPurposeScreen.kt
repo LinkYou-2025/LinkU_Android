@@ -272,7 +272,8 @@ fun InterestPurposeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .background(Color.White),
             contentPadding = PaddingValues(
                 //start = 32.dp, end = 32.dp,
                 start = 0.dp, end = 0.dp,
@@ -290,9 +291,7 @@ fun InterestPurposeScreen(
                     //color = Color(0xFFE5ACF4),
                     buildAnnotatedString {
                         append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
-                        withStyle(SpanStyle( fontSize = 12.sp)) {
-                            append("(복수 선택 가능)")
-                        }
+
                     },
                     fontSize = 22.sp,
                     fontFamily = Paperlogy,
@@ -305,15 +304,17 @@ fun InterestPurposeScreen(
 
             // 구름 배치 뷰 (가로 스크롤 캔버스)
             item {
-                PurposeCloudScrollable(
-                    purposes = purposes,
-                    selected = selectedPurposes,
-                    onToggle = { label ->
-                        if (selectedPurposes.contains(label)) selectedPurposes.remove(label)
-                        else selectedPurposes.add(label)
-                    },
-                    height = 500.dp
-                )
+                Box(Modifier.padding(horizontal = 20.dp)) {
+                    PurposeCloudScrollable(
+                        purposes = purposes,
+                        selected = selectedPurposes,
+                        onToggle = { label ->
+                            if (selectedPurposes.contains(label)) selectedPurposes.remove(label)
+                            else selectedPurposes.add(label)
+                        },
+                        height = 500.dp
+                    )
+                }
             }
 
             item { Spacer(Modifier.height(24.dp)) }
