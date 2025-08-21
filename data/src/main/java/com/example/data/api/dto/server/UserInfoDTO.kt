@@ -28,7 +28,13 @@ data class UserInfoDTO(
     val myFolder: Long,
 
     @Json(name = "myAiLinku")
-    val myAiLinku: Long
+    val myAiLinku: Long,
+
+    @Json(name = "purposes")
+    val purposes: List<String> = emptyList(),
+
+    @Json(name = "interests")
+    val interests: List<String> = emptyList()
 )
 
 @JsonClass(generateAdapter = false)

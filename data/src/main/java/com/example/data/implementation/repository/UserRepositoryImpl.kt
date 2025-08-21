@@ -27,31 +27,35 @@ class UserRepositoryImpl @Inject constructor(
 
     // 서버 ENUM 매핑 (클래스 내부에 추가)
     private val purposeMap = mapOf(
-        "자기개발" to "SELF_DEVELOPMENT",
-        "사이드 프로젝트/창업준비" to "SIDE_PROJECT",
-        "기타" to "OTHERS",
-        "나중에 읽고 싶은 글 저장" to "LATER_READING",
-        "취업 커리어 준비" to "CAREER",
-        "블로그/콘텐츠 작성 참고용" to "CREATION_REFERENCE",
+        "취업·커리어 준비" to "CAREER",
+        "학업/리포트 정리" to "STUDY",
+        "업무자료 아카이빙" to "WORK",
+        "사이드 프로젝트/창업 준비" to "SIDE_PROJECT",
+        "자기계발/정보 수집" to "SELF_DEVELOPMENT",
+        "그냥 나중에 읽고 싶은 글 저장" to "LATER_READING",
         "인사이트 모으기" to "INSIGHTS",
-        "업무자료 아카이빙" to "WORK"
+        "블로그/콘텐츠 작성 참고용" to "CREATION_REFERENCE",
+        "기타" to "OTHERS"
     )
 
     private val interestMap = mapOf(
         "비즈니스/마케팅" to "BUSINESS",
-        "디자인/크리에이티브" to "DESIGN",
         "IT/개발" to "IT",
+        "디자인/크리에이티브" to "DESIGN",
+        "심리/자기계발" to "PSYCHOLOGY",
+        "커리어/채용" to "CAREER",
+        "시사/트렌드" to "CURRENT_EVENTS",
+        "학업/리포트 참고" to "STUDY",
         "스타트업/창업" to "STARTUP",
         "사회/문화/환경" to "SOCIETY",
-        "학업/리포트" to "STUDY",
         "글쓰기/콘텐츠 작성" to "WRITING",
         "책/인사이트 요약" to "INSIGHTS",
-        "심리/자기계발" to "PSYCHOLOGY",
-        "시사/트렌드" to "CURRENT_EVENTS",
-        "그냥 모아두고 싶은 글들" to "COLLECT",
-        "커리어/채용" to "CAREER"
+        "그냥 모아두고 싶은 글들" to "COLLECT"
     )
 
+    // ENUM -> 한글 (역매핑)
+    private val reversePurposeMap = purposeMap.entries.associate { it.value to it.key }
+    private val reverseInterestMap = interestMap.entries.associate { it.value to it.key }
 
     override suspend fun checkNickname(nickname: String): Boolean {
         return try {
@@ -239,6 +243,10 @@ class UserRepositoryImpl @Inject constructor(
         // DTO -> 도메인 매핑을 여기서 바로 처리
         val nick = dto.nickname ?: dto.nickName ?: ""   // ← Fallback 추가
 
+        // 서버에서 받은 enum 코드 → 화면 한글 라벨로 변환
+        val displayPurposes = dto.purposes.map { reversePurposeMap[it] ?: it }
+        val displayInterests = dto.interests.map { reverseInterestMap[it] ?: it }
+
         // DTO -> 도메인 매핑을 여기서 바로 처리
         return UserInfo(
 //            nickname  = dto.nickname,
@@ -249,7 +257,9 @@ class UserRepositoryImpl @Inject constructor(
             jobName   = dto.job.name,
             myLinku   = dto.myLinku,
             myFolder  = dto.myFolder,
-            myAiLinku = dto.myAiLinku
+            myAiLinku = dto.myAiLinku,
+            purposes  = displayPurposes,
+            interests = displayInterests
         )
     }
 
