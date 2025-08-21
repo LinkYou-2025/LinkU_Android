@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 
 @Composable
@@ -41,21 +42,21 @@ fun LogoutModal(
     ) {
         Text(
             text = "로그아웃 하시겠습니까?",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium), fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.black,
             modifier = Modifier.padding(top = 45.dp)
         )
 
         Text(
             text = "오늘 저장한 링크들, 나중에 꼭 다시 꺼내보세요!",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600],
             modifier = Modifier.padding(top = 35.dp)
         )
 
         Text(
             text = "링큐가 당신의 다음 순간도 함께할게요.",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600]
         )
 
@@ -78,7 +79,8 @@ fun LogoutModal(
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        brush = Basic.maincolor  // ✅ 그라데이션 Brush 사용
+                        brush = Basic.maincolor,  // 그라데이션 Brush 사용
+                        fontFamily = LocalFontTheme.current.font
                     ),
                     modifier = Modifier
                         .graphicsLayer(alpha = 0.99f) // brush 적용 시 필수
@@ -98,7 +100,7 @@ fun LogoutModal(
             ) {
                 Text(
                     text = "로그아웃",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }

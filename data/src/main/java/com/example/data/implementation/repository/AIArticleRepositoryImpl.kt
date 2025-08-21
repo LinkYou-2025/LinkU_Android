@@ -15,27 +15,27 @@ class AIArticleRepositoryImpl @Inject constructor(
 ): AIArticleRepository {
 
     override suspend fun getAiArticle(linkuId: Long): AiArticle {
-        val dto: AiArticleResultDTO = serverApi.withCheck {
-            getAiarticle(linkuId)
+        val dto = serverApi.withAuth(authPreference) {
+            getAiarticle(linkuid = linkuId)
         }
-        return dto.toDomain()
+        requireNotNull(dto) { "AI Article result was null" }
+
+        return AiArticle(
+            id = dto.id,
+            linkuId = dto.linkuId,
+            situationId = dto.situationId,
+            situationName = dto.situationName,
+            emotionId = dto.emotionId,
+            emotionName = dto.emotionName,
+            title = dto.title,
+            aiFeelingName = dto.aiFeelingName,
+            aiFeelingId = dto.aiFeelingId,
+            aiCategoryId = dto.aiCategoryId,
+            categoryName = dto.categoryName,
+            summary = dto.summary,
+            imgUrl = dto.imgUrl,
+            memo = dto.memo,
+            keyword = dto.keyword
+        )
     }
 }
-
-private fun AiArticleResultDTO.toDomain() = AiArticle(
-    id = id,
-    linkuId = linkuId,
-    situationId = situationId,
-    situationName = situationName,
-    emotionId = emotionId,
-    emotionName = emotionName,
-    title = title,
-    aiFeelingName = aiFeelingName,
-    aiFeelingId = aiFeelingId,
-    aiCategoryId = aiCategoryId,
-    categoryName = categoryName,
-    summary = summary,
-    imgUrl = imgUrl,
-    memo = memo,
-    keyword = keyword
-)

@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 
 @Composable
@@ -42,7 +43,7 @@ fun AIArticleModal(
     ) {
         Text(
             text = "AI 요약 중...",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.black,
             modifier = Modifier.padding(top = 45.dp)
         )
@@ -57,14 +58,14 @@ fun AIArticleModal(
 
         Text(
             text = "AI가 링크 추출 후 본문 내용을 요약하고 있어요!",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600],
             modifier = Modifier.padding(top = 20.dp)
         )
 
         Text(
             text = "잠시만 기다려주세요.",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal),
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600]
         )
 
@@ -83,7 +84,7 @@ fun AIArticleModal(
             ) {
                 Text(
                     text = "그만두기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }
