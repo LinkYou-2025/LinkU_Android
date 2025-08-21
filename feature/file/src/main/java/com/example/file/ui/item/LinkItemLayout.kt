@@ -2,6 +2,7 @@
 
 package com.example.file.ui.item
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -50,6 +53,8 @@ import coil3.request.error
 import coil3.request.fallback
 import coil3.request.placeholder
 import com.example.core.model.LinkItemInfo
+import com.example.design.modifier.noRippleClickable
+import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
@@ -65,6 +70,7 @@ import com.example.file.ui.theme.domainLogoPainterOrNull
 @Composable
 fun LinkItemLayout(
     link: LinkItemInfo? = null,
+    onClick: (LinkItemInfo?) -> Unit = {},
 ) {
     val tags = link?.tags?:emptyList()
     var showDialog by remember { mutableStateOf(false) }
@@ -119,6 +125,12 @@ fun LinkItemLayout(
         modifier = Modifier
             .width(181.dp)
             .height(267.dp)
+            .noRippleClickable {
+                link?.linkuId?.let {
+                    Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
+                    onClick(link)
+                }
+            }
             /*.pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {
@@ -273,7 +285,7 @@ private fun LinkItemTest() {
             modifier = Modifier.alpha(0.35f),
         ){
             LinkItemLayout(
-                link = null,
+                link = null
             )
         }
 

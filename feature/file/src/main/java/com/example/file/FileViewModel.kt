@@ -8,11 +8,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.error.SameNameException
 import com.example.core.error.UserIdNullException
+import com.example.core.model.AiArticle
 import com.example.core.model.CategoryColorList
 import com.example.core.model.FolderSimpleInfo
 import com.example.core.model.LinkItemInfo
+import com.example.core.model.LinkResultInfo
 import com.example.core.model.SharedFolderInfo
 import com.example.core.model.search.RecentQuery
+import com.example.core.repository.AIArticleRepository
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.FolderRepository
 import com.example.core.repository.LinkuRepository
@@ -39,6 +42,8 @@ class FileViewModel @Inject constructor(
 
     private val recentRepository: RecentSearchRepository,
     private val linkuRepository: LinkuRepository,
+
+    private val aiArticleRepository: AIArticleRepository,
 ) : ViewModel() {
 
     // *닉네임*
@@ -97,6 +102,19 @@ class FileViewModel @Inject constructor(
     private val _notCategorizationLinks = MutableStateFlow<List<LinkItemInfo>>(emptyList())
     val notCategorizationLinks: StateFlow<List<LinkItemInfo>> = _notCategorizationLinks.asStateFlow()
 
+    // 5-2. 누른 링크 정보
+    private val _linkDetail = MutableStateFlow<LinkResultInfo?>(null)
+    val linkDetail: StateFlow<LinkResultInfo?> = _linkDetail.asStateFlow()
+
+    private val _aiArticleDetail = MutableStateFlow<AiArticle?>(null)
+    val aiArticleDetail: StateFlow<AiArticle?> = _aiArticleDetail.asStateFlow()
+
+    // 5-3. 링크 클릭 콜백
+    var onLinkClick: ((LinkItemInfo) -> Unit)? = null
+    fun registeronLinkClick(callback: (LinkItemInfo) -> Unit) {
+        onLinkClick = callback
+    }
+
     // 6. 로딩/에러 상태
     private val _loadingCount = MutableStateFlow(0)
 
@@ -120,6 +138,33 @@ class FileViewModel @Inject constructor(
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
     // ---------- get method ----------
+    fun setLinkDetail(link: LinkItemInfo){
+        Log.d("FileViewModel", "setLinkDetail")
+
+        viewModelScope.launch{
+            Log.d("FileViewModel", "setLinkDetail launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try{
+                Log.d("FileViewModel", "setLinkDetail try")
+
+                _linkDetail.value = linkuRepository.getLinkDetail(link.linkuId)
+                _aiArticleDetail.value = aiArticleRepository.getAiArticle(link.linkuId)
+
+                Log.d("FileViewModel", "setLinkDetail try result : ${_linkDetail.value} / ${_aiArticleDetail.value}")
+            } catch (e: Exception){
+                Log.d("FileViewModel", "setLinkDetail catch: $e.message")
+                _errorMessage.value = e.message
+            }finally {
+                Log.d("FileViewModel", "setLinkDetail finally")
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "setLinkDetail return")
+    }
+
     // 유저 닉네임 가져오기
     fun loadNickname() {
         Log.d("FileViewModel", "loadNickname")
