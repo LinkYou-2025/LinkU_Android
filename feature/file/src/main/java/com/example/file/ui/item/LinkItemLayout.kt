@@ -119,18 +119,20 @@ fun LinkItemLayout(
         }
     }
 
+    val modifier = if(link != null) Modifier.noRippleClickable {
+        link?.linkuId?.let {
+            Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
+            onClick(link)
+        }
+    } else Modifier
+
     // 전체 카드 바탕 Surface
     Surface(
         // 카드 크기: 가로 181dp, 세로 267dp
         modifier = Modifier
             .width(181.dp)
             //.height(267.dp)
-            .noRippleClickable {
-                link?.linkuId?.let {
-                    Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
-                    onClick(link)
-                }
-            }
+            then(modifier)
             /*.pointerInput(Unit) {
                 detectTapGestures(
                     onLongPress = {

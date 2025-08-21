@@ -28,9 +28,9 @@ fun FileApp(
     val context = LocalContext.current
     val navController = rememberNavController()
 
-    fileViewModel.registeronLinkClick { link ->
-        fileViewModel.setLinkDetail(link)
-        navController.navigate("savelinkresult/${link.linkuId}")
+    fileViewModel.registeronLinkClick { id ->
+        fileViewModel.setLinkDetail(id)
+        navController.navigate("savelinkresult/${id}")
     }
 
     NavHost(
