@@ -75,7 +75,7 @@ fun LinksGrid(
                     modifier = Modifier.alpha(1f),
                 ) {
                     LinkItemLayout(
-                        link = null,
+                        link = null
                     )
                 }
 
@@ -106,7 +106,10 @@ fun LinksGrid(
                 contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
             ) {
                 LinkItemLayout(
-                    link = link
+                    link = link,
+                    onClick = {
+                        fileViewModel.onLinkClick?.invoke(link)
+                    }
                 )
             }
         }

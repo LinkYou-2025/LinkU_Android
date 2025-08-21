@@ -78,6 +78,7 @@ import java.io.FileOutputStream
 import androidx.navigation.navDeepLink
 import com.example.core.error.UserIdNullException
 import com.example.curation.CurationViewModel
+import com.example.file.FileApp
 import com.example.file.FileViewModel
 import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.DefaultFont
@@ -558,7 +559,7 @@ fun MainApp(
                             currentNavigationItem = NavigationItem.FILE
                         }
                         //FinishHandler()
-                        FileScreen(
+                        FileApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel
                         )
