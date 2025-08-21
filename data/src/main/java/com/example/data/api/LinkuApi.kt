@@ -1,6 +1,7 @@
 package com.example.data.api
 
 import com.example.data.api.dto.BaseResponse
+import com.example.data.api.dto.server.GetDetailLinkDTO
 import com.example.data.api.dto.server.LinkuIsExistDTO
 import com.example.data.api.dto.server.LinkuResultDTO
 import com.example.data.api.dto.server.LinkuSimpleDTO
@@ -9,7 +10,9 @@ import com.example.data.api.dto.server.QuickSearchResult
 import com.example.data.api.dto.server.UpdateLinkFolderDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
@@ -75,4 +78,16 @@ interface LinkuApi {
     suspend fun quickSearch(
         @Query("keyword") keyword: String
     ) : BaseResponse<List<QuickSearchResult>>
+
+    // 링크 삭제
+    @DELETE("/api/linku/{userLinkuId}")
+    suspend fun deleteLink(
+        @Path("userLinkuId") userLinkuId: Long
+    ): Response<Unit>
+
+    // 링크 상세보기(userLinkuId 갖고오기용)
+    @GET("/api/linku/{linkuid}")
+    suspend fun getDetailLink(
+        @Path("linkuid") linkuid: Long
+    ): BaseResponse<GetDetailLinkDTO>
 }

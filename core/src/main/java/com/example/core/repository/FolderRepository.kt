@@ -79,4 +79,8 @@ interface FolderRepository {
         linku: LinkItemInfo,
         folderId: Long
     ): LinkItemInfo
+
+    suspend fun deleteLink(
+        linkuId: Long
+    )
 }

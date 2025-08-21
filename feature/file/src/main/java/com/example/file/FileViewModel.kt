@@ -680,37 +680,36 @@ class FileViewModel @Inject constructor(
     }
 
     // 링크 소분류
-    fun updateLinkFolder(link: LinkItemInfo, folderId: Long){
+    suspend fun updateLinkFolder(link: LinkItemInfo, folderId: Long){
         Log.d("FileViewModel", "updateLinkFolder")
 
-        viewModelScope.launch {
-            Log.d("FileViewModel", "updateLinkFolder launch")
+        Log.d("FileViewModel", "updateLinkFolder launch")
 
-            startLoading()
-            _errorMessage.value = null
+        startLoading()
+        _errorMessage.value = null
 
-            try {
-                Log.d("FileViewModel", "updateLinkFolder try")
+        try {
+            Log.d("FileViewModel", "updateLinkFolder try")
 
-                folderRepository.updateLinkFolder(link, folderId)
+            folderRepository.updateLinkFolder(link, folderId)
 
-                _links.value = _links.value.toMutableList().apply {
-                    add(link)
-                }
-
-                _notCategorizationLinks.value = _notCategorizationLinks.value.filter { it.linkuId != link.linkuId }
-
-                Log.d("FileViewModel", "updateLinkFolder try result")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "updateLinkFolder catch: $e.message")
-
-                _errorMessage.value = e.message
-            }finally {
-                Log.d("FileViewModel", "updateLinkFolder finally")
-
-                stopLoading()
+            _links.value = _links.value.toMutableList().apply {
+                add(link)
             }
+
+            _notCategorizationLinks.value = _notCategorizationLinks.value.filter { it.linkuId != link.linkuId }
+
+            Log.d("FileViewModel", "updateLinkFolder try result")
+        }catch (e: Exception){
+            Log.d("FileViewModel", "updateLinkFolder catch: $e.message")
+
+            _errorMessage.value = e.message
+        }finally {
+            Log.d("FileViewModel", "updateLinkFolder finally")
+
+            stopLoading()
         }
+
         Log.d("FileViewModel", "updateLinkFolder return")
     }
     // ---------- update method ----------
@@ -783,6 +782,40 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "deleteSharedFolder return")
     }
 
+    fun deleteLink(linkuId: Long){
+        Log.d("FileViewModel", "deleteLink")
+
+        startLoading()
+        _errorMessage.value = null
+
+        viewModelScope.launch{
+            Log.d("FileViewModel", "deleteLink launch")
+
+            try {
+                Log.d("FileViewModel", "deleteLink try")
+
+                folderRepository.deleteLink(linkuId)
+
+                _links.update {
+                    it.filter { it.linkuId != linkuId }
+                }
+
+                Log.d("FileViewModel", "deleteLink try result")
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "deleteLink catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "deleteLink finally")
+
+                stopLoading()
+            }
+        }
+
+        Log.d("FileViewModel", "deleteLink return")
+    }
     // ---------- delete method ----------
 
     // ---------- share method ----------

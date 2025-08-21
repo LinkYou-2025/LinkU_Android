@@ -3,6 +3,7 @@
 package com.example.file.ui.item
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -65,12 +66,15 @@ import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
 import com.example.file.ui.theme.domainLogoPainterOrNull
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun LinkItemLayout(
     link: LinkItemInfo? = null,
     onClick: (LinkItemInfo?) -> Unit = {},
+    onLongClick: (Long) -> Unit = {},
 ) {
     val tags = link?.tags?:emptyList()
     var showDialog by remember { mutableStateOf(false) }
@@ -119,12 +123,20 @@ fun LinkItemLayout(
         }
     }
 
-    val modifier = if(link != null) Modifier.noRippleClickable {
-        link?.linkuId?.let {
-            Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
-            onClick(link)
-        }
-    } else Modifier
+    val modifier = if(link != null) Modifier.combinedClickable(
+            indication = null,
+            interactionSource = remember { MutableInteractionSource() },
+            onClick = {
+                link?.linkuId?.let {
+                    Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
+                    onClick(link)
+                }
+            },
+            onLongClick = {
+                onLongClick(link.linkuId)
+            }
+        )
+    else Modifier
 
     // 전체 카드 바탕 Surface
     Surface(
@@ -206,6 +218,7 @@ fun LinkItemLayout(
             LazyRow(
                 // 가로 전체 채우기, 위쪽 여백(8dp)
                 modifier = Modifier
+                    .height(30.dp)
                     .padding(top = 8.dp),
                 // 태그 간 5dp 간격, 왼쪽 정렬
                 horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),

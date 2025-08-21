@@ -1,5 +1,6 @@
 package com.example.file.ui.bottom.sheet
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,16 +22,19 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +52,7 @@ import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.Purple200
 import com.example.file.ui.theme.domainLogoPainterOrNull
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,12 +64,28 @@ fun LinkCategorizationBottomSheet(
 
     var link by remember { mutableStateOf<LinkItemInfo?>(null) }
 
+    var selectedLinks = mutableListOf<LinkItemInfo>()
+
+    val scope = rememberCoroutineScope()
+
     FileBottomSheet(
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true // 부분 확장 없이 바로 전체
+        ),
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
         visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
-        onOkay = {fileViewModel.updateLinkFolder(link!!, folderStateViewModel.selectedBottomFolder?.folderId!!)},
+        onOkay = {
+            scope.launch{
+                selectedLinks.map {
+                    fileViewModel.updateLinkFolder(
+                        it,
+                        folderStateViewModel.selectedBottomFolder?.folderId!!
+                    )
+                }
+            }
+        },
         onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
     ) {
         LazyColumn(
@@ -74,24 +95,44 @@ fun LinkCategorizationBottomSheet(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(links) {
+                val l = it
                 val title = it.title
                 val url = it.url
                 val icon = domainLogoPainterOrNull(it.url)?:painterResource(R.drawable.link_categorization_default)
                 val img = painterResource(R.drawable.link_categorization_default)//it.img
+
+                var checked by remember { mutableStateOf(false)}
                 Row(
                     modifier = Modifier
-                        .height(60.dp)
+                        //.height(60.dp)
                         .noRippleClickable{
-                            link = it
+                            if(checked){
+                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
+                                selectedLinks.remove(l)
+                                checked = selectedLinks.contains(l)
+                            } else {
+                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
+                                selectedLinks.add(l)
+                                checked = selectedLinks.contains(l)
+                            }
                         },
                     horizontalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    var checked by remember { mutableStateOf(true) }
                     Checkbox(
                         modifier = Modifier
                             .clip(RoundedCornerShape(18.dp)),
-                        checked = link == it,
-                        onCheckedChange = { checked = it },
+                        checked = checked,
+                        onCheckedChange = {
+                            if(checked){
+                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
+                                selectedLinks.remove(l)
+                                checked = selectedLinks.contains(l)
+                            } else {
+                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
+                                selectedLinks.add(l)
+                                checked = selectedLinks.contains(l)
+                            }
+                        },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Purple200,
                         )
@@ -99,7 +140,7 @@ fun LinkCategorizationBottomSheet(
 
                     Box(
                         modifier = Modifier
-                            .fillMaxHeight()
+                            .height(60.dp)
                             .background(Gray100),
                         contentAlignment = Alignment.Center
                     ) {
@@ -124,6 +165,8 @@ fun LinkCategorizationBottomSheet(
                             fontFamily = DefaultFont,
                             fontWeight = FontWeight(500),
                             color = Black,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                         Spacer(modifier = Modifier.weight(1f))
@@ -154,7 +197,9 @@ fun LinkCategorizationBottomSheet(
                                 lineHeight = 14.sp,
                                 fontFamily = DefaultFont,
                                 fontWeight = FontWeight(400),
-                                color = Gray800
+                                color = Gray800,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
