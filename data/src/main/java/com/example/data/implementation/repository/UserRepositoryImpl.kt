@@ -14,6 +14,7 @@ import com.example.data.api.dto.server.UserInfoDTO
 import com.example.data.api.withAuth
 import com.example.data.api.withAuthHeaderRaw
 import com.example.data.api.dto.server.TempPasswordRequestDTO
+import com.example.data.api.dto.server.UpdateProfileDTO
 import retrofit2.HttpException
 import java.time.OffsetDateTime
 import java.time.format.DateTimeParseException
@@ -263,6 +264,27 @@ class UserRepositoryImpl @Inject constructor(
         )
     }
 
+    // 마이페이지 계정 정보 수정
+    override suspend fun updateUserInfo(
+        nickname: String,
+        jobId: Long,
+        purposes: List<String>,
+        interests: List<String>
+    ): Boolean {
+        // 한글 → ENUM 코드로 변환
+        val mappedPurposes = purposes.mapNotNull { purposeMap[it] }
+        val mappedInterests = interests.mapNotNull { interestMap[it] }
+
+        val dto = UpdateProfileDTO(
+            nickname = nickname,
+            jobId = jobId,
+            purposes = mappedPurposes,
+            interests = mappedInterests
+        )
+
+        val res = userApi.updateUserInfo(dto)
+        return res.isSuccess == true
+    }
 
     // 로그아웃
     override suspend fun logout() {

@@ -76,7 +76,28 @@ fun MyPageApp(
                     nicknamePlaceholder = user.nickname,
                     jobPlaceholder = user.jobName,
                     initialPurposeTags = user.purposes.toSet(),
-                    initialContentTags = user.interests.toSet()
+                    initialContentTags = user.interests.toSet(),
+                    onSubmit = { nickname, jobId, purposes, interests ->
+                        viewModel.updateUserInfo(
+                            nickname = nickname,
+                            jobId = jobId,
+                            purposes = purposes,
+                            interests = interests,
+                            onSuccess = {
+                                android.widget.Toast
+                                    .makeText(context, "변경되었습니다.", android.widget.Toast.LENGTH_SHORT)
+                                    .show()
+                                // 최신 데이터는 loadUserInfo()에서 이미 갱신됨
+                                // MyPageScreen 으로 복귀
+                                navController.popBackStack("mypage", inclusive = false)
+                            },
+                            onError = { msg ->
+                                android.widget.Toast
+                                    .makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        )
+                    }
                 )
             }
         }
