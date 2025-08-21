@@ -168,7 +168,7 @@ fun HomeApp(viewModel: HomeViewModel) {
 
                 // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
                 SaveLinkResultScreen(
-                    link = viewModel.linkDetail,                     // ✅ LinkResultInfo?
+                    link = viewModel.linkDetail,
                     aiArticle = viewModel.aiArticleDetail,
                     isLoading = viewModel.isLoadingLinkDetail || viewModel.isLoadingAiArticle,
                     isAiLoading = viewModel.isLoadingAiArticle,
@@ -178,7 +178,22 @@ fun HomeApp(viewModel: HomeViewModel) {
                         val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed))
                         context.startActivity(intent)
                     },
-                    categoryColorMap = categoryColorMap
+                    categoryColorMap = categoryColorMap,
+                    onSubmitEdit = { title, memo, categoryId, emotionId ->
+                        viewModel.updateLink(
+                            title = title,
+                            memo = memo,
+                            categoryId = categoryId,
+                            emotionId = emotionId,
+                            onSucceed = {
+                                Toast.makeText(context, "수정 완료", Toast.LENGTH_SHORT).show()
+                            },
+                            onFailed = { e ->
+                                Log.e("SaveLinkFlow", "수정 실패", e)
+                                Toast.makeText(context, e.message ?: "수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 )
             }
         }

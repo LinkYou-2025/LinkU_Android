@@ -5,7 +5,7 @@ import com.squareup.moshi.Json
 data class LinkuUpdateDTO(
 
     @Json(name = "folderId")
-    val folderId: Long,
+    val folderId: Long? = null,
 
     @Json(name = "categoryId")
     val categoryId: Long,

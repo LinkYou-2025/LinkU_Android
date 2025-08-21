@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -72,6 +74,7 @@ fun SaveLinkScreen(
     isDuplicateUrl: Boolean?,
     isInvalidLink: Boolean,
 ) {
+    val scrollState = rememberScrollState()
     val bannedDomains = listOf("youtube.com", "youtu.be")
     val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
     val isButtonEnabled =
@@ -86,6 +89,7 @@ fun SaveLinkScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 70.dp)
+                .verticalScroll(scrollState)
         ) {
             Row(
                 modifier = Modifier
@@ -320,6 +324,8 @@ fun SaveLinkScreen(
                 selectedEmotionId = selectedEmotionId,
                 onEmotionSelect = onEmotionSelect
             )
+
+            Spacer(modifier = Modifier.height(80.dp))
         }
 
         Column(
