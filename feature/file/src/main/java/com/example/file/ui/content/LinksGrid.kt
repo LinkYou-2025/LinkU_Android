@@ -53,6 +53,8 @@ fun LinksGrid(
 
     var onLinkLongClick: () -> Unit = {}
 
+    val isShareMode = folderStateViewModel.isSharedFolders
+
     VerticalGrid(
         modifier = Modifier
             .fillMaxWidth(),
@@ -60,64 +62,58 @@ fun LinksGrid(
         horizontalArrangement = Arrangement.spacedBy(9.dp),
         verticalArrangement = Arrangement.spacedBy(18.51.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .noRippleClickable {
-                    Log.d("LinksGrid", "링크 추가하기 클릭")
-                    if (hasNotCategorizationLinks) {
-                        folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                    } else {
-                        categorizationModalWindowVisible = true
-                    }
-                },
-            contentAlignment = Alignment.TopStart
-        ) {
+        if(!isShareMode){
             Box(
-                modifier = Modifier,
-                contentAlignment = Alignment.TopCenter
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .noRippleClickable {
+                        Log.d("LinksGrid", "링크 추가하기 클릭")
+                        if (hasNotCategorizationLinks) {
+                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                        } else {
+                            categorizationModalWindowVisible = true
+                        }
+                    },
+                contentAlignment = Alignment.TopStart
             ) {
                 Box(
-                    modifier = Modifier.alpha(1f),
+                    modifier = Modifier,
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    LinkItemLayout(
-                        link = null
+                    Box(
+                        modifier = Modifier.alpha(1f),
+                    ) {
+                        LinkItemLayout(
+                            link = null
+                        )
+                    }
+
+                    Image(
+                        modifier = Modifier.padding(top = 103.dp),
+                        painter = painterResource(R.drawable.add_folder_icon),
+                        contentDescription = null
+                    )
+
+                    Text(
+                        modifier = Modifier.padding(top = 147.dp),
+                        text = "링크 추가하기",
+                        fontSize = 15.sp,
+                        fontFamily = DefaultFont,
+                        fontWeight = FontWeight(500),
+                        color = Black,
+                        textAlign = TextAlign.Center,
                     )
                 }
-
-                Image(
-                    modifier = Modifier.padding(top = 103.dp),
-                    painter = painterResource(R.drawable.add_folder_icon),
-                    contentDescription = null
-                )
-
-                Text(
-                    modifier = Modifier.padding(top = 147.dp),
-                    text = "링크 추가하기",
-                    fontSize = 15.sp,
-                    fontFamily = DefaultFont,
-                    fontWeight = FontWeight(500),
-                    color = Black,
-                    textAlign = TextAlign.Center,
-                )
             }
         }
 
-        val scope = rememberCoroutineScope()
-
         // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
         for((i, link) in linkList.withIndex()) {
-            onLinkLongClick = {
-                link.linkuId.let {
-                    Log.d("LinkItemLayout", "아이템 롱클릭: \"savelinkresult/${link.linkuId}\"")
-                    fileViewModel.deleteLink(link.linkuId)
-                }
-            }
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth(),
-                contentAlignment = if(i%2==1) Alignment.TopStart else Alignment.TopEnd
+                contentAlignment = if((i%2==1) xor isShareMode) Alignment.TopStart else Alignment.TopEnd
             ) {
                 LinkItemLayout(
                     link = link,
@@ -125,7 +121,19 @@ fun LinksGrid(
                         fileViewModel.onLinkClick?.invoke(link.linkuId)
                     },
                     onLongClick = {
-                        deleteModalWindowVisible = true
+                        if(!isShareMode){
+                            onLinkLongClick = {
+                                link.linkuId.let {
+                                    Log.d(
+                                        "LinkItemLayout",
+                                        "아이템 롱클릭: \"savelinkresult/${link.linkuId}\""
+                                    )
+                                    fileViewModel.deleteLink(link.linkuId)
+                                }
+                            }
+
+                            deleteModalWindowVisible = true
+                        }
                     }
                 )
             }
