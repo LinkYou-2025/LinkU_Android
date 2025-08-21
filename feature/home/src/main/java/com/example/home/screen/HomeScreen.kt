@@ -45,6 +45,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -57,7 +58,9 @@ import com.example.core.model.LinkSimpleInfo
 import com.example.design.SearchBarTopSheet
 import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
+import com.example.design.theme.font.Paperlogy
 import com.example.home.HomeViewModel
 import com.example.home.R
 import kotlinx.coroutines.launch
@@ -341,7 +344,9 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.padding(20.dp, 24.dp)
             ) {
-
+                val itemsToRender = if (showRecs) recommendedLinks else recentLinks
+                val titleText = if (showRecs) "${userName}님의 오늘에 어울리는 콘텐츠예요!"
+                                else "${userName}님이 최근에 열람한 링크"
 
                 when {
                     // 1) 링크 3개 미만 안내
@@ -357,7 +362,7 @@ fun HomeScreen(
 
                             Text(
                                 text = "추천을 위해 최소 3개의 링크가 필요해요.\n지금 링크 하나 저장해볼까요?",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[700]
                             )
                         }
@@ -376,7 +381,7 @@ fun HomeScreen(
 
                             Text(
                                 text = "잠시만 기다려주세요!",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[800]
                             )
 
@@ -384,7 +389,7 @@ fun HomeScreen(
 
                             Text(
                                 text = "AI가 ${userName}님의 감정과 상황에 맞춰 추천할 링크를 분류하고 있어요!",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[700]
                             )
                         }
@@ -417,7 +422,7 @@ fun HomeScreen(
 
                             Text(
                                 text = "최근에 열람한 링크가 없어요!",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[800]
                             )
 
@@ -425,7 +430,7 @@ fun HomeScreen(
 
                             Text(
                                 text = "지금 링크를 둘러볼까요?",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.gray[600]
                             )
                         }
@@ -444,14 +449,14 @@ fun HomeScreen(
                             ) {
                                 Text(
                                     text = emptyMsg,
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[600]
                                 )
                             }
                         } else {
                             Text(
                                 text = titleText,
-                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.black
                             )
 
@@ -510,7 +515,7 @@ private fun EmptyRecentBox() {
     ) {
         Text(
             text = "최근에 열람한 링크가 없어요!",
-            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
             color = LocalColorTheme.current.gray[600]
         )
     }
@@ -568,7 +573,7 @@ private fun LinkCard(
             Column {
                 Text(
                     text = link.title,
-                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.black
                 )
 
@@ -596,7 +601,8 @@ private fun LinkCard(
                                     style = TextStyle(
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = LocalColorTheme.current.gray[600]
+                                        color = LocalColorTheme.current.gray[600],
+                                        fontFamily = LocalFontTheme.current.font
                                     )
                                 )
                             }
@@ -628,7 +634,7 @@ private fun LinkCard(
 
                     Text(
                         text = link.domain,
-                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800])
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800], fontFamily = LocalFontTheme.current.font)
                     )
                 }
             }
@@ -758,6 +764,7 @@ fun TopBar(
                     Text(
                         text = "빠른 링크 검색",
                         color = LocalColorTheme.current.white,
+                        fontFamily = LocalFontTheme.current.font,
                         modifier = Modifier
                             .padding(start = 36.98.dp)
                     )
@@ -1105,7 +1112,7 @@ fun TopBar(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         // 상황 배지
-                        selectedTaskLabel?.let {
+                        selectedTaskLabel?.let {label ->
                             Box(
                                 modifier = Modifier
                                     .height(32.dp)
@@ -1116,12 +1123,13 @@ fun TopBar(
                                 contentAlignment = Alignment.Center
                             ) {
                                 BrushText(
-                                    text = "$it",
+                                    text = label,
                                     brush = Basic.maincolor,
                                     color = LocalColorTheme.current.gray[700],
                                     style = TextStyle(
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
+                                        fontFamily = LocalFontTheme.current.font
                                     )
                                 )
                             }
@@ -1143,7 +1151,7 @@ fun TopBar(
                         Column {
                             Text(
                                 text = "${userName}님의 감정과 상황을 알려주세요!",
-                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
+                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.black,
                                 modifier = Modifier.padding(start = 20.dp, end = 21.dp)
                             )
@@ -1155,7 +1163,7 @@ fun TopBar(
                             Box {
                                 Text(
                                     text = "오늘의 감정은 어때요?",
-                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[700],
                                     modifier = Modifier.padding(start = 20.dp, end = 21.dp)
                                 )
@@ -1170,7 +1178,7 @@ fun TopBar(
                             Box {
                                 Text(
                                     text = "지금 뭐하는 중이에요?",
-                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium),
+                                    style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.gray[700],
                                     modifier = Modifier.padding(start = 20.dp, end = 21.dp)
                                 )
@@ -1202,7 +1210,7 @@ fun TopBar(
                             ) {
                                 Text(
                                     text = "링크 추천해줘!",
-                                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center),
+                                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
                                     color = LocalColorTheme.current.white
                                 )
                             }
@@ -1241,21 +1249,28 @@ fun BrushText(
     color: Color = Color.Unspecified,
     style: TextStyle = TextStyle.Default,
     modifier: Modifier = Modifier,
+    fontFamily: FontFamily? = null,
 ) {
+    // 기본값: 테마의 폰트 사용 (LocalFontTheme는 당신이 만든 compositionLocal)
+    val family = fontFamily ?: LocalFontTheme.current.font
+
+    // 전체 텍스트에 적용될 스타일에 fontFamily 병합
+    val styleWithFamily = style.merge(TextStyle(fontFamily = family))
+
     if (brush != null) {
         BasicText(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight)) {
+                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight, fontFamily = family )) {
                     append(text)
                 }
             },
-            style = style,
+            style = styleWithFamily,
             modifier = modifier,
         )
     } else {
         BasicText(
             text = text,
-            style = style.copy(color = color),
+            style = styleWithFamily.copy(color = color),
             modifier = modifier,
         )
     }
@@ -1283,8 +1298,11 @@ fun EmotionSelector(
     )
 
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 9.dp, end = 9.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         emotions.forEachIndexed { idx, resId ->
             val id = emotionIds[idx]
@@ -1396,14 +1414,36 @@ fun TaskSelector(
                         .padding(horizontal = 15.dp, vertical = 10.5.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = s.name,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (isSelected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800]
+//                    Text(
+//                        text = s.name,
+//                        style = TextStyle(
+//                            fontSize = 14.sp,
+//                            fontWeight = FontWeight.Medium,
+//                            color = if (isSelected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800],
+//                            fontFamily = LocalFontTheme.current.font
+//                        )
+//                    )
+                    if (isSelected) {
+                        BrushText(
+                            text = s.name,
+                            brush = Basic.maincolor, // 선택 시 그라데이션
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = LocalFontTheme.current.font
+                            )
                         )
-                    )
+                    } else {
+                        Text(
+                            text = s.name,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = LocalColorTheme.current.gray[800],
+                                fontFamily = LocalFontTheme.current.font
+                            )
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.width(10.dp))
             }
@@ -1472,14 +1512,36 @@ fun TaskSelector(
                         .padding(horizontal = 15.dp, vertical = 10.5.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = s.name,
-                        style = TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = if (isSelected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800]
+//                    Text(
+//                        text = s.name,
+//                        style = TextStyle(
+//                            fontSize = 14.sp,
+//                            fontWeight = FontWeight.Medium,
+//                            color = if (isSelected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800],
+//                            fontFamily = LocalFontTheme.current.font
+//                        )
+//                    )
+                    if (isSelected) {
+                        BrushText(
+                            text = s.name,
+                            brush = Basic.maincolor, // ✅ 선택 시 그라데이션
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                fontFamily = LocalFontTheme.current.font
+                            )
                         )
-                    )
+                    } else {
+                        Text(
+                            text = s.name,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = LocalColorTheme.current.gray[800],
+                                fontFamily = LocalFontTheme.current.font
+                            )
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.width(10.dp))
             }

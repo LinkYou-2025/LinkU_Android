@@ -40,6 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.mypage.R
 
@@ -57,7 +59,7 @@ import com.example.mypage.R
 fun AccountSettingScreen(
     navController: NavController
 ) {
-    val username = "세나"  // 외부에서 정의한 초기 이름
+    val username = "세나"  // TODO: 추후 수정
     val userjob = "대학생"
     var name by remember { mutableStateOf("") }
     var job by remember { mutableStateOf(userjob) }
@@ -125,7 +127,7 @@ fun AccountSettingScreen(
 
                 Text(
                     text = "계정 설정",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.black
                 )
             }
@@ -139,7 +141,7 @@ fun AccountSettingScreen(
             ) {
                 Text(
                     text = "닉네임",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.black,
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -171,7 +173,8 @@ fun AccountSettingScreen(
                             singleLine = true,
                             textStyle = TextStyle(
                                 color = LocalColorTheme.current.black,
-                                fontSize = 14.sp
+                                fontSize = 14.sp,
+                                fontFamily = LocalFontTheme.current.font
                             ),
                             modifier = Modifier.weight(1f),
                             decorationBox = { innerTextField ->
@@ -180,7 +183,8 @@ fun AccountSettingScreen(
                                         text = username,
                                         style = TextStyle(
                                             color = LocalColorTheme.current.gray[400],
-                                            fontSize = 14.sp
+                                            fontSize = 14.sp,
+                                            fontFamily = LocalFontTheme.current.font
                                         ),
                                         modifier = Modifier.padding(6.dp)
                                     )
@@ -213,7 +217,7 @@ fun AccountSettingScreen(
                     ) {
                 Text(
                     text = "현재 하고 계신 일이나 활동",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.black,
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -239,13 +243,13 @@ fun AccountSettingScreen(
                 ) {
                     Text(
                         text = "링큐 활용 목적",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.black
                     )
 
                     Text(
                         text = "복수선택",
-                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.blue[200],
                         modifier = Modifier.padding(end = 4.dp)
                     )
@@ -272,13 +276,13 @@ fun AccountSettingScreen(
                 ) {
                     Text(
                         text = "관심 콘텐츠",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.black
                     )
 
                     Text(
                         text = "복수선택",
-                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.blue[200],
                         modifier = Modifier.padding(end = 4.dp)
                     )
@@ -315,7 +319,7 @@ fun AccountSettingScreen(
             ) {
                 Text(
                     text = "변경하기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }
@@ -365,6 +369,7 @@ fun CustomDropdownMenu(
                         LocalColorTheme.current.black,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
+                    fontFamily = LocalFontTheme.current.font,
                     modifier = Modifier.padding(start = 1.dp)
                 )
                 Icon(
@@ -416,6 +421,7 @@ fun CustomDropdownMenu(
                         style = TextStyle(
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Normal,
+                            fontFamily = LocalFontTheme.current.font
                         )
                     )
                 }
@@ -470,6 +476,7 @@ fun SelectableTag(
                             style = TextStyle(
                                 fontSize = 13.9.sp,
                                 fontWeight = FontWeight.Normal,
+                                fontFamily = LocalFontTheme.current.font
                             )
                         )
                     }
@@ -486,21 +493,28 @@ fun BrushText(
     color: Color = Color.Unspecified,
     style: TextStyle = TextStyle.Default,
     modifier: Modifier = Modifier,
+    fontFamily: FontFamily? = null,
 ) {
+    // 기본값: 테마의 폰트 사용 (LocalFontTheme는 당신이 만든 compositionLocal)
+    val family = fontFamily ?: LocalFontTheme.current.font
+
+    // 전체 텍스트에 적용될 스타일에 fontFamily 병합
+    val styleWithFamily = style.merge(TextStyle(fontFamily = family))
+
     if (brush != null) {
         BasicText(
             text = buildAnnotatedString {
-                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight)) {
+                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight, fontFamily = family )) {
                     append(text)
                 }
             },
-            style = style,
+            style = styleWithFamily,
             modifier = modifier,
         )
     } else {
         BasicText(
             text = text,
-            style = style.copy(color = color),
+            style = styleWithFamily.copy(color = color),
             modifier = modifier,
         )
     }

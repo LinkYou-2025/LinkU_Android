@@ -19,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -50,6 +52,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -60,15 +63,17 @@ import coil3.compose.rememberAsyncImagePainter
 import com.example.core.model.AiArticle
 import com.example.core.model.LinkResultInfo
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
+import com.example.file.ui.theme.CategoryColorStyle
 import com.example.home.R
 import com.example.home.component.AIArticleModal
 import kotlinx.coroutines.delay
 import java.time.OffsetDateTime
 
 private fun emotionDisplayName(id: Long?): String? = when (id) {
-    1L -> "기쁨"
-    2L -> "차분"
+    1L -> "즐거움"
+    2L -> "평온"
     3L -> "설렘"
     4L -> "슬픔"
     5L -> "짜증"
@@ -98,15 +103,8 @@ private val CATEGORY_NAMES: Map<Long, String> = mapOf(
 private fun categoryDisplayName(id: Long?): String? =
     id?.let { CATEGORY_NAMES[it] } // 매핑 없으면 null -> 태그 숨김
 
-private val CATEGORY_LABELS = listOf(
-    "어학","뉴스","공부법","IT·개발","자기계발","취업·이직","비즈니스 인사이트",
-    "생산성·툴","라이프스타일","심리·자기이해","에세이·칼럼","트렌드",
-    "디자인·예술","영상·뮤직","맛집·여행","기타"
-)
-
 private val EMOTION_LABELS = listOf("기쁨","차분","설렘","슬픔","짜증","분노")
 
-private fun categoryLabelOf(id: Long?): String = categoryDisplayName(id) ?: "카테고리"
 private fun emotionLabelOf(id: Long?): String = emotionDisplayName(id) ?: "감정"
 
 // label -> id
@@ -119,15 +117,11 @@ private fun emotionIdOf(label: String): Long? = when (label) {
     else -> null
 }
 
-// 칩/드롭다운에 쓸 색 점 (없으면 회색)
-private val CATEGORY_DOT_COLORS: Map<Long, Color> = mapOf(
-    1L to Color(0xFF4DA3FF), // 블루
-    2L to Color(0xFFF5C542), // 옐로
-    3L to Color(0xFF56C271), // 그린
-    4L to Color(0xFFE45B61), // 레드
-    5L to Color(0xFF8E7BFF), // 퍼플
-    6L to Color(0xFF4FD3C4), // 민트
-)
+private fun categoryLabelOf(id: Long?, labels: List<String>): String =
+    id?.let { idx -> labels.getOrNull((idx - 1).toInt()) } ?: "카테고리"
+
+private fun categoryIdOf(label: String, labels: List<String>): Long? =
+    labels.indexOf(label).takeIf { it >= 0 }?.plus(1)?.toLong()
 
 // 변경: 벡터 리소스 사용
 private data class EmotionOpt(
@@ -137,10 +131,10 @@ private data class EmotionOpt(
 )
 
 private val EMOTION_OPTIONS = listOf(
-    EmotionOpt(1, "기쁨", R.drawable.ic_joy),
-    EmotionOpt(2, "차분", R.drawable.ic_calm),
+    EmotionOpt(1, "즐거움", R.drawable.ic_joy),
+    EmotionOpt(2, "평온", R.drawable.ic_calm),
     EmotionOpt(3, "설렘", R.drawable.ic_excite),
-    EmotionOpt(4, "슬픔", R.drawable.ic_sad),
+    EmotionOpt(4, "우울", R.drawable.ic_sad),
     EmotionOpt(5, "짜증", R.drawable.ic_irritation),
     EmotionOpt(6, "분노", R.drawable.ic_anger),
 )
@@ -151,8 +145,10 @@ fun SaveLinkResultScreen(
     link: LinkResultInfo?,
     aiArticle: AiArticle? = null,
     isLoading: Boolean = false,
+    isAiLoading: Boolean = false,
     onBack: () -> Unit = {},
-    onOpenLink: (String) -> Unit = {}
+    onOpenLink: (String) -> Unit = {},
+    categoryColorMap: Map<String, CategoryColorStyle> = emptyMap()
 ) {
     // 🔹 서버 데이터 바인딩 (널/로딩 방어)
     val titleFromServer = link?.title.orEmpty()
@@ -174,16 +170,29 @@ fun SaveLinkResultScreen(
     LaunchedEffect(aiArticle, link?.summary, link?.keyword, isLoading) {
         if (!isLoading) {
             val has = aiArticle != null ||
-                    (link?.aiArticleExists == true) ||
                     !link?.summary.isNullOrBlank() ||
                     !link?.keyword.isNullOrBlank()
             if (has) showAISummary = true
         }
     }
 
+    // 서버에서 내려온 최신 카테고리 이름(순서 보장)을 사용
+    val categoryLabels = remember(categoryColorMap) { categoryColorMap.keys.toList() }
+
+    // 선택 라벨/ID 계산은 동적 라벨 리스트 기반
+    // 선택된 카테고리/감정 ID (초기값은 서버 응답)
+    var selectedEmotionId  by remember(link?.emotionId)  { mutableStateOf(link?.emotionId) }
+    var selectedCategoryId by remember(link?.categoryId) { mutableStateOf(link?.categoryId) }
+
+    val readModeTags = listOfNotNull(
+        // 읽기 모드에서 보여줄 태그도 동적 라벨로 변환
+        categoryLabelOf(selectedCategoryId ?: link?.categoryId, categoryLabels),
+        emotionDisplayName(selectedEmotionId ?: link?.emotionId)
+    )
+
     // 키워드/요약 실제 표시값 결정 (우선 aiArticle, 없으면 link 값)
-    val displayKeyword = aiArticle?.keyword ?: link?.keyword.orEmpty()
-    val displaySummary = aiArticle?.summary ?: link?.summary.orEmpty()
+    val displayKeyword = aiArticle?.keyword?.trim().orEmpty().ifEmpty { link?.keyword.orEmpty() }
+    val displaySummary = aiArticle?.summary?.trim().orEmpty().ifEmpty { link?.summary.orEmpty() }
 
     val isKeywordEmpty = displayKeyword.isBlank()
     val isSummaryEmpty = displaySummary.isBlank()
@@ -197,13 +206,10 @@ fun SaveLinkResultScreen(
     var memoText by remember { mutableStateOf(memoFromServer) }
     var isMemoEditing by remember { mutableStateOf(false) }
 
-    // 선택된 카테고리/감정 ID (초기값은 서버 응답)
-    var selectedCategoryId by remember(link?.categoryId) { mutableStateOf(link?.categoryId) }
-    var selectedEmotionId  by remember(link?.emotionId)  { mutableStateOf(link?.emotionId) }
 
     // 드롭다운에 보여줄 현재 라벨
-    var categoryLabel by remember(selectedCategoryId) {
-        mutableStateOf(categoryLabelOf(selectedCategoryId))
+    var categoryLabel by remember(selectedCategoryId, categoryLabels) {
+        mutableStateOf(categoryLabelOf(selectedCategoryId, categoryLabels))
     }
     var emotionLabel by remember(selectedEmotionId) {
         mutableStateOf(emotionLabelOf(selectedEmotionId))
@@ -254,9 +260,13 @@ fun SaveLinkResultScreen(
                 tags = readModeTags,
                 initialCategoryLabel = categoryLabel,
                 initialEmotionLabel = emotionLabel,
+                categoryLabels = categoryLabels,
+                dotColorOf = { label ->
+                    categoryColorMap[label]?.color4 ?: LocalColorTheme.current.gray[300]
+                },
                 onCategorySelected = { label ->
                     categoryLabel = label
-                    selectedCategoryId = categoryIdOf(label)
+                    selectedCategoryId = categoryIdOf(label, categoryLabels)
                 },
                 onEmotionSelected = { label ->
                     emotionLabel = label
@@ -271,7 +281,7 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "링크",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[800],
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -289,7 +299,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = linku,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.black
                     )
                 }
@@ -325,7 +335,7 @@ fun SaveLinkResultScreen(
                         )
                         Text(
                             text = "이미지 업로드하기",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.gray[500],
                             modifier = Modifier.padding(top = 8.dp)
                         )
@@ -347,14 +357,14 @@ fun SaveLinkResultScreen(
                     ) {
                         Text(
                             text = "키워드 (AI추출 태그)",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.gray[800]
                         )
 
                         if (isEditMode) {
                             Text(
                                 text = "수정 불가",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.blue[200],
                                 modifier = Modifier.padding(end = 12.dp)
                             )
@@ -372,46 +382,67 @@ fun SaveLinkResultScreen(
                             .padding(horizontal = 22.dp, vertical = 15.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        if (isKeywordEmpty) {
-                            Text(
-                                text = keywordPlaceholder,
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
-                                color = LocalColorTheme.current.gray[400]
-                            )
-                        } else {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                drawIntoCanvas {
-                                    val text = displayKeyword
-                                    val textSizePx = 14.sp.toPx()
+                        when {
+                            isAiLoading -> {
+                                Text(
+                                    "키워드 추출 중...",
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                                    color = LocalColorTheme.current.gray[400]
+                                )
+                            }
+                            isKeywordEmpty -> {
+                                Text(
+                                    text = keywordPlaceholder,
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                                    color = LocalColorTheme.current.gray[400]
+                                )
+                            }
+                            else -> {
+//                                Canvas(modifier = Modifier.fillMaxSize()) {
+//                                    drawIntoCanvas {
+//                                        val text = displayKeyword
+//                                        val textSizePx = 14.sp.toPx()
+//
+//                                        val paintForWidth = android.graphics.Paint().apply {
+//                                            textSize = textSizePx
+//                                        }
+//                                        val textWidth = paintForWidth.measureText(text)
+//
+//                                        val gradient = android.graphics.LinearGradient(
+//                                            0f, 0f, textWidth, 0f,  // 텍스트 길이에 맞춰 그라데이션
+//                                            intArrayOf(
+//                                                0xFF2C6FFF.toInt(),
+//                                                0xFFCB59EB.toInt()
+//                                            ),
+//                                            null,
+//                                            android.graphics.Shader.TileMode.CLAMP
+//                                        )
+//
+//                                        val paint = android.graphics.Paint().apply {
+//                                            isAntiAlias = true
+//                                            textSize = textSizePx
+//                                            shader = gradient
+//                                        }
+//
+//                                        it.nativeCanvas.drawText(
+//                                            text,
+//                                            0f,
+//                                            size.height / 2 + textSizePx / 2.5f,
+//                                            paint
+//                                        )
+//                                    }
+//                                }
+                                BrushText(
+                                    text = displayKeyword,
+                                    brush = Basic.maincolor, // 이미 쓰는 메인 그라데이션
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        fontFamily = LocalFontTheme.current.font // Paperlogy 적용
+                                    ),
+                                    modifier = Modifier.fillMaxWidth() // 필요시 정렬/패딩 추가
+                                )
 
-                                    val paintForWidth = android.graphics.Paint().apply {
-                                        textSize = textSizePx
-                                    }
-                                    val textWidth = paintForWidth.measureText(text)
-
-                                    val gradient = android.graphics.LinearGradient(
-                                        0f, 0f, textWidth, 0f,  // 텍스트 길이에 맞춰 그라데이션
-                                        intArrayOf(
-                                            0xFF2C6FFF.toInt(),
-                                            0xFFCB59EB.toInt()
-                                        ),
-                                        null,
-                                        android.graphics.Shader.TileMode.CLAMP
-                                    )
-
-                                    val paint = android.graphics.Paint().apply {
-                                        isAntiAlias = true
-                                        textSize = textSizePx
-                                        shader = gradient
-                                    }
-
-                                    it.nativeCanvas.drawText(
-                                        text,
-                                        0f,
-                                        size.height / 2 + textSizePx / 2.5f,
-                                        paint
-                                    )
-                                }
                             }
                         }
                     }
@@ -427,55 +458,76 @@ fun SaveLinkResultScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Canvas(
-                            modifier = Modifier
-                                .height(11.dp)
-                                .padding(start = 4.dp)
-                        ) {
-                            drawIntoCanvas {
-                                val text = "AI 본문 요약"
-                                val textSizePx = 14.sp.toPx()
+//                        Canvas(
+//                            modifier = Modifier
+//                                .height(11.dp)
+//                                .padding(start = 4.dp)
+//                        ) {
+//                            drawIntoCanvas {
+//                                val text = "AI 본문 요약"
+//                                val textSizePx = 14.sp.toPx()
+//
+//                                val paintForWidth = android.graphics.Paint().apply {
+//                                    textSize = textSizePx
+//                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
+//                                }
+//                                val textWidth = paintForWidth.measureText(text)
+//
+//                                val gradient = android.graphics.LinearGradient(
+//                                    0f, 0f, textWidth, 0f,
+//                                    intArrayOf(
+//                                        0xFF2C6FFF.toInt(),
+//                                        0xFFCB59EB.toInt()
+//                                    ),
+//                                    null,
+//                                    android.graphics.Shader.TileMode.CLAMP
+//                                )
+//
+//                                val paint = android.graphics.Paint().apply {
+//                                    isAntiAlias = true
+//                                    textSize = textSizePx
+//                                    shader = gradient
+//                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.NORMAL)
+//                                }
+//
+//                                it.nativeCanvas.drawText(
+//                                    text,
+//                                    0f,
+//                                    size.height / 2 + textSizePx / 2.5f,
+//                                    paint
+//                                )
+//                            }
+//                        }
+                        BrushText(
+                            text = "AI 본문 요약",
+                            brush = Basic.maincolor,
+                            style = TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = LocalFontTheme.current.font // Paperlogy 적용
+                            ),
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
 
-                                val paintForWidth = android.graphics.Paint().apply {
-                                    textSize = textSizePx
-                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.BOLD)
-                                }
-                                val textWidth = paintForWidth.measureText(text)
-
-                                val gradient = android.graphics.LinearGradient(
-                                    0f, 0f, textWidth, 0f,
-                                    intArrayOf(
-                                        0xFF2C6FFF.toInt(),
-                                        0xFFCB59EB.toInt()
-                                    ),
-                                    null,
-                                    android.graphics.Shader.TileMode.CLAMP
-                                )
-
-                                val paint = android.graphics.Paint().apply {
-                                    isAntiAlias = true
-                                    textSize = textSizePx
-                                    shader = gradient
-                                    typeface = android.graphics.Typeface.create(android.graphics.Typeface.DEFAULT, android.graphics.Typeface.NORMAL)
-                                }
-
-                                it.nativeCanvas.drawText(
-                                    text,
-                                    0f,
-                                    size.height / 2 + textSizePx / 2.5f,
-                                    paint
-                                )
-                            }
-                        }
 
                         if (isEditMode) {
                             Text(
                                 text = "수정 불가",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                                 color = LocalColorTheme.current.blue[200],
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                         }
+                    }
+
+                    val bg = when {
+                        isAiLoading || isSummaryEmpty -> SolidColor(LocalColorTheme.current.gray[100])
+                        else -> Brush.horizontalGradient(
+                            listOf(
+                                LocalColorTheme.current.blue[200].copy(alpha = 0.1f),
+                                LocalColorTheme.current.purple[200].copy(alpha = 0.1f)
+                            )
+                        )
                     }
 
                     Box(
@@ -500,10 +552,16 @@ fun SaveLinkResultScreen(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         Text(
-//                            text = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",
-                            text = if (isSummaryEmpty) summaryPlaceholder else displaySummary,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
-                            color = if (isSummaryEmpty) LocalColorTheme.current.gray[400] else LocalColorTheme.current.black
+                            text = when {
+                                isAiLoading -> "요약 생성 중..."
+                                isSummaryEmpty -> summaryPlaceholder
+                                else -> displaySummary
+                            },
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                            color = when {
+                                isAiLoading || isSummaryEmpty -> LocalColorTheme.current.gray[400]
+                                else -> LocalColorTheme.current.black
+                            }
                         )
                     }
                 }
@@ -516,7 +574,7 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "메모",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[800],
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -536,13 +594,13 @@ fun SaveLinkResultScreen(
                         BasicTextField(
                             value = memoText,
                             onValueChange = { memoText = it },
-                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black),
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
                             modifier = Modifier.weight(1f)
                         )
                     } else {
                         Text(
                             text = memoText,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.black,
                             modifier = Modifier.weight(1f)
                         )
@@ -587,7 +645,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = "AI 요약 보기",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.white
                     )
                 }
@@ -600,7 +658,7 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = "AI가 링크 내용을 바탕으로 요약해드려요! 이용해보시겠어요?",
-                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.gray[400]
                     )
                 }
@@ -628,7 +686,7 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "링크 바로 가기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
 
@@ -677,7 +735,9 @@ fun TopBar(
     initialCategoryLabel: String = "카테고리",
     initialEmotionLabel: String = "감정",
     onCategorySelected: (String) -> Unit = {},
-    onEmotionSelected: (String) -> Unit = {}
+    onEmotionSelected: (String) -> Unit = {},
+    categoryLabels: List<String> = emptyList(),
+    dotColorOf: @Composable (String) -> Color = { LocalColorTheme.current.gray[300] },
 ) {
     // 태그 샘플
 //    val tags = listOf("카테고리", "감정")
@@ -736,7 +796,7 @@ fun TopBar(
 
                 Text(
                     text = "저장된 링크",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
 
@@ -745,7 +805,7 @@ fun TopBar(
                 Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
                     Text(
                         text = if (isEditMode) "완료" else "수정",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.blue[50],
                         modifier = Modifier
                             .clickable { onEditClick() }
@@ -758,6 +818,7 @@ fun TopBar(
 
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .padding(start = 24.dp, end = 24.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -773,12 +834,14 @@ fun TopBar(
 
                 Row(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .then(
                             if (isEditMode) {
                                 Modifier
                                     .clip(RoundedCornerShape(13.dp))
                                     .border(1.dp, LocalColorTheme.current.blue[100], RoundedCornerShape(13.dp))
                                     .padding(top = 4.dp, start = 15.dp, end = 15.dp, bottom = 4.dp)
+                                    .clickable { isTitleEditing = true }
                             } else {
                                 Modifier
                             }
@@ -789,13 +852,16 @@ fun TopBar(
                         BasicTextField(
                             value = title,
                             onValueChange = { title = it },
-                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white)
+                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white, fontFamily = LocalFontTheme.current.font),
+                            modifier = Modifier.weight(1f)
                         )
                     } else {
                         Text(
                             text = title,
-                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold),
-                            color = LocalColorTheme.current.white
+//                            overflow = TextOverflow.Ellipsis,  // 말 줄임
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
+                            color = LocalColorTheme.current.white,
+                            modifier = Modifier.weight(1f)
                         )
                     }
 
@@ -866,6 +932,8 @@ fun TopBar(
                 ) {
                     CategoryChipEditable(
                         label = initialCategoryLabel,
+                        labels = categoryLabels,
+                        dotColorOf = dotColorOf,
                         onSelected = onCategorySelected
                     )
 
@@ -892,7 +960,8 @@ fun TopBar(
                                 style = TextStyle(
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.blue[300]
+                                    color = LocalColorTheme.current.blue[300],
+                                    fontFamily = LocalFontTheme.current.font
                                 )
                             )
                         }
@@ -909,28 +978,30 @@ fun TopBar(
 @Composable
 private fun CategoryChipEditable(
     label: String,
+    labels: List<String>,
+    dotColorOf: @Composable (String) -> Color,
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
-        // ✔ 읽기 모드 칩과 동일 스타일
         Row(
             modifier = Modifier
+                .heightIn(min = 26.dp)
                 .background(LocalColorTheme.current.blue[50], RoundedCornerShape(10.dp))
                 .clickable { expanded = true }
-                .padding(horizontal = 10.dp, vertical = 8.5.dp),
+                .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = label,
                 color = LocalColorTheme.current.blue[300],
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                fontFamily = LocalFontTheme.current.font
             )
             Spacer(Modifier.width(6.dp))
-            // ✔ 편집 모드에서만 체브론(지금은 항상 편집모드 블록이라 표시)
             Image(
                 painter = painterResource(R.drawable.ic_toggle),
                 contentDescription = null,
@@ -941,32 +1012,41 @@ private fun CategoryChipEditable(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(18.dp),
+            containerColor = LocalColorTheme.current.white,
+            offset = DpOffset(0.dp, 10.dp),
         ) {
-            // 카테고리 전부 표시
-            CATEGORY_NAMES.entries.forEach { (id, name) ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onSelected(name)
-                            expanded = false
-                        }
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val fallbackDot = LocalColorTheme.current.gray[300]   // <-- Composable 컨텍스트에서 읽기
-                    Canvas(Modifier.size(16.dp)) {
-                        drawCircle(CATEGORY_DOT_COLORS[id] ?: fallbackDot)
+            Column(
+                modifier = Modifier
+                    .width(205.dp)
+                    .heightIn(max = 264.dp)
+                    .padding(vertical = 12.5.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                labels.forEach { name ->
+                    val selected = (name == label)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                onSelected(name)
+                                expanded = false
+                            }
+                            .padding(horizontal = 18.dp, vertical = 7.5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val dot = dotColorOf(name)
+                        Canvas(Modifier.size(25.dp)) { drawCircle(dot) }
+                        Spacer(Modifier.width(12.dp))
+                        Text(
+                            text = name,
+                            color = if (selected) LocalColorTheme.current.blue[300] else LocalColorTheme.current.gray[800],
+                            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+                            fontSize = 14.sp,
+                            fontFamily = LocalFontTheme.current.font
+                        )
                     }
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = name,
-                        color = if (name == label) LocalColorTheme.current.blue[300]
-                        else LocalColorTheme.current.gray[800],
-                        fontWeight = if (name == label) FontWeight.Medium else FontWeight.Normal,
-                        fontSize = 14.sp
-                    )
                 }
             }
         }
@@ -981,20 +1061,21 @@ private fun EmotionChipEditable(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = modifier) {
-        // ✔ 읽기 모드 칩과 동일 스타일
+    Box(modifier = modifier.wrapContentSize(Alignment.TopCenter)) {
         Row(
             modifier = Modifier
+                .heightIn(min = 26.dp)
                 .background(LocalColorTheme.current.blue[50], RoundedCornerShape(10.dp))
                 .clickable { expanded = true }
-                .padding(horizontal = 10.dp, vertical = 8.5.dp),
+                .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = label,
                 color = LocalColorTheme.current.blue[300],
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Normal
+                fontWeight = FontWeight.Normal,
+                fontFamily = LocalFontTheme.current.font
             )
             Spacer(Modifier.width(6.dp))
             Image(
@@ -1007,42 +1088,53 @@ private fun EmotionChipEditable(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(18.dp)
+            shape = RoundedCornerShape(18.dp),
+            containerColor = LocalColorTheme.current.white,
+            offset = DpOffset(0.dp, 10.dp),
         ) {
-            EMOTION_OPTIONS.forEach { emo ->
-                val selected = emo.label == label
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onSelected(emo.label)
-                            expanded = false
-                        }
-                        .padding(top = 19.dp, start = 16.dp, end = 56.dp, bottom = 17.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // 이모지 원형 배지
-                    Box(
+            Column(
+                modifier = Modifier
+                    .width(151.dp)
+                    .heightIn(max = 264.dp)
+                    .padding(top = 12.dp, start = 16.dp, end = 56.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                EMOTION_OPTIONS.forEach { emo ->
+                    val selected = emo.label == label
+                    Row(
                         modifier = Modifier
-                            .size(24.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(LocalColorTheme.current.gray[100]),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .clickable {
+                                onSelected(emo.label)
+                                expanded = false
+                            }
+                            .padding(bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
-                            painter = painterResource(emo.iconRes),
-                            contentDescription = emo.label,
-                            modifier = Modifier.size(16.dp)
+                        // 이모지 원형 배지
+                        Box(
+                            modifier = Modifier
+                                .size(29.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(LocalColorTheme.current.gray[100]),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(emo.iconRes),
+                                contentDescription = emo.label,
+                                modifier = Modifier.size(29.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = emo.label,
+                            color = if (selected) LocalColorTheme.current.blue[300]
+                            else LocalColorTheme.current.gray[800],
+                            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+                            fontSize = 14.sp,
+                            fontFamily = LocalFontTheme.current.font
                         )
                     }
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = emo.label,
-                        color = if (selected) LocalColorTheme.current.blue[300]
-                        else LocalColorTheme.current.gray[800],
-                        fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
-                        fontSize = 14.sp
-                    )
                 }
             }
         }

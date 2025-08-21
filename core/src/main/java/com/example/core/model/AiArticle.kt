@@ -12,8 +12,8 @@ data class AiArticle(
     val aiFeelingId: Long,
     val aiCategoryId: Long,
     val categoryName: String,
-    val summary: String,
-    val imgUrl: String,
-    val memo: String,
-    val keyword: String
+    val summary: String?,
+    val imgUrl: String?,
+    val memo: String?,
+    val keyword: String?
 )

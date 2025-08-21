@@ -1,5 +1,6 @@
 package com.example.home.screen
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,9 +36,25 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.layout.ContentScale
 import coil3.compose.rememberAsyncImagePainter
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.home.R
 import java.io.File
+
+private data class EmotionUi(
+    val id: Long,
+    val label: String,
+    @DrawableRes val iconRes: Int
+)
+
+private val EMOTIONS = listOf(
+    EmotionUi(1L, "즐거움", R.drawable.ic_joy),
+    EmotionUi(2L, "평온",   R.drawable.ic_calm),
+    EmotionUi(3L, "설렘",   R.drawable.ic_excite),
+    EmotionUi(4L, "우울",   R.drawable.ic_sad),
+    EmotionUi(5L, "짜증",   R.drawable.ic_irritation),
+    EmotionUi(6L, "분노",   R.drawable.ic_anger),
+)
 
 @Composable
 fun SaveLinkScreen(
@@ -88,14 +105,14 @@ fun SaveLinkScreen(
 
                 Text(
                     text = "새로운 링크",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.black
                 )
             }
 
             Text(
                 text = "URL 링크 입력",
-                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                 color = LocalColorTheme.current.black,
                 modifier = Modifier.padding(top = 31.dp, start = 24.dp)
             )
@@ -112,7 +129,7 @@ fun SaveLinkScreen(
                 if (url.isEmpty()) {
                     Text(
                         text = "링크를 입력하거나 붙여넣어 주세요.",
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.gray[400]
                     )
                 }
@@ -121,7 +138,7 @@ fun SaveLinkScreen(
                     value = url,
                     onValueChange = onUrlChange,
                     singleLine = true,
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black),
+                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -132,7 +149,7 @@ fun SaveLinkScreen(
                 showVideoWarning -> WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
                 isCheckingUrl -> Text(
                     text = "링크를 확인 중입니다…",
-                    style = TextStyle(fontSize = 13.sp),
+                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[600],
                     modifier = Modifier.padding(start = 32.dp, top = 4.dp)
                 )
@@ -142,7 +159,7 @@ fun SaveLinkScreen(
                 isDuplicateUrl == true -> WarningText("이미 저장된 링크예요.")
                 isDuplicateUrl == false -> Text(
                     text = "저장 가능한 링크예요.",
-                    style = TextStyle(fontSize = 13.sp),
+                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.blue[200],
                     modifier = Modifier.padding(start = 32.dp, top = 4.dp)
                 )
@@ -193,7 +210,7 @@ fun SaveLinkScreen(
                         )
                         Text(
                             text = "이미지 업로드하기",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
                             color = LocalColorTheme.current.gray[500],
                             modifier = Modifier.padding(top = 8.dp)
                         )
@@ -209,14 +226,14 @@ fun SaveLinkScreen(
             ) {
                 Text(
                     text = "메모",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[800],
                     modifier = Modifier.padding(start = 8.dp)
                 )
 
                 Text(
                     text = "선택",
-                    style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                    style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.blue[200],
                     modifier = Modifier.padding(end = 12.dp)
                 )
@@ -244,7 +261,7 @@ fun SaveLinkScreen(
                 if (memo.isEmpty()) {
                     Text(
                         text = "메모할 내용을 입력해주세요.",
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal),
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                         color = LocalColorTheme.current.gray[400]
                     )
                 }
@@ -253,7 +270,7 @@ fun SaveLinkScreen(
                     value = memo,
                     onValueChange = { if (it.length <= 200) onMemoChange(it) },
                     singleLine = true,
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black),
+                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -267,13 +284,13 @@ fun SaveLinkScreen(
             ) {
                 Text(
                     text = memo.length.toString(),
-                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[700]
                 )
 
                 Text(
                     text = "/200자",
-                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal),
+                    style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[400]
                 )
             }
@@ -286,14 +303,14 @@ fun SaveLinkScreen(
             ) {
                 Text(
                     text = "감정",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium),
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.gray[800],
                     modifier = Modifier.padding(start = 8.dp)
                 )
 
                 Text(
                     text = "선택",
-                    style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+                    style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.blue[200],
                     modifier = Modifier.padding(end = 12.dp)
                 )
@@ -333,7 +350,7 @@ fun SaveLinkScreen(
             ) {
                 Text(
                     text = "저장",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
                     color = LocalColorTheme.current.white
                 )
             }
@@ -350,7 +367,7 @@ fun WarningText(
 ) {
     Text(
         text = message,
-        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal),
+        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal), fontFamily = LocalFontTheme.current.font,
         color = LocalColorTheme.current.negative,
         modifier = modifier.padding(start = 32.dp)
     )
@@ -361,25 +378,17 @@ fun EmotionSelect(
     selectedEmotionId: Long?,
     onEmotionSelect: (Long?) -> Unit
 ) {
-    val emotions = listOf(
-        1L to ("😃" to "즐거움"),
-        2L to ("😐" to "평온"),
-        3L to ("😍" to "설렘"),
-        4L to ("🥲" to "우울"),
-        5L to ("😫" to "짜증"),
-        6L to ("😡" to "분노")
-    )
+    val firstRow = EMOTIONS.take(4)
+    val secondRow = EMOTIONS.drop(4)
 
-    Column(
-        modifier = Modifier.padding(top = 15.dp, start = 20.dp)
-    ) {
-        // 첫 번째 줄: 4개
+    Column(modifier = Modifier.padding(top = 15.dp, start = 20.dp)) {
         Row {
-            emotions.take(4).forEach { (id, pair) ->
-                EmotionBadge(
-                    emoji = pair.first, label = pair.second,
-                    selected = selectedEmotionId == id,
-                    onToggle = { onEmotionSelect(if (selectedEmotionId == id) null else id) }
+            firstRow.forEach { e ->
+                EmotionBadgeImage(
+                    iconRes = e.iconRes,
+                    label = e.label,
+                    selected = selectedEmotionId == e.id,
+                    onToggle = { onEmotionSelect(if (selectedEmotionId == e.id) null else e.id) }
                 )
                 Spacer(modifier = Modifier.width(10.dp))
             }
@@ -387,13 +396,13 @@ fun EmotionSelect(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // 두 번째 줄: 2개
         Row {
-            emotions.drop(4).forEach { (id, pair) ->
-                EmotionBadge(
-                    emoji = pair.first, label = pair.second,
-                    selected = selectedEmotionId == id,
-                    onToggle = { onEmotionSelect(if (selectedEmotionId == id) null else id) }
+            secondRow.forEach { e ->
+                EmotionBadgeImage(
+                    iconRes = e.iconRes,
+                    label = e.label,
+                    selected = selectedEmotionId == e.id,
+                    onToggle = { onEmotionSelect(if (selectedEmotionId == e.id) null else e.id) }
                 )
                 Spacer(modifier = Modifier.width(10.dp))
             }
@@ -402,58 +411,50 @@ fun EmotionSelect(
 }
 
 @Composable
-private fun EmotionBadge(
-    emoji: String,
+private fun EmotionBadgeImage(
+    @DrawableRes iconRes: Int,
     label: String,
     selected: Boolean,
     onToggle: () -> Unit
 ) {
     val boxBackground = Brush.horizontalGradient(
-        listOf(
-            Color(0x1A2C6FFF),
-            Color(0x1AC800FF)
-        )
+        listOf(Color(0x1A2C6FFF), Color(0x1AC800FF))
     )
 
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(
-                brush = if (selected) boxBackground
-                else SolidColor(LocalColorTheme.current.white)
+                brush = if (selected) boxBackground else SolidColor(LocalColorTheme.current.white)
             )
             .then(
-                if (selected) Modifier.border(
-                    width = 1.dp,
-                    brush = Basic.maincolor,
-                    shape = RoundedCornerShape(20.dp)
-                ) else Modifier.border(
-                    width = 1.dp,
-                    color = LocalColorTheme.current.gray[200],
-                    shape = RoundedCornerShape(20.dp)
-                )
+                if (selected) {
+                    Modifier.border(1.dp, brush = Basic.maincolor, shape = RoundedCornerShape(20.dp))
+                } else {
+                    Modifier.border(1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(20.dp))
+                }
             )
             .clickable { onToggle() }
             .padding(horizontal = 15.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(20.dp), // 고정된 높이와 너비 설정
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = emoji,
-                style = TextStyle(fontSize = 16.sp)  // 조금 작다면 18로 하기
-            )
-        }
+        // 아이콘
+        Image(
+            painter = painterResource(id = iconRes),
+            contentDescription = label,
+            modifier = Modifier.size(20.dp)
+        )
+
         Spacer(modifier = Modifier.width(5.dp))
+
+        // 라벨
         Text(
             text = label,
             style = TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = if (selected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800]
+                color = if (selected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800],
+                fontFamily = LocalFontTheme.current.font
             )
         )
     }
