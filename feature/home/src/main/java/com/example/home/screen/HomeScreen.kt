@@ -44,6 +44,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -494,7 +495,7 @@ fun HomeScreen(
         onQueryClear = { homeViewModel.clearRecentQuery() },
         fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
         recentQuerys = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
-    ) 
+    )
 }
 
 @Composable
@@ -1066,7 +1067,7 @@ fun TopBar(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
+                            .padding(horizontal = 10.dp),
                         horizontalArrangement = Arrangement.Start,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1096,7 +1097,7 @@ fun TopBar(
                                         Image(
                                             painter = painterResource(id = it),
                                             contentDescription = null,
-                                            modifier = Modifier.size(22.86.dp) // 아이콘 크기 조정
+                                            modifier = Modifier.size(20.dp) // 아이콘 크기 조정
                                         )
                                     }
                                 }
@@ -1259,8 +1260,7 @@ fun EmotionSelector(
 
     Row(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 9.dp, end = 9.dp),
+            .fillMaxWidth(),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -1270,7 +1270,7 @@ fun EmotionSelector(
 
             Box(
                 modifier = Modifier
-                    .size(56.dp)
+                    .size(50.dp)
                     .clip(RoundedCornerShape(18.dp))
                     .background(
                         if (isSelected) LocalColorTheme.current.blue[50] else LocalColorTheme.current.gray[100]
@@ -1291,7 +1291,7 @@ fun EmotionSelector(
                 Image(
                     painter = painterResource(id = resId),
                     contentDescription = null, // 감정 이름 필요하면 emotionKeys[idx] 등 넣어도 됨
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(35.dp)
                 )
             }
 
@@ -1513,7 +1513,7 @@ fun TaskSelector(
 //@Composable
 //fun PreviewHomeScreen() {
 //    HomeScreen(
-//        homeViewModel = hiltViewModel(),
+////        homeViewModel = hiltViewModel(),
 //        userName = "세나",
 //        showRecommendations = false, // or false
 //        recommendedLinks = listOf(
@@ -1528,7 +1528,7 @@ fun TaskSelector(
 //                linkuImageUrl = ""
 //            )
 //        ),
-//        recentLinks = listOf( // ✅ 프리뷰에 recentLinks 전달
+//        recentLinks = listOf( // 프리뷰에 recentLinks 전달
 //
 //        ),
 //        isRecommending = false,
