@@ -69,6 +69,31 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
+    // 마이페이지 계정 정보 수정
+    fun updateUserInfo(
+        nickname: String,
+        jobId: Long,
+        purposes: List<String>,
+        interests: List<String>,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val success = userRepository.updateUserInfo(nickname, jobId, purposes, interests)
+                if (success) {
+                    // 다시 fetch 해서 최신 데이터 반영
+                    loadUserInfo()
+                    onSuccess()
+                } else {
+                    onError("변경에 실패했습니다.")
+                }
+            } catch (e: Exception) {
+                onError("API 호출 실패: ${e.message}")
+            }
+        }
+    }
+
     // 회원 탈퇴
     fun leaveUser(
         reason: String,

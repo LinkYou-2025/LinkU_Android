@@ -34,6 +34,14 @@ interface UserRepository {
     // 마이페이지 조회
     suspend fun getUserInfo(userId: Long): UserInfo
 
+    // 마이페이지 계정 수정
+    suspend fun updateUserInfo(
+        nickname: String,
+        jobId: Long,
+        purposes: List<String>,
+        interests: List<String>
+    ): Boolean
+
     // 로그아웃
     suspend fun logout()
 }
