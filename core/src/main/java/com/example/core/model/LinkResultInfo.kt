@@ -5,7 +5,7 @@ import java.time.OffsetDateTime
 data class LinkResultInfo(
     val userId: Long,
     val linkuId: Long,
-    val linkuFolderId: Long,
+    val linkuFolderId: Long?,
     val categoryId: Long,
     val linku: String,
     val memo: String?,
