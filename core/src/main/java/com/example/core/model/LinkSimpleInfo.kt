@@ -9,6 +9,7 @@ data class LinkSimpleInfo(
     val domain: String,
     val domainImageUrl: String?,
     val linkuImageUrl: String?,
+    val aiArticleExists: Boolean
 ) {
 //    val categoryType: CategoryType? = CategoryType.fromId(categoryId)
 //    val emotionType: EmotionType? = EmotionType.fromId(emotionId)

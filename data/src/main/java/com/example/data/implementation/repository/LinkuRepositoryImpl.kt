@@ -7,7 +7,9 @@ import com.example.core.model.search.FastSearchLinkInfo
 import com.example.core.repository.LinkuRepository
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.BaseResponse
+import com.example.data.api.dto.server.LinkuResultDTO
 import com.example.data.api.dto.server.LinkuSimpleDTO
+import com.example.data.api.dto.server.LinkuUpdateDTO
 import com.example.data.api.withAuth
 import com.example.data.preference.AuthPreference
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -84,7 +86,8 @@ class LinkuRepositoryImpl @Inject constructor(
             title = dto.title.orEmpty(),
             domain = dto.domain.orEmpty(),
             domainImageUrl = dto.domainImageUrl,
-            linkuImageUrl = dto.linkuImageUrl
+            linkuImageUrl = dto.linkuImageUrl,
+            aiArticleExists = dto.aiArticleExists == true
         )
     }
 
@@ -122,7 +125,8 @@ class LinkuRepositoryImpl @Inject constructor(
                 title = dto.title.orEmpty(),
                 domain = dto.domain.orEmpty(),
                 domainImageUrl = dto.domainImageUrl,
-                linkuImageUrl = dto.linkuImageUrl
+                linkuImageUrl = dto.linkuImageUrl,
+                aiArticleExists = dto.aiArticleExists == true
             )
         }
     }
@@ -154,7 +158,8 @@ class LinkuRepositoryImpl @Inject constructor(
                 title = dto.title.orEmpty(),
                 domain = dto.domain.orEmpty(),
                 domainImageUrl = dto.domainImageUrl,
-                linkuImageUrl = dto.linkuImageUrl
+                linkuImageUrl = dto.linkuImageUrl,
+                aiArticleExists = dto.aiArticleExists == true
             )
         }
     }
@@ -214,5 +219,49 @@ class LinkuRepositoryImpl @Inject constructor(
         Log.d("fastSearch", "return: $response")
 
         return response
+    }
+
+    // 링크 수정
+    override suspend fun updateLink(
+        linkuId: Long,
+        categoryId: Long,
+        linku: String,
+        memo: String?,
+        emotionId: Long,
+        domainId: Long,
+        title: String
+    ): LinkResultInfo {
+        val body = LinkuUpdateDTO(
+            categoryId = categoryId,
+            linku = linku,
+            memo = memo?.trim().orEmpty(),
+            emotionId = emotionId,
+            domainId = domainId,
+            title = title
+        )
+
+        val dto = serverApi.withAuth(authPreference) {
+            updateLink(linkuId = linkuId, body = body)
+        }
+        requireNotNull(dto) { "updateLink() result was null" }
+
+        return LinkResultInfo(
+            userId = dto.userId,
+            linkuId = dto.linkuId,
+            linkuFolderId = dto.linkuFolderId,
+            categoryId = dto.categoryId,
+            linku = dto.linku,
+            memo = dto.memo?.takeIf { it.isNotBlank() },
+            emotionId = dto.emotionId,
+            domain = dto.domain ?: "",
+            title = dto.title,
+            domainImageUrl = dto.domainImageUrl,
+            linkuImageUrl = dto.linkuImageUrl,
+            aiArticleExists = dto.aiArticleExists == true,
+            keyword = dto.keyword?.takeIf { it.isNotBlank() },
+            summary = dto.summary?.takeIf { it.isNotBlank() },
+            createdAt = dto.createdAt,
+            updatedAt = dto.updatedAt
+        )
     }
 }

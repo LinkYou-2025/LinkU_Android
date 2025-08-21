@@ -16,6 +16,7 @@ import com.example.core.repository.LinkuRepository
 import com.example.core.repository.RecentSearchRepository
 import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
+import com.example.data.util.DomainIdMapper
 import com.example.data.util.toCategoryColorStyleMap
 import com.example.design.FastSearchItem
 import com.example.design.theme.color.CategoryColorStyle
@@ -46,8 +47,8 @@ class HomeViewModel @Inject constructor(
     init {
         loadRecentLinks()
         loadUserBasics() // userId 없으면 조용히 리턴하게 바꿉니다
+        loadCategoryColors()
     }
-
 
     // 사용자 닉네임
     private val userNameState = mutableStateOf<String?>(null)
@@ -60,13 +61,6 @@ class HomeViewModel @Inject constructor(
     // 👇 파일 모듈과 동일한 타입을 그대로 노출(순서가 보장되는 LinkedHashMap이라고 가정)
     private val _categoryColorMap = MutableStateFlow<Map<String, CategoryColorStyle>>(emptyMap())
     val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
-
-    // 최초 진입 시 프로필 로드
-    init {
-        loadRecentLinks()
-        loadUserBasics()
-        loadCategoryColors()
-    }
 
     fun loadCategoryColors() {
         viewModelScope.launch {
@@ -251,7 +245,21 @@ class HomeViewModel @Inject constructor(
                     memo = memoState.value.ifBlank { null },
                     emotionId = emotionIdState.value
                 )
+
+                // 낙관적 업데이트: 메모리의 최근 목록 즉시 갱신
+                recentLinksState.value = buildList {
+                    add(saved)
+                    addAll(
+                        recentLinksState.value
+                            .filter { it.linkuId != saved.linkuId } // 중복 제거
+                            .take(9) // 최대 10개 유지
+                    )
+                }
+
                 onSucceed(saved)
+
+                // 서버에서 실제 최근 목록 재조회(정렬/정책 싱크)
+                loadRecentLinks()
             } catch (e: Exception) {
                 onFailed(e)
             } finally {
@@ -374,6 +382,58 @@ class HomeViewModel @Inject constructor(
             isLoadingAiArticleState.value = false
         }
     }
+
+    // 링크 수정
+    private val isUpdatingLinkState = mutableStateOf(false)
+    val isUpdatingLink get() = isUpdatingLinkState.value
+
+    fun updateLink(
+        title: String,
+        memo: String?,
+        categoryId: Long?,
+        emotionId: Long?,
+        onSucceed: (LinkResultInfo) -> Unit = {},
+        onFailed: (Throwable) -> Unit = {},
+    ) {
+        val current = linkDetailState.value ?: run {
+            onFailed(IllegalStateException("링크 상세가 없습니다."))
+            return
+        }
+        if (isUpdatingLinkState.value) return
+
+        // 서버에서 내려준 값으로 고정
+        val fixedLinkuId = current.linkuId
+        val fixedLinku   = current.linku
+
+        // domainId 매핑
+        val computedDomainId = DomainIdMapper.resolve(
+            url = fixedLinku,
+            domain = current.domain
+        )
+
+        viewModelScope.launch {
+            isUpdatingLinkState.value = true
+            runCatching {
+                linkuRepository.updateLink(
+                    linkuId   = fixedLinkuId,
+                    categoryId= categoryId ?: current.categoryId ?: 0L,
+                    linku     = fixedLinku, // 고정
+                    memo      = memo,       // null/"" 그대로 전달
+                    emotionId = emotionId ?: current.emotionId ?: 0L,
+                    domainId  = computedDomainId,
+                    title     = title.ifBlank { current.title }
+                )
+            }.onSuccess { updated ->
+                linkDetailState.value = updated
+                loadRecentLinks()  // 최근 조회 목록 갱신
+                onSucceed(updated)
+            }.onFailure { e ->
+                onFailed(e)
+            }
+            isUpdatingLinkState.value = false
+        }
+    }
+
 
     // ---------- search method ----------
     // 검색창 탑 시트 가시성 상태
