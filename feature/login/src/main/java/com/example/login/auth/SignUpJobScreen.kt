@@ -265,14 +265,14 @@ fun JobOptionButton(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun SignUpJobScreenPreview() {
-    val fakeNavController = rememberNavController()
-    val fakeViewModel = remember { SignUpViewModel() }
-
-    SignUpJobScreen(
-        navigator = fakeNavController,
-        signUpViewModel = fakeViewModel
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SignUpJobScreenPreview() {
+//    val fakeNavController = rememberNavController()
+//    val fakeViewModel = remember { SignUpViewModel() }
+//
+//    SignUpJobScreen(
+//        navigator = fakeNavController,
+//        signUpViewModel = fakeViewModel
+//    )
+//}

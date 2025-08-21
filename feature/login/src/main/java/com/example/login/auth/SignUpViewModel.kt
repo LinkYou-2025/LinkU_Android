@@ -148,47 +148,47 @@ class SignUpViewModel @Inject constructor(
     /**
      * Preview 용 더미 UserRepository
      */
-    constructor() : this(object : UserRepository {
-        override suspend fun checkNickname(nickname: String) = true
-
-        override suspend fun login(email: String, password: String) =
-            com.example.core.model.LoginResult(0, "dummy", "active")
-
-        override suspend fun signUp(
-            nickname: String,
-            email: String,
-            password: String,
-            gender: Int,
-            jobId: Int,
-            purposeList: List<String>,
-            interestList: List<String>
-        ) = true
-
-        override suspend fun sendEmailCode(email: String, code: String) = true
-
-        override suspend fun verifyEmailCode(email: String, code: String) = true
-
-        override suspend fun deleteUser(reason: String) = true
-
-        override suspend fun getUserInfo(userId: Long): UserInfo = UserInfo(
-            nickname = "dummy_nick",
-            email = "dummy@example.com",
-            gender = "MALE",   // String 타입
-            jobId = 0L,        // Long
-            jobName = "developer",
-            myLinku = 0L,      // Long
-            myFolder = 0L,     // Long
-            myAiLinku = 0L     // Long
-        )
-
-        override suspend fun getNickname(userId: Long): String? = "dummy_nick"
-
-        override suspend fun requestTempPassword(email: String) = true
-
-        override suspend fun logout() {
-            // Dummy 로그아웃 처리
-        }
-    })
+//    constructor() : this(object : UserRepository {
+//        override suspend fun checkNickname(nickname: String) = true
+//
+//        override suspend fun login(email: String, password: String) =
+//            com.example.core.model.LoginResult(0, "dummy", "active")
+//
+//        override suspend fun signUp(
+//            nickname: String,
+//            email: String,
+//            password: String,
+//            gender: Int,
+//            jobId: Int,
+//            purposeList: List<String>,
+//            interestList: List<String>
+//        ) = true
+//
+//        override suspend fun sendEmailCode(email: String, code: String) = true
+//
+//        override suspend fun verifyEmailCode(email: String, code: String) = true
+//
+//        override suspend fun deleteUser(reason: String) = true
+//
+//        override suspend fun getUserInfo(userId: Long): UserInfo = UserInfo(
+//            nickname = "dummy_nick",
+//            email = "dummy@example.com",
+//            gender = "MALE",   // String 타입
+//            jobId = 0L,        // Long
+//            jobName = "developer",
+//            myLinku = 0L,      // Long
+//            myFolder = 0L,     // Long
+//            myAiLinku = 0L     // Long
+//        )
+//
+//        override suspend fun getNickname(userId: Long): String? = "dummy_nick"
+//
+//        override suspend fun requestTempPassword(email: String) = true
+//
+//        override suspend fun logout() {
+//            // Dummy 로그아웃 처리
+//        }
+//    })
 
 }
 

@@ -275,14 +275,14 @@ fun GenderOptionButtonPreview_Selected() {
 //    }
 //}
 
-@Preview(showBackground = true)
-@Composable
-fun SignUpGenderScreenPreview() {
-    val fakeNavController = rememberNavController()
-    val fakeViewModel = remember { SignUpViewModel() } // 직접 생성 (미리보기용)
-
-    SignUpGenderScreen(
-        navigator = fakeNavController,
-        signUpViewModel = fakeViewModel
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SignUpGenderScreenPreview() {
+//    val fakeNavController = rememberNavController()
+//    val fakeViewModel = remember { SignUpViewModel() } // 직접 생성 (미리보기용)
+//
+//    SignUpGenderScreen(
+//        navigator = fakeNavController,
+//        signUpViewModel = fakeViewModel
+//    )
+//}
