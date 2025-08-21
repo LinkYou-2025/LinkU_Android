@@ -59,7 +59,10 @@ import com.example.mypage.R
 fun AccountSettingScreen(
     navController: NavController,
     nicknamePlaceholder: String,
-    jobPlaceholder: String
+    jobPlaceholder: String,
+    initialPurposeTags: Set<String> = emptySet(),
+    initialContentTags: Set<String> = emptySet(),
+    onSubmit: (nickname: String, jobId: Long, purposes: List<String>, interests: List<String>) -> Unit
 ) {
     val username = nicknamePlaceholder
     val userjob  = jobPlaceholder
@@ -81,8 +84,9 @@ fun AccountSettingScreen(
         listOf("사회/문화/환경", "책/인사이트 요약")
     )
 
-    var selectedPurposeTags by remember { mutableStateOf(setOf<String>()) }
-    var selectedContentTags by remember { mutableStateOf(setOf<String>()) }
+    // 서버에서 내려온 초기 선택값으로 세팅
+    var selectedPurposeTags by remember(initialPurposeTags) { mutableStateOf(initialPurposeTags) }
+    var selectedContentTags by remember(initialContentTags) { mutableStateOf(initialContentTags) }
 
     // 드롭다운 옵션 (직업 목록)
     val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
@@ -94,7 +98,10 @@ fun AccountSettingScreen(
 
     // 변경 사항이 있는지 여부 확인
     val isModified =
-        (name.isNotBlank() && name != username) || (selectedJob != userjob)
+        (name.isNotBlank() && name != username) ||
+                (selectedJob != userjob) ||
+                (selectedPurposeTags != initialPurposeTags) ||
+                (selectedContentTags != initialContentTags)
 
     // 비활성화용 그라데이션 브러시
     val inactiveBrush = Brush.horizontalGradient(
@@ -319,7 +326,22 @@ fun AccountSettingScreen(
                         if (isModified) Basic.maincolor else inactiveBrush
                     )
                     .clickable(enabled = isModified) {
-                        // TODO: 변경 로직
+                        val finalNickname = if (name.isNotBlank()) name else username
+                        val jobId = when (selectedJob) {
+                            "고등학생" -> 1L
+                            "대학생" -> 2L
+                            "직장인" -> 3L
+                            "자영업자" -> 4L
+                            "프리랜서" -> 5L
+                            "취준생" -> 6L
+                            else -> 0L
+                        }
+                        onSubmit(
+                            finalNickname,
+                            jobId,
+                            selectedPurposeTags.toList(),
+                            selectedContentTags.toList()
+                        )
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -526,13 +548,14 @@ fun BrushText(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAccountSettingScreen() {
-    val navController = rememberNavController()
-    AccountSettingScreen(
-        navController = navController,
-        nicknamePlaceholder = "세나",
-        jobPlaceholder = "대학생"
-    )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAccountSettingScreen() {
+//    val navController = rememberNavController()
+//    AccountSettingScreen(
+//        navController = navController,
+//        nicknamePlaceholder = "세나",
+//        jobPlaceholder = "대학생",
+//        onSubmit = {}
+//    )
+//}
