@@ -128,6 +128,7 @@ fun PrivacyTermsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(8.dp)) // ✅ 배경색 추가
                     .padding(16.dp)                  // ⬅️ 마케팅과 동일 (내부 16dp)
             ) {
                 Column {

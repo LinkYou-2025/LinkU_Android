@@ -267,7 +267,7 @@ fun TermsAgreementContent(
                         else
                             listOf(Color(0xFFE1D6F9), Color(0xFFF3E7FB))
                     ),
-                    shape = RoundedCornerShape(50)
+                    shape = RoundedCornerShape(18)
                 )
                 .clickable(enabled = nextEnabled) {
                     onNextClicked(agreeTerms, agreePrivacy, agreeMarketing)

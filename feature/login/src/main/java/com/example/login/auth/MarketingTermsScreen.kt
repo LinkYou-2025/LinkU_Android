@@ -138,6 +138,7 @@ fun MarketingTermsScreenComposable(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(8.dp)) // ✅ 배경색 추가
                     .padding(16.dp)
             ) {
                 Column {
