@@ -322,16 +322,29 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     //유저 비밀번호 재설정
+    //유저 비밀번호 재설정
     override suspend fun requestTempPassword(email: String): Boolean {
         return try {
+            Log.d("UserRepository", "[임시PW 요청] email=$email")   // ✅ 호출 시작 로그
+
             val res = userApi.requestTempPassword(email) // ← @Query 호출
-            Log.d("UserRepository", "[임시PW 응답] success=${res.isSuccess} code=${res.code} msg=${res.message}")
+
+            // ✅ 응답 로그 (성공 여부와 메시지 확인)
+            Log.d(
+                "UserRepository",
+                "[임시PW 응답] isSuccess=${res.isSuccess}, code=${res.code}, message=${res.message}, result=${res.result}"
+            )
+
             res.isSuccess == true
         } catch (e: HttpException) {
-            Log.e("UserRepository", "[임시PW API 오류] code=${e.code()} msg=${e.message()}")
+            Log.e(
+                "UserRepository",
+                "[임시PW API 오류] code=${e.code()} msg=${e.message()}",
+                e
+            )
             false
         } catch (e: Exception) {
-            Log.e("UserRepository", "[임시PW 호출 실패]", e)
+            Log.e("UserRepository", "[임시PW 호출 실패] email=$email, error=${e.localizedMessage}", e)
             false
         }
     }
