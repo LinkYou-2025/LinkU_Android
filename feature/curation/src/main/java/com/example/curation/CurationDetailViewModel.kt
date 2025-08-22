@@ -23,7 +23,8 @@ data class CurationDetailUiState(
     val footerMent: String? = null,
     val liked: Boolean? = null,
     val likeBusy: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val month: String? = null
 )
 
 //스킵 보정 헬퍼(url 이동)
@@ -88,6 +89,7 @@ class CurationDetailViewModel @Inject constructor(
                     android.util.Log.d("CurationDetailVM", "디테일 성공: curation=$curationId, topTags=${d.topTags}, header=${d.headerMent}")
                     _detail.value = CurationDetailUiState(
                         loading = false,
+                        month = d.month,
                         topTags = d.topTags,
                         headerMent = d.headerMent,
                         footerMent = d.footerMent
