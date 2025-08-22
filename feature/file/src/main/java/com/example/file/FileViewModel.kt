@@ -990,7 +990,41 @@ class FileViewModel @Inject constructor(
 
         Log.d("FileViewModel", "deleteLink return")
     }
-    // ---------- delete method ----------
+
+
+    fun deleteNotCategorizationLink(linkuId: Long) {
+        Log.d("FileViewModel", "deleteLink")
+
+        startLoading()
+        _errorMessage.value = null
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "deleteLink launch")
+
+            try {
+                Log.d("FileViewModel", "deleteLink try")
+
+                folderRepository.deleteLink(linkuId)
+
+                _notCategorizationLinks.update {
+                    it.filter { it.linkuId != linkuId }
+                }
+
+                Log.d("FileViewModel", "deleteLink try result")
+
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "deleteLink catch: $e.message")
+
+                _errorMessage.value = e.message
+
+            } finally {
+                Log.d("FileViewModel", "deleteLink finally")
+
+                stopLoading()
+            }
+        }
+    }
+        // ---------- delete method ----------
 
     // ---------- share method ----------
     // 폴더 공유하기
