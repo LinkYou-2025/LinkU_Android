@@ -311,7 +311,7 @@ private fun HighlightCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "링큐 큐레이션  |  2025년 ${prevMonthLabel}호",
+                    text = "링큐 큐레이션  |  ${formatMonthLabel(detailState.month)}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontFamily = Paperlogy,
                         fontWeight = FontWeight.Bold,
@@ -855,20 +855,36 @@ fun RecommendedLinkCard(
     ) {
         val ctx = LocalContext.current
 
-        AsyncImage(
-            model = ImageRequest.Builder(ctx)
-                .data(link.imageUrl)          // null이면 아래 fallback이 사용됨
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-            placeholder = painterResource(R.drawable.ic_detail_image_url_null), // 로딩 중
-            error = painterResource(R.drawable.ic_detail_image_url_null),       // 실패 시
-            fallback = painterResource(R.drawable.ic_detail_image_url_null),    // data == null
-            modifier = Modifier
-                .size(60.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            contentScale = ContentScale.Crop
-        )
+        Box(
+
+        ) {
+            AsyncImage(
+                model = ImageRequest.Builder(ctx)
+                    .data(link.imageUrl)          // null이면 아래 fallback이 사용됨
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+                placeholder = painterResource(R.drawable.ic_detail_image_url_null), // 로딩 중
+                error = painterResource(R.drawable.ic_detail_image_url_null),       // 실패 시
+                fallback = painterResource(R.drawable.ic_detail_image_url_null),    // data == null
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                contentScale = ContentScale.Crop
+            )
+
+            if (link.userLinkuId == null) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_ai_summarize),
+                    contentDescription = "AI 요약됨",
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .size(30.dp)
+                        .padding(6.dp),
+                    tint = Color.Unspecified
+                )
+            }
+        }
 
         Column(
             modifier = Modifier
@@ -1139,6 +1155,19 @@ private fun splitFirstSentence(text: String?): Pair<String, String> {
         trimmed to ""
     }
 }
+
+private fun formatMonthLabel(month: String?): String {
+    if (month.isNullOrBlank()) return ""
+    return try {
+        val parts = month.split("-") // "2025-06" → ["2025","06"]
+        val year = parts[0]
+        val monthNum = parts[1].toInt()
+        "${year}년 ${monthNum}월호"
+    } catch (e: Exception) {
+        month // 파싱 실패 시 그대로
+    }
+}
+
 
 ///* ===== 실제 화면: VM에서 닉네임 받아와 Content 호출 ===== */
 //@Composable
