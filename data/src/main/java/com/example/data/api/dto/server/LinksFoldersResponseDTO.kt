@@ -31,7 +31,7 @@ data class LinkDTO(
     val keyword: String?,  // 링크 도메인
 
     @Json(name = "linkuImageUrl")
-    val linkuImageUrl: String,  // 링크 도메인
+    val linkuImageUrl: String?,  // 링크 도메인
 
     @Json(name = "createdAt")
     val createdAt: OffsetDateTime? // 생성일시 (null 가능)
