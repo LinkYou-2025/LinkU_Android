@@ -204,9 +204,9 @@ fun BottomFolderGrid(
                             fileViewModel.onLinkClick?.invoke(link.linkuId)
                         },
                         onLongClick = {
-//                            selectedLinkId = link.linkuId
-//
-//                            deleteModalWindowVisible = true
+                            selectedLinkId = link.linkuId
+
+                            deleteModalWindowVisible = true
                         }
                     )
                 }
@@ -220,7 +220,7 @@ fun BottomFolderGrid(
         onOkay = {
             // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
             selectedLinkId?.let { id ->
-                fileViewModel.deleteLink(id)
+                fileViewModel.deleteNotCategorizationLink(id)
             }
             // 상태 정리
             deleteModalWindowVisible = false
