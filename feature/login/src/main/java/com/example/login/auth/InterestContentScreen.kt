@@ -106,13 +106,23 @@ fun InterestContentScreen(
     //  - 본문은 세로 스크롤
     //  - 하단 버튼은 bottomBar에 고정
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
+            // ✅ 닉네임/성별/직업과 동일한 바닥 패딩 계산
+            val density = LocalDensity.current
+            val imeBottomPx = WindowInsets.ime.getBottom(density)
+            val isImeVisible = imeBottomPx > 0
+            val bottomGapWhenIme = 4.dp     // 키보드 보일 때 버튼-키보드 간격
+            val bottomGapDefault = 16.dp    // 평소 하단 간격
+            val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 14.dp)
-                    .navigationBarsPadding()
-                    .imePadding()
+                    .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
+                    //.padding(horizontal = 32.dp, vertical = 14.dp)
+                    //.navigationBarsPadding()
+                    //.imePadding()
                     .height(48.dp)
                     .background(
                         brush = Brush.horizontalGradient(
@@ -144,6 +154,7 @@ fun InterestContentScreen(
                     "다음",
                     color = Color.White,
                     fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Bold,
                     fontSize = 16.sp
                 )
             }
@@ -153,7 +164,8 @@ fun InterestContentScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .background(Color.White),
             contentPadding = PaddingValues(
                 start = 32.dp, end = 32.dp,
                 top = 40.dp,

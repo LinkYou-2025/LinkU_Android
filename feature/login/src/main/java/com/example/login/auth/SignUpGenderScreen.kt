@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -41,6 +42,14 @@ fun SignUpGenderScreen(
     val isButtonEnabled = selectedGender != null
 
     Box(modifier = Modifier.fillMaxSize()) {
+
+        // ✅ 닉네임 화면과 동일한 바텀 패딩 계산
+        val density = LocalDensity.current
+        val imeBottomPx = WindowInsets.ime.getBottom(density)
+        val isImeVisible = imeBottomPx > 0
+        val bottomGapWhenIme = 4.dp     // 키보드 보일 때
+        val bottomGapDefault = 16.dp    // 키보드 없을 때(시작 지점)
+        val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
 
     Column(
         modifier = Modifier
@@ -93,8 +102,9 @@ fun SignUpGenderScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .imePadding()
-                .navigationBarsPadding()
+                //.imePadding()
+                //.navigationBarsPadding()
+                //.padding(start = 20.dp, end = 20.dp,  bottom = bottomPadding)
                 .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
                 .height(48.dp)
                 .background(

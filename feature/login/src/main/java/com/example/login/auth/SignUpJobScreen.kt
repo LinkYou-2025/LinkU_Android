@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +38,14 @@ fun SignUpJobScreen(
     val isButtonEnabled = selectedJobIndex != null
 
     Box(modifier = Modifier.fillMaxSize()) {
+
+        // ✅ 닉네임/성별과 동일한 바텀 패딩 계산
+        val density = LocalDensity.current
+        val imeBottomPx = WindowInsets.ime.getBottom(density)
+        val isImeVisible = imeBottomPx > 0
+        val bottomGapWhenIme = 4.dp
+        val bottomGapDefault = 16.dp
+        val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
 
         // 본문 (버튼과 겹치지 않게 하단 여유 48+24)
         Column(
@@ -81,9 +90,9 @@ fun SignUpJobScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)   // BoxScope.align
-                .imePadding()
-                .navigationBarsPadding()
-                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+                //.imePadding()
+                //.navigationBarsPadding()
+                .padding(start = 20.dp, end = 20.dp,bottom = bottomPadding) //bottom = 16.dp)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(

@@ -39,6 +39,7 @@ import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.ui.platform.LocalDensity
 
 @Composable
 fun ResetPasswordScreen(
@@ -53,6 +54,16 @@ fun ResetPasswordScreen(
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+
+    // ✅ 추가: 버튼 전용 바닥 패딩 계산
+    val density = LocalDensity.current
+    val imeBottomPx = WindowInsets.ime.getBottom(density)
+    val isImeVisible = imeBottomPx > 0
+    val bottomGapWhenIme = 4.dp        // 키보드와 버튼 간격
+    val bottomGapDefault = 16.dp       // 원래 화면 하단 여백 유지
+    val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+    val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
+    val bottomPadding = (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) + extraNavPadding
 
     BackHandler {
         navigator.navigate("email_login") {
@@ -75,13 +86,15 @@ fun ResetPasswordScreen(
                 start = 20.dp,
                 end = 20.dp,
                 top = 52.dp,   // ⬆️ 위쪽만 52
-                bottom = 40.dp // ⬇️ 아래는 40 유지
-            )
+                bottom = 16.dp
+                //bottom = 48.dp + 24.dp   // ✅ 하단 버튼(48) + 여유(24) 확보
+            ),
 
 
             //.padding(horizontal = 20.dp, vertical = 52.dp)
-            .imePadding(),
-        horizontalAlignment = Alignment.CenterHorizontally
+            //.imePadding(),
+        horizontalAlignment = Alignment.Start
+       // horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.height(40.dp))
 
@@ -185,10 +198,13 @@ fun ResetPasswordScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         // 제출 버튼
+        // ✅ 하단 버튼: 키보드 보이면 4dp, 아니면 40dp(+내비바) 간격
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(50.dp)
+                .align(Alignment.CenterHorizontally)
+                .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
+                .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(
                         colors = if (isEmailValid)
@@ -196,7 +212,7 @@ fun ResetPasswordScreen(
                         else
                             listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
                     ),
-                    shape = RoundedCornerShape(50)
+                    shape = RoundedCornerShape(18.dp)
                 )
                 .clickable(enabled = isEmailValid && !ui.loading) {
                     keyboardController?.hide()
@@ -221,6 +237,42 @@ fun ResetPasswordScreen(
                 )
             }
         }
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(50.dp)
+//                .background(
+//                    brush = Brush.horizontalGradient(
+//                        colors = if (isEmailValid)
+//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                        else
+//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+//                    ),
+//                    shape = RoundedCornerShape(50)
+//                )
+//                .clickable(enabled = isEmailValid && !ui.loading) {
+//                    keyboardController?.hide()
+//                    focusManager.clearFocus()
+//                    viewModel.request(email.text)
+//                },
+//            contentAlignment = Alignment.Center
+//        ) {
+//            if (ui.loading) {
+//                CircularProgressIndicator(
+//                    modifier = Modifier.size(20.dp),
+//                    strokeWidth = 2.dp,
+//                    color = Color.White
+//                )
+//            } else {
+//                Text(
+//                    text = "임시 비밀번호 받기",
+//                    color = Color.White,
+//                    fontFamily = Paperlogy,
+//                    fontSize = 16.sp,
+//                    fontWeight = FontWeight.Bold
+//                )
+//            }
+//        }
     }
     Spacer(modifier = Modifier.height(32.dp))
 
