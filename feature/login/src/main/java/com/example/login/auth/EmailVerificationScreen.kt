@@ -296,15 +296,17 @@ fun EmailVerificationScreen(
         val imeBottomPx = WindowInsets.ime.getBottom(density)
         val isImeVisible = imeBottomPx > 0
 
-        val bottomGapWhenIme = 8.dp      // 키보드 위 간격
-        val bottomGapDefault = 50.dp     // 평소 바닥 간격
+        val bottomGapWhenIme = 4.dp      // 키보드 위 간격
+        val bottomGapDefault = 16.dp     // 평소 바닥 간격
+
+        val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
 
 // 내비게이션 바 높이(dp) – IME가 없을 때만 적용
-        val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
-        val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
+        //val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+        //val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
 
-        val bottomPadding =
-            (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) + extraNavPadding
+        //val bottomPadding =
+            (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) //+ extraNavPadding
 
         // ── 하단 고정 버튼: 원래 위치 + 키보드 대응 ─────────
         Box(
@@ -317,9 +319,10 @@ fun EmailVerificationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)    // ✅ 화면 하단에 고정
-                    .imePadding()                     // ✅ 키보드가 올라오면 자동으로 위로
-                    .navigationBarsPadding()          // ✅ 제스처/내비 바 안전영역 확보
-                    .padding(start = 20.dp, end = 20.dp, bottom = 16.dp) // 하단 간격
+                    //.imePadding()                     // ✅ 키보드가 올라오면 자동으로 위로
+                    //.navigationBarsPadding()          // ✅ 제스처/내비 바 안전영역 확보
+                    .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding) // 하단 간격
+                    //.offset(y = (-48).dp)         // ⬅️ 추가: 키보드 위 간격 줄이기
                     .height(48.dp)
                     .background(
                         brush = Brush.horizontalGradient(

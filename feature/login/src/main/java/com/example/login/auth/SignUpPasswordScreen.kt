@@ -28,6 +28,7 @@ import com.example.login.Paperlogy
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalDensity
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -84,6 +85,18 @@ fun SignUpPasswordScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
 
+
+        // ✅ 추가: 이메일 화면과 동일한 바텀 패딩 계산
+        val density = LocalDensity.current
+        val imeBottomPx = WindowInsets.ime.getBottom(density)
+        val isImeVisible = imeBottomPx > 0
+
+        val bottomGapWhenIme = 4.dp     // ← 키보드 보일 때 간격(더 붙이고 싶으면 0.dp)
+        val bottomGapDefault = 16.dp    // ← 기존 코드의 42dp 유지
+        val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+        val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
+        val bottomPadding = (if (isImeVisible) bottomGapWhenIme else bottomGapDefault)
+
         // 본문
         Column(
             modifier = Modifier
@@ -93,7 +106,7 @@ fun SignUpPasswordScreen(
                     end = 20.dp,
                     top = 52.dp,
                     // 버튼 영역만큼 여유 (48dp 높이 + 32dp 바텀 패딩 + 약간의 버퍼)
-                    bottom = 48.dp + 32.dp + 24.dp
+                    bottom = 48.dp + 24.dp
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -223,8 +236,9 @@ fun SignUpPasswordScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .imePadding()                                   // 키보드 올라오면 함께 상승
-                .padding(start = 20.dp, end = 20.dp, bottom = 42.dp) // ← 동일 위치(살짝 더 낮게)
+                //.imePadding()                                   // 키보드 올라오면 함께 상승
+                .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
+                //.padding(start = 20.dp, end = 20.dp, bottom = 42.dp) // ← 동일 위치(살짝 더 낮게)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(

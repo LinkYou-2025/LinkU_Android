@@ -28,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import androidx.compose.foundation.clickable
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalDensity
 
 @Composable
 fun SignUpNicknameScreen(
@@ -48,6 +49,18 @@ fun SignUpNicknameScreen(
             !isLoading
 
     Box(modifier = Modifier.fillMaxSize()) {
+
+        // ✅ 추가: 이메일 인증 화면과 동일한 바텀 패딩 계산
+        val density = LocalDensity.current
+        val imeBottomPx = WindowInsets.ime.getBottom(density)
+        val isImeVisible = imeBottomPx > 0
+
+        val bottomGapWhenIme = 4.dp      // ✅ 키보드 보일 때 버튼-키보드 간격
+        val bottomGapDefault = 16.dp     // ✅ 평소 하단 간격(기존 .padding(bottom = 16.dp)와 동일)
+        //val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+        //val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
+        val bottomPadding = (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) //+ extraNavPadding
+
 
         // 본문
         Column(
@@ -170,9 +183,10 @@ fun SignUpNicknameScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter) // 항상 하단
-                .imePadding()                  // 키보드 올라오면 자동 위로
-                .navigationBarsPadding()       // 제스처/내비 바 안전영역
-                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+               // .imePadding()                  // 키보드 올라오면 자동 위로
+                //.navigationBarsPadding()       // 제스처/내비 바 안전영역
+                //.padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+                .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
                 .height(48.dp)
                 .background(
                     brush = Brush.horizontalGradient(

@@ -27,9 +27,13 @@ class EmailAuthViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
+    // ✅ 추가: 공용 에러 태그 세터
+    private fun flagServerError() { _errorTag.value = "SERVER_ERROR" }
+
     fun reset() {
         _sendCodeResult.value = null
         _verifyCodeResult.value = null
+        _errorTag.value = null            // ← 추가: 에러 태그 초기화 (옵션)
         // isVerifySuccess는 앞서 1회성으로 바꿨다면 false가 기본이므로 그대로 두면 됨
     }
 
@@ -38,6 +42,10 @@ class EmailAuthViewModel @Inject constructor(
 
     private val _verifyCodeResult = MutableStateFlow<String?>(null)
     val verifyCodeResult: StateFlow<String?> = _verifyCodeResult
+
+    // ✅ 추가: 로그인 화면에서 그대로 매핑해 쓸 에러 태그
+    private val _errorTag = MutableStateFlow<String?>(null)
+    val errorTag: StateFlow<String?> = _errorTag
 
     // 🔸 기존: _verifyCodeResult를 map 해서 영구 true가 됨
     // val isVerifySuccess: StateFlow<Boolean> = _verifyCodeResult
@@ -89,6 +97,7 @@ class EmailAuthViewModel @Inject constructor(
     } catch (_: Throwable) {
         null
     }
+
     /** 이메일 인증 코드 전송 */
     fun sendEmailCode(email: String) {
         viewModelScope.launch {
@@ -108,10 +117,15 @@ class EmailAuthViewModel @Inject constructor(
                         if (msg?.contains("중복") == true) "이미 가입된 이메일입니다."
                         else "이미 가입된 이메일입니다."
                     }
-                    else -> "서버 오류"
+
+                    else -> {
+                        flagServerError()
+                        "서버 오류"
+                    }
                 }
             } catch (e: Exception) {
                 _sendCodeResult.value = "서버 오류"
+                flagServerError()                  // ✅ 서버 에러 태그 세팅
             }
         }
     }
@@ -133,9 +147,11 @@ class EmailAuthViewModel @Inject constructor(
                 Log.e("EmailAuthVM", "verifyEmailCode error", e)
                 _verifyCodeResult.value = "네트워크 오류"
                 _isVerifySuccess.value = false
+                flagServerError()                      // ✅ 검증 중 서버 죽어도 태그 세팅
             }
         }
     }
+}
 
 
 //    /** 이메일 인증 코드 검증 */
@@ -150,7 +166,7 @@ class EmailAuthViewModel @Inject constructor(
 //            }
 //        }
 //    }
-}
+
 
 //    /** 이메일 인증 코드 검증 (임시 성공 처리) */
 //    fun verifyEmailCode(context: Context, email: String, code: String) {

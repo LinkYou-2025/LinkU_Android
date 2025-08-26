@@ -217,13 +217,26 @@ fun InterestPurposeScreen(
     //    → Scaffold + LazyColumn 으로 바꿔서 본문은 스크롤, 버튼은 bottomBar에 고정해야 함.
     Scaffold(
         bottomBar = {
+
+            // ✅ 이메일 인증/닉네임과 동일한 하단 패딩 계산
+            val density = LocalDensity.current
+            val imeBottomPx = WindowInsets.ime.getBottom(density)
+            val isImeVisible = imeBottomPx > 0
+
+            val bottomGapWhenIme = 4.dp     // 키보드 보일 때 버튼-키보드 간격
+            val bottomGapDefault = 16.dp    // 평소 하단 간격
+            val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
+            val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
+            val bottomPadding = (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) + extraNavPadding
             // ✅ 하단 고정 버튼
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp, vertical = 14.dp)
-                    .navigationBarsPadding() // 제스처 내비게이션 대응
-                    .imePadding() // 키보드 올라왔을 때 대응
+                    .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+                    //.padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
+                    //.padding(horizontal = 32.dp, vertical = 14.dp)
+                    //.navigationBarsPadding() // 제스처 내비게이션 대응
+                    //.imePadding() // 키보드 올라왔을 때 대응
                     .height(48.dp)
                     .background(
                         brush = Brush.horizontalGradient(
