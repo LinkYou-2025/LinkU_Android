@@ -41,9 +41,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,6 +59,10 @@ import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
+import com.example.file.ui.theme.DefaultFont
+import com.example.file.ui.theme.FileTopBarLinkUFont
+import com.example.file.ui.theme.MainColor
+import com.example.file.ui.theme.White
 import com.example.home.HomeViewModel
 import com.example.home.R
 import kotlinx.coroutines.launch
@@ -723,12 +730,28 @@ fun TopBar(
                     .fillMaxWidth()
                     .padding(top = 50.38.dp, start = 16.dp, end = 16.dp)
             ) {
-                Image(
-                    painter = painterResource(id = Res.drawable.ic_linkukor),
-                    contentDescription = null,
+                Text(
                     modifier = Modifier
-                        .height(24.dp)
-                        .padding(start = 19.dp)
+                        .padding(start = 19.dp),
+                    // 텍스트(그라데이션 및 스타일 지정)
+                    text = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                fontSize = 24.sp,
+
+                                // 사용할 폰트 (태백 폰트)
+                                fontFamily = FileTopBarLinkUFont,
+
+                                fontWeight = FontWeight.Normal,
+
+                                // 텍스트 그라데이션 색상(링큐 메인 색상)
+                                brush = MainColor,
+                            )
+                        ) {
+                            // 실제 표시할 텍스트
+                            append("링큐")
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -762,7 +785,7 @@ fun TopBar(
             }
 
             // 빠른 링크 검색
-            Row(
+            Box(
                 modifier = Modifier
                     .padding(top = 15.dp, start = 16.dp, end = 16.dp)
                     .height(48.dp)
@@ -770,18 +793,24 @@ fun TopBar(
                         homeViewModel.updateSearchTopSheetVisible(true)
                     }
             ) {
-                Box(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(18.dp)) // 모서리 둥글게
                         .background(brush = Basic.maincolor) // 그라데이션 Brush 적용
                         .padding(horizontal = 18.51.dp, vertical = 15.dp) // 내부 여백
+                    ,
+                    // 가로 정렬: 요소 간 13dp 간격, 왼쪽부터 배치
+                    horizontalArrangement = Arrangement.spacedBy(13.dp, Alignment.Start),
+
+                    // 세로 정렬: 세로 중앙 정렬
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_logo_white),
                         contentDescription = null,
-                        modifier = Modifier
-                            .height(17.dp),
+//                        modifier = Modifier
+//                            .height(17.dp),
                         tint = LocalColorTheme.current.white
                     )
 
@@ -789,8 +818,9 @@ fun TopBar(
                         text = "빠른 링크 검색",
                         color = LocalColorTheme.current.white,
                         fontFamily = LocalFontTheme.current.font,
-                        modifier = Modifier
-                            .padding(start = 36.98.dp)
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight(500),
                     )
                 }
             }
