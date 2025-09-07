@@ -2,7 +2,6 @@ package com.example.file
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,7 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -43,14 +41,13 @@ import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
-import com.example.design.SearchBarTopSheet
+import com.example.design.top.search.SearchBarTopSheet
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.error.SameNameException
 import com.example.file.ui.bottom.sheet.ShareBottomSheet
 import com.example.file.ui.content.SharedBottomFolderGrid
 import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.modal.FileModalWindow
-import com.example.file.ui.theme.MainColor
 import kotlinx.coroutines.launch
 
 @Composable
