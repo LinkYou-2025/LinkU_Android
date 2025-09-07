@@ -1,4 +1,4 @@
-package com.example.design
+package com.example.design.top.search
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import androidx.compose.ui.platform.LocalUriHandler
+import com.example.design.R
 
 data class FastSearchItem(
     val id: Long,

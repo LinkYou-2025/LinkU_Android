@@ -1,6 +1,8 @@
 package com.example.design
 
 import androidx.compose.runtime.*
+import com.example.design.top.search.FastSearchItem
+import com.example.design.top.search.SearchBarTopSheet
 import kotlin.math.min
 
 /**

@@ -19,7 +19,7 @@ import androidx.compose.runtime.setValue
 import com.example.core.model.search.RecentQuery
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.RecentSearchRepository
-import com.example.design.FastSearchItem
+import com.example.design.top.search.FastSearchItem
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
