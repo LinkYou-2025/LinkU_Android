@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -84,7 +83,7 @@ val centerButtonSize = DpSize(19.2.dp, 19.2.dp)
 val iconHeight = 24.dp
 
 @Composable
-fun NavigationBar(
+fun LinkuNavigationBar(
     currentNavigationItem: NavigationItem?,
     onNavigate: (NavigationItem) -> Unit,
     applySystemBottomInset: Boolean = true,
@@ -231,11 +230,20 @@ fun NavigationBar(
     }
 }
 
+@Composable
+fun LinkuNavigationBar__(
+    currentNavigationItem: NavigationItem?,
+    onNavigate: (NavigationItem) -> Unit,
+    applySystemBottomInset: Boolean = true,
+){
+
+}
+
 @Preview
 @Composable
-fun PreviewNavigationBar() {
+private fun PreviewNavigationBar() {
     ThemeProvider {
-        NavigationBar(
+        LinkuNavigationBar(
             currentNavigationItem = NavigationItem.HOME,
             onNavigate = {},
         )
