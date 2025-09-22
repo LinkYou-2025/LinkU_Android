@@ -1,6 +1,5 @@
 package com.example.linku_android.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -39,39 +37,6 @@ import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
 import com.example.design.theme.color.Basic
-import com.example.linku_android.R
-
-enum class LinkuNavigationItem(
-    val title: String,
-    @DrawableRes val icon: Int,
-    val size: Size,
-    val magnification: Float,
-) {
-    HOME(
-        title = "홈",
-        icon = R.drawable.ic_home,
-        size = Size(26f, 26f),
-        magnification = 1.2f,
-    ),
-    FILE(
-        title = "파일",
-        icon = R.drawable.ic_file,
-        size = Size(27.85f, 26f),
-        magnification = 1.2f,
-    ),
-    CURATION(
-        title = "큐레이션",
-        icon = R.drawable.ic_curation,
-        size = Size(31f, 13.78f),
-        magnification = 0.85f,
-    ),
-    MY_PAGE(
-        title = "마이",
-        icon = R.drawable.ic_mypage,
-        size = Size(27.83f, 27.83f),
-        magnification = 1.2f,
-    )
-}
 
 val centerButtonSize = DpSize(19.2.dp, 19.2.dp)
 val iconHeight = 24.dp
