@@ -6,48 +6,42 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
 import com.example.design.theme.color.Basic
 import com.example.linku_android.R
 
-enum class NavigationItem(
+enum class LinkuNavigationItem(
     val title: String,
     @DrawableRes val icon: Int,
     val size: Size,
@@ -84,159 +78,131 @@ val iconHeight = 24.dp
 
 @Composable
 fun LinkuNavigationBar(
-    currentNavigationItem: NavigationItem?,
-    onNavigate: (NavigationItem) -> Unit,
+    currentLinkuNavigationItem: LinkuNavigationItem?,
+    onNavigate: (LinkuNavigationItem) -> Unit,
     applySystemBottomInset: Boolean = true,
+    onFABClick: () -> Unit,
 ) {
-    val density = LocalDensity.current
+    val bottomPadding =
+        if (applySystemBottomInset) WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+        else 0.dp
 
-    val padding = if (applySystemBottomInset)
-        WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() // ⬅️ 여기!
-    else 0.dp
-
-    var maxHeight by remember { mutableStateOf<Dp?>(null) }
-
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .drawBehind {
-                drawLine(
-                    color = Color(0xFFEDEDED), // 상단 테두리 색상
-                    start = Offset(0f, 0f), // 좌측 상단에서 시작
-                    end = Offset(size.width, 0f), // 우측 상단까지 선을 그림
-                    strokeWidth = 1.dp.toPx() // 테두리 두께
-                )
-            }
+            .background(Color.White)
     ) {
+        // 상단 보더
+        HorizontalDivider(thickness = 1.dp, color = Color(0xFFEDEDED))
+
         Row(
             modifier = Modifier
-                .padding(bottom = padding)
+                .fillMaxWidth()
+                .padding(bottom = bottomPadding)
+                .padding(horizontal = 8.dp)
+                // 가장 큰 자식 높이에 Row 전체 높이를 맞춰 모든 칸이 동일 높이
+                .height(IntrinsicSize.Min)
         ) {
-            Box(
-                modifier = Modifier
-                    .background(Color(0xFFEDEDED))
-                    .width(16.dp)
-                    .height(1.dp),
+            // 좌/우 여백이 필요하면 weight 없이 Spacer로 간단히 처리
+            // Spacer(modifier = Modifier.width(8.dp))
+
+            // 가운데는 FAB 자리(null)로 비워두는 구성 유지
+            val items = listOf(
+                LinkuNavigationItem.HOME,
+                LinkuNavigationItem.FILE,
+                null, // ⬅️ FAB 자리
+                LinkuNavigationItem.CURATION,
+                LinkuNavigationItem.MY_PAGE
             )
-            listOf(
-                NavigationItem.HOME,
-                NavigationItem.FILE,
-                null,
-                NavigationItem.CURATION,
-                NavigationItem.MY_PAGE,
-            ).forEach { item ->
-                if (item != null) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable { onNavigate(item) }
-                            .let { m -> maxHeight?.let { m.height(it) } ?: m }
-                            .onGloballyPositioned {
-                                with(density) {
-                                    val h = it.size.height.toDp()
-                                    maxHeight = maxHeight?.let { max(it, h) } ?: h
-                                }
-                            }
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(
-                                top = if (item == NavigationItem.CURATION) 27.56.dp else 21.dp,
-                                bottom = 5.dp
-                            ),
-                        ) {
-                            Icon(
-                                painter = painterResource(id = item.icon),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .width(iconHeight * item.size.width / item.size.height * item.magnification)
-                                    .height(iconHeight * item.magnification)
-                                    .offset(y = if (item == NavigationItem.CURATION) (-2).dp else 0.dp)
-                                    .graphicsLayer(alpha = 0.99f)
-                                    .drawWithCache {
-                                        onDrawWithContent {
-                                            drawContent()
-                                            if (currentNavigationItem == item) {
-                                                drawRect(
-                                                    brush = Basic.maincolor,
-                                                    blendMode = BlendMode.SrcIn
-                                                )
-                                            }
-                                        }
-                                    },
-                                tint = Color.Unspecified,
-                            )
-                            Text(
-                                text = item.title,
-                                fontSize = 10.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.W400,
-                                fontFamily = LocalFontTheme.current.font,
-                                style = if (currentNavigationItem == item) {
-                                    TextStyle(brush = Basic.maincolor)
-                                } else {
-                                    TextStyle(color = Color(0xFFCACACA))
-                                },
-                                modifier = Modifier.padding(top = 11.dp)
-                            )
-                        }
-                    }
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .weight(1f)
-                            .let { m -> maxHeight?.let { m.height(it) } ?: m }
-                            .onGloballyPositioned {
-                                with(density) {
-                                    val h = it.size.height.toDp()
-                                    maxHeight = maxHeight?.let { max(it, h) } ?: h
-                                }
-                            }
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .padding(top = 21.dp, bottom = 5.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(centerButtonSize.width)
-                                    .height(centerButtonSize.height)
-                            )
-                            Text(
-                                text = "",
-                                fontSize = 10.sp,
-                                lineHeight = 14.sp,
-                                fontWeight = FontWeight.W400,
-                                fontFamily = LocalFontTheme.current.font,
-                                style = TextStyle(color = Color.Transparent),
-                                modifier = Modifier.padding(top = 11.dp)
-                            )
-                        }
-                    }
+
+            items.forEach { item ->
+                when (item) {
+                    null -> CenterHole(
+                        onClicK = { onFABClick() }
+                    )
+                    else -> NavItem(
+                        item = item,
+                        selected = currentLinkuNavigationItem == item,
+                        onClick = { onNavigate(item) }
+                    )
                 }
             }
-            Box(
+
+            // Spacer(modifier = Modifier.width(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun RowScope.NavItem(
+    item: LinkuNavigationItem,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    // CURATION만 약간의 시각 보정이 있었던 부분을 파라미터로 명시
+    val topPadding = if (item == LinkuNavigationItem.CURATION) 27.56.dp else 21.dp
+    val iconYOffset = if (item == LinkuNavigationItem.CURATION) (-2).dp else 0.dp
+
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()              // Row의 IntrinsicSize.Min과 맞물려 동일 높이 보장
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(top = topPadding, bottom = 5.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = item.icon),
+                contentDescription = null,
                 modifier = Modifier
-                    .background(Color(0xFFEDEDED))
-                    .width(16.dp)
-                    .height(1.dp),
+                    .width(iconHeight * item.size.width / item.size.height * item.magnification)
+                    .height(iconHeight * item.magnification)
+                    .offset(y = iconYOffset)
+                    .graphicsLayer(alpha = 0.99f) // 캐시 최적화 트릭 유지
+                    .drawWithCache {
+                        onDrawWithContent {
+                            drawContent()
+                            if (selected) {
+                                drawRect(
+                                    brush = Basic.maincolor,
+                                    blendMode = BlendMode.SrcIn
+                                )
+                            }
+                        }
+                    },
+                tint = Color.Unspecified,
+            )
+            Text(
+                text = item.title,
+                fontSize = 10.sp,
+                lineHeight = 14.sp,
+                fontWeight = FontWeight.W400,
+                fontFamily = LocalFontTheme.current.font,
+                style = if (selected) TextStyle(brush = Basic.maincolor)
+                else TextStyle(color = Color(0xFFCACACA)),
+                modifier = Modifier.padding(top = 11.dp)
             )
         }
     }
 }
 
 @Composable
-fun LinkuNavigationBar__(
-    currentNavigationItem: NavigationItem?,
-    onNavigate: (NavigationItem) -> Unit,
-    applySystemBottomInset: Boolean = true,
-){
-
+private fun RowScope.CenterHole(
+    onClicK: () -> Unit = {},
+) {
+    // FAB가 덮어쓸 빈 공간. 기존 centerButtonSize를 그대로 사용
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight(),
+        contentAlignment = Alignment.Center,
+    ) {
+        LinkuNavigationBarFAB{ onClicK() }
+    }
 }
 
 @Preview
@@ -244,8 +210,9 @@ fun LinkuNavigationBar__(
 private fun PreviewNavigationBar() {
     ThemeProvider {
         LinkuNavigationBar(
-            currentNavigationItem = NavigationItem.HOME,
+            currentLinkuNavigationItem = LinkuNavigationItem.HOME,
             onNavigate = {},
+            onFABClick = {}
         )
     }
 }

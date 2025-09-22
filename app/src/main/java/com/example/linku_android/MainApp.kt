@@ -1,6 +1,6 @@
 package com.example.linku_android
 
-import android.R.attr.type
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -36,12 +36,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.ThemeProvider
-import com.example.file.FileScreen
-import com.example.home.screen.HomeScreen
 import com.example.home.HomeViewModel
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
-import com.example.linku_android.component.NavigationItem
+import com.example.linku_android.component.LinkuNavigationItem
 
 //import com.example.login.LoginScreen
 import com.example.mypage.MyPageApp
@@ -52,7 +50,6 @@ import androidx.navigation.navArgument
 import androidx.navigation.compose.navigation
 
 
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.home.HomeApp
 import com.example.curation.ui.CurationDetailScreen
@@ -69,7 +66,6 @@ import com.example.login.auth.InterestPurposeScreen
 import com.example.login.auth.SignUpGenderScreen
 import com.example.login.auth.SignUpNicknameScreen
 import com.example.login.auth.SignUpJobScreen
-import com.example.login.auth.TermsAgreementScreen
 import com.example.login.auth.WelcomeScreen
 import com.example.login.auth.ResetPasswordScreen
 import com.example.login.auth.SignUpViewModel
@@ -78,7 +74,6 @@ import java.io.FileOutputStream
 
 // 링크 공유 앱링크
 import androidx.navigation.navDeepLink
-import com.example.core.error.UserIdNullException
 import com.example.curation.CurationViewModel
 import com.example.file.FileApp
 import com.example.file.FileViewModel
@@ -87,10 +82,11 @@ import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
-import com.example.linku_android.navigation.DoubleBackToExitIfTop
 import com.example.login.auth.LoginViewModel
 import com.example.login.auth.TermsAgreementSheet
 import dagger.hilt.android.EntryPointAccessors
+import androidx.core.net.toUri
+import com.example.curation.CurationDetailViewModel
 
 
 @Composable
@@ -127,7 +123,7 @@ fun MainApp(
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
 
-    var currentNavigationItem by remember { mutableStateOf<NavigationItem?>(null) }
+    var currentLinkuNavigationItem by remember { mutableStateOf<LinkuNavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
 
     var saveLinkEntryTriggered by remember { mutableStateOf(false) }
@@ -153,14 +149,14 @@ fun MainApp(
     ThemeProvider {
         MainScreen(
             navigationBarProp = if (showNavBar) NavigationBarProp(
-                currentNavigationItem = currentNavigationItem,
+                currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
-//                    if (item != currentNavigationItem) {
+//                    if (item != currentLinkuNavigationItem) {
                         val route = when (item) {
-                            NavigationItem.HOME -> NavigationRoute.Home.route
-                            NavigationItem.FILE -> NavigationRoute.File.route
-                            NavigationItem.CURATION -> NavigationRoute.Curation.route
-                            NavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                            LinkuNavigationItem.HOME -> NavigationRoute.Home.route
+                            LinkuNavigationItem.FILE -> NavigationRoute.File.route
+                            LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
+                            LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
                         }
 //                        navigator.navigate(route) {
 //                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
@@ -220,10 +216,8 @@ fun MainApp(
                     saveLinkEntryTriggered = true  // SaveLinkScreen으로 진입
                 }
             ) else null,
-            centerButtonProp = null // 바로 이동하므로 null
-
-
-
+            centerButtonProp = null, // 바로 이동하므로 null
+            onFABClick = { saveLinkEntryTriggered = true }
         ) {
 
             val app = LocalContext.current.applicationContext
@@ -620,7 +614,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentNavigationItem = NavigationItem.HOME
+                            currentLinkuNavigationItem = LinkuNavigationItem.HOME
                         }
                         //FinishHandler()
 
@@ -632,7 +626,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentNavigationItem = NavigationItem.FILE
+                            currentLinkuNavigationItem = LinkuNavigationItem.FILE
                         }
                         //FinishHandler()
                         FileApp(
@@ -646,7 +640,7 @@ fun MainApp(
 //                    setNavGraph {
 //                        LaunchedEffect(Unit) {
 //                            showNavBar = true
-//                            currentNavigationItem = NavigationItem.CURATION
+//                            currentLinkuNavigationItem = LinkuNavigationItem.CURATION
 //                        }
 //                        FinishHandler()
 //                        CurationScreen(
@@ -668,7 +662,7 @@ fun MainApp(
                     composable(NavigationRoute.Curation.route) { backStackEntry ->
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentNavigationItem = NavigationItem.CURATION
+                            currentLinkuNavigationItem = LinkuNavigationItem.CURATION
                         }
                         //FinishHandler()
 
@@ -677,7 +671,7 @@ fun MainApp(
                             navigator.getBackStackEntry("curation_graph")
                         }
                         //그래프 스코프의 VM (재컴포지션/탭 전환에도 동일 인스턴스 유지)
-                        val curationVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
+                        val curationVm: CurationViewModel = hiltViewModel(parentEntry)
 
                         CurationScreen(
                             viewModel = curationVm,
@@ -698,10 +692,10 @@ fun MainApp(
                         val parentEntry = remember(backStack) {
                             navigator.getBackStackEntry("curation_graph")
                         }
-                        val homeVm: com.example.curation.CurationViewModel = hiltViewModel(parentEntry)
+                        val homeVm: CurationViewModel = hiltViewModel(parentEntry)
 
                         // 디테일 VM은 "현재 destination(backStack)" 스코프에서 생성해야 함!
-                        val detailVm: com.example.curation.CurationDetailViewModel = hiltViewModel(backStack)
+                        val detailVm: CurationDetailViewModel = hiltViewModel(backStack)
 
                         CurationDetailScreen(
                             userId = userId,
@@ -717,7 +711,7 @@ fun MainApp(
 //                    setNavGraph {
 //                        LaunchedEffect(Unit) {
 //                            showNavBar = true
-//                            currentNavigationItem = NavigationItem.CURATION
+//                            currentLinkuNavigationItem = LinkuNavigationItem.CURATION
 //                        }
 //                        FinishHandler()
 //
@@ -769,7 +763,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentNavigationItem = NavigationItem.MY_PAGE
+                            currentLinkuNavigationItem = LinkuNavigationItem.MY_PAGE
                         }
                         //FinishHandler()
 
@@ -779,7 +773,7 @@ fun MainApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
                                 showNavBar = false  // 바텀바 끄기
-                                currentNavigationItem = null
+                                currentLinkuNavigationItem = null
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 navigator.navigate(NavigationRoute.Login.route) {
@@ -876,7 +870,7 @@ fun MainApp(
                             val fixed = if (url.startsWith("http")) url else "https://$url"
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
-                                Uri.parse(fixed)
+                                fixed.toUri()
                             )
                             context.startActivity(intent)
                         }.onFailure {
@@ -926,7 +920,7 @@ fun MainApp(
                     //   → 여기서는 머무르며 모달을 보여주고 로그인만 처리한다.
 
                     // ❷ showModal 안전하게 파싱
-                    val showModal = backStackEntry.arguments?.getBoolean("showModal") ?: false
+                    val showModal = backStackEntry.arguments?.getBoolean("showModal") == true
 
                     Log.d("MainApp", "showModal: $showModal")
 
@@ -1109,10 +1103,10 @@ fun MainApp(
 //}
 
 // 확장 함수: Context -> Activity
-fun android.content.Context.findActivity(): android.app.Activity? {
+fun Context.findActivity(): Activity? {
     var ctx = this
     while (ctx is android.content.ContextWrapper) {
-        if (ctx is android.app.Activity) return ctx
+        if (ctx is Activity) return ctx
         ctx = ctx.baseContext
     }
     return null
