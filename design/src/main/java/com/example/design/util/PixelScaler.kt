@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.sp
 * 기기의 비율에 맞게 스케일링 할 수 있는 클래스.
 * 확장 함수는 이 클래스가 정의된 스코프 내에서만 사용할 수 있음.
 * */
-data class PixelScaler(
+class PixelScaler(
     /*
     * baseWidth, baseHeight: 프로토타입 화면 크기 (ex: 피그마에 보이는 숫자)
     * maxWidth, maxHeight: 레이아웃이 갖는 크기
@@ -29,9 +29,9 @@ data class PixelScaler(
     // 더 적은 오차로 스케일링
     val scale = minOf(scaleW, scaleH)
 
-    // 레이아웃 크기에 사용하는 dp 단위 스케일링 확장 함수
+    // dp 단위 스케일링 확장 함수
     fun Dp.scaled() = this * scale
 
-    // 텍스트에 사용하는 sp 단위 스케일링 확장 함수
+    // sp 단위 스케일링 확장 함수
     fun TextUnit.scaled() = (this.value * scale).sp
 }

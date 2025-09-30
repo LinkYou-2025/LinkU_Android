@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.design.modifier.gradiantTint
+import com.example.design.modifier.gradientTint
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.linku_android.R
@@ -27,9 +27,9 @@ import com.example.linku_android.R
 @Composable
 fun LinkuNavigationBarFAB(
     /*
-    * onClicK: 링크 추가 버튼 클릭 시 링크 추가 페이지로 이동하는 콜백
+    * onClick: 링크 추가 버튼 클릭 시 링크 추가 페이지로 이동하는 콜백
     * */
-    onClicK: () -> Unit,
+    onClick: () -> Unit,
 ){
     // 클릭 상태를 추적하는 인스턴스
     val interactionSource = remember { MutableInteractionSource() }
@@ -41,7 +41,7 @@ fun LinkuNavigationBarFAB(
     IconButton(
         // TODO: 링크 추가 버튼 넣기, 클릭 시 그라데이션으로 색 바뀌어야 하나?
         // 클릭 시 링크 추가 페이지로 이동
-        onClick = onClicK,
+        onClick = onClick,
 
         // 클릭 상태 반영
         interactionSource = interactionSource,
@@ -69,7 +69,7 @@ fun LinkuNavigationBarFAB(
 
                 .run{
                     if(isPressed)
-                        gradiantTint(brush = Basic.maincolor)
+                        gradientTint(brush = Basic.maincolor)
                     else
                         this
                 },

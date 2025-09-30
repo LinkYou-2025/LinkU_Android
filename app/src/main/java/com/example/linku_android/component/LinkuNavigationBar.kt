@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.design.modifier.gradiantTint
+import com.example.design.modifier.gradientTint
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
 import com.example.design.theme.color.Basic
@@ -92,7 +92,7 @@ fun LinkuNavigationBar(
             when (item) {
                 // item이 null일 때(링크 추가 버튼일 때)
                 null -> CenterHole(
-                    onClicK = onFABClick
+                    onClick = onFABClick
                 )
 
                 // item이 홈, 파일, 큐레이션, 마이페이지일 때
@@ -175,7 +175,7 @@ private fun RowScope.NavItem(
                 // 선택된 아이템은 메인 그라데이션 색
                 .run{
                     if(selected)
-                        gradiantTint(brush = Basic.maincolor)
+                        gradientTint(brush = Basic.maincolor)
                     else
                         this
                 },
@@ -213,9 +213,9 @@ private fun RowScope.NavItem(
 @Composable
 private fun RowScope.CenterHole(
     /*
-    * onClicK: 링크 추가 버튼 클릭 시 링크 추가 페이지로 이동하는 콜백
+    * onClick: 링크 추가 버튼 클릭 시 링크 추가 페이지로 이동하는 콜백
     * */
-    onClicK: () -> Unit,
+    onClick: () -> Unit,
 ) {
     // 링크 추가 버튼을 덮어쓸 공간
     Box(
@@ -231,7 +231,7 @@ private fun RowScope.CenterHole(
         contentAlignment = Alignment.Center,
     ) {
         // 버튼 컴포넌트
-        LinkuNavigationBarFAB( onClicK = onClicK )
+        LinkuNavigationBarFAB( onClick = onClick )
     }
 }
 
