@@ -18,7 +18,7 @@ import com.example.core.repository.UserRepository
 import com.example.data.preference.AuthPreference
 import com.example.data.util.DomainIdMapper
 import com.example.data.util.toCategoryColorStyleMap
-import com.example.design.FastSearchItem
+import com.example.design.top.search.FastSearchItem
 import com.example.design.theme.color.CategoryColorStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
