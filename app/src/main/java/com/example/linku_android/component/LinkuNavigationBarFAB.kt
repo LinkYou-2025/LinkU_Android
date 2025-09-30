@@ -13,54 +13,75 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.design.modifier.gradiantTint
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.color.Basic
 import com.example.linku_android.R
 
+/*
+* 내비게이션 바 중앙에 들어갈 링크 추가 버튼 컴포넌트
+* */
 @Composable
 fun LinkuNavigationBarFAB(
-    onClicK: () -> Unit = {},
+    /*
+    * onClicK: 링크 추가 버튼 클릭 시 링크 추가 페이지로 이동하는 콜백
+    * */
+    onClicK: () -> Unit,
 ){
-
+    // 클릭 상태를 추적하는 인스턴스
     val interactionSource = remember { MutableInteractionSource() }
+
+    // 클릭된 상태를 받는 Boolean
     val isPressed by interactionSource.collectIsPressedAsState()
 
+    // 링크 추가 버튼
     IconButton(
         // TODO: 링크 추가 버튼 넣기, 클릭 시 그라데이션으로 색 바뀌어야 하나?
-        onClick = { onClicK() },
+        // 클릭 시 링크 추가 페이지로 이동
+        onClick = onClicK,
+
+        // 클릭 상태 반영
         interactionSource = interactionSource,
+
         modifier = Modifier
             .width(57.6.dp)
             .height(48.dp)
+
+            // 둥근 모서리에 Gray100 색을 적용한 배경
             .background(
-                LocalColorTheme.current.gray[100],
+                color = LocalColorTheme.current.gray[100],
                 shape = RoundedCornerShape(14.dp)
             ),
     ) {
+        // 더하기 아이콘
         Icon(
             painter = painterResource(id = R.drawable.ic_plus),
-            contentDescription = "FAB 더하기 이미지",
+
+            contentDescription = "링큐 추가 버튼 더하기 아이콘",
+
             modifier = Modifier
+
+                // 전체의 20/57 넓이를 차지
                 .fillMaxSize(20f/57f)
-                .graphicsLayer(alpha = 0.99f)
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        if (isPressed) {
-                            drawRect(
-                                brush = Basic.maincolor,
-                                blendMode = BlendMode.SrcIn
-                            )
-                        }
-                    }
+
+                .run{
+                    if(isPressed)
+                        gradiantTint(brush = Basic.maincolor)
+                    else
+                        this
                 },
+
+            // 아이콘 Gray400으로 색칠
             tint = LocalColorTheme.current.gray[400],
         )
     }
+}
 
+@Preview
+@Composable
+private fun PreviewLinkuNavigationBarFAB(){
+    LinkuNavigationBarFAB{}
 }

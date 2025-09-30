@@ -39,7 +39,7 @@ import com.example.design.theme.ThemeProvider
 import com.example.home.HomeViewModel
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
-import com.example.linku_android.component.LinkuNavigationItem
+import com.example.linku_android.navigation.LinkuNavigationItem
 
 //import com.example.login.LoginScreen
 import com.example.mypage.MyPageApp
