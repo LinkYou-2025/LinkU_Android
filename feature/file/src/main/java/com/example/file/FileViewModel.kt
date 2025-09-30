@@ -24,7 +24,7 @@ import com.example.core.repository.UserRepository
 import com.example.data.api.dto.server.*
 import com.example.data.preference.AuthPreference
 import com.example.data.util.DomainIdMapper
-import com.example.design.FastSearchItem
+import com.example.design.top.search.FastSearchItem
 import com.example.design.theme.color.CategoryColorStyle
 import com.example.data.util.toCategoryColorStyleMap
 import dagger.hilt.android.lifecycle.HiltViewModel
