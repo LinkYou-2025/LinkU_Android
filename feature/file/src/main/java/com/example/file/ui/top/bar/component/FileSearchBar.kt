@@ -4,6 +4,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,8 +31,8 @@ fun FileSearchBar() {
     // 검색창 전체 바탕(틀)
     Surface(
         modifier = Modifier
-            // 가로 360dp, 세로 48dp로 전체 크기 지정
-            .size(width = 360.dp, height = 48.dp),
+            .fillMaxWidth()
+            .height(48.dp),
 
         // 배경색 (투명)
         color = Color.Transparent,

@@ -36,7 +36,6 @@ import com.example.core.repository.CurationRepository
 interface SplashDeps {
     fun sessionStore(): SessionStore
     fun authPreference(): AuthPreference
-    //fun curationRepository(): CurationRepository
 }
 
 @Composable
