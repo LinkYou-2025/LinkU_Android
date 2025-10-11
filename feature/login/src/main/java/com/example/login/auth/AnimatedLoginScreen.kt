@@ -1,7 +1,5 @@
 package com.example.login.auth
 
-
-
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -15,134 +13,107 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import kotlinx.coroutines.launch
 
+/**
+ * 링큐 로그인 애니메이션 효과와 약관 동의(모달 시트) 추가한 화면임.
+ * - 로그인 화면에 애니메이션 효과 적용
+ * - 회원가입 클릭 시 약관 동의 모달(BottomSheet) 표시
+ * - 약관 동의 상태 및 네비게이션 처리 포함
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimatedLoginScreen(
-    navigator: NavHostController,
-    onSignUpClick: () -> Unit = {}
-
+    navigator: NavHostController
 ) {
-
-    LaunchedEffect(Unit) { println("AnimatedLoginScreen Loaded") }
-
+    // 애니메이션 상태 정의
     val logoOffset = remember { Animatable(40f) }
     val contentAlpha = remember { Animatable(0f) }
-
-    // Color Animatable
     val colorConverter = TwoWayConverter<Color, AnimationVector4D>(
         convertToVector = { c -> AnimationVector4D(c.red, c.green, c.blue, c.alpha) },
         convertFromVector = { v -> Color(v.v1, v.v2, v.v3, v.v4) }
     )
     val emailButtonColor = remember { Animatable(Color(0x66FFFFFF), colorConverter) }
 
-    val showTermsSheet = remember { mutableStateOf(false) }
+    // 약관 동의 모달 상태
+    var showTermsSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // ✅ 체크 상태 (BottomSheet/상세 약관 왕복에 사용)
-    val agreeTerms = remember { mutableStateOf(false) }
-    val agreePrivacy = remember { mutableStateOf(false) }
-    val agreeMarketing = remember { mutableStateOf(false) }
+    // 약관 동의 체크 상태
+    var agreeTerms by remember { mutableStateOf(false) }
+    var agreePrivacy by remember { mutableStateOf(false) }
+    var agreeMarketing by remember { mutableStateOf(false) }
 
-    // ✅ 약관 상세에서 popBackStack()으로 돌아올 때 결과 수신 (일회성)
+    // 네비게이션 결과 처리 (약관 상세에서 돌아올 때 체크 반영)
     val backStackEntry by navigator.currentBackStackEntryAsState()
     LaunchedEffect(backStackEntry) {
         backStackEntry?.savedStateHandle?.get<Boolean>("agree_terms")?.let {
-            if (it) agreeTerms.value = true
+            if (it) agreeTerms = true
             backStackEntry?.savedStateHandle?.remove<Boolean>("agree_terms")
         }
         backStackEntry?.savedStateHandle?.get<Boolean>("agree_privacy")?.let {
-            if (it) agreePrivacy.value = true
+            if (it) agreePrivacy = true
             backStackEntry?.savedStateHandle?.remove<Boolean>("agree_privacy")
         }
         backStackEntry?.savedStateHandle?.get<Boolean>("agree_marketing")?.let {
-            if (it) agreeMarketing.value = true
+            if (it) agreeMarketing = true
             backStackEntry?.savedStateHandle?.remove<Boolean>("agree_marketing")
         }
     }
 
-    // 애니메이션 시퀀스
-    // 애니메이션만
+    // 애니메이션 실행 (로고 이동, 투명도 변화)
     LaunchedEffect(Unit) {
         launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
         launch { contentAlpha.animateTo(1f, tween(400)) }
-        //이메일로 로그인하기 버튼 애니메이션 끔.
-//        emailButtonColor.animateTo(Color.White, tween(500))
-//        delay(1000)
-//        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
     }
-//    LaunchedEffect(Unit) {
-//        launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
-//        launch { contentAlpha.animateTo(1f, tween(400)) }
-//        emailButtonColor.animateTo(Color.White, tween(500))
-//        delay(1000)
-//        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
-//    }
 
-    // 로그인 화면 1번만 렌더, 회원가입 클릭은 콜백으로 위로 올림
-    LoginScreen(
-        navigator = navigator,
-        logoOffsetY = logoOffset.value,
-        contentAlpha = contentAlpha.value,
-        emailButtonColor = emailButtonColor.value,
-        onSignUpClick = onSignUpClick
-    )
-
+    // 로그인 화면: 회원가입 클릭 시 모달 오픈
     Box(modifier = Modifier.fillMaxSize()) {
         LoginScreen(
             navigator = navigator,
             logoOffsetY = logoOffset.value,
             contentAlpha = contentAlpha.value,
             emailButtonColor = emailButtonColor.value,
-            onSignUpClick = { showTermsSheet.value = true }
+            onSignUpClick = { showTermsSheet = true } // 회원가입 클릭 시 모달 표시
         )
 
-        if (showTermsSheet.value) {
+        // 약관 동의 모달 (BottomSheet)
+        if (showTermsSheet) {
             ModalBottomSheet(
-                onDismissRequest = { showTermsSheet.value = false },
+                onDismissRequest = { showTermsSheet = false },
                 sheetState = sheetState,
                 containerColor = Color.White,
                 scrimColor = Color.Black.copy(alpha = 0.5f)
             ) {
-                val nextEnabled = (agreeTerms.value && agreePrivacy.value) ||
-                        (agreeTerms.value && agreePrivacy.value && agreeMarketing.value)
-
                 TermsAgreementContent(
-                    agreeTerms = agreeTerms.value,
-                    agreePrivacy = agreePrivacy.value,
-                    agreeMarketing = agreeMarketing.value,
-                    onAgreeTermsChange = { agreeTerms.value = it },
-                    onAgreePrivacyChange = { agreePrivacy.value = it },
-                    onAgreeMarketingChange = { agreeMarketing.value = it },
-
-                    // ✅ 누르면 시트 닫고 상세 약관으로 이동
+                    agreeTerms = agreeTerms,
+                    agreePrivacy = agreePrivacy,
+                    agreeMarketing = agreeMarketing,
+                    onAgreeTermsChange = { agreeTerms = it },
+                    onAgreePrivacyChange = { agreePrivacy = it },
+                    onAgreeMarketingChange = { agreeMarketing = it },
                     onClickTerms = {
-                        showTermsSheet.value = false
+                        showTermsSheet = false
                         navigator.navigate("terms/service")
                     },
                     onClickPrivacy = {
-                        showTermsSheet.value = false
+                        showTermsSheet = false
                         navigator.navigate("terms/privacy")
                     },
                     onClickMarketing = {
-                        showTermsSheet.value = false
+                        showTermsSheet = false
                         navigator.navigate("terms/marketing")
                     },
-
-                    onDismissRequest = { showTermsSheet.value = false },
-
-                    // ✅ 필수 2개가 true면 바로 이메일 인증으로, 아니면 부족한 필수 약관부터 열기
+                    onDismissRequest = { showTermsSheet = false },
                     onNextClicked = { terms, privacy, _ ->
+                        showTermsSheet = false
                         if (terms && privacy) {
-                            showTermsSheet.value = false
                             navigator.navigate("email_verification")
                         } else {
-                            // 부족한 필수 먼저 유도
-                            showTermsSheet.value = false
                             if (!terms) {
                                 navigator.navigate("terms/service")
                             } else if (!privacy) {
@@ -155,166 +126,17 @@ fun AnimatedLoginScreen(
         }
     }
 }
-//
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun AnimatedLoginScreen(navigator: NavHostController) {
-//
-//    LaunchedEffect(Unit) {
-//        println("AnimatedLoginScreen Loaded")
-//    }
-//
-//    val logoOffset = remember { Animatable(40f) }
-//    val contentAlpha = remember { Animatable(0f) }
-//
-//    // 명시적으로 TwoWayConverter 정의
-//    val colorConverter = TwoWayConverter<Color, AnimationVector4D>(
-//        convertToVector = { color -> AnimationVector4D(color.red, color.green, color.blue, color.alpha) },
-//        convertFromVector = { vector -> Color(vector.v1, vector.v2, vector.v3, vector.v4) }
-//    )
-//
-//    // 타입을 명시적으로 지정하여 오류 해결
-//    val emailButtonColor = remember { Animatable(Color(0x66FFFFFF), colorConverter) }
-//
-//    val showTermsSheet = remember { mutableStateOf(false) }
-//    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-//
-//    val agreeTerms = remember { mutableStateOf(false) }
-//    val agreePrivacy = remember { mutableStateOf(false) }
-//    val agreeMarketing = remember { mutableStateOf(false) }
-//
-//    // 애니메이션 시퀀스
-//    LaunchedEffect(Unit) {
-//        launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
-//        launch { contentAlpha.animateTo(1f, tween(400)) }
-//
-//        emailButtonColor.animateTo(Color.White, tween(500))
-//        delay(1000)
-//        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
-//    }
-//
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        LoginScreen(
-//            navigator = navigator,
-//            logoOffsetY = logoOffset.value,
-//            contentAlpha = contentAlpha.value,
-//            emailButtonColor = emailButtonColor.value,
-//            onSignUpClick = { showTermsSheet.value = true }
-//        )
-//
-//        if (showTermsSheet.value) {
-//            ModalBottomSheet(
-//                onDismissRequest = { showTermsSheet.value = false },
-//                sheetState = sheetState,
-//                containerColor = Color.White,
-//                scrimColor = Color.Black.copy(alpha = 0.5f)
-//            ) {
-//                TermsAgreementContent(
-//                    agreeTerms = agreeTerms.value,
-//                    agreePrivacy = agreePrivacy.value,
-//                    agreeMarketing = agreeMarketing.value,
-//                    onAgreeTermsChange = { agreeTerms.value = it },
-//                    onAgreePrivacyChange = { agreePrivacy.value = it },
-//                    onAgreeMarketingChange = { agreeMarketing.value = it },
-//                    onDismissRequest = { showTermsSheet.value = false },
-//                    onNextClicked = { terms, privacy, marketing ->
-//                        showTermsSheet.value = false
-//                        println("다음 단계 이동 → 필수: $terms, $privacy | 선택: $marketing")
-//                        if (terms && privacy) {
-//                            navigator.navigate("terms/service")
-//                        }
-//                    }
-//                )
-//            }
-//        }
-//    }
-//}
 
-//import androidx.compose.animation.core.Animatable
-//import androidx.compose.animation.core.AnimationVector4D
-//import androidx.compose.animation.core.FastOutSlowInEasing
-//import androidx.compose.animation.core.tween
-//import androidx.compose.foundation.layout.Box
-//import androidx.compose.foundation.layout.fillMaxSize
-//import androidx.compose.material3.*
-//import androidx.compose.runtime.*
-//import androidx.compose.ui.Modifier
-//import androidx.compose.ui.graphics.Color
-//import androidx.navigation.NavHostController
-//import kotlinx.coroutines.delay
-//import kotlinx.coroutines.launch
+/**
+ * AnimatedLoginScreen의 Preview용 더미 NavController를 사용한 프리뷰 함수입니다.
+ * -> 여기는 사실 의미 없음. 혹시 몰라 프리뷰 남김.
+ */
+@Preview(showBackground = true)
+@Composable
+fun AnimatedLoginScreenPreview() {
+    val dummyNavController = rememberNavController()
+    AnimatedLoginScreen(navigator = dummyNavController)
+}
 
 
-//@OptIn(ExperimentalMaterial3Api::class)
-//@Composable
-//fun AnimatedLoginScreen(navigator: NavHostController){
-//
-//    LaunchedEffect(Unit) {
-//        println("AnimatedLoginScreen Loaded")
-//    }
-//    val logoOffset = remember { Animatable(40f) }
-//    val contentAlpha = remember { Animatable(0f) }
-//
-//    val emailButtonColor = remember {
-//        Animatable(Color(0x66FFFFFF), typeConverter = androidx.compose.animation.core.TwoWayConverter(
-//            convertToVector = { color -> AnimationVector4D(color.red, color.green, color.blue, color.alpha) },
-//            convertFromVector = { vector -> Color(vector.v1, vector.v2, vector.v3, vector.v4) }
-//        ))
-//    }
-//
-//    val showTermsSheet = remember { mutableStateOf(false) }
-//    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-//
-//    //  상태 remember
-//    val agreeTerms = remember { mutableStateOf(false) }
-//    val agreePrivacy = remember { mutableStateOf(false) }
-//    val agreeMarketing = remember { mutableStateOf(false) }
-//
-//    LaunchedEffect(Unit) {
-//        launch {
-//            logoOffset.animateTo(0f, tween(durationMillis = 400, easing = FastOutSlowInEasing))
-//        }
-//        launch {
-//            contentAlpha.animateTo(1f, tween(durationMillis = 400))
-//        }
-//        emailButtonColor.animateTo(Color.White, tween(500))
-//        delay(1000)
-//        emailButtonColor.animateTo(Color(0x66FFFFFF), tween(500))
-//    }
-//
-//    Box(modifier = Modifier.fillMaxSize()) {
-//        LoginScreen(
-//            navigator = navigator,
-//            logoOffsetY = logoOffset.value,
-//            contentAlpha = contentAlpha.value,
-//            emailButtonColor = emailButtonColor.value,
-//            onSignUpClick = { showTermsSheet.value = true }
-//        )
-//
-//        if (showTermsSheet.value) {
-//            ModalBottomSheet(
-//                onDismissRequest = { showTermsSheet.value = false },
-//                sheetState = sheetState,
-//                containerColor = Color.White,
-//                scrimColor = Color.Black.copy(alpha = 0.5f)
-//            ) {
-//                TermsAgreementContent(
-//                    agreeTerms = agreeTerms.value,
-//                    agreePrivacy = agreePrivacy.value,
-//                    agreeMarketing = agreeMarketing.value,
-//                    onAgreeTermsChange = { agreeTerms.value = it },
-//                    onAgreePrivacyChange = { agreePrivacy.value = it },
-//                    onAgreeMarketingChange = { agreeMarketing.value = it },
-//                    onDismissRequest = { showTermsSheet.value = false },
-//                    onNextClicked = { terms, privacy, marketing ->
-//                        showTermsSheet.value = false
-//                        println("다음 단계로 이동 → 필수: $terms, $privacy | 선택: $marketing")
-//                        if (terms && privacy) {
-//                            navigator.navigate("terms/service")
-//                        }
-//                    }
-//                )
-//            }
-//        }
-//    }
-//}
+
