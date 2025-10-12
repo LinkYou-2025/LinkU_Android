@@ -93,8 +93,6 @@ import com.example.curation.CurationDetailViewModel
 fun MainApp(
     viewModel: MainViewModel,
 ) {
-
-
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     LaunchedEffect(Unit) {
         viewModel.clearRecentQuery()
@@ -105,7 +103,7 @@ fun MainApp(
 
 
     // 회원가입에서 사용할 뷰모델
-    val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
+    val signUpViewModel: SignUpViewModel = hiltViewModel()
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
@@ -152,12 +150,12 @@ fun MainApp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
 //                    if (item != currentLinkuNavigationItem) {
-                        val route = when (item) {
-                            LinkuNavigationItem.HOME -> NavigationRoute.Home.route
-                            LinkuNavigationItem.FILE -> NavigationRoute.File.route
-                            LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
-                            LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
-                        }
+                    val route = when (item) {
+                        LinkuNavigationItem.HOME -> NavigationRoute.Home.route
+                        LinkuNavigationItem.FILE -> NavigationRoute.File.route
+                        LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
+                        LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                    }
 //                        navigator.navigate(route) {
 //                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
 //                            popUpTo(navigator.graph.findStartDestination().id) {
@@ -174,7 +172,7 @@ fun MainApp(
 
 
                         // 현재 화면의 route
-                        val currentRoute = navigator.currentBackStackEntry?.destination?.route
+                    val currentRoute = navigator.currentBackStackEntry?.destination?.route
 
 //                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
 //                        if (currentRoute != route) {
@@ -987,6 +985,72 @@ fun MainApp(
 
                 // TODO: 앱 링크 처리
                 // 링크 공유 앱링크
+                composable(
+                    route = "open?action={action}&folderId={folderId}",
+                    arguments = listOf(
+                        navArgument("action") { type = NavType.StringType; nullable = true },
+                        navArgument("folderId") { type = NavType.LongType; nullable = false },
+                    ),
+                    deepLinks = listOf(
+                        // 앱링크
+                        navDeepLink {
+                            uriPattern = "https://linkuserver.store/open?action={action}&folderId={folderId}"
+                        },
+                        // 쿼리 순서가 바뀌는 경우까지 허용
+                        navDeepLink {
+                            uriPattern = "https://linkuserver.store/open?folderId={folderId}&action={action}"
+                        }
+                    )
+                ) { backStackEntry ->
+                    val action = backStackEntry.arguments?.getString("action")
+                    val folderId = backStackEntry.arguments?.getLong("folderId")
+
+                    Log.d("MainApp", "action: $action, folderId: $folderId")
+
+                    // 딱 한 번만 실행되게 LaunchedEffect 사용
+                    LaunchedEffect(action, folderId) {
+                        Log.d("MainApp", "LaunchedEffect 실행")
+
+                        if (action == "share" && folderId != null) {
+                            Log.d("MainApp", "파일 화면으로 이동")
+
+                            // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
+                            try{
+                                Log.d("MainApp", "파일 화면으로 이동")
+
+                                // 공유 받는 폴더 처리
+                                fileViewModel.receiveSharedFolder(folderId)
+
+                                Log.d("MainApp", "공유 받는 폴더 처리 완료")
+
+                                // 파일 항목의 탑 바에 공유 받은 폴더 클릭 시와 같은 콜백
+                                fileViewModel.getSharedFolders()
+                                folderStateViewModel.updateIsSharedFolders(true)
+
+                                Log.d("MainApp", "공유 받은 폴더 목록 및 상태 갱신 완료")
+
+                                // 파일 화면으로 이동
+                                navigator.navigate(NavigationRoute.File.route) {
+                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+                            }catch (e: Exception/*UserIdNullException*/) {
+                                Log.e("MainApp", "Exception 발생: $e")
+                                // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
+                                deepLinkViewModel.setPendingShare(folderId)
+                                navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {
+                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+                                    launchSingleTop = true
+                                }
+//                                navigator.navigate(NavigationRoute.Login.route) {
+//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+//                                    launchSingleTop = true
+//                                }
+                            }
+                        }
+                    }
+                }
+
                 composable(
                     route = "open?action={action}&folderId={folderId}",
                     arguments = listOf(
