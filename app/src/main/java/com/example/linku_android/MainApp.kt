@@ -983,7 +983,7 @@ fun MainApp(
 
 
 
-                // TODO: 앱 링크 처리
+                // TODO: 앱이 꺼져 있을 때 호출 시, 폴더 공유 받기보다 공유 받은 폴더 띄우기가 먼저인 흐름 수정.
                 // 링크 공유 앱링크
                 composable(
                     route = "open?action={action}&folderId={folderId}",
@@ -1050,67 +1050,6 @@ fun MainApp(
                         }
                     }
                 }
-
-                composable(
-                    route = "open?action={action}&folderId={folderId}",
-                    arguments = listOf(
-                        navArgument("action") { type = NavType.StringType; nullable = true },
-                        navArgument("folderId") { type = NavType.LongType; nullable = false },
-                    ),
-                    deepLinks = listOf(
-                        // 앱링크
-                        navDeepLink { uriPattern = "linku://open?action={action}&folderId={folderId}" }
-                    )
-                ) { backStackEntry ->
-                    val action = backStackEntry.arguments?.getString("action")
-                    val folderId = backStackEntry.arguments?.getLong("folderId")
-
-                    Log.d("MainApp", "action: $action, folderId: $folderId")
-
-                    // 딱 한 번만 실행되게 LaunchedEffect 사용
-                    LaunchedEffect(action, folderId) {
-                        Log.d("MainApp", "LaunchedEffect 실행")
-
-                        if (action == "share" && folderId != null) {
-                            Log.d("MainApp", "파일 화면으로 이동")
-
-                            // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
-                            try{
-                                Log.d("MainApp", "파일 화면으로 이동")
-
-                                // 공유 받는 폴더 처리
-                                fileViewModel.receiveSharedFolder(folderId)
-
-                                Log.d("MainApp", "공유 받는 폴더 처리 완료")
-
-                                // 파일 항목의 탑 바에 공유 받은 폴더 클릭 시와 같은 콜백
-                                fileViewModel.getSharedFolders()
-                                folderStateViewModel.updateIsSharedFolders(true)
-
-                                Log.d("MainApp", "공유 받은 폴더 목록 및 상태 갱신 완료")
-
-                                // 파일 화면으로 이동
-                                navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-                                    launchSingleTop = true
-                                }
-                            }catch (e: Exception/*UserIdNullException*/) {
-                                Log.e("MainApp", "Exception 발생: $e")
-                                // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
-                                deepLinkViewModel.setPendingShare(folderId)
-                                navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {
-                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-                                    launchSingleTop = true
-                                }
-//                                navigator.navigate(NavigationRoute.Login.route) {
-//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-//                                    launchSingleTop = true
-//                                }
-                            }
-                        }
-                    }
-                }
-
             }
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
