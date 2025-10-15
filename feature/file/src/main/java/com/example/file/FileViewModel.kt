@@ -1034,7 +1034,7 @@ class FileViewModel @Inject constructor(
     fun shareFolder(folderId: Long):String{
         Log.d("FileViewModel", "shareFolder")
 
-        return "linku://open?action=share&folderId=$folderId"
+        return "https://linkuserver.store/open?action=share&folderId=$folderId"
     }
 
     // 폴더 공유 받기
