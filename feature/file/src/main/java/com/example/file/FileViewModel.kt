@@ -50,6 +50,7 @@ class FileViewModel @Inject constructor(
     private val aiArticleRepository: AIArticleRepository,
 ) : ViewModel() {
 
+    // ---------- field ----------
     // *닉네임*
     private val _nickname = MutableStateFlow<String?>(null)
     val nickname: StateFlow<String?> = _nickname.asStateFlow()
@@ -61,19 +62,19 @@ class FileViewModel @Inject constructor(
     private val _sharedBottomFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val sharedBottomFolders: StateFlow<List<FolderSimpleInfo>> = _sharedBottomFolders.asStateFlow()
 
-    // 1. 카테고리 리스트
+    // 카테고리 리스트
     private val _categoryList = MutableStateFlow<List<CategoryColorList>>(emptyList())
     val categoryList: StateFlow<List<CategoryColorList>> = _categoryList.asStateFlow()
 
-    // 1-1. 색깔 리스트
+    // 색깔 리스트
     private val _categoryColorMap = MutableStateFlow<Map<String, CategoryColorStyle>>(emptyMap())
     val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
 
-    // 2. 내 폴더 트리
+    // 내 폴더 트리
     private val _folderTree = MutableStateFlow<List<FolderTreeResponseDTO>>(emptyList())
     val folderTree: StateFlow<List<FolderTreeResponseDTO>> = _folderTree.asStateFlow()
 
-    // 3. 상위 폴더 리스트
+    // 상위 폴더 리스트
     private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     // 매번 북마크 우선 정렬
     val parentFolders: StateFlow<List<FolderSimpleInfo>> =
@@ -87,39 +88,39 @@ class FileViewModel @Inject constructor(
                 initialValue = emptyList()
             )
 
-    // 4. 하위 폴더 리스트
+    // 하위 폴더 리스트
     private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val subFolders: StateFlow<List<FolderSimpleInfo>> = _subFolders.asStateFlow()
 
     private val _shareBottomSheetSubFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val shareBottomSheetSubFolders: StateFlow<List<FolderSimpleInfo>> = _shareBottomSheetSubFolders.asStateFlow()
 
-    // 4-1. 하위 폴더 요청 커서
+    // 하위 폴더 요청 커서
     private val _subFoldersCursor = MutableStateFlow<String?>(null)
     val subFoldersCursor: StateFlow<String?> = _subFoldersCursor.asStateFlow()
 
-    // 5. 링크 리스트
+    // 링크 리스트
     private val _links = MutableStateFlow<List<LinkItemInfo>>(emptyList())
     val links: StateFlow<List<LinkItemInfo>> = _links.asStateFlow()
 
-    // 5-1. 분류되지않은 링크 리스트
+    // 분류되지않은 링크 리스트
     private val _notCategorizationLinks = MutableStateFlow<List<LinkItemInfo>>(emptyList())
     val notCategorizationLinks: StateFlow<List<LinkItemInfo>> = _notCategorizationLinks.asStateFlow()
 
-    // 5-2. 누른 링크 정보
+    // 누른 링크 정보
     private val _linkDetail = MutableStateFlow<LinkResultInfo?>(null)
     val linkDetail: StateFlow<LinkResultInfo?> = _linkDetail.asStateFlow()
 
     private val _aiArticleDetail = MutableStateFlow<AiArticle?>(null)
     val aiArticleDetail: StateFlow<AiArticle?> = _aiArticleDetail.asStateFlow()
 
-    // 5-3. 링크 클릭 콜백
+    // 링크 클릭 콜백
     var onLinkClick: ((Long) -> Unit)? = null
     fun registeronLinkClick(callback: (Long) -> Unit) {
         onLinkClick = callback
     }
 
-    // 6. 로딩/에러 상태
+    // 로딩/에러 상태
     private val _loadingCount = MutableStateFlow(0)
 
     fun startLoading() {
@@ -130,14 +131,14 @@ class FileViewModel @Inject constructor(
         _loadingCount.update { count -> (count - 1).coerceAtLeast(0) }
     }
 
-    // 6-1. 로딩중
+    // 로딩중
     private val _loading = _loadingCount
         .map { it > 0 } // 카운트가 0보다 크면 true
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
     val loading: StateFlow<Boolean> = _loading
 
-    // 6-2. 에러 메시지
+    // 에러 메시지
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
@@ -154,6 +155,7 @@ class FileViewModel @Inject constructor(
 
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
+    // ---------- field ----------
 
 //    // ==== [카테고리 색상 불러오기 - HomeVM과 이름을 맞춘 alias] ====
 //    fun loadCategoryColors() = getCategoryColor()
@@ -748,6 +750,7 @@ class FileViewModel @Inject constructor(
         }
         Log.d("FileViewModel", "updateCategoryColor return")
     }
+
     // 북마크 등록/해제
     fun updateBookmark(
         folderId: Long,
@@ -1024,7 +1027,7 @@ class FileViewModel @Inject constructor(
             }
         }
     }
-        // ---------- delete method ----------
+    // ---------- delete method ----------
 
     // ---------- share method ----------
     // 폴더 공유하기
@@ -1215,8 +1218,8 @@ class FileViewModel @Inject constructor(
                 Log.d("FileViewModel", "removeRecentQuery catch: $e.message")
             }finally {
                 Log.d("FileViewModel", "removeRecentQuery finally")
-                }
             }
+        }
         Log.d("FileViewModel", "removeRecentQuery return")
     }
 
@@ -1238,7 +1241,7 @@ class FileViewModel @Inject constructor(
             }finally {
                 Log.d("FileViewModel", "clearRecentQuery finally")
             }
-            }
+        }
         Log.d("FileViewModel", "clearRecentQuery return")
     }
     // ---------- search method ----------
