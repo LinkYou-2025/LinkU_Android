@@ -140,9 +140,9 @@ fun LoginScreen(
                 Text(
                     "비밀번호 재설정",
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
                     fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable {
                         navigator.navigate("resetPassword")
                     }
@@ -151,9 +151,9 @@ fun LoginScreen(
                 Text(
                     "회원가입",
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 15.sp,
                     fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.Medium,
                     modifier = Modifier.clickable {
                         onSignUpClick()
 //                        navigator.navigate("terms_agreement") {
@@ -164,7 +164,7 @@ fun LoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(72.dp))
 
             // 간편 로그인 안내
             Row(

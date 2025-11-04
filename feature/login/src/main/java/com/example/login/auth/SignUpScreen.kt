@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.login.R
 import com.example.login.Paperlogy
-
+//어차피.. 수정되니까.. 리펙X
 @Preview(showBackground = true)
 @Composable
 fun PasswordResetScreen() {
@@ -134,8 +134,8 @@ fun PasswordResetScreen() {
                 text = "임시 비밀번호 받기",
                 color = Color.White,
                 fontFamily = Paperlogy,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

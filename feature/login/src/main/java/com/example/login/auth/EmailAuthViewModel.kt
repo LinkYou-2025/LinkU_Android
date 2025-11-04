@@ -64,7 +64,8 @@ class EmailAuthViewModel @Inject constructor(
     // ResponseBody → 서버에서 내려주는 JSON 중 "message" 키값만 안전하게 추출
     private fun ResponseBody.safeStringMessage(): String? = try {
         val s = string() // 전체 response body 문자열
-        JSONObject(s).optString("message", null)
+        val msg = JSONObject(s).optString("message", "")
+        if (msg.isBlank()) null else msg  // 빈 문자열이면 null로 처리
     } catch (_: Throwable) {
         null
     }
