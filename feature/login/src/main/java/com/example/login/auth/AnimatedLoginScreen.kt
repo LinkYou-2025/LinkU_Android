@@ -28,7 +28,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnimatedLoginScreen(
-    navigator: NavHostController
+    navigator: NavHostController,
+    onSignUpClick: () -> Unit
 ) {
     // 애니메이션 상태 정의
     val logoOffset = remember { Animatable(40f) }
@@ -78,7 +79,8 @@ fun AnimatedLoginScreen(
             logoOffsetY = logoOffset.value,
             contentAlpha = contentAlpha.value,
             emailButtonColor = emailButtonColor.value,
-            onSignUpClick = { showTermsSheet = true } // 회원가입 클릭 시 모달 표시
+            onSignUpClick = onSignUpClick
+            //onSignUpClick = { showTermsSheet = true } // 회원가입 클릭 시 모달 표시
         )
 
         // 약관 동의 모달 (BottomSheet)
@@ -135,7 +137,10 @@ fun AnimatedLoginScreen(
 @Composable
 fun AnimatedLoginScreenPreview() {
     val dummyNavController = rememberNavController()
-    AnimatedLoginScreen(navigator = dummyNavController)
+    AnimatedLoginScreen(
+        navigator = dummyNavController,
+        onSignUpClick = {} // ✅ 미리보기용 빈 람다 전달
+    )
 }
 
 

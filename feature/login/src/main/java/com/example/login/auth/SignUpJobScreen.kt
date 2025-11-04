@@ -37,7 +37,9 @@ fun SignUpJobScreen(
     val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
     val isButtonEnabled = selectedJobIndex != null
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(Color.White)) {
 
         // ✅ 닉네임/성별과 동일한 바텀 패딩 계산
         val density = LocalDensity.current
@@ -120,94 +122,6 @@ fun SignUpJobScreen(
         }
     }
 }
-//@Composable
-//fun SignUpJobScreen(
-//    navigator: NavHostController,
-//    signUpViewModel: SignUpViewModel = hiltViewModel()
-//) {
-//    // 선택된 직업 인덱스 (1부터 시작)
-//    var selectedJobIndex by remember { mutableStateOf<Int?>(null) }
-//
-//    val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
-//
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .padding(
-//                start = 20.dp,
-//                end = 20.dp,
-//                top = 52.dp,   // ⬆️ 위쪽만 52
-//                bottom = 40.dp // ⬇️ 아래는 40 유지
-//            ),
-//
-//
-//
-//                //.padding(horizontal = 20.dp, vertical = 40.dp),
-//        horizontalAlignment = Alignment.Start
-//    ) {
-//        ProfileStepIndicator()
-//
-//        Spacer(modifier = Modifier.height(32.dp))
-//
-//        Text(
-//            text = "현재 하고 계신 일이나\n활동을 알려주세요",
-//            fontSize = 22.sp,
-//            fontFamily = Paperlogy,
-//            fontWeight = FontWeight.Bold,
-//            color = Color.Black,
-//            textAlign = TextAlign.Start
-//        )
-//
-//        Spacer(modifier = Modifier.height(32.dp))
-//
-//        // 직업 목록 버튼
-//        jobs.forEachIndexed { index, job ->
-//            JobOptionButton(
-//                text = job,
-//                isSelected = selectedJobIndex == index,
-//                onClick = { selectedJobIndex = index }
-//            )
-//            Spacer(modifier = Modifier.height(12.dp))
-//        }
-//
-//        Spacer(modifier = Modifier.weight(1f))
-//
-//        // 다음 버튼
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(bottom = 32.dp)
-//                .offset(y = -16.dp) // ✅ 위로 16 올림
-//                .height(48.dp)
-//                .background(
-//                    brush = Brush.horizontalGradient(
-//                        colors = if (selectedJobIndex != null)
-//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-//                        else
-//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-//                    ),
-//                    shape = RoundedCornerShape(24.dp)
-//                )
-//                .clickable(enabled = selectedJobIndex != null) {
-//                    // ViewModel에 선택된 직업 index 저장 (1부터 시작)
-//                    signUpViewModel.jobId = (selectedJobIndex ?: 0) + 1
-//
-//                    // 다음 화면으로 이동
-//                    navigator.navigate("sign_up_purpose") // 다음 라우트에 맞게 수정
-//                },
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                text = "다음",
-//                fontFamily = Paperlogy,
-//                color = Color.White,
-//                fontSize = 16.sp,
-//                fontWeight = FontWeight.Bold
-//            )
-//        }
-//        Spacer(modifier = Modifier.height(32.dp))
-//    }
-//}
 
 @Composable
 fun JobOptionButton(
@@ -241,7 +155,8 @@ fun JobOptionButton(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .padding(start = 16.dp, end = 16.dp),
+                    //.padding(horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -250,7 +165,8 @@ fun JobOptionButton(
                     text = text,
                     fontSize = 13.sp,
                     fontFamily = Paperlogy,
-                    color = Color.Black
+                    color = Color.Black,
+                    fontWeight = FontWeight.Medium
                 )
 
                 // 선택되었을 경우 체크 박스 표시
@@ -274,14 +190,83 @@ fun JobOptionButton(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SignUpJobScreenPreview() {
-//    val fakeNavController = rememberNavController()
-//    val fakeViewModel = remember { SignUpViewModel() }
-//
-//    SignUpJobScreen(
-//        navigator = fakeNavController,
-//        signUpViewModel = fakeViewModel
-//    )
-//}
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFF5F6F9,
+    name = "직업 선택 전체 화면"
+)
+@Composable
+fun SignUpJobScreenPreview() {
+    val fakeNavController = rememberNavController()
+    SignUpJobScreenPreviewOnly(navigator = fakeNavController)
+}
+
+
+//ui 확인용. 철저히 프리뷰용.
+@Composable
+private fun SignUpJobScreenPreviewOnly(navigator: NavHostController) {
+    var selectedJobIndex by remember { mutableStateOf(2) } // "직장인" 선택 예시
+    val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
+    val isButtonEnabled = selectedJobIndex != null
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 20.dp, end = 20.dp, top = 52.dp, bottom = 72.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            ProfileStepIndicator()
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "현재 하고 계신 일이나\n활동을 알려주세요",
+                fontSize = 22.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            jobs.forEachIndexed { index, job ->
+                JobOptionButton(
+                    text = job,
+                    isSelected = selectedJobIndex == index,
+                    onClick = { selectedJobIndex = index }
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        // 하단 버튼
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+                .height(48.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = if (isButtonEnabled)
+                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        else
+                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                    ),
+                    shape = RoundedCornerShape(18.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "다음",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy
+            )
+        }
+    }
+}
+

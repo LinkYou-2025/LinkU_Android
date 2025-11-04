@@ -980,7 +980,8 @@ fun MainApp(
                     }
 
                     // ❺ 실제 로그인 UI(AnimatedLoginScreen 등) 렌더링
-                    AnimatedLoginScreen(navigator = navigator)
+                   // AnimatedLoginScreen(navigator = navigator)
+                    AnimatedLoginScreen(navigator = navigator, onSignUpClick = {})
                 }
 
 

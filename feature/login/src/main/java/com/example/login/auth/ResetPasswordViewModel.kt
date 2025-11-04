@@ -1,6 +1,6 @@
 package com.example.login.auth
 
-//유저 비밀번호 재설정
+//유저 비밀번호 재설정 기능 수정으로 리펙X
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

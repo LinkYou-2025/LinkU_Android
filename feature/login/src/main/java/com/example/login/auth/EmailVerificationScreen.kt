@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -359,63 +360,101 @@ fun EmailVerificationScreenContent(
 @Composable
 fun StepIndicator() {
     val isPreview = LocalInspectionMode.current
+
     Column(horizontalAlignment = Alignment.Start) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.offset(x = 14.dp) // ✅ ProfileStepIndicator의 기준 오프셋 반영
+        ) {
+            // 1️⃣ 1번 활성 원
             Box(
                 modifier = Modifier
-                    .padding(start = 8.dp)
-                    .size(28.dp)
+                    .size(30.dp) // ✅ ProfileStepIndicator 크기 통일
                     .background(Color(0xFFCB59EB), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "1",
                     color = Color.White,
-                    fontSize = 13.sp,
+                    fontSize = 16.sp,
                     fontFamily = Paperlogy,
                     fontWeight = FontWeight.Bold
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
+
+            Spacer(modifier = Modifier.width(6.dp)) // ✅ 8dp → 6dp, 균형 조정
+
+            // 🔹 연결 점선 (3개)
             repeat(3) {
                 Box(
-                    modifier = Modifier.size(4.dp).background(Color(0xFFD6D6D6), CircleShape)
+                    modifier = Modifier
+                        .size(4.2.dp)
+                        .background(Color(0xFFD6D6D6), CircleShape)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(3.dp))
             }
-            Spacer(modifier = Modifier.width(8.dp))
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // 2️⃣ 2번 비활성 원
             Box(
-                modifier = Modifier.size(28.dp).border(1.dp, Color(0xFFD6D6D6), CircleShape),
+                modifier = Modifier
+                    .size(30.dp)
+                    .border(1.dp, Color(0xFFD6D6D6), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text("2", color = Color(0xFFD6D6D6), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "2",
+                    color = Color(0xFFD6D6D6),
+                    fontSize = 16.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Bold
+                )
             }
+
             Spacer(modifier = Modifier.width(8.dp))
+
+            // 🔹 두 번째 점선
             repeat(3) {
                 Box(
-                    modifier = Modifier.size(4.dp).background(Color(0xFFD6D6D6), CircleShape)
+                    modifier = Modifier
+                        .size(4.2.dp)
+                        .background(Color(0xFFD6D6D6), CircleShape)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(3.dp))
             }
-            Spacer(modifier = Modifier.width(8.dp))
+
+            Spacer(modifier = Modifier.width(6.dp))
+
+            // 3️⃣ 3번 비활성 원
             Box(
-                modifier = Modifier.size(28.dp).border(1.dp, Color(0xFFD6D6D6), CircleShape),
+                modifier = Modifier
+                    .size(30.dp)
+                    .border(1.dp, Color(0xFFD6D6D6), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text("3", color = Color(0xFFD6D6D6), fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                Text(
+                    text = "3",
+                    color = Color(0xFFD6D6D6),
+                    fontSize = 16.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
+
+        // 하단 텍스트 (ProfileStepIndicator 정렬 반영)
         Text(
             text = "계정 정보",
-            modifier = Modifier.padding(start = 0.dp, top = 4.dp),
-            fontSize = 12.sp,
-            color = Color(0xFFCB59EB),
+            modifier = Modifier.padding(start = 2.dp, top = 6.dp), // ✅ ProfileStepIndicator 간격 반영
+            fontSize = 13.sp,
             fontFamily = Paperlogy,
+            color = Color(0xFFCB59EB),
             fontWeight = FontWeight.Light,
+            textAlign = TextAlign.Center
         )
     }
 }
-
 /**
  * Preview에서는 ViewModel 없이 더미 상태만 넘겨서 프리뷰는 잘 표시될 수 있도록 함..
  */

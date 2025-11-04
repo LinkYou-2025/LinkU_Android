@@ -3,6 +3,7 @@ package com.example.login
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import com.example.login.auth.LoginScreen
+import com.example.login.auth.LoginViewModel
 
 @Composable
 fun LoginApp(viewModel: LoginViewModel) {
