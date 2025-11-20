@@ -64,6 +64,7 @@ import com.example.file.ui.theme.White
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldFileBottomSheet(
+    modifier: Modifier = Modifier,
     title: String,
     body: String,
     placeholderText: String,
@@ -85,6 +86,7 @@ fun TextFieldFileBottomSheet(
     }
 
     FileBottomSheet(
+        modifier = modifier,
         title = title,
         body = body,
         buttonText = "저장",
@@ -241,6 +243,7 @@ fun TextFieldFileBottomSheet(
 @Composable
 private fun TextFieldFileBottomSheetTest(){
     TextFieldFileBottomSheet(
+        modifier = Modifier.height(900.dp),
         "해당 카테고리를 수정하시겠습니까?",
         "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
         "카테고리명은 최대 10자입니다",
