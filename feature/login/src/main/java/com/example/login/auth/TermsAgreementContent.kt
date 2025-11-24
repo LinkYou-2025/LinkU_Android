@@ -82,6 +82,8 @@ fun AgreementItem(
         )
     }
 }
+
+//TODO : ui 수정하기!
 @Composable
 fun TermsAgreementContent(
     agreeTerms: Boolean,
