@@ -18,6 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -114,7 +117,7 @@ fun EmailLoginScreen(
                         Text(
                             "이메일",
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight(400),
                             fontFamily = Paperlogy,
                             color = Color(0xFFB7B9BF)
                         )
@@ -155,7 +158,7 @@ fun EmailLoginScreen(
                         Text(
                             "비밀번호",
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight(400),
                             fontFamily = Paperlogy,
                             color = Color(0xFFB7B9BF)
                         )
@@ -214,7 +217,8 @@ fun EmailLoginScreen(
                     fontFamily = Paperlogy,
                     color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight(700),
                 )
             }
 
@@ -231,10 +235,41 @@ fun EmailLoginScreen(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
                     fontFamily = Paperlogy,
-                    modifier = Modifier.clickable {
-                        navigator.navigate("resetPassword")
-                    }
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                        .clickable { navigator.navigate("resetPassword") }
                 )
+
+                // 구분선 |
+                Text(
+                    text = " | ",
+                    color = Color(0xFF87898F),
+                    fontSize = 15.sp,
+                    fontFamily = Paperlogy,
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)   // 🔥 이게 간격 맞춰줌
+                )
+
+                // 회원가입
+                Text(
+                    text = "회원가입",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFF87898F),
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                        .clickable {
+                            // TODO: 회원가입 로직 나중에 연결
+                        }
+                )
+
+                //TODO : 여기 로직에 회원가입 빠져있음. 수정하기!!! => 데모데이때, 로직 꼬여서 뺐는데,
+                //이전에 로직이 꼬였어서, 추후 리펙하면서 수정해볼게요..^^
 
             }
 
