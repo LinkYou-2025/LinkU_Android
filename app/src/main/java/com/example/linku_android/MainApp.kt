@@ -314,174 +314,103 @@ fun MainApp(
                     route = "auth_graph",
                     startDestination = NavigationRoute.Login.route
                 ) {
-                //AnimatedLoginScreen으로 교체
-                    composable(NavigationRoute.Login.route) { entry ->
-                        LaunchedEffect(Unit) { showNavBar = false }
 
-                        // 🔥 auth_graph 스코프의 동일 VM
+                    /* ① Login composable */
+                    composable(NavigationRoute.Login.route) { entry ->
                         val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-                        var showTermsSheet by rememberSaveable { mutableStateOf(false) }
+                        val showTermsSheet by parentEntry.savedStateHandle
+                            .getStateFlow("show_terms_sheet", false)
+                            .collectAsStateWithLifecycle()
 
-                        // ✅ 약관 상세에서 돌아오면 시트 자동 재오픈
-                        LaunchedEffect(Unit) {
-                            navigator.currentBackStackEntry?.savedStateHandle
-                                ?.getStateFlow("reopen_terms_sheet", false)
-                                ?.collect { reopen ->
-                                    if (reopen) {
-                                        showTermsSheet = true
-                                        navigator.currentBackStackEntry?.savedStateHandle
-                                            ?.set("reopen_terms_sheet", false)
-                                    }
+                        AnimatedLoginScreen(
+                            navigator = navigator,
+                            onSignUpClick = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                            }
+                        )
+
+                        //  BottomSheet는 무조건 Login composable 안에서만 렌더링해야 한다
+
+                            TermsAgreementSheet(
+                                navController = navigator,
+                                vm = signUpVm,
+                                visible = showTermsSheet,
+                                onClose = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                },
+                                onClickTerms = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/service")
+                                },
+                                onClickPrivacy = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/privacy")
+                                },
+                                onClickMarketing = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/marketing")
                                 }
-                        }
-
-                        Box(Modifier.fillMaxSize()) {
-                            AnimatedLoginScreen(
-                                navigator = navigator,
-                                onSignUpClick = { showTermsSheet = true }
                             )
 
-                            if (showTermsSheet) {
-                                TermsAgreementSheet(
-                                    navController = navigator,
-                                    vm = signUpVm,                 // ⬅️ 넘겨서 동일 인스턴스 사용
-                                    onClose = { showTermsSheet = false },
-                                    // 상세로 갈 땐 시트를 닫고 이동
-                                    onClickTerms = {
-                                        showTermsSheet = false
-                                        navigator.navigate("terms/service")
-                                    },
-                                    onClickPrivacy = {
-                                        showTermsSheet = false
-                                        navigator.navigate("terms/privacy")
-                                    },
-                                    onClickMarketing = {
-                                        showTermsSheet = false
-                                        navigator.navigate("terms/marketing")
-                                    }
-                                )
-                            }
-                        }
                     }
-//                with(NavigationRoute.Login) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) { showNavBar = false }
-//                        //FinishHandler()
-//                        AnimatedLoginScreen(navigator = navigator)
-//                    }
-//                }
 
-                //스택 구조 상의 문제로, 우선 3개의 이용약관 여기에 넣음
-                // 서비스 이용약관
-                    composable("terms/service") { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) { navigator.getBackStackEntry("auth_graph") }
+                    /* ② Service Terms */
+                    composable("terms/service") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         ServiceTermsScreen(
-                            onBackClicked = { navigator.popBackStack() },
+                            onBackClicked = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                navigator.popBackStack()
+                            },
                             onAgreeClicked = {
                                 vm.setAgreeTerms(true)
-                                // 🔔 로그인으로 돌아가면 시트를 다시 열라고 신호
-                                navigator.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("reopen_terms_sheet", true)
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
                                 navigator.popBackStack()
                             }
                         )
                     }
 
-//                    ServiceTermsScreen(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            vm.setAgreeTerms(true)   //  VM 업데이트
-//                            navigator.popBackStack() //  뒤로만
-//                        }
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            navigator.previousBackStackEntry
-//                                ?.savedStateHandle
-//                                ?.set("agree_terms", true)
-//                            navigator.popBackStack() // 약관 선택 화면으로 복귀
-//                        }
-//                    )
-//                }
-//                composable("terms/service") {
-//                    ServiceTermsScreen(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = { navigator.navigate("terms/privacy") } // 다음 약관으로 이동
-//                    )
-//                }
-
-                // 개인정보 처리방침
-                    composable("terms/privacy") { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) { navigator.getBackStackEntry("auth_graph") }
+                    /* ③ Privacy Terms */
+                    composable("terms/privacy") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         PrivacyTermsScreenFixed(
-                            onBackClicked = { navigator.popBackStack() },
+                            onBackClicked = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                navigator.popBackStack()
+                            },
                             onAgreeClicked = {
                                 vm.setAgreePrivacy(true)
-                                navigator.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("reopen_terms_sheet", true)
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
                                 navigator.popBackStack()
                             }
                         )
                     }
-//                    PrivacyTermsScreenFixed(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            vm.setAgreePrivacy(true) // ✅
-//                            navigator.popBackStack() // ✅
-//                        }
-//                    )
-//                }
-//                composable("terms/privacy") {
-//                    PrivacyTermsScreenFixed(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            navigator.previousBackStackEntry
-//                                ?.savedStateHandle
-//                                ?.set("agree_privacy", true)
-//                            navigator.popBackStack()
-//                        }
-//                    )
-//                }
-//                composable("terms/privacy") {
-//                    PrivacyTermsScreenFixed(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = { navigator.navigate("terms/marketing") } // 다음 약관으로 이동
-//                    )
-//                }
 
-                // 마케팅 수신 동의
-                    // 마케팅 수신 동의
-                    composable("terms/marketing") { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) { navigator.getBackStackEntry("auth_graph") }
+                    /* ④ Marketing Terms */
+                    composable("terms/marketing") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         MarketingTermsScreenComposable(
-                            onBackClicked = { navigator.popBackStack() },
+                            onBackClicked = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                navigator.popBackStack()
+                            },
                             onAgreeClicked = {
                                 vm.setAgreeMarketing(true)
-                                navigator.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("reopen_terms_sheet", true)
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
                                 navigator.popBackStack()
                             }
                         )
                     }
-//                    MarketingTermsScreenComposable(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            vm.setAgreeMarketing(true) // ✅
-//                            navigator.popBackStack()   // ✅
-//                        }
-//                    )
-//                }
                 }
+
 //                composable("terms/marketing") {
 //                    MarketingTermsScreenComposable(
 //                        onBackClicked = { navigator.popBackStack() },
