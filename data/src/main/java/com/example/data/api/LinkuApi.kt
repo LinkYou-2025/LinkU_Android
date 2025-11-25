@@ -38,6 +38,12 @@ interface LinkuApi {
         @Path("linkuid") linkuid: Long
     ): BaseResponse<LinkuResultDTO>
 
+    @GET("/api/linku/{userId}/{linkuid}")
+    suspend fun viewDetailLink(
+        @Path("userId") userId: Long,
+        @Path("linkuid") linkuid: Long
+    ): BaseResponse<LinkuResultDTO>
+
     // 링크 체크
     @GET("/api/linku/exist")
     suspend fun checkLink(

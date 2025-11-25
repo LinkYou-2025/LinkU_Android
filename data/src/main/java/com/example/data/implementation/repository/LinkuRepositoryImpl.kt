@@ -165,10 +165,42 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // 링크 상세 보기 구현
+    // * 수정 전 *
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
         // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
         val dto = serverApi.withAuth(authPreference) {
             viewDetailLink(linkuid = linkuId)
+        }
+        requireNotNull(dto) { "Link detail result was null" }
+
+        return LinkResultInfo(
+            userId = dto.userId,
+            linkuId = dto.linkuId,
+            linkuFolderId = dto.linkuFolderId,
+            categoryId = dto.categoryId,
+            linku = dto.linku,
+            memo = dto.memo?.takeIf { it.isNotBlank() },
+            emotionId = dto.emotionId,
+            domain = dto.domain ?: "",
+            title = dto.title,
+            domainImageUrl = dto.domainImageUrl,
+            linkuImageUrl = dto.linkuImageUrl,
+            aiArticleExists = dto.aiArticleExists == true,
+            keyword = dto.keyword?.takeIf { it.isNotBlank() },
+            summary = dto.summary?.takeIf { it.isNotBlank() },
+            createdAt = dto.createdAt,
+            updatedAt = dto.updatedAt
+        )
+    }
+
+    // * 수정 후 *
+    override suspend fun getLinkDetail(
+        userId: Long,
+        linkuId: Long
+    ): LinkResultInfo {
+        // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
+        val dto = serverApi.withAuth(authPreference) {
+            viewDetailLink(userId = userId,linkuid = linkuId)
         }
         requireNotNull(dto) { "Link detail result was null" }
 

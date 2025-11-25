@@ -5,9 +5,6 @@ xmlns:tools="http://schemas.android.com/tools"
     >
     <uses-permission android:name="android.permission.INTERNET" />
 
-
-    <uses-permission android:name="android.permission.INTERNET" />
-
 <application
     android:name=".MainApplication"
     android:enableOnBackInvokedCallback="true"
@@ -44,9 +41,10 @@ xmlns:tools="http://schemas.android.com/tools"
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="https"
-                android:host="linku.app"
-                android:pathPrefix="/open"/>
+            <data
+                android:scheme="https"
+                android:host="linkuserver.store"
+                android:path="/open"/>
         </intent-filter>
 
     </activity>
