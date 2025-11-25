@@ -113,9 +113,9 @@ class SignUpViewModel @Inject constructor(
     fun signUp() {
         viewModelScope.launch {
             try {
-                // ✅ 내가 서버로 보낼 데이터 전체 확인
+                //내가 서버로 보낼 데이터 전체 확인
                 Log.d("SignUpViewModel", """
-                👉 [회원가입 요청 데이터]
+                [회원가입 요청 데이터]
                 email = $email
                 password = $password
                 nickname = $nickname
@@ -145,68 +145,7 @@ class SignUpViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Preview 용 더미 UserRepository
-     */
-//    constructor() : this(object : UserRepository {
-//        override suspend fun checkNickname(nickname: String) = true
-//
-//        override suspend fun login(email: String, password: String) =
-//            com.example.core.model.LoginResult(0, "dummy", "active")
-//
-//        override suspend fun signUp(
-//            nickname: String,
-//            email: String,
-//            password: String,
-//            gender: Int,
-//            jobId: Int,
-//            purposeList: List<String>,
-//            interestList: List<String>
-//        ) = true
-//
-//        override suspend fun sendEmailCode(email: String, code: String) = true
-//
-//        override suspend fun verifyEmailCode(email: String, code: String) = true
-//
-//        override suspend fun deleteUser(reason: String) = true
-//
-//        override suspend fun getUserInfo(userId: Long): UserInfo = UserInfo(
-//            nickname = "dummy_nick",
-//            email = "dummy@example.com",
-//            gender = "MALE",   // String 타입
-//            jobId = 0L,        // Long
-//            jobName = "developer",
-//            myLinku = 0L,      // Long
-//            myFolder = 0L,     // Long
-//            myAiLinku = 0L     // Long
-//        )
-//
-//        override suspend fun getNickname(userId: Long): String? = "dummy_nick"
-//
-//        override suspend fun requestTempPassword(email: String) = true
-//
-//        override suspend fun logout() {
-//            // Dummy 로그아웃 처리
-//        }
-//    })
+
 
 }
 
-
-
-
-//import androidx.compose.runtime.getValue
-//import androidx.compose.runtime.mutableStateOf
-//import androidx.compose.runtime.setValue
-//import androidx.lifecycle.ViewModel
-//
-//class SignUpViewModel : ViewModel() {
-//    var email by mutableStateOf("")
-//    var password by mutableStateOf("")
-//    var nickname by mutableStateOf("")
-//    var gender by mutableStateOf(0)
-//    var jobId by mutableStateOf(0)
-//
-//    var purposeList by mutableStateOf<List<String>>(emptyList())
-//    var interestList by mutableStateOf<List<String>>(emptyList())
-//}
