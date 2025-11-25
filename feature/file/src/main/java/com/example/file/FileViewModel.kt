@@ -286,30 +286,6 @@ class FileViewModel @Inject constructor(
 
     // ---------- get method ----------
     fun setLinkDetail(linkuId: Long){
-//        Log.d("FileViewModel", "setLinkDetail")
-//
-//        viewModelScope.launch{
-//            Log.d("FileViewModel", "setLinkDetail launch")
-//
-//            startLoading()
-//            _errorMessage.value = null
-//
-//            try{
-//                Log.d("FileViewModel", "setLinkDetail try")
-//
-//                _linkDetail.value = linkuRepository.getLinkDetail(linkuId)
-//                _aiArticleDetail.value = aiArticleRepository.getAiArticle(linkuId)
-//
-//                Log.d("FileViewModel", "setLinkDetail try result : ${_linkDetail.value} / ${_aiArticleDetail.value}")
-//            } catch (e: Exception){
-//                Log.d("FileViewModel", "setLinkDetail catch: $e.message")
-//                _errorMessage.value = e.message
-//            }finally {
-//                Log.d("FileViewModel", "setLinkDetail finally")
-//                stopLoading()
-//            }
-//        }
-//        Log.d("FileViewModel", "setLinkDetail return")
         Log.d("FileViewModel", "setLinkDetail")
 
         viewModelScope.launch {
@@ -321,8 +297,14 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "상세 요청 -> linkuId = $linkuId")
 
+                val userId = authPreference.userId
+
+                if(userId == null){
+                    throw UserIdNullException()
+                }
+
                 // 상세만 로드 (AI 자동 호출 제거)
-                val detail = linkuRepository.getLinkDetail(linkuId)
+                val detail = linkuRepository.getLinkDetail(userId, linkuId)
                 Log.d("FileViewModel", "상세 응답 -> $detail")
                 _linkDetail.value = detail
 
@@ -1056,9 +1038,11 @@ class FileViewModel @Inject constructor(
                     throw UserIdNullException()
                 }
 
-                val result = folderRepository.setFolderViewerPermission(folderId)
+                folderRepository.setFolderViewerPermission(folderId)
 
-                Log.d("FileViewModel", "receiveSharedFolder try result: $result")
+                _sharedTopFolders.value = folderRepository.getSharedFolders()
+
+                Log.d("FileViewModel", "receiveSharedFolder well done")
             }catch (e: Exception){
                 Log.d("FileViewModel", "receiveSharedFolder catch: $e.message")
 
