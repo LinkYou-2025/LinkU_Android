@@ -43,6 +43,8 @@ fun SignUpPasswordScreen(
 
     // 항상 이메일 인증으로 되돌리는 로직
     //TODO :여기서 되돌아가면, 기존 인증한 이메일 정보가 보이는게 맞는지? 다인언니한테 물어보기!
+    //TODO : 이메일 정보로 돌아가면, 기존 입력한 이메일 상태로 나오는게 맞는지 아니면 다시 재입력? -> 이건 언니에게 물어보고 추후 수정하기!
+    //TODO : 비밀번호의 경우, 눈 가리개? 로  입력을 보이거나, 안보이게 해야 하는건 아닌지 다인 언니에게 물어보기!
 //    fun goBackToEmailVerification() {
 //        val popped = navigator.popBackStack("email_verification", inclusive = false)
 //        if (!popped) {
@@ -75,7 +77,7 @@ fun SignUpPasswordScreen(
 //        }
 //    }
 
-    var password by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf(signUpViewModel.password) }
     var confirmPassword by remember { mutableStateOf("") }
 
     val isPasswordLengthValid = password.length in 8..20
@@ -143,7 +145,10 @@ fun SignUpPasswordScreen(
             ) {
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = {
+                        password = it
+                        signUpViewModel.password = it    // 즉시 sync 유지
+                    },
                     placeholder = {
                         Text("비밀번호를 입력해주세요.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
                     },
