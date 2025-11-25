@@ -1,7 +1,11 @@
 package com.example.login.auth
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -14,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,55 +27,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.example.login.R
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalConfiguration
 import com.example.login.Paperlogy
-
-
-@Composable
-fun TermsAgreementScreen(navController: NavController) {
-
-    val vm: SignUpViewModel = hiltViewModel()
-
-    val agreeTerms     by vm.agreeTerms.collectAsStateWithLifecycle()
-    val agreePrivacy   by vm.agreePrivacy.collectAsStateWithLifecycle()
-    val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
-
-//    var agreeAll by remember { mutableStateOf(false) }
-//    var agreeTerms by remember { mutableStateOf(false) }
-//    var agreePrivacy by remember { mutableStateOf(false) }
-//    var agreeMarketing by remember { mutableStateOf(false) }
-
-    // 약관 화면에서 돌아올 때 결과 받기 (SavedStateHandle)
-    val currentEntry = navController.currentBackStackEntry
-    val agreeTermsResult = currentEntry?.savedStateHandle
-        ?.getStateFlow("agree_terms", false)?.collectAsState()
-    val agreePrivacyResult = currentEntry?.savedStateHandle
-        ?.getStateFlow("agree_privacy", false)?.collectAsState()
-    val agreeMarketingResult = currentEntry?.savedStateHandle
-        ?.getStateFlow("agree_marketing", false)?.collectAsState()
-
-    TermsAgreementContent(
-        agreeTerms = agreeTerms,
-        agreePrivacy = agreePrivacy,
-        agreeMarketing = agreeMarketing,
-        onAgreeTermsChange = vm::setAgreeTerms,
-        onAgreePrivacyChange = vm::setAgreePrivacy,
-        onAgreeMarketingChange = vm::setAgreeMarketing,
-
-        // 각 항목 → 해당 약관 화면으로 이동 (동의 후 popBack으로 돌아오면 VM 상태 유지)
-        onClickTerms = { navController.navigate("terms/service") },
-        onClickPrivacy = { navController.navigate("terms/privacy") },
-        onClickMarketing = { navController.navigate("terms/marketing") },
-
-        onNextClicked = { terms, privacy, _ ->
-            if (terms && privacy) {
-                navController.navigate("email_verification") {
-                    popUpTo("terms_agreement") { inclusive = true }
-                    launchSingleTop = true
-                }
-            }
-        }
-    )
-}
 
 
 
@@ -123,6 +82,8 @@ fun AgreementItem(
         )
     }
 }
+
+//TODO : ui 수정하기!
 @Composable
 fun TermsAgreementContent(
     agreeTerms: Boolean,
@@ -143,11 +104,11 @@ fun TermsAgreementContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 6.dp)
+            .padding(start = 24.dp, end = 24.dp, bottom = 24.dp, top = 20.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(start = 12.dp)
+            modifier = Modifier.padding(start = 12.dp, top = 4.dp)
         ) {
             Checkbox(
                 checked = agreeAll,
@@ -337,50 +298,100 @@ fun TermsAgreementContentPreview_AllChecked() {
     )
 }
 
+@Composable
+fun NoAnimBottomSheet(
+    visible: Boolean,
+    onDismissRequest: () -> Unit,
+    scrimColor: Color = Color.Black.copy(alpha = 0.12f),
+    shape: Shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+    containerColor: Color = Color.White,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    if (!visible) return
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+
+        // ✔ 스크림 (투명 금지)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(scrimColor)
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() }
+                ) { onDismissRequest() }
+        )
+
+        // ✔ BottomSheet 본체 — 절대 화면을 밀지 않음
+        Surface(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .wrapContentHeight()          // ✔ 내용만큼만
+                //.navigationBarsPadding()      // ✔ 네비게이션 패딩
+                .imePadding(),                // ✔ 키보드 대응
+            shape = shape,
+            color = containerColor,
+            shadowElevation = 12.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp)   // ✔ 자연스러운 핸들 패딩
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TermsAgreementSheet(
     navController: NavController,
     vm: SignUpViewModel,
+    visible: Boolean,
     onClose: () -> Unit,
     onClickTerms: () -> Unit,
     onClickPrivacy: () -> Unit,
     onClickMarketing: () -> Unit
 ) {
-    val agreeTerms by vm.agreeTerms.collectAsStateWithLifecycle()
-    val agreePrivacy by vm.agreePrivacy.collectAsStateWithLifecycle()
-    val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+    if (!visible) return
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
+    NoAnimBottomSheet(
+        visible = visible,
         onDismissRequest = onClose,
-        sheetState = sheetState,
-        containerColor = Color.White,
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
-        scrimColor = Color.Transparent
+        scrimColor = Color.Black.copy(alpha = 0.12f),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
-        Column(Modifier.navigationBarsPadding().imePadding()) {
-            TermsAgreementContent(
-                agreeTerms = agreeTerms,
-                agreePrivacy = agreePrivacy,
-                agreeMarketing = agreeMarketing,
-                onAgreeTermsChange = vm::setAgreeTerms,
-                onAgreePrivacyChange = vm::setAgreePrivacy,
-                onAgreeMarketingChange = vm::setAgreeMarketing,
-                onClickTerms = onClickTerms,
-                onClickPrivacy = onClickPrivacy,
-                onClickMarketing = onClickMarketing,
-                onNextClicked = { t, p, _ ->
-                    if (t && p) {
-                        onClose()
-                        navController.navigate("email_verification") {
-                            popUpTo("terms_agreement")    // 필요시 조정
-                            launchSingleTop = true
-                        }
+
+        val agreeTerms by vm.agreeTerms.collectAsStateWithLifecycle()
+        val agreePrivacy by vm.agreePrivacy.collectAsStateWithLifecycle()
+        val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+
+        TermsAgreementContent(
+            agreeTerms = agreeTerms,
+            agreePrivacy = agreePrivacy,
+            agreeMarketing = agreeMarketing,
+            onAgreeTermsChange = vm::setAgreeTerms,
+            onAgreePrivacyChange = vm::setAgreePrivacy,
+            onAgreeMarketingChange = vm::setAgreeMarketing,
+            onClickTerms = onClickTerms,
+            onClickPrivacy = onClickPrivacy,
+            onClickMarketing = onClickMarketing,
+            onNextClicked = { t, p, _ ->
+                if (t && p) {
+                    onClose()
+                    navController.navigate("email_verification") {
+                        popUpTo("auth_graph")
+                        launchSingleTop = true
                     }
                 }
-            )
-        }
+            }
+        )
     }
 }
