@@ -198,9 +198,19 @@ fun PurposeItem(
 @Composable
 fun InterestPurposeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null // Preview에서는 null, 실제 앱에서는 Hilt로 주입
+    signUpViewModel: SignUpViewModel = hiltViewModel()  // Preview에서는 null, 실제 앱에서는 Hilt로 주입
 ) {
-    val selectedPurposes = remember { mutableStateListOf<String>() }
+    // ViewModel의 기존 선택 상태를 가져와 UI 초기 상태로 사용
+    val selectedPurposes = remember {
+        mutableStateListOf<String>().apply {
+            addAll(signUpViewModel.purposeList.mapNotNull { code ->
+                // code → 라벨 역매핑
+                purposeLabelToCodeNormalized.entries
+                    .firstOrNull { it.value == code }
+                    ?.key
+            })
+        }
+    }
     val canProceed = selectedPurposes.isNotEmpty()
     Scaffold(
         bottomBar = {

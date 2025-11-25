@@ -38,6 +38,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.login.Paperlogy
 import androidx.compose.ui.unit.Dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.login.R
 
 /**
@@ -88,9 +89,19 @@ val contentLabelToCodeNormalized: Map<String, String> =
 @Composable
 fun InterestContentScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    val selectedContents = remember { mutableStateListOf<String>() }
+    // ViewModel 기존 선택값 복원 (뒤로가기 해도 유지됨)
+    val selectedContents = remember {
+        mutableStateListOf<String>().apply {
+            addAll(signUpViewModel.interestList.mapNotNull { code ->
+                // code → label 역매핑
+                contentLabelToCodeNormalized.entries
+                    .firstOrNull { it.value == code }
+                    ?.key
+            })
+        }
+    }
     val canProceed = selectedContents.isNotEmpty()
 
     Scaffold(
@@ -122,9 +133,14 @@ fun InterestContentScreen(
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        signUpViewModel?.interestList = selectedContents
-                            .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
-                            .distinct()
+                        //  클릭 시 바로 ViewModel에 저장
+                        val codes = selectedContents.mapNotNull {
+                            contentLabelToCodeNormalized[normalizeLabel(it)]
+                        }.distinct()
+
+                        if (codes.isNotEmpty()) {
+                            signUpViewModel.interestList = codes
+                        }
                         navigator.navigate("welcome")
                     },
                 contentAlignment = Alignment.Center
@@ -145,7 +161,7 @@ fun InterestContentScreen(
                 .background(Color.White)
                 .padding(innerPadding),
             contentPadding = PaddingValues(
-                start = 32.dp, end = 32.dp,
+                start = 20.dp, end = 20.dp,
                 top = 40.dp,
                 bottom = 96.dp
             )
@@ -239,51 +255,114 @@ private fun InterestCloudScrollable(
     contents: List<Content>,
     selected: SnapshotStateList<String>,
     onToggle: (String) -> Unit,
-    height: Dp = 500.dp
+    height: Dp = 500.dp,
+    leftGutter: Dp = 20.dp,
+    rightGutter: Dp = 20.dp
 ) {
-    // 1. 피그마 기준 전체 bounding 박스 상단 좌표 사용 (y=243)
-    val minX = 72.dp  // 글쓰기/콘텐츠 작성 기준 x
-    val minY = 243.dp // 전체 동그라미 박스의 top y(피그마 기준)
-    val shiftX = 20.dp
-    val shiftY = 20.dp // 여백감 추가
-
+    // 1) 전체 y 기준 보정 (top 정렬)
+    val minY = contents.minOfOrNull { it.offset.y } ?: 0.dp
+    val shiftY = 0.dp
     val shiftedContents = contents.map { c ->
-        c.copy(offset = DpOffset((c.offset.x - minX) + shiftX, (c.offset.y - minY) + shiftY))
+        c.copy(offset = DpOffset(c.offset.x, (c.offset.y - minY) + shiftY))
     }
 
-    val canvasWidth = remember(shiftedContents) {
-        shiftedContents.maxOf { it.offset.x + it.size.dp } + 20.dp
+    // 2) 전체 x 좌표 보정 (음수 x 제거)
+    val minX = shiftedContents.minOfOrNull { it.offset.x } ?: 0.dp
+    val shiftX = -minX
+
+    // 3) 전체 width 계산
+    val contentRight = shiftedContents.maxOfOrNull { it.offset.x + it.size.dp } ?: 0.dp
+    val canvasWidth = leftGutter + contentRight + shiftX + rightGutter
+
+    // 4) 초기 스크롤 위치 설정
+    val density = LocalDensity.current
+    val initialOffsetDp = 90.dp + leftGutter
+    val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
+
+    val scroll = rememberScrollState(initial = initialOffsetPx)
+    LaunchedEffect(canvasWidth) {
+        if (scroll.value == 0) scroll.scrollTo(initialOffsetPx)
     }
-    val canvasHeight = remember(shiftedContents) {
-        shiftedContents.maxOf { it.offset.y + it.size.dp } + 20.dp // 동적 계산
-    }
-    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(height.coerceAtLeast(canvasHeight)) // 필요 시 자동 늘림
-            .horizontalScroll(scrollState)
+            .height(height)
+            .horizontalScroll(scroll)
             .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier
                 .width(canvasWidth)
-                .height(height.coerceAtLeast(canvasHeight))
+                .height(height)
         ) {
-            shiftedContents.forEach { content ->
-                val isSelected = content.label in selected
+            shiftedContents.forEach { item ->
+                val isSelected = item.label in selected
                 ContentItem(
-                    content = content,
+                    content = item,
                     isSelected = isSelected,
-                    onClick = { onToggle(content.label) },
-                    modifier = Modifier.offset(content.offset.x, content.offset.y)
+                    onClick = { onToggle(item.label) },
+                    modifier = Modifier.offset(
+                        leftGutter + item.offset.x + shiftX,
+                        item.offset.y
+                    )
                 )
             }
         }
     }
 }
+
+//@Composable
+//private fun InterestCloudScrollable(
+//    contents: List<Content>,
+//    selected: SnapshotStateList<String>,
+//    onToggle: (String) -> Unit,
+//    height: Dp = 500.dp
+//) {
+//    // 1. 피그마 기준 전체 bounding 박스 상단 좌표 사용 (y=243)
+//    val minX = 72.dp  // 글쓰기/콘텐츠 작성 기준 x
+//    val minY = 243.dp // 전체 동그라미 박스의 top y(피그마 기준)
+//    val shiftX = 20.dp
+//    val shiftY = 20.dp // 여백감 추가
+//
+//    val shiftedContents = contents.map { c ->
+//        c.copy(offset = DpOffset((c.offset.x - minX) + shiftX, (c.offset.y - minY) + shiftY))
+//    }
+//
+//    val canvasWidth = remember(shiftedContents) {
+//        shiftedContents.maxOf { it.offset.x + it.size.dp } + 20.dp
+//    }
+//    val canvasHeight = remember(shiftedContents) {
+//        shiftedContents.maxOf { it.offset.y + it.size.dp } + 20.dp // 동적 계산
+//    }
+//    val scrollState = rememberScrollState()
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(height.coerceAtLeast(canvasHeight)) // 필요 시 자동 늘림
+//            .horizontalScroll(scrollState)
+//            .background(Color.White),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height.coerceAtLeast(canvasHeight))
+//        ) {
+//            shiftedContents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x, content.offset.y)
+//                )
+//            }
+//        }
+//    }
+//}
 //@Composable
 //private fun InterestCloudScrollable(
 //    contents: List<Content>,
