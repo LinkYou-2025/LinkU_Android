@@ -87,12 +87,15 @@ import com.example.login.auth.TermsAgreementSheet
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
 import com.example.curation.CurationDetailViewModel
+import com.example.linku_android.deeplink.appLinkRoute
 
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
 ) {
+
+
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     LaunchedEffect(Unit) {
         viewModel.clearRecentQuery()
@@ -150,12 +153,12 @@ fun MainApp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
 //                    if (item != currentLinkuNavigationItem) {
-                    val route = when (item) {
-                        LinkuNavigationItem.HOME -> NavigationRoute.Home.route
-                        LinkuNavigationItem.FILE -> NavigationRoute.File.route
-                        LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
-                        LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
-                    }
+                        val route = when (item) {
+                            LinkuNavigationItem.HOME -> NavigationRoute.Home.route
+                            LinkuNavigationItem.FILE -> NavigationRoute.File.route
+                            LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
+                            LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                        }
 //                        navigator.navigate(route) {
 //                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
 //                            popUpTo(navigator.graph.findStartDestination().id) {
@@ -172,7 +175,7 @@ fun MainApp(
 
 
                         // 현재 화면의 route
-                    val currentRoute = navigator.currentBackStackEntry?.destination?.route
+                        val currentRoute = navigator.currentBackStackEntry?.destination?.route
 
 //                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
 //                        if (currentRoute != route) {
@@ -983,7 +986,7 @@ fun MainApp(
 
 
 
-                // TODO: 앱이 꺼져 있을 때 호출 시, 폴더 공유 받기보다 공유 받은 폴더 띄우기가 먼저인 흐름 수정.
+                // TODO: 로그인 되어 있지 않은 상황 처리
                 // 링크 공유 앱링크
                 composable(
                     route = "open?action={action}&folderId={folderId}",
@@ -1001,55 +1004,108 @@ fun MainApp(
                             uriPattern = "https://linkuserver.store/open?folderId={folderId}&action={action}"
                         }
                     )
-                ) { backStackEntry ->
+                ) /*content = */ { backStackEntry ->
                     val action = backStackEntry.arguments?.getString("action")
                     val folderId = backStackEntry.arguments?.getLong("folderId")
 
-                    Log.d("MainApp", "action: $action, folderId: $folderId")
+                    Log.d("MainApp", "route: appLink action: $action, folderId: $folderId")
 
                     // 딱 한 번만 실행되게 LaunchedEffect 사용
                     LaunchedEffect(action, folderId) {
-                        Log.d("MainApp", "LaunchedEffect 실행")
+                        Log.d("MainApp", "route: appLink LaunchedEffect 실행")
 
-                        if (action == "share" && folderId != null) {
-                            Log.d("MainApp", "파일 화면으로 이동")
+                        appLinkRoute(
+                            action = action,
+                            folderId = folderId,
+                            onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
+                            onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
+                            onSetPendingShare = deepLinkViewModel::setPendingShare,
+                            navigator = navigator
+                        )
 
-                            // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
-                            try{
-                                Log.d("MainApp", "파일 화면으로 이동")
-
-                                // 공유 받는 폴더 처리
-                                fileViewModel.receiveSharedFolder(folderId)
-
-                                Log.d("MainApp", "공유 받는 폴더 처리 완료")
-
-                                // 파일 항목의 탑 바에 공유 받은 폴더 클릭 시와 같은 콜백
-                                fileViewModel.getSharedFolders()
-                                folderStateViewModel.updateIsSharedFolders(true)
-
-                                Log.d("MainApp", "공유 받은 폴더 목록 및 상태 갱신 완료")
-
-                                // 파일 화면으로 이동
-                                navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-                                    launchSingleTop = true
-                                }
-                            }catch (e: Exception/*UserIdNullException*/) {
-                                Log.e("MainApp", "Exception 발생: $e")
-                                // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
-                                deepLinkViewModel.setPendingShare(folderId)
-                                navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {
-                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-                                    launchSingleTop = true
-                                }
-//                                navigator.navigate(NavigationRoute.Login.route) {
+//                        if (action == "share" && folderId != null) {
+//                            Log.d("MainApp", "route: appLink 파일 화면으로 이동")
+//
+//                            // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
+//                            try{
+//                                Log.d("MainApp", "route: appLink try 진입")
+//
+//                                // 공유 받는 폴더 처리, UI 업데이트 전 api 결과 우선을 위해 동기 처리.
+//                                async{ fileViewModel.receiveSharedFolder(folderId) }.await()
+//
+//                                Log.d("MainApp", "route: appLink 공유 받는 폴더 처리 완료")
+//
+//                                // UI 업데이트
+//                                folderStateViewModel.updateIsSharedFolders(true)
+//
+//                                Log.d("MainApp", "route: appLink 공유 받은 폴더 UI 갱신 완료")
+//
+//                                // 파일 화면으로 이동
+//                                navigator.navigate(NavigationRoute.File.route) {
+//                                    Log.d("MainApp", "route: appLink 파일 화면으로 이동")
+//
 //                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
 //                                    launchSingleTop = true
+//
+//                                    Log.d("MainApp", "route: appLink 파일 화면으로 이동 완료")
 //                                }
-                            }
-                        }
+//                            }catch (e: Exception/*UserIdNullException*/) {
+//                                Log.e("MainApp", "Exception 발생: $e")
+//                                // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
+//                                deepLinkViewModel.setPendingShare(folderId)
+//                                navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {
+//                                    Log.d("MainApp", "route: appLink 미로그인. 대기 작업 저장 후 로그인 화면으로")
+//
+//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+//                                    launchSingleTop = true
+//
+//                                    Log.d("MainApp", "route: appLink 로그인 화면으로 이동 완료")
+//                                }
+////                                navigator.navigate(NavigationRoute.Login.route) {
+////                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
+////                                    launchSingleTop = true
+////                                }
+//                            }
+//                        }
                     }
                 }
+
+//                composable(
+//                    route = "open?action={action}&folderId={folderId}",
+//                    arguments = listOf(
+//                        navArgument("action") { type = NavType.StringType; nullable = true },
+//                        navArgument("folderId") { type = NavType.LongType; nullable = false },
+//                    ),
+//                    deepLinks = listOf(
+//                        // 앱링크
+//                        navDeepLink {
+//                            uriPattern = "linku://open?action={action}&folderId={folderId}"
+//                        },
+//
+//                        navDeepLink {
+//                            uriPattern = "linku://open?folderId={folderId}&action={action}"
+//                        }
+//                    )
+//                ) /*content = */ { backStackEntry ->
+//                    val action = backStackEntry.arguments?.getString("action")
+//                    val folderId = backStackEntry.arguments?.getLong("folderId")
+//
+//                    Log.d("MainApp", "action: $action, folderId: $folderId")
+//
+//                    // 딱 한 번만 실행되게 LaunchedEffect 사용
+//                    LaunchedEffect(action, folderId) {
+//                        Log.d("MainApp", "LaunchedEffect 실행")
+//
+//                        appLinkRoute(
+//                            action = action,
+//                            folderId = folderId,
+//                            onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
+//                            onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
+//                            onSetPendingShare = deepLinkViewModel::setPendingShare,
+//                            navigator = navigator
+//                        )
+//                    }
+//                }
             }
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
