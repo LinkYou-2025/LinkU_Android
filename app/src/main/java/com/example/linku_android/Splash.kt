@@ -1,5 +1,6 @@
 package com.example.linku_android
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -17,7 +18,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import androidx.compose.ui.unit.IntOffset
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.flow.first
 import androidx.compose.ui.geometry.Offset
@@ -28,7 +28,7 @@ import com.example.data.preference.AuthPreference
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import com.example.core.repository.CurationRepository
+import com.example.design.util.PixelScaler
 
 //이건 디자이너에게 gif로 받아서 수정하기!
 
@@ -63,7 +63,7 @@ fun Splash(onFinish: () -> Unit) {
         println("✅ Splash 시작됨")
         rotationAnim.animateTo(
             targetValue = 180f,
-            animationSpec = tween(durationMillis = 2500, easing = FastOutSlowInEasing)
+            animationSpec = tween(durationMillis = 1500, easing = FastOutSlowInEasing)
         )
 
         println("✅ Glow Phase 진입")
@@ -98,7 +98,7 @@ fun Splash(onFinish: () -> Unit) {
     val startColor = lerpColor(Color(0xFF2C6FFF), Color(0xFFC800FF), progress)
     val endColor = lerpColor(Color(0xFFC800FF), Color(0xFF2C6FFF), progress)
 
-    Box(
+    BoxWithConstraints (
         modifier = Modifier
             .fillMaxSize()
             .background(
@@ -120,29 +120,48 @@ fun Splash(onFinish: () -> Unit) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        if (!isGlowPhase) {
-            // 기본 로고
+        val ps = PixelScaler(
+            maxWidth = this.maxWidth,
+            maxHeight = this.maxHeight,
+            baseWidth = 412.dp,
+            baseHeight = 917.dp
+        )
+
+        with(ps){
+
             Image(
-                painter = painterResource(id = R.drawable.img_logo_white),
+                painter = painterResource(id = R.drawable.img_splash_logo),
                 contentDescription = "Splash Logo",
                 modifier = Modifier
-                    .size(160.dp)
+                    .size(256.dp.scaled())
+                    .padding(all = 34.dp.scaled())
+                    .align(Alignment.Center)
                     .graphicsLayer {
                         rotationZ = rotationAnim.value
                     }
             )
-        } else {
-            // Glow 로고 (더 크게!)
-            Image(
-                painter = painterResource(id = R.drawable.img_logo_glow),
-                contentDescription = "Splash Logo Glow",
-                modifier = Modifier
-                    .size(256.dp)
-                    .graphicsLayer {
-                        rotationZ = rotationAnim.value
-                    }
-            )
+
+            Crossfade(
+                targetState = isGlowPhase,
+                label = "imageCrossfade"
+            ) { isFirst ->
+
+                if (isFirst) {
+                    // Glow 로고 (더 크게!)
+                    Image(
+                        painter = painterResource(id = R.drawable.img_splash_logo_glow),
+                        contentDescription = "Splash Logo Glow",
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .size(256.dp.scaled())
+//                            .graphicsLayer {
+//                                rotationZ = rotationAnim.value
+//                            }
+                    )
+                }
+            }
         }
+
     }
 }
 

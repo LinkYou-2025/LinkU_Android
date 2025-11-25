@@ -29,7 +29,14 @@ interface LinkuRepository {
     suspend fun getRecentLinks(limit: Int = 10): List<LinkSimpleInfo>
 
     // 링크 상세 보기
+    // * 수정 전 *
     suspend fun getLinkDetail(linkuId: Long): LinkResultInfo
+
+    // * 수정 후 *
+    suspend fun getLinkDetail(
+        userId: Long,
+        linkuId: Long
+    ): LinkResultInfo
 
     // 링크 수정
     suspend fun updateLink(
