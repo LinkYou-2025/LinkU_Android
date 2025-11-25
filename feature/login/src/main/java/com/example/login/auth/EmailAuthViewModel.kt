@@ -72,20 +72,26 @@ class EmailAuthViewModel @Inject constructor(
 
     /** 이메일 인증 코드 전송 */
     fun sendEmailCode(email: String) {
+        Log.d("EmailAuthVM", " sendEmailCode() called. email=$email")
         viewModelScope.launch {
             if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Log.w("EmailAuthVM", "Invalid email format: $email")
                 _sendCodeResult.value = "잘못된 이메일 형식"
                 return@launch
             }
             val code = generateRandomSixDigitCode()
+            Log.d("EmailAuthVM", "Generated code = $code")
             try {
                 val ok = userRepository.sendEmailCode(email, code)
+                Log.d("EmailAuthVM", " Server sendEmailCode result = $ok")
                 _sendCodeResult.value = if (ok) "인증 코드 전송 성공" else "서버 오류"
             } catch (e: HttpException) {
+                Log.e("EmailAuthVM", " HttpException in sendEmailCode", e)
                 _sendCodeResult.value = when (e.code()) {
                     409 -> { // 중복 이메일
                         // (선택) 서버 메시지 파싱해서 UI로 보낼 수도 있음
                         val msg = e.response()?.errorBody()?.safeStringMessage()
+                        Log.e("EmailAuthVM", " Duplicate email. server message=$msg")
                         if (msg?.contains("중복") == true) "이미 가입된 이메일입니다."
                         else "이미 가입된 이메일입니다."
                     }
@@ -96,6 +102,7 @@ class EmailAuthViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                Log.e("EmailAuthVM", " Unknown error in sendEmailCode", e)
                 _sendCodeResult.value = "서버 오류"
                 flagServerError()                  //  서버 에러 태그 세팅
             }
@@ -104,9 +111,11 @@ class EmailAuthViewModel @Inject constructor(
 
     // 이메일 인증 코드 전송
     fun verifyEmailCode(email: String, code: String) {
+        Log.d("EmailAuthVM", " verifyEmailCode() called. email=$email, code=$code")
         viewModelScope.launch {
             try {
                 val ok = userRepository.verifyEmailCode(email, code)
+                Log.d("EmailAuthVM", " Server verify result = $ok")
                 _verifyCodeResult.value = if (ok) "인증 성공" else "인증 실패"
 
                 // 여기서 1회성으로 true → 잠깐 후 false로 되돌림

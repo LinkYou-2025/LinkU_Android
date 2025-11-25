@@ -2,6 +2,7 @@ package com.example.login.auth
 
 import android.util.Patterns
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,6 +28,8 @@ import kotlinx.coroutines.delay
 import androidx.navigation.compose.rememberNavController
 import com.example.login.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavBackStackEntry
+
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
  * - 이메일 입력, 인증 코드 입력, 타이머, 버튼, 에러 처리, 네비게이션 등 모든 동작을 포함함.
@@ -35,9 +38,21 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun EmailVerificationScreen(
     navigator: NavHostController,
+    parentEntry: NavBackStackEntry,
     viewModel: EmailAuthViewModel = hiltViewModel(),
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
+
+    // 이메일 인증 화면은 뒤로가면 로그인 화면(약관 선택 페이지)으로 돌아가는게 맞는지
+    //TODO : 다인언니에게 물어보기!
+    BackHandler {
+        parentEntry.savedStateHandle["from_email_verification"] = true
+
+        navigator.navigate("login") {
+            popUpTo("auth_graph") { inclusive = false }
+            launchSingleTop = true
+        }
+    }
     // 상태 변수
     val email = remember { mutableStateOf("") }
     val code = remember { mutableStateOf("") }
@@ -382,7 +397,7 @@ fun StepIndicator() {
                 )
             }
 
-            Spacer(modifier = Modifier.width(6.dp)) // ✅ 8dp → 6dp, 균형 조정
+            Spacer(modifier = Modifier.width(6.dp)) //  8dp → 6dp, 균형 조정
 
             // 🔹 연결 점선 (3개)
             repeat(3) {
@@ -426,7 +441,7 @@ fun StepIndicator() {
 
             Spacer(modifier = Modifier.width(6.dp))
 
-            // 3️⃣ 3번 비활성 원
+            // 3번 비활성 원
             Box(
                 modifier = Modifier
                     .size(30.dp)
