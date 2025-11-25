@@ -1,6 +1,7 @@
 package com.example.login.auth
 
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +42,11 @@ fun WelcomeScreen(
     signUpViewModel: SignUpViewModel? = null // null 허용, 프리뷰 확인용
     //signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
+
+    // 뒤로가기 막기
+    BackHandler {
+        // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
+    }
     //  signUpSuccess(Boolean?) 사용
     val signUpSuccess by signUpViewModel?.signUpSuccess?.collectAsState() ?: remember {
         mutableStateOf<Boolean?>(null)
@@ -55,9 +61,9 @@ fun WelcomeScreen(
             true -> {
                 Log.d("WelcomeScreen", " 회원가입 성공")
                 //navigator.navigate("home")  // 회원가입 후 홈으로 이동
-                // 수정
+                // 수정 이전 화원가입으로 갈 수 없음. 백버튼을 아무리 눌러도 작동 안함.
                 navigator.navigate("email_login") {
-                    popUpTo("welcome") { inclusive = true } // WelcomeScreen 제거
+                    popUpTo("auth_graph") { inclusive = true }
                 }
                 isSignUpRequested = false
             }
