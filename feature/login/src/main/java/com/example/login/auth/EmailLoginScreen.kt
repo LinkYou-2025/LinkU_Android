@@ -18,6 +18,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -29,19 +32,16 @@ import androidx.navigation.compose.rememberNavController
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.login.R
 import com.example.login.Paperlogy
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import com.example.core.repository.UserRepository
 
-
+//이메일로 로그인하는 곳.
 @Composable
 fun EmailLoginScreen(
     navigator: NavHostController,
-    loginViewModel: LoginViewModel = hiltViewModel()
+    loginViewModel: LoginViewModel? = null  //  nullable
+    //loginViewModel: LoginViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -51,7 +51,9 @@ fun EmailLoginScreen(
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
 
     // ViewModel 상태 수집
-    val ui by loginViewModel.loginState.collectAsState()
+    // ✅ 프리뷰에서는 ViewModel 생성 안 함
+    val ui = loginViewModel?.loginState?.collectAsState()?.value
+        ?: LoginViewModel.LoginState()  // 기본 빈 상태
     val isLoading = ui.loading
     val loginResult = ui.result
 
@@ -71,80 +73,6 @@ fun EmailLoginScreen(
             }
         }
     }
-//    LaunchedEffect(loginResult?.userId, isLoginRequested) {
-//        val result = loginResult
-//        if (isLoginRequested && result?.userId != null && result.userId != -1) {
-//            Log.d("Login", " 로그인 성공 → Home 이동")
-//            isLoginRequested = false
-//
-//            // NavHost에서 실제 라우트명을 정확히 사용!
-//            navigator.navigate("home") {
-//                popUpTo(0) { inclusive = true }   // 모든 스택 제거 후 홈으로
-//                launchSingleTop = true
-//            }
-//        }
-//    }
-
-//@Composable
-//fun EmailLoginScreen(
-//    navigator: NavHostController,
-//    loginViewModel: LoginViewModel = hiltViewModel(),
-//    onLoginSuccess: () -> Unit
-//) {
-//    var email by remember { mutableStateOf("") }
-//    var password by remember { mutableStateOf("") }
-//    var isLoginRequested by remember { mutableStateOf(false) }
-//    val loginResult by loginViewModel.loginState.collectAsState()
-//    //var loginSuccess by remember { mutableStateOf(false) }
-//    val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-//    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
-//
-//    val currentNavigator = rememberUpdatedState(navigator)
-//
-//    LaunchedEffect(loginResult) {
-//        val result = loginResult
-//        if (isLoginRequested && result?.userId != null && result.userId != -1) {
-//            Log.d("Login", " 로그인 성공 → ${result.token}")
-//            isLoginRequested = false
-//
-//            navigator.navigate("home") {
-//                popUpTo("email_login") { inclusive = true }
-//            }
-//        }
-//    }
-//    //  로그인 성공 시 → HomeScreen 표시 후 return (Login UI 제거)
-//    if (loginSuccess) {
-//        //com.example.home.HomeScreen() //  네가 만든 HomeScreen 바로 호출
-//        return
-//    }
-
-
-
-//    LaunchedEffect(loginResult) {
-//        loginResult?.let { result ->
-//            if (isLoginRequested) { // 로그인 버튼 클릭 이후에만 처리
-//                when {
-//                    result.status == "INACTIVE" -> {
-//                        Log.w("Login", "⚠️ 계정 비활성 예정")
-//                        isLoginRequested = false
-//                    }
-//
-//                    result.userId != -1 -> {
-//                        Log.d("Login", "로그인 성공 → ${result.token}")
-//                        isLoginRequested = false
-//                        navigator.navigate("home") {
-//                            popUpTo("email_login") { inclusive = true }
-//                        }
-//                    }
-//
-//                    else -> {
-//                        Log.e("Login", "로그인 실패")
-//                        isLoginRequested = false
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     Box(
         modifier = Modifier
@@ -160,7 +88,7 @@ fun EmailLoginScreen(
         ) {
             // 로고
             Image(
-                painter = painterResource(id = R.drawable.ic_email_login_logo),
+                painter = painterResource(id = R.drawable.ic_email_login_logo_change),
                 contentDescription = "Logo",
                 modifier = Modifier
                     .size(120.dp),
@@ -187,9 +115,9 @@ fun EmailLoginScreen(
                     onValueChange = { email = it },
                     placeholder = {
                         Text(
-                            "아이디(이메일)",
+                            "이메일",
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight(400),
                             fontFamily = Paperlogy,
                             color = Color(0xFFB7B9BF)
                         )
@@ -208,7 +136,7 @@ fun EmailLoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // 비밀번호 입력
             Box(
@@ -230,7 +158,7 @@ fun EmailLoginScreen(
                         Text(
                             "비밀번호",
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight(400),
                             fontFamily = Paperlogy,
                             color = Color(0xFFB7B9BF)
                         )
@@ -262,7 +190,7 @@ fun EmailLoginScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             //로그인 버튼
             val canLogin = !isLoading && isFormValid
@@ -280,16 +208,17 @@ fun EmailLoginScreen(
                         shape = RoundedCornerShape(18.dp)
                     )
                     .clickable(enabled = canLogin) {
-                        loginViewModel.login(email.trim(), password.trim())
+                        loginViewModel?.login(email.trim(), password.trim())
                     },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "로그인 하기",
+                    text = "로그인하기",
                     fontFamily = Paperlogy,
                     color = Color.White,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight(700),
                 )
             }
 
@@ -306,21 +235,42 @@ fun EmailLoginScreen(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
                     fontFamily = Paperlogy,
-                    modifier = Modifier.clickable {
-                        navigator.navigate("resetPassword")
-                    }
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                        .clickable { navigator.navigate("resetPassword") }
                 )
-//                Text("  |  ", color = Color(0xFF87898F), fontSize = 14.sp)
-//                Text(
-//                    "회원가입",
-//                    color = Color(0xFF87898F),
-//                    fontSize = 15.sp,
-//                    fontWeight = FontWeight.Normal,
-//                    fontFamily = Paperlogy,
-//                    modifier = Modifier.clickable {
-//                        navigator.navigate("terms_agreement")
-//                    }
-//                ) -> 불필요함.
+
+                // 구분선 |
+                Text(
+                    text = " | ",
+                    color = Color(0xFF87898F),
+                    fontSize = 15.sp,
+                    fontFamily = Paperlogy,
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)   // 🔥 이게 간격 맞춰줌
+                )
+
+                // 회원가입
+                Text(
+                    text = "회원가입",
+                    style = TextStyle(
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight(400),
+                        color = Color(0xFF87898F),
+                        textAlign = TextAlign.Center
+                    ),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp, vertical = 4.dp)
+                        .clickable {
+                            // TODO: 회원가입 로직 나중에 연결
+                        }
+                )
+
+                //TODO : 여기 로직에 회원가입 빠져있음. 수정하기!!! => 데모데이때, 로직 꼬여서 뺐는데,
+                //이전에 로직이 꼬였어서, 추후 리펙하면서 수정해볼게요..^^
+
             }
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -332,18 +282,8 @@ fun EmailLoginScreen(
 @Composable
 fun EmailLoginScreenPreview() {
     val dummyNavController = rememberNavController()
+
+    // 그냥 ViewModel 빼고 호출
     EmailLoginScreen(navigator = dummyNavController)
 }
 
-//@Preview(showBackground = true, name = "EmailLoginScreen Preview")
-//@Composable
-//fun EmailLoginScreenPreview() {
-//    val dummyNavController = rememberNavController()
-//    EmailLoginScreen(
-//        navigator = dummyNavController,
-////        onLoginSuccess = {
-////            //  Preview에서는 단순히 로그만 찍음
-////            Log.d("Preview", "Login Success Triggered (Preview)")
-////        }
-//    )
-//}

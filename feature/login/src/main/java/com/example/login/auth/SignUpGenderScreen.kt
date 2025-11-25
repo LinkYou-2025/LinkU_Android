@@ -36,7 +36,7 @@ fun SignUpGenderScreen(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     // 성별 선택 상태: 1 = 남성, 2 = 여성
-    var selectedGender by remember { mutableStateOf<Int?>(null) }
+    var selectedGender by remember { mutableStateOf(signUpViewModel.gender) }
 
     //var selectedGender by remember { mutableStateOf<Int?>(null) }
     val isButtonEnabled = selectedGender != null
@@ -83,7 +83,10 @@ fun SignUpGenderScreen(
         GenderOptionButton(
             text = "남성",
             isSelected = selectedGender == 1,
-            onClick = { selectedGender = 1 }
+            onClick = {
+                selectedGender = 1
+                signUpViewModel.gender = 1
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -92,7 +95,10 @@ fun SignUpGenderScreen(
         GenderOptionButton(
             text = "여성",
             isSelected = selectedGender == 2,
-            onClick = { selectedGender = 2 }
+            onClick = {
+                selectedGender = 2
+                signUpViewModel.gender = 2
+            }
         )
 
         Spacer(modifier = Modifier.weight(1f))}
@@ -174,14 +180,15 @@ fun GenderOptionButton(
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().padding(start = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
                 text = text,
-                fontSize = 13.sp,
+                fontSize = 14.sp,
                 fontFamily = Paperlogy,
+                fontWeight = FontWeight.Medium,
                 color = Color.Black
             )
             if (isSelected) {
@@ -208,6 +215,11 @@ fun GenderOptionButton(
     name = "성별 선택 - 선택된 버튼만"
 )
 @Composable
+fun SignUpGenderScreenPreview() {
+    val fakeNavController = rememberNavController()
+    SignUpGenderScreenPreviewOnly(navigator = fakeNavController)
+}
+@Composable
 fun GenderOptionButtonPreview_Selected() {
     Box(Modifier.padding(16.dp)) {
         GenderOptionButton(
@@ -218,81 +230,77 @@ fun GenderOptionButtonPreview_Selected() {
     }
 }
 
+//철저히 프리뷰용. ui 확인용.
+@Composable
+private fun SignUpGenderScreenPreviewOnly(navigator: NavHostController) {
+    var selectedGender by remember { mutableStateOf<Int?>(2) } // 테스트용, "여성" 선택 상태
+    val isButtonEnabled = selectedGender != null
 
-//@Composable
-//fun GenderOptionButton(
-//    text: String,
-//    isSelected: Boolean,
-//    onClick: () -> Unit
-//) {
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(56.dp)
-//            .background(
-//                brush = Brush.horizontalGradient(
-//                    colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-//                ),
-//                shape = RoundedCornerShape(16.dp)
-//            )
-//            .padding(1.dp)
-//            .clickable { onClick() },
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Box(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .background(
-//                    if (isSelected) Color(0xFFF0E8FF) else Color.White,
-//                    shape = RoundedCornerShape(16.dp)
-//                ),
-//            contentAlignment = Alignment.CenterStart
-//        ) {
-//            Row(
-//                modifier = Modifier
-//                    .fillMaxSize()
-////                    //.fillMaxWidth()
-//                    .padding(horizontal = 16.dp),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                // 텍스트
-//                Text(
-//                    text = text,
-//                    fontSize = 13.sp,
-//                    fontFamily = Paperlogy,
-//                    color = Color.Black
-//                )
-//
-//                // 선택된 경우에만 체크박스 표시
-//                if (isSelected) {
-//                    Box(
-//                        modifier = Modifier
-//                            .size(20.dp)
-//                            .background(Color(0xFFCB59EB), shape = RoundedCornerShape(4.dp)),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Icon(
-//                            imageVector = Icons.Default.Check,
-//                            contentDescription = "선택됨",
-//                            tint = Color.White,
-//                            modifier = Modifier.size(12.dp)
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(start = 20.dp, end = 20.dp, top = 52.dp, bottom = 72.dp),
+            horizontalAlignment = Alignment.Start
+        ) {
+            ProfileStepIndicator()  // 단계 표시 UI 재사용
 
-//@Preview(showBackground = true)
-//@Composable
-//fun SignUpGenderScreenPreview() {
-//    val fakeNavController = rememberNavController()
-//    val fakeViewModel = remember { SignUpViewModel() } // 직접 생성 (미리보기용)
-//
-//    SignUpGenderScreen(
-//        navigator = fakeNavController,
-//        signUpViewModel = fakeViewModel
-//    )
-//}
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Text(
+                text = "성별을\n선택해주세요",
+                fontSize = 22.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // 남성 버튼
+            GenderOptionButton(
+                text = "남성",
+                isSelected = selectedGender == 1,
+                onClick = { selectedGender = 1 }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 여성 버튼
+            GenderOptionButton(
+                text = "여성",
+                isSelected = selectedGender == 2,
+                onClick = { selectedGender = 2 }
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        // 하단 버튼
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
+                .height(48.dp)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        colors = if (isButtonEnabled)
+                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        else
+                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                    ),
+                    shape = RoundedCornerShape(18.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "다음",
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                fontFamily = Paperlogy
+            )
+        }
+    }
+}

@@ -106,7 +106,7 @@ fun MainApp(
 
 
     // 회원가입에서 사용할 뷰모델
-    val signUpViewModel: SignUpViewModel = hiltViewModel()
+    //val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
@@ -257,356 +257,257 @@ fun MainApp(
                             }
                         )
 
-//                        Splash(
-//                            onFinish = {
-//                                val uid = deps.authPreference().userId
-//                                if (uid != null && uid > 0L) {
-//                                    navigator.navigate(NavigationRoute.Home.route) {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                } else {
-//                                    navigator.navigate("auth_graph") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                }
-//                            }
-//                        )
 
-//                        //  DataStore 구독
-//                        val isLoggedIn by viewModel.sessionStore
-//                            .isLoggedIn
-//                            .collectAsStateWithLifecycle(initialValue = false)
-//
-//                        Splash(
-//                            onFinish = {
-//                                if (isLoggedIn) {
-//                                    navigator.navigate(NavigationRoute.Home.route) {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                } else {
-//                                    navigator.navigate("auth_graph") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                }
-//                            }
-//                        )
                     }
                 }
-//                with(NavigationRoute.Splash) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) { showNavBar = false }
-//
-//                        Splash(
-//                            onFinish = {
-//                                navigator.navigate("auth_graph") {
-//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                }
-//                            }
-//                        ) //스플래쉬 -> 이후, LoginScreen으로 이동하기.
-//                        //추후, 로그인 된 상태라면 Home으로 이동할 수 있도록 수정해야함.
-//                    }
-//                }
+
 
                 navigation(
                     route = "auth_graph",
                     startDestination = NavigationRoute.Login.route
                 ) {
-                //AnimatedLoginScreen으로 교체
-                    composable(NavigationRoute.Login.route) { entry ->
-                        LaunchedEffect(Unit) { showNavBar = false }
 
-                        // 🔥 auth_graph 스코프의 동일 VM
-                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                    /* ① Login composable */
+                    composable(NavigationRoute.Login.route) { entry ->
+                        val parentEntry = entry
                         val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-                        var showTermsSheet by rememberSaveable { mutableStateOf(false) }
+                        val showTermsSheet by parentEntry.savedStateHandle
+                            .getStateFlow("show_terms_sheet", false)
+                            .collectAsStateWithLifecycle()
 
-                        // ✅ 약관 상세에서 돌아오면 시트 자동 재오픈
-                        LaunchedEffect(Unit) {
-                            navigator.currentBackStackEntry?.savedStateHandle
-                                ?.getStateFlow("reopen_terms_sheet", false)
-                                ?.collect { reopen ->
-                                    if (reopen) {
-                                        showTermsSheet = true
-                                        navigator.currentBackStackEntry?.savedStateHandle
-                                            ?.set("reopen_terms_sheet", false)
-                                    }
-                                }
-                        }
+                        // 이메일 인증에서 백버튼으로 갔을 때, 약관 페이지 나오는게 맞는지.
 
-                        Box(Modifier.fillMaxSize()) {
-                            AnimatedLoginScreen(
-                                navigator = navigator,
-                                onSignUpClick = { showTermsSheet = true }
-                            )
+                        //  이메일 인증에서 돌아오는지 확인
+                        var cameFromEmail by remember { mutableStateOf(false) }
 
-                            if (showTermsSheet) {
-                                TermsAgreementSheet(
-                                    navController = navigator,
-                                    vm = signUpVm,                 // ⬅️ 넘겨서 동일 인스턴스 사용
-                                    onClose = { showTermsSheet = false },
-                                    // 상세로 갈 땐 시트를 닫고 이동
-                                    onClickTerms = {
-                                        showTermsSheet = false
-                                        navigator.navigate("terms/service")
-                                    },
-                                    onClickPrivacy = {
-                                        showTermsSheet = false
-                                        navigator.navigate("terms/privacy")
-                                    },
-                                    onClickMarketing = {
-                                        showTermsSheet = false
-                                        navigator.navigate("terms/marketing")
-                                    }
-                                )
+                        LaunchedEffect(navigator.currentBackStackEntry) {
+                            if (parentEntry.savedStateHandle.get<Boolean>("from_email_verification") == true) {
+                                cameFromEmail = true
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+
+                                kotlinx.coroutines.delay(120)
+
+                                cameFromEmail = false
+                                parentEntry.savedStateHandle["from_email_verification"] = false
                             }
                         }
-                    }
-//                with(NavigationRoute.Login) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) { showNavBar = false }
-//                        //FinishHandler()
-//                        AnimatedLoginScreen(navigator = navigator)
-//                    }
-//                }
 
-                //스택 구조 상의 문제로, 우선 3개의 이용약관 여기에 넣음
-                // 서비스 이용약관
-                    composable("terms/service") { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) { navigator.getBackStackEntry("auth_graph") }
+                        // 약간의 지연 + 재렌더링 위해 빈 박스 만듬.
+                        if (cameFromEmail) {
+                            Box(Modifier.fillMaxSize()) {}
+                            return@composable
+                        }
+
+
+                        AnimatedLoginScreen(
+                            navigator = navigator,
+                            onSignUpClick = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                            }
+                        )
+
+                        //  BottomSheet는 무조건 Login composable 안에서만 렌더링해야 한다
+
+                            TermsAgreementSheet(
+                                navController = navigator,
+                                vm = signUpVm,
+                                visible = showTermsSheet,
+                                onClose = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                },
+                                onClickTerms = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/service")
+                                },
+                                onClickPrivacy = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/privacy")
+                                },
+                                onClickMarketing = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/marketing")
+                                }
+                            )
+
+                    }
+
+                    /* ② Service Terms */
+                    composable("terms/service") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         ServiceTermsScreen(
-                            onBackClicked = { navigator.popBackStack() },
+                            onBackClicked = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                navigator.popBackStack()
+                            },
                             onAgreeClicked = {
                                 vm.setAgreeTerms(true)
-                                // 🔔 로그인으로 돌아가면 시트를 다시 열라고 신호
-                                navigator.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("reopen_terms_sheet", true)
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
                                 navigator.popBackStack()
                             }
                         )
                     }
 
-//                    ServiceTermsScreen(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            vm.setAgreeTerms(true)   //  VM 업데이트
-//                            navigator.popBackStack() //  뒤로만
-//                        }
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            navigator.previousBackStackEntry
-//                                ?.savedStateHandle
-//                                ?.set("agree_terms", true)
-//                            navigator.popBackStack() // 약관 선택 화면으로 복귀
-//                        }
-//                    )
-//                }
-//                composable("terms/service") {
-//                    ServiceTermsScreen(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = { navigator.navigate("terms/privacy") } // 다음 약관으로 이동
-//                    )
-//                }
-
-                // 개인정보 처리방침
-                    composable("terms/privacy") { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) { navigator.getBackStackEntry("auth_graph") }
+                    /* ③ Privacy Terms */
+                    composable("terms/privacy") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         PrivacyTermsScreenFixed(
-                            onBackClicked = { navigator.popBackStack() },
+                            onBackClicked = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                navigator.popBackStack()
+                            },
                             onAgreeClicked = {
                                 vm.setAgreePrivacy(true)
-                                navigator.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("reopen_terms_sheet", true)
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
                                 navigator.popBackStack()
                             }
                         )
                     }
-//                    PrivacyTermsScreenFixed(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            vm.setAgreePrivacy(true) // ✅
-//                            navigator.popBackStack() // ✅
-//                        }
-//                    )
-//                }
-//                composable("terms/privacy") {
-//                    PrivacyTermsScreenFixed(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            navigator.previousBackStackEntry
-//                                ?.savedStateHandle
-//                                ?.set("agree_privacy", true)
-//                            navigator.popBackStack()
-//                        }
-//                    )
-//                }
-//                composable("terms/privacy") {
-//                    PrivacyTermsScreenFixed(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = { navigator.navigate("terms/marketing") } // 다음 약관으로 이동
-//                    )
-//                }
 
-                // 마케팅 수신 동의
-                    // 마케팅 수신 동의
-                    composable("terms/marketing") { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) { navigator.getBackStackEntry("auth_graph") }
+                    /* ④ Marketing Terms */
+                    composable("terms/marketing") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         MarketingTermsScreenComposable(
-                            onBackClicked = { navigator.popBackStack() },
+                            onBackClicked = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                navigator.popBackStack()
+                            },
                             onAgreeClicked = {
                                 vm.setAgreeMarketing(true)
-                                navigator.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("reopen_terms_sheet", true)
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
                                 navigator.popBackStack()
                             }
                         )
                     }
-//                    MarketingTermsScreenComposable(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            vm.setAgreeMarketing(true) // ✅
-//                            navigator.popBackStack()   // ✅
-//                        }
-//                    )
-//                }
-                }
-//                composable("terms/marketing") {
-//                    MarketingTermsScreenComposable(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
-//                            navigator.navigate("email_verification") {
-//                                popUpTo("terms/service") { inclusive = true }
-//                            }
-//                        }
-//                    )
-//                }
 
+                    // 이메일 인증
+                    composable("email_verification") { entry ->
 
-                // 이메일 인증
-                composable("email_verification") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-                    //FinishHandler()
-                    EmailVerificationScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                //ViewModel 사용
-                composable("sign_up_password") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-
-
-
-                    SignUpPasswordScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                //닉네임.
-                composable("sign_up_nickname") {
-                    SignUpNicknameScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                //성별
-                composable("sign_up_gender") {
-                    SignUpGenderScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                // 직업 선택 화면
-                composable("sign_up_job") {
-                    SignUpJobScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                // 목적 선택 화면
-                composable("sign_up_purpose") {
-                    //InterestPurposeScreen(navigator = navigator)
-                    InterestPurposeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                composable("sign_up_interest") {
-//                    InterestContentScreen(
-//                        navigator = navigator,
-//                        signUpViewModel = hiltViewModel()
-//                    )
-                    InterestContentScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                // 회원가입 완료 → 환영 화면
-                composable("welcome") {
-                    WelcomeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                composable("email_login") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-
-                    // ✅ 로그인 상태 관찰
-                    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
-
-                    // ✅ 로그인 성공 시 즉시 재로드
-                    LaunchedEffect(loginState) {
-                        val loggedIn = (loginState.result != null) &&
-                                (loginState.errorTag == null) &&
-                                !loginState.loading
-                        if (loggedIn) {
-                            // 큐레이션 재시도 가능하게 잠금 해제 후 로드
-                            curationViewModel.invalidate()
-                            curationViewModel.loadMonthlyCuration()
-
-                            homeViewModel.refreshAfterLogin()
-                            // (최소 변경 원하시면: homeViewModel.loadUserBasics(); homeViewModel.loadRecentLinks())
-
-                            // 필요하면 Home/File 등 다른 화면도 같은 패턴으로 리프레시 트리거
-
-                            // 그리고 홈으로 이동
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
+                        val parentEntry = remember(entry) {
+                            navigator.getBackStackEntry("auth_graph")
                         }
+
+
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+                        EmailVerificationScreen(
+                            navigator = navigator,
+                            parentEntry = parentEntry,     // ⬅ 추가
+                            signUpViewModel = vm
+                        )
+                    }
+                    //ViewModel 사용
+                    // 비밀번호
+                    composable("sign_up_password") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpPasswordScreen(navigator = navigator, signUpViewModel = vm)
                     }
 
-                    EmailLoginScreen(
-                        loginViewModel = loginViewModel,
-                        navigator = navigator,
-                    )
+                    // 닉네임
+                    composable("sign_up_nickname") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpNicknameScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 성별
+                    composable("sign_up_gender") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpGenderScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 직업
+                    composable("sign_up_job") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpJobScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 목적
+                    composable("sign_up_purpose") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        InterestPurposeScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 관심사
+                    composable("sign_up_interest") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        InterestContentScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 환영 화면
+                    composable("welcome") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        WelcomeScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    composable("email_login") {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
+                        //  로그인 상태 관찰
+                        val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+
+                        //  로그인 성공 시 즉시 재로드
+                        LaunchedEffect(loginState) {
+                            val loggedIn = (loginState.result != null) &&
+                                    (loginState.errorTag == null) &&
+                                    !loginState.loading
+                            if (loggedIn) {
+                                // 큐레이션 재시도 가능하게 잠금 해제 후 로드
+                                curationViewModel.invalidate()
+                                curationViewModel.loadMonthlyCuration()
+
+                                homeViewModel.refreshAfterLogin()
+                                // (최소 변경 원하시면: homeViewModel.loadUserBasics(); homeViewModel.loadRecentLinks())
+
+                                // 필요하면 Home/File 등 다른 화면도 같은 패턴으로 리프레시 트리거
+
+                                // 그리고 홈으로 이동
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+
+                        EmailLoginScreen(
+                            loginViewModel = loginViewModel,
+                            navigator = navigator,
+                        )
+                    }
+
+
+                    //비밀번호 재설정 화면
+                    composable("resetPassword") {
+                        LaunchedEffect(Unit) { showNavBar = false }
+                        //FinishHandler()
+                        ResetPasswordScreen(navigator = navigator)
+                    }
+
+
                 }
 
-//                composable("email_login") {
-//                    //EmailLoginScreen(navigator = navigator)
-//                    EmailLoginScreen(
-//                        loginViewModel = loginViewModel,
-//                        navigator = navigator,
-////                        onLoginSuccess = {
-////                            //  네비게이션 로직은 app 모듈에서만 관리
-////                            navigator.navigate(NavigationRoute.Home.route) {
-////                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-////                            }
-////                        }
-//                    )
-//                }
 
-                //이메일 로그인 -> 회원가입
-//                composable("terms_agreement") {
-//                    TermsAgreementSheet(navController = navigator)
-//                    //TermsAgreementScreen(navController = navigator)
-//                }
 
-                //비밀번호 재설정 화면
-                composable("resetPassword") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-                    //FinishHandler()
-                    ResetPasswordScreen(navigator = navigator)
-                }
+
+
 
 
 
@@ -930,7 +831,15 @@ fun MainApp(
 
                     Log.d("MainApp", "visible: $visible")
 
+                    // 모달 떠 있을 때 → 뒤로가면 모달 닫기
                     if (showModal && visible) {
+
+                        //백버튼 빠짐. 추가.
+                        BackHandler {
+                            visible = false
+                        }
+
+
                         Log.d("MainApp", "On Modal")
 
                         FileModalWindow(
@@ -952,7 +861,20 @@ fun MainApp(
                         }
                     }
 
-                    // ❹ 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
+                    // 모달 닫힌 뒤 → 딥링크 로그인 화면 뒤로가기 = 앱 종료 처리
+                    if (!showModal || !visible) {
+                        BackHandler {
+                            val now = System.currentTimeMillis()
+                            if (now - lastBackPressed < 2000L) {
+                                activity?.finish()
+                            } else {
+                                Toast.makeText(context, "뒤로 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+                                lastBackPressed = now
+                            }
+                        }
+                    }
+
+                    // 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
                     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
                     Log.d("MainApp", "loginState: $loginState")
@@ -981,7 +903,8 @@ fun MainApp(
                     }
 
                     // ❺ 실제 로그인 UI(AnimatedLoginScreen 등) 렌더링
-                    AnimatedLoginScreen(navigator = navigator)
+                   // AnimatedLoginScreen(navigator = navigator)
+                    AnimatedLoginScreen(navigator = navigator, onSignUpClick = {})
                 }
 
 

@@ -7,9 +7,6 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,52 +21,49 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.login.R
 import com.example.login.Paperlogy
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.login.R
 
-
-// 데이터 클래스
+/**
+ * 관심사 선택 화면의 버블 데이터 클래스
+ */
 data class Content(val emoji: String, val label: String, val size: Float, val offset: DpOffset)
 
-// 예시 리스트 (위치 정보 추가!) *위치 수정 필요 -> 피그마에 맞춤. 부족한 점 있으면 추후 수정 -*
+/**
+ * 관심사 버블 리스트 (동그라미 위치, 크기, 라벨 등)
+ */
 val contents = listOf(
-    Content("💼", "비즈니스/마케팅", 140f, DpOffset(-190.dp, 10.dp)),
-    Content("🎨", "디자인/\n크리에이티브", 140f, DpOffset(-20.dp, 10.dp)),
-    Content("💻", "IT/개발", 100f, DpOffset(140.dp, 50.dp)),
-    Content("🚀", "스타트업/창업", 100f, DpOffset(230.dp, 140.dp)),
-    Content("🌍", "사회/문화/환경", 140f, DpOffset(-50.dp, 310.dp)),
-    Content("📚", "학업/리포트\n참고", 120f, DpOffset(-60.dp, 160.dp)),
-    Content("✍️", "글쓰기/콘텐츠\n작성", 160f, DpOffset(70.dp, 160.dp)),
-    Content("📓", "책/인사이트\n요약", 140f, DpOffset(350.dp, 200.dp)),
-    Content("🧠", "심리/자기계발", 140f, DpOffset(-50.dp, 310.dp)),
-    Content("📰", "시사/트렌드", 110f, DpOffset(100.dp, 330.dp)),
-
-    Content("📂", "그냥 모아두고\n싶은 글들", 140f, DpOffset(220.dp, 260.dp)),
-
-    Content("🎯", "커리어/채용", 100f, DpOffset(-150.dp, 280.dp))
-
-
+    Content("\uD83D\uDCC8", "비즈니스/마케팅", 159.29f, DpOffset(-208.dp, 261.dp)),
+    Content("\uD83C\uDFA8", "디자인/\n크리에이티브", 181.72f, DpOffset(-32.dp, 243.dp)),
+    Content("\uD83D\uDCDA", "학업/\n리포트 참고", 145.82f, DpOffset(-89.dp, 420.dp)),
+    Content("\u270D\uFE0F", "글쓰기/콘텐츠\n작성", 188.45f, DpOffset(72.dp, 410.dp)),
+    Content("\uD83D\uDCBB", "IT/개발", 107.69f, DpOffset(165.dp, 297.dp)),
+    Content("\uD83C\uDF0D", "사회/문화/환경", 187f, DpOffset(392.dp, 250.dp)),
+    Content("\uD83D\uDE80", "스타트업/창업", 141.34f, DpOffset(260.dp, 365.dp)),
+    Content("\uD83D\uDCC2", "그냥 모아두고\n싶은 글들", 187f, DpOffset(260.dp, 519.dp)),
+    Content("\uD83D\uDCF0", "시사/트렌드", 118f, DpOffset(136.dp, 613.dp)),
+    Content("\uD83E\uDDE0", "심리/자기계발", 161.53f, DpOffset(-39.dp, 574.dp)),
+    Content("\uD83C\uDFAF", "커리어/채용", 125f, DpOffset(-179.18.dp, 553.dp)),
+    Content("\uD83D\uDCD3", "책/인사이트\n요약", 159.29f, DpOffset(442.dp, 448.dp))
 )
 
-// 관심 콘텐츠 라벨 → 서버 enum 코드 매핑
 val contentLabelToCode = mapOf(
     "비즈니스/마케팅" to "BUSINESS",
     "디자인/\n크리에이티브" to "DESIGN",
@@ -85,44 +79,45 @@ val contentLabelToCode = mapOf(
     "커리어/채용" to "CAREER"
 )
 
-//줄바꿈 및 공백으로 서버에 empty로 들어가는 문제 방지
-// 정규화 함수 (파일 위쪽 어딘가)
-private fun normalizeLabel(raw: String) =
-    raw.replace("\n", "").replace(" ", "")
-
-// 정규화된 키로 보관하는 맵
+private fun normalizeLabel(raw: String) = raw.replace("\n", "").replace(" ", "")
 val contentLabelToCodeNormalized: Map<String, String> =
     contentLabelToCode.entries.associate { (k, v) -> normalizeLabel(k) to v }
 
+/**
+ * 관심사 선택 메인 화면 컴포저블
+ */
 @Composable
 fun InterestContentScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel ?= null
+    signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    val selectedContents = remember { mutableStateListOf<String>() }
+    // ViewModel 기존 선택값 복원 (뒤로가기 해도 유지됨)
+    val selectedContents = remember {
+        mutableStateListOf<String>().apply {
+            addAll(signUpViewModel.interestList.mapNotNull { code ->
+                // code → label 역매핑
+                contentLabelToCodeNormalized.entries
+                    .firstOrNull { it.value == code }
+                    ?.key
+            })
+        }
+    }
     val canProceed = selectedContents.isNotEmpty()
 
-    // 🔥 Column → Scaffold + LazyColumn
-    //  - 본문은 세로 스크롤
-    //  - 하단 버튼은 bottomBar에 고정
     Scaffold(
-        containerColor = Color.White,
+        containerColor = Color.White, // 항상 흰색 배경
         bottomBar = {
-            // ✅ 닉네임/성별/직업과 동일한 바닥 패딩 계산
             val density = LocalDensity.current
             val imeBottomPx = WindowInsets.ime.getBottom(density)
             val isImeVisible = imeBottomPx > 0
-            val bottomGapWhenIme = 4.dp     // 키보드 보일 때 버튼-키보드 간격
-            val bottomGapDefault = 16.dp    // 평소 하단 간격
+            val bottomGapWhenIme = 4.dp
+            val bottomGapDefault = 16.dp
             val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
-                    //.padding(horizontal = 32.dp, vertical = 14.dp)
-                    //.navigationBarsPadding()
-                    //.imePadding()
                     .height(48.dp)
                     .background(
                         brush = Brush.horizontalGradient(
@@ -133,19 +128,19 @@ fun InterestContentScreen(
                         ),
                         shape = RoundedCornerShape(18.dp)
                     )
-                    // 🔕 버튼 리플/회색 프레스 제거
                     .clickable(
                         enabled = canProceed,
                         indication = null,
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        signUpViewModel?.interestList = selectedContents
-                            .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
-                            .distinct()
+                        //  클릭 시 바로 ViewModel에 저장
+                        val codes = selectedContents.mapNotNull {
+                            contentLabelToCodeNormalized[normalizeLabel(it)]
+                        }.distinct()
 
-                        android.util.Log.d("Interest", "selected=${selectedContents}")
-                        android.util.Log.d("Interest", "interestList=${signUpViewModel?.interestList}")
-
+                        if (codes.isNotEmpty()) {
+                            signUpViewModel.interestList = codes
+                        }
                         navigator.navigate("welcome")
                     },
                 contentAlignment = Alignment.Center
@@ -158,30 +153,26 @@ fun InterestContentScreen(
                     fontSize = 16.sp
                 )
             }
-
         }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(Color.White),
+                .background(Color.White)
+                .padding(innerPadding),
             contentPadding = PaddingValues(
-                start = 32.dp, end = 32.dp,
+                start = 20.dp, end = 20.dp,
                 top = 40.dp,
-                bottom = 96.dp // bottomBar(48) + 외곽 패딩(14*2) 만큼 여유
+                bottom = 96.dp
             )
         ) {
             item { ContentStepIndicator() }
-
             item { Spacer(modifier = Modifier.height(16.dp)) }
-
             item {
                 Text(
                     buildAnnotatedString {
-                        // ✍️ 사용하신 텍스트 그대로 유지 (“괸심” 포함)
-                        append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
-                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
+                        append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
+                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 16.sp,fontWeight = FontWeight.Medium )) {
                             append("(복수 선택 가능)")
                         }
                     },
@@ -190,9 +181,7 @@ fun InterestContentScreen(
                     fontWeight = FontWeight.Bold,
                 )
             }
-
             item { Spacer(modifier = Modifier.height(32.dp)) }
-
             item {
                 InterestCloudScrollable(
                     contents = contents,
@@ -204,132 +193,14 @@ fun InterestContentScreen(
                     height = 500.dp
                 )
             }
-
             item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
 
-
-
-//@Composable
-//fun InterestContentScreen(
-//    navigator: NavHostController,
-//    signUpViewModel: SignUpViewModel ?= null
-//) {
-//    val selectedContents = remember { mutableStateListOf<String>() }
-//
-//    val canProceed = selectedContents.isNotEmpty()
-//
-//    Column(
-//        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp, vertical = 40.dp),
-//        horizontalAlignment = Alignment.Start
-//    ) {
-//        ContentStepIndicator()
-//
-//        Spacer(modifier = Modifier.height(16.dp))
-//
-//        Text(
-//            buildAnnotatedString {
-//                append("어떤 분야의 콘텐츠를\n괸심 있으신가요? ")
-//                withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 12.sp)) {
-//                    append("(복수 선택 가능)")
-//                }
-//            },
-//            fontSize = 22.sp,
-//            fontFamily = Paperlogy,
-//            fontWeight = FontWeight.Bold,
-//        )
-//
-//        Spacer(modifier = Modifier.height(32.dp))
-//
-//        InterestCloudScrollable(
-//            contents = contents,
-//            selected = selectedContents,
-//            onToggle = { label ->
-//                if (selectedContents.contains(label)) selectedContents.remove(label)
-//                else selectedContents.add(label)
-//            },
-//            height = 500.dp
-//        )
-//
-//        //
-////        Row(
-////            modifier = Modifier
-////                .fillMaxWidth()
-////                .height(500.dp)
-////                .horizontalScroll(rememberScrollState())
-////        ) {
-////
-////            Box(
-////                modifier = Modifier
-////                    .width(1000.dp) // 충분히 넓게 확보 (필요 시 늘리세요)
-////                    .height(500.dp)
-////            ) {
-////                contents.forEach { content ->
-////                    ContentItem(
-////                        content = content,
-////                        isSelected = selectedContents.contains(content.label),
-////                        onClick = {
-////                            if (selectedContents.contains(content.label)) {
-////                                selectedContents.remove(content.label)
-////                            } else {
-////                                selectedContents.add(content.label)
-////                            }
-////                        },
-////                        modifier = Modifier.offset(content.offset.x, content.offset.y)
-////                    )
-////                }
-////            }
-////        }
-//
-//        Spacer(modifier = Modifier.weight(1f))
-//
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(48.dp)
-//                .background(
-//                    brush = Brush.horizontalGradient(
-//                        colors = if (canProceed)
-//                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-//                        else
-//                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-//                    ),
-//                    shape = RoundedCornerShape(24.dp)
-//                )
-//                .clickable(enabled = canProceed) {
-//                    signUpViewModel?.interestList = selectedContents
-//                        .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
-//                        .distinct()
-//
-//                    //선택이 잘 들어가는지 로그 확인
-//                    android.util.Log.d("Interest", "selected=${selectedContents}")
-//                    android.util.Log.d("Interest", "interestList=${signUpViewModel?.interestList}")
-//
-////                .clickable(enabled = canProceed) {
-////                    //  라벨을 서버 ENUM 코드로 변환 후 ViewModel에 저장
-////                    // 줄 바꿈으로 서버 인식 불가 -> 변경.
-////                    //signUpViewModel?.interestList = selectedContents.mapNotNull { contentLabelToCode[it] }
-////                    signUpViewModel?.interestList = selectedContents.mapNotNull {
-////                        contentLabelToCode[it.replace("\n", "")]
-////                    }
-//
-//                    navigator.navigate("welcome")
-//                },
-//            contentAlignment = Alignment.Center
-//        ) {
-//            Text(
-//                "다음",
-//                color = Color.White,
-//                fontFamily = Paperlogy,
-//                fontSize = 16.sp
-//            )
-//        }
-//    }
-//}
-
-// 원형 아이템 -> * 수정하기 *
+/**
+ * 관심사 버블(동그라미) 하나를 그리는 컴포저블
+ */
 @Composable
 fun ContentItem(
     content: Content,
@@ -349,14 +220,13 @@ fun ContentItem(
                 brush = if (isSelected)
                     Brush.horizontalGradient(
                         colors = listOf(
-                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 왼쪽 연파랑
-                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 오른쪽 연분홍
+                            Color(0xFF2C6FFF).copy(alpha = 0.4f),
+                            Color(0xFFC800FF).copy(alpha = 0.4f)
                         )
                     )
                 else SolidColor(Color.White),
                 shape = CircleShape
             )
-            // 🔕 리플/회색 프레스 제거
             .clickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() }
@@ -375,84 +245,51 @@ fun ContentItem(
         }
     }
 }
-//@Composable
-//fun ContentItem(
-//    content: Content,
-//    isSelected: Boolean,
-//    onClick: () -> Unit,
-//    modifier: Modifier = Modifier
-//) {
-//    Box(
-//        modifier = modifier
-//            .size(content.size.dp)
-//            .border(
-//                width = 1.dp,
-//                brush = Brush.sweepGradient(listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
-//                shape = CircleShape
-//            )
-//            .background(
-//                brush = if (isSelected)
-//                    Brush.horizontalGradient(
-//                        colors = listOf(
-//                            Color(0xFF2C6FFF).copy(alpha = 0.4f), // 연한 파랑 (왼쪽)
-//                            Color(0xFFC800FF).copy(alpha = 0.4f)  // 연한 분홍 (오른쪽)
-//                        )
-//                    )
-//                else
-//                    SolidColor(Color.White),
-//                shape = CircleShape
-//            )
-//            .clickable { onClick() },
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-//            Text(
-//                text = content.emoji,
-//                fontFamily = Paperlogy,
-//                fontSize = 24.sp
-//            )
-//            Text(
-//                text = content.label,
-//                fontSize = 14.sp,
-//                fontFamily = Paperlogy,
-//                textAlign = TextAlign.Center,
-//                color = if (isSelected) Color.White else Color.Black
-//            )
-//        }
-//    }
-//}
 
+/**
+ * 관심사 버블 클라우드(동그라미 배치 및 스크롤) 컴포저블
+ * - 각 Content의 offset을 그대로 사용해 기존 위치와 동일하게 배치
+ */
 @Composable
-private fun PurposeCloudScrollable(
-    purposes: List<Purpose>,
+private fun InterestCloudScrollable(
+    contents: List<Content>,
     selected: SnapshotStateList<String>,
     onToggle: (String) -> Unit,
-    height: Dp = 500.dp
+    height: Dp = 500.dp,
+    leftGutter: Dp = 20.dp,
+    rightGutter: Dp = 20.dp
 ) {
-    // 좌표 음수 보정(왼쪽으로 삐져나간 아이템 있으면 전체를 우측으로 이동)
-    val minX = remember(purposes) { purposes.minOfOrNull { it.offset.x } ?: 0.dp }
-    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
-
-    // 우측 끝 좌표로 캔버스 폭 계산(여유 80dp)
-    val canvasWidth = remember(purposes, shiftX) {
-        val right = purposes.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-        right + 80.dp
+    // 1) 전체 y 기준 보정 (top 정렬)
+    val minY = contents.minOfOrNull { it.offset.y } ?: 0.dp
+    val shiftY = 0.dp
+    val shiftedContents = contents.map { c ->
+        c.copy(offset = DpOffset(c.offset.x, (c.offset.y - minY) + shiftY))
     }
 
-    // 초기 가로 스크롤 오프셋(진입 시만 적용)
-    val density = LocalDensity.current
-    val initialOffsetPx = remember { with(density) { 90.dp.roundToPx() } }
-    val scrollState = rememberScrollState(initial = initialOffsetPx)
+    // 2) 전체 x 좌표 보정 (음수 x 제거)
+    val minX = shiftedContents.minOfOrNull { it.offset.x } ?: 0.dp
+    val shiftX = -minX
 
+    // 3) 전체 width 계산
+    val contentRight = shiftedContents.maxOfOrNull { it.offset.x + it.size.dp } ?: 0.dp
+    val canvasWidth = leftGutter + contentRight + shiftX + rightGutter
+
+    // 4) 초기 스크롤 위치 설정
+    val density = LocalDensity.current
+    val initialOffsetDp = 90.dp + leftGutter
+    val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
+
+    val scroll = rememberScrollState(initial = initialOffsetPx)
     LaunchedEffect(canvasWidth) {
-        if (scrollState.value == 0) scrollState.scrollTo(initialOffsetPx)
+        if (scroll.value == 0) scroll.scrollTo(initialOffsetPx)
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(height)
-            .horizontalScroll(scrollState),
+            .horizontalScroll(scroll)
+            .background(Color.White),
         contentAlignment = Alignment.Center
     ) {
         Box(
@@ -460,85 +297,173 @@ private fun PurposeCloudScrollable(
                 .width(canvasWidth)
                 .height(height)
         ) {
-            purposes.forEach { p ->
-                val isSelected = p.label in selected
-                PurposeItem(
-                    purpose = p,
+            shiftedContents.forEach { item ->
+                val isSelected = item.label in selected
+                ContentItem(
+                    content = item,
                     isSelected = isSelected,
-                    onClick = { onToggle(p.label) },
-                    modifier = Modifier.offset(p.offset.x + shiftX, p.offset.y)
+                    onClick = { onToggle(item.label) },
+                    modifier = Modifier.offset(
+                        leftGutter + item.offset.x + shiftX,
+                        item.offset.y
+                    )
                 )
             }
         }
     }
 }
 
+//@Composable
+//private fun InterestCloudScrollable(
+//    contents: List<Content>,
+//    selected: SnapshotStateList<String>,
+//    onToggle: (String) -> Unit,
+//    height: Dp = 500.dp
+//) {
+//    // 1. 피그마 기준 전체 bounding 박스 상단 좌표 사용 (y=243)
+//    val minX = 72.dp  // 글쓰기/콘텐츠 작성 기준 x
+//    val minY = 243.dp // 전체 동그라미 박스의 top y(피그마 기준)
+//    val shiftX = 20.dp
+//    val shiftY = 20.dp // 여백감 추가
+//
+//    val shiftedContents = contents.map { c ->
+//        c.copy(offset = DpOffset((c.offset.x - minX) + shiftX, (c.offset.y - minY) + shiftY))
+//    }
+//
+//    val canvasWidth = remember(shiftedContents) {
+//        shiftedContents.maxOf { it.offset.x + it.size.dp } + 20.dp
+//    }
+//    val canvasHeight = remember(shiftedContents) {
+//        shiftedContents.maxOf { it.offset.y + it.size.dp } + 20.dp // 동적 계산
+//    }
+//    val scrollState = rememberScrollState()
+//
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(height.coerceAtLeast(canvasHeight)) // 필요 시 자동 늘림
+//            .horizontalScroll(scrollState)
+//            .background(Color.White),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height.coerceAtLeast(canvasHeight))
+//        ) {
+//            shiftedContents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x, content.offset.y)
+//                )
+//            }
+//        }
+//    }
+//}
+//@Composable
+//private fun InterestCloudScrollable(
+//    contents: List<Content>,
+//    selected: SnapshotStateList<String>,
+//    onToggle: (String) -> Unit,
+//    height: Dp = 500.dp
+//) {
+//    // 좌표 보정: 음수 좌표가 있으면 전체를 우측으로 이동
+//    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
+//    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
+//    val canvasWidth = remember(contents, shiftX) {
+//        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
+//        right + 80.dp
+//    }
+//    val density = LocalDensity.current
+//    val initialOffsetPx = remember { with(density) { 200.dp.roundToPx() } } // 기존처럼 200dp
+//    val scrollState = rememberScrollState()
+//    LaunchedEffect(Unit) {
+//        scrollState.scrollTo(initialOffsetPx)
+//    }
+//    Box(
+//        modifier = Modifier
+//            .fillMaxWidth()
+//            .height(height)
+//            .horizontalScroll(scrollState)
+//            .background(Color.White),
+//        contentAlignment = Alignment.Center
+//    ) {
+//        Box(
+//            modifier = Modifier
+//                .width(canvasWidth)
+//                .height(height)
+//        ) {
+//            contents.forEach { content ->
+//                val isSelected = content.label in selected
+//                ContentItem(
+//                    content = content,
+//                    isSelected = isSelected,
+//                    onClick = { onToggle(content.label) },
+//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
+//                )
+//            }
+//        }
+//    }
+//}
 
-// 상단 관심사 단계 표시
+/**
+ * 상단 단계 인디케이터 컴포저블
+ */
 @Composable
 fun ContentStepIndicator() {
-    val isPreview = LocalInspectionMode.current //폰트 표시
-
+    val isPreview = LocalInspectionMode.current
     Column(horizontalAlignment = Alignment.Start) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // 1번 체크
             Box(
                 modifier = Modifier
-                    .padding(start = 0.dp)
-                    .size(28.dp)
+                    .padding(start = 6.dp)
+                    .size(30.dp)
                     .background(Color(0xFFE5ACF4), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    painter = painterResource(id = R.drawable.ic_level_check),
                     contentDescription = "완료",
                     tint = Color.White,
                     modifier = Modifier.size(16.dp)
                 )
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
+            Spacer(modifier = Modifier.width(6.dp))
             repeat(3) {
                 Box(
                     modifier = Modifier
-                        .size(4.dp)
+                        .size(4.2.dp)
                         .background(Color(0xFFCB59EB), CircleShape)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(3.dp))
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 2번 체크
+            Spacer(modifier = Modifier.width(6.dp))
             Box(
                 modifier = Modifier
-                    .size(28.dp)
+                    .size(30.dp)
                     .background(Color(0xFFE5ACF4), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.Default.Check,
+                    painter = painterResource(id = R.drawable.ic_level_check),
                     contentDescription = "완료",
                     tint = Color.White,
                     modifier = Modifier.size(16.dp)
                 )
             }
-
             Spacer(modifier = Modifier.width(8.dp))
-
             repeat(3) {
                 Box(
                     modifier = Modifier
-                        .size(4.dp)
+                        .size(4.2.dp)
                         .background(Color(0xFFCB59EB), CircleShape)
                 )
-                Spacer(modifier = Modifier.width(4.dp))
+                Spacer(modifier = Modifier.width(3.dp))
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 3번 숫자 활성 원
+            Spacer(modifier = Modifier.width(6.dp))
             Box(
                 modifier = Modifier
                     .size(28.dp)
@@ -549,142 +474,31 @@ fun ContentStepIndicator() {
                     text = "3",
                     fontFamily = Paperlogy,
                     color = Color.White,
-                    fontSize = 13.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
             }
         }
-
         Text(
             text = "관심사 설정",
-            modifier = Modifier.padding(start = 128.dp, top = 6.dp),
-            fontSize = 12.sp,
+            modifier = Modifier.padding(start = 122.dp, top = 6.dp),
+            fontSize = 13.sp,
             color = Color(0xFFCB59EB),
             fontFamily = Paperlogy,
-            fontWeight = FontWeight.Light
-
+            fontWeight = FontWeight.Light,
+            textAlign = TextAlign.Center
         )
     }
 }
 
+/**
+ * Preview: 화면 ui 확인용. 그 이상도 이하도 아닌... 코드!
+ */
 @Preview(showBackground = true)
 @Composable
 fun InterestContentScreenPreview() {
     val fakeNavController = rememberNavController()
-
     InterestContentScreen(
-        navigator = fakeNavController,
-
+        navigator = fakeNavController
     )
-}
-
-//버블 섹션 좌우 스크롤 되게 수정
-@Composable
-private fun InterestCloudScrollable(
-    contents: List<Content>,
-    selected: SnapshotStateList<String>,
-    onToggle: (String) -> Unit,
-    height: Dp = 500.dp
-) {
-    // 좌표 보정
-    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
-    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
-
-    // 캔버스 너비 계산
-    val canvasWidth = remember(contents, shiftX) {
-        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-        right + 80.dp
-    }
-
-    // ▶ 초기 스크롤을 150dp로 설정
-    val density = LocalDensity.current
-    val initialOffsetDp = 10.dp
-    val initialOffsetPx = remember { with(density) { initialOffsetDp.roundToPx() } }
-
-    val scroll = rememberScrollState(initial = initialOffsetPx)
-
-    // 측정/재컴포지션 때 0으로 돌아가는 걸 방지(사용자가 이미 스크롤했다면 건드리지 않음)
-    LaunchedEffect(canvasWidth) {
-        if (scroll.value == 0) {
-            scroll.scrollTo(initialOffsetPx)
-        }
-    }
-
-    val scrollState = rememberScrollState()
-
-    //val density = LocalDensity.current
-
-    LaunchedEffect(Unit) {
-
-        scrollState.scrollTo(with(density) { 200.dp.roundToPx() })
-    }
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height)
-            .horizontalScroll(scrollState)
-    ) {
-        Box(
-            modifier = Modifier
-                .width(canvasWidth)
-                .height(height)
-        ) {
-            contents.forEach { content ->
-                val isSelected = content.label in selected
-                ContentItem(
-                    content = content,
-                    isSelected = isSelected,
-                    onClick = { onToggle(content.label) },
-                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
-                )
-//    // 좌표 보정: 음수 x가 있으면 전체를 +shiftX만큼 이동
-//    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
-//    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
-//
-//    // 우측 끝 계산해서 캔버스 폭 확보 (여유 80dp)
-//    val canvasWidth = remember(contents, shiftX) {
-//        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-//        (right + 80.dp) //여기 스크롤 수정
-//    }
-//    val scroll = rememberScrollState()
-//
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(height)
-//            .horizontalScroll(rememberScrollState())
-//            //.horizontalScroll(scroll)
-//        //contentAlignment = Alignment.Center
-//
-//    ) {
-//        Box(
-//            modifier = Modifier
-//                .width(canvasWidth)
-//                .height(height)
-//        ) {
-//            contents.forEach { content ->
-//                val isSelected = content.label in selected
-//                ContentItem(
-//                    content = content,
-//                    isSelected = isSelected,
-//                    onClick = { onToggle(content.label) },
-//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
-//                )
-//        Box(
-//            modifier = Modifier
-//                .width(canvasWidth)
-//                .height(height)
-//        ) {
-//            contents.forEach { content ->
-//                val isSelected = content.label in selected
-//                ContentItem(
-//                    content = content,
-//                    isSelected = isSelected,
-//                    onClick = { onToggle(content.label) },
-//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
-//                )
-            }
-        }
-    }
 }

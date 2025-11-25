@@ -38,15 +38,16 @@ import androidx.compose.runtime.setValue
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel = hiltViewModel()
+    signUpViewModel: SignUpViewModel? = null // null 허용, 프리뷰 확인용
+    //signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     //  signUpSuccess(Boolean?) 사용
-    val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
+    val signUpSuccess by signUpViewModel?.signUpSuccess?.collectAsState() ?: remember {
+        mutableStateOf<Boolean?>(null)
+    }
+    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
     var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
-    // 화면 진입 시 회원가입 요청
-//    LaunchedEffect(Unit) {
-//        signUpViewModel.signUp()
-//    }
+
 
     // 서버 응답 감지
     LaunchedEffect(signUpSuccess) {
@@ -60,7 +61,7 @@ fun WelcomeScreen(
                 }
                 isSignUpRequested = false
             }
-            //false -> Log.e("WelcomeScreen", " 회원가입 실패")
+
             false -> {
                 Log.e("WelcomeScreen", "회원가입 실패")
                 isSignUpRequested = false //  실패 시 버튼 다시 활성화
@@ -135,7 +136,7 @@ fun WelcomeScreen(
                     if (!isSignUpRequested) {
                         isSignUpRequested = true
                         Log.d("WelcomeScreen", "회원가입 API 호출 시도")
-                        signUpViewModel.signUp()
+                        signUpViewModel?.signUp()
                     }
                 },
             contentAlignment = Alignment.Center
@@ -153,36 +154,7 @@ fun WelcomeScreen(
             )
         }
 
-//        // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
-//        Button(
-//            onClick = {
-//                if (!isSignUpRequested) { // 한 번만 호출되도록 체크
-//                    isSignUpRequested = true
-//                    Log.d("WelcomeScreen", "회원가입 API 호출 시도")
-//                    signUpViewModel.signUp()
-//                }
-//            },
-//            enabled = !isSignUpRequested, // 요청 중일 때 비활성화
-//            colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-//            shape = RoundedCornerShape(50),
-//            modifier = Modifier
-//                .align(Alignment.BottomCenter)
-//                .padding(horizontal = 32.dp, vertical = 32.dp)
-//                .fillMaxWidth()
-//                .height(48.dp)
-//        ) {
-//            Text(
-//                text = "회원가입 완료하기",
-//                fontSize = 16.sp,
-//                fontWeight = FontWeight.Bold,
-//                style = TextStyle(
-//                    brush = Brush.horizontalGradient(
-//                        colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-//                    )
-//                ),
-//                fontFamily = Paperlogy
-//            )
-//        }
+
     }
 }
 
