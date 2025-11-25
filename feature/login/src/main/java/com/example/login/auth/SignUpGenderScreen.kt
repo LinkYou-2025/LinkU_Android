@@ -36,7 +36,7 @@ fun SignUpGenderScreen(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     // 성별 선택 상태: 1 = 남성, 2 = 여성
-    var selectedGender by remember { mutableStateOf<Int?>(null) }
+    var selectedGender by remember { mutableStateOf(signUpViewModel.gender) }
 
     //var selectedGender by remember { mutableStateOf<Int?>(null) }
     val isButtonEnabled = selectedGender != null
@@ -83,7 +83,10 @@ fun SignUpGenderScreen(
         GenderOptionButton(
             text = "남성",
             isSelected = selectedGender == 1,
-            onClick = { selectedGender = 1 }
+            onClick = {
+                selectedGender = 1
+                signUpViewModel.gender = 1
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -92,7 +95,10 @@ fun SignUpGenderScreen(
         GenderOptionButton(
             text = "여성",
             isSelected = selectedGender == 2,
-            onClick = { selectedGender = 2 }
+            onClick = {
+                selectedGender = 2
+                signUpViewModel.gender = 2
+            }
         )
 
         Spacer(modifier = Modifier.weight(1f))}

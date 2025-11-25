@@ -105,7 +105,7 @@ fun MainApp(
 
 
     // 회원가입에서 사용할 뷰모델
-    val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
+    //val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
@@ -393,123 +393,120 @@ fun MainApp(
                         }
 
 
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
                         EmailVerificationScreen(
                             navigator = navigator,
                             parentEntry = parentEntry,     // ⬅ 추가
-                            signUpViewModel = signUpViewModel
+                            signUpViewModel = vm
                         )
                     }
-                }
+                    //ViewModel 사용
+                    // 비밀번호
+                    composable("sign_up_password") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
-
-
-
-
-
-                //ViewModel 사용
-                composable("sign_up_password") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-
-
-
-                    SignUpPasswordScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                //닉네임.
-                composable("sign_up_nickname") {
-                    SignUpNicknameScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                //성별
-                composable("sign_up_gender") {
-                    SignUpGenderScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                // 직업 선택 화면
-                composable("sign_up_job") {
-                    SignUpJobScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                // 목적 선택 화면
-                composable("sign_up_purpose") {
-                    //InterestPurposeScreen(navigator = navigator)
-                    InterestPurposeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                composable("sign_up_interest") {
-//                    InterestContentScreen(
-//                        navigator = navigator,
-//                        signUpViewModel = hiltViewModel()
-//                    )
-                    InterestContentScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                // 회원가입 완료 → 환영 화면
-                composable("welcome") {
-                    WelcomeScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
-
-                composable("email_login") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-
-                    //  로그인 상태 관찰
-                    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
-
-                    //  로그인 성공 시 즉시 재로드
-                    LaunchedEffect(loginState) {
-                        val loggedIn = (loginState.result != null) &&
-                                (loginState.errorTag == null) &&
-                                !loginState.loading
-                        if (loggedIn) {
-                            // 큐레이션 재시도 가능하게 잠금 해제 후 로드
-                            curationViewModel.invalidate()
-                            curationViewModel.loadMonthlyCuration()
-
-                            homeViewModel.refreshAfterLogin()
-                            // (최소 변경 원하시면: homeViewModel.loadUserBasics(); homeViewModel.loadRecentLinks())
-
-                            // 필요하면 Home/File 등 다른 화면도 같은 패턴으로 리프레시 트리거
-
-                            // 그리고 홈으로 이동
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
+                        SignUpPasswordScreen(navigator = navigator, signUpViewModel = vm)
                     }
 
-                    EmailLoginScreen(
-                        loginViewModel = loginViewModel,
-                        navigator = navigator,
-                    )
+                    // 닉네임
+                    composable("sign_up_nickname") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpNicknameScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 성별
+                    composable("sign_up_gender") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpGenderScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 직업
+                    composable("sign_up_job") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        SignUpJobScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 목적
+                    composable("sign_up_purpose") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        InterestPurposeScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 관심사
+                    composable("sign_up_interest") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        InterestContentScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    // 환영 화면
+                    composable("welcome") { entry ->
+                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        WelcomeScreen(navigator = navigator, signUpViewModel = vm)
+                    }
+
+                    composable("email_login") {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
+                        //  로그인 상태 관찰
+                        val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+
+                        //  로그인 성공 시 즉시 재로드
+                        LaunchedEffect(loginState) {
+                            val loggedIn = (loginState.result != null) &&
+                                    (loginState.errorTag == null) &&
+                                    !loginState.loading
+                            if (loggedIn) {
+                                // 큐레이션 재시도 가능하게 잠금 해제 후 로드
+                                curationViewModel.invalidate()
+                                curationViewModel.loadMonthlyCuration()
+
+                                homeViewModel.refreshAfterLogin()
+                                // (최소 변경 원하시면: homeViewModel.loadUserBasics(); homeViewModel.loadRecentLinks())
+
+                                // 필요하면 Home/File 등 다른 화면도 같은 패턴으로 리프레시 트리거
+
+                                // 그리고 홈으로 이동
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        }
+
+                        EmailLoginScreen(
+                            loginViewModel = loginViewModel,
+                            navigator = navigator,
+                        )
+                    }
+
+
+                    //비밀번호 재설정 화면
+                    composable("resetPassword") {
+                        LaunchedEffect(Unit) { showNavBar = false }
+                        //FinishHandler()
+                        ResetPasswordScreen(navigator = navigator)
+                    }
+
+
                 }
 
-//                composable("email_login") {
-//                    //EmailLoginScreen(navigator = navigator)
-//                    EmailLoginScreen(
-//                        loginViewModel = loginViewModel,
-//                        navigator = navigator,
-////                        onLoginSuccess = {
-////                            //  네비게이션 로직은 app 모듈에서만 관리
-////                            navigator.navigate(NavigationRoute.Home.route) {
-////                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-////                            }
-////                        }
-//                    )
-//                }
 
-                //이메일 로그인 -> 회원가입
-//                composable("terms_agreement") {
-//                    TermsAgreementSheet(navController = navigator)
-//                    //TermsAgreementScreen(navController = navigator)
-//                }
 
-                //비밀번호 재설정 화면
-                composable("resetPassword") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-                    //FinishHandler()
-                    ResetPasswordScreen(navigator = navigator)
-                }
+
+
 
 
 

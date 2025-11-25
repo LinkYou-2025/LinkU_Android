@@ -36,7 +36,7 @@ fun SignUpNicknameScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    var nickname by remember { mutableStateOf("") }
+    var nickname by remember { mutableStateOf(signUpViewModel.nickname) }
 
     val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState()
     val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState()
