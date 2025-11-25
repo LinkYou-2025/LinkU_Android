@@ -86,7 +86,8 @@ fun LoginScreen(
                     contentDescription = "Logo",
                     modifier = Modifier
                         .offset(y = logoOffsetY.dp)
-                        .size(160.dp),
+                        .width(150.dp)
+                        .height(106.dp),
                     contentScale = ContentScale.Fit
                 )
             }
@@ -99,7 +100,8 @@ fun LoginScreen(
                 shape = RoundedCornerShape(32),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .width(350.dp)
+                    .height(54.dp)
                     .clickable(
                         indication = null, // ✅ 리플/애니메이션 없음
                         interactionSource = remember { MutableInteractionSource() }
@@ -147,7 +149,7 @@ fun LoginScreen(
                         navigator.navigate("resetPassword")
                     }
                 )
-                Text("  |  ", color = Color.White, fontSize = 14.sp)
+                Text("      |      ", color = Color.White, fontSize = 14.sp)
                 Text(
                     "회원가입",
                     color = Color.White,

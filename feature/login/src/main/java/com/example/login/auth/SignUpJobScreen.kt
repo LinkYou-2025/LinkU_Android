@@ -33,7 +33,9 @@ fun SignUpJobScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
-    var selectedJobIndex by remember { mutableStateOf<Int?>(null) }
+    var selectedJobIndex by remember { mutableStateOf(
+        if (signUpViewModel.jobId > 0) signUpViewModel.jobId - 1 else null
+    ) }
     val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
     val isButtonEnabled = selectedJobIndex != null
 
@@ -79,7 +81,10 @@ fun SignUpJobScreen(
                 JobOptionButton(
                     text = job,
                     isSelected = selectedJobIndex == index,
-                    onClick = { selectedJobIndex = index }
+                    onClick = {
+                        selectedJobIndex = index
+                        signUpViewModel.jobId = index + 1
+                    }
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
