@@ -268,12 +268,36 @@ fun MainApp(
 
                     /* ① Login composable */
                     composable(NavigationRoute.Login.route) { entry ->
-                        val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
+                        val parentEntry = entry
                         val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
                         val showTermsSheet by parentEntry.savedStateHandle
                             .getStateFlow("show_terms_sheet", false)
                             .collectAsStateWithLifecycle()
+
+                        // 이메일 인증에서 백버튼으로 갔을 때, 약관 페이지 나오는게 맞는지.
+
+                        //  이메일 인증에서 돌아오는지 확인
+                        var cameFromEmail by remember { mutableStateOf(false) }
+
+                        LaunchedEffect(navigator.currentBackStackEntry) {
+                            if (parentEntry.savedStateHandle.get<Boolean>("from_email_verification") == true) {
+                                cameFromEmail = true
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+
+                                kotlinx.coroutines.delay(120)
+
+                                cameFromEmail = false
+                                parentEntry.savedStateHandle["from_email_verification"] = false
+                            }
+                        }
+
+                        // 약간의 지연 + 재렌더링 위해 빈 박스 만듬.
+                        if (cameFromEmail) {
+                            Box(Modifier.fillMaxSize()) {}
+                            return@composable
+                        }
+
 
                         AnimatedLoginScreen(
                             navigator = navigator,
@@ -360,17 +384,27 @@ fun MainApp(
                             }
                         )
                     }
+
+                    // 이메일 인증
+                    composable("email_verification") { entry ->
+
+                        val parentEntry = remember(entry) {
+                            navigator.getBackStackEntry("auth_graph")
+                        }
+
+
+                        EmailVerificationScreen(
+                            navigator = navigator,
+                            parentEntry = parentEntry,     // ⬅ 추가
+                            signUpViewModel = signUpViewModel
+                        )
+                    }
                 }
 
 
 
 
-                // 이메일 인증
-                composable("email_verification") {
-                    LaunchedEffect(Unit) { showNavBar = false }
-                    //FinishHandler()
-                    EmailVerificationScreen(navigator = navigator, signUpViewModel = signUpViewModel)
-                }
+
 
                 //ViewModel 사용
                 composable("sign_up_password") {
@@ -799,7 +833,15 @@ fun MainApp(
 
                     Log.d("MainApp", "visible: $visible")
 
+                    // 모달 떠 있을 때 → 뒤로가면 모달 닫기
                     if (showModal && visible) {
+
+                        //백버튼 빠짐. 추가.
+                        BackHandler {
+                            visible = false
+                        }
+
+
                         Log.d("MainApp", "On Modal")
 
                         FileModalWindow(
@@ -821,7 +863,20 @@ fun MainApp(
                         }
                     }
 
-                    // ❹ 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
+                    // 모달 닫힌 뒤 → 딥링크 로그인 화면 뒤로가기 = 앱 종료 처리
+                    if (!showModal || !visible) {
+                        BackHandler {
+                            val now = System.currentTimeMillis()
+                            if (now - lastBackPressed < 2000L) {
+                                activity?.finish()
+                            } else {
+                                Toast.makeText(context, "뒤로 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+                                lastBackPressed = now
+                            }
+                        }
+                    }
+
+                    // 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
                     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
                     Log.d("MainApp", "loginState: $loginState")

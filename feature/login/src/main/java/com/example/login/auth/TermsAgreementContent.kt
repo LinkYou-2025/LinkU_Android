@@ -195,6 +195,7 @@ fun TermsAgreementContent(
         ) {
             Text(
                 text = "다음",
+                fontFamily = Paperlogy,
                 color = Color.White,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
@@ -362,6 +363,7 @@ fun TermsAgreementSheet(
 ) {
     if (!visible) return
 
+
     NoAnimBottomSheet(
         visible = visible,
         onDismissRequest = onClose,
@@ -387,7 +389,6 @@ fun TermsAgreementSheet(
                 if (t && p) {
                     onClose()
                     navController.navigate("email_verification") {
-                        popUpTo("auth_graph")
                         launchSingleTop = true
                     }
                 }

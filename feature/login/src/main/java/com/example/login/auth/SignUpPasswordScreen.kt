@@ -37,39 +37,43 @@ fun SignUpPasswordScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
+    BackHandler {
+        navigator.popBackStack()
+    }
 
     // 항상 이메일 인증으로 되돌리는 로직
-    fun goBackToEmailVerification() {
-        val popped = navigator.popBackStack("email_verification", inclusive = false)
-        if (!popped) {
-            navigator.navigate("email_verification") {
-                launchSingleTop = true
-                // 이미 존재하면 그 지점까지 스택 정리 (없으면 no-op)
-                popUpTo("email_verification") {
-                    inclusive = false
-                    saveState = true
-                }
-            }
-        }
-    }
-
-    BackHandler(enabled = true) {
-        // 이메일 화면으로 돌아가기 전에 '리셋 신호' 전달
-        navigator.previousBackStackEntry
-            ?.savedStateHandle
-            ?.set("reset_email_screen", true)
-
-        val popped = navigator.popBackStack("email_verification", inclusive = false)
-        if (!popped) {
-            navigator.navigate("email_verification") {
-                launchSingleTop = true
-                popUpTo("email_verification") {
-                    inclusive = false
-                    saveState = true
-                }
-            }
-        }
-    }
+    //TODO :여기서 되돌아가면, 기존 인증한 이메일 정보가 보이는게 맞는지? 다인언니한테 물어보기!
+//    fun goBackToEmailVerification() {
+//        val popped = navigator.popBackStack("email_verification", inclusive = false)
+//        if (!popped) {
+//            navigator.navigate("email_verification") {
+//                launchSingleTop = true
+//                // 이미 존재하면 그 지점까지 스택 정리 (없으면 no-op)
+//                popUpTo("email_verification") {
+//                    inclusive = false
+//                    saveState = true
+//                }
+//            }
+//        }
+//    }
+//
+//    BackHandler(enabled = true) {
+//        // 이메일 화면으로 돌아가기 전에 '리셋 신호' 전달
+//        navigator.previousBackStackEntry
+//            ?.savedStateHandle
+//            ?.set("reset_email_screen", true)
+//
+//        val popped = navigator.popBackStack("email_verification", inclusive = false)
+//        if (!popped) {
+//            navigator.navigate("email_verification") {
+//                launchSingleTop = true
+//                popUpTo("email_verification") {
+//                    inclusive = false
+//                    saveState = true
+//                }
+//            }
+//        }
+//    }
 
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
