@@ -256,59 +256,10 @@ fun MainApp(
                             }
                         )
 
-//                        Splash(
-//                            onFinish = {
-//                                val uid = deps.authPreference().userId
-//                                if (uid != null && uid > 0L) {
-//                                    navigator.navigate(NavigationRoute.Home.route) {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                } else {
-//                                    navigator.navigate("auth_graph") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                }
-//                            }
-//                        )
 
-//                        //  DataStore 구독
-//                        val isLoggedIn by viewModel.sessionStore
-//                            .isLoggedIn
-//                            .collectAsStateWithLifecycle(initialValue = false)
-//
-//                        Splash(
-//                            onFinish = {
-//                                if (isLoggedIn) {
-//                                    navigator.navigate(NavigationRoute.Home.route) {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                } else {
-//                                    navigator.navigate("auth_graph") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
-//                                }
-//                            }
-//                        )
                     }
                 }
-//                with(NavigationRoute.Splash) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) { showNavBar = false }
-//
-//                        Splash(
-//                            onFinish = {
-//                                navigator.navigate("auth_graph") {
-//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                }
-//                            }
-//                        ) //스플래쉬 -> 이후, LoginScreen으로 이동하기.
-//                        //추후, 로그인 된 상태라면 Home으로 이동할 수 있도록 수정해야함.
-//                    }
-//                }
+
 
                 navigation(
                     route = "auth_graph",
@@ -411,17 +362,7 @@ fun MainApp(
                     }
                 }
 
-//                composable("terms/marketing") {
-//                    MarketingTermsScreenComposable(
-//                        onBackClicked = { navigator.popBackStack() },
-//                        onAgreeClicked = {
-//                            // 이후 진행 (예: 회원가입 완료 or 홈으로 이동 등)
-//                            navigator.navigate("email_verification") {
-//                                popUpTo("terms/service") { inclusive = true }
-//                            }
-//                        }
-//                    )
-//                }
+
 
 
                 // 이메일 인증
@@ -477,10 +418,10 @@ fun MainApp(
                 composable("email_login") {
                     LaunchedEffect(Unit) { showNavBar = false }
 
-                    // ✅ 로그인 상태 관찰
+                    //  로그인 상태 관찰
                     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
-                    // ✅ 로그인 성공 시 즉시 재로드
+                    //  로그인 성공 시 즉시 재로드
                     LaunchedEffect(loginState) {
                         val loggedIn = (loginState.result != null) &&
                                 (loginState.errorTag == null) &&
