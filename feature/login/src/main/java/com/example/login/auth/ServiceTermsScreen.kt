@@ -166,7 +166,7 @@ fun ServiceTermsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(8.dp)) // ✅ 배경색 추가
+                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(18.dp)) // 라운드 빼먹음. 수정함.
                     .padding(16.dp) // ⬅️ 내부 16dp (마케팅과 동일)
             ) {
                 Column {

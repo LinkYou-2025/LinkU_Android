@@ -11,6 +11,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +32,8 @@ fun AnimatedLoginScreen(
     navigator: NavHostController,
     onSignUpClick: () -> Unit
 ) {
+    // 로그인 화면 애니메이션 첫 1번만 실행
+    var hasAnimated by rememberSaveable { mutableStateOf(false) }
     // 애니메이션 상태 정의
     val logoOffset = remember { Animatable(40f) }
     val contentAlpha = remember { Animatable(0f) }
@@ -68,8 +71,16 @@ fun AnimatedLoginScreen(
 
     // 애니메이션 실행 (로고 이동, 투명도 변화)
     LaunchedEffect(Unit) {
-        launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
-        launch { contentAlpha.animateTo(1f, tween(400)) }
+        if (!hasAnimated) {
+            hasAnimated = true
+
+            launch { logoOffset.animateTo(0f, tween(400, easing = FastOutSlowInEasing)) }
+            launch { contentAlpha.animateTo(1f, tween(400)) }
+        } else {
+            // 다음 진입부터는 애니메이션 없이 “이미 끝난 상태”로 고정
+            logoOffset.snapTo(0f)
+            contentAlpha.snapTo(1f)
+        }
     }
 
     // 로그인 화면: 회원가입 클릭 시 모달 오픈
