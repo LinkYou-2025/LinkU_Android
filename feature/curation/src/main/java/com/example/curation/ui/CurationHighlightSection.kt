@@ -182,72 +182,76 @@ fun HighlightCurationCard(
         }
 
         // --------------------
-        // 3) 왼쪽 하단 텍스트 세트
+        // 3) 왼쪽 하단 텍스트 세트 (프리뷰 전용)
         // --------------------
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopStart)    // ⬅ 바닥 기준이 아니라 "상단 기준"
-                .padding(start = 26.dp, top = 144.dp) // ⬅ 피그마 거리 그대로
-        ) {
-
-            Text(
-                text = title,
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    lineHeight = 30.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            )
-
-            Spacer(Modifier.height(2.dp))
-
-            Text(
-                text = date,
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            )
-        }
-
-        // --------------------
-        // 4) 오른쪽 하단 "보러가기 >"
-        // --------------------
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 22.dp, bottom = 27.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ){
-
-            Text(
-                text = "보러가기",
-                style = TextStyle(
-                    fontSize = 13.sp,
-                    lineHeight = 15.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.White
-                )
-            )
-
-            Spacer(Modifier.width(4.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.ic_curation_vector),
-                contentDescription = null,
-                contentScale = ContentScale.None,
+        if (isPreview) {
+            Column(
                 modifier = Modifier
-                    .width(6.dp)
-                    .height(9.75.dp)
-            )
+                    .align(Alignment.TopStart)
+                    .padding(start = 26.dp, top = 144.dp)
+            ) {
+
+                Text(
+                    text = title,
+                    style = TextStyle(
+                        fontSize = 22.sp,
+                        lineHeight = 30.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                )
+
+                Spacer(Modifier.height(2.dp))
+
+                Text(
+                    text = date,
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                )
+            }
         }
+
+        // --------------------
+        // 4) 오른쪽 하단 "보러가기 >" (실제 + 프리뷰 모두)
+        // --------------------
+        if (isPreview) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 22.dp, bottom = 27.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "보러가기",
+                    style = TextStyle(
+                        fontSize = 13.sp,
+                        lineHeight = 15.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White
+                    )
+                )
+
+                Spacer(Modifier.width(4.dp))
+
+                Image(
+                    painter = painterResource(id = R.drawable.ic_curation_vector),
+                    contentDescription = null,
+                    contentScale = ContentScale.None,
+                    modifier = Modifier
+                        .width(6.dp)
+                        .height(9.75.dp)
+                )
+            }
+        }
+
     }
 }
 
