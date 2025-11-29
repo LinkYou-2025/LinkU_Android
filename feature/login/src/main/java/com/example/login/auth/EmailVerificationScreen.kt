@@ -47,11 +47,7 @@ fun EmailVerificationScreen(
     //TODO : 다인언니에게 물어보기!
     BackHandler {
         parentEntry.savedStateHandle["from_email_verification"] = true
-
-        navigator.navigate("login") {
-            popUpTo("auth_graph") { inclusive = false }
-            launchSingleTop = true
-        }
+        navigator.popBackStack()   // ← 이게 정답
     }
     // 상태 변수
     val email = remember { mutableStateOf("") }

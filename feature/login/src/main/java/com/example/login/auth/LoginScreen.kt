@@ -17,6 +17,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 
@@ -46,6 +49,38 @@ fun LoginScreen(
     emailButtonColor: Color = Color(0x66FFFFFF),
     onSignUpClick: () -> Unit = {} // 회원가입 클릭 시 호출되는 콜백 함수
 ) {
+
+    val parentEntry = remember(navigator.currentBackStackEntry) {
+        navigator.getBackStackEntry("auth_graph")
+    }
+
+// EmailVerificationScreen → 뒤로가기 시 약관 시트를 자동으로 다시 열기
+    val fromEmail by parentEntry.savedStateHandle
+        .getStateFlow("from_email_verification", false)
+        .collectAsState()
+
+    LaunchedEffect(fromEmail) {
+        if (fromEmail) {
+            parentEntry.savedStateHandle["show_terms_sheet"] = true
+            parentEntry.savedStateHandle["from_email_verification"] = false
+        }
+    }
+
+// 약관 체크 상태 감지 → LoginScreen 재조합 강제
+    val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+    val agreeTerms     by signUpVm.agreeTerms.collectAsState()
+    val agreePrivacy   by signUpVm.agreePrivacy.collectAsState()
+    val agreeMarketing by signUpVm.agreeMarketing.collectAsState()
+
+    LaunchedEffect(agreeTerms, agreePrivacy, agreeMarketing) {
+        parentEntry.savedStateHandle["trigger_terms_rerender"] =
+            System.currentTimeMillis()
+    }
+
+    val trigger by parentEntry.savedStateHandle
+        .getStateFlow("trigger_terms_rerender", 0L)
+        .collectAsState()
 
     LaunchedEffect(Unit) {
         println(" LoginScreen Loaded")
