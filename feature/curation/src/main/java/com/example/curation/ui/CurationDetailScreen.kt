@@ -10,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -78,6 +79,8 @@ import coil3.request.crossfade
 import androidx.compose.runtime.*
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.TextStyle
 import com.example.curation.CurationDetailUiState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -226,25 +229,32 @@ private fun HighlightCard(
         // 배경 단색 (피그마 CB59EB)
         Box(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .fillMaxSize()
-//                .padding(top = 24.dp) // 추가 여유
-                .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-                .background(Color(0xFFCB59EB))
+                .align(Alignment.TopCenter)
+                .shadow(
+                    elevation = 15.dp,
+                    spotColor = Color(0x407C7C7C),
+                    ambientColor = Color(0x407C7C7C),
+                    shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 22.dp,
+                        bottomEnd = 22.dp
+                    )
+                )
+                .width(412.dp)
+                .height(266.dp)
+                .background(
+                    color = Color(0xFFCB59EB),
+                    shape = RoundedCornerShape(
+                        topStart = 0.dp,
+                        topEnd = 0.dp,
+                        bottomStart = 22.dp,
+                        bottomEnd = 22.dp
+                    )
+                )
         )
 
-//        // 오른쪽 하단 로고 (기기 폭 비례로 큼직하게)
-//        val logoSize = (maxWidth * 0.46f).coerceIn(112.dp, 192.dp)
-//        Image(
-//            painter = painterResource(R.drawable.ic_logo_light),
-//            contentDescription = null,
-//            contentScale = ContentScale.Fit,
-//            modifier = Modifier
-//                .align(Alignment.BottomEnd)
-//                .padding(end = 0.dp, bottom = 16.dp)
-//                .size(logoSize)
-//                .graphicsLayer(alpha = 0.60f)
-//        )
+
         // 오른쪽 하단 로고 (기기 폭 비례로 큼직하게)
         val logoSize = (maxWidth * 0.46f).coerceIn(112.dp, 192.dp)
         Image(
@@ -265,32 +275,44 @@ private fun HighlightCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp, end = 16.dp, top = 70.dp)
+                .padding(start = 20.dp, end = 20.dp, top = 59.dp)   // ⬅ Figma 기준 위치
                 .align(Alignment.TopStart)
         ) {
-            Spacer(Modifier.height(12.dp))
+            // 뒤로가기 아이콘
             Icon(
                 painter = painterResource(id = R.drawable.ic_back),
                 contentDescription = "뒤로",
                 tint = LocalColorTheme.current.white,
                 modifier = Modifier
-                    .size(18.dp)
+                    .padding(0.dp)
+                    .width(10.dp)
+                    .height(16.25.dp)
                     .align(Alignment.CenterStart)
                     .clickable { onBack() }
             )
 
+            // 가운데 타이틀 문구
             Text(
                 text = "큐레이션 콘텐츠",
-                style = MaterialTheme.typography.titleMedium.copy(
+                style = TextStyle(
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
                     fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 16.sp
+                    fontWeight = FontWeight.Medium, // 500
+                    color = Color.White,
+                    textAlign = TextAlign.Center
                 ),
-                color = LocalColorTheme.current.white,
                 modifier = Modifier.align(Alignment.Center)
             )
-            Spacer(Modifier.height(16.dp))
         }
+        HeartToggleButton(
+            liked = liked,
+            busy = likeBusy,
+            onClick = onToggleLike,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 111.dp, end = 22.dp)
+        )
 
         // 현재 날짜에서 전달 구하기
         val prevMonthLabel = LocalDate.now()
@@ -311,42 +333,29 @@ private fun HighlightCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "링큐 큐레이션  |  ${formatMonthLabel(detailState.month)}",
-                    style = MaterialTheme.typography.titleMedium.copy(
+                    text = "링큐 큐레이션 ㅣ ${formatMonthLabel(detailState.month)}",
+                    style = TextStyle(
+                        fontSize = 20.sp,
+                        lineHeight = 30.sp,
                         fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp
+                        fontWeight = FontWeight.Bold, // 700
+                        color = Color.White
                     ),
-                    color = LocalColorTheme.current.white,
-                    maxLines = 1,
-                    softWrap = false,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.alignByBaseline()
+                    modifier = Modifier
+                        .padding(start = 8.dp) // Figma 기준 왼쪽 20dp
                 )
 
                 //Spacer(Modifier.width(40.dp))
                 Spacer(Modifier.width(HEART_GAP))
 
-                HeartToggleButton(
-                    liked = liked ?: false,
-                    busy = likeBusy,
-                    onClick = onToggleLike,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .alignByBaseline()
-                        .offset(y = HEART_NUDGE_Y)
-                )
+
             }
+
+
+
+
             Spacer(Modifier.height(8.dp))
-//            Text(
-//                text = "생각은 많은데 정리가 안 되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
-//                style = MaterialTheme.typography.bodyMedium.copy(
-//                    fontFamily = Paperlogy,
-//                    fontWeight = FontWeight.Medium,
-//                    fontSize = 16.sp
-//                ),
-//                color = LocalColorTheme.current.white
-//            )
+
             Text(
                 text = run {
                     val fromApi = replaceNickname(detailState.headerMent, nickname)
@@ -368,15 +377,7 @@ private fun HighlightCard(
                 ),
                 color = LocalColorTheme.current.white
             )
-//            Spacer(Modifier.height(8.dp))
-//            Row(verticalAlignment = Alignment.CenterVertically) {
-//                EmotionChip("#슬픔")
-//                Spacer(Modifier.width(8.dp))
-//                EmotionChip("#커리어고민")
-//                Spacer(Modifier.width(8.dp))
-//                EmotionChip("#짜증")
-//            }
-//            Spacer(Modifier.height(8.dp))
+
             Spacer(Modifier.height(8.dp))
             when {
                 detailState.loading -> {
@@ -413,6 +414,8 @@ private fun HighlightCard(
             }
             Spacer(Modifier.height(8.dp))
         }
+
+
     }
 }
 
@@ -425,8 +428,13 @@ private fun HeartToggleButton(
 ) {
     Box(
         modifier = modifier
-            .size(40.dp)                         // 충분한 터치 타깃
-            .clip(CircleShape)
+            .border(
+                width = 1.dp,
+                color = Color.White,
+                shape = RoundedCornerShape(4.dp)
+            )
+            .padding(1.dp)
+            .size(width = 18.dp, height = 16.dp)
             .clickable(enabled = !busy) { onClick() },
         contentAlignment = Alignment.Center
     ) {
@@ -434,11 +442,9 @@ private fun HeartToggleButton(
             painter = painterResource(
                 id = if (liked) R.drawable.ic_heart else R.drawable.ic_heart_outline
             ),
-            contentDescription = if (liked) "좋아요 취소" else "좋아요",
+            contentDescription = null,
             tint = Color.White,
-            modifier = Modifier
-                .size(22.dp)
-                .graphicsLayer { alpha = if (busy) 0.5f else 1f } // 요청 중이면 살짝 흐리게
+            modifier = Modifier.fillMaxSize()
         )
     }
 }
@@ -459,127 +465,7 @@ data class LinkItem(
     val imageRes: Int,
     val url: String
 )
-//@OptIn(ExperimentalFoundationApi::class)
-//@Composable
-//fun CurationRecommendedLinksPagerSection(
-//    modifier: Modifier = Modifier,
-//    links: List<RecommendedLink>,
-//    loading: Boolean,
-//    onRetry: () -> Unit = {},
-//    onClick: (String) -> Unit
-//) {
-//    // 최대 9개
-//    val items = remember(links) { links.take(9) }
-//    val perPage = 3
-//    val pageCount = remember(items) { ceil(items.size / perPage.toFloat()).toInt().coerceAtLeast(1) }
-//
-//    // 카드 하나의 세로 높이 (기존 80.dp → 96.dp로 확대)
-//    val rowHeight: Dp = 96.dp
-//
-//// 카드 사이 세로 간격 (기존 8.dp → 12.dp)
-//    val spacing = 12.dp
-//
-//// 전체 컨테이너 높이 = (카드 높이 × 페이지당 카드 수) + (간격 × (페이지당 카드 수 - 1))
-//    val containerHeight = rowHeight * perPage + spacing * (perPage - 1)
-//
-//
-//    // 0.8초 이하면 스켈레톤, 그 이후엔 '준비중' 화면
-//    var showPreparing by remember { mutableStateOf(false) }
-//    LaunchedEffect(loading) {
-//        showPreparing = false
-//        if (loading) {
-//            delay(800)
-//            showPreparing = true
-//        }
-//    }
-////
-//    Column(modifier = modifier) {
-//        Text(
-//            text = "추천 링크",
-//            style = MaterialTheme.typography.titleMedium.copy(
-//                fontFamily = Paperlogy, fontWeight = FontWeight.Bold, fontSize = 20.sp
-//            )
-//        )
-//        Spacer(Modifier.height(8.dp))
-//
-//        when {
-//            loading && items.isEmpty() && !showPreparing -> {
-//                // 1단계: 스켈레톤 3개
-//                SkeletonLinks(height = rowMinHeight, spacing = spacing)
-//                Spacer(Modifier.height(8.dp))
-//            }
-//
-//            loading && items.isEmpty() && showPreparing -> {
-//                // 2단계: 준비중 화면 (네가 올려준 스샷 느낌)
-//                LinksPreparing(
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(containerHeight) // 페이저 영역과 동일 높이
-//                        .clip(RoundedCornerShape(16.dp))
-//                        .background(Color(0xFFFFFFFF))
-//                        .padding(horizontal = 16.dp)
-//                )
-//            }
-//
-//            items.isEmpty() -> {
-//                EmptyLinks(onRetry = onRetry)
-//            }
-//
-//            else -> {
-//                val pagerState = rememberPagerState(pageCount = { pageCount })
-//
-//                HorizontalPager(
-//                    state = pagerState,
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                        .height(containerHeight)
-//                ) { page ->
-//                    val start = page * perPage
-//                    val end = min(start + perPage, items.size)
-//                    Column(
-//                        verticalArrangement = Arrangement.spacedBy(spacing),
-//                        modifier = Modifier.fillMaxSize()
-//                    ) {
-//                        for (i in start until end) {
-//                            Box(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .height(rowHeight)
-//                            ) {
-//                                // 기존 카드 재사용 (타이틀/이미지/도메인/카테고리 모두 처리)
-//                                RecommendedLinkCard(
-//                                    link = items[i],
-//                                    onClick = onClick
-//                                )
-//                            }
-//                        }
-//                    }
-//                }
-//
-//                Spacer(Modifier.height(8.dp))
-//
-//                // 인디케이터
-//                Row(
-//                    modifier = Modifier.fillMaxWidth(),
-//                    horizontalArrangement = Arrangement.Center,
-//                    verticalAlignment = Alignment.CenterVertically
-//                ) {
-//                    repeat(pageCount) { i ->
-//                        val selected = pagerState.currentPage == i
-//                        Box(
-//                            modifier = Modifier
-//                                .padding(horizontal = 3.dp)
-//                                .height(6.dp)
-//                                .width(if (selected) 18.dp else 6.dp)
-//                                .clip(RoundedCornerShape(50))
-//                                .background(if (selected) Color(0xFFCB59EB) else Color(0xFFEDEDED))
-//                        )
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CurationRecommendedLinksPagerSection(
@@ -999,37 +885,7 @@ private fun PositiveNoteCard(
         }
     }
 }
-//@Composable
-//private fun PositiveNoteCard(
-//    footerMent: String?, //api로 부터 받은 푸트멘트
-//    modifier: Modifier = Modifier) {
-//    Column(
-//        modifier = modifier
-//            .clip(RoundedCornerShape(16.dp))
-//            .background(Color(0xFFFBEEFF)) // 연보라 톤
-//            .padding(start = 16.dp, end = 16.dp, top = 50.dp)
-//    ) {
-//        Text(
-//            text = "지금 떠오르지 않아도 괜찮아요.",
-//            style = MaterialTheme.typography.bodyMedium.copy(
-//                fontFamily = Paperlogy,
-//                fontWeight = FontWeight.Medium,
-//                fontSize = 14.sp
-//            ),
-//            color = LocalColorTheme.current.black
-//        )
-//        Spacer(Modifier.height(4.dp))
-//        Text(
-//            text = "영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요.",
-//            style = MaterialTheme.typography.bodySmall.copy(
-//                fontFamily = Paperlogy,
-//                fontWeight = FontWeight.Medium,
-//                fontSize = 14.sp
-//            ),
-//            color = Color(0xFF43454B)
-//        )
-//    }
-//}
+
 
 /* ===== 감정 칩 (기존) ===== */
 @Composable
@@ -1168,321 +1024,3 @@ private fun formatMonthLabel(month: String?): String {
     }
 }
 
-
-///* ===== 실제 화면: VM에서 닉네임 받아와 Content 호출 ===== */
-//@Composable
-//fun CurationDetailScreen(
-//    viewModel: CurationViewModel = hiltViewModel(),
-//    onBack: () -> Unit = {}            // ← 외부에서 받음
-//) {
-//    val nickname = viewModel.nickname.collectAsState(initial = "").value.orEmpty()
-//    val monthLabel = LocalDate.now().format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
-//
-//    CurationDetailScreenContent(
-//        nickname = nickname.ifBlank { "세나" },
-//        monthLabel = monthLabel,
-//        onBack = onBack                 // ← 여기서 넘김
-//    )
-//}
-///* ===== UI 전용 Content (프리뷰에서 이걸 사용) ===== */
-//@Composable
-//private fun CurationDetailScreenContent(
-//    nickname: String,
-//    monthLabel: String,
-//    onBack: () -> Unit = {}
-//) {
-//    Column(
-//        modifier = Modifier
-//            .fillMaxSize()
-//            .background(LocalColorTheme.current.white)
-//            .windowInsetsPadding(WindowInsets.statusBars) // 상태바 겹침 방지
-//    ) {
-//
-//
-//        // 🔴 보라색 카드: 좌우 여백 없이 꽉 채움 (full-bleed)
-//        HighlightCard(
-//            nickname = nickname,
-//            monthLabel = monthLabel,
-//            onBack = onBack
-//        )
-//
-//        Spacer(Modifier.height(16.dp))
-//
-//        // 추천 링크 (좌우 16 여백 유지)
-//        CurationRecommendedLinksSection(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(horizontal = 16.dp)
-//        )
-//        Spacer(Modifier.height(16.dp))
-//    }
-//}
-//
-///* ===== 하이라이트 카드: 하단만 둥글게 + 높이 명시 ===== */
-//@Composable
-//private fun HighlightCard(
-//    nickname: String,
-//    monthLabel: String,
-//    onBack: () -> Unit
-//) {
-//    BoxWithConstraints(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(240.dp)   // 부모에는 clip 주지 않기!
-//    ) {
-//        val screenWidthDp = LocalConfiguration.current.screenWidthDp.dp
-//        val bleedDp = (screenWidthDp - maxWidth) / 2
-//
-//        // 배경 (Compose 그라데이션)
-//        Box(
-//            modifier = Modifier
-//                .align(Alignment.TopStart)
-//                .fillMaxSize()
-//                .clip(RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp))
-//                .background(Color(0xFFCB59EB))   // ← 단색 배경 (피그마 값 CB59EB, 알파 FF)
-//        )
-//
-//        // 오른쪽 하단 로고
-//        Image(
-//            painter = painterResource(R.drawable.ic_logo_light),
-//            contentDescription = null,
-//            modifier = Modifier
-//                .align(Alignment.BottomEnd)
-//                .padding(end = 16.dp, bottom = 14.dp) // 필요에 맞게 조절
-//                .size(72.dp)                           // 필요 시 크기 조절
-//        )
-//
-//
-//        // 상단 바
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(start = 16.dp, end = 16.dp, top = 32.dp)
-//                .align(Alignment.TopStart)
-//        ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.ic_back),
-//                contentDescription = "뒤로",
-//                tint = LocalColorTheme.current.white,
-//                modifier = Modifier
-//                    .size(18.dp)
-//                    .align(Alignment.CenterStart)
-//                    .clickable { onBack() }
-//            )
-//            Text(
-//                text = "큐레이션 콘텐츠",
-//                style = MaterialTheme.typography.titleMedium.copy(
-//                    fontFamily = Paperlogy,
-//                    fontWeight = FontWeight.Medium,
-//                    fontSize = 16.sp
-//                ),
-//                color = LocalColorTheme.current.white,
-//                modifier = Modifier.align(Alignment.Center)
-//            )
-//        }
-//
-//        // 본문
-//        Column(
-//            modifier = Modifier
-//                .align(Alignment.TopStart)
-//                .padding(top = 72.dp)
-//                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-//        ) {
-//            Text(
-//                text = "링큐 큐레이션  |  2025년 ${monthLabel}호",
-//                style = MaterialTheme.typography.titleMedium.copy(
-//                    fontFamily = Paperlogy,
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = 20.sp
-//                ),
-//                color = LocalColorTheme.current.white
-//            )
-//            Spacer(Modifier.height(6.dp))
-//            Text(
-//                text = "생각은 많은데 정리가 안 되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
-//                style = MaterialTheme.typography.bodyMedium.copy(
-//                    fontFamily = Paperlogy,
-//                    fontWeight = FontWeight.Medium,
-//                    fontSize = 16.sp
-//                ),
-//                color = LocalColorTheme.current.white
-//            )
-//            Spacer(Modifier.height(16.dp))
-//            Text(
-//                text = "${nickname}님의 ${monthLabel} 상황/감정태그 요약",
-//                style = MaterialTheme.typography.bodySmall.copy(
-//                    fontFamily = Paperlogy,
-//                    fontWeight = FontWeight.Medium,
-//                    fontSize = 13.sp
-//                ),
-//                color = LocalColorTheme.current.white
-//            )
-//            Spacer(Modifier.height(4.dp))
-//            Row(verticalAlignment = Alignment.CenterVertically) {
-//                EmotionChip("#슬픔")
-//                Spacer(Modifier.width(8.dp))
-//                EmotionChip("#커리어고민")
-//                Spacer(Modifier.width(8.dp))
-//                EmotionChip("#짜증")
-//            }
-//        }
-//    }
-//}
-////@Composable
-////private fun HighlightCard(
-////    nickname: String,
-////    monthLabel: String,
-////    onBack: () -> Unit
-////) {
-////    Box(
-////        modifier = Modifier
-////            .fillMaxWidth()                      // ▷ 좌우 꽉
-////            .height(240.dp)                      // 필요 시 조정
-////            .clip(
-////                RoundedCornerShape(
-////                    topStart = 0.dp, topEnd = 0.dp,
-////                    bottomStart = 24.dp, bottomEnd = 24.dp
-////                )
-////            )
-////    ) {
-////        Image(
-////            painter = painterResource(id = R.drawable.img_curationdetail_bg),
-////            contentDescription = null,
-////            contentScale = ContentScale.Crop,
-////            modifier = Modifier.matchParentSize()
-////                .padding(horizontal = (-16).dp)
-////        )
-////
-////        // ▷ 상단바: ← 는 좌, 타이틀은 가운데 정렬
-////        Box(
-////            modifier = Modifier
-////                .fillMaxWidth()
-////                .padding(start = 16.dp, end = 16.dp, top = 16.dp)
-////                .align(Alignment.TopStart)
-////        ) {
-////            Icon(
-////                painter = painterResource(id = R.drawable.ic_back),
-////                contentDescription = "뒤로",
-////                tint = LocalColorTheme.current.white,
-////                modifier = Modifier
-////                    .size(18.dp)
-////                    .align(Alignment.CenterStart)
-////                    .clickable { onBack() }
-////            )
-////            Text(
-////                text = "큐레이션 콘텐츠",
-////                style = MaterialTheme.typography.titleMedium.copy(
-////                    fontFamily = Paperlogy,
-////                    fontWeight = FontWeight.Medium,
-////                    fontSize = 16.sp
-////                ),
-////                color = LocalColorTheme.current.white,
-////                modifier = Modifier.align(Alignment.Center)
-////            )
-////        }
-////
-////        // ▷ 본문 (좌우 16)
-////        Column(
-////            modifier = Modifier
-////                .align(Alignment.TopStart)
-////                .padding(top = 56.dp)
-////                .padding(horizontal = 16.dp) // 모든 본문 텍스트 좌우 여백
-////        ) {
-////            Text(
-////                text = "링큐 큐레이션  |  2025년 ${monthLabel}호",
-////                style = MaterialTheme.typography.titleMedium.copy(
-////                    fontFamily = Paperlogy,
-////                    fontWeight = FontWeight.Bold,
-////                    fontSize = 20.sp
-////                ),
-////                color = LocalColorTheme.current.white
-////            )
-////            Spacer(Modifier.height(6.dp))
-////            Text(
-////                text = "생각은 많은데 정리가 안 되죠.\n세나님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
-////                style = MaterialTheme.typography.bodyMedium.copy(
-////                    fontFamily = Paperlogy,
-////                    fontWeight = FontWeight.Medium,
-////                    fontSize = 16.sp
-////                ),
-////                color = LocalColorTheme.current.white
-////            )
-////            Spacer(Modifier.height(10.dp))
-////
-////            // 보조 라벨
-////            Text(
-////                text = "${nickname}님의 ${monthLabel} 상황/감정태그 요약",
-////                style = MaterialTheme.typography.bodySmall.copy(
-////                    fontFamily = Paperlogy,
-////                    fontWeight = FontWeight.Medium,
-////                    fontSize = 13.sp
-////                ),
-////                color = LocalColorTheme.current.white
-////            )
-////        }
-////
-////        // ▷ 하단 칩(흰 배경 + 보라 텍스트)
-////        Row(
-////            modifier = Modifier
-////                .align(Alignment.BottomStart)
-////                .padding(start = 16.dp, bottom = 14.dp),
-////            verticalAlignment = Alignment.CenterVertically
-////        ) {
-////            EmotionChip("#슬픔")
-////            Spacer(Modifier.width(8.dp))
-////            EmotionChip("#커리어고민")
-////            Spacer(Modifier.width(8.dp))
-////            EmotionChip("#짜증")
-////        }
-////    }
-////}
-//@Composable
-//private fun HighlightChip(text: String) {
-//    Box(
-//        modifier = Modifier
-//            .clip(RoundedCornerShape(20.dp))
-//            .background(LocalColorTheme.current.white.copy(alpha = 0.2f))
-//            .padding(horizontal = 10.dp, vertical = 6.dp)
-//    ) {
-//        Text(
-//            text = text,
-//            color = LocalColorTheme.current.white,
-//            style = MaterialTheme.typography.bodySmall.copy(
-//                fontFamily = Paperlogy,
-//                fontSize = 12.sp
-//            )
-//        )
-//    }
-//}
-//
-///* ===== 프리뷰: Hilt/VM 없이도 렌더링 됨 ===== */
-//@Preview(showBackground = true, showSystemUi = true)
-//@Composable
-//private fun PreviewCurationDetailScreen() {
-//    Surface {
-//        CurationDetailScreenContent(
-//            nickname = "세나",
-//            monthLabel = "8월"
-//        )
-//    }
-//}
-//
-////칩 배경
-//@Composable
-//private fun EmotionChip(text: String) {
-//    Box(
-//        modifier = Modifier
-//            .clip(RoundedCornerShape(20.dp))
-//            .background(LocalColorTheme.current.white) // 흰 박스
-//            .padding(horizontal = 10.dp, vertical = 6.dp)
-//    ) {
-//        Text(
-//            text = text,
-//            color = androidx.compose.ui.graphics.Color(0xFF9A3AB5),  // #9A3AB5
-//            style = MaterialTheme.typography.bodySmall.copy(
-//                fontFamily = Paperlogy,
-//                fontSize = 12.sp
-//            )
-//        )
-//    }
-//}
