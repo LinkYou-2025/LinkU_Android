@@ -81,5 +81,40 @@ open class LoginViewModel @Inject constructor(
             }
         }
     }
+
+    fun tryAutoLogin(
+        onSuccess: () -> Unit,
+        onFail: () -> Unit
+    ) {
+        viewModelScope.launch {
+            try {
+                val refresh = authPreference.refreshToken
+                    ?: throw Exception("No refresh token stored")
+
+                Log.d("LoginViewModel", "자동 로그인 시도: refreshToken=$refresh")
+
+                // 서버에 토큰 재발급 요청
+                val newTokens = repo.reissue(refresh)
+
+                // 새 토큰 저장
+                authPreference.accessToken = newTokens.accessToken
+                authPreference.refreshToken = newTokens.refreshToken
+
+                Log.d("LoginViewModel", "자동 로그인 성공 → 새로운 토큰 저장 완료")
+
+                onSuccess()
+
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "자동 로그인 실패: ${e.message}", e)
+
+                // 자동 로그인 실패 → 토큰 삭제
+                authPreference.accessToken = null
+                authPreference.refreshToken = null
+                authPreference.userId = null
+
+                onFail()
+            }
+        }
+    }
 }
 
