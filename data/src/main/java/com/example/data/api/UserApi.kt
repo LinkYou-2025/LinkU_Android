@@ -9,6 +9,7 @@ import com.example.data.api.dto.server.JoinResultDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.api.dto.server.LoginResultDTO
 import com.example.data.api.dto.server.TempPasswordRequestDTO
+import com.example.data.api.dto.server.TokenPair
 import com.example.data.api.dto.server.UpdateProfileDTO
 import com.example.data.api.dto.server.UserInfoDTO
 import com.example.data.api.dto.server.withDrawalResultDTO
@@ -21,31 +22,24 @@ import retrofit2.http.Query
 import retrofit2.http.Header
 
 interface UserApi {
-    // 회원 가입
-//    @POST("/api/users/join")
-//    suspend fun signUp(
-//        @Body body: JoinDTO
-//    ): BaseResponse<JoinResultDTO>
+
+    //자동 로그인을 위한 토큰 재발급 API
+    @POST("/api/users/reissue")
+    suspend fun reissue(
+        @Header("Refresh-Token") refreshToken: String
+    ): BaseResponse<TokenPair>
+
     @POST("/api/users/join")
     suspend fun signUp(
         @Body joinDTO: JoinDTO
     ): BaseResponse<JoinResultDTO>
 
-    // 닉네임 중복 확인
-//    @GET("/api/users/check-nickname")
-//    suspend fun checkNickDuplication(
-//        @Query("nickname") username: String
-//    ): ApiResponseString
+
     @GET("/api/users/check-nickname")
     suspend fun checkNickname(
         @Query("nickname") nickname: String
     ): ApiResponseString
 
-    // 위의 코드가 안된다면 아래 코드로 교체
-//    @GET("/api/users/check-nickname")
-//    suspend fun checkIdDuplication(
-//        @Query("username") username: String
-//    ): BaseResponse<String>
 
     // 회원 탈퇴
     @POST("/api/users/inactive")
@@ -59,21 +53,13 @@ interface UserApi {
         @Body body: LoginRequestDTO
     ): BaseResponse<LoginResultDTO>
 
-//    // 임시 비밀번호 받기 -> 후순위 개발
-//    @POST("/api/users/password/temp")
-//    suspend fun getTempPw(
-//        @Query("email") email: String
-//    ) : ApiResponseString
+
     // 임시 비밀번호 받기 (RequestBody 사용)
     @POST("/api/users/password/temp")
     suspend fun requestTempPassword(
         @Query("email") email: String
     ): ApiResponseString
-    // 위의 코드가 안된다면 아래 코드로 교체
-//    @POST("/api/users/password/temp")
-//    suspend fun getTempPw(
-//        @Query("email") email: String
-//    ): BaseResponse<String>
+
 
     // 마이페이지 조회
     @GET("/api/users/{userId}")
@@ -87,11 +73,6 @@ interface UserApi {
         @Body body: UpdateProfileDTO
     ) : ApiResponseString
 
-    // 위의 코드가 안된다면 아래 코드로 교체
-//    @PATCH("/api/users/profile")
-//    suspend fun updateUserInfo(
-//        @Body body: UpdateProfileDTO
-//    ) : BaseResponse<String>
 
     // 이메일 인증 코드 전송
     @POST("/api/users/emails/code")
@@ -99,11 +80,7 @@ interface UserApi {
         @Query("email") email: String,
         @Query("code") code: String
     ): ApiResponseString
-    // 위의 코드가 안된다면 아래 코드로 교체
-//    @POST("/api/users/emails/code")
-//    suspend fun sendVerificationEmail(
-//        @Query("email") email: String
-//    ): BaseResponse<String>
+
 
     // 이메일 인증 코드 검증
     @GET("/api/users/emails/verify")
