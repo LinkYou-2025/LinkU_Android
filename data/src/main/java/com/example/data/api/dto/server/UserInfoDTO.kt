@@ -7,6 +7,7 @@ data class UserInfoDTO(
 //    @Json(name = "nickname")
 //    val nickname: String,
 
+    // TODO: 통합
     @Json(name = "nickname")
     val nickname: String? = null,
     @Json(name = "nickName")

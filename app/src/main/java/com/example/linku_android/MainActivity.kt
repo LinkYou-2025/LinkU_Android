@@ -16,6 +16,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+
         intent?.data?.let { Log.d("DEEPLINK", "onCreate uri = $it") }
         WindowCompat.setDecorFitsSystemWindows(window, false)
         //enableEdgeToEdge()
