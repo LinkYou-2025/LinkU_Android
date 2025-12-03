@@ -102,11 +102,6 @@ fun MainApp(
     }
 
     val navigator = rememberNavController()
-//    val isLoggedIn by viewModel.isLoggedInState.collectAsState()
-
-
-    // 회원가입에서 사용할 뷰모델
-    //val signUpViewModel: SignUpViewModel = hiltViewModel() // 한 번만
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
@@ -145,7 +140,7 @@ fun MainApp(
         }
     }
 
-    //DoubleBackToExitIfTop(navigator)
+
 
     ThemeProvider {
         MainScreen(
@@ -159,35 +154,13 @@ fun MainApp(
                             LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
                             LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
                         }
-//                        navigator.navigate(route) {
-//                            // 그래프의 시작지점까지 popUpTo 하면서 상태 저장
-//                            popUpTo(navigator.graph.findStartDestination().id) {
-//                                saveState = true
-//                                inclusive = false
-//                            }
-//                            launchSingleTop = true
-//                            // 이전에 저장된 상태 복원
-//                            restoreState = true
-//                        }
-////                        navigator.navigate(route) {
-////                            popUpTo(navigator.graph.startDestinationId) { inclusive = false }
-////                        }
+
 
 
                         // 현재 화면의 route
                         val currentRoute = navigator.currentBackStackEntry?.destination?.route
 
-//                        // 현재 route와 목표 route가 다를 때만 이동 (savelink 같은 중간 화면에서도 정상 동작)
-//                        if (currentRoute != route) {
-//                            navigator.navigate(route) {
-//                                popUpTo(navigator.graph.findStartDestination().id) {
-//                                    saveState = true
-//                                    inclusive = false
-//                                }
-//                                launchSingleTop = true
-//                                restoreState = true
-//                            }
-//                        }
+
                     if (currentRoute == route) {
                         // 같은 탭 재선택: 내부 스택 리셋
                         navigator.navigate(route) {
@@ -210,7 +183,7 @@ fun MainApp(
                             restoreState = true
                         }
                     }
-//                    }
+
                 },
                 onCenterButtonClicked = {
                     // 여기에 중앙 버튼 눌렀을 때 로직 넣기
@@ -225,6 +198,8 @@ fun MainApp(
             val deps = remember {
                 EntryPointAccessors.fromApplication(app, SplashDeps::class.java)
             }
+            val loginVM: LoginViewModel = hiltViewModel()
+
 
             NavHost(
                 navController = navigator,
@@ -241,23 +216,39 @@ fun MainApp(
                         LaunchedEffect(Unit) { showNavBar = false }
 
                         Splash(
-                            onFinish = {
+
+                            onResult = {
                                 val auth = deps.authPreference()
-                                val hasUserId = (auth.userId ?: -1L) > 0L
-                                val hasAccess = !auth.accessToken.isNullOrBlank()
+
+
                                 val hasRefresh = !auth.refreshToken.isNullOrBlank()
 
-                                val canAutoLogin = hasUserId && hasAccess && hasRefresh   // ⬅️ 둘 다 있어야 자동 로그인
-
-                                val target = if (canAutoLogin) NavigationRoute.Home.route else "auth_graph"
-                                navigator.navigate(target) {
-                                    popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                    launchSingleTop = true
+                                if (!hasRefresh) {
+                                    // refresh 없음 → 로그인 화면으로 이동
+                                    navigator.navigate("auth_graph") {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                    return@Splash
                                 }
+
+                                // refresh 있음 → 자동로그인 시도
+                                loginVM.tryAutoLogin(
+                                    onSuccess = {
+                                        navigator.navigate(NavigationRoute.Home.route) {
+                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    },
+                                    onFail = {
+                                        navigator.navigate("auth_graph") {
+                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                )
                             }
                         )
-
-
                     }
                 }
 
@@ -500,17 +491,7 @@ fun MainApp(
                         //FinishHandler()
                         ResetPasswordScreen(navigator = navigator)
                     }
-
-
                 }
-
-
-
-
-
-
-
-
 
                 with(NavigationRoute.Home) {
                     setNavGraph {
@@ -518,7 +499,7 @@ fun MainApp(
                             showNavBar = true
                             currentLinkuNavigationItem = LinkuNavigationItem.HOME
                         }
-                        //FinishHandler()
+
 
                         HomeApp(viewModel = homeViewModel)
                     }
@@ -530,7 +511,7 @@ fun MainApp(
                             showNavBar = true
                             currentLinkuNavigationItem = LinkuNavigationItem.FILE
                         }
-                        //FinishHandler()
+
                         FileApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel
@@ -538,24 +519,7 @@ fun MainApp(
                     }
                 }
 
-//                with(NavigationRoute.Curation) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) {
-//                            showNavBar = true
-//                            currentLinkuNavigationItem = LinkuNavigationItem.CURATION
-//                        }
-//                        FinishHandler()
-//                        CurationScreen(
-//                            onOpenDetail = { navigator.navigate("curation_detail") }   //  디테일로 이동
-//                        )
-//                    }
-//                }
-//                composable("curation_detail") {
-//                    // 바텀바 그대로 보이고 싶으면 showNavBar=true 유지
-//                    CurationDetailScreen(
-//                        onBack = { navigator.popBackStack() }   // ← 뒤로가기 처리
-//                    )
-//                }
+
                 navigation(
                     startDestination = NavigationRoute.Curation.route, // 예: "curation"
                     route = "curation_graph"                           // 그래프 스코프 이름
@@ -566,7 +530,7 @@ fun MainApp(
                             showNavBar = true
                             currentLinkuNavigationItem = LinkuNavigationItem.CURATION
                         }
-                        //FinishHandler()
+
 
                         // 그래프 스코프 BackStackEntry를 기억
                         val parentEntry = remember(backStackEntry) {
@@ -609,58 +573,7 @@ fun MainApp(
                     }
                 }
 
-//                with(NavigationRoute.Curation) {
-//                    setNavGraph {
-//                        LaunchedEffect(Unit) {
-//                            showNavBar = true
-//                            currentLinkuNavigationItem = LinkuNavigationItem.CURATION
-//                        }
-//                        FinishHandler()
-//
-////                        CurationScreen(
-////                            onOpenDetail = { userId: Long, curationId: Long ->
-////                                // 상세로 넘길 값 저장
-////                                navigator.currentBackStackEntry?.savedStateHandle?.set("userId", userId)
-////                                navigator.currentBackStackEntry?.savedStateHandle?.set("curationId", curationId)
-////                                // 파라미터 없는 단순 라우트로 이동
-////                                navigator.navigate("curation_detail")
-////                            }
-////                        )
-//                        CurationScreen(
-//                            onOpenDetail = { userId: Long, curationId: Long ->
-//                                navigator.navigate("curation_detail/$userId/$curationId")
-//                            }
-//                        )
-//                    }
-//                }
-////                composable("curation_detail") {
-////                    // 이전 화면에서 저장한 값 꺼내기
-////                    val userId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("userId")
-////                    val curationId = navigator.previousBackStackEntry?.savedStateHandle?.get<Long>("curationId")
-////
-////                    if (userId == null || curationId == null) {
-////                        // 값이 없으면 그냥 뒤로 가도 됨
-////                        navigator.popBackStack()
-////                        return@composable
-////                    }
-////
-////                    CurationDetailScreen(
-////                        userId = userId,
-////                        curationId = curationId,
-////                        onBack = { navigator.popBackStack() }
-////                    )
-////                }
-//                // "curation_detail" → "curation_detail/{userId}/{curationId}"
-//                composable("curation_detail/{userId}/{curationId}") { backStack ->
-//                    val userId = backStack.arguments?.getString("userId")!!.toLong()
-//                    val curationId = backStack.arguments?.getString("curationId")!!.toLong()
-//
-//                    CurationDetailScreen(
-//                        userId = userId,
-//                        curationId = curationId,
-//                        onBack = { navigator.popBackStack() }
-//                    )
-//                }
+
                 with(NavigationRoute.MyPage) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
@@ -736,19 +649,7 @@ fun MainApp(
                     )
                 }
 
-//                composable("savelinkresult") {
-//                    val vm: HomeViewModel = hiltViewModel()
-//
-//                    SaveLinkResultScreen(
-//                        // 선택 이미지(없으면 null 유지)
-//                        selectedImageUri = null,
-//                        // 뷰모델이 들고 있는 상세 데이터
-//                        link = vm.linkDetail,
-//                        // 로딩 중 여부
-//                        isLoading = vm.isLoadingLinkDetail,
-//                        onBack = { navigator.popBackStack() }
-//                    )
-//                }
+
                 composable(
                     route = "savelinkresult/{linkuId}",
                     arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
@@ -1053,36 +954,10 @@ fun MainApp(
         }
     }
 
-//    // 로그인 상태에 따라 네비게이션 처리
-//    LaunchedEffect(key1 = isLoggedIn) {
-//        isLoggedIn?.let { loggedIn ->
-//            val targetRoute = if (loggedIn) NavigationRoute.Home.route else NavigationRoute.Login.route
-//            navigator.navigate(targetRoute) {
-//                popUpTo(navigator.graph.startDestinationId) { inclusive = false }
-//            }
-//        } ?: navigator.popBackStack(
-//            destinationId = navigator.graph.startDestinationId,
-//            inclusive = false
-//        )
-//    }
+
 }
 
-//@Composable
-//private fun FinishHandler() {
-//    val context = LocalContext.current
-//    val activity = remember(context) { context.findActivity() }
-//    var lastBackPressed by remember { mutableLongStateOf(0L) }
-//
-//    BackHandler {
-//        val now = System.currentTimeMillis()
-//        if (now - lastBackPressed < 2000L) {
-//            activity?.finish()
-//        } else {
-//            Toast.makeText(context, "뒤로 한 번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
-//            lastBackPressed = now
-//        }
-//    }
-//}
+
 
 // 확장 함수: Context -> Activity
 fun Context.findActivity(): Activity? {
