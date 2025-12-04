@@ -102,4 +102,4 @@ fun CurationTopBar(
 @Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
 @Composable
 fun PreviewCurationTopBar() {
-    CurationTopBar()
+    CurationTopBar()}
