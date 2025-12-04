@@ -60,8 +60,8 @@ fun HighlightCard(
     Box(
         modifier = Modifier
             .graphicsLayer { //TODO : 피그마 대로 구현하니 그림자 컬러가 안드로이드랑 안 맞아 그림자가 안보이는 문제가 발생.
-                //TODO : 오늘 다현이랑 조절하기!
-                shadowElevation = 16.dp.toPx()        // Blur 강함
+                //TODO : 오늘 다현이랑 조절하기! -> 나중에! //이거 수정하기 경계 나뉨!
+                shadowElevation = 6.dp.toPx()        // Blur 강함
                 shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
                 clip = false
             }
@@ -77,8 +77,11 @@ fun HighlightCard(
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .offset(x = 22.5.dp, y = (-60).dp)
-                .size(150.dp)
+                .offset(
+                    x = (22.5).dp,   // 오른쪽에서 안쪽으로 이동 (피그마 22.5dp)
+                    y = (-50).dp      // 아래에서 위로 이동 (피그마 50dp)
+                )
+                .size(150.dp)         // 피그마 로고 크기 그대로
                 .graphicsLayer(alpha = 0.65f),
             contentScale = ContentScale.Fit
         )
@@ -287,7 +290,7 @@ private fun EmotionChip(text: String) {
         modifier = Modifier
             .height(26.dp)
             .clip(RoundedCornerShape(10.dp))
-            .background(Color(0xFFF0E6FF))
+            .background(Color(0xFFFBEEFF))
             .padding(horizontal = 10.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -347,7 +350,7 @@ private fun rememberShimmerBrush(): Brush {
     val colors = listOf(
         Color(0xFFF8DFFF), // 밝은 핑크-라벤더
         Color(0xFFFBEEFF), // 현재 긍정카드 배경과 동일
-        Color(0xFFF3D4FF)  // 살짝 더 진한 음영 //TODO :임의로 넣은 컬러이니 다현이에게 꼭 컬러 코드 물어보기!
+        Color(0xFFF3D4FF)  // 살짝 더 진한 음영 //TODO :피그마보고 수정하기!
     )
 
     return Brush.linearGradient(
