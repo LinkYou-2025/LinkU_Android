@@ -145,7 +145,7 @@ fun RecommendedLinkCard(
             modifier = Modifier
                 .shadow(
                     elevation = 12.dp,
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(18.dp),
                     spotColor = Color(0x22000000),
                 )
                 .clip(RoundedCornerShape(12.dp))
@@ -251,21 +251,27 @@ fun RecommendedLinkCard(
 }
 @Composable
 fun TagChip(text: String) {
+
     Box(
         modifier = Modifier
-            .background(Color(0xFFEFEFEF), RoundedCornerShape(8.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp)
+            .height(20.dp)
+            .background(
+                color = Color(0xFFF5F6F9),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .padding(start = 6.dp, top = 3.dp, end = 6.dp, bottom = 3.dp)
     ) {
-        Text(
+        Text(   //TODO : 이거 글자, 박스 작음.
             text = text,
             style = TextStyle(
                 fontSize = 10.sp,
                 lineHeight = 12.sp,
                 fontFamily = Paperlogy,
-                fontWeight = FontWeight(500),
-                color = Color(0xFF87898F),
-
-                )
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFF87898F)
+            ),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

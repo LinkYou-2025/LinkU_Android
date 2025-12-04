@@ -83,7 +83,9 @@ fun CurationTopBar(
                 painter = painterResource(id = Res.drawable.ic_logo_white),
                 contentDescription = null,
                 tint = LocalColorTheme.current.white,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier
+                    .width(23.97571.dp)
+                    .height(17.dp)
             )
 
             Text(

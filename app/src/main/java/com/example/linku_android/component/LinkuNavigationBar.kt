@@ -125,7 +125,8 @@ private fun RowScope.NavItem(
 ) {
 
     // CURATION만 약간의 시각 보정
-    val topPadding = if (item == LinkuNavigationItem.CURATION) 27.56.dp else 21.dp
+    val topPadding = if (item == LinkuNavigationItem.CURATION) 20.dp else 14.dp //다인언니랑 상의 끝에 이걸로 결정!
+    //val topPadding = if (item == LinkuNavigationItem.CURATION) 27.56.dp else 21.dp
     val iconYOffset = if (item == LinkuNavigationItem.CURATION) (-2).dp else 0.dp
 
     // 내비게이션 바 내 아이템 레이아웃
@@ -143,7 +144,7 @@ private fun RowScope.NavItem(
             .clickable(onClick = onClick)
 
             // 위 아래 여백
-            .padding(top = topPadding, bottom = 5.dp),
+            .padding(top = topPadding, bottom = 3.dp),
 
         // 가로 중앙 정렬
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -188,7 +189,7 @@ private fun RowScope.NavItem(
         Text(
             text = item.title,
 
-            fontSize = 10.sp,
+            fontSize = 12.sp,   //10dp로 되어있더라고요..??????? 그래서 수정했습니다!
 
             lineHeight = 14.sp,
             // 폰트 굵기 = 400 (레귤러 사이즈)
@@ -202,7 +203,7 @@ private fun RowScope.NavItem(
                     else TextStyle(color = Color(0xFFCACACA)),
 
             // 상단 패딩 11dp
-            modifier = Modifier.padding(top = 11.dp)
+            modifier = Modifier.padding(top = 6.dp) //다인언니가 올려달라고 함!
         )
     }
 }
