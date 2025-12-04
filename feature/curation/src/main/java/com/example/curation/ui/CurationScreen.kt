@@ -331,7 +331,7 @@ fun LikedCurationEmptyState(
         Spacer(Modifier.height(12.dp))
 
         Text(
-            text = "아직 좋아요한 큐레이션이 아직 없어요!",
+            text = "아직 좋아요 한 큐레이션이 아직 없어요!",
             style = MaterialTheme.typography.titleMedium.copy(
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Medium,

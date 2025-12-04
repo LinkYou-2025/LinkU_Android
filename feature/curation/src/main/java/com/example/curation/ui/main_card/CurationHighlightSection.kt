@@ -168,9 +168,13 @@ fun HighlightCurationCard(
                     .align(Alignment.TopEnd)
                     .padding(heartPadDp)
                     .size(
-                        width = if (isTablet) 16.dp * scale else 16.dp,
-                        height = if (isTablet) 15.dp * scale else 15.dp
+                        width = if (isTablet) 20.dp * scale else 20.dp,
+                        height = if (isTablet) 20.dp * scale else 20.dp  //일단 다인언니랑 키워 봄!
                     )
+//                    .size(
+//                        width = if (isTablet) 16.dp * scale else 16.dp,
+//                        height = if (isTablet) 15.dp * scale else 15.dp
+//                    )
                     .clickable(enabled = !likeBusy) { onToggleLike() }
             ) {
                 Image(

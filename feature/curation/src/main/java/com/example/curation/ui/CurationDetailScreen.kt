@@ -280,9 +280,12 @@ fun CurationRecommendedLinksPagerWrapper(
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
+                        .width(if (selected) 32.dp else 6.dp)
                         .height(6.dp)
-                        .width(if (selected) 18.dp else 6.dp)
-                        .clip(RoundedCornerShape(50))
+                        .clip(
+                            if (selected) RoundedCornerShape(3.5.dp)
+                            else RoundedCornerShape(50) // 동그란 기본 점
+                        )
                         .background(
                             if (selected) Color(0xFFE5ACF4)
                             else Color(0xFFE9EAEE)
@@ -364,7 +367,7 @@ private fun PositiveNoteCard(
                 color = Color(0xFFFBEEFF),
                 shape = RoundedCornerShape(18.dp)
             )
-            .padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(horizontal = 20.dp, vertical = 16.dp)
     ) {
         Text(
             text = text,
