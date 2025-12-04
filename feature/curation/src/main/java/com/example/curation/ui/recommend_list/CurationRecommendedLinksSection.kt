@@ -272,7 +272,7 @@ fun TagChip(text: String) {
 
 
 @Composable
-fun RecommendedLinkCardSkeleton() {
+fun RecommendedLinkCardSkeleton() { //TODO : 디자이너에게 실제 확인 후 컬러 물어보기!
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
