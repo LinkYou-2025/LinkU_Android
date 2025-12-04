@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextOverflow
@@ -57,13 +58,18 @@ fun HighlightCard(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = Modifier
+            .graphicsLayer { //TODO : 피그마 대로 구현하니 그림자 컬러가 안드로이드랑 안 맞아 그림자가 안보이는 문제가 발생.
+                //TODO : 오늘 다현이랑 조절하기!
+                shadowElevation = 16.dp.toPx()        // Blur 강함
+                shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
+                clip = false
+            }
             .background(
                 color = Color(0xFFCB59EB),
                 shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
             )
-    ) {
+    ){
 
         /** 오른쪽 하단 로고 */
         Image(
@@ -186,7 +192,7 @@ fun HighlightCard(
 
                 EmotionTags(detailState)
 
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(22.dp))
             }
         }
 
@@ -339,9 +345,9 @@ private fun rememberShimmerBrush(): Brush {
     ).value
 
     val colors = listOf(
-        Color(0xFFEAEAEA),
-        Color(0xFFF4F4F4),
-        Color(0xFFEDEDED)
+        Color(0xFFF8DFFF), // 밝은 핑크-라벤더
+        Color(0xFFFBEEFF), // 현재 긍정카드 배경과 동일
+        Color(0xFFF3D4FF)  // 살짝 더 진한 음영 //TODO :임의로 넣은 컬러이니 다현이에게 꼭 컬러 코드 물어보기!
     )
 
     return Brush.linearGradient(

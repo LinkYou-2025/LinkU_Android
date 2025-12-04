@@ -72,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.curation.ui.detail_card.HighlightCard
 import com.example.curation.ui.recommend_list.CurationRecommendedLinksSection
+import com.example.curation.ui.recommend_list.RecommendedLinkCardSkeleton
 import kotlinx.coroutines.delay
 
 
@@ -149,58 +150,71 @@ private fun CurationDetailScreenContent(
     onToggleLike: () -> Unit
 ) {
     val uri = LocalUriHandler.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(LocalColorTheme.current.white)
-            //.windowInsetsPadding(WindowInsets.statusBars)
-            .verticalScroll(rememberScrollState())
-    )
-    {
-        // 보라색 카드 (full-bleed)
-        HighlightCard(
-            nickname = nickname,
-            monthLabel = monthLabel,
-            onBack = onBack,
-            detailState = detailState,
-            liked = liked ?: false,
-            likeBusy = likeBusy,
-            onToggleLike = onToggleLike
-        )
 
-        Spacer(Modifier.height(16.dp))
+    ) {
 
-        Text(
-            text = "추천 링크",
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
-            ),
-            color = LocalColorTheme.current.black,
-            modifier = Modifier.padding(start = 24.dp)
-        )
+
+        //  HighlightCard는 스크롤 되지 않도록 해야함.
+
+        Box(
+            modifier = Modifier
+
+        ) {
+            HighlightCard(
+                nickname = nickname,
+                monthLabel = monthLabel,
+                onBack = onBack,
+                detailState = detailState,
+                liked = liked ?: false,
+                likeBusy = likeBusy,
+                onToggleLike = onToggleLike
+            )
+        }
+
 
         Spacer(Modifier.height(20.dp))
 
-        // 가로 페이저 섹션 (API 연동 + 기존 카드 재사용)
-        CurationRecommendedLinksPagerWrapper(
-            links = linksState.items,
-            loading = linksState.loading,
-            onRetry = { /* 새로고침 콜백 */ },
-            onClick = { url -> uri.openUri(ensureHttpScheme(url)) },
-            modifier = Modifier.fillMaxWidth()
-        )
+        //여기만 스크롤이 가능해야함.
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+        ) {
+            Text(
+                text = "추천 링크",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp
+                ),
+                color = LocalColorTheme.current.black,
+                modifier = Modifier.padding(start = 24.dp)
+            )
 
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(20.dp))
 
+            CurationRecommendedLinksPagerWrapper(
+                links = linksState.items,
+                loading = linksState.loading,
+                onRetry = { /* reload */ },
+                onClick = { url -> uri.openUri(ensureHttpScheme(url)) },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        // footerMent 바인딩
-        PositiveNoteCard(
-            footerMent = detailState.footerMent,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-        Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
+
+            PositiveNoteCard(
+                footerMent = detailState.footerMent,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(Modifier.height(32.dp))
+        }
     }
 }
 
@@ -223,7 +237,7 @@ fun CurationRecommendedLinksPagerWrapper(
 
         // 로딩 중일 때: 스켈레톤 3개만 표시하고 페이저/인디케이터 숨김
         if (loading) {
-            SkeletonLinks(height = 120.dp, spacing = 12.dp)
+            SkeletonLinks()   // height 지정 필요 없음, 카드 자체가 반응형
             return
         }
 
@@ -278,36 +292,7 @@ fun CurationRecommendedLinksPagerWrapper(
         }
     }
 }
-// 심플한 쉐이머 브러시
-@Composable
-private fun rememberShimmerBrush(): Brush {
-    val transition = rememberInfiniteTransition(label = "shimmer")
-    val shift by transition.animateFloat(
-        initialValue = 0f, targetValue = 1000f,
-        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing)),
-        label = "shift"
-    )
-    val colors = listOf(Color(0xFFEDEDED), Color(0xFFF7F7F7), Color(0xFFEDEDED))
-    return Brush.linearGradient(colors, start = Offset(0f, 0f), end = Offset(shift, shift))
-}
 
-// 1) 스켈레톤 3개
-@Composable
-private fun SkeletonLinks(height: Dp, spacing: Dp) {
-    val brush = rememberShimmerBrush()
-    Column {
-        repeat(3) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .height(height)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(brush)
-            )
-            if (it != 2) Spacer(Modifier.height(spacing))
-        }
-    }
-}
 
 
 // 3) 빈 상태
@@ -326,6 +311,20 @@ private fun EmptyLinks(onRetry: () -> Unit) {
             .clip(RoundedCornerShape(8.dp))
             .padding(2.dp)
             .then(Modifier.clickable { onRetry() }))
+    }
+}
+
+@Composable
+private fun SkeletonLinks() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)   // 홈 스크린과 동일 패딩
+    ) {
+        repeat(3) {
+            RecommendedLinkCardSkeleton() // ← 모든 디자인 동일
+            Spacer(Modifier.height(10.dp))
+        }
     }
 }
 
