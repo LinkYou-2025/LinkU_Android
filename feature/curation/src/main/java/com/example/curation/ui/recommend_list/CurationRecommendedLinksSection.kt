@@ -16,9 +16,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -43,7 +46,9 @@ import com.example.curation.ui.util.shimmer
 import java.net.URI
 
 
-
+//스켈레톤 컬러
+val SkeletonStart = Color(0xFFF4F5F7)
+val SkeletonEnd = Color(0xFFE9EAEE)
 
 @Composable
 fun CurationRecommendedLinksSection(
@@ -165,31 +170,49 @@ fun RecommendedLinkCard(
                     modifier = Modifier
                         .size(85.dp)
                         .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White) // 회색 방지용 베이스
                 ) {
+                    when {
+                        !link.imageUrl.isNullOrBlank() -> {
+                            // 로딩용 스켈레톤 + 실제 이미지
+                            ShimmerSkeleton(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp))
+                            )
 
-                    ShimmerSkeleton(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(12.dp))
-                    )
+                            AsyncImage(
+                                model = ImageRequest.Builder(ctx)
+                                    .data(link.imageUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
 
-                    if (!link.imageUrl.isNullOrBlank()) {
-                        AsyncImage(
-                            model = ImageRequest.Builder(ctx)
-                                .data(link.imageUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(R.drawable.ic_detail_image_url_null),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        else -> {
+                            // imageUrl == null → 기본 배경 + 중앙 로고
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(Color(0xFFF5F6F9)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.ic_detail_null_logo),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(
+                                            width = 56.dp,
+                                            height = 48.dp
+                                        )
+                                        .alpha(0.2f),
+                                    contentScale = ContentScale.Fit
+                                )
+                            }
+                        }
                     }
                 }
 
@@ -199,6 +222,7 @@ fun RecommendedLinkCard(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .padding(top = 2.dp)
                 ) {
 
                     // 제목: 1줄로 고정 + ... 처리
@@ -206,6 +230,7 @@ fun RecommendedLinkCard(
                         text = link.title,
                         style = MaterialTheme.typography.bodyLarge.copy(
                             fontFamily = Paperlogy,
+                            lineHeight = 22.sp,
                             fontWeight = FontWeight(500),
                             fontSize = titleSize
                         ),
@@ -215,19 +240,33 @@ fun RecommendedLinkCard(
 
                     Spacer(Modifier.height(8.dp))
 
-                    // 카테고리
-                    link.categories?.take(2)?.let { cats ->
-                        Row {
-                            cats.forEachIndexed { i, c ->
-                                TagChip(c)
-                                if (i != cats.lastIndex) Spacer(Modifier.width(11.dp))
+                    // 카테고리 (항상 자리 차지)
+                    Box(
+                        modifier = Modifier
+                            .height(18.dp)          // TagChip 높이와 동일
+                            .fillMaxWidth()
+                            .offset(y = (-2).dp)
+                    ) {
+                        link.categories
+                            ?.take(2)
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let { cats ->
+                                Row {
+                                    cats.forEachIndexed { i, c ->
+                                        TagChip(c)
+                                        if (i != cats.lastIndex) Spacer(Modifier.width(11.dp))
+                                    }
+                                }
                             }
-                        }
-                        Spacer(Modifier.height(14.dp))
+                        // else → 아무것도 안 그림 (자리만 유지)
                     }
 
+                    Spacer(Modifier.height(14.dp))
+
                     // 출처
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.offset(y = (-4).dp)) {
                         Image(
                             painter = painterResource(iconRes),
                             contentDescription = null,
@@ -254,48 +293,45 @@ fun TagChip(text: String) {
 
     Box(
         modifier = Modifier
-            .height(20.dp)
+            .width(30.dp)
+            .height(18.dp)
             .background(
                 color = Color(0xFFF5F6F9),
                 shape = RoundedCornerShape(6.dp)
             )
             .padding(start = 6.dp, top = 3.dp, end = 6.dp, bottom = 3.dp)
     ) {
-        Text(   //TODO : 이거 글자, 박스 작음.
-            text = text,
-            style = TextStyle(
-                fontSize = 10.sp,
-                lineHeight = 12.sp,
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF87898F)
-            ),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = text,
+                style = TextStyle(
+                    fontSize = 10.sp,
+                    lineHeight = 12.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight(500),
+                    color = Color(0xFF87898F)
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+
+            )
+        }
     }
 }
 
-
 @Composable
-fun RecommendedLinkCardSkeleton() { //TODO : 디자이너에게 실제 확인 후 컬러 물어보기!
+fun RecommendedLinkCardSkeleton() {
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 9.dp)
+        modifier = Modifier.fillMaxWidth()
     ) {
-
         val w = maxWidth
-
-        // 반응형 높이
         val targetHeight = when {
             w <= 430.dp -> 105.dp
             w >= 600.dp -> 135.dp
-            else -> lerp(
-                105.dp,
-                135.dp,
-                ((w - 430.dp) / (600.dp - 430.dp)).coerceIn(0f, 1f)
-            )
+            else -> lerp(105.dp, 135.dp, ((w - 430.dp) / (600.dp - 430.dp)).coerceIn(0f, 1f))
         }
 
         Box(
@@ -303,20 +339,18 @@ fun RecommendedLinkCardSkeleton() { //TODO : 디자이너에게 실제 확인 �
                 .fillMaxWidth()
                 .height(targetHeight)
                 .clip(RoundedCornerShape(12.dp))
-                .shimmer()
-                .background(Color(0xFFEDEDED))
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(10.dp)
             ) {
-                // 이미지 스켈레톤
-                Box(
+
+                // 이미지
+                SkeletonBlock(
                     modifier = Modifier
-                        .size(85.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(Color(0xFFDCDCDC))
+                        .size(85.dp),
+                    shape = RoundedCornerShape(12.dp)
                 )
 
                 Spacer(Modifier.width(18.dp))
@@ -326,55 +360,80 @@ fun RecommendedLinkCardSkeleton() { //TODO : 디자이너에게 실제 확인 �
                         .weight(1f)
                         .padding(top = 4.dp)
                 ) {
-                    Box(
+
+                    //  제목
+                    SkeletonBlock(
                         modifier = Modifier
                             .fillMaxWidth(0.9f)
                             .height(14.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFFDCDCDC))
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(0.7f)
-                            .height(14.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFFDCDCDC))
                     )
 
                     Spacer(Modifier.height(12.dp))
 
+                    // 태그 2개
                     Row {
-                        Box(
+                        SkeletonBlock(
                             modifier = Modifier
                                 .width(45.dp)
-                                .height(14.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFDCDCDC))
+                                .height(14.dp),
+                            shape = RoundedCornerShape(8.dp)
                         )
                         Spacer(Modifier.width(8.dp))
-                        Box(
+                        SkeletonBlock(
                             modifier = Modifier
                                 .width(45.dp)
-                                .height(14.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(Color(0xFFDCDCDC))
+                                .height(14.dp),
+                            shape = RoundedCornerShape(8.dp)
                         )
                     }
 
                     Spacer(Modifier.height(12.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .width(60.dp)
-                            .height(14.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFFDCDCDC))
-                    )
+                    // 출처
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        //아이콘
+                        SkeletonBlock(
+                            modifier = Modifier.size(22.dp),
+                            shape = RoundedCornerShape(50) // 완전 원
+                        )
+
+                        Spacer(Modifier.width(4.dp))
+
+                        // 출처 텍스트
+                        SkeletonBlock(
+                            modifier = Modifier
+                                .width(60.dp)
+                                .height(14.dp)
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+//스켈레톤 컴포넌트
+@Composable
+private fun SkeletonBlock(
+    modifier: Modifier,
+    shape: RoundedCornerShape = RoundedCornerShape(6.dp)
+) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .shimmer()
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFFF4F5F7),
+                        Color(0xFFE9EAEE),
+                        Color(0xFFF4F5F7)
+                    )
+                )
+            )
+    )
 }
 
 // URL -> host 추출 (domain 비어있을 때 보강)
