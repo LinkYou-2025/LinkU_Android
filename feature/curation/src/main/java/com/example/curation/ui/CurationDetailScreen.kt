@@ -73,6 +73,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.curation.ui.detail_card.HighlightCard
 import com.example.curation.ui.recommend_list.CurationRecommendedLinksSection
 import com.example.curation.ui.recommend_list.RecommendedLinkCardSkeleton
+import com.example.curation.ui.recommend_list.SkeletonEnd
+import com.example.curation.ui.recommend_list.SkeletonStart
 import kotlinx.coroutines.delay
 
 
@@ -210,7 +212,8 @@ private fun CurationDetailScreenContent(
 
             PositiveNoteCard(
                 footerMent = detailState.footerMent,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                loading = detailState.loading,
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
 
             Spacer(Modifier.height(32.dp))
@@ -237,10 +240,25 @@ fun CurationRecommendedLinksPagerWrapper(
 
         // 로딩 중일 때: 스켈레톤 3개만 표시하고 페이저/인디케이터 숨김
         if (loading) {
-            SkeletonLinks()   // height 지정 필요 없음, 카드 자체가 반응형
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                SkeletonLinks()
+
+                Spacer(Modifier.height(16.dp))
+
+                //  인디케이터 영역 명확히 확보
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    PagerIndicatorSkeleton()
+                }
+            }
             return
         }
-
         // 링크 없음
         if (items.isEmpty()) {
             EmptyLinks(onRetry)
@@ -270,29 +288,11 @@ fun CurationRecommendedLinksPagerWrapper(
         Spacer(Modifier.height(12.dp))
 
         // 인디케이터
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            repeat(pageCount) { index ->
-                val selected = pagerState.currentPage == index
+        PagerIndicator(
+            pageCount = pageCount,
+            currentPage = pagerState.currentPage,
 
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .width(if (selected) 32.dp else 6.dp)
-                        .height(6.dp)
-                        .clip(
-                            if (selected) RoundedCornerShape(3.5.dp)
-                            else RoundedCornerShape(50) // 동그란 기본 점
-                        )
-                        .background(
-                            if (selected) Color(0xFFE5ACF4)
-                            else Color(0xFFE9EAEE)
-                        )
-                )
-            }
-        }
+        )
     }
 }
 
@@ -356,31 +356,120 @@ fun TagChip(text: String) {
 @Composable
 private fun PositiveNoteCard(
     footerMent: String?,
+    loading: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val text = footerMent?.trim()
-        ?: "지금 떠오르지 않아도 괜찮아요.\n영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요."
+    val shimmerBrush = rememberGrayShimmerBrush()
 
-    Column(
+    Box(
         modifier = modifier
-            .background(
-                color = Color(0xFFFBEEFF),
-                shape = RoundedCornerShape(18.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .then(
+                if (loading) {
+                    Modifier.background(shimmerBrush)
+                } else {
+                    Modifier.background(Color(0xFFFBEEFF))
+                }
             )
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = 20.dp, vertical = 25.dp)
     ) {
-        Text(
-            text = text,
-            style = TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight(400),
-                color = Color(0xFF43454B)
+        if (!loading) {
+            Text(
+                text = footerMent?.trim()
+                    ?: "지금 떠오르지 않아도 괜찮아요.\n영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요.",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    fontFamily = Paperlogy,
+                    fontWeight = FontWeight(400),
+                    color = Color(0xFF43454B)
+                )
             )
+        }
+    }
+}
+
+//감정 박스 스켈레놑+ 쉬머
+@Composable
+private fun rememberGrayShimmerBrush(): Brush {
+    val transition = rememberInfiniteTransition(label = "gray_shimmer")
+
+    val shift = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1400,
+                easing = LinearEasing
+            )
+        ),
+        label = "shift"
+    ).value
+
+    return Brush.linearGradient(
+        colors = listOf(
+            SkeletonStart,
+            SkeletonEnd,
+            SkeletonStart
+        ),
+        start = Offset(shift - 400f, 0f),
+        end = Offset(shift, 0f)
+    )
+}
+
+//인디케이터 + 스켈레톤 + 쉬머
+@Composable
+private fun PagerIndicatorSkeleton() {
+    val shimmerBrush = rememberGrayShimmerBrush()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .width(54.dp)
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.5.dp))
+                .background(shimmerBrush)
         )
     }
 }
+
+@Composable
+private fun PagerIndicator(
+    pageCount: Int,
+    currentPage: Int
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        repeat(pageCount) { index ->
+            val selected = currentPage == index
+
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .width(if (selected) 32.dp else 6.dp)
+                    .height(6.dp)
+                    .clip(
+                        if (selected) RoundedCornerShape(3.5.dp)
+                        else RoundedCornerShape(50)
+                    )
+                    .background(
+                        if (selected) Color(0xFFE5ACF4)
+                        else Color(0xFFE9EAEE)
+                    )
+            )
+        }
+    }
+}
+
+
 
 
 
