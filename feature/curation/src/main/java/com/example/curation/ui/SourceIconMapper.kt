@@ -18,7 +18,9 @@ fun resolveSourceIcon(domain: String?): Int {
                 host.contains("band")        -> R.drawable.ic_naver_band
         host.contains("naver.com") &&
                 host.contains("kin")         -> R.drawable.ic_naver_knowledge
-        host.contains("naver.com")       -> R.drawable.ic_naver
+
+        host.contains("naver") -> R.drawable.ic_naver
+        //host.contains("naver.com")       -> R.drawable.ic_naver
         host.contains("google.")         -> R.drawable.ic_google
         host.contains("facebook.")       -> R.drawable.ic_facebook
         host.contains("instagram.")      -> R.drawable.ic_instargram
@@ -51,7 +53,7 @@ fun resolveSourceIcon(domain: String?): Int {
         host.contains("onetid.")         -> R.drawable.ic_onetid
         host.contains("cm.")             -> R.drawable.ic_cm
         host.contains("w.")              -> R.drawable.ic_w
-        else                             -> R.drawable.ic_naver      // 기본 아이콘(없으면 하나 추가)
+        else -> R.drawable.ic_link_null    // 기본 아이콘(없으면 하나 추가)
     }
 }
 
@@ -59,6 +61,10 @@ fun resolveSourceIcon(domain: String?): Int {
 fun resolveSourceLabel(domain: String?): String {
     val host = (domain ?: "").lowercase()
     return when {
+        //네이버 뉴스 분기 추가
+        host.contains("news.naver") ||
+                host.contains("n.news.naver") -> "네이버 뉴스"
+
         host.contains("blog.naver") -> "BLOG"
         host.contains("naver.com") &&
                 host.contains("shopping") -> "네이버쇼핑"
@@ -70,8 +76,8 @@ fun resolveSourceLabel(domain: String?): String {
                 host.contains("band") -> "BAND"
         host.contains("naver.com") &&
                 host.contains("kin") -> "네이버 지식IN"
-
-        host.contains("naver.com") -> "NAVER"
+        // 위에 아무것도 안 걸렸지만 네이버 계열이면
+        host.contains("naver") -> "NAVER"
         host.contains("google.") -> "Google"
         host.contains("facebook.") -> "Facebook"
         host.contains("instagram.") -> "Instagram"

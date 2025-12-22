@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.example.login.R
 import com.example.login.Paperlogy
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.text.style.TextAlign
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -50,11 +51,19 @@ fun LoginScreen(
     onSignUpClick: () -> Unit = {} // 회원가입 클릭 시 호출되는 콜백 함수
 ) {
 
+    val isPreview = LocalInspectionMode.current
+
     val parentEntry = remember(navigator.currentBackStackEntry) {
-        navigator.getBackStackEntry("auth_graph")
+        if (!isPreview) {
+            navigator.getBackStackEntry("auth_graph")
+        } else {
+            null
+        }
     }
 
+
 // EmailVerificationScreen → 뒤로가기 시 약관 시트를 자동으로 다시 열기
+    if (!isPreview && parentEntry != null) {
     val fromEmail by parentEntry.savedStateHandle
         .getStateFlow("from_email_verification", false)
         .collectAsState()
@@ -69,8 +78,8 @@ fun LoginScreen(
 // 약관 체크 상태 감지 → LoginScreen 재조합 강제
     val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-    val agreeTerms     by signUpVm.agreeTerms.collectAsState()
-    val agreePrivacy   by signUpVm.agreePrivacy.collectAsState()
+    val agreeTerms by signUpVm.agreeTerms.collectAsState()
+    val agreePrivacy by signUpVm.agreePrivacy.collectAsState()
     val agreeMarketing by signUpVm.agreeMarketing.collectAsState()
 
     LaunchedEffect(agreeTerms, agreePrivacy, agreeMarketing) {
@@ -81,11 +90,11 @@ fun LoginScreen(
     val trigger by parentEntry.savedStateHandle
         .getStateFlow("trigger_terms_rerender", 0L)
         .collectAsState()
+    }
 
     LaunchedEffect(Unit) {
         println(" LoginScreen Loaded")
     }
-    val isPreview = LocalInspectionMode.current
 
     Box(
         modifier = Modifier
@@ -98,168 +107,148 @@ fun LoginScreen(
                 )
             )
     ){
-        Column(
+        BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp),
-                //.graphicsLayer { alpha = contentAlpha }, // 전체 콘텐츠 페이드 인
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(horizontal = 32.dp)
         ) {
-            // 로고
-            if (isPreview) {
-                // 프리뷰에서만: 이미지 대신 실제 이미지 대신 레이아웃만 그림,
-                //이유는 프리뷰에서 로고가 나오면 깨져서.. 그냥 공간만 차지하게 구현함.
-                Box(
-                    modifier = Modifier
-                        .offset(y = logoOffsetY.dp)
-                        .size(160.dp)
-                )
-            } else {
+            //  BoxWithConstraintsScope 사용
+            val screenHeight = maxHeight
+
+            // 상단 로고 비율
+            val logoTopRatio = 245f / 917f
+            val logoTopOffset = screenHeight * logoTopRatio
+
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
+
+
+                //  로고 위 여백 (비율 기반)
+                Spacer(modifier = Modifier.height(logoTopOffset))
+
+                // 로고 (피그마 크기 그대로)
                 Image(
-                    painter = painterResource(R.drawable.img_login_logo),
-                    contentDescription = "Logo",
+                    painter = painterResource(id = R.drawable.img_login_logo),
+                    contentDescription = "LinkU Logo",
                     modifier = Modifier
-                        .offset(y = logoOffsetY.dp)
-                        .width(150.dp)
+                        .padding(3.dp)
+                        .width(150.dp)   // 149.49561 → 실사용 150
                         .height(106.dp),
                     contentScale = ContentScale.Fit
                 )
-            }
-            Spacer(modifier = Modifier.height(40.dp))
 
-            // 이메일 로그인 버튼
-            // 이메일 로그인 "버튼"(Surface + clickable)
-            Surface(
-                color = emailButtonColor,
-                shape = RoundedCornerShape(32),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .width(350.dp)
-                    .height(54.dp)
-                    .clickable(
-                        indication = null, // ✅ 리플/애니메이션 없음
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) { navigator.navigate("email_login") }
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
+                Spacer(modifier = Modifier.height(90.dp))
+
+                //  이메일 로그인 버튼 //TODO : 여기서부터 이이서 로그인 ui 수정하기!
+                Surface(
+                    color = emailButtonColor,
+                    shape = RoundedCornerShape(32),
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 20.dp) // 기존 contentPadding 역할
+                        .fillMaxWidth()
+                        .height(54.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            navigator.navigate("email_login")
+                        }
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_email_png),
-                        contentDescription = "이메일 로그인",
-                        modifier = Modifier.size(20.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                    Spacer(Modifier.width(8.dp))
+                    Row(
+                       modifier = Modifier.fillMaxHeight(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_email_png),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .width(20.dp)
+                                .height(16.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = "이메일로 로그인",
+                            fontSize = 16.sp,
+                            lineHeight = 20.sp,
+                            color = Color.White,
+                            fontFamily = Paperlogy,
+                            textAlign = TextAlign.Center,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // 비밀번호 찾기| 회원가입
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 76.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "이메일로 로그인",
-                        fontSize = 16.sp,
+                        "비밀번호 찾기",
                         color = Color.White,
+                        fontSize = 15.sp,
+                        lineHeight = 22.sp,
                         fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight(400),
+                        modifier = Modifier.clickable {
+                            navigator.navigate("resetPassword")
+                        }
+                    )
+
+                    Spacer(modifier = Modifier.width(24.dp))
+                    Text("   |   ", color = Color.White)
+
+                    Spacer(modifier = Modifier.width(18.dp))
+                    Text(
+                        "회원가입",
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontFamily = Paperlogy,
+                        modifier = Modifier.clickable { onSignUpClick() }
                     )
                 }
-            }
 
+                Spacer(modifier = Modifier.height(80.dp))
+
+                // SNS 구분선
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Box(Modifier.weight(1f).height(1.dp).background(Color.White.copy(0.4f)))
+                    Text("  SNS 로그인  ", color = Color.White, fontSize = 12.sp)
+                    Box(Modifier.weight(1f).height(1.dp).background(Color.White.copy(0.4f)))
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-            // 비밀번호 재설정 | 회원가입
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    "비밀번호 재설정",
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable {
-                        navigator.navigate("resetPassword")
-                    }
-                )
-                Text("      |      ", color = Color.White, fontSize = 14.sp)
-                Text(
-                    "회원가입",
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable {
-                        onSignUpClick()
-//                        navigator.navigate("terms_agreement") {
-//                            launchSingleTop = true // 동일 화면 중복 쌓임 방지
-//                        }
-                        //onSignUpClick() // 회원가입 클릭 시 바텀시트 콜백 실행
-                    }
-                )
+                // SNS 버튼
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_kakao),
+                        contentDescription = null,
+                        modifier = Modifier.size(46.dp)
+                    )
+                    Spacer(Modifier.width(24.dp))
+                    Image(
+                        painter = painterResource(R.drawable.ic_naver),
+                        contentDescription = null,
+                        modifier = Modifier.size(46.dp)
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(72.dp))
-
-            // 간편 로그인 안내
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(1.dp)
-                        .background(Color.White.copy(alpha = 0.5f))
-                )
-                Text(
-                    "  간편 로그인  ",
-                    color = Color.White,
-                    fontSize = 12.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Normal
-                )
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(1.dp)
-                        .background(Color.White.copy(alpha = 0.5f))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 카카오 / 네이버 로그인 버튼
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // 카카오
-                Image(
-                    painter = painterResource(R.drawable.ic_kakao),
-                    contentDescription = "Kakao",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(46.dp)   // 아이콘 크기 줄임
-                        .clickable { }
-                )
-
-                Spacer(modifier = Modifier.width(24.dp))
-
-                // 네이버
-                Image(
-                    painter = painterResource(R.drawable.ic_naver),
-                    contentDescription = "Naver",
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier
-                        .size(46.dp)   // 아이콘 크기 줄임
-                        .clickable { }
-                )
-            }
-
         }
     }
 }

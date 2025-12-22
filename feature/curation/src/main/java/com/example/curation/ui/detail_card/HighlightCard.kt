@@ -59,12 +59,12 @@ fun HighlightCard(
 ) {
     Box(
         modifier = Modifier
-            .graphicsLayer { //TODO : 피그마 대로 구현하니 그림자 컬러가 안드로이드랑 안 맞아 그림자가 안보이는 문제가 발생.
-                //TODO : 오늘 다현이랑 조절하기! -> 나중에! //이거 수정하기 경계 나뉨!
-                shadowElevation = 6.dp.toPx()        // Blur 강함
-                shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
-                clip = false
-            }
+//            .graphicsLayer { //TODO : 그림자 약함.
+//                //
+//                shadowElevation = 6.dp.toPx()        // Blur 강함
+//                shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
+//                clip = false
+//            }
             .background(
                 color = Color(0xFFCB59EB),
                 shape = RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
@@ -342,20 +342,24 @@ private fun rememberShimmerBrush(): Brush {
         initialValue = 0f,
         targetValue = 1000f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = LinearEasing)
+            animation = tween(
+                durationMillis = 1400,
+                easing = LinearEasing
+            )
         ),
         label = "shift"
     ).value
 
+    //  Figma 기준 컬러
     val colors = listOf(
-        Color(0xFFF8DFFF), // 밝은 핑크-라벤더
-        Color(0xFFFBEEFF), // 현재 긍정카드 배경과 동일
-        Color(0xFFF3D4FF)  // 살짝 더 진한 음영 //TODO :피그마보고 수정하기!
+        Color(0xFFFBEFFF),
+        Color(0xFFF4D9FF),
+        Color(0xFFE3A3F5)
     )
 
     return Brush.linearGradient(
         colors = colors,
-        start = Offset(0f, 0f),
+        start = Offset(shift - 400f, shift - 400f),
         end = Offset(shift, shift)
     )
 }
