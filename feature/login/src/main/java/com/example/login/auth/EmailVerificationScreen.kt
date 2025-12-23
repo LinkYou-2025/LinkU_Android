@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +30,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.login.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
+import com.example.login.ui.item.LoginTextField
+import com.example.login.ui.item.StepIndicator
+import com.example.login.ui.item.BottomGradientButton
 
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
@@ -44,7 +48,7 @@ fun EmailVerificationScreen(
 ) {
 
     // 이메일 인증 화면은 뒤로가면 로그인 화면(약관 선택 페이지)으로 돌아가는게 맞는지
-    //TODO : 다인언니에게 물어보기!
+    //TODO : 다인언니에게 물어보기! -> 맞다고 함.
     BackHandler {
         parentEntry.savedStateHandle["from_email_verification"] = true
         navigator.popBackStack()   // ← 이게 정답
@@ -155,7 +159,7 @@ fun EmailVerificationScreen(
 }
 
 /**
- * UI만 그리는 프레젠테이션 컴포저블입니다. Preview에서 ViewModel 없이 안전하게 사용 가능.
+ * UI만 그리는 프레젠테이션 컴포저블입니다. Preview에서 ViewModel 없이 안전하게 사용 가능. 코드 아님.
  */
 @Composable
 fun EmailVerificationScreenContent(
@@ -184,60 +188,32 @@ fun EmailVerificationScreenContent(
                 .padding(start = 20.dp, top = 52.dp, end = 20.dp, bottom = 48.dp + 24.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            StepIndicator()
-            Spacer(modifier = Modifier.height(32.dp))
+            //1단계
+            StepIndicator(
+                currentStep = 1,
+                totalSteps = 3,
+                label = "계정 정보"
+            )
+            Spacer(modifier = Modifier.height(36.dp))
             Text(
                 text = "가입을 위한 이메일 주소를\n인증해주세요",
                 fontSize = 22.sp,
+                lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = Paperlogy,
                 color = Color.Black
             )
             Spacer(modifier = Modifier.height(32.dp))
             // 이메일 입력 필드
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(1.dp)
-            ) {
-                OutlinedTextField(
+
+                //이메일 입력 필드
+                LoginTextField(
                     value = email,
                     onValueChange = onEmailChange,
-                    placeholder = {
-                        Text(
-                            "이메일 주소를 입력해주세요",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = Paperlogy,
-                            color = Color(0xFF757575)
-                        )
-                    },
-                    textStyle = LocalTextStyle.current.copy(
-                        fontSize = 14.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight.Normal
-                    ),
-                    singleLine = true,
-                    enabled = !isSending && !isVerifying,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White, shape = RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    )
+                    hint = "이메일 주소를 입력해주세요",
+                    enabled = !isSending && !isVerifying
                 )
-            }
+
             // 에러 문구
             val emailErrorText: String? = when {
                 email.isNotBlank() && !emailValid -> "이메일 양식이 올바르지 않습니다!"
@@ -255,9 +231,9 @@ fun EmailVerificationScreenContent(
                     modifier = Modifier.offset(x = 4.dp)
                 )
             }
-            // 인증 코드 입력 영역
+            // 인증 코드 입력 영역 이건 타이머가 있어서 따로 요소 불러오지 않고 여기서만.
             if (isCodeSent) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(10.dp))
                 OutlinedTextField(
                     value = code,
                     onValueChange = onCodeChange,
@@ -290,8 +266,10 @@ fun EmailVerificationScreenContent(
                                 text = "서버 오류",
                                 color = Color(0xFFFF5E5E),
                                 fontSize = 13.sp,
+                                lineHeight = 15.sp,
                                 fontFamily = Paperlogy,
-                                modifier = textModifier
+                                modifier = Modifier.padding(end = 22.dp),
+                                textAlign = TextAlign.Right
                             )
                         } else {
                             Text(
@@ -310,6 +288,28 @@ fun EmailVerificationScreenContent(
                         unfocusedContainerColor = Color.Transparent
                     )
                 )
+
+                val codeErrorText: String? = when {
+                    verifyResult == "인증번호가 올바르지 않습니다" ||
+                            verifyResult == "인증 코드 불일치" ||
+                            verifyResult == "인증 실패" ->
+                        "이메일 인증 코드가 잘못 입력되었습니다."
+                    else -> null
+                }
+
+                codeErrorText?.let {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = it,
+                        color = Color(0xFFFF5E5E),
+                        fontSize = 13.sp,
+                        lineHeight = 15.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight(400),
+                        modifier = Modifier.padding(start = 12.dp)
+                    )
+                }//TODO : 하진 언니한테 오류 멘트 받아올 수 있는 api 수정 부탁하기!
+
             } else if (sendResult == "서버 오류") {
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -320,152 +320,50 @@ fun EmailVerificationScreenContent(
                 )
             }
         }
-        // 하단 고정 버튼
+        // 하단 고정 영역
         val isButtonEnabled = sendResult != "서버 오류" &&
                 !isSending && !isVerifying &&
                 (if (isCodeSent) isCodeValid else emailValid)
-        val density = LocalDensity.current
-        val imeBottomPx = WindowInsets.ime.getBottom(density)
-        val isImeVisible = imeBottomPx > 0
-        val bottomGapWhenIme = 4.dp
-        val bottomGapDefault = 16.dp
-        val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
-        Box(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
-                    .height(48.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = when {
-                                isCodeSent && isCodeValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                                !isCodeSent && emailValid -> listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                                else -> listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                            }
-                        ),
-                        shape = RoundedCornerShape(18.dp)
-                    )
-                    .clickable(enabled = isButtonEnabled) {
-                        if (isCodeSent) {
-                            onVerifyCode()
-                        } else {
-                            onSendCode()
-                        }
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = if (isCodeSent) "인증하기" else "인증메일 발송",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = Paperlogy
-                )
-            }
-        }
-    }
-}
 
-@Composable
-fun StepIndicator() {
-    val isPreview = LocalInspectionMode.current
-
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.offset(x = 14.dp) // ✅ ProfileStepIndicator의 기준 오프셋 반영
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Bottom,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1️⃣ 1번 활성 원
-            Box(
+            // 인증번호 안내 텍스트 (버튼 위 21dp)
+            Text(
+                text = "인증번호가 오지 않는다면?",
+                fontSize = 12.sp,
+                lineHeight = 20.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight(500),
+                color = Color(0xFFB7B9BF),
+                textAlign = TextAlign.Center,
+                textDecoration = TextDecoration.Underline,
                 modifier = Modifier
-                    .size(30.dp) // ✅ ProfileStepIndicator 크기 통일
-                    .background(Color(0xFFCB59EB), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "1",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                    .padding(bottom = 21.dp)
+                    .clickable {
+                        // TODO: 재전송 안내 api 개발시 연동하기!
+                    }
+            )
 
-            Spacer(modifier = Modifier.width(6.dp)) //  8dp → 6dp, 균형 조정
-
-            // 🔹 연결 점선 (3개)
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFD6D6D6), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            // 2️⃣ 2번 비활성 원
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .border(1.dp, Color(0xFFD6D6D6), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "2",
-                    color = Color(0xFFD6D6D6),
-                    fontSize = 16.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 🔹 두 번째 점선
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFD6D6D6), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            // 3번 비활성 원
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .border(1.dp, Color(0xFFD6D6D6), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "3",
-                    color = Color(0xFFD6D6D6),
-                    fontSize = 16.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            BottomGradientButton(
+                text = if (isCodeSent) "인증하기" else "인증메일 발송",
+                enabled = isButtonEnabled,
+                activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+                inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+                onClick = {
+                    if (isCodeSent) {
+                        onVerifyCode()
+                    } else {
+                        onSendCode()
+                    }
+                }
+            )
         }
-
-        // 하단 텍스트 (ProfileStepIndicator 정렬 반영)
-        Text(
-            text = "계정 정보",
-            modifier = Modifier.padding(start = 2.dp, top = 6.dp), // ✅ ProfileStepIndicator 간격 반영
-            fontSize = 13.sp,
-            fontFamily = Paperlogy,
-            color = Color(0xFFCB59EB),
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Center
-        )
     }
 }
+
 /**
  * Preview에서는 ViewModel 없이 더미 상태만 넘겨서 프리뷰는 잘 표시될 수 있도록 함..
  */
@@ -487,6 +385,34 @@ fun EmailVerificationScreenPreview() {
         isCodeSent = false,
         isCodeValid = false,
         timerText = "03:00",
+        emailValid = true,
+        errorMessage = "",
+        onSendCode = {},
+        onVerifyCode = {}
+    )
+}
+
+
+//타이머  보려고
+@Preview(showBackground = true)
+@Composable
+fun EmailVerificationScreen_TimerPreview() {
+    val fakeNavigator = rememberNavController()
+
+    EmailVerificationScreenContent(
+        navigator = fakeNavigator,
+        email = "test@email.com",
+        onEmailChange = {},
+        code = "123456",
+        onCodeChange = {},
+        isSending = false,
+        isVerifying = false,
+        timer = 153,
+        sendResult = "인증 코드 전송 성공",
+        verifyResult = "인증번호가 올바르지 않습니다",
+        isCodeSent = true,
+        isCodeValid = true,
+        timerText = "02:33",
         emailValid = true,
         errorMessage = "",
         onSendCode = {},

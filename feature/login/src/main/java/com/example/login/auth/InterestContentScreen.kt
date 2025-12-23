@@ -1,5 +1,6 @@
 package com.example.login.auth
 
+import CircleItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +41,8 @@ import com.example.login.Paperlogy
 import androidx.compose.ui.unit.Dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.login.R
+import com.example.login.ui.item.BottomGradientButton
+import com.example.login.ui.item.StepIndicator
 
 /**
  * 관심사 선택 화면의 버블 데이터 클래스
@@ -89,162 +92,127 @@ val contentLabelToCodeNormalized: Map<String, String> =
 @Composable
 fun InterestContentScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel = hiltViewModel()
+    signUpViewModel: SignUpViewModel? = null
 ) {
+    val isPreview = LocalInspectionMode.current
     // ViewModel 기존 선택값 복원 (뒤로가기 해도 유지됨)
     val selectedContents = remember {
         mutableStateListOf<String>().apply {
-            addAll(signUpViewModel.interestList.mapNotNull { code ->
-                // code → label 역매핑
-                contentLabelToCodeNormalized.entries
-                    .firstOrNull { it.value == code }
-                    ?.key
-            })
+            if (!isPreview && signUpViewModel != null) {
+                addAll(
+                    signUpViewModel.interestList.mapNotNull { code ->
+                        contentLabelToCodeNormalized.entries
+                            .firstOrNull { it.value == code }
+                            ?.key
+                    }
+                )
+            } else {
+                // Preview 기본값
+                add("IT/개발")
+                add("비즈니스/마케팅")
+            }
         }
     }
     val canProceed = selectedContents.isNotEmpty()
 
     Scaffold(
-        containerColor = Color.White, // 항상 흰색 배경
+        containerColor = Color.White,
         bottomBar = {
-            val density = LocalDensity.current
-            val imeBottomPx = WindowInsets.ime.getBottom(density)
-            val isImeVisible = imeBottomPx > 0
-            val bottomGapWhenIme = 4.dp
-            val bottomGapDefault = 16.dp
-            val bottomPadding = if (isImeVisible) bottomGapWhenIme else bottomGapDefault
+            BottomGradientButton(
+                text = "다음",
+                enabled = canProceed,
+                activeGradient = listOf(
+                    Color(0xFF2C6FFF),
+                    Color(0xFFC800FF)
+                ),
+                inactiveGradient = listOf(
+                    Color(0xFF9BCBFF),
+                    Color(0xFFF4AFFF)
+                ),
+                onClick = {
+                    val codes = selectedContents
+                        .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
+                        .distinct()
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
-                    .height(48.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = if (canProceed)
-                                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            else
-                                listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                        ),
-                        shape = RoundedCornerShape(18.dp)
-                    )
-                    .clickable(
-                        enabled = canProceed,
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        //  클릭 시 바로 ViewModel에 저장
-                        val codes = selectedContents.mapNotNull {
-                            contentLabelToCodeNormalized[normalizeLabel(it)]
-                        }.distinct()
-
-                        if (codes.isNotEmpty()) {
-                            signUpViewModel.interestList = codes
-                        }
+                    if (codes.isNotEmpty()) {
+                        signUpViewModel?.interestList = codes
                         navigator.navigate("welcome")
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    "다음",
-                    color = Color.White,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
+                    }
+                }
+            )
         }
     ) { innerPadding ->
-        LazyColumn(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(
+                    start = 0.dp,
+                    end = 0.dp,
+                    top = 52.dp,
+                    bottom = 0.dp
+                )
+                .padding(innerPadding)
                 .background(Color.White)
-                .padding(innerPadding),
-            contentPadding = PaddingValues(
-                start = 20.dp, end = 20.dp,
-                top = 40.dp,
-                bottom = 96.dp
-            )
         ) {
-            item { ContentStepIndicator() }
-            item { Spacer(modifier = Modifier.height(16.dp)) }
-            item {
+
+            //  고정 영역 (스크롤 불가)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                StepIndicator(
+                    currentStep = 3,
+                    totalSteps = 3,
+                    label = "관심사 설정"
+                )
+
+                Spacer(Modifier.height(36.dp))
+
                 Text(
                     buildAnnotatedString {
                         append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
-                        withStyle(SpanStyle(color = Color(0xFFE5ACF4), fontSize = 16.sp,fontWeight = FontWeight.Medium )) {
+                        withStyle(
+                            SpanStyle(
+                                color = Color(0xFFE5ACF4),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        ) {
                             append("(복수 선택 가능)")
                         }
                     },
                     fontSize = 22.sp,
                     fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold
                 )
+
+                Spacer(Modifier.height(50.dp))
             }
-            item { Spacer(modifier = Modifier.height(32.dp)) }
-            item {
+
+            // 스크롤 영역 (여기부터 스크롤)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f) // ⭐ 핵심
+            ) {
                 InterestCloudScrollable(
                     contents = contents,
                     selected = selectedContents,
                     onToggle = { label ->
-                        if (selectedContents.contains(label)) selectedContents.remove(label)
-                        else selectedContents.add(label)
+                        if (selectedContents.contains(label)) {
+                            selectedContents.remove(label)
+                        } else {
+                            selectedContents.add(label)
+                        }
                     },
                     height = 500.dp
                 )
             }
-            item { Spacer(modifier = Modifier.height(24.dp)) }
         }
     }
 }
 
-/**
- * 관심사 버블(동그라미) 하나를 그리는 컴포저블
- */
-@Composable
-fun ContentItem(
-    content: Content,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(content.size.dp)
-            .border(
-                width = 1.dp,
-                brush = Brush.sweepGradient(listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
-                shape = CircleShape
-            )
-            .background(
-                brush = if (isSelected)
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFF2C6FFF).copy(alpha = 0.4f),
-                            Color(0xFFC800FF).copy(alpha = 0.4f)
-                        )
-                    )
-                else SolidColor(Color.White),
-                shape = CircleShape
-            )
-            .clickable(
-                indication = null,
-                interactionSource = remember { MutableInteractionSource() }
-            ) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = content.emoji, fontFamily = Paperlogy, fontSize = 24.sp)
-            Text(
-                text = content.label,
-                fontSize = 14.sp,
-                fontFamily = Paperlogy,
-                textAlign = TextAlign.Center,
-                color = if (isSelected) Color.White else Color.Black
-            )
-        }
-    }
-}
 
 /**
  * 관심사 버블 클라우드(동그라미 배치 및 스크롤) 컴포저블
@@ -299,9 +267,11 @@ private fun InterestCloudScrollable(
         ) {
             shiftedContents.forEach { item ->
                 val isSelected = item.label in selected
-                ContentItem(
-                    content = item,
-                    isSelected = isSelected,
+                CircleItem(
+                    emoji = item.emoji,
+                    text = item.label,
+                    sizeDp = item.size,
+                    selected = isSelected,
                     onClick = { onToggle(item.label) },
                     modifier = Modifier.offset(
                         leftGutter + item.offset.x + shiftX,
@@ -313,183 +283,7 @@ private fun InterestCloudScrollable(
     }
 }
 
-//@Composable
-//private fun InterestCloudScrollable(
-//    contents: List<Content>,
-//    selected: SnapshotStateList<String>,
-//    onToggle: (String) -> Unit,
-//    height: Dp = 500.dp
-//) {
-//    // 1. 피그마 기준 전체 bounding 박스 상단 좌표 사용 (y=243)
-//    val minX = 72.dp  // 글쓰기/콘텐츠 작성 기준 x
-//    val minY = 243.dp // 전체 동그라미 박스의 top y(피그마 기준)
-//    val shiftX = 20.dp
-//    val shiftY = 20.dp // 여백감 추가
-//
-//    val shiftedContents = contents.map { c ->
-//        c.copy(offset = DpOffset((c.offset.x - minX) + shiftX, (c.offset.y - minY) + shiftY))
-//    }
-//
-//    val canvasWidth = remember(shiftedContents) {
-//        shiftedContents.maxOf { it.offset.x + it.size.dp } + 20.dp
-//    }
-//    val canvasHeight = remember(shiftedContents) {
-//        shiftedContents.maxOf { it.offset.y + it.size.dp } + 20.dp // 동적 계산
-//    }
-//    val scrollState = rememberScrollState()
-//
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(height.coerceAtLeast(canvasHeight)) // 필요 시 자동 늘림
-//            .horizontalScroll(scrollState)
-//            .background(Color.White),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Box(
-//            modifier = Modifier
-//                .width(canvasWidth)
-//                .height(height.coerceAtLeast(canvasHeight))
-//        ) {
-//            shiftedContents.forEach { content ->
-//                val isSelected = content.label in selected
-//                ContentItem(
-//                    content = content,
-//                    isSelected = isSelected,
-//                    onClick = { onToggle(content.label) },
-//                    modifier = Modifier.offset(content.offset.x, content.offset.y)
-//                )
-//            }
-//        }
-//    }
-//}
-//@Composable
-//private fun InterestCloudScrollable(
-//    contents: List<Content>,
-//    selected: SnapshotStateList<String>,
-//    onToggle: (String) -> Unit,
-//    height: Dp = 500.dp
-//) {
-//    // 좌표 보정: 음수 좌표가 있으면 전체를 우측으로 이동
-//    val minX = remember(contents) { contents.minOfOrNull { it.offset.x } ?: 0.dp }
-//    val shiftX = if (minX < 0.dp) (-minX) else 0.dp
-//    val canvasWidth = remember(contents, shiftX) {
-//        val right = contents.maxOfOrNull { it.offset.x + it.size.dp + shiftX } ?: 0.dp
-//        right + 80.dp
-//    }
-//    val density = LocalDensity.current
-//    val initialOffsetPx = remember { with(density) { 200.dp.roundToPx() } } // 기존처럼 200dp
-//    val scrollState = rememberScrollState()
-//    LaunchedEffect(Unit) {
-//        scrollState.scrollTo(initialOffsetPx)
-//    }
-//    Box(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .height(height)
-//            .horizontalScroll(scrollState)
-//            .background(Color.White),
-//        contentAlignment = Alignment.Center
-//    ) {
-//        Box(
-//            modifier = Modifier
-//                .width(canvasWidth)
-//                .height(height)
-//        ) {
-//            contents.forEach { content ->
-//                val isSelected = content.label in selected
-//                ContentItem(
-//                    content = content,
-//                    isSelected = isSelected,
-//                    onClick = { onToggle(content.label) },
-//                    modifier = Modifier.offset(content.offset.x + shiftX, content.offset.y)
-//                )
-//            }
-//        }
-//    }
-//}
 
-/**
- * 상단 단계 인디케이터 컴포저블
- */
-@Composable
-fun ContentStepIndicator() {
-    val isPreview = LocalInspectionMode.current
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 6.dp)
-                    .size(30.dp)
-                    .background(Color(0xFFE5ACF4), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_level_check),
-                    contentDescription = "완료",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFCB59EB), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .background(Color(0xFFE5ACF4), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_level_check),
-                    contentDescription = "완료",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFCB59EB), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(Color(0xFFCB59EB), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "3",
-                    fontFamily = Paperlogy,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        Text(
-            text = "관심사 설정",
-            modifier = Modifier.padding(start = 122.dp, top = 6.dp),
-            fontSize = 13.sp,
-            color = Color(0xFFCB59EB),
-            fontFamily = Paperlogy,
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Center
-        )
-    }
-}
 
 /**
  * Preview: 화면 ui 확인용. 그 이상도 이하도 아닌... 코드!

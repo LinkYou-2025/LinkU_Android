@@ -30,6 +30,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import com.example.login.ui.item.LoginTextField
+import com.example.login.ui.item.StepIndicator
 
 @Composable
 fun SignUpNicknameScreen(
@@ -76,7 +78,11 @@ fun SignUpNicknameScreen(
                 ),
             horizontalAlignment = Alignment.Start
         ) {
-            ProfileStepIndicator()
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
             Spacer(Modifier.height(32.dp))
 
             Text(
@@ -89,47 +95,19 @@ fun SignUpNicknameScreen(
 
             Spacer(Modifier.height(32.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(1.dp)
-            ) {
-                OutlinedTextField(
-                    value = nickname,
-                    onValueChange = {
-                        nickname = it
-                        signUpViewModel.nickname = it
-                        if (isNicknameValid) signUpViewModel.checkNickname()
-                    },
-                    placeholder = {
-                        Text(
-                            "닉네임을 입력해주세요.",
-                            fontSize = 13.sp,
-                            fontFamily = Paperlogy,
-                            color = Color(0xFF757575)
-                        )
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        //.fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(16.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
+            LoginTextField(
+                value = nickname,
+                onValueChange = {
+                    nickname = it
+                    signUpViewModel.nickname = it
+                    if (isNicknameValid) {
+                        signUpViewModel.checkNickname()
+                    }
+                },
+                hint = "닉네임을 입력해주세요.",
+                modifier = Modifier.fillMaxWidth(),
+                showGradientBorder = true
+            )
 
             if (isNicknameAvailable == false) {
                 Text(
@@ -221,102 +199,6 @@ fun SignUpNicknameScreen(
     }
 }
 
-@Composable
-fun ProfileStepIndicator() {
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.offset(x = (18).dp)
-        ) {
-            // 1번 완료 원 (ic_level_check 적용)
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .background(Color(0xFFE5ACF4), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_level_check),
-                    contentDescription = "완료",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            //  연결 점선 (3개, ContentStepIndicator와 동일 간격)
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFD6D6D6), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            // 2번 활성 원
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .background(Color(0xFFCB59EB), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "2",
-                    fontFamily = Paperlogy,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // 두 번째 연결 점선
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFD6D6D6), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-
-            Spacer(modifier = Modifier.width(6.dp))
-
-            // 3번 비활성 원
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .border(1.dp, Color(0xFFD6D6D6), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "3",
-                    color = Color(0xFFD6D6D6),
-                    fontFamily = Paperlogy,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        // 하단 텍스트 (간격 동일)
-        Text(
-            text = "프로필 설정",
-            modifier = Modifier.padding(start = 68.dp, top = 6.dp),
-            fontSize = 13.sp,
-            fontFamily = Paperlogy,
-            color = Color(0xFFCB59EB),
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
@@ -350,8 +232,12 @@ private fun SignUpNicknameScreenPreviewOnly(navigator: NavHostController) {
                 .padding(start = 20.dp, end = 20.dp, top = 52.dp, bottom = 72.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            ProfileStepIndicator()
-            Spacer(Modifier.height(32.dp))
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
+            Spacer(Modifier.height(36.dp))
 
             Text(
                 text = "사용하실 닉네임을\n입력해주세요",
@@ -361,44 +247,19 @@ private fun SignUpNicknameScreenPreviewOnly(navigator: NavHostController) {
                 color = Color.Black
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(40.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(1.dp)
-            ) {
-                OutlinedTextField(
-                    value = nickname,
-                    onValueChange = { nickname = it },
-                    placeholder = {
-                        Text(
-                            "닉네임을 입력해주세요.",
-                            fontSize = 13.sp,
-                            fontFamily = Paperlogy,
-                            color = Color(0xFF757575)
-                        )
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.White, RoundedCornerShape(16.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
+            LoginTextField(
+                value = nickname,
+                onValueChange = {
+                    nickname = it
+                },
+                hint = "닉네임을 입력해주세요.",
+                modifier = Modifier.fillMaxWidth(),
+                showGradientBorder = true
+            )
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(15.dp))
 
             Row(
                 modifier = Modifier
@@ -420,7 +281,7 @@ private fun SignUpNicknameScreenPreviewOnly(navigator: NavHostController) {
                         modifier = Modifier.size(12.dp)
                     )
                 }
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(8.dp))
                 Text(
                     "국문/영문 10자 이하",
                     fontSize = 12.sp,

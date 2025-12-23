@@ -28,7 +28,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.login.R
 import com.example.login.Paperlogy
-
+import com.example.login.ui.item.BottomGradientButton
+import com.example.login.ui.item.StepIndicator
+import com.example.login.ui.item.OptionButton
 
 @Composable
 fun SignUpGenderScreen(
@@ -64,7 +66,11 @@ fun SignUpGenderScreen(
         horizontalAlignment = Alignment.Start
     ) {
         // 상단 프로필 단계 표시
-        ProfileStepIndicator()
+        StepIndicator(
+            currentStep = 2,
+            totalSteps = 3,
+            label = "프로필 설정"
+        )
 
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -80,9 +86,9 @@ fun SignUpGenderScreen(
         Spacer(modifier = Modifier.height(32.dp))
 
         // 선택 옵션: 남성
-        GenderOptionButton(
+        OptionButton(
             text = "남성",
-            isSelected = selectedGender == 1,
+            selected = selectedGender == 1,
             onClick = {
                 selectedGender = 1
                 signUpViewModel.gender = 1
@@ -92,9 +98,9 @@ fun SignUpGenderScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         // 선택 옵션: 여성
-        GenderOptionButton(
+        OptionButton(
             text = "여성",
-            isSelected = selectedGender == 2,
+            selected = selectedGender == 2,
             onClick = {
                 selectedGender = 2
                 signUpViewModel.gender = 2
@@ -103,112 +109,24 @@ fun SignUpGenderScreen(
 
         Spacer(modifier = Modifier.weight(1f))}
 
-        // ✅ 하단 고정 버튼 (닉네임 화면과 동일)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                //.imePadding()
-                //.navigationBarsPadding()
-                //.padding(start = 20.dp, end = 20.dp,  bottom = bottomPadding)
-                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                .height(48.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (isButtonEnabled)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                )
-                .clickable(enabled = isButtonEnabled) {
-                    signUpViewModel.gender = selectedGender ?: 1
-                    navigator.navigate("sign_up_job") {
-                        launchSingleTop = true
-                    }
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "다음",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy,
-                textAlign = TextAlign.Center
-            )
-        }
+        BottomGradientButton(
+            text = "다음",
+            enabled = isButtonEnabled,
+            activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+            inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+            onClick = {
+                signUpViewModel.gender = selectedGender ?: 1
+                navigator.navigate("sign_up_job") {
+                    launchSingleTop = true
+                }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 //shape = RoundedCornerShape(18.dp)
 
-@Composable
-fun GenderOptionButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    val shape = RoundedCornerShape(16.dp)
-    val borderGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
 
-    // 요구: 왼쪽도 12% → 오른쪽도 12% (동일 투명도)
-    val fillGradientSelected = listOf(
-        Color(0xFF2C6FFF).copy(alpha = 0.18f),
-        Color(0xFFC800FF).copy(alpha = 0.16f)
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .clip(shape)
-            // 1) 기본 흰 바탕
-            .background(Color.White)
-            // 2) 선택 시 전체 영역 그라데이션(패딩 이전에 칠함)
-            .then(
-                if (isSelected)
-                    Modifier.background(brush = Brush.horizontalGradient(fillGradientSelected))
-                else
-                    Modifier
-            )
-            // 3) 테두리는 맨 위에
-            .border(width = 1.dp, brush = Brush.horizontalGradient(borderGradient), shape = shape)
-            .clickable(onClick = onClick)
-            // 4) 내용 패딩은 마지막에
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(start = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = text,
-                fontSize = 14.sp,
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Medium,
-                color = Color.Black
-            )
-            if (isSelected) {
-                Box(
-                    modifier = Modifier
-                        .size(20.dp)
-                        .background(Color(0xFFCB59EB), shape = RoundedCornerShape(4.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Check,
-                        contentDescription = "선택됨",
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp)
-                    )
-                }
-            }
-        }
-    }
-}
 @Preview(
     showBackground = true,
     backgroundColor = 0xFFF5F6F9,
@@ -219,16 +137,7 @@ fun SignUpGenderScreenPreview() {
     val fakeNavController = rememberNavController()
     SignUpGenderScreenPreviewOnly(navigator = fakeNavController)
 }
-@Composable
-fun GenderOptionButtonPreview_Selected() {
-    Box(Modifier.padding(16.dp)) {
-        GenderOptionButton(
-            text = "여성",
-            isSelected = true,
-            onClick = {}
-        )
-    }
-}
+
 
 //철저히 프리뷰용. ui 확인용.
 @Composable
@@ -243,33 +152,38 @@ private fun SignUpGenderScreenPreviewOnly(navigator: NavHostController) {
                 .padding(start = 20.dp, end = 20.dp, top = 52.dp, bottom = 72.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            ProfileStepIndicator()  // 단계 표시 UI 재사용
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = "성별을\n선택해주세요",
                 fontSize = 22.sp,
+                lineHeight = 30.sp,
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             // 남성 버튼
-            GenderOptionButton(
+            OptionButton(
                 text = "남성",
-                isSelected = selectedGender == 1,
+                selected = selectedGender == 1,
                 onClick = { selectedGender = 1 }
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // 여성 버튼
-            GenderOptionButton(
+            OptionButton(
                 text = "여성",
-                isSelected = selectedGender == 2,
+                selected = selectedGender == 2,
                 onClick = { selectedGender = 2 }
             )
 
@@ -277,30 +191,13 @@ private fun SignUpGenderScreenPreviewOnly(navigator: NavHostController) {
         }
 
         // 하단 버튼
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                .height(48.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (isButtonEnabled)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "다음",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy
-            )
-        }
+        BottomGradientButton(
+            text = "다음",
+            enabled = isButtonEnabled,
+            activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+            inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+            onClick = {}, // 프리뷰용: 동작 필요 없음
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
