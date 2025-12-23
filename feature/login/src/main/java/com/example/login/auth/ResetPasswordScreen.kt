@@ -40,6 +40,10 @@ import com.example.login.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+
+
+//비밀번호 재설정임!
 
 @Composable
 fun ResetPasswordScreen(
@@ -450,3 +454,153 @@ fun ResetPasswordScreenPreview() {
 //    ResetPasswordScreen(navigator = fakeNavController)
 //}
 //
+
+@Preview(showBackground = true, name = "ResetPasswordScreen Content Preview")
+@Composable
+fun ResetPasswordScreenContentPreview() {
+    ResetPasswordScreenContent(
+        email = TextFieldValue("test@email.com"),
+        onEmailChange = {},
+        isEmailValid = true,
+        loading = false,
+        error = null,
+        bottomPadding = 16.dp,
+        onSubmit = {}
+    )
+}
+
+@Composable
+fun ResetPasswordScreenContent(
+    email: TextFieldValue,
+    onEmailChange: (TextFieldValue) -> Unit,
+    isEmailValid: Boolean,
+    loading: Boolean,
+    error: String?,
+    onSubmit: () -> Unit,
+    bottomPadding: Dp
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(
+                start = 20.dp,
+                end = 20.dp,
+                top = 52.dp,
+                bottom = 16.dp
+            ),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Spacer(Modifier.height(40.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.logo_whiteback),
+            contentDescription = null,
+            modifier = Modifier.size(64.dp)
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "비밀번호 재설정",
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = Paperlogy
+        )
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "걱정 마세요! 이메일 주소를 입력해 주시면,\n임시 비밀번호를 보내드릴게요!",
+            fontSize = 16.sp,
+            fontFamily = Paperlogy,
+            color = Color(0xFF87898F)
+        )
+
+        Spacer(Modifier.height(32.dp))
+
+        OutlinedTextField(
+            value = email,
+            onValueChange = onEmailChange,
+            placeholder = {
+                Text(
+                    "이메일 주소를 입력해주세요.",
+                    fontSize = 14.sp,
+                    fontFamily = Paperlogy,
+                    color = Color(0xFFB7B9BF)
+                )
+            },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White, RoundedCornerShape(16.dp))
+                .border(
+                    1.dp,
+                    Brush.horizontalGradient(
+                        listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                    ),
+                    RoundedCornerShape(16.dp)
+                ),
+            colors = TextFieldDefaults.colors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent
+            ),
+            shape = RoundedCornerShape(16.dp)
+        )
+
+        if (error != null) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = error,
+                color = Color(0xFFFF3B30),
+                fontSize = 12.sp,
+                fontFamily = Paperlogy,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .padding(bottom = bottomPadding)
+                .background(
+                    brush = Brush.horizontalGradient(
+                        if (isEmailValid)
+                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                        else
+                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
+                    ),
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .clickable(enabled = isEmailValid && !loading) {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    onSubmit()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = Color.White
+                )
+            } else {
+                Text(
+                    "임시 비밀번호 받기",
+                    color = Color.White,
+                    fontFamily = Paperlogy,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}

@@ -187,16 +187,22 @@ private fun CurationDetailScreenContent(
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
         ) {
-            Text(
-                text = "추천 링크",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                ),
-                color = LocalColorTheme.current.black,
-                modifier = Modifier.padding(start = 24.dp)
-            )
+            if (linksState.loading) {
+                SectionTitleSkeleton(
+                    modifier = Modifier.padding(start = 24.dp)
+                )
+            } else {
+                Text(
+                    text = "추천 링크",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    ),
+                    color = LocalColorTheme.current.black,
+                    modifier = Modifier.padding(start = 24.dp)
+                )
+            }
 
             Spacer(Modifier.height(20.dp))
 
@@ -294,6 +300,22 @@ fun CurationRecommendedLinksPagerWrapper(
 
         )
     }
+}
+
+//제목 스켈레톤 추가(추천 링크)
+@Composable
+private fun SectionTitleSkeleton(
+    modifier: Modifier = Modifier
+) {
+    val shimmerBrush = rememberGrayShimmerBrush()
+
+    Box(
+        modifier = modifier
+            .width(80.dp)
+            .height(20.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(shimmerBrush)
+    )
 }
 
 

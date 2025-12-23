@@ -29,8 +29,12 @@ import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.navigation.compose.rememberNavController
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.login.ui.item.BottomGradientButton
+import com.example.login.ui.item.LoginTextField
+import com.example.login.ui.item.StepIndicator
 
 @Composable
 fun SignUpPasswordScreen(
@@ -116,7 +120,11 @@ fun SignUpPasswordScreen(
                 ),
             horizontalAlignment = Alignment.Start
         ) {
-            StepIndicator()
+            StepIndicator(
+                currentStep = 1,
+                totalSteps = 3,
+                label = "계정 정보"
+            )
             Spacer(Modifier.height(32.dp))
 
             Text(
@@ -143,88 +151,91 @@ fun SignUpPasswordScreen(
                     )
                     .padding(1.dp)
             ) {
-                OutlinedTextField(
+                LoginTextField(
                     value = password,
                     onValueChange = {
                         password = it
-                        signUpViewModel.password = it    // 즉시 sync 유지
+                        signUpViewModel.password = it
                     },
-                    placeholder = {
-                        Text("비밀번호를 입력해주세요.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
-                    },
-                    singleLine = true,
+                    hint = "비밀번호를 입력해주세요.",
                     modifier = Modifier
-                        .fillMaxSize()
-                        //.fillMaxWidth()
-                        .background(Color.White, RoundedCornerShape(16.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp)
+                        .fillMaxWidth()
+                        .height(56.dp)
                 )
             }
 
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            // 조건 체크 라인
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth() //기쥰을 화면으로
+                    .padding(start = 12.dp), // 전체 오른쪽 이동
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(20.dp)
-                            .background(if (isPasswordComplex) Color(0xFFCB59EB) else Color(0xFFD7D9DF), RoundedCornerShape(4.dp)),
+                            .background(
+                                if (isPasswordComplex) Color(0xFFCB59EB) else Color(0xFFD7D9DF),
+                                RoundedCornerShape(4.dp)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
                     }
-                    Spacer(Modifier.width(4.dp))
-                    Text("영문, 숫자, 특수기호 조합", fontFamily = Paperlogy, fontSize = 12.sp, color = Color(0xFF757575))
+                    Spacer(Modifier.width(8.dp)) // 체크박스 ↔ 텍스트
+                    Text(
+                        "영문, 숫자, 특수기호 조합",
+                        fontFamily = Paperlogy,
+                        fontSize = 12.sp,
+                        color = Color(0xFF757575)
+                    )
                 }
 
-                Spacer(Modifier.width(12.dp))
+                Spacer(Modifier.width(24.dp)) // 조건 간 간격
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
                             .size(20.dp)
-                            .background(if (isPasswordLengthValid) Color(0xFFCB59EB) else Color(0xFFD7D9DF), RoundedCornerShape(4.dp)),
+                            .background(
+                                if (isPasswordLengthValid) Color(0xFFCB59EB) else Color(0xFFD7D9DF),
+                                RoundedCornerShape(4.dp)
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(12.dp)
+                        )
                     }
-                    Spacer(Modifier.width(4.dp))
-                    Text("8~20자", fontFamily = Paperlogy, fontSize = 12.sp, color = Color(0xFF757575))
+                    Spacer(Modifier.width(8.dp)) // 체크박스 ↔ 텍스트
+                    Text(
+                        "8~20자",
+                        fontFamily = Paperlogy,
+                        fontSize = 12.sp,
+                        color = Color(0xFF757575)
+                    )
                 }
             }
 
             if (showConfirmField) {
-                Spacer(Modifier.height(24.dp))
-                OutlinedTextField(
+                Spacer(Modifier.height(20.dp))
+                LoginTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    placeholder = {
-                        Text("비밀번호를 확인해주세요.", fontSize = 13.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
-                    },
-                    singleLine = true,
+                    hint = "비밀번호를 확인해주세요.",
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .background(Color.White, RoundedCornerShape(16.dp))
-                        .border(
-                            width = 1.dp,
-                            brush = Brush.horizontalGradient(colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
-                            shape = RoundedCornerShape(16.dp)
-                        ),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp)
                 )
 
                 if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
@@ -241,44 +252,152 @@ fun SignUpPasswordScreen(
         }
 
         // 하단 고정 버튼 (이메일 화면과 동일 위치)
+        BottomGradientButton(
+            text = "다음",
+            enabled = canProceed,
+            activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+            inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+            onClick = {
+                signUpViewModel.password = password
+                navigator.navigate("sign_up_nickname")
+            },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+    }
+}
+
+@Composable
+fun SignUpPasswordScreenContent(
+    password: String,
+    confirmPassword: String,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit,
+    canProceed: Boolean,
+    isPasswordComplex: Boolean,
+    isPasswordLengthValid: Boolean,
+    doPasswordsMatch: Boolean,
+    bottomPadding: Dp,
+    onNext: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = 20.dp,
+                    end = 20.dp,
+                    top = 52.dp,
+                    bottom = 48.dp + 24.dp
+                )
+        ) {
+            StepIndicator(
+                currentStep = 1,
+                totalSteps = 3,
+                label = "계정 정보"
+            )
+
+            Spacer(Modifier.height(36.dp))
+
+            Text(
+                text = "사용하실 비밀번호를\n 입력해주세요",
+                fontSize = 22.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(Modifier.height(32.dp))
+
+            LoginTextField(
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange,
+                hint = "비밀번호를 확인해주세요.",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+
+            // 조건 표시
+            Row(
+                modifier = Modifier.padding(start = 12.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                PasswordRule("영문, 숫자, 특수기호 조합", isPasswordComplex)
+                Spacer(Modifier.width(12.dp))
+                PasswordRule("8~20자", isPasswordLengthValid)
+            }
+
+            if (password.length >= 8) {
+                Spacer(Modifier.height(20.dp))
+                LoginTextField(
+                    value = password,
+                    onValueChange = onPasswordChange,
+                    hint = "비밀번호를 입력해주세요.",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                )
+
+                if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
+                    Text(
+                        text = "비밀번호가 일치하지 않습니다.",
+                        fontSize = 13.sp,
+                        fontFamily = Paperlogy,
+                        color = Color(0xFFFF5E5E),
+                        modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                    )
+                }
+            }
+        }
+
+        // 하단 버튼
+        BottomGradientButton(
+            text = "다음",
+            enabled = canProceed,
+            activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+            inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+            onClick = onNext,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
+    }
+}
+
+@Composable
+private fun PasswordRule(text: String, satisfied: Boolean) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                //.imePadding()                                   // 키보드 올라오면 함께 상승
-                .padding(start = 20.dp, end = 20.dp, bottom = bottomPadding)
-                //.padding(start = 20.dp, end = 20.dp, bottom = 42.dp) // ← 동일 위치(살짝 더 낮게)
-                .height(48.dp)
+                .size(20.dp)
                 .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (canProceed)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                )
-                .clickable(enabled = canProceed) {
-                    signUpViewModel.password = password
-                    navigator.navigate("sign_up_nickname")
-                },
+                    if (satisfied) Color(0xFFCB59EB) else Color(0xFFD7D9DF),
+                    RoundedCornerShape(8.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
-            Text("다음", color = Color.White, fontFamily = Paperlogy, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            Icon(Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
         }
+        Spacer(Modifier.width(4.dp))
+        Text(text, fontSize = 12.sp, fontFamily = Paperlogy, color = Color(0xFF757575))
     }
 }
 
 
 
+
 @Preview(showBackground = true)
 @Composable
-fun SignUpPasswordScreenPreview() {
-    val fakeNavController = rememberNavController()
-    val fakeSignUpViewModel = viewModel<SignUpViewModel>()
-
-    SignUpPasswordScreen(
-        navigator = fakeNavController,
-        signUpViewModel = fakeSignUpViewModel
+fun SignUpPasswordScreenContentPreview() {
+    SignUpPasswordScreenContent(
+        password = "Test@1234",
+        confirmPassword = "Test@1234",
+        onPasswordChange = {},
+        onConfirmPasswordChange = {},
+        canProceed = true,
+        isPasswordComplex = true,
+        isPasswordLengthValid = true,
+        doPasswordsMatch = true,
+        bottomPadding = 16.dp,
+        onNext = {}
     )
 }
