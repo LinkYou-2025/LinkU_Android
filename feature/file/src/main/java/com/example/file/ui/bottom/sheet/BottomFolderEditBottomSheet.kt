@@ -1,9 +1,11 @@
 package com.example.file.ui.bottom.sheet
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import com.example.file.FileViewModel
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomFolderEditBottomSheet(
     onTextDeliver: (String) -> Unit,
