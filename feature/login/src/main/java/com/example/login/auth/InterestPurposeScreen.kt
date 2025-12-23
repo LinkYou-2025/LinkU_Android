@@ -1,5 +1,6 @@
 package com.example.login.auth
 
+import CircleItem
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -40,6 +41,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.login.Paperlogy
 import androidx.compose.ui.unit.Dp
 import com.example.login.R
+import com.example.login.ui.item.StepIndicator
+import com.example.login.ui.item.BottomGradientButton
 
 //--------------------------------------------------------------------------
 /**
@@ -135,61 +138,22 @@ private fun PurposeCloudScrollable(
         ) {
             shiftedPurposes.forEach { p ->
                 val isSelected = p.label in selected
-                PurposeItem(
-                    purpose = p,
-                    isSelected = isSelected,
+                CircleItem(
+                    emoji = p.emoji,
+                    text = p.label,
+                    sizeDp = p.size,
+                    selected = isSelected,
                     onClick = { onToggle(p.label) },
-                    modifier = Modifier.offset(leftGutter + p.offset.x + shiftX, p.offset.y)
+                    modifier = Modifier.offset(
+                        leftGutter + p.offset.x + shiftX,
+                        p.offset.y
+                    )
                 )
             }
         }
     }
 }
-//--------------------------------------------------------------------------
-/**
- * 개별 동그라미(버블) 퍼포즈 아이템 렌더
- */
-@Composable
-fun PurposeItem(
-    purpose: Purpose,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .size(purpose.size.dp)
-            .border(
-                width = 1.dp,
-                brush = Brush.sweepGradient(listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))),
-                shape = CircleShape
-            )
-            .background(
-                brush = if (isSelected)
-                    Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFF2C6FFF).copy(alpha = 0.4f),
-                            Color(0xFFC800FF).copy(alpha = 0.4f)
-                        )
-                    )
-                else SolidColor(Color.White),
-                shape = CircleShape
-            )
-            .clickable(indication = null, interactionSource = remember { MutableInteractionSource() }) { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = purpose.emoji, fontFamily = Paperlogy, fontSize = 24.sp)
-            Text(
-                text = purpose.label,
-                fontSize = 14.sp,
-                fontFamily = Paperlogy,
-                textAlign = TextAlign.Center,
-                color = if (isSelected) Color.White else Color.Black
-            )
-        }
-    }
-}
+
 
 //--------------------------------------------------------------------------
 /**
@@ -198,111 +162,107 @@ fun PurposeItem(
 @Composable
 fun InterestPurposeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel = hiltViewModel()  // Preview에서는 null, 실제 앱에서는 Hilt로 주입
+    signUpViewModel: SignUpViewModel? = null
+    //signUpViewModel: SignUpViewModel = hiltViewModel()  // Preview에서는 null, 실제 앱에서는 Hilt로 주입
 ) {
-    // ViewModel의 기존 선택 상태를 가져와 UI 초기 상태로 사용
+    val isPreview = LocalInspectionMode.current
+
     val selectedPurposes = remember {
         mutableStateListOf<String>().apply {
-            addAll(signUpViewModel.purposeList.mapNotNull { code ->
-                // code → 라벨 역매핑
-                purposeLabelToCodeNormalized.entries
-                    .firstOrNull { it.value == code }
-                    ?.key
-            })
+            if (!isPreview && signUpViewModel != null) {
+                addAll(
+                    signUpViewModel.purposeList.mapNotNull { code ->
+                        purposeLabelToCodeNormalized.entries
+                            .firstOrNull { it.value == code }
+                            ?.key
+                    }
+                )
+            } else {
+                // 프리뷰용 기본 선택값 (원하는 걸로)
+                add("취업 커리어 준비")
+                add("학업/리포트 정리")
+            }
         }
     }
     val canProceed = selectedPurposes.isNotEmpty()
     Scaffold(
+        containerColor = Color.White,
         bottomBar = {
-            val density = LocalDensity.current
-            val imeBottomPx = WindowInsets.ime.getBottom(density)
-            val isImeVisible = imeBottomPx > 0
-            val bottomGapWhenIme = 4.dp
-            val bottomGapDefault = 16.dp
-            val navBottomDp = with(density) { WindowInsets.navigationBars.getBottom(this).toDp() }
-            val extraNavPadding = if (isImeVisible) 0.dp else navBottomDp
-            val bottomPadding = (if (isImeVisible) bottomGapWhenIme else bottomGapDefault) + extraNavPadding
+            BottomGradientButton(
+                text = "다음",
+                enabled = canProceed,
+                activeGradient = listOf(
+                    Color(0xFF2C6FFF),
+                    Color(0xFFC800FF)
+                ),
+                inactiveGradient = listOf(
+                    Color(0xFF9BCBFF),
+                    Color(0xFFF4AFFF)
+                ),
+                onClick = {
+                    val codes = selectedPurposes
+                        .mapNotNull { purposeLabelToCodeNormalized[normalizePurpose(it)] }
+                        .distinct()
+
+                    if (codes.isEmpty()) return@BottomGradientButton
+
+                    signUpViewModel?.purposeList = codes
+                    navigator.navigate("sign_up_interest")
+                }
+            )
+        }
+    )
+    { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(
+                    start = 0.dp,
+                    end = 0.dp,
+                    top = 52.dp,
+                    bottom = 0.dp
+                )
+                .padding(innerPadding)   // Scaffold inset 유지
+                .background(Color.White)
+        ) {
+            // 고정 영역 (절대 스크롤 X)
+            Box(modifier = Modifier.padding(horizontal = 20.dp)) {
+                StepIndicator(
+                    currentStep = 3,
+                    totalSteps = 3,
+                    label = "관심사 설정"
+                )
+            }
+
+            Spacer(Modifier.height(36.dp))
+
+
+            Text(
+                buildAnnotatedString {
+                    append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
+                    withStyle(
+                        SpanStyle(
+                            color = Color(0xFFE5ACF4),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    ) {
+                        append("(복수 선택 가능)")
+                    }
+                },
+                fontSize = 22.sp,
+                lineHeight = 30.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+
+            Spacer(modifier = Modifier.height(50.dp))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                    .height(48.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = if (canProceed)
-                                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            else
-                                listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                        ),
-                        shape = RoundedCornerShape(18.dp)
-                    )
-                    .clickable(
-                        enabled = canProceed,
-                        indication = null,
-                        interactionSource = remember { MutableInteractionSource() }
-                    ) {
-                        val codes = selectedPurposes.mapNotNull { purposeLabelToCodeNormalized[normalizePurpose(it)] }.distinct()
-                        if (codes.isEmpty()) {
-                            android.widget.Toast.makeText(
-                                navigator.context,
-                                "선택한 항목을 다시 확인해 주세요.",
-                                android.widget.Toast.LENGTH_SHORT
-                            ).show()
-                            return@clickable
-                        }
-                        signUpViewModel?.purposeList = codes
-                        navigator.navigate("sign_up_interest")
-                    },
-                contentAlignment = Alignment.Center
+                    .weight(1f) // 핵심
             ) {
-                Text(
-                    "다음",
-                    color = Color.White,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
-                )
-            }
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .background(Color.White),
-            contentPadding = PaddingValues(
-                start = 0.dp, end = 0.dp,
-                top = 52.dp, bottom = 96.dp
-            )
-        ) {
-            item {
-                Box(modifier = Modifier.padding(horizontal = 20.dp)) {
-                    InterestStepIndicator()
-                }
-            }
-            item { Spacer(Modifier.height(16.dp)) }
-            item {
-                Text(
-                    buildAnnotatedString {
-                        append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
-                        withStyle(
-                            SpanStyle(
-                                color = Color(0xFFE5ACF4),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        ) {
-                            append("(복수 선택 가능)")
-                        }
-                    },
-                    fontSize = 22.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
-            item { Spacer(modifier = Modifier.height(32.dp)) }
-            item {
                 PurposeCloudScrollable(
                     purposes = purposes,
                     selected = selectedPurposes,
@@ -312,95 +272,16 @@ fun InterestPurposeScreen(
                     },
                     height = 495.dp // 박스 영역 맞춤
                 )
+
+                Spacer(Modifier.height(24.dp))
             }
-            item { Spacer(Modifier.height(24.dp)) }
         }
     }
 }
 
 
-//--------------------------------------------------------------------------
-/**
- * 상단 단계 인디케이터 (그림 그대로)
- */
-@Composable
-fun InterestStepIndicator() {
-    val isPreview = LocalInspectionMode.current
-    Column(horizontalAlignment = Alignment.Start) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 6.dp)
-                    .size(30.dp)
-                    .background(Color(0xFFE5ACF4), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_level_check),
-                    contentDescription = "완료",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFCB59EB), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .background(Color(0xFFE5ACF4), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_level_check),
-                    contentDescription = "완료",
-                    tint = Color.White,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-            repeat(3) {
-                Box(
-                    modifier = Modifier
-                        .size(4.2.dp)
-                        .background(Color(0xFFCB59EB), CircleShape)
-                )
-                Spacer(modifier = Modifier.width(3.dp))
-            }
-            Spacer(modifier = Modifier.width(6.dp))
-            Box(
-                modifier = Modifier
-                    .size(28.dp)
-                    .background(Color(0xFFCB59EB), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "3",
-                    fontFamily = Paperlogy,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-        Text(
-            text = "관심사 설정",
-            modifier = Modifier.padding(start = 122.dp, top = 6.dp),
-            fontSize = 13.sp,
-            color = Color(0xFFCB59EB),
-            fontFamily = Paperlogy,
-            fontWeight = FontWeight.Light,
-            textAlign = TextAlign.Center
-        )
-    }
-}
+
+
 
 //--------------------------------------------------------------------------
 /**

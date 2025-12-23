@@ -27,6 +27,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.login.R
 import com.example.login.Paperlogy
+import com.example.login.ui.item.BottomGradientButton
+import com.example.login.ui.item.OptionButton
+import com.example.login.ui.item.StepIndicator
 
 @Composable
 fun SignUpJobScreen(
@@ -63,12 +66,17 @@ fun SignUpJobScreen(
                 ),
             horizontalAlignment = Alignment.Start
         ) {
-            ProfileStepIndicator()
-            Spacer(modifier = Modifier.height(32.dp))
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = "현재 하고 계신 일이나\n활동을 알려주세요",
                 fontSize = 22.sp,
+                lineHeight = 30.sp,
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -78,13 +86,14 @@ fun SignUpJobScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             jobs.forEachIndexed { index, job ->
-                JobOptionButton(
+                OptionButton(
                     text = job,
-                    isSelected = selectedJobIndex == index,
+                    selected = selectedJobIndex == index,
                     onClick = {
                         selectedJobIndex = index
                         signUpViewModel.jobId = index + 1
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth() // 반응형 유지
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -93,107 +102,23 @@ fun SignUpJobScreen(
         }
 
         // 하단 고정 버튼 (닉네임 화면과 동일)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)   // BoxScope.align
-                //.imePadding()
-                //.navigationBarsPadding()
-                .padding(start = 20.dp, end = 20.dp,bottom = bottomPadding) //bottom = 16.dp)
-                .height(48.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (isButtonEnabled)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                )
-                .clickable(enabled = isButtonEnabled) {
-                    signUpViewModel.jobId = (selectedJobIndex ?: 0) + 1
-                    navigator.navigate("sign_up_purpose") { launchSingleTop = true }
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "다음",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy,
-                textAlign = TextAlign.Center
-            )
-        }
-    }
-}
-
-@Composable
-fun JobOptionButton(
-    text: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(56.dp)
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .padding(1.dp)
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    if (isSelected) Color(0xFFF0E8FF) else Color.White,
-                    shape = RoundedCornerShape(16.dp)
-                ),
-            contentAlignment = Alignment.CenterStart
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp),
-                    //.padding(horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // 직업명 텍스트
-                Text(
-                    text = text,
-                    fontSize = 13.sp,
-                    fontFamily = Paperlogy,
-                    color = Color.Black,
-                    fontWeight = FontWeight.Medium
-                )
-
-                // 선택되었을 경우 체크 박스 표시
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .size(20.dp)
-                            .background(Color(0xFFCB59EB), shape = RoundedCornerShape(4.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "선택됨",
-                            tint = Color.White,
-                            modifier = Modifier.size(12.dp)
-                        )
-                    }
+        BottomGradientButton(
+            text = "다음",
+            enabled = isButtonEnabled,
+            activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+            inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+            onClick = {
+                signUpViewModel.jobId = (selectedJobIndex ?: 0) + 1
+                navigator.navigate("sign_up_purpose") {
+                    launchSingleTop = true
                 }
-            }
-        }
+            },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
+
     }
 }
+
 
 @Preview(
     showBackground = true,
@@ -221,7 +146,11 @@ private fun SignUpJobScreenPreviewOnly(navigator: NavHostController) {
                 .padding(start = 20.dp, end = 20.dp, top = 52.dp, bottom = 72.dp),
             horizontalAlignment = Alignment.Start
         ) {
-            ProfileStepIndicator()
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
@@ -232,13 +161,14 @@ private fun SignUpJobScreenPreviewOnly(navigator: NavHostController) {
                 color = Color.Black
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
             jobs.forEachIndexed { index, job ->
-                JobOptionButton(
+                OptionButton(
                     text = job,
-                    isSelected = selectedJobIndex == index,
-                    onClick = { selectedJobIndex = index }
+                    selected = selectedJobIndex == index,
+                    onClick = { selectedJobIndex = index },
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
@@ -246,32 +176,15 @@ private fun SignUpJobScreenPreviewOnly(navigator: NavHostController) {
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 하단 버튼
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                .height(48.dp)
-                .background(
-                    brush = Brush.horizontalGradient(
-                        colors = if (isButtonEnabled)
-                            listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        else
-                            listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                    ),
-                    shape = RoundedCornerShape(18.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "다음",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy
-            )
-        }
+        //하단 버튼
+        BottomGradientButton(
+            text = "다음",
+            enabled = isButtonEnabled,
+            activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
+            inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
+            onClick = {}, // 프리뷰에서는 동작 필요 없음
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

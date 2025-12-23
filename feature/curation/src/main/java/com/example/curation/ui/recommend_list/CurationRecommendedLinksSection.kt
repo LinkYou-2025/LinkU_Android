@@ -288,37 +288,29 @@ fun RecommendedLinkCard(
         }
     }
 }
-@Composable
+@Composable //여기서 글자가 2글자 늘어도 가로로 늘어날 수 있게 수정함.
 fun TagChip(text: String) {
 
     Box(
         modifier = Modifier
-            .width(30.dp)
             .height(18.dp)
             .background(
                 color = Color(0xFFF5F6F9),
                 shape = RoundedCornerShape(6.dp)
             )
-            .padding(start = 6.dp, top = 3.dp, end = 6.dp, bottom = 3.dp)
+            .padding(horizontal = 6.dp, vertical = 3.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = text,
-                style = TextStyle(
-                    fontSize = 10.sp,
-                    lineHeight = 12.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFF87898F)
-                ),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-
-            )
-        }
+        Text(
+            text = text,
+            style = TextStyle(
+                fontSize = 10.sp,
+                lineHeight = 12.sp,
+                fontFamily = Paperlogy,
+                fontWeight = FontWeight(500),
+                color = Color(0xFF87898F)
+            ),
+            maxLines = 1
+        )
     }
 }
 

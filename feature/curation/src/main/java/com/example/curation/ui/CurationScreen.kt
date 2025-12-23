@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -111,21 +112,24 @@ fun CurationScreen(
         viewModel.loadNickname()
     }
 
-    Box(Modifier.fillMaxSize()) {
+    Scaffold(
+        topBar = {
+            CurationTopBar(
+                onClickSearch = { viewModel.updateSearchTopSheetVisible(true) }
+            )
+        },
+        containerColor = LocalColorTheme.current.white
+    ) { innerPadding ->
 
         LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .background(LocalColorTheme.current.white),
-            contentPadding = PaddingValues(bottom = 32.dp)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(
+                top = innerPadding.calculateTopPadding(),//탑바 고정.
+                bottom = 32.dp
+            )
         ) {
-            // 홈스크린처럼 TopBar를 item {} 안에 배치
-            item {
-                //CurationTopBar()
-                CurationTopBar(
-                    onClickSearch = { viewModel.updateSearchTopSheetVisible(true) }
-                )
-            }
+
             // 현재 날짜에서 전달 구하기
             val prevMonthLabel = LocalDate.now()
                 .minusMonths(1)
