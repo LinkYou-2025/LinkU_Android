@@ -26,7 +26,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -70,6 +72,7 @@ fun TextFieldFileBottomSheet(
     placeholderText: String,
     isEditable: Boolean = false,
     visible: Boolean,
+    sheetState: SheetState = rememberModalBottomSheetState(),
     onTextDeliver: (String) -> Unit = {},
     onColorIdDeliver: (Int) -> Unit = {},
     onDismiss: () -> Unit,
@@ -87,6 +90,7 @@ fun TextFieldFileBottomSheet(
 
     FileBottomSheet(
         modifier = modifier,
+        sheetState = sheetState,
         title = title,
         body = body,
         buttonText = "저장",
@@ -203,13 +207,14 @@ fun TextFieldFileBottomSheet(
             }
             AnimatedVisibility(
                 modifier = Modifier
-                    .padding(top = 14.dp)
                     .padding(horizontal = 26.5.dp),
                 visible = expanded,
                 enter = expandVertically() + fadeIn(),
                 exit = shrinkVertically() + fadeOut()
             ) {
                 VerticalGrid(
+                    modifier = Modifier
+                        .padding(top = 14.dp),
                     columns = SimpleGridCells.Fixed(8),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalArrangement = Arrangement.spacedBy(7.5.dp)
@@ -239,6 +244,7 @@ fun TextFieldFileBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true, heightDp = 2000)
 @Composable
 private fun TextFieldFileBottomSheetTest(){
