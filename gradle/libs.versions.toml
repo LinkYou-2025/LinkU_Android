@@ -31,6 +31,7 @@ navigationComposeJvmstubs = "2.9.3"
 gson = "2.10.1"
 media3CommonKtxVersion = "1.8.0"
 foundation = "1.9.5"
+foundationLayout = "1.10.0"
 
 
 [libraries]
@@ -78,6 +79,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version.ref = "androidx-hilt" }
 media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtxVersion" }
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 
 
 
