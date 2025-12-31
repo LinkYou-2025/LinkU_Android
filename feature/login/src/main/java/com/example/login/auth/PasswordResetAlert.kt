@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.login.R
 import com.example.login.Paperlogy
-//여기는 수정될테니 굳이 리펙X
+//여기는 수정될테니 굳이 리펙X -> 12.31 일단 여기 대기
 @Preview(showBackground = true)
 @Composable
 fun PasswordResetAlert(

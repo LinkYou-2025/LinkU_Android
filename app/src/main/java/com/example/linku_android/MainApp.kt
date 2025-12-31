@@ -83,11 +83,12 @@ import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
 import com.example.login.auth.LoginViewModel
-import com.example.login.auth.TermsAgreementSheet
+
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
 import com.example.curation.CurationDetailViewModel
 import com.example.linku_android.deeplink.appLinkRoute
+import com.example.login.ui.bottom_sheet.TermsAgreementSheet
 
 
 @Composable
@@ -267,6 +268,10 @@ fun MainApp(
                             .getStateFlow("show_terms_sheet", false)
                             .collectAsStateWithLifecycle()
 
+                        BackHandler(enabled = showTermsSheet) {
+                            parentEntry.savedStateHandle["show_terms_sheet"] = false
+                        }
+
                         // 이메일 인증에서 백버튼으로 갔을 때, 약관 페이지 나오는게 맞는지.
 
                         //  이메일 인증에서 돌아오는지 확인
@@ -297,29 +302,6 @@ fun MainApp(
                                 parentEntry.savedStateHandle["show_terms_sheet"] = true
                             }
                         )
-
-                        //  BottomSheet는 무조건 Login composable 안에서만 렌더링해야 한다
-
-                            TermsAgreementSheet(
-                                navController = navigator,
-                                vm = signUpVm,
-                                visible = showTermsSheet,
-                                onClose = {
-                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                },
-                                onClickTerms = {
-                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                    navigator.navigate("terms/service")
-                                },
-                                onClickPrivacy = {
-                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                    navigator.navigate("terms/privacy")
-                                },
-                                onClickMarketing = {
-                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                    navigator.navigate("terms/marketing")
-                                }
-                            )
 
                     }
 
@@ -450,6 +432,15 @@ fun MainApp(
                     }
 
                     composable("email_login") {
+
+                        val parentEntry = remember {
+                            navigator.getBackStackEntry("auth_graph")
+                        }
+
+                        val showTermsSheet by parentEntry.savedStateHandle
+                            .getStateFlow("show_terms_sheet", false)
+                            .collectAsStateWithLifecycle()
+
                         LaunchedEffect(Unit) { showNavBar = false }
 
                         //  로그인 상태 관찰
@@ -481,6 +472,31 @@ fun MainApp(
                         EmailLoginScreen(
                             loginViewModel = loginViewModel,
                             navigator = navigator,
+                            onSignUpClick = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                            }
+                        )
+
+                        // EmailLogin 위에서 바텀 시트 렌더
+                        TermsAgreementSheet(
+                            navController = navigator,
+                            vm = hiltViewModel(parentEntry),
+                            visible = showTermsSheet,
+                            onClose = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = false
+                            },
+                            onClickTerms = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                navigator.navigate("terms/service")
+                            },
+                            onClickPrivacy = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                navigator.navigate("terms/privacy")
+                            },
+                            onClickMarketing = {
+                                parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                navigator.navigate("terms/marketing")
+                            }
                         )
                     }
 
