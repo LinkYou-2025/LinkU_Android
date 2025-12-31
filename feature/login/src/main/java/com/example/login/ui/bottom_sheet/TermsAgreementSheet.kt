@@ -1,0 +1,115 @@
+package com.example.login.ui.bottom_sheet
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import com.example.login.auth.SignUpViewModel
+import com.example.login.ui.content.TermsAgreementContent
+
+
+/**
+ * 약관 동의 BottomSheet (애니메이션 없음)
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TermsAgreementSheet(
+    navController: NavController,
+    vm: SignUpViewModel,
+    visible: Boolean,
+    onClose: () -> Unit,
+    onClickTerms: () -> Unit,
+    onClickPrivacy: () -> Unit,
+    onClickMarketing: () -> Unit
+) {
+    if (!visible) return
+
+    NoAnimBottomSheet(
+        visible = visible,
+        onDismissRequest = onClose,
+        scrimColor = Color.Black.copy(alpha = 0.4f),
+        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+    ) {
+
+        val agreeTerms by vm.agreeTerms.collectAsStateWithLifecycle()
+        val agreePrivacy by vm.agreePrivacy.collectAsStateWithLifecycle()
+        val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+
+        TermsAgreementContent(
+            agreeTerms = agreeTerms,
+            agreePrivacy = agreePrivacy,
+            agreeMarketing = agreeMarketing,
+            onAgreeTermsChange = vm::setAgreeTerms,
+            onAgreePrivacyChange = vm::setAgreePrivacy,
+            onAgreeMarketingChange = vm::setAgreeMarketing,
+            onClickTerms = onClickTerms,
+            onClickPrivacy = onClickPrivacy,
+            onClickMarketing = onClickMarketing,
+            onNextClicked = { t, p, _ ->
+                if (t && p) {
+                    onClose()
+                    navController.navigate("email_verification") {
+                        launchSingleTop = true
+                    }
+                }
+            }
+        )
+    }
+}
+
+/* -----------------------------------------------------------------------
+ * Preview
+ * --------------------------------------------------------------------- */
+
+@Preview(
+    showBackground = true,
+    name = "Terms Agreement BottomSheet - 실제 화면"
+)
+@Composable
+fun TermsAgreementSheetPreview() {
+
+    // 🔹 Preview용 상태
+    var visible by remember { mutableStateOf(true) }
+    var agreeTerms by remember { mutableStateOf(false) }
+    var agreePrivacy by remember { mutableStateOf(false) }
+    var agreeMarketing by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+
+        // 🔹 뒤에 깔린 실제 화면 느낌
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF5F6F9))
+        )
+
+        // 🔹 ViewModel 없이 Content만으로 프리뷰
+        NoAnimBottomSheet(
+            visible = visible,
+            onDismissRequest = { visible = false },
+            scrimColor = Color.Black.copy(alpha = 0.12f),
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+        ) {
+            TermsAgreementContent(
+                agreeTerms = agreeTerms,
+                agreePrivacy = agreePrivacy,
+                agreeMarketing = agreeMarketing,
+                onAgreeTermsChange = { agreeTerms = it },
+                onAgreePrivacyChange = { agreePrivacy = it },
+                onAgreeMarketingChange = { agreeMarketing = it },
+                onClickTerms = {},
+                onClickPrivacy = {},
+                onClickMarketing = {},
+                onNextClicked = { _, _, _ -> }
+            )
+        }
+    }
+}
