@@ -106,7 +106,7 @@ fun SignUpNicknameScreen(
                 },
                 hint = "닉네임을 입력해주세요.",
                 modifier = Modifier.fillMaxWidth(),
-                showGradientBorder = true
+
             )
 
             if (isNicknameAvailable == false) {
@@ -255,8 +255,8 @@ private fun SignUpNicknameScreenPreviewOnly(navigator: NavHostController) {
                     nickname = it
                 },
                 hint = "닉네임을 입력해주세요.",
-                modifier = Modifier.fillMaxWidth(),
-                showGradientBorder = true
+                modifier = Modifier.fillMaxWidth()
+
             )
 
             Spacer(Modifier.height(15.dp))

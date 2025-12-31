@@ -21,7 +21,8 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.login.Paperlogy
-
+//GradientButtonCore에서 순수 버튼 ui를 받아온 뒤, 여기서는 회원가입 중
+//바닥에 있는 패딩 위치, 패딩 조절을 담당함.
 @Composable
 fun BottomGradientButton(
     text: String,
@@ -32,15 +33,13 @@ fun BottomGradientButton(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-
-    //  시스템 인셋 처리 시스템 자체 바텀바 위로 간격을 가진 채 버튼이 위치하게 수정하기!
     val imeBottom = WindowInsets.ime.getBottom(density)
     val navBottom = WindowInsets.navigationBars.getBottom(density)
 
     val bottomPadding = when {
-        imeBottom > 0 -> 20.dp //키보드 
-        navBottom > 0 -> 16.dp //버튼바
-        else -> 24.dp//완전 풀스크린 -> 이건 추후 확인하기.
+        imeBottom > 0 -> 20.dp   // 키보드 열림
+        navBottom > 0 -> 16.dp   // 네비게이션 바
+        else -> 24.dp            // 풀스크린
     }
 
     Box(
@@ -51,24 +50,13 @@ fun BottomGradientButton(
                 end = 20.dp,
                 bottom = bottomPadding
             )
-            .height(50.dp)
-            .background(
-                brush = Brush.horizontalGradient(
-                    colors = if (enabled) activeGradient else inactiveGradient
-                ),
-                shape = RoundedCornerShape(18.dp)
-            )
-            .clickable(enabled = enabled, onClick = onClick),
-        contentAlignment = Alignment.Center
     ) {
-        Text(
+        GradientButtonCore(
             text = text,
-            color = Color.White,
-            fontSize = 16.sp,
-            lineHeight = 20.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = Paperlogy,
-            textAlign = TextAlign.Center
+            enabled = enabled,
+            activeGradient = activeGradient,
+            inactiveGradient = inactiveGradient,
+            onClick = onClick
         )
     }
 }

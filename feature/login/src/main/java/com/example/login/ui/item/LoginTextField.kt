@@ -23,6 +23,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.login.Paperlogy
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
 
 //회원가입 중 입력 텍스트 필드
 @Composable
@@ -31,8 +36,7 @@ fun LoginTextField(
     onValueChange: (String) -> Unit,
     hint: String,
     enabled: Boolean = true,
-    modifier: Modifier = Modifier,
-    showGradientBorder: Boolean = true // ⭐ 핵심
+    modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(16.dp)
 
@@ -41,15 +45,15 @@ fun LoginTextField(
             .fillMaxWidth()
             .height(56.dp)
             .background(
-                brush = if (showGradientBorder)
-                    Brush.horizontalGradient(
-                        listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                brush = Brush.horizontalGradient(
+                    listOf(
+                        Color(0xFF2C6FFF),
+                        Color(0xFFC800FF)
                     )
-                else
-                    Brush.linearGradient(listOf(Color.Transparent, Color.Transparent)),
+                ),
                 shape = shape
             )
-            .padding(1.dp) // ⭐ 테두리 두께
+            .padding(1.dp) // 테두리 두께
     ) {
         OutlinedTextField(
             value = value,
@@ -87,6 +91,38 @@ fun LoginTextField(
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent
             )
+        )
+    }
+}
+
+@Preview(
+    name = "LoginTextField Preview",
+    showBackground = true,
+    backgroundColor = 0xFFF5F6F9
+)
+@Composable
+fun LoginTextFieldPreview() {
+    val text = remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        // 그라데이션 테두리 ON
+        LoginTextField(
+            value = text.value,
+            onValueChange = { text.value = it },
+            hint = "이메일을 입력해주세요"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 그라데이션 테두리 OFF
+        LoginTextField(
+            value = text.value,
+            onValueChange = { text.value = it },
+            hint = "비밀번호를 입력해주세요"
         )
     }
 }

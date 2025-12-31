@@ -1,78 +1,79 @@
 package com.example.login.auth
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.login.R
 import com.example.login.Paperlogy
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import com.example.core.repository.UserRepository
+import com.example.login.ui.item.BottomGradientButton
+import com.example.login.ui.item.LoginTextField
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.BaselineShift
+import com.example.login.Paperlogy
+import com.example.login.ui.item.GradientButtonCore
+import com.example.login.ui.item.PasswordLoginTextField
+import com.example.design.modifier.noRippleClickable
+import com.example.login.ui.bottom_sheet.TermsAgreementSheet
 
-//이메일로 로그인하는 곳.
 @Composable
 fun EmailLoginScreen(
     navigator: NavHostController,
-    loginViewModel: LoginViewModel? = null  //  nullable
-    //loginViewModel: LoginViewModel = hiltViewModel()
+    loginViewModel: LoginViewModel? = null,
+    onSignUpClick: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoginRequested by remember { mutableStateOf(false) }
-    //val loginResult by loginViewModel.loginState.collectAsState()
-    val isEmailValid = android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+
+    val isEmailValid =
+        android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
     val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
 
-    // ViewModel 상태 수집
-    // ✅ 프리뷰에서는 ViewModel 생성 안 함
-    val ui = loginViewModel?.loginState?.collectAsState()?.value
-        ?: LoginViewModel.LoginState()  // 기본 빈 상태
-    val isLoading = ui.loading
-    val loginResult = ui.result
+    // 🔑 화면 높이
+    val configuration = LocalConfiguration.current
+    val screenHeight = configuration.screenHeightDp.dp
 
-    // 고정 에러 문구 매핑 (비번 필드 아래 표시)
-    val passwordErrorText: String? = when (ui.errorTag) {
-        "INVALID_CREDENTIALS" -> "이메일 주소 또는 비밀번호를 다시 확인하세요."
-        "SERVER_ERROR"        -> "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
-        else                  -> null
+    // 🔑 키보드 상태 (프리뷰 안전)
+    val density = LocalDensity.current
+    val isInPreview = LocalInspectionMode.current
+    val imeBottom = if (isInPreview) 0 else WindowInsets.ime.getBottom(density)
+    val isKeyboardOpen = imeBottom > 0
+    val buttonOffsetY = if (isKeyboardOpen) 0.dp else (-4).dp
+
+    // 🔑 BottomGradientButton 내부 padding과 동일한 값 계산
+    val navBottom = WindowInsets.navigationBars.getBottom(density)
+
+    val buttonInnerPadding = when {
+        imeBottom > 0 -> 20.dp   // 키보드 열림
+        navBottom > 0 -> 16.dp   // 네비게이션 바 있음
+        else -> 24.dp           // 풀스크린
     }
 
-    //  로그인 성공 시 이동 (Repo가 토큰 저장했고 여기선 이동만)
-    LaunchedEffect(loginResult) {
-        if (loginResult != null && loginResult.userId != -1) {
-            navigator.navigate("home") {
-                popUpTo(navigator.graph.findStartDestination().id) { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-    }
+    // 🔑 피그마 비율 적용
+    val logoRatio = if (isKeyboardOpen) 126f / 917f else 262f / 917f //키보드 활성화 전, 후
+    val logoTopPadding = screenHeight * logoRatio
 
     Box(
         modifier = Modifier
@@ -80,210 +81,164 @@ fun EmailLoginScreen(
             .background(Color.White)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp, vertical = 40.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 로고
+
+            //  로고 위치 (비율 기반, 전체가 같이 이동)
+            Spacer(modifier = Modifier.height(logoTopPadding))
+
             Image(
-                painter = painterResource(id = R.drawable.ic_email_login_logo_change),
-                contentDescription = "Logo",
+                painter = painterResource(id = R.drawable.ic_logo_color),
+                contentDescription = "LinkU Logo",
                 modifier = Modifier
-                    .size(120.dp),
+                    .width(84.62123.dp)
+                    .height(60.00009.dp),
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            // 이메일 입력
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(1.dp)
-            ) {
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = {
-                        Text(
-                            "이메일",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight(400),
-                            fontFamily = Paperlogy,
-                            color = Color(0xFFB7B9BF)
-                        )
-                    },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White, shape = RoundedCornerShape(16.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // 비밀번호 입력
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(1.dp)
-            ) {
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = {
-                        Text(
-                            "비밀번호",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight(400),
-                            fontFamily = Paperlogy,
-                            color = Color(0xFFB7B9BF)
-                        )
-                    },
-                    singleLine = true,
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.White, shape = RoundedCornerShape(16.dp)),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-            }
-
-            passwordErrorText?.let { err ->
-                Spacer(Modifier.height(6.dp))
-                Text(
-                    text = err,
-                    color = Color(0xFFFF5E5E),
+            Text(
+                text = "Link U, Think You",
+                style = TextStyle(
                     fontSize = 13.sp,
+                    lineHeight = 15.sp,
                     fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.offset(x = 4.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            //로그인 버튼
-            val canLogin = !isLoading && isFormValid
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .background(
-                        brush = Brush.horizontalGradient(
-                            colors = if (canLogin)
-                                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                            else
-                                listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF))
-                        ),
-                        shape = RoundedCornerShape(18.dp)
-                    )
-                    .clickable(enabled = canLogin) {
-                        loginViewModel?.login(email.trim(), password.trim())
-                    },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "로그인하기",
-                    fontFamily = Paperlogy,
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(700),
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // 비밀번호 재설정 | 회원가입
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    "비밀번호 재설정",
+                    fontWeight = FontWeight(400),
                     color = Color(0xFF87898F),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = Paperlogy,
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp, vertical = 4.dp)
-                        .clickable { navigator.navigate("resetPassword") }
+                    textAlign = TextAlign.Center
                 )
-
-                // 구분선 |
-                Text(
-                    text = " | ",
-                    color = Color(0xFF87898F),
-                    fontSize = 15.sp,
-                    fontFamily = Paperlogy,
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp, vertical = 4.dp)   // 🔥 이게 간격 맞춰줌
-                )
-
-                // 회원가입
-                Text(
-                    text = "회원가입",
-                    style = TextStyle(
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight(400),
-                        color = Color(0xFF87898F),
-                        textAlign = TextAlign.Center
-                    ),
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp, vertical = 4.dp)
-                        .clickable {
-                            // TODO: 회원가입 로직 나중에 연결
-                        }
-                )
-
-                //TODO : 여기 로직에 회원가입 빠져있음. 수정하기!!! => 데모데이때, 로직 꼬여서 뺐는데,
-                //이전에 로직이 꼬였어서, 추후 리펙하면서 수정해볼게요..^^
-
-            }
+            )
 
             Spacer(modifier = Modifier.height(40.dp))
 
+            // 🔹 입력 영역
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                LoginTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    hint = "이메일"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                PasswordLoginTextField(
+                    value = password,
+                    onValueChange = { password = it }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(45.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .offset(y = buttonOffsetY)
+            ) {
+                GradientButtonCore(
+                    text = "로그인하기",
+                    enabled = isFormValid,
+                    activeGradient = listOf(
+                        Color(0xFF2C6FFF),
+                        Color(0xFFC800FF)
+                    ),
+                    inactiveGradient = listOf(
+                        Color(0xFF9BCBFF),
+                        Color(0xFFF4AFFF)
+                    ),
+                    onClick = {
+                        loginViewModel?.login(
+                            email.trim(),
+                            password.trim()
+                        )
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+
+            // 🔑 화면 너비
+            val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+            val resetStartPadding = screenWidth * (101f / 412f)
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(start = resetStartPadding)
+                ) {
+                    Text(
+                        text = "비밀번호 재설정",
+                        fontSize = 15.sp,
+                        fontFamily = Paperlogy,
+                        color = Color(0xFF87898F),
+                        modifier = Modifier
+                            .alignByBaseline()
+                            .noRippleClickable {
+                                navigator.navigate("resetPassword")
+                            }
+                    )
+
+                    Spacer(modifier = Modifier.width(25.dp))
+
+                    Text(
+                        text = "|",
+                        fontSize = 14.sp,
+                        fontFamily = Paperlogy,
+                        color = Color(0xFF87898F),
+                        style = TextStyle(
+                            baselineShift = BaselineShift(0.15f)
+                        ),
+                        modifier = Modifier.alignByBaseline()
+                    )
+//                    Image(
+//                        painter = painterResource(id = R.drawable.ic_divider_vertical),
+//                        contentDescription = null,
+//                        modifier = Modifier
+//                            .height(12.dp)
+//                            .alignBy { it.measuredHeight / 2 } //깨짐.
+//                    )
+
+                    Spacer(modifier = Modifier.width(25.dp))
+
+                    Text(
+                        text = "회원가입",
+                        fontSize = 15.sp,
+                        fontFamily = Paperlogy,
+                        color = Color(0xFF87898F),
+                        modifier = Modifier
+                            .alignByBaseline()
+                            .noRippleClickable {
+                                onSignUpClick()
+                            }
+                    )
+                }
+            }
         }
     }
 }
-@Preview(showBackground = true, name = "EmailLoginScreen Preview")
-@Composable
-fun EmailLoginScreenPreview() {
-    val dummyNavController = rememberNavController()
 
-    // 그냥 ViewModel 빼고 호출
-    EmailLoginScreen(navigator = dummyNavController)
-}
+
+
+
+//@Preview(showBackground = true, name = "Login - Keyboard OFF")
+//@Composable
+//fun EmailLoginPreview_NoKeyboard() {
+//    EmailLoginScreen(
+//        navigator = rememberNavController()
+//    )
+//}
+
+
+
+
 
