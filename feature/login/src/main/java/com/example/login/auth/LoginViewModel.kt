@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
 import retrofit2.HttpException
+import java.util.concurrent.atomic.AtomicBoolean
 
 //로그인 뷰모델 : 로그인 로직 담당. 레포지토리를 통해 로그인 api 수학.
 //로그인 성공시 사용자 세션 및 userId 전달.
@@ -82,16 +83,21 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
+    private val autoLoginTried = AtomicBoolean(false)
+
     fun tryAutoLogin(
         onSuccess: () -> Unit,
         onFail: () -> Unit
     ) {
+
+        if (!autoLoginTried.compareAndSet(false, true)) return
+
         viewModelScope.launch {
             try {
                 val refresh = authPreference.refreshToken
                     ?: throw Exception("No refresh token stored")
 
-                Log.d("LoginViewModel", "자동 로그인 시도: refreshToken=$refresh")
+                Log.d("LoginViewModel", "자동 로그인 시도 (refresh token 존재)") //로그 정보 유출 방지
 
                 // 서버에 토큰 재발급 요청
                 val newTokens = repo.reissue(refresh)
