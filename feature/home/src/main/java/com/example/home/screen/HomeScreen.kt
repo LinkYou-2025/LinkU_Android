@@ -245,6 +245,8 @@ fun HomeScreen(
             state = listState
         ) {
             stickyHeader {
+                Spacer(modifier = Modifier.height(32.dp))
+
                 HomeTopBar(
                     isNoticeExist = false, // TODO 실제 알림 여부 연결
                     userName = userName,
