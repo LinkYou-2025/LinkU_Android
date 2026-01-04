@@ -123,7 +123,7 @@ fun HomeTopBar(
 
         HomeSearchBar()  // 검색창
 
-        Spacer(modifier = Modifier.height(19.dp))
+        Spacer(modifier = Modifier.height(18.dp))
 
         Text(
             text = "${userName}님의 감정과 상황을 알려주세요!",
@@ -131,7 +131,7 @@ fun HomeTopBar(
             fontWeight = FontWeight.Bold,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.black,
-            modifier = Modifier.padding(start = 8.dp, bottom = 22.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
         )
 
         Text(
