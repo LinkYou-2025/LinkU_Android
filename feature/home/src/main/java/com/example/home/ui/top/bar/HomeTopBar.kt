@@ -112,11 +112,14 @@ fun HomeTopBar(
             Spacer(modifier = Modifier.weight(1f))
 
             // 알림
-            AlarmButton(
-                isNoticeExist = isNoticeExist,
-                modifier = Modifier
-                    .size(24.dp)
-            )
+            Box(
+                modifier = Modifier.size(30.dp)
+            ) {
+                AlarmButton(
+                    isNoticeExist = isNoticeExist,
+                    modifier = Modifier
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(13.44.dp))
