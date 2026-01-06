@@ -24,6 +24,10 @@ import androidx.compose.ui.unit.sp
 import com.example.login.Paperlogy
 import com.example.login.ui.item.AgreementItem
 import com.example.login.ui.item.GradientButtonCore
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.design.R
+
 
 @Composable
 fun TermsAgreementContent(
@@ -59,7 +63,7 @@ fun TermsAgreementContent(
                         .padding(
                             start = 32.dp,
                             end = 32.dp,
-                            top = 42.dp
+                            top = 36.dp
                             //top = topPadding 화면으로 계산이 되어서 일단 보류.
                         )
                 ) {
@@ -85,11 +89,12 @@ fun TermsAgreementContent(
                         contentAlignment = Alignment.Center
                     ) {
                         if (agreeAll) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_checkbox_checked),
                                 contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier
+                                    .width(10.5.dp)
+                                    .height(8.dp)
                             )
                         }
                     }
@@ -121,7 +126,7 @@ fun TermsAgreementContent(
                 Divider(
                     color = Color(0xFFE5E5E5),
                     modifier = Modifier
-                        .padding(horizontal = 20.dp, vertical = 20.dp)
+                        .padding(horizontal = 20.dp, vertical = 16.dp)
                 )
 
 
@@ -129,7 +134,7 @@ fun TermsAgreementContent(
                 /* ───── 약관 항목들 (좌우 32, 간격 25) ───── */
                 Column(
                     modifier = Modifier.padding(horizontal = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(25.dp)
+                    verticalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
                     AgreementItem(
                         title = "이용약관",

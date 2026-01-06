@@ -22,7 +22,10 @@ import androidx.compose.ui.unit.sp
 import com.example.login.Paperlogy
 import com.example.login.R
 import androidx.compose.foundation.Image
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
@@ -41,6 +44,7 @@ fun PasswordLoginTextField(
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(16.dp)
+    val strokeWidth = 1.dp   // LoginTextField와 동일
     var isPasswordVisible by remember { mutableStateOf(false) }
 
     var fieldValue by remember {
@@ -51,19 +55,25 @@ fun PasswordLoginTextField(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(
-                Brush.horizontalGradient(
-                    listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                ),
-                shape
-            )
-            .padding(1.dp)
+            .drawBehind {
+                drawRoundRect(
+                    brush = Brush.horizontalGradient(
+                        listOf(
+                            Color(0xFF2C6FFF),
+                            Color(0xFFC800FF)
+                        )
+                    ),
+                    cornerRadius = CornerRadius(16.dp.toPx()),
+                    style = Stroke(width = strokeWidth.toPx())
+                )
+            }
+            .padding(strokeWidth) //  stroke 공간 확보
     ) {
         Box {
             OutlinedTextField(
                 value = fieldValue,
                 onValueChange = { newValue ->
-                    val fixedValue = newValue.copy(composition = null) //밑줄 방지
+                    val fixedValue = newValue.copy(composition = null)
                     fieldValue = fixedValue
                     onValueChange(fixedValue.text)
                 },
@@ -77,12 +87,24 @@ fun PasswordLoginTextField(
                     )
                 },
 
-                textStyle = TextStyle(
-                    fontSize = 14.sp,          // 🔹 점 크기
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 2.sp       // 🔹 점 간격 (디자이너 값과 가장 중요)
-                ),
+                textStyle =
+                    if (isPasswordVisible) {
+                        TextStyle(
+                            fontSize = 14.sp,
+                            lineHeight = 16.sp,
+                            fontFamily = Paperlogy,
+                            fontWeight = FontWeight(500),
+                            color = Color(0xFF000208),
+                            letterSpacing = 0.sp
+                        )
+                    } else {
+                        TextStyle(
+                            fontSize = 14.sp,
+                            fontFamily = Paperlogy,
+                            fontWeight = FontWeight.Bold,
+                            letterSpacing = 2.sp
+                        )
+                    },
 
                 singleLine = true,
                 enabled = enabled,
@@ -96,7 +118,7 @@ fun PasswordLoginTextField(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.White, shape)
-                    .padding(end = 40.dp),
+                    .padding(end = 40.dp), // 👁 아이콘 공간
 
                 shape = shape,
 
@@ -129,6 +151,119 @@ fun PasswordLoginTextField(
         }
     }
 }
+
+
+//@Composable
+//fun PasswordLoginTextField(
+//    value: String,
+//    onValueChange: (String) -> Unit,
+//    hint: String = "비밀번호",
+//    enabled: Boolean = true,
+//    modifier: Modifier = Modifier
+//) {
+//    val shape = RoundedCornerShape(16.dp)
+//    var isPasswordVisible by remember { mutableStateOf(false) }
+//
+//    var fieldValue by remember {
+//        mutableStateOf(TextFieldValue(text = value))
+//    }
+//
+//    Box(
+//        modifier = modifier
+//            .fillMaxWidth()
+//            .height(56.dp)
+//            .background(
+//                Brush.horizontalGradient(
+//                    listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+//                ),
+//                shape
+//            )
+//            .padding(1.dp)
+//    ) {
+//        Box {
+//            OutlinedTextField(
+//                value = fieldValue,
+//                onValueChange = { newValue ->
+//                    val fixedValue = newValue.copy(composition = null) //밑줄 방지
+//                    fieldValue = fixedValue
+//                    onValueChange(fixedValue.text)
+//                },
+//
+//                placeholder = {
+//                    Text(
+//                        text = hint,
+//                        fontSize = 14.sp,
+//                        fontFamily = Paperlogy,
+//                        color = Color(0xFFB7B9BF)
+//                    )
+//                },
+//
+//                textStyle =
+//                    if (isPasswordVisible) {
+//                        // 👁 비밀번호 보임 상태 (일반 텍스트)
+//                        TextStyle(
+//                            fontSize = 14.sp,
+//                            lineHeight = 16.sp,
+//                            fontFamily = Paperlogy,
+//                            fontWeight = FontWeight.Medium,
+//                            color = Color(0xFF000208),
+//                            letterSpacing = 0.sp
+//                        )
+//                    } else {
+//                        //  비밀번호 숨김 상태 (닷)
+//                        TextStyle(
+//                            fontSize = 14.sp,
+//                            fontFamily = Paperlogy,
+//                            fontWeight = FontWeight.Bold,
+//                            letterSpacing = 2.sp
+//                        )
+//                    },
+//
+//                singleLine = true,
+//                enabled = enabled,
+//
+//                visualTransformation =
+//                    if (isPasswordVisible)
+//                        VisualTransformation.None
+//                    else
+//                        DotPasswordVisualTransformation(),
+//
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .background(Color.White, shape)
+//                    .padding(end = 40.dp),
+//
+//                shape = shape,
+//
+//                colors = TextFieldDefaults.colors(
+//                    cursorColor = Color.Black,
+//                    focusedIndicatorColor = Color.Transparent,
+//                    unfocusedIndicatorColor = Color.Transparent,
+//                    focusedContainerColor = Color.Transparent,
+//                    unfocusedContainerColor = Color.Transparent
+//                )
+//            )
+//
+//            // 👁 눈 아이콘
+//            Image(
+//                painter = painterResource(
+//                    if (isPasswordVisible)
+//                        R.drawable.ic_password_visibility_on
+//                    else
+//                        R.drawable.ic_password_visibility_off
+//                ),
+//                contentDescription = null,
+//                modifier = Modifier
+//                    .align(Alignment.CenterEnd)
+//                    .padding(end = 18.dp)
+//                    .size(22.dp)
+//                    .clickable {
+//                        isPasswordVisible = !isPasswordVisible
+//                    }
+//            )
+//        }
+//    }
+//}
 
 //커스텀 닷
 class DotPasswordVisualTransformation : VisualTransformation {

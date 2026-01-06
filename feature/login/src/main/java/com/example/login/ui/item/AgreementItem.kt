@@ -20,6 +20,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.login.Paperlogy
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.example.design.R as DesignR
 
 //약관 동의 3세트
 @Composable
@@ -92,10 +95,12 @@ fun AgreementItem(
         }
 
         //  항상 우측, 부모 padding(32dp) 기준으로 위치
-        Icon(
-            imageVector = Icons.Default.KeyboardArrowRight,
+        Image(
+            painter = painterResource(id = DesignR.drawable.ic_right),
             contentDescription = null,
-            tint = Color(0xFFB7B9BF)
+            modifier = Modifier
+                .width(8.dp)
+                .height(13.dp)
         )
     }
 }

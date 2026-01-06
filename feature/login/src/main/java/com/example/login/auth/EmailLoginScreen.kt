@@ -24,7 +24,6 @@ import com.example.login.R
 import com.example.login.Paperlogy
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.LoginTextField
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,6 +36,21 @@ import com.example.login.ui.item.GradientButtonCore
 import com.example.login.ui.item.PasswordLoginTextField
 import com.example.design.modifier.noRippleClickable
 import com.example.login.ui.bottom_sheet.TermsAgreementSheet
+import android.app.Activity
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.core.view.WindowInsetsCompat
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import com.example.design.util.WhiteSystemBars
+
 
 @Composable
 fun EmailLoginScreen(
@@ -44,6 +58,33 @@ fun EmailLoginScreen(
     loginViewModel: LoginViewModel? = null,
     onSignUpClick: () -> Unit
 ) {
+
+    WhiteSystemBars() //안드로이드 자체 바텀바(흰섹)
+    val view = LocalView.current
+    val isPreview = LocalInspectionMode.current
+
+    if (!isPreview) {
+        val activity = view.context as Activity
+        val window = activity.window
+
+        SideEffect {
+            // edge-to-edge 유지
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+
+            // 상태바 + 네비게이션바 다시 표시
+            WindowInsetsControllerCompat(window, view).apply {
+                show(
+                    WindowInsetsCompat.Type.statusBars() or
+                            WindowInsetsCompat.Type.navigationBars()
+                )
+
+                isAppearanceLightStatusBars = true
+                isAppearanceLightNavigationBars = true
+            }
+        }
+    }
+
+
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
@@ -72,7 +113,7 @@ fun EmailLoginScreen(
     }
 
     // 🔑 피그마 비율 적용
-    val logoRatio = if (isKeyboardOpen) 126f / 917f else 262f / 917f //키보드 활성화 전, 후
+    val logoRatio = if (isKeyboardOpen) 102f / 917f else 262f / 917f //키보드 활성화 전, 후
     val logoTopPadding = screenHeight * logoRatio
 
     Box(
@@ -123,7 +164,14 @@ fun EmailLoginScreen(
                 LoginTextField(
                     value = email,
                     onValueChange = { email = it },
-                    hint = "이메일"
+                    hint = "이메일",
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp,
+                        fontFamily = Paperlogy,
+                        fontWeight = FontWeight(500),
+                        color = Color(0xFF000208)
+                    )
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
