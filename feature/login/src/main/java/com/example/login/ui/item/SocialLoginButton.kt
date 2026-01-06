@@ -62,13 +62,9 @@ fun SocialLoginButton(
                     contentDescription = null,
                     modifier = Modifier.size(22.dp)
                 )
-            } else {
-                //  아이콘이 없을 때도 동일한 공간 확보
-                Spacer(modifier = Modifier.size(22.dp))
-            }
 
-            // 아이콘 ↔ 텍스트 간격 (항상 동일)
-            Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
             Text(
                 text = text,

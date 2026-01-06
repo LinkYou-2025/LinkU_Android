@@ -29,6 +29,13 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import com.example.design.util.PixelScaler
+import android.app.Activity
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
+import android.view.WindowInsets
 
 
 
@@ -42,6 +49,32 @@ interface SplashDeps {
 //Boolean = 자동 로그인 성공 여부를 판단하기 위해 추가함.
 @Composable
 fun Splash(onResult: (Boolean) -> Unit) {
+
+    val view = LocalView.current
+    val isPreview = LocalInspectionMode.current
+
+    if (!isPreview) {
+        val activity = view.context as Activity
+        val window = activity.window
+
+        SideEffect {
+            // edge-to-edge
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+
+            // 상태바 + 네비게이션바 완전 숨김
+            WindowInsetsControllerCompat(window, view).apply {
+                hide(
+                    WindowInsets.Type.statusBars() or
+                            WindowInsets.Type.navigationBars()
+                )
+
+                // 스와이프로 잠깐 나타났다가 다시 숨김
+                systemBarsBehavior =
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            }
+        }
+    }
+
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
 

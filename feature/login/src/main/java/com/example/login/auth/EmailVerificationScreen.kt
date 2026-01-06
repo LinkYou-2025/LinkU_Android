@@ -211,7 +211,7 @@ fun EmailVerificationScreenContent(
                     value = email,
                     onValueChange = onEmailChange,
                     hint = "이메일 주소를 입력해주세요",
-                    enabled = !isSending && !isVerifying
+                    enabled = true
                 )
 
             // 에러 문구

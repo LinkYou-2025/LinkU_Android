@@ -136,7 +136,7 @@ fun ResetPasswordScreen(
         }
 
         BottomGradientButton(
-            text = "임시 비밀번호 받기",
+            text = "메일 보내기",
             enabled = isEmailValid && (ui?.loading != true),
             activeGradient = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF)),
             inactiveGradient = listOf(Color(0xFF9BCBFF), Color(0xFFF4AFFF)),
