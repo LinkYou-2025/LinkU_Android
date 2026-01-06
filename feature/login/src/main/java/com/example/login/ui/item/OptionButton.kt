@@ -1,5 +1,6 @@
 package com.example.login.ui.item
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -15,11 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.design.R
 import com.example.login.Paperlogy
 
 
@@ -107,18 +110,21 @@ fun OptionButton(
             if (selected) {
                 Box(
                     modifier = Modifier
-                        .size(20.dp)
+                        .width(20.dp)
+                        .height(20.dp)
                         .background(
                             color = Color(0xFFCB59EB),
-                            shape = RoundedCornerShape(4.dp)
+                            shape = RoundedCornerShape(6.dp)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Check,
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_checkbox_checked),
                         contentDescription = "선택됨",
-                        tint = Color.White,
-                        modifier = Modifier.size(12.dp)
+                        modifier = Modifier
+                            .padding(1.5.dp)
+                            .width(9.54546.dp)
+                            .height(7.27273.dp)
                     )
                 }
             }

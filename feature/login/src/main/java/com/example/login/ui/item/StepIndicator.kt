@@ -108,6 +108,7 @@ fun StepIndicator(
             text = label,
             modifier = Modifier.padding(
                 start = when (currentStep) {
+                    1 -> 6.dp      // 계정 정보
                     2 -> 68.dp      // 기존 프로필 설정
                     3 -> 122.dp     // InterestStepIndicator 그대로
                     else -> 2.dp
@@ -115,6 +116,7 @@ fun StepIndicator(
                 top = 6.dp
             ),
             fontSize = 13.sp,
+            lineHeight = 15.sp,
             fontFamily = Paperlogy,
             fontWeight = FontWeight.Light,
             color = activeColor,
@@ -122,6 +124,22 @@ fun StepIndicator(
         )
     }
 }
+@Preview(showBackground = true)
+@Composable
+fun StepIndicatorStep1Preview() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(20.dp)
+    ) {
+        StepIndicator(
+            currentStep = 1,
+            totalSteps = 3,
+            label = "계정 정보"
+        )
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep2Preview() {
