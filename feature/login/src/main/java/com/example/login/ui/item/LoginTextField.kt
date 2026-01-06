@@ -28,6 +28,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 //회원가입 중 입력 텍스트 필드
 @Composable
@@ -36,24 +40,28 @@ fun LoginTextField(
     onValueChange: (String) -> Unit,
     hint: String,
     enabled: Boolean = true,
+    textStyle: TextStyle? = null,
     modifier: Modifier = Modifier
 ) {
     val shape = RoundedCornerShape(16.dp)
+    val strokeWidth = 1.dp
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
             .height(56.dp)
-            .background(
-                brush = Brush.horizontalGradient(
-                    listOf(
-                        Color(0xFF2C6FFF),
-                        Color(0xFFC800FF)
-                    )
-                ),
-                shape = shape
-            )
-            .padding(1.dp) // 테두리 두께
+            .drawBehind {
+                drawRoundRect(
+                    brush = Brush.horizontalGradient(
+                        listOf(
+                            Color(0xFF2C6FFF),
+                            Color(0xFFC800FF)
+                        )
+                    ),
+                    cornerRadius = CornerRadius(16.dp.toPx()),
+                    style = Stroke(width = strokeWidth.toPx())
+                )
+            }
+            .padding(strokeWidth) // stroke 공간 확보
     ) {
         OutlinedTextField(
             value = value,
@@ -70,7 +78,7 @@ fun LoginTextField(
                 )
             },
 
-            textStyle = TextStyle(
+            textStyle = textStyle ?: TextStyle(
                 fontSize = 14.sp,
                 fontFamily = Paperlogy,
                 fontWeight = FontWeight.Normal
@@ -95,6 +103,71 @@ fun LoginTextField(
     }
 }
 
+//@Composable
+//fun LoginTextField(
+//    value: String,
+//    onValueChange: (String) -> Unit,
+//    hint: String,
+//    enabled: Boolean = true,
+//    modifier: Modifier = Modifier
+//) {
+//    val shape = RoundedCornerShape(16.dp)
+//
+//    Box(
+//        modifier = modifier
+//            //.fillMaxWidth()
+//            .height(56.dp)
+//            .background(
+//                brush = Brush.horizontalGradient(
+//                    listOf(
+//                        Color(0xFF2C6FFF),
+//                        Color(0xFFC800FF)
+//                    )
+//                ),
+//                shape = shape
+//            )
+//            .padding(1.dp) // 테두리 두께
+//    ) {
+//        OutlinedTextField(
+//            value = value,
+//            onValueChange = onValueChange,
+//
+//            placeholder = {
+//                Text(
+//                    text = hint,
+//                    fontSize = 14.sp,
+//                    lineHeight = 20.sp,
+//                    fontWeight = FontWeight.Medium,
+//                    fontFamily = Paperlogy,
+//                    color = Color(0xFFB7B9BF)
+//                )
+//            },
+//
+//            textStyle = TextStyle(
+//                fontSize = 14.sp,
+//                fontFamily = Paperlogy,
+//                fontWeight = FontWeight.Normal
+//            ),
+//
+//            singleLine = true,
+//            enabled = enabled,
+//
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .background(Color.White, shape),
+//
+//            shape = shape,
+//
+//            colors = TextFieldDefaults.colors(
+//                focusedIndicatorColor = Color.Transparent,
+//                unfocusedIndicatorColor = Color.Transparent,
+//                focusedContainerColor = Color.Transparent,
+//                unfocusedContainerColor = Color.Transparent
+//            )
+//        )
+//    }
+//}
+
 @Preview(
     name = "LoginTextField Preview",
     showBackground = true,
@@ -106,7 +179,7 @@ fun LoginTextFieldPreview() {
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            //.fillMaxWidth()
             .padding(16.dp)
     ) {
         // 그라데이션 테두리 ON

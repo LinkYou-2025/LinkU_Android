@@ -40,7 +40,7 @@ fun ResetPasswordTopHeader(
         contentAlignment = Alignment.TopStart
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_back),
+            painter = painterResource(id = R.drawable.ic_back_black),
             contentDescription = "뒤로가기",
             modifier = Modifier
                 .width(10.dp)
