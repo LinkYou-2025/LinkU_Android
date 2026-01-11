@@ -89,6 +89,10 @@ fun HomeApp(viewModel: HomeViewModel) {
                 jobId = viewModel.jobId ?: 2L,
                 onLinkClick = { id ->                    // ✅ 추가
                     navController.navigate("savelinkresult/$id")
+                },
+                onNavigateToSaveLink = { url ->
+                    viewModel.setUrl(url)  // url 세팅
+                    navController.navigate("savelink")    // 저장 화면 이동
                 }
             )
         }
