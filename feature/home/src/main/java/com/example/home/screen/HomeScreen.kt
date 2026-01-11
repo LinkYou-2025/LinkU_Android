@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +41,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -62,6 +64,8 @@ import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
 import com.example.home.HomeViewModel
 import com.example.home.R
+import com.example.home.component.ClipboardLinkPasteBanner
+import com.example.home.component.rememberClipboardUrl
 import com.example.home.ui.top.bar.HomeTopBar
 import kotlinx.coroutines.launch
 import com.example.design.R as Res
@@ -129,6 +133,7 @@ fun HomeScreen(
     onClearNeedMoreNotice: () -> Unit,
     jobId: Long,
     onLinkClick: (linkuId: Long) -> Unit,
+    onNavigateToSaveLink: (url: String) -> Unit,
 ) {
     var showRecs by remember { mutableStateOf(showRecommendations) }
     LaunchedEffect(showRecommendations) { showRecs = showRecommendations }
@@ -222,24 +227,37 @@ fun HomeScreen(
         slackFractionFor(itemsToRender.size, isTopBarExpanded)
     }
 
-    LazyColumn(
+    val clipboardUrl by rememberClipboardUrl()
+    var dismissedClipboardUrl by remember { mutableStateOf<String?>(null) }
+
+    val density = LocalDensity.current
+    var topBarHeightDp by remember { mutableStateOf(0.dp) }
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100]),
-        state = listState
+            .background(LocalColorTheme.current.gray[100])
     ) {
-        stickyHeader {
-            HomeTopBar(
-                isNoticeExist = false, // TODO 실제 알림 여부 연결
-                userName = userName,
-                selectedEmotionId = selectedEmotion,
-                onEmotionChange = { id -> selectedEmotion = id },
-                selectedTaskId = selectedTask,
-                onTaskChange = { id -> selectedTask = id },
-                situations = jobSituations,
-                recommendEnabled = (selectedEmotion != null && selectedTask != null && !isRecommending),
-                onRecommendClick = onRecommendClick
-            )
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(LocalColorTheme.current.gray[100]),
+            state = listState
+        ) {
+            stickyHeader {
+                Spacer(modifier = Modifier.height(32.dp))
+
+                HomeTopBar(
+                    isNoticeExist = false, // TODO 실제 알림 여부 연결
+                    userName = userName,
+                    selectedEmotionId = selectedEmotion,
+                    onEmotionChange = { id -> selectedEmotion = id },
+                    selectedTaskId = selectedTask,
+                    onTaskChange = { id -> selectedTask = id },
+                    situations = jobSituations,
+                    recommendEnabled = (selectedEmotion != null && selectedTask != null && !isRecommending),
+                    onRecommendClick = onRecommendClick
+                )
 //            TopBar(
 //                homeViewModel = homeViewModel ,
 //                isExpanded = isTopBarExpanded,
@@ -266,86 +284,99 @@ fun HomeScreen(
 //                selectedTaskLabel = selectedTaskLabel,
 //                situations = jobSituations
 //            )
-        }
+            }
 
-        item {
-            Column(
-                modifier = Modifier.padding(20.dp, 24.dp)
-            ) {
-                val itemsToRender = if (showRecs) recommendedLinks else recentLinks
-                val titleText = if (showRecs) "${userName}님의 오늘에 어울리는 콘텐츠예요!"
-                                else "${userName}님이 최근에 열람한 링크"
+            item {
+                Column(
+                    modifier = Modifier.padding(20.dp, 24.dp)
+                ) {
+                    val itemsToRender = if (showRecs) recommendedLinks else recentLinks
+                    val titleText = if (showRecs) "${userName}님의 오늘에 어울리는 콘텐츠예요!"
+                    else "${userName}님이 최근에 열람한 링크"
 
-                when {
-                    // 1) 링크 3개 미만 안내
-                    showRecs && needMoreForRecommendation -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(LocalColorTheme.current.gray[100])
-                                .padding(top = 65.dp, bottom = 195.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_no_recents),
-                                contentDescription = null,
-                                modifier = Modifier.size(80.dp)
-                            )
+                    when {
+                        // 1) 링크 3개 미만 안내
+                        showRecs && needMoreForRecommendation -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(LocalColorTheme.current.gray[100])
+                                    .padding(top = 65.dp, bottom = 195.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Image(
+                                    painter = painterResource(R.drawable.ic_no_recents),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp)
+                                )
 
-                            Spacer(modifier = Modifier.height(25.dp))
+                                Spacer(modifier = Modifier.height(25.dp))
 
-                            Text(
-                                text = "추천을 위해 최소 3개의 링크가 필요해요.\n지금 링크 하나 저장해볼까요?",
-                                style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[700]
-                            )
+                                Text(
+                                    text = "추천을 위해 최소 3개의 링크가 필요해요.\n지금 링크 하나 저장해볼까요?",
+                                    style = TextStyle(
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        fontFamily = LocalFontTheme.current.font
+                                    ),
+                                    color = LocalColorTheme.current.gray[700]
+                                )
+                            }
                         }
-                    }
-                    // 2) 추천 모드 + 분류 중
-                    showRecs && isRecommending -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(LocalColorTheme.current.gray[100])
-                                .padding(top = 65.dp, bottom = 195.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Image(
-                                // TODO: 애니메이션으로 변경
-                                painter = painterResource(R.drawable.ic_recommending),
-                                contentDescription = null,
-                                modifier = Modifier.height(40.dp)
-                            )
+                        // 2) 추천 모드 + 분류 중
+                        showRecs && isRecommending -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(LocalColorTheme.current.gray[100])
+                                    .padding(top = 65.dp, bottom = 195.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Image(
+                                    // TODO: 애니메이션으로 변경
+                                    painter = painterResource(R.drawable.ic_recommending),
+                                    contentDescription = null,
+                                    modifier = Modifier.height(40.dp)
+                                )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                            Text(
-                                text = "잠시만 기다려주세요!",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[800]
-                            )
+                                Text(
+                                    text = "잠시만 기다려주세요!",
+                                    style = TextStyle(
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        fontFamily = LocalFontTheme.current.font
+                                    ),
+                                    color = LocalColorTheme.current.gray[800]
+                                )
 
-                            Spacer(modifier = Modifier.height(12.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
-                            Text(
-                                text = "AI가 ${userName}님의 감정과 상황에 맞춰\n추천할 링크를 분류하고 있어요!",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[600]
-                            )
+                                Text(
+                                    text = "AI가 ${userName}님의 감정과 상황에 맞춰\n추천할 링크를 분류하고 있어요!",
+                                    style = TextStyle(
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        textAlign = TextAlign.Center,
+                                        fontFamily = LocalFontTheme.current.font
+                                    ),
+                                    color = LocalColorTheme.current.gray[600]
+                                )
+                            }
                         }
-                    }
-                    // 3) 일반 모드에서 최근 없음
-                    !showRecs && itemsToRender.isEmpty() -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(LocalColorTheme.current.gray[100])
-                                .padding(top = 65.dp, bottom = 195.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        // 3) 일반 모드에서 최근 없음
+                        !showRecs && itemsToRender.isEmpty() -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(LocalColorTheme.current.gray[100])
+                                    .padding(top = 65.dp, bottom = 195.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
 //                            Text(
 //                                text = "${userName}님이 최근에 열람한 링크",
 //                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Start),
@@ -354,82 +385,126 @@ fun HomeScreen(
 //
 //                            Spacer(modifier = Modifier.height(65.dp))
 
-                            Image(
-                                painter = painterResource(R.drawable.ic_no_recents),
-                                contentDescription = null,
-                                modifier = Modifier.size(80.dp)
-                            )
+                                Image(
+                                    painter = painterResource(R.drawable.ic_no_recents),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(80.dp)
+                                )
 
-                            Spacer(modifier = Modifier.height(25.dp))
+                                Spacer(modifier = Modifier.height(25.dp))
 
-                            Text(
-                                text = "최근에 열람한 링크가 없어요!",
-                                style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[800]
-                            )
-
-                            Spacer(modifier = Modifier.height(12.dp))
-
-                            Text(
-                                text = "지금 링크를 둘러볼까요?",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.gray[600]
-                            )
-                        }
-                    }
-                    else -> {
-                        if (itemsToRender.isEmpty()) {
-                            val emptyMsg = if (showRecs) "지금 마음과 딱 맞는 콘텐츠는 아직 없지만,\n저장된 링크가 늘어날수록 더 나은 추천이 가능해져요." else "최근에 열람한 링크가 없어요!"
-
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .background(LocalColorTheme.current.gray[100])
-                                    .padding(top = 150.dp, bottom = 217.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
                                 Text(
-                                    text = emptyMsg,
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
+                                    text = "최근에 열람한 링크가 없어요!",
+                                    style = TextStyle(
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        fontFamily = LocalFontTheme.current.font
+                                    ),
+                                    color = LocalColorTheme.current.gray[800]
+                                )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Text(
+                                    text = "지금 링크를 둘러볼까요?",
+                                    style = TextStyle(
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        fontFamily = LocalFontTheme.current.font
+                                    ),
                                     color = LocalColorTheme.current.gray[600]
                                 )
                             }
-                        } else {
-                            Text(
-                                text = titleText,
-                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.black
-                            )
+                        }
 
-                            Spacer(modifier = Modifier.height(20.dp))
+                        else -> {
+                            if (itemsToRender.isEmpty()) {
+                                val emptyMsg =
+                                    if (showRecs) "지금 마음과 딱 맞는 콘텐츠는 아직 없지만,\n저장된 링크가 늘어날수록 더 나은 추천이 가능해져요." else "최근에 열람한 링크가 없어요!"
 
-                            itemsToRender.forEach { link ->
-                                LinkCard(
-                                    link = link,
-                                    onClick = { onLinkClick(link.linkuId) }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(LocalColorTheme.current.gray[100])
+                                        .padding(top = 150.dp, bottom = 217.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = emptyMsg,
+                                        style = TextStyle(
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            textAlign = TextAlign.Center,
+                                            fontFamily = LocalFontTheme.current.font
+                                        ),
+                                        color = LocalColorTheme.current.gray[600]
+                                    )
+                                }
+                            } else {
+                                Text(
+                                    text = titleText,
+                                    style = TextStyle(
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = LocalFontTheme.current.font
+                                    ),
+                                    color = LocalColorTheme.current.black
                                 )
 
-                                Spacer(modifier = Modifier.height(10.dp))
+                                Spacer(modifier = Modifier.height(20.dp))
+
+                                itemsToRender.forEach { link ->
+                                    LinkCard(
+                                        link = link,
+                                        onClick = { onLinkClick(link.linkuId) }
+                                    )
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+                                }
                             }
                         }
                     }
                 }
+
+
             }
-
-
-        }
-        if (slackFraction > 0f) {
-            item(key = "footer-slack") {
-                Spacer(
-                    Modifier
-                        .fillMaxWidth()
-                        .fillParentMaxHeight(slackFraction)
-                )
+            if (slackFraction > 0f) {
+                item(key = "footer-slack") {
+                    Spacer(
+                        Modifier
+                            .fillMaxWidth()
+                            .fillParentMaxHeight(slackFraction)
+                    )
+                }
             }
         }
 
+        // 클립보드 배너(사용자가 "아래로 밀어서 닫기" 전까지 유지)
+        val shouldShowClipboardBanner =
+            clipboardUrl != null && clipboardUrl != dismissedClipboardUrl
 
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(horizontal = 20.dp, vertical = 15.dp)
+                .zIndex(10f)
+        ) {
+            ClipboardLinkPasteBanner(
+                visible = shouldShowClipboardBanner,
+                link = clipboardUrl.orEmpty(),
+                modifier = Modifier,
+                onDismiss = {
+                    dismissedClipboardUrl = clipboardUrl  // 사용자가 닫은 링크는 동일 값이면 다시 안 띄움
+                },
+                onPasteClick = {
+                    clipboardUrl?.let { url ->
+                        onNavigateToSaveLink(url)  // 저장 화면으로 이동
+                        dismissedClipboardUrl = url  // 눌렀으면 배너는 닫아버리기
+                    }
+                }
+            )
+        }
     }
 
     // 검색창 탑 시트

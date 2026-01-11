@@ -39,6 +39,7 @@ fun AlarmButton(
                 Icon(
                     painter = painterResource(id = R.drawable.ic_alarm),
                     contentDescription = null,
+                    tint = LocalColorTheme.current.gray[300],
                     modifier = Modifier
                         .size(29.dp.scaled())
                         .align(Alignment.Center)
@@ -48,11 +49,11 @@ fun AlarmButton(
                 if (isNoticeExist) {
                     Box(
                         modifier = Modifier
-                            .size(12.dp.scaled())
+                            .size(11.dp.scaled())
                             .align(Alignment.TopEnd)  // 빨간 원 오른쪽 위로 이동
                             .offset(  // 빨간 원 오른쪽 위에서 원하는 위치로 더 이동
-                                x = 3.8.dp.scaled(),
-                                y = (-3.38).dp.scaled()
+                                x = 2.82.dp.scaled(),
+                                y = (-1).dp.scaled()
                             )
                             .background(
                                 LocalColorTheme.current.negative,
