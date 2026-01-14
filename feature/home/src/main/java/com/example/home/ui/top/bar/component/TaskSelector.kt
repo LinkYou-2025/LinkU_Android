@@ -121,9 +121,9 @@ private fun BoxChip(
             .clip(RoundedCornerShape(10.dp))
             .then(
                 if (selected) {
-                    Modifier.background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
+                    Modifier.background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(10.dp))
                 } else {
-                    Modifier.background(color = LocalColorTheme.current.gray[100], shape = RoundedCornerShape(18.dp))
+                    Modifier.background(color = LocalColorTheme.current.gray[100], shape = RoundedCornerShape(10.dp))
                 }
             )
             .then(
