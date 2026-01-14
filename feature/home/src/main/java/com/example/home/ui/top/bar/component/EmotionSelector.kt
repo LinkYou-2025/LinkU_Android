@@ -51,15 +51,12 @@ fun EmotionSelector(
         R.drawable.ic_calm_gray,
         R.drawable.ic_excite_gray,
         R.drawable.ic_sad_gray,
-//        R.drawable.ic_irritation_gray,
-        R.drawable.ic_anger_gray,  // 임시방편으로 사용
+        R.drawable.ic_irritation_gray,
         R.drawable.ic_anger_gray
     )
 
     val emotionIds = listOf(1L, 2L, 3L, 4L, 5L, 6L)
-
     val hasSelection = selectedEmotionId != null
-    val dimmedBg = Color(0xFFF5F6F9)
 
     Row(
         modifier = Modifier.fillMaxWidth(),

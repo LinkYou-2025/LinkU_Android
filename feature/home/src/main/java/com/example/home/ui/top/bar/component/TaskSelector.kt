@@ -94,7 +94,7 @@ private fun TaskChip(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     fontFamily = LocalFontTheme.current.font
-                )
+                ),
             )
         } else {
             Text(
