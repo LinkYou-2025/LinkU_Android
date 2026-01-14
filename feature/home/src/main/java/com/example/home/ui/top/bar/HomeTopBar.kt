@@ -143,7 +143,7 @@ fun HomeTopBar(
             fontWeight = FontWeight.Medium,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.gray[700],
-            modifier = Modifier.padding(start = 8.dp, bottom = 15.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
         )
 
         EmotionSelector(
@@ -151,7 +151,7 @@ fun HomeTopBar(
             onEmotionChange = onEmotionChange
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(13.dp))
 
         Text(
             text = "지금 뭐하는 중이에요?",
@@ -159,7 +159,7 @@ fun HomeTopBar(
             fontWeight = FontWeight.Medium,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.gray[700],
-            modifier = Modifier.padding(start = 8.dp, bottom = 14.dp)
+            modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
         )
 
         TaskSelector(
