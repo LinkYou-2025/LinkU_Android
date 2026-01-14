@@ -119,9 +119,12 @@ private fun BoxChip(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
-            .background(
-                if (selected) LocalColorTheme.current.purple[50]
-                else LocalColorTheme.current.gray[100]
+            .then(
+                if (selected) {
+                    Modifier.background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
+                } else {
+                    Modifier.background(color = LocalColorTheme.current.gray[100], shape = RoundedCornerShape(18.dp))
+                }
             )
             .then(
                 if (selected) Modifier.border(
@@ -130,8 +133,8 @@ private fun BoxChip(
                     shape = RoundedCornerShape(10.dp)
                 ) else Modifier
             )
+            .padding(horizontal = 15.dp, vertical = 8.dp)
             .clickable(onClick = onClick)
-            .padding(horizontal = 15.dp, vertical = 10.5.dp)
     ) {
         content()
     }
