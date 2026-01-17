@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
 /**
@@ -19,29 +20,44 @@ import androidx.core.view.WindowInsetsControllerCompat
  */
 @Composable
 fun DesignSystemBars(
-    statusBarColor: Color = Color.White,
-    navigationBarColor: Color = Color.White,
-    darkIcons: Boolean = true
+    statusBarColor: Color = Color.White, //상태바 배경 색상
+    navigationBarColor: Color = Color.White, //하단 네비게이션 바 배경 색상
+    darkIcons: Boolean = true, // true인 경우, 어두운 아이콘(밝은 배경)
+    immersive: Boolean = false
+    //스플래쉬, 앱 진입 애니메이션은 디자이너와 상의 끝에 바텀바 안보이도록 함.
+    // 숨김 기능 추가(immersive: Boolean = false)
 ) {
     val view = LocalView.current
     val isPreview = LocalInspectionMode.current
-
     if (isPreview) return
 
     SideEffect {
         val window = (view.context as Activity).window
+        val controller = WindowInsetsControllerCompat(window, view)
 
-        // edge-to-edge 유지
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, !immersive)
 
-        // 시스템 바 색상
+        //immersive 여부에 따라 바텀바 레이아웃 처리 진행함.
+        if (immersive) {
+            //스플래쉬, 앱 진입 애니메이션인 경우
+            controller.hide(
+                WindowInsetsCompat.Type.statusBars() or
+                        WindowInsetsCompat.Type.navigationBars()
+            )
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        } else {
+            //그 외 화면들 원래대로 작동함.
+            controller.show(
+                WindowInsetsCompat.Type.statusBars() or
+                        WindowInsetsCompat.Type.navigationBars()
+            )
+        }
+
         window.statusBarColor = statusBarColor.toArgb()
         window.navigationBarColor = navigationBarColor.toArgb()
 
-        // 아이콘 색상
-        WindowInsetsControllerCompat(window, view).apply {
-            isAppearanceLightStatusBars = darkIcons
-            isAppearanceLightNavigationBars = darkIcons
-        }
+        controller.isAppearanceLightStatusBars = darkIcons
+        controller.isAppearanceLightNavigationBars = darkIcons
     }
 }

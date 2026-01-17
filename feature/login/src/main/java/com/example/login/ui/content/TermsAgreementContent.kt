@@ -21,12 +21,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 import com.example.login.ui.item.AgreementItem
 import com.example.login.ui.item.GradientButtonCore
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.example.design.R
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
 
 
 @Composable
@@ -42,6 +44,11 @@ fun TermsAgreementContent(
     onClickMarketing: () -> Unit,
     onNextClicked: (Boolean, Boolean, Boolean) -> Unit
 ) {
+    // 1. 테마 및 반응형 유틸 가져오기
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+    val paperlogyFamily = Paperlogy.font
+
     val agreeAll = agreeTerms && agreePrivacy && agreeMarketing
     val nextEnabled = agreeTerms && agreePrivacy
 
@@ -51,7 +58,7 @@ fun TermsAgreementContent(
         //  바텀시트 실제 높이 기준
         val topPadding = maxHeight * (46f / 280f)
 
-        Box(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.fillMaxWidth() .background(Color.White)) {
 
             Column {
 
@@ -61,24 +68,24 @@ fun TermsAgreementContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            start = 32.dp,
-                            end = 32.dp,
-                            top = 36.dp
+                            start = w(32f),
+                            end = w(32f),
+                            top = h(36f)
                             //top = topPadding 화면으로 계산이 되어서 일단 보류.
                         )
                 ) {
                     // 커스텀 체크박스
                     Box(
                         modifier = Modifier
-                            .size(22.dp)
+                            .size(w(22f)) // 반응형 적용
                             .border(
                                 width = 1.dp,
-                                color = if (agreeAll) Color(0xFFD35EFF) else Color(0xFFD7D9DF),
-                                shape = RoundedCornerShape(6.dp)
+                                color = if (agreeAll) Color(0xFFD35EFF) else colorTheme.gray[300]!!,
+                                shape = RoundedCornerShape(w(6f)) //반응형 적용
                             )
                             .background(
-                                color = if (agreeAll) Color(0xFFD35EFF) else Color.White,
-                                shape = RoundedCornerShape(6.dp)
+                                color = if (agreeAll) colorTheme.purple[200]!! else colorTheme.white,
+                                shape = RoundedCornerShape(w(6f)) //반응형 적용
                             )
                             .clickable {
                                 val checked = !agreeAll
@@ -93,21 +100,21 @@ fun TermsAgreementContent(
                                 painter = painterResource(id = R.drawable.ic_checkbox_checked),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .width(10.5.dp)
-                                    .height(8.dp)
+                                    .width(w(11f))
+                                    .height(h(8f)) //반응형으로 수정.
                             )
                         }
                     }
 
-                    Spacer(Modifier.width(15.dp))
+                    Spacer(Modifier.width(w(15f)))
 
                     Text(
                         text = "약관 전체동의",
                         fontSize = 18.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         fontWeight = FontWeight.Medium,
-                        color = Color(0xFF000208)
+                        color = colorTheme.black
                     )
 
                     Spacer(Modifier.width(8.dp))
@@ -115,8 +122,10 @@ fun TermsAgreementContent(
                     Text(
                         text = "선택항목에 대한 동의 포함",
                         fontSize = 12.sp,
-                        fontFamily = Paperlogy,
-                        color = Color(0xFF87898F)
+                        lineHeight = 14.sp,
+                        fontWeight = FontWeight(400),
+                        fontFamily = paperlogyFamily,
+                        color = colorTheme.gray[600]!!
                     )
                 }
 
@@ -124,22 +133,22 @@ fun TermsAgreementContent(
 
                 /* ───── Divider (좌우 20) ───── */
                 Divider(
-                    color = Color(0xFFE5E5E5),
+                    color = Color(0xFFD4E1FF),
                     modifier = Modifier
-                        .padding(horizontal = 20.dp, vertical = 16.dp)
+                        .padding(horizontal = w(20f), vertical = h(16f))
                 )
 
 
 
                 /* ───── 약관 항목들 (좌우 32, 간격 25) ───── */
                 Column(
-                    modifier = Modifier.padding(horizontal = 32.dp),
-                    verticalArrangement = Arrangement.spacedBy(18.dp)
+                    modifier = Modifier.padding(horizontal = w(32f)),
+                    verticalArrangement = Arrangement.spacedBy(h(18f))
                 ) {
                     AgreementItem(
                         title = "이용약관",
                         suffix = "(필수)",
-                        suffixColor = Color(0xFF2C6FFF),
+                        suffixColor = colorTheme.blue[200]!!,
                         checked = agreeTerms,
                         onCheckedChange = onAgreeTermsChange,
                         onRowClick = onClickTerms
@@ -148,7 +157,7 @@ fun TermsAgreementContent(
                     AgreementItem(
                         title = "개인정보 처리방침",
                         suffix = "(필수)",
-                        suffixColor = Color(0xFF2C6FFF),
+                        suffixColor = colorTheme.blue[200]!!,
                         checked = agreePrivacy,
                         onCheckedChange = onAgreePrivacyChange,
                         onRowClick = onClickPrivacy
@@ -157,27 +166,21 @@ fun TermsAgreementContent(
                     AgreementItem(
                         title = "마케팅 수신 동의",
                         suffix = "(선택)",
-                        suffixColor = Color(0xFFB7B9BF),
+                        suffixColor = colorTheme.gray[400]!!,
                         checked = agreeMarketing,
                         onCheckedChange = onAgreeMarketingChange,
                         onRowClick = onClickMarketing
                     )
                 }
 
-                Spacer(Modifier.height(30.dp))
+                Spacer(Modifier.height(h(30f)))
 
                 /* ───── 다음 버튼 (좌우 31) ───── */
                 GradientButtonCore(
                     text = "다음",
                     enabled = nextEnabled,
-                    activeGradient = listOf(
-                        Color(0xFF4D5FFF),
-                        Color(0xFFA032F5)
-                    ),
-                    inactiveGradient = listOf(
-                        Color(0xFFE1D6F9),
-                        Color(0xFFF3E7FB)
-                    ),
+                    activeGradient = colorTheme.maincolor,
+                    inactiveGradient = colorTheme.inactiveColor,
                     onClick = {
                         onNextClicked(agreeTerms, agreePrivacy, agreeMarketing)
                     },

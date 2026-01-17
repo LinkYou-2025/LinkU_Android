@@ -1,27 +1,24 @@
-package com.example.login.auth
+package com.example.login.viewmodel
 
-import android.content.Context
+import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import android.util.Log
-import com.example.core.repository.UserRepository
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.SharingStarted
-import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
-import kotlin.random.Random
-import retrofit2.HttpException
 import okhttp3.ResponseBody
 import org.json.JSONObject
+import retrofit2.HttpException
+import javax.inject.Inject
+import kotlin.random.Random
 
-// 이메일 인증과 관련된 로직을 담당하는 ViewModel
 
 
-
+//여기 api 전면 수정 예정. 실제 api 연동은 1월 말~ 2월 초
 @HiltViewModel
 class EmailAuthViewModel @Inject constructor(
     private val userRepository: UserRepository
@@ -56,7 +53,7 @@ class EmailAuthViewModel @Inject constructor(
 
     // 6자리 랜덤 코드 생성 함수
     private fun generateRandomSixDigitCode(): String {
-        return Random.nextInt(0, 1_000_000)
+        return Random.Default.nextInt(0, 1_000_000)
             .toString()
             .padStart(6, '0')
     }
@@ -74,7 +71,7 @@ class EmailAuthViewModel @Inject constructor(
     fun sendEmailCode(email: String) {
         Log.d("EmailAuthVM", " sendEmailCode() called. email=$email")
         viewModelScope.launch {
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Log.w("EmailAuthVM", "Invalid email format: $email")
                 _sendCodeResult.value = "잘못된 이메일 형식"
                 return@launch
@@ -122,7 +119,7 @@ class EmailAuthViewModel @Inject constructor(
                 _isVerifySuccess.value = ok
                 if (ok) {
                     // 네비게이션 트리거 후 바로 false로 reset (재진입 자동 네비 방지)
-                    kotlinx.coroutines.delay(200)
+                    delay(200)
                     _isVerifySuccess.value = false
                 }
             } catch (e: Exception) {
@@ -134,4 +131,3 @@ class EmailAuthViewModel @Inject constructor(
         }
     }
 }
-

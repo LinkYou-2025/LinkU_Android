@@ -17,8 +17,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 
+
+// 리펙토링하면서 없어질 item
 @Composable
 fun CircleItem(
     emoji: String? = null,
@@ -36,6 +38,9 @@ fun CircleItem(
         Color(0xFFC800FF)
     )
 ) {
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+
     Box(
         modifier = modifier
             .size(sizeDp.dp)
@@ -62,7 +67,7 @@ fun CircleItem(
             if (emoji != null) {
                 Text(
                     text = emoji,
-                    fontFamily = Paperlogy,
+                    fontFamily = paperlogyFamily,
                     fontSize = 24.sp
                 )
             }
@@ -70,7 +75,7 @@ fun CircleItem(
             Text(
                 text = text,
                 fontSize = 14.sp,
-                fontFamily = Paperlogy,
+                fontFamily = paperlogyFamily,
                 textAlign = TextAlign.Center,
                 color = if (selected) Color.White else Color.Black
             )

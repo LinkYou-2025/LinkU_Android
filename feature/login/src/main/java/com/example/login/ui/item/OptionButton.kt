@@ -22,8 +22,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.design.R
-import com.example.login.Paperlogy
+import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.font.Paperlogy
+import com.example.design.util.rememberFigmaDimens
 
 
 //젠더, 직업 선택 버튼
@@ -33,8 +34,12 @@ fun OptionButton(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    height: Dp = 56.dp
+    height: Dp = 54.dp
 ) {
+
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens() // 반응형 유틸 가져오기
+    val paperlogyFamily = Paperlogy.font
     val shape = RoundedCornerShape(18.dp)
 
     val activeBorderGradient = listOf(
@@ -53,11 +58,11 @@ fun OptionButton(
                 if (selected) {
                     Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .height(h(54f))
                 } else {
                     Modifier
-                        .width(372.dp)
-                        .height(54.dp)
+                        .width(w(372f))
+                        .height(h(54f))
                 }
             )
             .clip(shape)
@@ -69,7 +74,7 @@ fun OptionButton(
                     )
                 } else {
                     Modifier.background(
-                        color = Color.White,
+                        color = colorTheme.white,
                         shape = shape
                     )
                 }
@@ -80,12 +85,12 @@ fun OptionButton(
                     Brush.horizontalGradient(activeBorderGradient)
                 else
                     Brush.linearGradient(
-                        listOf(Color(0xFFB7B9BF), Color(0xFFB7B9BF))
+                        listOf(colorTheme.gray[400]!!, colorTheme.gray[400]!!)
                     ),
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 22.dp), // ⭐ 핵심
+            .padding(horizontal = w(22f)),
         contentAlignment = Alignment.CenterStart
     ){
         Row(
@@ -97,36 +102,17 @@ fun OptionButton(
                 text = text,
                 fontSize = 15.sp,
                 lineHeight = 22.sp, // 요구사항 반영
-                fontFamily = Paperlogy,
+                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight.Normal,
-                color = if (selected) {
-                    Color.Black
-                } else {
-                    Color(0xFFA1A3A9)
-                }
+                color = if (selected) colorTheme.black else colorTheme.gray[500]!!
             )
 
             // 선택된 경우만 체크 표시
             if (selected) {
-                Box(
-                    modifier = Modifier
-                        .width(20.dp)
-                        .height(20.dp)
-                        .background(
-                            color = Color(0xFFCB59EB),
-                            shape = RoundedCornerShape(6.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_checkbox_checked),
-                        contentDescription = "선택됨",
-                        modifier = Modifier
-                            .padding(1.5.dp)
-                            .width(9.54546.dp)
-                            .height(7.27273.dp)
-                    )
-                }
+                CheckIndicator(
+                    checked = selected,
+                    modifier = Modifier.size(w(20f))
+                )
             }
         }
     }
@@ -134,15 +120,18 @@ fun OptionButton(
 
 @Preview(
     showBackground = true,
-    backgroundColor = 0xFFF5F6F9,
     name = "OptionButton - 비활성"
 )
 @Composable
 private fun OptionButtonPreview_Unselected() {
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(colorTheme.gray[100]!!)
+            .padding(w(16f)) // 프리뷰 패딩 반응형 적용
     ) {
         OptionButton(
             text = "남성",
@@ -154,15 +143,18 @@ private fun OptionButtonPreview_Unselected() {
 
 @Preview(
     showBackground = true,
-    backgroundColor = 0xFFF5F6F9,
     name = "OptionButton - 활성"
 )
 @Composable
 private fun OptionButtonPreview_Selected() {
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(colorTheme.gray[100]!!)
+            .padding(w(16f)) // 프리뷰 패딩 반응형 적용
     ) {
         OptionButton(
             text = "여성",

@@ -1,33 +1,20 @@
-package com.example.login.auth
+package com.example.login.ui.screen
 
 import CircleItem
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -37,16 +24,18 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 import androidx.compose.ui.unit.Dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.login.R
+import com.example.design.theme.LocalColorTheme
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.StepIndicator
+import com.example.login.viewmodel.SignUpViewModel
 
 /**
  * 관심사 선택 화면의 버블 데이터 클래스
  */
+
+// ui 전면 변경 예정으로, 리펙토링 진행하지 않음.(수정 1월말~2월 초)
 data class Content(val emoji: String, val label: String, val size: Float, val offset: DpOffset)
 
 /**
@@ -94,6 +83,11 @@ fun InterestContentScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel? = null
 ) {
+
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+    val colorTheme = LocalColorTheme.current
+
     val isPreview = LocalInspectionMode.current
     // ViewModel 기존 선택값 복원 (뒤로가기 해도 유지됨)
     val selectedContents = remember {
@@ -121,14 +115,8 @@ fun InterestContentScreen(
             BottomGradientButton(
                 text = "다음",
                 enabled = canProceed,
-                activeGradient = listOf(
-                    Color(0xFF2C6FFF),
-                    Color(0xFFC800FF)
-                ),
-                inactiveGradient = listOf(
-                    Color(0xFF9BCBFF),
-                    Color(0xFFF4AFFF)
-                ),
+                activeGradient = colorTheme.maincolor,
+                inactiveGradient = colorTheme.inactiveColor,
                 onClick = {
                     val codes = selectedContents
                         .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
@@ -183,7 +171,7 @@ fun InterestContentScreen(
                         }
                     },
                     fontSize = 22.sp,
-                    fontFamily = Paperlogy,
+                    fontFamily = paperlogyFamily,
                     fontWeight = FontWeight.Bold
                 )
 
