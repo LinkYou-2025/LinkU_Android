@@ -1,13 +1,13 @@
-package com.example.login.auth
+package com.example.login.ui.animation
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -20,13 +20,32 @@ import androidx.navigation.NavHostController
 import com.example.login.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
+import com.example.design.util.DesignSystemBars
+import androidx.compose.ui.graphics.Color
+import com.example.login.LoginScreen
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
 
 @Composable
 fun AnimatedLoginScreen(
     navigator: NavHostController,
-    onSignUpClick: () -> Unit
+    onSignUpClick: () -> Unit,
+    skipAnimation: Boolean = false
 ) {
+
+    // 1. 디자인 모듈 컬러 테마 가져오기
+    val colorTheme = LocalColorTheme.current
+
+    // 2. 반응형 유틸리티 가져오기
+    val (w, h) = rememberFigmaDimens()
+
+    //로그인 진입 애니메이션도 바텀바 보이니 않도록 설정함.
+    DesignSystemBars(
+        statusBarColor = colorTheme.white, // 디자인 모듈의 white 사용
+        navigationBarColor = colorTheme.white,
+        darkIcons = true, //배경이 화이트이므로 아이콘은 어두운 색(검정)으로 표시(시계, 배터리)
+        immersive = true
+    )
     var hasAnimated by rememberSaveable { mutableStateOf(false) }
 
     val logoOffsetY = remember { Animatable(0f) }
@@ -34,15 +53,34 @@ fun AnimatedLoginScreen(
     val contentAlpha = remember { Animatable(0f) }
 
     val density = LocalDensity.current
+
+    // 피그마 기준 해상도(917)를 반영한 높이 계산
     val screenHeightPx = with(density) {
         LocalConfiguration.current.screenHeightDp.dp.toPx()
     }
 
     val splashCenterY = screenHeightPx / 2f
+
+    //기존 228f 수치를 유지하되 h() 유틸의 계산 방식과 정렬되도록 관리
     val loginLogoY = screenHeightPx * (228f / 917f)
     val startOffsetY = splashCenterY - loginLogoY
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(skipAnimation) {
+        // 이메일 인증에서 돌아온 경우 → 애니메이션 완전 스킵
+        if (skipAnimation) {
+            logoOffsetY.snapTo(0f)
+            logoAlpha.snapTo(1f)
+            contentAlpha.snapTo(1f)
+
+            // 한 번 쓰고 바로 제거함.
+            navigator.currentBackStackEntry
+                ?.savedStateHandle
+                ?.remove<Boolean>("skip_login_animation")
+
+            return@LaunchedEffect
+        }
+
+        // 이미 한 번 애니메이션 했던 경우
         if (hasAnimated) {
             logoOffsetY.snapTo(0f)
             logoAlpha.snapTo(1f)
@@ -63,7 +101,7 @@ fun AnimatedLoginScreen(
                 targetValue = 0f,
                 animationSpec = tween(
                     durationMillis = 1100,           // ⭐ 길게
-                    easing = androidx.compose.animation.core.LinearOutSlowInEasing
+                    easing = LinearOutSlowInEasing
                 )
             )
         }
@@ -75,7 +113,7 @@ fun AnimatedLoginScreen(
                 1f,
                 tween(
                     durationMillis = 500,
-                    easing = androidx.compose.animation.core.LinearEasing
+                    easing = LinearEasing
                 )
             )
         }
@@ -101,8 +139,8 @@ fun AnimatedLoginScreen(
                     painter = painterResource(R.drawable.img_login_logo),
                     contentDescription = "Login Logo",
                     modifier = Modifier
-                        .width(150.dp)
-                        .height(106.dp),
+                        .width(w(150f))  // 로고 너비 반응형 적용 (150dp -> w(150f))
+                        .height(h(106f)),
                     contentScale = ContentScale.Fit
                 )
             }

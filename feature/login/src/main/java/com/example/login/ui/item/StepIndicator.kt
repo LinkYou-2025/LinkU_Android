@@ -14,7 +14,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.font.Paperlogy
+import com.example.design.util.rememberFigmaDimens
 
 @Composable
 fun StepIndicator(
@@ -26,6 +28,16 @@ fun StepIndicator(
     inactiveColor: Color = Color(0xFFD6D6D6),
     completedColor: Color = Color(0xFFE5ACF4)
 ) {
+
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+    val paperlogyFamily = Paperlogy.font
+
+    // 100% 일치하는 컬러만 토큰으로 매칭
+    val finalActiveColor = colorTheme.purple[200]
+    val finalCompletedColor = colorTheme.purple[100]
+    val finalInactiveColor = inactiveColor
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start
@@ -66,7 +78,7 @@ fun StepIndicator(
                             Text(
                                 text = step.toString(),
                                 fontSize = if (isStep3Current) 18.sp else 16.sp,
-                                fontFamily = Paperlogy,
+                                fontFamily = paperlogyFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -76,7 +88,7 @@ fun StepIndicator(
                             Text(
                                 text = step.toString(),
                                 fontSize = 16.sp,
-                                fontFamily = Paperlogy,
+                                fontFamily = paperlogyFamily,
                                 fontWeight = FontWeight.Bold,
                                 color = inactiveColor
                             )
@@ -117,7 +129,7 @@ fun StepIndicator(
             ),
             fontSize = 13.sp,
             lineHeight = 15.sp,
-            fontFamily = Paperlogy,
+            fontFamily = paperlogyFamily,
             fontWeight = FontWeight.Light,
             color = activeColor,
             textAlign = TextAlign.Center

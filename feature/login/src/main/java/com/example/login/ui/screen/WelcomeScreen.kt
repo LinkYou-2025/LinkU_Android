@@ -1,4 +1,4 @@
-package com.example.login.auth
+package com.example.login.ui.screen
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -21,27 +21,34 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.login.R
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
+import com.example.login.viewmodel.SignUpViewModel
 
 
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null // null 허용, 프리뷰 확인용
-    //signUpViewModel: SignUpViewModel = hiltViewModel()
+    signUpViewModel: SignUpViewModel? = null
 ) {
+    //디자인 모듈 가져오기.
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+    val paperlogyFamily = Paperlogy.font
+    val density = LocalDensity.current
+    val configuration = LocalConfiguration.current
 
     // 뒤로가기 막기
     BackHandler {
@@ -77,6 +84,17 @@ fun WelcomeScreen(
         }
     }
 
+    // 하단 동적 패딩 계산 로직 -> 기존 회원가입 바텀 그라데이션 버튼과 동일하게 작동함.
+    val imeBottom = WindowInsets.ime.getBottom(density)
+    val navBottom = WindowInsets.navigationBars.getBottom(density)
+    val screenHeight = configuration.screenHeightDp.dp
+
+    val bottomPadding = when {
+        imeBottom > 0 -> 20.dp
+        navBottom > 0 -> screenHeight * (16f / 917f)
+        else -> screenHeight * (24f / 917f)
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -91,49 +109,53 @@ fun WelcomeScreen(
     ) {
         // 중앙 콘텐츠 (Column)
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
+            // 로고 위치 (394/917)
+            Spacer(modifier = Modifier.height(h(394f)))
             Image(
                 painter = painterResource(id = R.drawable.img_logo_white),
                 contentDescription = "Logo",
-                modifier = Modifier.size(80.dp),
+                Modifier
+                    .offset(x = w(160f) - (configuration.screenWidthDp.dp / 2) + w(46f)) // 시작 너비 보정
+                    .width(w(92f))
+                    .height(h(65f)),
                 contentScale = ContentScale.Fit
             )
 
-            Spacer(modifier = Modifier.height(0.dp))
+            Spacer(modifier = Modifier.height(h(20f)))
 
             Text(
                 text = "링큐에 오신 걸 환영해요!",
-                color = Color.White,
+                color = colorTheme.white,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy
+                fontFamily = paperlogyFamily,
+                modifier = Modifier.fillMaxWidth().padding(start = w(99f)),
+                textAlign = TextAlign.Start
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(h(16f)))
 
             Text(
                 text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
-                color = Color.White,
+                color = colorTheme.white,
                 fontSize = 16.sp,
-                fontFamily = Paperlogy,
+                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Start,
+                modifier = Modifier.fillMaxWidth().padding(start = w(54f))
             )
         }
         // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .align(Alignment.BottomCenter) // 항상 하단 고정
-                .imePadding()                  // 키보드 올라오면 자동 위로
-                .navigationBarsPadding()       // 내비/제스처 바 안전 영역
-                .padding(start = 20.dp, end = 20.dp, bottom = 16.dp)
-                .height(48.dp)
+                .align(Alignment.BottomCenter)
+                .padding(start = w(20f), end = w(20f), bottom = bottomPadding)
+                .height(h(50f))
                 .background(
                     Color.White,
                     shape = RoundedCornerShape(18.dp)
@@ -151,12 +173,8 @@ fun WelcomeScreen(
                 text = "회원가입 완료하기",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                style = TextStyle(
-                    brush = Brush.horizontalGradient(
-                        colors = listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-                    )
-                ),
-                fontFamily = Paperlogy
+                style = TextStyle(brush = colorTheme.maincolor),
+                fontFamily = paperlogyFamily
             )
         }
 

@@ -5,14 +5,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.example.login.auth.SignUpViewModel
+import com.example.login.viewmodel.SignUpViewModel
 import com.example.login.ui.content.TermsAgreementContent
 
 
@@ -31,6 +30,8 @@ fun TermsAgreementSheet(
     onClickMarketing: () -> Unit
 ) {
     if (!visible) return
+
+    //바텀시트 떠 있을 때, 백버튼 = 시트 닫기
 
     NoAnimBottomSheet(
         visible = visible,

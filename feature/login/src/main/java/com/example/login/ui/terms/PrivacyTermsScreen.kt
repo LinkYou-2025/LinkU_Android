@@ -1,11 +1,9 @@
-package com.example.login.auth
+package com.example.login.ui.terms
 
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,15 +17,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.login.R
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 
-/* ─────────────────────────────
-   공통 풋터 버튼 (양식 통일용)
-   ───────────────────────────── */
+//여기 ui가 바뀔 예정 리펙토링 진행하지 않음. 디자인, 약관 확정시 수정(1월 말)
 private val FOOTER_HEIGHT = 50.dp
 private val FOOTER_BOTTOM = 0.dp
 private val EXTRA_GAP = 0.dp
@@ -40,6 +36,10 @@ private fun AgreeFooterButton(
     text: String = "약관에 동의합니다",
     applyNavPadding: Boolean = true,
 ) {
+
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+    
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -63,7 +63,7 @@ private fun AgreeFooterButton(
             text = text,
             color = if (enabled) Color.White else Color.Gray,
             fontWeight = FontWeight.Bold,
-            fontFamily = Paperlogy
+            fontFamily = paperlogyFamily
         )
     }
 }
@@ -77,6 +77,10 @@ fun PrivacyTermsScreen(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
+
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+
     val scrollState = rememberScrollState()
     val isAtBottom by remember { derivedStateOf { scrollState.value >= scrollState.maxValue } }
 
@@ -88,7 +92,7 @@ fun PrivacyTermsScreen(
                         text = "개인정보 처리방침",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 },
@@ -137,7 +141,7 @@ fun PrivacyTermsScreen(
                         text = "개인정보 수집 및 이용 동의서",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         color = Color.Black
                     )
 
@@ -157,7 +161,7 @@ fun PrivacyTermsScreen(
 """.trimIndent(),
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy
+                        fontFamily = paperlogyFamily
                     )
 
                     Spacer(Modifier.height(12.dp))   // ⬅️ 본문 단락 간격 동일
@@ -201,7 +205,7 @@ fun PrivacyTermsScreen(
 """.trimIndent(),
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy
+                        fontFamily = paperlogyFamily
                     )
                 }
             }

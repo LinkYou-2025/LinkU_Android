@@ -19,7 +19,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 import com.example.login.R
 import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.drawBehind
@@ -28,12 +28,15 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
 
 @Composable
 fun PasswordLoginTextField(
@@ -43,10 +46,16 @@ fun PasswordLoginTextField(
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
+    //디자인 모듈.
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+    val paperlogyFamily = Paperlogy.font
+
     val shape = RoundedCornerShape(16.dp)
     val strokeWidth = 1.dp   // LoginTextField와 동일
+    val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
     var isPasswordVisible by remember { mutableStateOf(false) }
-
+    // value 파라미터와 동기화된 TextFieldValue 관리
     var fieldValue by remember {
         mutableStateOf(TextFieldValue(text = value))
     }
@@ -54,14 +63,15 @@ fun PasswordLoginTextField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(56.dp)
+            .height(h(56f))
             .drawBehind {
+                val inset = strokeWidthPx / 2
                 drawRoundRect(
-                    brush = Brush.horizontalGradient(
-                        listOf(
-                            Color(0xFF2C6FFF),
-                            Color(0xFFC800FF)
-                        )
+                    brush = colorTheme.maincolor,
+                    topLeft = androidx.compose.ui.geometry.Offset(inset, inset),
+                    size = androidx.compose.ui.geometry.Size(
+                        width = size.width - strokeWidthPx,
+                        height = size.height - strokeWidthPx
                     ),
                     cornerRadius = CornerRadius(16.dp.toPx()),
                     style = Stroke(width = strokeWidth.toPx())
@@ -82,8 +92,8 @@ fun PasswordLoginTextField(
                     Text(
                         text = hint,
                         fontSize = 14.sp,
-                        fontFamily = Paperlogy,
-                        color = Color(0xFFB7B9BF)
+                        fontFamily = paperlogyFamily,
+                        color = colorTheme.gray[400]!!
                     )
                 },
 
@@ -92,15 +102,15 @@ fun PasswordLoginTextField(
                         TextStyle(
                             fontSize = 14.sp,
                             lineHeight = 16.sp,
-                            fontFamily = Paperlogy,
+                            fontFamily = paperlogyFamily,
                             fontWeight = FontWeight(500),
-                            color = Color(0xFF000208),
+                            color = colorTheme.black,
                             letterSpacing = 0.sp
                         )
                     } else {
                         TextStyle(
                             fontSize = 14.sp,
-                            fontFamily = Paperlogy,
+                            fontFamily = paperlogyFamily,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
                         )
@@ -117,8 +127,8 @@ fun PasswordLoginTextField(
 
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.White, shape)
-                    .padding(end = 40.dp), // 👁 아이콘 공간
+                    .background(colorTheme.white, shape)
+                    .padding(end = w(40f)),// 👁 아이콘 공간
 
                 shape = shape,
 
@@ -142,8 +152,8 @@ fun PasswordLoginTextField(
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 18.dp)
-                    .size(22.dp)
+                    .padding(end = w(18f))
+                    .size(w(22f))
                     .clickable {
                         isPasswordVisible = !isPasswordVisible
                     }
@@ -151,119 +161,6 @@ fun PasswordLoginTextField(
         }
     }
 }
-
-
-//@Composable
-//fun PasswordLoginTextField(
-//    value: String,
-//    onValueChange: (String) -> Unit,
-//    hint: String = "비밀번호",
-//    enabled: Boolean = true,
-//    modifier: Modifier = Modifier
-//) {
-//    val shape = RoundedCornerShape(16.dp)
-//    var isPasswordVisible by remember { mutableStateOf(false) }
-//
-//    var fieldValue by remember {
-//        mutableStateOf(TextFieldValue(text = value))
-//    }
-//
-//    Box(
-//        modifier = modifier
-//            .fillMaxWidth()
-//            .height(56.dp)
-//            .background(
-//                Brush.horizontalGradient(
-//                    listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-//                ),
-//                shape
-//            )
-//            .padding(1.dp)
-//    ) {
-//        Box {
-//            OutlinedTextField(
-//                value = fieldValue,
-//                onValueChange = { newValue ->
-//                    val fixedValue = newValue.copy(composition = null) //밑줄 방지
-//                    fieldValue = fixedValue
-//                    onValueChange(fixedValue.text)
-//                },
-//
-//                placeholder = {
-//                    Text(
-//                        text = hint,
-//                        fontSize = 14.sp,
-//                        fontFamily = Paperlogy,
-//                        color = Color(0xFFB7B9BF)
-//                    )
-//                },
-//
-//                textStyle =
-//                    if (isPasswordVisible) {
-//                        // 👁 비밀번호 보임 상태 (일반 텍스트)
-//                        TextStyle(
-//                            fontSize = 14.sp,
-//                            lineHeight = 16.sp,
-//                            fontFamily = Paperlogy,
-//                            fontWeight = FontWeight.Medium,
-//                            color = Color(0xFF000208),
-//                            letterSpacing = 0.sp
-//                        )
-//                    } else {
-//                        //  비밀번호 숨김 상태 (닷)
-//                        TextStyle(
-//                            fontSize = 14.sp,
-//                            fontFamily = Paperlogy,
-//                            fontWeight = FontWeight.Bold,
-//                            letterSpacing = 2.sp
-//                        )
-//                    },
-//
-//                singleLine = true,
-//                enabled = enabled,
-//
-//                visualTransformation =
-//                    if (isPasswordVisible)
-//                        VisualTransformation.None
-//                    else
-//                        DotPasswordVisualTransformation(),
-//
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(Color.White, shape)
-//                    .padding(end = 40.dp),
-//
-//                shape = shape,
-//
-//                colors = TextFieldDefaults.colors(
-//                    cursorColor = Color.Black,
-//                    focusedIndicatorColor = Color.Transparent,
-//                    unfocusedIndicatorColor = Color.Transparent,
-//                    focusedContainerColor = Color.Transparent,
-//                    unfocusedContainerColor = Color.Transparent
-//                )
-//            )
-//
-//            // 👁 눈 아이콘
-//            Image(
-//                painter = painterResource(
-//                    if (isPasswordVisible)
-//                        R.drawable.ic_password_visibility_on
-//                    else
-//                        R.drawable.ic_password_visibility_off
-//                ),
-//                contentDescription = null,
-//                modifier = Modifier
-//                    .align(Alignment.CenterEnd)
-//                    .padding(end = 18.dp)
-//                    .size(22.dp)
-//                    .clickable {
-//                        isPasswordVisible = !isPasswordVisible
-//                    }
-//            )
-//        }
-//    }
-//}
 
 //커스텀 닷
 class DotPasswordVisualTransformation : VisualTransformation {
@@ -286,12 +183,15 @@ class DotPasswordVisualTransformation : VisualTransformation {
 )
 @Composable
 private fun PasswordLoginTextFieldHiddenPreview() {
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
     var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(colorTheme.gray[100]!!)
+            .padding(w(16f))
     ) {
         PasswordLoginTextField(
             value = password,
@@ -307,12 +207,15 @@ private fun PasswordLoginTextFieldHiddenPreview() {
 )
 @Composable
 private fun PasswordLoginTextFieldVisiblePreview() {
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
     var password by remember { mutableStateOf("password123") }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(colorTheme.gray[100]!!)
+            .padding(w(16f))
     ) {
         // 강제로 눈 열린 상태 확인용
         CompositionLocalProvider {

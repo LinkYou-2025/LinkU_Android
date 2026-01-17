@@ -19,9 +19,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
 import com.example.design.R as DesignR
 
 //약관 동의 3세트
@@ -34,6 +36,12 @@ fun AgreementItem(
     onCheckedChange: (Boolean) -> Unit,
     onRowClick: () -> Unit
 ) {
+
+    // 1. 테마 및 반응형 유틸리티 가져오기
+    val colorTheme = LocalColorTheme.current
+    val (w, h) = rememberFigmaDimens()
+    val paperlogyFamily = Paperlogy.font
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -44,15 +52,15 @@ fun AgreementItem(
         // 체크박스
         Box(
             modifier = Modifier
-                .size(22.dp)
+                .size(w(22f))
                 .border(
                     width = 1.dp,
-                    color = if (checked) Color(0xFFD35EFF) else Color(0xFFD7D9DF),
-                    shape = RoundedCornerShape(6.dp)
+                    color = if (checked) colorTheme.purple[200]!! else colorTheme.gray[300]!!,
+                    shape = RoundedCornerShape(w(6f))
                 )
                 .background(
-                    color = if (checked) Color(0xFFD35EFF) else Color.White,
-                    shape = RoundedCornerShape(6.dp)
+                    color = if (checked) colorTheme.purple[200]!! else colorTheme.white,
+                    shape = RoundedCornerShape(w(6f))
                 )
                 .clickable { onCheckedChange(!checked) },
             contentAlignment = Alignment.Center
@@ -61,15 +69,15 @@ fun AgreementItem(
                 Icon(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(14.dp)
+                    tint = colorTheme.white,
+                    modifier = Modifier.size(w(14f))
                 )
             }
         }
 
-        Spacer(Modifier.width(15.dp))
+        Spacer(Modifier.width(w(15f)))
 
-        // ⭐ 텍스트 영역 (아이콘을 밀어내는 핵심)
+        // 텍스트 영역 (아이콘을 밀어내는 핵심)
         Row(
             modifier = Modifier.weight(1f),
             verticalAlignment = Alignment.CenterVertically
@@ -78,17 +86,18 @@ fun AgreementItem(
                 text = title,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                fontFamily = Paperlogy,
-                fontWeight = FontWeight.Normal
+                fontFamily = paperlogyFamily,
+                fontWeight = FontWeight.Normal,
+                color = colorTheme.black
             )
 
-            Spacer(Modifier.width(5.dp))
+            Spacer(Modifier.width(w(5f)))
 
             Text(
                 text = suffix,
                 fontSize = 12.sp,
                 lineHeight = 14.sp,
-                fontFamily = Paperlogy,
+                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight(400),
                 color = suffixColor
             )
@@ -99,8 +108,8 @@ fun AgreementItem(
             painter = painterResource(id = DesignR.drawable.ic_right),
             contentDescription = null,
             modifier = Modifier
-                .width(8.dp)
-                .height(13.dp)
+                .width(w(8f))
+                .height(h(13f))
         )
     }
 }

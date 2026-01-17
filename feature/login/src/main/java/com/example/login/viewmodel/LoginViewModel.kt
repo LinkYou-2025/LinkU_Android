@@ -1,31 +1,26 @@
-package com.example.login.auth
+package com.example.login.viewmodel
 
-
-
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.model.LoginResult
 import com.example.core.repository.UserRepository
-//import com.example.data.preference.AuthPreference
+import com.example.core.session.SessionStore
+import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import android.util.Log
 import retrofit2.HttpException
 import java.util.concurrent.atomic.AtomicBoolean
-
-//로그인 뷰모델 : 로그인 로직 담당. 레포지토리를 통해 로그인 api 수학.
-//로그인 성공시 사용자 세션 및 userId 전달.
-//예외 발생 시 UI 에러태그 전달.
+import javax.inject.Inject
 
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
     private val repo: UserRepository,
-    private val sessionStore: com.example.core.session.SessionStore,
-    private val authPreference: com.example.data.preference.AuthPreference,
+    private val sessionStore: SessionStore,
+    private val authPreference: AuthPreference,
 ) : ViewModel() {
 
     // UI가 사용할 단일 상태
@@ -123,4 +118,3 @@ open class LoginViewModel @Inject constructor(
         }
     }
 }
-

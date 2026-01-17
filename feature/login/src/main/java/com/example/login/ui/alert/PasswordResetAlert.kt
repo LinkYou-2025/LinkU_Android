@@ -1,4 +1,4 @@
-package com.example.login.auth
+package com.example.login.ui.alert
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,7 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
+import com.example.design.theme.LocalColorTheme
 import com.example.login.R
 
 @Composable
@@ -28,13 +29,18 @@ fun PasswordResetAlert(
     onDismissRequest: () -> Unit = {},
     onConfirmClick: () -> Unit = {}
 ) {
+    // 현재 디자인 테마의 컬러 스킴 가져오기
+    val colorTheme = LocalColorTheme.current
+    val paperlogyFamily = Paperlogy.font
+
+
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier
                 .width(372.dp)
                 .height(246.dp)
                 .background(
-                    color = Color(0xFFFFFFFF),
+                    color = colorTheme.white,
                     shape = RoundedCornerShape(22.dp)
                 )
                 .padding(horizontal = 28.dp),
@@ -57,31 +63,30 @@ fun PasswordResetAlert(
             // 🔹 로고 ↔ 타이틀 간격 23
             Spacer(modifier = Modifier.height(23.dp))
 
-            // 🔹 타이틀
+            // 타이틀
             Text(
                 text = "비밀번호 재설정 메일 전송 완료!",
                 style = TextStyle(
                     fontSize = 18.sp,
                     lineHeight = 22.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight(500),
-                    color = Color(0xFF000208),
+                    fontFamily = paperlogyFamily, // 수정됨
+                    fontWeight = FontWeight.Medium, // 500은 Medium입니다.
+                    color = colorTheme.black,
                     textAlign = TextAlign.Center
                 )
             )
-
             // 🔹 타이틀 ↔ 설명 간격 20
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 🔹 설명 텍스트
+            // 설명 텍스트
             Text(
                 text = "비밀번호 재설정 메일을 발송했습니다.\n메일함을 확인해주세요!",
                 style = TextStyle(
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    fontFamily = Paperlogy,
-                    fontWeight = FontWeight(400),
-                    color = Color(0xFF87898F),
+                    fontFamily = paperlogyFamily, // 수정됨
+                    fontWeight = FontWeight.Normal, // 400은 Normal입니다.
+                    color = colorTheme.gray[600],
                     textAlign = TextAlign.Center
                 )
             )
@@ -94,12 +99,7 @@ fun PasswordResetAlert(
                     .width(316.dp)
                     .height(50.dp)
                     .background(
-                        brush = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFF2C6FFF),
-                                Color(0xFFC800FF)
-                            )
-                        ),
+                        brush = colorTheme.maincolor,
                         shape = RoundedCornerShape(14.dp)
                     )
                     .clickable { onConfirmClick() },
@@ -110,9 +110,9 @@ fun PasswordResetAlert(
                     style = TextStyle(
                         fontSize = 16.sp,
                         lineHeight = 20.sp,
-                        fontFamily = Paperlogy,
-                        fontWeight = FontWeight(700),
-                        color = Color(0xFFFFFFFF),
+                        fontFamily = paperlogyFamily, // 수정됨
+                        fontWeight = FontWeight.Bold, // 700은 Bold입니다.
+                        color = colorTheme.white,
                         textAlign = TextAlign.Center
                     )
                 )

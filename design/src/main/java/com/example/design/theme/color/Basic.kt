@@ -8,7 +8,7 @@ data object Basic: ThemeColorScheme(
     maincolor= Brush.horizontalGradient(
         listOf(
             Color(0xFF2C6FFF),
-            Color(0xFFCB59EB)
+            Color(0xFFC800FF) //수정함.
         )
     ),
     blue = ColorMap(
