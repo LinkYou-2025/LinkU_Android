@@ -42,6 +42,11 @@ class SignUpViewModel @Inject constructor(
         _agreeMarketing.value = v
     }
 
+    //닉네임 아직 검증되지 않음을 확인.
+    fun resetNicknameAvailability() {
+        _isNicknameAvailable.value = null
+        _nicknameMessage.value = null
+    }
 
 
     // 회원가입 전체 데이터
@@ -142,7 +147,5 @@ class SignUpViewModel @Inject constructor(
             }
         }
     }
-
-
 
 }

@@ -47,7 +47,7 @@ fun SignUpNicknameScreen(
 
     //  버튼 활성 조건 (EmailVerificationScreen의 isButtonEnabled와 동일한 느낌)
     val isButtonEnabled = isNicknameValid &&
-            (isNicknameAvailable != false) && // false만 비활성, null(미확인) 허용
+            (isNicknameAvailable == true) && // 중복확인 완료만 허용
             !isLoading
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -87,6 +87,9 @@ fun SignUpNicknameScreen(
                 onValueChange = { input ->
                     nickname = input
                     signUpViewModel.nickname = input
+
+                    // 입력 변경시 이전 결과 초기화
+                    signUpViewModel.resetNicknameAvailability()
 
                     val isValid =
                         input.isNotBlank() && input.length <= 6

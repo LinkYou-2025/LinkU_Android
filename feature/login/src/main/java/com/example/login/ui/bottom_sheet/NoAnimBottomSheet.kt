@@ -33,7 +33,7 @@ fun NoAnimBottomSheet(
     val (w, h) = rememberFigmaDimens()
 
     // 파라미터로 받은 컬러가 없으면 테마의 white 사용
-    val finalContainerColor = containerColor ?: colorTheme.white
+    val finalContainerColor = containerColor
 
     Box(
         modifier = Modifier.fillMaxSize(),
