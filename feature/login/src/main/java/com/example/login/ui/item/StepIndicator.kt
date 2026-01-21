@@ -24,19 +24,16 @@ fun StepIndicator(
     totalSteps: Int,
     label: String,
     modifier: Modifier = Modifier,
-    activeColor: Color = Color(0xFFCB59EB),
-    inactiveColor: Color = Color(0xFFD6D6D6),
-    completedColor: Color = Color(0xFFE5ACF4)
+
 ) {
 
     val colorTheme = LocalColorTheme.current
     val (w, h) = rememberFigmaDimens()
     val paperlogyFamily = Paperlogy.font
 
-    // 100% 일치하는 컬러만 토큰으로 매칭
-    val finalActiveColor = colorTheme.purple[200]
-    val finalCompletedColor = colorTheme.purple[100]
-    val finalInactiveColor = inactiveColor
+    val activeColor = colorTheme.purple[200]
+    val completedColor = colorTheme.purple[100]
+    val inactiveColor = Color(0xFFD6D6D6) // 디자인 토큰 없으면 유지하는 컬러.
 
     Column(
         modifier = modifier,

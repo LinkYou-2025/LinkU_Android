@@ -160,11 +160,11 @@ fun SignUpPasswordScreenContent(
     confirmPassword: String,
     onPasswordChange: (String) -> Unit,
     onConfirmPasswordChange: (String) -> Unit,
+    showConfirmField: Boolean,
     canProceed: Boolean,
     isPasswordComplex: Boolean,
     isPasswordLengthValid: Boolean,
     doPasswordsMatch: Boolean,
-    bottomPadding: Dp,
     onNext: () -> Unit
 ) {
     //디자인 모듈 불러오기.
@@ -229,7 +229,7 @@ fun SignUpPasswordScreenContent(
                 )
             }
 
-            if (password.length >= 8) {
+            if (showConfirmField) {
                 Spacer(Modifier.height(h(20f)))
                 PasswordLoginTextField(
                     value = confirmPassword,
@@ -273,11 +273,11 @@ fun SignUpPasswordScreenContentPreview() {
         confirmPassword = "Test@1234",
         onPasswordChange = {},
         onConfirmPasswordChange = {},
+        showConfirmField = true,
         canProceed = true,
         isPasswordComplex = true,
         isPasswordLengthValid = true,
         doPasswordsMatch = true,
-        bottomPadding = 16.dp,
         onNext = {}
     )
 }

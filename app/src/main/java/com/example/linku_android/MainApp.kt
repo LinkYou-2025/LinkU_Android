@@ -260,38 +260,8 @@ fun MainApp(
                 ) {
 
                     /* ① Login composable */
-                    composable(NavigationRoute.Login.route) { entry ->
-                        val parentEntry = entry
+                    composable(NavigationRoute.Login.route) { parentEntry ->
                         val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
-
-                        val showTermsSheet by parentEntry.savedStateHandle
-                            .getStateFlow("show_terms_sheet", false)
-                            .collectAsStateWithLifecycle()
-
-
-                        // 이메일 인증에서 백버튼으로 갔을 때, 약관 페이지 나오는게 맞는지.
-
-                        //  이메일 인증에서 돌아오는지 확인
-                        var cameFromEmail by remember { mutableStateOf(false) }
-
-                        LaunchedEffect(navigator.currentBackStackEntry) {
-                            if (parentEntry.savedStateHandle.get<Boolean>("from_email_verification") == true) {
-                                cameFromEmail = true
-                                parentEntry.savedStateHandle["show_terms_sheet"] = true
-
-                                kotlinx.coroutines.delay(120)
-
-                                cameFromEmail = false
-                                parentEntry.savedStateHandle["from_email_verification"] = false
-                            }
-                        }
-
-                        // 약간의 지연 + 재렌더링 위해 빈 박스 만듬.
-                        if (cameFromEmail) {
-                            Box(Modifier.fillMaxSize()) {}
-                            return@composable
-                        }
-
 
                         val skipAnimation =
                             parentEntry.savedStateHandle
@@ -299,12 +269,11 @@ fun MainApp(
 
                         AnimatedLoginScreen(
                             navigator = navigator,
-                            skipAnimation = skipAnimation,   // 백버튼시 애니메이션 스탑 플래그 전달
+                            skipAnimation = skipAnimation,
                             onSignUpClick = {
                                 parentEntry.savedStateHandle["show_terms_sheet"] = true
                             }
                         )
-
                     }
 
                     /* ② Service Terms */
@@ -450,7 +419,7 @@ fun MainApp(
 
                     composable("email_login") {
 
-                        val parentEntry = remember {
+                        val parentEntry = remember(navigator.currentBackStackEntry) {
                             navigator.getBackStackEntry("auth_graph")
                         }
 

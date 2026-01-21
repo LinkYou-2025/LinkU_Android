@@ -81,18 +81,22 @@ fun SignUpNicknameScreen(
 
             Spacer(Modifier.height(h(32f)))
 
+            //입력값 기준으로 즉시 판단, 삭제 시 불필요한 호출을 방지하도록 수정함.
             LoginTextField(
                 value = nickname,
-                onValueChange = {
-                    nickname = it
-                    signUpViewModel.nickname = it
-                    if (isNicknameValid) {
+                onValueChange = { input ->
+                    nickname = input
+                    signUpViewModel.nickname = input
+
+                    val isValid =
+                        input.isNotBlank() && input.length <= 6
+
+                    if (isValid) {
                         signUpViewModel.checkNickname()
                     }
                 },
                 hint = "닉네임을 입력해주세요.",
-                modifier = Modifier.fillMaxWidth(),
-
+                modifier = Modifier.fillMaxWidth()
             )
 
             if (isNicknameAvailable == false) {

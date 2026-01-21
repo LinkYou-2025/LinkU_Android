@@ -161,7 +161,7 @@ fun EmailVerificationScreen(
 /**
  * UI만 그리는 프레젠테이션 컴포저블입니다.
  * Preview에서 ViewModel 없이 안전하게 사용 가능.
- * 여기 이메일 인증에서는  """ui"""만 당당합니다
+ * 여기 이메일 인증에서는  """ui"""만 담당합니다
  */
 @Composable
 fun EmailVerificationScreenContent(
@@ -198,7 +198,7 @@ fun EmailVerificationScreenContent(
                     start = w(20f),
                     end = w(20f),
                     top = h(60f),
-                    bottom = h(48f + 24f)
+                    bottom = h(72f)
                 ),
             horizontalAlignment = Alignment.Start
         ) {

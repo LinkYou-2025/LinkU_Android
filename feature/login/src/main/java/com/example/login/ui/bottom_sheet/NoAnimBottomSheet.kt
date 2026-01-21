@@ -23,7 +23,7 @@ fun NoAnimBottomSheet(
     onDismissRequest: () -> Unit,
     scrimColor: Color = Color.Black.copy(alpha = 0.12f),
     shape: Shape,
-    containerColor: Color? = null, // 기본 컨테이너 컬러를 디자인 모듈의 white로 변경
+    containerColor: Color = Color.White, //null 대신 white로 재변경.
     content: @Composable ColumnScope.() -> Unit
 ) {
     if (!visible) return
