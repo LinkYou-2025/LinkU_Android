@@ -267,6 +267,12 @@ fun MainApp(
                             parentEntry.savedStateHandle
                                 .get<Boolean>("skip_login_animation") == true
 
+                        // 읽은 직후 초기화
+                        LaunchedEffect(skipAnimation) {
+                            if (skipAnimation) {
+                                parentEntry.savedStateHandle["skip_login_animation"] = false
+                            }
+                        }
                         AnimatedLoginScreen(
                             navigator = navigator,
                             skipAnimation = skipAnimation,
