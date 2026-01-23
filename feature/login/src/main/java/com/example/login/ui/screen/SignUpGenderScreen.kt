@@ -35,7 +35,7 @@ fun SignUpGenderScreen(
 
 
     // 성별 선택 상태: 1 = 남성, 2 = 여성
-    var selectedGender by remember { mutableStateOf(signUpViewModel.gender) }
+    var selectedGender by remember { mutableStateOf<Int?>(null) }
 
     //var selectedGender by remember { mutableStateOf<Int?>(null) }
     val isButtonEnabled = selectedGender != null

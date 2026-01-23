@@ -84,7 +84,7 @@ fun LoginScreen(
                 Spacer(
                     modifier = Modifier
                         .fillMaxHeight(228f / 917f)
-                        .height(logoOffsetY.scaler)
+                        .height(logoOffsetY.dp)
                 )
 
                 // 애니메이션 이후 로고가 들어올 자리
