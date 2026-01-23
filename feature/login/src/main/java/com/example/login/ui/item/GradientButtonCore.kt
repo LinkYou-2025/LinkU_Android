@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.design.theme.font.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 //여백 없는 순수 로그인 버튼 코어
 @Composable
@@ -34,12 +35,11 @@ fun GradientButtonCore(
 ) {
     // 2. 디자인 모듈의 폰트 패밀리 가져오기
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens() // 반응형 적용
-    val paperlogyFamily = Paperlogy.font
+
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(h(50f)) // 🔑 높이 반응형 (50.dp -> h(50f))
+            .height((50.scaler))
             .background(
                 brush = if (enabled) activeGradient else inactiveGradient,
                 shape = RoundedCornerShape(18.dp)
@@ -53,7 +53,7 @@ fun GradientButtonCore(
             fontSize = 16.sp,
             lineHeight = 20.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = paperlogyFamily,
+            fontFamily = Paperlogy.font,
             textAlign = TextAlign.Center
         )
     }

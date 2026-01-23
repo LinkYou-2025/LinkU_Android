@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.design.theme.font.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.login.R
 
 @Composable
@@ -36,16 +37,13 @@ fun SocialLoginButton(
     onClick: () -> Unit = {}
 ) {
 
-    // 1. 테마 및 반응형 유틸리티 가져오기
-    val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = w(372f)) // 너비 반응형 적용
-            .height(h(50f)),
+            .widthIn(max = (372.scaler)) // 너비 반응형 적용
+            .height((50.scaler)),
         color = backgroundColor,
         shape = RoundedCornerShape(18.dp),
         border = borderColor?.let { BorderStroke(1.dp, it) }
@@ -58,7 +56,7 @@ fun SocialLoginButton(
                     interactionSource = remember { MutableInteractionSource() },
                     onClick = onClick
                 )
-                .padding(horizontal = w(18f)),
+                .padding(horizontal = (18.scaler)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -68,15 +66,15 @@ fun SocialLoginButton(
                 Image(
                     painter = painterResource(iconRes),
                     contentDescription = null,
-                    modifier = Modifier.size(w(22f))
+                    modifier = Modifier.size((22.scaler))
                 )
 
-                Spacer(modifier = Modifier.width(w(8f)))
+                Spacer(modifier = Modifier.width((8.scaler)))
             }
 
             Text(
                 text = text,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -90,7 +88,6 @@ fun SocialLoginButton(
 @Composable
 fun SocialLoginButtonPreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -101,9 +98,9 @@ fun SocialLoginButtonPreview() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = w(20f)), // 좌우 여백 20
+                .padding(horizontal = (20.scaler)), // 좌우 여백 20
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(h(10f)) //반응형으로 변경.ㄴ
+            verticalArrangement = Arrangement.spacedBy((10.scaler)) //반응형으로 변경.ㄴ
         ) {
 
             // 카카오

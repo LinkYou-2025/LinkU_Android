@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 @Composable
 fun PasswordLoginTextField(
@@ -48,8 +49,6 @@ fun PasswordLoginTextField(
 ) {
     //디자인 모듈.
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
 
     val shape = RoundedCornerShape(16.dp)
     val strokeWidth = 1.dp   // LoginTextField와 동일
@@ -63,7 +62,7 @@ fun PasswordLoginTextField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(h(56f))
+            .height((56.scaler))
             .drawBehind {
                 val inset = strokeWidthPx / 2
                 drawRoundRect(
@@ -92,7 +91,7 @@ fun PasswordLoginTextField(
                     Text(
                         text = hint,
                         fontSize = 14.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         color = colorTheme.gray[400]!!
                     )
                 },
@@ -102,7 +101,7 @@ fun PasswordLoginTextField(
                         TextStyle(
                             fontSize = 14.sp,
                             lineHeight = 16.sp,
-                            fontFamily = paperlogyFamily,
+                            fontFamily = Paperlogy.font,
                             fontWeight = FontWeight(500),
                             color = colorTheme.black,
                             letterSpacing = 0.sp
@@ -110,7 +109,7 @@ fun PasswordLoginTextField(
                     } else {
                         TextStyle(
                             fontSize = 14.sp,
-                            fontFamily = paperlogyFamily,
+                            fontFamily = Paperlogy.font,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp
                         )
@@ -128,7 +127,7 @@ fun PasswordLoginTextField(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(colorTheme.white, shape)
-                    .padding(end = w(40f)),// 👁 아이콘 공간
+                    .padding(end = (40.scaler)),// 👁 아이콘 공간
 
                 shape = shape,
 
@@ -152,8 +151,8 @@ fun PasswordLoginTextField(
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = w(18f))
-                    .size(w(22f))
+                    .padding(end = (18.scaler))
+                    .size((22.scaler))
                     .clickable {
                         isPasswordVisible = !isPasswordVisible
                     }
@@ -184,14 +183,13 @@ class DotPasswordVisualTransformation : VisualTransformation {
 @Composable
 private fun PasswordLoginTextFieldHiddenPreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
     var password by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(colorTheme.gray[100]!!)
-            .padding(w(16f))
+            .padding((16.scaler))
     ) {
         PasswordLoginTextField(
             value = password,
@@ -208,14 +206,13 @@ private fun PasswordLoginTextFieldHiddenPreview() {
 @Composable
 private fun PasswordLoginTextFieldVisiblePreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
     var password by remember { mutableStateOf("password123") }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(colorTheme.gray[100]!!)
-            .padding(w(16f))
+            .padding((16.scaler))
     ) {
         // 강제로 눈 열린 상태 확인용
         CompositionLocalProvider {

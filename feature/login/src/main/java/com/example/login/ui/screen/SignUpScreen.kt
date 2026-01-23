@@ -24,6 +24,7 @@ import com.example.login.R
 import com.example.design.theme.font.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 //어차피.. 수정되니까.. 리펙X
 @Preview(showBackground = true)
@@ -32,14 +33,13 @@ fun PasswordResetScreen() {
 
     // 1. 디자인 시스템 토큰 및 반응형 유틸 가져오기
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(colorTheme.white) // 배경 시스템 화이트 적용
-            .padding(horizontal = w(16f), vertical = h(80f)),
+            .padding(horizontal = (16.scaler), vertical = (80.scaler)),
         verticalArrangement = Arrangement.SpaceBetween, // 상단/하단 나눠서
         horizontalAlignment = Alignment.Start // 왼쪽 정렬
     ) {
@@ -52,41 +52,41 @@ fun PasswordResetScreen() {
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.logo_whiteback),
                 contentDescription = "Logo",
-                modifier = Modifier.size(width = w(105f), height = h(105f)),
+                modifier = Modifier.size(width = (105.scaler), height = (105.scaler)),
                 tint = Color.Unspecified
             )
 
-            Spacer(modifier = Modifier.height(h(-8f)))
+            Spacer(modifier = Modifier.height((-8.scaler)))
 
             // 타이틀
             Text(
                 "비밀번호 재설정",
                 fontSize = 22.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black,
                 textAlign = TextAlign.Start
             )
 
-            Spacer(modifier = Modifier.height(h(4f)))
+            Spacer(modifier = Modifier.height((4.scaler)))
 
             // 서브텍스트
             Text(
                 "걱정 마세요! 이메일 주소를 입력해 주시면,\n임시 비밀번호를 보내드릴게요!",
                 fontSize = 13.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.gray[600]!!,
                 textAlign = TextAlign.Start
             )
 
-            Spacer(modifier = Modifier.height(h(32f)))
+            Spacer(modifier = Modifier.height((32.scaler)))
 
             // 이메일 입력 필드
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(h(56f))
+                    .height((56.scaler))
                     .background(
                         brush = colorTheme.maincolor,
                         shape = RoundedCornerShape(16.dp)
@@ -100,7 +100,7 @@ fun PasswordResetScreen() {
                         Text(
                             "이메일 주소를 입력해주세요.",
                             fontSize = 13.sp,
-                            fontFamily = paperlogyFamily,
+                            fontFamily = Paperlogy.font,
                             fontWeight = FontWeight.Normal,
                             color = colorTheme.gray[400]!!
                         )
@@ -124,7 +124,7 @@ fun PasswordResetScreen() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(h(48f))
+                .height((48.scaler))
                 .background(
                     brush = colorTheme.inactiveColor,
                     shape = RoundedCornerShape(18.dp)
@@ -134,7 +134,7 @@ fun PasswordResetScreen() {
             Text(
                 text = "임시 비밀번호 받기",
                 color = Color.White,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )

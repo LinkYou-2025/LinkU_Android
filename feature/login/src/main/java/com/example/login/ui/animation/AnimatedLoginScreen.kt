@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import com.example.login.LoginScreen
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 @Composable
 fun AnimatedLoginScreen(
@@ -36,8 +37,6 @@ fun AnimatedLoginScreen(
     // 1. 디자인 모듈 컬러 테마 가져오기
     val colorTheme = LocalColorTheme.current
 
-    // 2. 반응형 유틸리티 가져오기
-    val (w, h) = rememberFigmaDimens()
 
     //로그인 진입 애니메이션도 바텀바 보이니 않도록 설정함.
     DesignSystemBars(
@@ -139,8 +138,8 @@ fun AnimatedLoginScreen(
                     painter = painterResource(R.drawable.img_login_logo),
                     contentDescription = "Login Logo",
                     modifier = Modifier
-                        .width(w(150f))  // 로고 너비 반응형 적용 (150dp -> w(150f))
-                        .height(h(106f)),
+                        .width(150.scaler)
+                        .height(106.scaler),
                     contentScale = ContentScale.Fit
                 )
             }

@@ -25,9 +25,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
+import com.example.design.theme.LocalColorTheme
 import com.example.design.util.DesignSystemBars
 import com.example.login.ui.item.SocialLoginButton
 import com.example.design.theme.font.Paperlogy
+import com.example.design.util.scaler
 
 
 @Composable
@@ -40,8 +42,7 @@ fun LoginScreen(
     
 ) {
 
-    // 2. 디자인 모듈의 폰트 패밀리 변수화
-    val paperlogyFamily = Paperlogy.font
+    val colorTheme = LocalColorTheme.current
 
     // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
     DesignSystemBars(
@@ -73,7 +74,7 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = 32.scaler)
         ) {
 
             Column(
@@ -83,7 +84,7 @@ fun LoginScreen(
                 Spacer(
                     modifier = Modifier
                         .fillMaxHeight(228f / 917f)
-                        .height(logoOffsetY.dp)
+                        .height(logoOffsetY.scaler)
                 )
 
                 // 애니메이션 이후 로고가 들어올 자리
@@ -100,7 +101,7 @@ fun LoginScreen(
 //                }
 
                 // 로고 아래 30dp 간격
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(30.scaler))
 
                 Column(
                     modifier = Modifier.alpha(contentAlpha),
@@ -111,20 +112,20 @@ fun LoginScreen(
                         text = "Link U, Think You",
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = Color.White,
                         textAlign = TextAlign.Center
                     )
 
                     // 문구 간 25dp 간격
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(25.scaler))
 
                     Text(
                         text = "링큐에 오신 것을 \n환영해요",
                         fontSize = 22.sp,
                         lineHeight = 30.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(700),
                         color = Color.White,
                         textAlign = TextAlign.Center
@@ -140,22 +141,22 @@ fun LoginScreen(
         val imeBottom = WindowInsets.ime.getBottom(density)
         val navBottom = WindowInsets.navigationBars.getBottom(density)
 
-        val bottomPadding = when {
+        val bottomPadding = (when {
             imeBottom > 0 -> 20.dp
             navBottom > 0 -> 16.dp
             else -> 24.dp
-        } + 70.dp //바텀 네비게이션 바 대신 그만큼 올리기!
+        } + 70.dp).value.scaler//바텀 네비게이션 바 대신 그만큼 올리기!
 
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .alpha(contentAlpha)
                 .padding(
-                    start = 20.dp,
-                    end = 20.dp,
+                    start = 20.scaler,
+                    end = 20.scaler,
                     bottom = bottomPadding
                 ),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.scaler),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 

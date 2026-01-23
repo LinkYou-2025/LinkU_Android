@@ -18,6 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.ui.unit.Dp
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.StepIndicator
@@ -34,8 +35,7 @@ fun SignUpPasswordScreen(
 
     //디자인 모듈
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
 
     BackHandler { navigator.popBackStack() }
@@ -61,10 +61,10 @@ fun SignUpPasswordScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(52f),
-                    bottom = h(48f + 24f)
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (52.scaler),
+                    bottom = (72.scaler)
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -75,16 +75,16 @@ fun SignUpPasswordScreen(
                 label = "계정 정보"
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             Text(
                 text = "사용하실 비밀번호를\n 입력해주세요",
                 fontSize = 22.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             // 비밀번호 입력  : 눈 가리개 있는 것으로 교체
             PasswordLoginTextField(
@@ -96,13 +96,13 @@ fun SignUpPasswordScreen(
                 hint = "비밀번호를 입력해주세요."
             )
 
-            Spacer(Modifier.height(h(10f)))
+            Spacer(Modifier.height((10.scaler)))
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = w(12f)),
-                verticalArrangement = Arrangement.spacedBy(h(8f))
+                    .padding(start = (12.scaler)),
+                verticalArrangement = Arrangement.spacedBy((8.scaler))
             ) {
                 PasswordRuleItem(
                     text = "영문, 숫자, 특수기호 조합",
@@ -115,7 +115,7 @@ fun SignUpPasswordScreen(
             }
 
             if (showConfirmField) {
-                Spacer(Modifier.height(h(20f)))
+                Spacer(Modifier.height((20.scaler)))
 
                 // 비밀번호 확인 눈 가리개 있는 거로 교체
                 PasswordLoginTextField(
@@ -128,11 +128,11 @@ fun SignUpPasswordScreen(
                     Text(
                         text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
                         fontSize = 13.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         color = Color(0xFFFF5E5E),
                         modifier = Modifier.padding(
-                            start = w(8f),
-                            top = h(4f)
+                            start = (8.scaler),
+                            top = (4.scaler)
                         )
                     )
                 }
@@ -169,8 +169,7 @@ fun SignUpPasswordScreenContent(
 ) {
     //디자인 모듈 불러오기.
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
     Box(modifier = Modifier.fillMaxSize().background(colorTheme.white)) {
 
@@ -178,10 +177,10 @@ fun SignUpPasswordScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(52f),
-                    bottom = h(72f)
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (60.scaler),
+                    bottom = (72.scaler)
                 )
         ) {
             StepIndicator(
@@ -190,17 +189,18 @@ fun SignUpPasswordScreenContent(
                 label = "계정 정보"
             )
 
-            Spacer(Modifier.height(h(36f)))
+            Spacer(Modifier.height((36.scaler)))
 
             Text(
-                text = "사용하실 비밀번호를\n 입력해주세요",
+                text = "사용하실 비밀번호를\n입력해주세요",
                 fontSize = 22.sp,
-                fontFamily = paperlogyFamily,
+                lineHeight = 30.sp,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             PasswordLoginTextField(
                 value = password,
@@ -208,14 +208,13 @@ fun SignUpPasswordScreenContent(
                 hint = "비밀번호를 입력해주세요."
             )
 
-            Spacer(Modifier.height(h(12f)))
+            Spacer(Modifier.height((12.scaler)))
 
             // 조건 표시(체크박스 활성화/비활성화)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = w(12f)),
-                horizontalArrangement = Arrangement.spacedBy(w(24f)),
+                    .padding(start = (12.scaler)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PasswordRuleItem(
@@ -223,14 +222,17 @@ fun SignUpPasswordScreenContent(
                     satisfied = isPasswordComplex
                 )
 
+                Spacer(modifier = Modifier.width((15.scaler)))
+
                 PasswordRuleItem(
                     text = "8~20자",
                     satisfied = isPasswordLengthValid
                 )
             }
 
+
             if (showConfirmField) {
-                Spacer(Modifier.height(h(20f)))
+                Spacer(Modifier.height((20.scaler)))
                 PasswordLoginTextField(
                     value = confirmPassword,
                     onValueChange = onConfirmPasswordChange,
@@ -241,9 +243,9 @@ fun SignUpPasswordScreenContent(
                     Text(
                         text = "비밀번호가 일치하지 않습니다.",
                         fontSize = 13.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         color = Color(0xFFFF5E5E),
-                        modifier = Modifier.padding(start = w(8f), top = h(4f))
+                        modifier = Modifier.padding(start = (8.scaler), top = (4.scaler))
                     )
                 }
             }

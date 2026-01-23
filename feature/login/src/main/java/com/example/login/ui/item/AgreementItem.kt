@@ -24,6 +24,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.design.R as DesignR
 
 //약관 동의 3세트
@@ -39,7 +40,6 @@ fun AgreementItem(
 
     // 1. 테마 및 반응형 유틸리티 가져오기
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
     val paperlogyFamily = Paperlogy.font
 
     Row(
@@ -52,15 +52,15 @@ fun AgreementItem(
         // 체크박스
         Box(
             modifier = Modifier
-                .size(w(22f))
+                .size((22.scaler))
                 .border(
                     width = 1.dp,
                     color = if (checked) colorTheme.purple[200]!! else colorTheme.gray[300]!!,
-                    shape = RoundedCornerShape(w(6f))
+                    shape = RoundedCornerShape((6.scaler))
                 )
                 .background(
                     color = if (checked) colorTheme.purple[200]!! else colorTheme.white,
-                    shape = RoundedCornerShape(w(6f))
+                    shape = RoundedCornerShape((6.scaler))
                 )
                 .clickable { onCheckedChange(!checked) },
             contentAlignment = Alignment.Center
@@ -70,12 +70,12 @@ fun AgreementItem(
                     imageVector = Icons.Default.Check,
                     contentDescription = null,
                     tint = colorTheme.white,
-                    modifier = Modifier.size(w(14f))
+                    modifier = Modifier.size((14.scaler))
                 )
             }
         }
 
-        Spacer(Modifier.width(w(15f)))
+        Spacer(Modifier.width((15.scaler)))
 
         // 텍스트 영역 (아이콘을 밀어내는 핵심)
         Row(
@@ -91,7 +91,7 @@ fun AgreementItem(
                 color = colorTheme.black
             )
 
-            Spacer(Modifier.width(w(5f)))
+            Spacer(Modifier.width((5.scaler)))
 
             Text(
                 text = suffix,
@@ -108,8 +108,8 @@ fun AgreementItem(
             painter = painterResource(id = DesignR.drawable.ic_right),
             contentDescription = null,
             modifier = Modifier
-                .width(w(8f))
-                .height(h(13f))
+                .width((8.scaler))
+                .height((13.scaler))
         )
     }
 }

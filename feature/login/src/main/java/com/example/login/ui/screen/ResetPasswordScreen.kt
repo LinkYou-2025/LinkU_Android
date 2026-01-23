@@ -28,6 +28,7 @@ import com.example.login.ui.item.ResetPasswordTopHeader
 import com.example.design.util.rememberFigmaDimens
 import com.example.login.viewmodel.ResetPasswordViewModel
 import com.example.design.theme.LocalColorTheme
+import com.example.design.util.scaler
 
 // =======================
 // 실제 Screen (ViewModel 사용)
@@ -39,8 +40,7 @@ fun ResetPasswordScreen(
 ) {
     //디자인 모듈 불러오기.
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens() // Figma 412×917 기준 반응형
-    val paperlogyFamily = Paperlogy.font
+
 
     // 🔑 Preview면 viewModel == null
     val ui = viewModel?.ui?.collectAsState()?.value
@@ -68,52 +68,52 @@ fun ResetPasswordScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = w(20f)),
+                .padding(horizontal = (20.scaler)),
             horizontalAlignment = Alignment.Start
         ) {
 
             // 헤더 밀기
-            Spacer(modifier = Modifier.height(h(59f)))
+            Spacer(modifier = Modifier.height((59.scaler)))
 
             // 로고 위 여백 (38 / 917)
-            Spacer(modifier = Modifier.height(h(38f)))
+            Spacer(modifier = Modifier.height((38.scaler)))
 
             Image(
                 painter = painterResource(id = R.drawable.ic_logo_color),
                 contentDescription = null,
                 modifier = Modifier
-                    .width(w(56.4f)) // 반응형 너비
-                    .height(h(40f)), // 반응형 높이
+                    .width((56.scaler)) // 반응형 너비
+                    .height((40.scaler)), // 반응형 높이
                 contentScale = ContentScale.Fit
 
             )
 
             // 로고-제목 간격 (18 / 917)
-            Spacer(modifier = Modifier.height(h(18f)))
+            Spacer(modifier = Modifier.height((18.scaler)))
 
             Text(
                 text = "비밀번호 재설정",
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 color = colorTheme.black
             )
 
             // 제목-설명 간격 (22 / 917)
-            Spacer(modifier = Modifier.height(h(22f)))
+            Spacer(modifier = Modifier.height((22.scaler)))
 
             Text(
                 text = "링큐에 가입했던 이메일을 입력해주세요. \n비밀번호를 다시 설정할 수 있는 메일을 보내드릴게요.",
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight(400),
                 color = colorTheme.gray[600]!!
             )
 
             // 설명-입력창 간격 (45 / 917)
-            Spacer(modifier = Modifier.height(h(45f)))
+            Spacer(modifier = Modifier.height((45.scaler)))
 
             LoginTextField(
                 value = email,
@@ -125,14 +125,14 @@ fun ResetPasswordScreen(
             )
 
             if (ui?.error != null) {
-                Spacer(Modifier.height(h(8f)))
+                Spacer(Modifier.height((8f.scaler)))
                 Text(
                     text = ui.error,
                     color = Color(0xFFFF3B30),
                     fontSize = 12.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     modifier = Modifier.padding(
-                        start = w(8f)
+                        start = (8.scaler)
                     )
 
                 )

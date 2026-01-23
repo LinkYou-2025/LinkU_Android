@@ -10,6 +10,8 @@ import com.example.design.theme.color.ThemeColorScheme
 import com.example.design.theme.font.Paperlogy
 import com.example.design.theme.font.ThemeFontScheme
 import com.example.design.theme.font.getTypography
+import com.example.design.util.LocalFigmaDimens
+import com.example.design.util.rememberFigmaDimens
 
 val LocalColorTheme = compositionLocalOf<ThemeColorScheme> { Basic }
 val LocalFontTheme = compositionLocalOf<ThemeFontScheme> { Paperlogy }
@@ -22,9 +24,13 @@ fun ThemeProvider(
 ) {
     val currentTypography = MaterialTheme.typography
 
+    // scaler 함수 생성
+    val figmaScale = rememberFigmaDimens()
+
     CompositionLocalProvider(
         LocalColorTheme provides colorScheme,
         LocalFontTheme provides fontScheme,
+        LocalFigmaDimens provides figmaScale
     ) {
         MaterialTheme(
             typography = remember(key1 = fontScheme, key2 = currentTypography) {

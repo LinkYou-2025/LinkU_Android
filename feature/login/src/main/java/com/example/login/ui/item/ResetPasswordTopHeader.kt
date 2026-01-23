@@ -19,6 +19,7 @@ import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 @Composable
 fun ResetPasswordTopHeader(
@@ -28,11 +29,10 @@ fun ResetPasswordTopHeader(
 
     // 1. 테마 및 반응형 유틸리티 가져오기
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
 
     // 피그마 기준 해상도(412x917) 대비 반응형 좌표 계산
-    val topOffset = h(59f)
-    val startPadding = w(20f)
+    val topOffset = (59.scaler)
+    val startPadding = (20.scaler)
 
     Box(
         modifier = modifier
@@ -47,8 +47,8 @@ fun ResetPasswordTopHeader(
             painter = painterResource(id = R.drawable.ic_back_black),
             contentDescription = "뒤로가기",
             modifier = Modifier
-                .width(w(11f))  //  너비 반응형 적용
-                .height(h(20f))
+                .width((11.scaler))  //  너비 반응형 적용
+                .height((20.scaler))
                 .noRippleClickable { onBack() }
         )
     }

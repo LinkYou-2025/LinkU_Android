@@ -34,6 +34,7 @@ import com.example.design.util.rememberFigmaDimens
 import com.example.login.viewmodel.EmailAuthViewModel
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.design.theme.LocalColorTheme
+import com.example.design.util.scaler
 
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
@@ -186,8 +187,7 @@ fun EmailVerificationScreenContent(
 
     //디자인 모듈 불러오기
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()     //  Figma 412×917 기준 반응형
-    val paperlogyFamily = Paperlogy.font
+
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -195,10 +195,10 @@ fun EmailVerificationScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(60f),
-                    bottom = h(72f)
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (60.scaler),
+                    bottom = (72.scaler)
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -208,16 +208,16 @@ fun EmailVerificationScreenContent(
                 totalSteps = 3,
                 label = "계정 정보"
             )
-            Spacer(modifier = Modifier.height(h(36f)))
+            Spacer(modifier = Modifier.height((36.scaler)))
             Text(
                 text = "가입을 위한 이메일 주소를\n인증해주세요",
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 color = Color.Black
             )
-            Spacer(modifier = Modifier.height(h(32f)))
+            Spacer(modifier = Modifier.height((32.scaler)))
             // 이메일 입력 필드
 
                 //이메일 입력 필드
@@ -236,22 +236,22 @@ fun EmailVerificationScreenContent(
                 else -> null
             }
             emailErrorText?.let {
-                Spacer(modifier = Modifier.height(h(6f)))
+                Spacer(modifier = Modifier.height((6.scaler)))
                 Text(
                     text = it,
                     color = Color(0xFFFF5E5E),
                     fontSize = 13.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.offset(
-                        x = w(4f)
+                        x = (4.scaler)
                     )
 
                 )
             }
             // 인증 코드 입력 영역 이건 타이머가 있어서 따로 요소 불러오지 않고 여기서만.
             if (isCodeSent) {
-                Spacer(modifier = Modifier.height(h(10f)))
+                Spacer(modifier = Modifier.height((10.scaler)))
                 OutlinedTextField(
                     value = code,
                     onValueChange = onCodeChange,
@@ -259,13 +259,13 @@ fun EmailVerificationScreenContent(
                         Text(
                             "코드를 입력해주세요",
                             fontSize = 14.sp,
-                            fontFamily = paperlogyFamily,
+                            fontFamily = Paperlogy.font,
                             color = colorTheme.gray[400]!!
                         )
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(h(56f))
+                        .height((56.scaler))
                         .background(colorTheme.white, shape = RoundedCornerShape(16.dp))
                         .border(
                             width = 1.dp,
@@ -276,15 +276,15 @@ fun EmailVerificationScreenContent(
                     singleLine = true,
                     enabled = !isVerifying,
                     trailingIcon = {
-                        val textModifier = Modifier.padding(end = w(12f))
+                        val textModifier = Modifier.padding(end = (12.scaler))
                         if (sendResult == "서버 오류") {
                             Text(
                                 text = "서버 오류",
                                 color = Color(0xFFFF5E5E),
                                 fontSize = 13.sp,
                                 lineHeight = 15.sp,
-                                fontFamily = paperlogyFamily,
-                                modifier = Modifier.padding(end = w(22f)),
+                                fontFamily = Paperlogy.font,
+                                modifier = Modifier.padding(end = (22.scaler)),
                                 textAlign = TextAlign.Right
                             )
                         } else {
@@ -292,7 +292,7 @@ fun EmailVerificationScreenContent(
                                 text = timerText,
                                 color = Color(0xFFFF5E5E),
                                 fontSize = 13.sp,
-                                fontFamily = paperlogyFamily,
+                                fontFamily = Paperlogy.font,
                                 modifier = textModifier
                             )
                         }
@@ -314,27 +314,27 @@ fun EmailVerificationScreenContent(
                 }
 
                 codeErrorText?.let {
-                    Spacer(modifier = Modifier.height(h(12f)))
+                    Spacer(modifier = Modifier.height((12.scaler)))
                     Text(
                         text = it,
                         color = Color(0xFFFF5E5E),
                         fontSize = 13.sp,
                         lineHeight = 15.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(400),
                         modifier = Modifier.padding(
-                            start = w(12f)
+                            start = (12.scaler)
                         )
                     )
                 }//TODO : 하진 언니한테 오류 멘트 받아올 수 있는 api 수정 부탁하기!
 
             } else if (sendResult == "서버 오류") {
-                Spacer(modifier = Modifier.height(h(8f)))
+                Spacer(modifier = Modifier.height((8.scaler)))
                 Text(
                     text = "서버 오류: 잠시 후 다시 시도해주세요",
                     color = Color.Red,
                     fontSize = 13.sp,
-                    modifier = Modifier.padding(h(8f))
+                    modifier = Modifier.padding((8.scaler))
                 )
             }
         }
@@ -353,14 +353,14 @@ fun EmailVerificationScreenContent(
                 text = "인증번호가 오지 않는다면?",
                 fontSize = 12.sp,
                 lineHeight = 20.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight(500),
                 color = colorTheme.gray[400]!!,
                 textAlign = TextAlign.Center,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .padding(
-                        bottom = h(21f)
+                        bottom = (21.scaler)
                     )
                     .clickable {
                         // TODO: 재전송 안내 api 개발시 연동하기!
