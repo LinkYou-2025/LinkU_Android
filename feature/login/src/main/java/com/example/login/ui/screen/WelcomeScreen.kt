@@ -57,7 +57,9 @@ fun WelcomeScreen(
     //여기만 안드로이드 자체 바텀바 컬러 변경
     val view = LocalView.current
     DisposableEffect(Unit) {
-        val window = (view.context as Activity).window
+        val activity = view.context as? Activity
+            ?: return@DisposableEffect onDispose { }
+        val window = activity.window
         val insetsController = WindowCompat.getInsetsController(window, view)
 
         //  기존 값 백업
