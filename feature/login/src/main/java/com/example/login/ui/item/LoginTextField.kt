@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 //회원가입 중 입력 텍스트 필드
 @Composable
@@ -49,8 +50,6 @@ fun LoginTextField(
 
     // 디자인 모듈
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
 
     val shape = RoundedCornerShape(16.dp)
     val strokeWidth = 1.dp
@@ -58,7 +57,7 @@ fun LoginTextField(
 
     Box(
         modifier = modifier
-            .height(h(56f))
+            .height((56.scaler))
             .drawBehind {
                 // 선의 절반 두께만큼 안쪽으로 좌표를 오프셋 시킴(좌우 테두리 잘림 방지)
                 val inset = strokeWidthPx / 2
@@ -87,14 +86,14 @@ fun LoginTextField(
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[400]!!
                 )
             },
 
             textStyle = textStyle ?: TextStyle(
                 fontSize = 14.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.black
             ),
@@ -137,13 +136,12 @@ fun LoginTextField(
 @Composable
 fun LoginTextFieldPreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
     val text = remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
             .background(colorTheme.gray[100]!!)
-            .padding(w(16f))
+            .padding((16.scaler))
     ) {
         // 그라데이션 테두리 ON
         LoginTextField(
@@ -152,7 +150,7 @@ fun LoginTextFieldPreview() {
             hint = "이메일을 입력해주세요"
         )
 
-        Spacer(modifier = Modifier.height(h(16f)))
+        Spacer(modifier = Modifier.height((16.scaler)))
 
         // 그라데이션 테두리 OFF
         LoginTextField(

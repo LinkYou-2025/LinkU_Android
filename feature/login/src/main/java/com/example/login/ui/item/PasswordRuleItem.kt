@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.font.Paperlogy
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.login.R
 
 
@@ -32,24 +33,18 @@ fun PasswordRuleItem(
     modifier: Modifier = Modifier
 ) {
 
-    // 1. 테마 및 반응형 유틸리티 가져오기
-    val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
-
-
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         CheckIndicator(checked = satisfied) //체크박스(활성화/비활성화)
 
-        Spacer(modifier = Modifier.width(w(8f)))
+        Spacer(modifier = Modifier.width((8.scaler)))
 
         Text(
             text = text,
             fontSize = 12.sp,
-            fontFamily = paperlogyFamily,
+            fontFamily = Paperlogy.font,
             color = Color(0xFF757575)
         )
     }
@@ -62,11 +57,11 @@ fun PasswordRuleItem(
 )
 @Composable
 private fun PasswordRuleItemPreview() {
-    val (w, h) = rememberFigmaDimens()
+
 
     Column(
-        modifier = Modifier.padding(w(16f)),
-        verticalArrangement = Arrangement.spacedBy(h(8f))
+        modifier = Modifier.padding((16.scaler)),
+        verticalArrangement = Arrangement.spacedBy((8.scaler))
     ) {
         PasswordRuleItem(
             text = "영문자를 포함해야 해요",

@@ -23,6 +23,7 @@ import com.example.login.ui.item.OptionButton
 import com.example.design.util.rememberFigmaDimens
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.design.theme.LocalColorTheme
+import com.example.design.util.scaler
 
 @Composable
 fun SignUpGenderScreen(
@@ -31,8 +32,7 @@ fun SignUpGenderScreen(
 ) {
     //디자인 모듈 불러오기.
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()    //  Figma 412×917 기준 반응형
-    val paperlogyFamily = Paperlogy.font
+
 
     // 성별 선택 상태: 1 = 남성, 2 = 여성
     var selectedGender by remember { mutableStateOf(signUpViewModel.gender) }
@@ -47,10 +47,10 @@ fun SignUpGenderScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(
-                start = w(20f),
-                end = w(20f),
-                top = h(60f),
-                bottom = h(72f) // 48 + 24
+                start = (20.scaler),
+                end = (20.scaler),
+                top = (60.scaler),
+                bottom = (72.scaler) // 48 + 24
             ),
             //.padding(horizontal = 20.dp, vertical = 40.dp),
         horizontalAlignment = Alignment.Start
@@ -62,18 +62,18 @@ fun SignUpGenderScreen(
             label = "프로필 설정"
         )
 
-        Spacer(Modifier.height(h(32f)))
+        Spacer(Modifier.height((32.scaler)))
 
         Text(
             text = "성별을\n선택해주세요",
             fontSize = 22.sp,
-            fontFamily = paperlogyFamily,
+            fontFamily = Paperlogy.font,
             fontWeight = FontWeight.Bold,
             color = colorTheme.black,
             textAlign = TextAlign.Start
         )
 
-        Spacer(Modifier.height(h(36f)))
+        Spacer(Modifier.height((36.scaler)))
 
         // 선택 옵션: 남성
         OptionButton(
@@ -85,7 +85,7 @@ fun SignUpGenderScreen(
             }
         )
 
-        Spacer(Modifier.height(h(10f)))
+        Spacer(Modifier.height((10.scaler)))
 
         // 선택 옵션: 여성
         OptionButton(
@@ -119,8 +119,6 @@ fun SignUpGenderScreen(
 @Composable
 fun SignUpGenderScreenPreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
     var selectedGender by remember { mutableStateOf<Int?>(2) } // 테스트용 여성 선택
     val isButtonEnabled = selectedGender != null
 
@@ -129,10 +127,10 @@ fun SignUpGenderScreenPreview() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(52f),
-                    bottom = h(72f)
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (52.scaler),
+                    bottom = (72.scaler)
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -142,18 +140,18 @@ fun SignUpGenderScreenPreview() {
                 label = "프로필 설정"
             )
 
-            Spacer(modifier = Modifier.height(h(36f)))
+            Spacer(modifier = Modifier.height((36.scaler)))
 
             Text(
                 text = "성별을\n선택해주세요",
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
 
-            Spacer(modifier = Modifier.height(h(40f)))
+            Spacer(modifier = Modifier.height((40.scaler)))
 
             OptionButton(
                 text = "남성",
@@ -161,7 +159,7 @@ fun SignUpGenderScreenPreview() {
                 onClick = { selectedGender = 1 }
             )
 
-            Spacer(modifier = Modifier.height(h(12f)))
+            Spacer(modifier = Modifier.height((12.scaler)))
 
             OptionButton(
                 text = "여성",

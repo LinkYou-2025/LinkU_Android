@@ -23,6 +23,7 @@ import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.OptionButton
 import com.example.login.ui.item.StepIndicator
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.login.viewmodel.SignUpViewModel
 
 @Composable
@@ -32,8 +33,6 @@ fun SignUpJobScreen(
 ) {
     //디자인 모듈 불러오기.
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()// Figma 412×917 기준 반응형
-    val paperlogyFamily = Paperlogy.font
 
 
     var selectedJobIndex by remember { mutableStateOf(
@@ -52,10 +51,10 @@ fun SignUpJobScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(60f),
-                    bottom = h(72f) // 48 + 24
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (60.scaler),
+                    bottom = (72.scaler) // 48 + 24
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -64,19 +63,19 @@ fun SignUpJobScreen(
                 totalSteps = 3,
                 label = "프로필 설정"
             )
-            Spacer(Modifier.height(h(36f)))
+            Spacer(Modifier.height((36.scaler)))
 
             Text(
                 text = "현재 하고 계신 일이나\n활동을 알려주세요",
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black,
                 textAlign = TextAlign.Start
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             jobs.forEachIndexed { index, job ->
                 OptionButton(
@@ -88,7 +87,7 @@ fun SignUpJobScreen(
                     },
                     modifier = Modifier.fillMaxWidth() // 반응형 유지
                 )
-                Spacer(Modifier.height(h(12f)))
+                Spacer(Modifier.height((12.scaler)))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -120,8 +119,7 @@ fun SignUpJobScreen(
 @Composable
 fun SignUpJobScreenPreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
     var selectedJobIndex by remember { mutableStateOf<Int?>(2) }
     val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
@@ -131,10 +129,10 @@ fun SignUpJobScreenPreview() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(52f),
-                    bottom = h(72f)
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (52.scaler),
+                    bottom = (72.scaler)
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -144,17 +142,17 @@ fun SignUpJobScreenPreview() {
                 label = "프로필 설정"
             )
 
-            Spacer(modifier = Modifier.height(h(32f)))
+            Spacer(modifier = Modifier.height((32.scaler)))
 
             Text(
                 text = "현재 하고 계신 일이나\n활동을 알려주세요",
                 fontSize = 22.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
 
-            Spacer(modifier = Modifier.height(h(40f)))
+            Spacer(modifier = Modifier.height((40.scaler)))
 
             jobs.forEachIndexed { index, job ->
                 OptionButton(
@@ -163,7 +161,7 @@ fun SignUpJobScreenPreview() {
                     onClick = { selectedJobIndex = index },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Spacer(modifier = Modifier.height(h(12f)))
+                Spacer(modifier = Modifier.height((12.scaler)))
             }
 
             Spacer(modifier = Modifier.weight(1f))

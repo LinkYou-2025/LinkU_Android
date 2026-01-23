@@ -37,6 +37,7 @@ import com.example.design.theme.LocalColorTheme
 import com.example.design.util.DesignSystemBars
 import com.example.login.viewmodel.LoginViewModel
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 @Composable
 fun EmailLoginScreen(
@@ -50,10 +51,7 @@ fun EmailLoginScreen(
 
     // 2. 디자인 모듈의 폰트 패밀리 가져오기
     val colorTheme = LocalColorTheme.current
-    val paperlogyFamily = Paperlogy.font
 
-    //  Figma 412×917 기준 반응형
-    val (w, h) = rememberFigmaDimens()
 
     // 로그인 입력 화면부터는 시스템 바 다시 표시
     DesignSystemBars(
@@ -80,7 +78,7 @@ fun EmailLoginScreen(
     val isInPreview = LocalInspectionMode.current
     val imeBottom = if (isInPreview) 0 else WindowInsets.ime.getBottom(density)
     val isKeyboardOpen = imeBottom > 0
-    val buttonOffsetY = if (isKeyboardOpen) 0.dp else h(-4f)
+    val buttonOffsetY = if (isKeyboardOpen) 0.dp else (-4.scaler)
 
     // 🔑 BottomGradientButton 내부 padding과 동일한 값 계산
     val navBottom = WindowInsets.navigationBars.getBottom(density)
@@ -108,33 +106,33 @@ fun EmailLoginScreen(
                 painter = painterResource(id = R.drawable.ic_logo_color),
                 contentDescription = "LinkU Logo",
                 modifier = Modifier
-                    .width(w(84.6f))
-                    .height(h(60f)),
+                    .width((84.scaler))
+                    .height((60.scaler)),
                 contentScale = ContentScale.Fit
             )
 
 
-            Spacer(Modifier.height(h(8f)))
+            Spacer(Modifier.height((8.scaler)))
 
             Text(
                 text = "Link U, Think You",
                 style = TextStyle(
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(400),
                     color = colorTheme.gray[600]!!,
                     textAlign = TextAlign.Center
                 )
             )
 
-            Spacer(Modifier.height(h(40f)))
+            Spacer(Modifier.height((40.scaler)))
 
             // 입력 영역
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = w(20f)),
+                    .padding(horizontal = (20.scaler)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 LoginTextField(
@@ -144,13 +142,13 @@ fun EmailLoginScreen(
                     textStyle = TextStyle(
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = paperlogyFamily,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = colorTheme.black
                     )
                 )
 
-                Spacer(Modifier.height(h(10f)))
+                Spacer(Modifier.height((10.scaler)))
 
                 PasswordLoginTextField(
                     value = password,
@@ -158,12 +156,12 @@ fun EmailLoginScreen(
                 )
             }
 
-            Spacer(Modifier.height(h(45f)))
+            Spacer(Modifier.height((45.scaler)))
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = w(20f))
+                    .padding(horizontal = (20.scaler))
                     .offset(y = buttonOffsetY)
             ) {
                 GradientButtonCore(
@@ -180,25 +178,25 @@ fun EmailLoginScreen(
                 )
             }
 
-            Spacer(Modifier.height(h(20f)))
+            Spacer(Modifier.height((20.scaler)))
 
 
             // 🔑 비율 기반 가로 위치 계산
             // 디자인 기준 너비 412 대비 현재 화면의 비율 지점
-            val resetStartPos = w(101f)   // 비밀번호 재설정 시작점
-            val dividerStartPos = w(220f) // | 시작점
-            val signUpStartPos = w(247f)  // 회원가입 시작점
+            val resetStartPos = (101.scaler)   // 비밀번호 재설정 시작점
+            val dividerStartPos = (220.scaler) // | 시작점
+            val signUpStartPos = (247.scaler)  // 회원가입 시작점
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(h(30f)) // 클릭 영역 확보를 위한 높이
+                    .height((30.scaler)) // 클릭 영역 확보를 위한 높이
             ) {
                 // 1. 비밀번호 재설정
                 Text(
                     text = "비밀번호 재설정",
                     fontSize = 15.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     color = Color(0xFF87898F),
                     modifier = Modifier
                         .offset(x = resetStartPos) // 항상 101/412 지점
@@ -211,7 +209,7 @@ fun EmailLoginScreen(
                 Text(
                     text = "|",
                     fontSize = 14.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     color = Color(0xFF87898F),
                     style = TextStyle(baselineShift = BaselineShift(0.15f)),
                     modifier = Modifier
@@ -222,7 +220,7 @@ fun EmailLoginScreen(
                 Text(
                     text = "회원가입",
                     fontSize = 15.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     color = Color(0xFF87898F),
                     modifier = Modifier
                         .offset(x = signUpStartPos) // 항상 247/412 지점

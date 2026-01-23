@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import com.example.design.R
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 
 @Composable
@@ -46,7 +47,6 @@ fun TermsAgreementContent(
 ) {
     // 1. 테마 및 반응형 유틸 가져오기
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
     val paperlogyFamily = Paperlogy.font
 
     val agreeAll = agreeTerms && agreePrivacy && agreeMarketing
@@ -68,24 +68,24 @@ fun TermsAgreementContent(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            start = w(32f),
-                            end = w(32f),
-                            top = h(36f)
+                            start = (32.scaler),
+                            end = (32.scaler),
+                            top = (36.scaler)
                             //top = topPadding 화면으로 계산이 되어서 일단 보류.
                         )
                 ) {
                     // 커스텀 체크박스
                     Box(
                         modifier = Modifier
-                            .size(w(22f)) // 반응형 적용
+                            .size(22.scaler) // 반응형 적용
                             .border(
                                 width = 1.dp,
                                 color = if (agreeAll) Color(0xFFD35EFF) else colorTheme.gray[300]!!,
-                                shape = RoundedCornerShape(w(6f)) //반응형 적용
+                                shape = RoundedCornerShape(6.scaler) //반응형 적용
                             )
                             .background(
                                 color = if (agreeAll) colorTheme.purple[200]!! else colorTheme.white,
-                                shape = RoundedCornerShape(w(6f)) //반응형 적용
+                                shape = RoundedCornerShape(6.scaler) //반응형 적용
                             )
                             .clickable {
                                 val checked = !agreeAll
@@ -100,13 +100,13 @@ fun TermsAgreementContent(
                                 painter = painterResource(id = R.drawable.ic_checkbox_checked),
                                 contentDescription = null,
                                 modifier = Modifier
-                                    .width(w(11f))
-                                    .height(h(8f)) //반응형으로 수정.
+                                    .width(11.scaler)
+                                    .height(8.scaler) //반응형으로 수정.
                             )
                         }
                     }
 
-                    Spacer(Modifier.width(w(15f)))
+                    Spacer(Modifier.width(15.scaler))
 
                     Text(
                         text = "약관 전체동의",
@@ -117,7 +117,7 @@ fun TermsAgreementContent(
                         color = colorTheme.black
                     )
 
-                    Spacer(Modifier.width(8.dp))
+                    Spacer(Modifier.width(8.scaler))
 
                     Text(
                         text = "선택항목에 대한 동의 포함",
@@ -135,15 +135,15 @@ fun TermsAgreementContent(
                 Divider(
                     color = Color(0xFFD4E1FF),
                     modifier = Modifier
-                        .padding(horizontal = w(20f), vertical = h(16f))
+                        .padding(horizontal = (20.scaler), vertical = (16.scaler))
                 )
 
 
 
                 /* ───── 약관 항목들 (좌우 32, 간격 25) ───── */
                 Column(
-                    modifier = Modifier.padding(horizontal = w(32f)),
-                    verticalArrangement = Arrangement.spacedBy(h(18f))
+                    modifier = Modifier.padding(horizontal = (32.scaler)),
+                    verticalArrangement = Arrangement.spacedBy((18.scaler))
                 ) {
                     AgreementItem(
                         title = "이용약관",
@@ -173,7 +173,7 @@ fun TermsAgreementContent(
                     )
                 }
 
-                Spacer(Modifier.height(h(30f)))
+                Spacer(Modifier.height((30.scaler)))
 
                 /* ───── 다음 버튼 (좌우 31) ───── */
                 GradientButtonCore(
@@ -186,7 +186,7 @@ fun TermsAgreementContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 31.dp)
+                        .padding(horizontal = 31.scaler)
                 )
             }
         }

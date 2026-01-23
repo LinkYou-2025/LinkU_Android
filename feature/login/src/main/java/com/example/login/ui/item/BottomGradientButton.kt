@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.design.theme.font.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 
 //GradientButtonCore에서 순수 버튼 ui를 받아온 뒤, 여기서는 회원가입 중
@@ -39,8 +40,6 @@ fun BottomGradientButton(
 ) {
     val density = LocalDensity.current
 
-    // 🔑 반응형 유틸리티 가져오기
-    val (w, h) = rememberFigmaDimens()
 
     val imeBottom = WindowInsets.ime.getBottom(density)
     val navBottom = WindowInsets.navigationBars.getBottom(density)
@@ -57,8 +56,8 @@ fun BottomGradientButton(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = w(20f),
-                end = w(20f),
+                start = (20.scaler),
+                end = (20.scaler),
                 bottom = bottomPadding
             )
     ) {

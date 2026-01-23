@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 
 //약관 보고 다시 바텀 시트 돌아올 때,애니메이션 작동하지 않게 하는...시트
@@ -28,9 +29,7 @@ fun NoAnimBottomSheet(
 ) {
     if (!visible) return
 
-    // 현재 디자인 테마의 컬러 스킴 가져오기
-    val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
+
 
     // 파라미터로 받은 컬러가 없으면 테마의 white 사용
     val finalContainerColor = containerColor
@@ -67,7 +66,7 @@ fun NoAnimBottomSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = h(12f)) // 세로 태딩 반응형 적용함.
+                    .padding(vertical = 12.scaler) // 세로 태딩 반응형 적용함.
             ) {
                 content()
             }

@@ -24,6 +24,7 @@ import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.PasswordRuleItem
 import com.example.login.ui.item.StepIndicator
 import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.login.viewmodel.SignUpViewModel
 
 @Composable
@@ -33,8 +34,7 @@ fun SignUpNicknameScreen(
 ) {
     //디자인 모듈
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
     var nickname by remember { mutableStateOf(signUpViewModel.nickname) }
 
@@ -57,10 +57,10 @@ fun SignUpNicknameScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = w(20f),
-                    end = w(20f),
-                    top = h(52f),
-                    bottom = h(48f + 24f)
+                    start = (20.scaler),
+                    end = (20.scaler),
+                    top = (60.scaler),
+                    bottom = (72.scaler)
                 ),
             horizontalAlignment = Alignment.Start
         ) {
@@ -69,17 +69,17 @@ fun SignUpNicknameScreen(
                 totalSteps = 3,
                 label = "프로필 설정"
             )
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             Text(
                 text = "사용하실 닉네임을\n입력해주세요",
                 fontSize = 22.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((12.scaler)))
 
             //입력값 기준으로 즉시 판단, 삭제 시 불필요한 호출을 방지하도록 수정함.
             LoginTextField(
@@ -103,34 +103,34 @@ fun SignUpNicknameScreen(
             )
 
             if (isNicknameAvailable == false) {
-                Spacer(Modifier.height(h(6f)))
+                Spacer(Modifier.height((6.scaler)))
                 Text(
                     "중복된 닉네임 입니다.",
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
                     fontWeight = FontWeight(400),
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     color = Color(0xFFFF5E5E)
                 )
             }
             if (nicknameMessage == "서버 요청 실패") {
-                Spacer(Modifier.height(h(6f)))
+                Spacer(Modifier.height((6.scaler)))
                 Text(
                     "서버 요청 실패",
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
-                    fontFamily = paperlogyFamily,
+                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(400),
                     color = Color(0xFFFF5E5E)
                 )
             }
 
-            Spacer(Modifier.height(h(12f)))
+            Spacer(Modifier.height((12.scaler)))
 
             PasswordRuleItem(
                 text = "국문/영문 6자 이하",
                 satisfied = isNicknameValid,
-                modifier = Modifier.padding(start = w(32f))
+                modifier = Modifier.padding(start = (32.scaler))
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -157,8 +157,7 @@ fun SignUpNicknameScreen(
 @Composable
 fun SignUpNicknameScreenPreview() {
     val colorTheme = LocalColorTheme.current
-    val (w, h) = rememberFigmaDimens()
-    val paperlogyFamily = Paperlogy.font
+
 
     var nickname by remember { mutableStateOf("LinkU") }
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 6
@@ -167,7 +166,7 @@ fun SignUpNicknameScreenPreview() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = w(20f), end = w(20f), top = h(52f), bottom = h(72f)),
+                .padding(start = (20.scaler), end = (20.scaler), top = (52.scaler), bottom = (72.scaler)),
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator(
@@ -176,17 +175,17 @@ fun SignUpNicknameScreenPreview() {
                 label = "프로필 설정"
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             Text(
                 text = "사용하실 닉네임을\n입력해주세요",
                 fontSize = 22.sp,
-                fontFamily = paperlogyFamily,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
 
-            Spacer(Modifier.height(h(32f)))
+            Spacer(Modifier.height((32.scaler)))
 
             LoginTextField(
                 value = nickname,
@@ -195,12 +194,12 @@ fun SignUpNicknameScreenPreview() {
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(h(15f)))
+            Spacer(Modifier.height((15.scaler)))
 
             PasswordRuleItem(
                 text = "국문/영문 6자 이하",
                 satisfied = isNicknameValid,
-                modifier = Modifier.padding(start = w(12f))
+                modifier = Modifier.padding(start = (12.scaler))
             )
 
             Spacer(modifier = Modifier.weight(1f))
