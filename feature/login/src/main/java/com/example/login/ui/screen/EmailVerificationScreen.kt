@@ -33,6 +33,7 @@ import com.example.design.theme.LocalColorTheme
 import com.example.design.util.scaler
 import com.example.login.viewmodel.AuthErrorMessages
 import com.example.login.viewmodel.EmailAuthState
+import java.util.Locale
 
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
@@ -67,9 +68,9 @@ fun EmailVerificationScreen(
         Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-    val isCodeSent = authState is EmailAuthState.SendSuccess
+    val isCodeSent = timer > 0
     val isCodeValid = code.length == 6
-    val timerText = String.format("%02d:%02d", timer / 60, timer % 60)
+    val timerText = String.format(Locale.getDefault(),"%02d:%02d", timer / 60, timer % 60)
     val isSending = authState is EmailAuthState.Sending // 파생 상태
     val isVerifying = authState is EmailAuthState.Verifying // 파생 상태
 
