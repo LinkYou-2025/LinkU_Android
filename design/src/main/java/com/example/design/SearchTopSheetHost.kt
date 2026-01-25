@@ -50,7 +50,7 @@ fun SearchTopSheetHost(
         onQueryDelete = onQueryDelete,
         onQueryClear = onQueryClear,
         fastSearchItems = filtered,
-        recentQuerys = recent,
+        recentQueries = recent,
         onLinkClick = {}
     )
 }
