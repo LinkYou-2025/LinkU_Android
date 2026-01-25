@@ -1,15 +1,12 @@
-package com.example.login.auth
+package com.example.login.ui.terms
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,11 +24,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.login.R
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 
-/* ─────────────────────────────
-   공통 풋터 버튼 (양식 통일용)
-   ───────────────────────────── */
+//이거는 ui 자체가 바뀔 예정. 리펙하지 않음.
 private val FOOTER_HEIGHT = 50.dp
 private val FOOTER_BOTTOM = 0.dp   // AgreeFooterButton 내부 .padding(..., bottom = 30.dp)
 private val EXTRA_GAP = 0.dp       // 버튼 바로 위에 살짝 여유
@@ -45,6 +40,10 @@ private fun AgreeFooterButton(
     text: String = "약관에 동의합니다",
     applyNavPadding: Boolean = false,
 ) {
+
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -68,7 +67,7 @@ private fun AgreeFooterButton(
             text = text,
             color = if (enabled) Color.White else Color.Gray,
             fontWeight = FontWeight.Bold,
-            fontFamily = Paperlogy
+            fontFamily = paperlogyFamily
         )
     }
 }
@@ -84,6 +83,10 @@ fun MarketingTermsScreenComposable(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
+
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+
     val scrollState = rememberScrollState()
     val isAtBottom by remember { derivedStateOf { scrollState.value >= scrollState.maxValue } }
 
@@ -95,7 +98,7 @@ fun MarketingTermsScreenComposable(
                         text = "마케팅 수신 동의",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 },
@@ -146,7 +149,7 @@ fun MarketingTermsScreenComposable(
                         text = "마케팅 수신 동의서",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         color = Color.Black
                     )
 
@@ -164,7 +167,7 @@ fun MarketingTermsScreenComposable(
 """.trimIndent(),
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy
+                        fontFamily = paperlogyFamily
                     )
 
                     Spacer(Modifier.height(12.dp))
@@ -197,7 +200,7 @@ fun MarketingTermsScreenComposable(
 """.trimIndent(),
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy
+                        fontFamily = paperlogyFamily
                     )
                 }
             }

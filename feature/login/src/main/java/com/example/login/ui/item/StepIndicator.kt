@@ -14,7 +14,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.font.Paperlogy
+import com.example.design.util.rememberFigmaDimens
 
 @Composable
 fun StepIndicator(
@@ -22,10 +24,15 @@ fun StepIndicator(
     totalSteps: Int,
     label: String,
     modifier: Modifier = Modifier,
-    activeColor: Color = Color(0xFFCB59EB),
-    inactiveColor: Color = Color(0xFFD6D6D6),
-    completedColor: Color = Color(0xFFE5ACF4)
+
 ) {
+
+    val colorTheme = LocalColorTheme.current
+
+    val activeColor = colorTheme.purple[200]
+    val completedColor = colorTheme.purple[100]
+    val inactiveColor = Color(0xFFD6D6D6) // 디자인 토큰 없으면 유지하는 컬러.
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.Start
@@ -57,6 +64,7 @@ fun StepIndicator(
                             Text(
                                 text = "✓",
                                 fontSize = 16.sp,
+                                fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -66,7 +74,7 @@ fun StepIndicator(
                             Text(
                                 text = step.toString(),
                                 fontSize = if (isStep3Current) 18.sp else 16.sp,
-                                fontFamily = Paperlogy,
+                                fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
@@ -76,7 +84,7 @@ fun StepIndicator(
                             Text(
                                 text = step.toString(),
                                 fontSize = 16.sp,
-                                fontFamily = Paperlogy,
+                                fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight.Bold,
                                 color = inactiveColor
                             )
@@ -117,7 +125,7 @@ fun StepIndicator(
             ),
             fontSize = 13.sp,
             lineHeight = 15.sp,
-            fontFamily = Paperlogy,
+            fontFamily = Paperlogy.font,
             fontWeight = FontWeight.Light,
             color = activeColor,
             textAlign = TextAlign.Center

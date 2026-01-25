@@ -30,6 +30,11 @@ sealed class ThemeColorScheme(
         800 to Color(0xFF43454B),
     ),
 
+    // 비활성화용 그라데이션 브러시 추가 -로그인, 회원가입용
+    val inactiveColor: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
+    ),
+
     val black: Color = Color(0xFF000208),
     val white: Color = Color(0xFFFFFFFF),
     val positive: Color = Color(0xFF35DF79),
