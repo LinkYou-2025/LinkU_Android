@@ -53,90 +53,90 @@ fun SignUpPasswordScreen(
     val showConfirmField = isPasswordValid
     val canProceed = isPasswordValid && doPasswordsMatch
 
-    Box(modifier = Modifier.fillMaxSize().background(colorTheme.white)) {
 
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorTheme.white)
+            .padding(
+                start = (20.scaler),
+                end = (20.scaler),
+                top = (60.scaler),
+                bottom = (72.scaler)
+            ),
+        horizontalAlignment = Alignment.Start
+    ) {
+
+        StepIndicator(
+            currentStep = 1,
+            totalSteps = 3,
+            label = "계정 정보"
+        )
+
+        Spacer(Modifier.height((32.scaler)))
+
+        Text(
+            text = "사용하실 비밀번호를\n입력해주세요",
+            fontSize = 22.sp,
+            fontFamily = Paperlogy.font,
+            fontWeight = FontWeight.Bold
+        )
+
+        Spacer(Modifier.height((32.scaler)))
+
+        // 비밀번호 입력  : 눈 가리개 있는 것으로 교체
+        PasswordLoginTextField(
+            value = password,
+            onValueChange = { newPassword ->
+                signUpViewModel.updateForm { it.copy(password = newPassword) }
+            },
+            hint = "비밀번호를 입력해주세요."
+        )
+
+        Spacer(Modifier.height((10.scaler)))
+
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = (20.scaler),
-                    end = (20.scaler),
-                    top = (60.scaler),
-                    bottom = (72.scaler)
-                ),
-            horizontalAlignment = Alignment.Start
+                .fillMaxWidth()
+                .padding(start = (12.scaler)),
+            horizontalArrangement = Arrangement.spacedBy((8.scaler))
         ) {
-
-            StepIndicator(
-                currentStep = 1,
-                totalSteps = 3,
-                label = "계정 정보"
+            PasswordRuleItem(
+                text = "영문, 숫자, 특수기호 조합",
+                satisfied = isPasswordComplex,
+                modifier = Modifier.weight(1f)
             )
-
-            Spacer(Modifier.height((32.scaler)))
-
-            Text(
-                text = "사용하실 비밀번호를\n입력해주세요",
-                fontSize = 22.sp,
-                fontFamily = Paperlogy.font,
-                fontWeight = FontWeight.Bold
+            PasswordRuleItem(
+                text = "8~20자",
+                satisfied = isPasswordLengthValid,
+                modifier = Modifier.weight(1f)
             )
+        }
 
-            Spacer(Modifier.height((32.scaler)))
+        if (showConfirmField) {
+            Spacer(Modifier.height((20.scaler)))
 
-            // 비밀번호 입력  : 눈 가리개 있는 것으로 교체
+            // 비밀번호 확인 눈 가리개 있는 거로 교체
             PasswordLoginTextField(
-                value = password,
-                onValueChange = { newPassword ->
-                    signUpViewModel.updateForm { it.copy(password = newPassword) }
-                },
-                hint = "비밀번호를 입력해주세요."
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                hint = "비밀번호를 확인해주세요."
             )
 
-            Spacer(Modifier.height((10.scaler)))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = (12.scaler)),
-                horizontalArrangement = Arrangement.spacedBy((8.scaler))
-            ) {
-                PasswordRuleItem(
-                    text = "영문, 숫자, 특수기호 조합",
-                    satisfied = isPasswordComplex,
-                    modifier = Modifier.weight(1f)
-                )
-                PasswordRuleItem(
-                    text = "8~20자",
-                    satisfied = isPasswordLengthValid,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            if (showConfirmField) {
-                Spacer(Modifier.height((20.scaler)))
-
-                // 비밀번호 확인 눈 가리개 있는 거로 교체
-                PasswordLoginTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    hint = "비밀번호를 확인해주세요."
-                )
-
-                if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
-                    Text(
-                        text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
-                        fontSize = 13.sp,
-                        fontFamily = Paperlogy.font,
-                        color = Color(0xFFFF5E5E),
-                        modifier = Modifier.padding(
-                            start = (8.scaler),
-                            top = (4.scaler)
-                        )
+            if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
+                Text(
+                    text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
+                    fontSize = 13.sp,
+                    fontFamily = Paperlogy.font,
+                    color = Color(0xFFFF5E5E),
+                    modifier = Modifier.padding(
+                        start = (8.scaler),
+                        top = (4.scaler)
                     )
-                }
+                )
             }
         }
+        Spacer(Modifier.weight(1f))
 
         BottomGradientButton(
             text = "다음",
@@ -150,9 +150,10 @@ fun SignUpPasswordScreen(
                     launchSingleTop = true
                 }
             },
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier.fillMaxWidth()
         )
     }
+
 }
 
 
@@ -172,87 +173,85 @@ fun SignUpPasswordScreenContent(
     //디자인 모듈 불러오기.
     val colorTheme = LocalColorTheme.current
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorTheme.white)
+            .padding(
+                start = (20.scaler),
+                end = (20.scaler),
+                top = (60.scaler),
+                bottom = (72.scaler)
+            )
+    ) {
+        StepIndicator(
+            currentStep = 1,
+            totalSteps = 3,
+            label = "계정 정보"
+        )
 
-    Box(modifier = Modifier.fillMaxSize().background(colorTheme.white)) {
+        Spacer(Modifier.height((36.scaler)))
 
-        Column(
+        Text(
+            text = "사용하실 비밀번호를\n입력해주세요",
+            fontSize = 22.sp,
+            lineHeight = 30.sp,
+            fontFamily = Paperlogy.font,
+            fontWeight = FontWeight.Bold,
+            color = colorTheme.black
+        )
+
+        Spacer(Modifier.height((32.scaler)))
+
+        PasswordLoginTextField(
+            value = password,
+            onValueChange = onPasswordChange,
+            hint = "비밀번호를 입력해주세요."
+        )
+
+        Spacer(Modifier.height((12.scaler)))
+
+        // 조건 표시(체크박스 활성화/비활성화)
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = (20.scaler),
-                    end = (20.scaler),
-                    top = (60.scaler),
-                    bottom = (72.scaler)
-                )
+                .fillMaxWidth()
+                .padding(start = (12.scaler)),
+            horizontalArrangement = Arrangement.spacedBy((8.scaler)),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            StepIndicator(
-                currentStep = 1,
-                totalSteps = 3,
-                label = "계정 정보"
+            PasswordRuleItem(
+                text = "영문, 특수기호 조합",
+                satisfied = isPasswordComplex,
+                modifier = Modifier.weight(1f)
             )
-
-            Spacer(Modifier.height((36.scaler)))
-
-            Text(
-                text = "사용하실 비밀번호를\n입력해주세요",
-                fontSize = 22.sp,
-                lineHeight = 30.sp,
-                fontFamily = Paperlogy.font,
-                fontWeight = FontWeight.Bold,
-                color = colorTheme.black
+            PasswordRuleItem(
+                text = "8~20자",
+                satisfied = isPasswordLengthValid,
+                modifier = Modifier.weight(1f)
             )
+        }
 
-            Spacer(Modifier.height((32.scaler)))
 
+        if (showConfirmField) {
+            Spacer(Modifier.height((20.scaler)))
             PasswordLoginTextField(
-                value = password,
-                onValueChange = onPasswordChange,
-                hint = "비밀번호를 입력해주세요."
+                value = confirmPassword,
+                onValueChange = onConfirmPasswordChange,
+                hint = "비밀번호를 확인해주세요."
             )
 
-            Spacer(Modifier.height((12.scaler)))
-
-            // 조건 표시(체크박스 활성화/비활성화)
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = (12.scaler)),
-                horizontalArrangement = Arrangement.spacedBy((8.scaler)),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                PasswordRuleItem(
-                    text = "영문, 특수기호 조합",
-                    satisfied = isPasswordComplex,
-                    modifier = Modifier.weight(1f)
+            if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
+                Text(
+                    text = "비밀번호가 일치하지 않습니다.",
+                    fontSize = 13.sp,
+                    fontFamily = Paperlogy.font,
+                    color = Color(0xFFFF5E5E),
+                    modifier = Modifier.padding(start = (8.scaler), top = (4.scaler))
                 )
-                PasswordRuleItem(
-                    text = "8~20자",
-                    satisfied = isPasswordLengthValid,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-
-            if (showConfirmField) {
-                Spacer(Modifier.height((20.scaler)))
-                PasswordLoginTextField(
-                    value = confirmPassword,
-                    onValueChange = onConfirmPasswordChange,
-                    hint = "비밀번호를 확인해주세요."
-                )
-
-                if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
-                    Text(
-                        text = "비밀번호가 일치하지 않습니다.",
-                        fontSize = 13.sp,
-                        fontFamily = Paperlogy.font,
-                        color = Color(0xFFFF5E5E),
-                        modifier = Modifier.padding(start = (8.scaler), top = (4.scaler))
-                    )
-                }
             }
         }
 
+        Spacer(Modifier.weight(1f))
         // 하단 버튼
         BottomGradientButton(
             text = "다음",
@@ -260,11 +259,12 @@ fun SignUpPasswordScreenContent(
             activeGradient = colorTheme.maincolor,
             inactiveGradient = colorTheme.inactiveColor,
             onClick = onNext,
-            modifier = Modifier.align(Alignment.BottomCenter)
+            modifier = Modifier.fillMaxWidth()
         )
 
     }
 }
+
 
 
 
