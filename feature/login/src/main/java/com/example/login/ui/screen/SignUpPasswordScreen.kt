@@ -36,12 +36,10 @@ fun SignUpPasswordScreen(
     //디자인 모듈
     val colorTheme = LocalColorTheme.current
 
-
-
     BackHandler { navigator.popBackStack() }
 
-
-    var password by remember { mutableStateOf(signUpViewModel.password) }
+    //뷰 모델에서 password 가져오기
+    val password = signUpViewModel.signUpForm.password
     var confirmPassword by remember { mutableStateOf("") }
 
     val isPasswordLengthValid = password.length in 8..20
@@ -63,7 +61,7 @@ fun SignUpPasswordScreen(
                 .padding(
                     start = (20.scaler),
                     end = (20.scaler),
-                    top = (52.scaler),
+                    top = (60.scaler),
                     bottom = (72.scaler)
                 ),
             horizontalAlignment = Alignment.Start
@@ -78,7 +76,7 @@ fun SignUpPasswordScreen(
             Spacer(Modifier.height((32.scaler)))
 
             Text(
-                text = "사용하실 비밀번호를\n 입력해주세요",
+                text = "사용하실 비밀번호를\n입력해주세요",
                 fontSize = 22.sp,
                 fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold
@@ -89,28 +87,29 @@ fun SignUpPasswordScreen(
             // 비밀번호 입력  : 눈 가리개 있는 것으로 교체
             PasswordLoginTextField(
                 value = password,
-                onValueChange = {
-                    password = it
-                    signUpViewModel.password = it
+                onValueChange = { newPassword ->
+                    signUpViewModel.updateForm { it.copy(password = newPassword) }
                 },
                 hint = "비밀번호를 입력해주세요."
             )
 
             Spacer(Modifier.height((10.scaler)))
 
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = (12.scaler)),
-                verticalArrangement = Arrangement.spacedBy((8.scaler))
+                horizontalArrangement = Arrangement.spacedBy((8.scaler))
             ) {
                 PasswordRuleItem(
                     text = "영문, 숫자, 특수기호 조합",
-                    satisfied = isPasswordComplex
+                    satisfied = isPasswordComplex,
+                    modifier = Modifier.weight(1f)
                 )
                 PasswordRuleItem(
                     text = "8~20자",
-                    satisfied = isPasswordLengthValid
+                    satisfied = isPasswordLengthValid,
+                    modifier = Modifier.weight(1f)
                 )
             }
 
@@ -145,8 +144,11 @@ fun SignUpPasswordScreen(
             activeGradient = colorTheme.maincolor,
             inactiveGradient = colorTheme.inactiveColor,
             onClick = {
-                signUpViewModel.password = password
-                navigator.navigate("sign_up_nickname")
+                // 클릭 시점에 최종 확정 저장 지금 굳이 onValueChange에서 계속 저장하고 있기에 필요X.
+                //signUpViewModel.updateForm { it.copy(password = password) }
+                navigator.navigate("sign_up_nickname") {
+                    launchSingleTop = true
+                }
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )
@@ -215,18 +217,18 @@ fun SignUpPasswordScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = (12.scaler)),
+                horizontalArrangement = Arrangement.spacedBy((8.scaler)),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 PasswordRuleItem(
-                    text = "영문, 숫자, 특수기호 조합",
-                    satisfied = isPasswordComplex
+                    text = "영문, 특수기호 조합",
+                    satisfied = isPasswordComplex,
+                    modifier = Modifier.weight(1f)
                 )
-
-                Spacer(modifier = Modifier.width((15.scaler)))
-
                 PasswordRuleItem(
                     text = "8~20자",
-                    satisfied = isPasswordLengthValid
+                    satisfied = isPasswordLengthValid,
+                    modifier = Modifier.weight(1f)
                 )
             }
 

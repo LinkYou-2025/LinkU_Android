@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,7 @@ fun PasswordRuleItem(
         Text(
             text = text,
             fontSize = 12.sp,
+            fontWeight = FontWeight(400),
             fontFamily = Paperlogy.font,
             color = Color(0xFF757575)
         )

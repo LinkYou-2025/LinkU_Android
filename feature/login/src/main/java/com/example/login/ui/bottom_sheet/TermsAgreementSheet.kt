@@ -39,10 +39,10 @@ fun TermsAgreementSheet(
         scrimColor = Color.Black.copy(alpha = 0.4f),
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
-
-        val agreeTerms by vm.agreeTerms.collectAsStateWithLifecycle()
-        val agreePrivacy by vm.agreePrivacy.collectAsStateWithLifecycle()
-        val agreeMarketing by vm.agreeMarketing.collectAsStateWithLifecycle()
+        // signUpForm에서 직접 약관 동의 상태 가져오기
+        val agreeTerms = vm.signUpForm.agreeTerms
+        val agreePrivacy = vm.signUpForm.agreePrivacy
+        val agreeMarketing = vm.signUpForm.agreeMarketing
 
         TermsAgreementContent(
             agreeTerms = agreeTerms,

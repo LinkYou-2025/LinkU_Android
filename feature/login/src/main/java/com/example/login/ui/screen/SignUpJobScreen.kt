@@ -25,7 +25,7 @@ import com.example.login.ui.item.StepIndicator
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 import com.example.login.viewmodel.SignUpViewModel
-
+import com.example.login.viewmodel.Job
 @Composable
 fun SignUpJobScreen(
     navigator: NavHostController,
@@ -34,12 +34,10 @@ fun SignUpJobScreen(
     //디자인 모듈 불러오기.
     val colorTheme = LocalColorTheme.current
 
-
-    var selectedJobIndex by remember { mutableStateOf(
-        if (signUpViewModel.jobId > 0) signUpViewModel.jobId - 1 else null
-    ) }
-    val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
-    val isButtonEnabled = selectedJobIndex != null
+    // 뷰모델 상태 확인.
+    val selectedJobId = signUpViewModel.signUpForm.jobId
+    val jobs = Job.getAllJobs()
+    val isButtonEnabled = selectedJobId > 0
 
     Box(modifier = Modifier
         .fillMaxSize()
@@ -77,15 +75,14 @@ fun SignUpJobScreen(
 
             Spacer(Modifier.height((32.scaler)))
 
-            jobs.forEachIndexed { index, job ->
+            jobs.forEach { job ->
                 OptionButton(
-                    text = job,
-                    selected = selectedJobIndex == index,
+                    text = job.displayName,
+                    selected = selectedJobId == job.id,
                     onClick = {
-                        selectedJobIndex = index
-                        signUpViewModel.jobId = index + 1
+                        signUpViewModel.onJobSelected(job.id)
                     },
-                    modifier = Modifier.fillMaxWidth() // 반응형 유지
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height((12.scaler)))
             }
@@ -100,7 +97,6 @@ fun SignUpJobScreen(
             activeGradient = colorTheme.maincolor,
             inactiveGradient = colorTheme.inactiveColor,
             onClick = {
-                signUpViewModel.jobId = (selectedJobIndex ?: 0) + 1
                 navigator.navigate("sign_up_purpose") {
                     launchSingleTop = true
                 }
@@ -121,8 +117,8 @@ fun SignUpJobScreenPreview() {
     val colorTheme = LocalColorTheme.current
 
 
-    var selectedJobIndex by remember { mutableStateOf<Int?>(2) }
-    val jobs = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
+    var selectedJobId by remember { mutableStateOf(3) } // 직장인 선택
+    val jobs = Job.getAllJobs()
 
     Box(modifier = Modifier.fillMaxSize().background(colorTheme.white)) {
         Column(
@@ -156,9 +152,9 @@ fun SignUpJobScreenPreview() {
 
             jobs.forEachIndexed { index, job ->
                 OptionButton(
-                    text = job,
-                    selected = selectedJobIndex == index,
-                    onClick = { selectedJobIndex = index },
+                    text = job.displayName,
+                    selected = selectedJobId == job.id,
+                    onClick = { selectedJobId = job.id },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height((12.scaler)))
@@ -169,7 +165,7 @@ fun SignUpJobScreenPreview() {
 
         BottomGradientButton(
             text = "다음",
-            enabled = selectedJobIndex != null,
+            enabled = selectedJobId > 0,
             activeGradient = colorTheme.maincolor,
             inactiveGradient = colorTheme.inactiveColor,
             onClick = {},

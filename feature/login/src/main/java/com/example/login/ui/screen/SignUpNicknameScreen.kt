@@ -26,6 +26,7 @@ import com.example.login.ui.item.StepIndicator
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 import com.example.login.viewmodel.SignUpViewModel
+import com.example.login.viewmodel.NicknameCheckState
 
 @Composable
 fun SignUpNicknameScreen(
@@ -36,19 +37,13 @@ fun SignUpNicknameScreen(
     val colorTheme = LocalColorTheme.current
 
 
-    var nickname by remember { mutableStateOf(signUpViewModel.nickname) }
-
-    val isNicknameAvailable by signUpViewModel.isNicknameAvailable.collectAsState()
-    val nicknameMessage by signUpViewModel.nicknameMessage.collectAsState()
-    val isLoading by signUpViewModel.isLoading.collectAsState()
-
-
+    // 뷰모델의 상태 확인.
+    val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음.
+    val nicknameState by signUpViewModel.nicknameState.collectAsState()
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 6 //국문/영문 닉네임 글자수 6글자 이하로 제안
 
     //  버튼 활성 조건 (EmailVerificationScreen의 isButtonEnabled와 동일한 느낌)
-    val isButtonEnabled = isNicknameValid &&
-            (isNicknameAvailable == true) && // 중복확인 완료만 허용
-            !isLoading
+    val isButtonEnabled = isNicknameValid && nicknameState == NicknameCheckState.Available
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -81,48 +76,58 @@ fun SignUpNicknameScreen(
 
             Spacer(Modifier.height((12.scaler)))
 
-            //입력값 기준으로 즉시 판단, 삭제 시 불필요한 호출을 방지하도록 수정함.
             LoginTextField(
                 value = nickname,
                 onValueChange = { input ->
-                    nickname = input
-                    signUpViewModel.nickname = input
-
-                    // 입력 변경시 이전 결과 초기화
-                    signUpViewModel.resetNicknameAvailability()
-
-                    val isValid =
-                        input.isNotBlank() && input.length <= 6
-
-                    if (isValid) {
-                        signUpViewModel.checkNickname()
-                    }
+                    // 뷰모델의 함수가 내부적으로 signUpForm을 업데이트하고 중복체크를 실행함
+                    signUpViewModel.onNicknameChanged(input)
                 },
                 hint = "닉네임을 입력해주세요.",
                 modifier = Modifier.fillMaxWidth()
             )
 
-            if (isNicknameAvailable == false) {
-                Spacer(Modifier.height((6.scaler)))
-                Text(
-                    "중복된 닉네임 입니다.",
-                    fontSize = 13.sp,
-                    lineHeight = 15.sp,
-                    fontWeight = FontWeight(400),
-                    fontFamily = Paperlogy.font,
-                    color = Color(0xFFFF5E5E)
-                )
-            }
-            if (nicknameMessage == "서버 요청 실패") {
-                Spacer(Modifier.height((6.scaler)))
-                Text(
-                    "서버 요청 실패",
-                    fontSize = 13.sp,
-                    lineHeight = 15.sp,
-                    fontFamily = Paperlogy.font,
-                    fontWeight = FontWeight(400),
-                    color = Color(0xFFFF5E5E)
-                )
+            when (nicknameState) {
+                  // 혹시 닉네임 유효성 검사 중 닉네임 확인 중이 필요하다면...
+//                is NicknameCheckState.Checking -> {
+//                    Spacer(Modifier.height((6.scaler)))
+//                    Text(
+//                        text = "닉네임 확인 중...",
+//                        fontSize = 13.sp,
+//                        lineHeight = 15.sp,
+//                        fontWeight = FontWeight(400),
+//                        fontFamily = Paperlogy.font,
+//                        color = colorTheme.black.copy(alpha = 0.5f)
+//                    )
+//                }
+
+
+                is NicknameCheckState.Duplicated -> {
+                    Spacer(Modifier.height((6.scaler)))
+                    Text(
+                        text = "이미 사용 중인 닉네임입니다.",
+                        fontSize = 13.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight(400),
+                        fontFamily = Paperlogy.font,
+                        color = Color(0xFFFF5E5E)
+                    )
+                }
+
+
+                is NicknameCheckState.Error -> {
+                    Spacer(Modifier.height((6.scaler)))
+                    Text(
+                        text = (nicknameState as NicknameCheckState.Error).message, //뷰모델 에러 메시지 사용.
+                        //text = "서버 요청에 실패했습니다.",
+                        fontSize = 13.sp,
+                        lineHeight = 15.sp,
+                        fontWeight = FontWeight(400),
+                        fontFamily = Paperlogy.font,
+                        color = Color(0xFFFF5E5E)
+                    )
+                }
+
+                else -> Unit
             }
 
             Spacer(Modifier.height((12.scaler)))
