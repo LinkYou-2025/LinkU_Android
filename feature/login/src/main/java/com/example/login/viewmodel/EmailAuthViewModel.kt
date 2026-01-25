@@ -15,41 +15,78 @@ import org.json.JSONObject
 import retrofit2.HttpException
 import javax.inject.Inject
 import kotlin.random.Random
+import kotlinx.coroutines.Job
 
+sealed class EmailAuthState {
+    object Idle : EmailAuthState()
+    object Sending : EmailAuthState()
+    data class SendSuccess(val message: String) : EmailAuthState()
+    data class SendError(val message: String) : EmailAuthState()
+    object Verifying : EmailAuthState()
+    object VerifySuccess : EmailAuthState()
+    data class VerifyError(val message: String) : EmailAuthState()
+}
 
+// 에러 메시지 상수
+object AuthErrorMessages {
+    const val INVALID_EMAIL_FORMAT = "잘못된 이메일 형식"
+    const val EMAIL_ALREADY_EXISTS = "이미 가입된 이메일입니다."
+    const val SERVER_ERROR = "서버 오류"
+    const val VERIFY_FAILED = "인증 실패"
+    const val NETWORK_ERROR = "네트워크 오류"
+    const val INVALID_CODE = "이메일 인증 코드가 잘못 입력 되었습니다."
+}
 
 //여기 api 전면 수정 예정. 실제 api 연동은 1월 말~ 2월 초
+// TODO : 하진 언니에게 otp 번호 생성은 백에서 할 수 있도록 수정 요청하기!
 @HiltViewModel
 class EmailAuthViewModel @Inject constructor(
     private val userRepository: UserRepository
 ) : ViewModel() {
 
-    //  추가: 공용 에러 태그 세터
-    private fun flagServerError() { _errorTag.value = "SERVER_ERROR" }
+    companion object {
+        private const val TIMER_DURATION = 180 // 3분
+    }
+
+    private val _authState = MutableStateFlow<EmailAuthState>(EmailAuthState.Idle)
+    val authState: StateFlow<EmailAuthState> = _authState
+
+    // 타이머 추가
+    private val _timer = MutableStateFlow(0)
+    val timer: StateFlow<Int> = _timer
+
+    private var timerJob: Job? = null
+
+    // 타이머 시작
+    private fun startTimer() {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            _timer.value = TIMER_DURATION
+            while (_timer.value > 0) {
+                delay(1000)
+                _timer.value -= 1
+            }
+        }
+    }
+
+    // 타이머 중지
+    private fun stopTimer() {
+        timerJob?.cancel()
+        _timer.value = 0
+    }
+
+    // 전체 리셋 - 타이머 호출
+    fun resetAll() {
+        stopTimer()
+        _authState.value = EmailAuthState.Idle
+    }
+
 
     //상태 초기화 (화면 재진입/재시도 시 호출)
     fun reset() {
-        _sendCodeResult.value = null
-        _verifyCodeResult.value = null
-        _errorTag.value = null            // ← 추가: 에러 태그 초기화 (옵션)
-        // isVerifySuccess는 앞서 1회성으로 바꿨다면 false가 기본이므로 그대로 두면 됨
+        _authState.value = EmailAuthState.Idle
     }
 
-    // 인증 코드 전송 결과
-    private val _sendCodeResult = MutableStateFlow<String?>(null)
-    val sendCodeResult: StateFlow<String?> = _sendCodeResult
-
-    // 인증 코드 검증 결과
-    private val _verifyCodeResult = MutableStateFlow<String?>(null)
-    val verifyCodeResult: StateFlow<String?> = _verifyCodeResult
-
-    //  추가: 로그인 화면에서 그대로 매핑해 쓸 에러 태그
-    private val _errorTag = MutableStateFlow<String?>(null)
-    val errorTag: StateFlow<String?> = _errorTag
-
-    // 변경: 1회성 신호로 쓰는 전용 플래그
-    private val _isVerifySuccess = MutableStateFlow(false)
-    val isVerifySuccess: StateFlow<Boolean> = _isVerifySuccess
 
     // 6자리 랜덤 코드 생성 함수
     private fun generateRandomSixDigitCode(): String {
@@ -69,65 +106,61 @@ class EmailAuthViewModel @Inject constructor(
 
     /** 이메일 인증 코드 전송 */
     fun sendEmailCode(email: String) {
-        Log.d("EmailAuthVM", " sendEmailCode() called. email=$email")
+        Log.d("EmailAuthVM", "sendEmailCode() called. email=$email")
         viewModelScope.launch {
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Log.w("EmailAuthVM", "Invalid email format: $email")
-                _sendCodeResult.value = "잘못된 이메일 형식"
+                _authState.value = EmailAuthState.SendError(AuthErrorMessages.INVALID_EMAIL_FORMAT)
                 return@launch
             }
+
+            _authState.value = EmailAuthState.Sending
             val code = generateRandomSixDigitCode()
+
             Log.d("EmailAuthVM", "Generated code = $code")
             try {
                 val ok = userRepository.sendEmailCode(email, code)
-                Log.d("EmailAuthVM", " Server sendEmailCode result = $ok")
-                _sendCodeResult.value = if (ok) "인증 코드 전송 성공" else "서버 오류"
-            } catch (e: HttpException) {
-                Log.e("EmailAuthVM", " HttpException in sendEmailCode", e)
-                _sendCodeResult.value = when (e.code()) {
-                    409 -> { // 중복 이메일
-                        // (선택) 서버 메시지 파싱해서 UI로 보낼 수도 있음
-                        val msg = e.response()?.errorBody()?.safeStringMessage()
-                        Log.e("EmailAuthVM", " Duplicate email. server message=$msg")
-                        if (msg?.contains("중복") == true) "이미 가입된 이메일입니다."
-                        else "이미 가입된 이메일입니다."
-                    }
+                Log.d("EmailAuthVM", "Server sendEmailCode result = $ok")
 
-                    else -> {
-                        flagServerError()
-                        "서버 오류"
-                    }
+                if (ok) {
+                    _authState.value = EmailAuthState.SendSuccess("인증 코드 전송 성공")
+                    startTimer() // 성공 시 타이머 시작
+                } else {
+                    _authState.value = EmailAuthState.SendError(AuthErrorMessages.SERVER_ERROR)
+                }
+            } catch (e: HttpException) {
+                Log.e("EmailAuthVM", "HttpException in sendEmailCode", e)
+                _authState.value = when (e.code()) {
+                    409 -> EmailAuthState.SendError(AuthErrorMessages.EMAIL_ALREADY_EXISTS)
+                    else -> EmailAuthState.SendError(AuthErrorMessages.SERVER_ERROR)
                 }
             } catch (e: Exception) {
-                Log.e("EmailAuthVM", " Unknown error in sendEmailCode", e)
-                _sendCodeResult.value = "서버 오류"
-                flagServerError()                  //  서버 에러 태그 세팅
+                _authState.value = EmailAuthState.SendError(AuthErrorMessages.SERVER_ERROR)
             }
         }
     }
 
     // 이메일 인증 코드 전송
     fun verifyEmailCode(email: String, code: String) {
-        Log.d("EmailAuthVM", " verifyEmailCode() called. email=$email, code=$code")
+        Log.d("EmailAuthVM", "verifyEmailCode() called. email=$email, code=$code")
         viewModelScope.launch {
+            _authState.value = EmailAuthState.Verifying
             try {
                 val ok = userRepository.verifyEmailCode(email, code)
-                Log.d("EmailAuthVM", " Server verify result = $ok")
-                _verifyCodeResult.value = if (ok) "인증 성공" else "인증 실패"
-
-                // 여기서 1회성으로 true → 잠깐 후 false로 되돌림
-                _isVerifySuccess.value = ok
                 if (ok) {
-                    // 네비게이션 트리거 후 바로 false로 reset (재진입 자동 네비 방지)
-                    delay(200)
-                    _isVerifySuccess.value = false
+                    stopTimer() // 성공 시 타이머 중지
+                    _authState.value = EmailAuthState.VerifySuccess
+                } else {
+                    _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.VERIFY_FAILED)
                 }
             } catch (e: Exception) {
-                Log.e("EmailAuthVM", "verifyEmailCode error", e)
-                _verifyCodeResult.value = "네트워크 오류"
-                _isVerifySuccess.value = false
-                flagServerError()                      //  검증 중 서버 죽어도 태그 세팅
+                _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.NETWORK_ERROR)
             }
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopTimer()
     }
 }

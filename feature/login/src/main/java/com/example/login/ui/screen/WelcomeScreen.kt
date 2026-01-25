@@ -43,6 +43,7 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.login.viewmodel.SignUpState
 
 @Composable
 fun WelcomeScreen(
@@ -81,33 +82,35 @@ fun WelcomeScreen(
     BackHandler {
         // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
     }
-    //  signUpSuccess(Boolean?) 사용
-    val signUpSuccess by signUpViewModel?.signUpSuccess?.collectAsState() ?: remember {
-        mutableStateOf<Boolean?>(null)
+    //  signUpState 사용
+    val signUpState by signUpViewModel?.signUpState?.collectAsState() ?: remember {
+        mutableStateOf(SignUpState.Idle)
     }
     //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
     var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
 
     // 서버 응답 감지
-    LaunchedEffect(signUpSuccess) {
-        when (signUpSuccess) {
-            true -> {
-                Log.d("WelcomeScreen", " 회원가입 성공")
-                //navigator.navigate("home")  // 회원가입 후 홈으로 이동
-                // 수정 이전 화원가입으로 갈 수 없음. 백버튼을 아무리 눌러도 작동 안함.
+    LaunchedEffect(signUpState) {
+        when (signUpState) {
+            is SignUpState.Success -> {
+                Log.d("WelcomeScreen", "회원가입 성공")
                 navigator.navigate("email_login") {
                     popUpTo("auth_graph") { inclusive = true }
                 }
                 isSignUpRequested = false
             }
-
-            false -> {
-                Log.e("WelcomeScreen", "회원가입 실패")
-                isSignUpRequested = false //  실패 시 버튼 다시 활성화
+            is SignUpState.Error -> {
+                val message = (signUpState as SignUpState.Error).message
+                Log.e("WelcomeScreen", "회원가입 실패: $message")
+                isSignUpRequested = false
             }
-            null -> {} // 아직 응답 없음
-
+            is SignUpState.Loading -> {
+                Log.d("WelcomeScreen", "회원가입 진행 중...")
+            }
+            is SignUpState.Idle -> {
+                // 초기 상태
+            }
         }
     }
 
@@ -128,8 +131,8 @@ fun WelcomeScreen(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFFC800FF), // 위
-                        Color(0xFF2C6FFF)  // 아래
+                        Color(0xFF2C6FFF), // 위
+                        Color(0xFFC800FF)  // 아래
                     )
                 )
             )
@@ -202,6 +205,24 @@ fun WelcomeScreen(
                 style = TextStyle(brush = colorTheme.maincolor),
                 fontFamily = Paperlogy.font
             )
+
+            // 혹시 로딩 표시가 필요하다면?
+            /*
+            * if (signUpState is SignUpState.Loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = Color(0xFFC800FF),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                Text(
+                    text = "로그인 하러가기",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(brush = colorTheme.maincolor),
+                    fontFamily = Paperlogy.font
+                )
+            }*/
         }
 
 

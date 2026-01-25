@@ -24,6 +24,8 @@ import com.example.design.util.rememberFigmaDimens
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.scaler
+import com.example.login.viewmodel.Gender
+
 
 @Composable
 fun SignUpGenderScreen(
@@ -34,11 +36,9 @@ fun SignUpGenderScreen(
     val colorTheme = LocalColorTheme.current
 
 
-    // 성별 선택 상태: 1 = 남성, 2 = 여성
-    var selectedGender by remember { mutableStateOf<Int?>(null) }
-
-    //var selectedGender by remember { mutableStateOf<Int?>(null) }
-    val isButtonEnabled = selectedGender != null
+    // 뷰모델 상태 직접 가져오기.
+    val selectedGender = signUpViewModel.signUpForm.gender
+    val isButtonEnabled = selectedGender != Gender.NONE
 
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -78,10 +78,9 @@ fun SignUpGenderScreen(
         // 선택 옵션: 남성
         OptionButton(
             text = "남성",
-            selected = selectedGender == 1,
+            selected = selectedGender == Gender.MALE, //1
             onClick = {
-                selectedGender = 1
-                signUpViewModel.gender = 1
+                signUpViewModel.updateForm { it.copy(gender = Gender.MALE) }
             }
         )
 
@@ -90,10 +89,9 @@ fun SignUpGenderScreen(
         // 선택 옵션: 여성
         OptionButton(
             text = "여성",
-            selected = selectedGender == 2,
+            selected = selectedGender == Gender.FEMALE, //2
             onClick = {
-                selectedGender = 2
-                signUpViewModel.gender = 2
+                signUpViewModel.updateForm { it.copy(gender = Gender.FEMALE )}
             }
         )
 
@@ -105,7 +103,7 @@ fun SignUpGenderScreen(
             activeGradient = colorTheme.maincolor,
             inactiveGradient = colorTheme.inactiveColor,
             onClick = {
-                signUpViewModel.gender = selectedGender ?: 1
+                // 이미 뷰모델에 데이터가 들어있으므로 바로 이동
                 navigator.navigate("sign_up_job") {
                     launchSingleTop = true
                 }
@@ -119,8 +117,8 @@ fun SignUpGenderScreen(
 @Composable
 fun SignUpGenderScreenPreview() {
     val colorTheme = LocalColorTheme.current
-    var selectedGender by remember { mutableStateOf<Int?>(2) } // 테스트용 여성 선택
-    val isButtonEnabled = selectedGender != null
+    var selectedGender by remember { mutableStateOf(Gender.FEMALE) } // 테스트용 여성 선택
+    val isButtonEnabled = selectedGender != Gender.NONE  //버튼 활성화 조건입니다.
 
     Box(modifier = Modifier.fillMaxSize().background(colorTheme.white)) {
         Column(
@@ -155,16 +153,16 @@ fun SignUpGenderScreenPreview() {
 
             OptionButton(
                 text = "남성",
-                selected = selectedGender == 1,
-                onClick = { selectedGender = 1 }
+                selected = selectedGender == Gender.MALE,
+                onClick = { selectedGender = Gender.MALE}
             )
 
             Spacer(modifier = Modifier.height((12.scaler)))
 
             OptionButton(
                 text = "여성",
-                selected = selectedGender == 2,
-                onClick = { selectedGender = 2 }
+                selected = selectedGender == Gender.FEMALE,
+                onClick = { selectedGender = Gender.FEMALE }
             )
 
             Spacer(modifier = Modifier.weight(1f))

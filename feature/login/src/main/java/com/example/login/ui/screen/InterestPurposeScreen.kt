@@ -29,72 +29,49 @@ import androidx.compose.ui.unit.Dp
 import com.example.design.theme.LocalColorTheme
 import com.example.login.ui.item.StepIndicator
 import com.example.login.ui.item.BottomGradientButton
+import com.example.login.viewmodel.Purpose
 import com.example.login.viewmodel.SignUpViewModel
 
 
 // ui 전면 변경 예정으로, 리펙토링 진행하지 않음.(수정 1월말~2월 초)
 //--------------------------------------------------------------------------
-/**
- * 퍼포즈(저장 목적) 데이터 클래스 ─ 모든 좌표/크기 이모지 피그마 계측값 반영
- */
-data class Purpose(val emoji: String, val label: String, val size: Float, val offset: DpOffset)
+// 목적 ui data 클래스
+data class PurposeUI(
+    val emoji: String,
+    val purpose: Purpose,
+    val size: Float,
+    val offset: DpOffset
+)
 
 /**
  * 퍼포즈 버블 리스트 (피그마 측정값 원본): x, y, size/w/h 전부 실측값으로!
  */
-val purposes = listOf(
-    Purpose("🎓", "취업 커리어 준비", 159.29f, DpOffset(-102.dp, 293.29.dp)),
-    Purpose("📅", "그냥 나중에\n읽고 싶은 글 저장", 219.86f, DpOffset(-66.79.dp, 499.49.dp)),
-    Purpose("💡", "사이드 프로젝트\n/창업준비", 181.72f, DpOffset(59.68.dp, 335.6.dp)),
-    Purpose("❓", "기타", 107.69f, DpOffset(167.56.dp, 514.58.dp)),
-    Purpose("🧠", "자기개발\n /정보수집", 145.82f, DpOffset(220.88.dp, 243.dp)),
-    Purpose("📝", "학업/리포트 정리", 141.34f, DpOffset(256.08.dp, 401.92.dp)),
-    Purpose("💼", "업무자료 아카이빙", 186.21f, DpOffset(274.18.dp, 551.79.dp)),
-    Purpose("💻", "블로그/콘텐츠~", 188.45f, DpOffset(374.77.dp, 272.17.dp)),
-    Purpose("🧠", "인사이트 모으기", 161.53f, DpOffset(444.17.dp, 465.29.dp)),
+val purposeUIList = listOf(
+    PurposeUI("🎓", Purpose.CAREER, 159.29f, DpOffset(-102.dp, 293.29.dp)),
+    PurposeUI("📅", Purpose.LATER_READING, 219.86f, DpOffset(-66.79.dp, 499.49.dp)),
+    PurposeUI("💡", Purpose.SIDE_PROJECT, 181.72f, DpOffset(59.68.dp, 335.6.dp)),
+    PurposeUI("❓", Purpose.OTHERS, 107.69f, DpOffset(167.56.dp, 514.58.dp)),
+    PurposeUI("🧠", Purpose.SELF_DEVELOPMENT, 145.82f, DpOffset(220.88.dp, 243.dp)),
+    PurposeUI("📝", Purpose.STUDY, 141.34f, DpOffset(256.08.dp, 401.92.dp)),
+    PurposeUI("💼", Purpose.WORK, 186.21f, DpOffset(274.18.dp, 551.79.dp)),
+    PurposeUI("💻", Purpose.CREATION_REFERENCE, 188.45f, DpOffset(374.77.dp, 272.17.dp)),
+    PurposeUI("🧠", Purpose.INSIGHTS, 161.53f, DpOffset(444.17.dp, 465.29.dp)),
 )
 
-/**
- * 라벨-코드 맵. 서버에 전송할 때 사용 -> 절대절대절대 수정 불가!!
- */
-val purposeLabelToCode = mapOf(
-    "취업 커리어 준비" to "CAREER",
-    "그냥 나중에\n읽고 싶은 글 저장" to "LATER_READING",
-    "사이드 프로젝트~" to "SIDE_PROJECT",
-    "기타" to "OTHERS",
-    "자기개발~" to "SELF_DEVELOPMENT",
-    "학업/리포트 정리" to "STUDY",
-    "업무자료 아카이빙" to "WORK",
-    "블로그/콘텐츠~" to "CREATION_REFERENCE",
-    "인사이트 모으기" to "INSIGHTS",
-)
-private fun normalizePurpose(raw: String) = raw.replace("\n"," ").replace(" ","")
-val purposeLabelToCodeNormalized: Map<String, String> =
-    purposeLabelToCode.entries.associate { (k, v) -> normalizePurpose(k) to v }
 
-//--------------------------------------------------------------------------
-/**
- * @Composable 퍼포즈(저장 목적) 옵션 구름형 선택 UI - 실제 좌표 보정 포함
- * @param purposes 버블 리스트
- * @param selected 선택된 라벨
- * @param onToggle 토글 람다
- * @param height 버블 클라우드 전체 높이
- * @param leftGutter 좌측 여백(20dp 권장)
- * @param rightGutter 우측 여백(20dp 권장) -> 이건 편하게 ui 부분이라 변경해도 됩니당
- */
 @Composable
 private fun PurposeCloudScrollable(
-    purposes: List<Purpose>,
-    selected: SnapshotStateList<String>,
-    onToggle: (String) -> Unit,
-    height: Dp = 320.dp, // 4a1 추천: 320~360dp로, 원래 500~495은 바로 화면 하단 밀림
+    purposeUIList: List<PurposeUI>,
+    selectedPurposes: SnapshotStateList<Purpose>,
+    onToggle: (Purpose) -> Unit,
+    height: Dp = 320.dp,
     leftGutter: Dp = 20.dp,
     rightGutter: Dp = 20.dp
 ) {
     // 4a14c5 y좌표 전체를 minY로 보정해서 top에 맞게 이동시키기!
-    val minY = purposes.minOfOrNull { it.offset.y } ?: 0.dp
+    val minY = purposeUIList.minOfOrNull { it.offset.y } ?: 0.dp
     val shiftY = 0.dp // 필요하면 위쪽 여백(10~20dp) 추가
-    val shiftedPurposes = purposes.map { p ->
+    val shiftedPurposes = purposeUIList.map { p ->
         p.copy(offset = DpOffset(p.offset.x, (p.offset.y - minY) + shiftY))
     }
 
@@ -126,13 +103,13 @@ private fun PurposeCloudScrollable(
                 .height(height)
         ) {
             shiftedPurposes.forEach { p ->
-                val isSelected = p.label in selected
+                val isSelected = selectedPurposes.contains(p.purpose)
                 CircleItem(
                     emoji = p.emoji,
-                    text = p.label,
+                    text = p.purpose.displayName,
                     sizeDp = p.size,
                     selected = isSelected,
-                    onClick = { onToggle(p.label) },
+                    onClick = { onToggle(p.purpose) },
                     modifier = Modifier.offset(
                         leftGutter + p.offset.x + shiftX,
                         p.offset.y
@@ -159,26 +136,18 @@ fun InterestPurposeScreen(
     val paperlogyFamily = Paperlogy.font
     val colorTheme = LocalColorTheme.current
 
-    val isPreview = LocalInspectionMode.current
 
+    // Purpose enum을 담는 리스트
     val selectedPurposes = remember {
-        mutableStateListOf<String>().apply {
-            if (!isPreview && signUpViewModel != null) {
-                addAll(
-                    signUpViewModel.purposeList.mapNotNull { code ->
-                        purposeLabelToCodeNormalized.entries
-                            .firstOrNull { it.value == code }
-                            ?.key
-                    }
-                )
-            } else {
-                // 프리뷰용 기본 선택값 (원하는 걸로)
-                add("취업 커리어 준비")
-                add("학업/리포트 정리")
-            }
+        mutableStateListOf<Purpose>().apply {
+            // 기존 선택된 목적이 있으면 복원
+            signUpViewModel?.signUpForm?.purposeList?.let { addAll(it) }
         }
     }
+
+
     val canProceed = selectedPurposes.isNotEmpty()
+
     Scaffold(
         containerColor = Color.White,
         bottomBar = {
@@ -188,13 +157,10 @@ fun InterestPurposeScreen(
                 activeGradient = colorTheme.maincolor,
                 inactiveGradient = colorTheme.inactiveColor,
                 onClick = {
-                    val codes = selectedPurposes
-                        .mapNotNull { purposeLabelToCodeNormalized[normalizePurpose(it)] }
-                        .distinct()
+                    if (selectedPurposes.isEmpty()) return@BottomGradientButton
 
-                    if (codes.isEmpty()) return@BottomGradientButton
-
-                    signUpViewModel?.purposeList = codes
+                    // Purpose enum 리스트를 그대로 전달
+                    signUpViewModel?.onPurposeListChanged(selectedPurposes.toList())
                     navigator.navigate("sign_up_interest")
                 }
             )
@@ -253,13 +219,16 @@ fun InterestPurposeScreen(
                     .weight(1f) // 핵심
             ) {
                 PurposeCloudScrollable(
-                    purposes = purposes,
-                    selected = selectedPurposes,
-                    onToggle = { label ->
-                        if (selectedPurposes.contains(label)) selectedPurposes.remove(label)
-                        else selectedPurposes.add(label)
+                    purposeUIList = purposeUIList,
+                    selectedPurposes = selectedPurposes,
+                    onToggle = { purpose ->
+                        if (selectedPurposes.contains(purpose)) {
+                            selectedPurposes.remove(purpose)
+                        } else {
+                            selectedPurposes.add(purpose)
+                        }
                     },
-                    height = 495.dp // 박스 영역 맞춤
+                    height = 495.dp
                 )
 
                 Spacer(Modifier.height(24.dp))

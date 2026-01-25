@@ -30,50 +30,37 @@ import com.example.design.theme.LocalColorTheme
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.StepIndicator
 import com.example.login.viewmodel.SignUpViewModel
-
+import com.example.login.viewmodel.Interest
 /**
  * 관심사 선택 화면의 버블 데이터 클래스
  */
 
-// ui 전면 변경 예정으로, 리펙토링 진행하지 않음.(수정 1월말~2월 초)
-data class Content(val emoji: String, val label: String, val size: Float, val offset: DpOffset)
+// ui 전면 변경 예정으로, ui 리펙토링 진행하지 않음.(수정 1월말~2월 초)
+data class InterestUI(
+    val emoji: String,
+    val interest: Interest,
+    val size: Float,
+    val offset: DpOffset
+)
 
 /**
  * 관심사 버블 리스트 (동그라미 위치, 크기, 라벨 등)
  */
-val contents = listOf(
-    Content("\uD83D\uDCC8", "비즈니스/마케팅", 159.29f, DpOffset(-208.dp, 261.dp)),
-    Content("\uD83C\uDFA8", "디자인/\n크리에이티브", 181.72f, DpOffset(-32.dp, 243.dp)),
-    Content("\uD83D\uDCDA", "학업/\n리포트 참고", 145.82f, DpOffset(-89.dp, 420.dp)),
-    Content("\u270D\uFE0F", "글쓰기/콘텐츠\n작성", 188.45f, DpOffset(72.dp, 410.dp)),
-    Content("\uD83D\uDCBB", "IT/개발", 107.69f, DpOffset(165.dp, 297.dp)),
-    Content("\uD83C\uDF0D", "사회/문화/환경", 187f, DpOffset(392.dp, 250.dp)),
-    Content("\uD83D\uDE80", "스타트업/창업", 141.34f, DpOffset(260.dp, 365.dp)),
-    Content("\uD83D\uDCC2", "그냥 모아두고\n싶은 글들", 187f, DpOffset(260.dp, 519.dp)),
-    Content("\uD83D\uDCF0", "시사/트렌드", 118f, DpOffset(136.dp, 613.dp)),
-    Content("\uD83E\uDDE0", "심리/자기계발", 161.53f, DpOffset(-39.dp, 574.dp)),
-    Content("\uD83C\uDFAF", "커리어/채용", 125f, DpOffset(-179.18.dp, 553.dp)),
-    Content("\uD83D\uDCD3", "책/인사이트\n요약", 159.29f, DpOffset(442.dp, 448.dp))
+val interestUIList = listOf(
+    InterestUI("\uD83D\uDCC8", Interest.BUSINESS, 159.29f, DpOffset(-208.dp, 261.dp)),
+    InterestUI("\uD83C\uDFA8", Interest.DESIGN, 181.72f, DpOffset(-32.dp, 243.dp)),
+    InterestUI("\uD83D\uDCDA", Interest.STUDY, 145.82f, DpOffset(-89.dp, 420.dp)),
+    InterestUI("\u270D\uFE0F", Interest.WRITING, 188.45f, DpOffset(72.dp, 410.dp)),
+    InterestUI("\uD83D\uDCBB", Interest.IT, 107.69f, DpOffset(165.dp, 297.dp)),
+    InterestUI("\uD83C\uDF0D", Interest.SOCIETY, 187f, DpOffset(392.dp, 250.dp)),
+    InterestUI("\uD83D\uDE80", Interest.STARTUP, 141.34f, DpOffset(260.dp, 365.dp)),
+    InterestUI("\uD83D\uDCC2", Interest.COLLECT, 187f, DpOffset(260.dp, 519.dp)),
+    InterestUI("\uD83D\uDCF0", Interest.CURRENT_EVENTS, 118f, DpOffset(136.dp, 613.dp)),
+    InterestUI("\uD83E\uDDE0", Interest.PSYCHOLOGY, 161.53f, DpOffset(-39.dp, 574.dp)),
+    InterestUI("\uD83C\uDFAF", Interest.CAREER, 125f, DpOffset(-179.18.dp, 553.dp)),
+    InterestUI("\uD83D\uDCD3", Interest.INSIGHTS, 159.29f, DpOffset(442.dp, 448.dp))
 )
 
-val contentLabelToCode = mapOf(
-    "비즈니스/마케팅" to "BUSINESS",
-    "디자인/\n크리에이티브" to "DESIGN",
-    "IT/개발" to "IT",
-    "스타트업/창업" to "STARTUP",
-    "사회/문화/환경" to "SOCIETY",
-    "학업/\n리포트 참고" to "STUDY",
-    "글쓰기/콘텐츠\n작성" to "WRITING",
-    "책/인사이트\n요약" to "INSIGHTS",
-    "심리/자기계발" to "PSYCHOLOGY",
-    "시사/트렌드" to "CURRENT_EVENTS",
-    "그냥 모아두고\n싶은 글들" to "COLLECT",
-    "커리어/채용" to "CAREER"
-)
-
-private fun normalizeLabel(raw: String) = raw.replace("\n", "").replace(" ", "")
-val contentLabelToCodeNormalized: Map<String, String> =
-    contentLabelToCode.entries.associate { (k, v) -> normalizeLabel(k) to v }
 
 /**
  * 관심사 선택 메인 화면 컴포저블
@@ -88,26 +75,16 @@ fun InterestContentScreen(
     val paperlogyFamily = Paperlogy.font
     val colorTheme = LocalColorTheme.current
 
-    val isPreview = LocalInspectionMode.current
-    // ViewModel 기존 선택값 복원 (뒤로가기 해도 유지됨)
-    val selectedContents = remember {
-        mutableStateListOf<String>().apply {
-            if (!isPreview && signUpViewModel != null) {
-                addAll(
-                    signUpViewModel.interestList.mapNotNull { code ->
-                        contentLabelToCodeNormalized.entries
-                            .firstOrNull { it.value == code }
-                            ?.key
-                    }
-                )
-            } else {
-                // Preview 기본값
-                add("IT/개발")
-                add("비즈니스/마케팅")
-            }
+
+    // Interest enum을 담는 리스트
+    val selectedInterests = remember {
+        mutableStateListOf<Interest>().apply {
+            // 기존 선택된 관심사가 있으면 복원
+            signUpViewModel?.signUpForm?.interestList?.let { addAll(it) }
         }
     }
-    val canProceed = selectedContents.isNotEmpty()
+
+    val canProceed = selectedInterests.isNotEmpty()
 
     Scaffold(
         containerColor = Color.White,
@@ -118,14 +95,11 @@ fun InterestContentScreen(
                 activeGradient = colorTheme.maincolor,
                 inactiveGradient = colorTheme.inactiveColor,
                 onClick = {
-                    val codes = selectedContents
-                        .mapNotNull { contentLabelToCodeNormalized[normalizeLabel(it)] }
-                        .distinct()
+                    if (selectedInterests.isEmpty()) return@BottomGradientButton
 
-                    if (codes.isNotEmpty()) {
-                        signUpViewModel?.interestList = codes
-                        navigator.navigate("welcome")
-                    }
+                    // Interest enum 리스트를 그대로 전달
+                    signUpViewModel?.onInterestListChanged(selectedInterests.toList())
+                    navigator.navigate("welcome")
                 }
             )
         }
@@ -185,13 +159,13 @@ fun InterestContentScreen(
                     .weight(1f) // ⭐ 핵심
             ) {
                 InterestCloudScrollable(
-                    contents = contents,
-                    selected = selectedContents,
-                    onToggle = { label ->
-                        if (selectedContents.contains(label)) {
-                            selectedContents.remove(label)
+                    interestUIList = interestUIList,  // ✅ 파라미터명 수정
+                    selectedInterests = selectedInterests,  // ✅ 파라미터명 수정
+                    onToggle = { interest ->
+                        if (selectedInterests.contains(interest)) {
+                            selectedInterests.remove(interest)
                         } else {
-                            selectedContents.add(label)
+                            selectedInterests.add(interest)
                         }
                     },
                     height = 500.dp
@@ -208,17 +182,17 @@ fun InterestContentScreen(
  */
 @Composable
 private fun InterestCloudScrollable(
-    contents: List<Content>,
-    selected: SnapshotStateList<String>,
-    onToggle: (String) -> Unit,
+    interestUIList: List<InterestUI>,
+    selectedInterests: SnapshotStateList<Interest>,
+    onToggle: (Interest) -> Unit,
     height: Dp = 500.dp,
     leftGutter: Dp = 20.dp,
     rightGutter: Dp = 20.dp
 ) {
     // 1) 전체 y 기준 보정 (top 정렬)
-    val minY = contents.minOfOrNull { it.offset.y } ?: 0.dp
+    val minY = interestUIList.minOfOrNull { it.offset.y } ?: 0.dp
     val shiftY = 0.dp
-    val shiftedContents = contents.map { c ->
+    val shiftedContents = interestUIList.map { c ->
         c.copy(offset = DpOffset(c.offset.x, (c.offset.y - minY) + shiftY))
     }
 
@@ -254,13 +228,13 @@ private fun InterestCloudScrollable(
                 .height(height)
         ) {
             shiftedContents.forEach { item ->
-                val isSelected = item.label in selected
+                val isSelected = selectedInterests.contains(item.interest)
                 CircleItem(
                     emoji = item.emoji,
-                    text = item.label,
+                    text = item.interest.displayName, //enum의 displayName 사용
                     sizeDp = item.size,
                     selected = isSelected,
-                    onClick = { onToggle(item.label) },
+                    onClick = {onToggle(item.interest) }, //enum에 관심사 전달
                     modifier = Modifier.offset(
                         leftGutter + item.offset.x + shiftX,
                         item.offset.y

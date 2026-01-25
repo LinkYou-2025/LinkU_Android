@@ -1,7 +1,7 @@
 package com.example.login.ui.screen
 
+import android.util.Log
 import android.util.Patterns
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,9 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -22,7 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.delay
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.font.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,11 +27,12 @@ import androidx.navigation.NavBackStackEntry
 import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.StepIndicator
 import com.example.login.ui.item.BottomGradientButton
-import com.example.design.util.rememberFigmaDimens
 import com.example.login.viewmodel.EmailAuthViewModel
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.scaler
+import com.example.login.viewmodel.AuthErrorMessages
+import com.example.login.viewmodel.EmailAuthState
 
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
@@ -49,91 +47,84 @@ fun EmailVerificationScreen(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
 
-
     BackHandler {
         parentEntry.savedStateHandle["from_email_verification"] = true
         navigator.popBackStack()   // ← 이게 정답
     }
-    // 상태 변수
-    val email = remember { mutableStateOf("") }
-    val code = remember { mutableStateOf("") }
-    var isSending by remember { mutableStateOf(false) }
-    var isVerifying by remember { mutableStateOf(false) }
-    var timer by remember { mutableStateOf(180) }
-    var errorMessage by remember { mutableStateOf("") }
 
-    // 리셋 신호
-    val resetSignalFlow = remember(navigator) {
-        navigator.currentBackStackEntry
-            ?.savedStateHandle
-            ?.getStateFlow("reset_email_screen", false)
-    }
-    val resetSignal = resetSignalFlow?.collectAsState(initial = false)?.value ?: false
+    // 일회성으로 진행하는 것이니 이건 굳이 SignUpViewModel 모델에 넣지 않는게 좋다고 판단했는데, 확인 부탁드립니다.
+    var email by remember { mutableStateOf("") }
+    var code by remember { mutableStateOf("") }
 
-    LaunchedEffect(resetSignal) {
-        if (resetSignal) {
-            email.value = ""
-            code.value = ""
-            isSending = false
-            isVerifying = false
-            timer = 0
-            viewModel.reset()
-            navigator.currentBackStackEntry
-                ?.savedStateHandle
-                ?.set("reset_email_screen", false)
-        }
+
+    // 뷰모델 상태
+    val authState by viewModel.authState.collectAsState()
+    val timer by viewModel.timer.collectAsState()
+
+
+    // 파생 상태로- 중복 제거.
+    val emailValid = remember(email) {
+        Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-    val emailValid = remember(email.value) {
-        Patterns.EMAIL_ADDRESS.matcher(email.value).matches()
-    }
-    val context = LocalContext.current
-    val sendResult by viewModel.sendCodeResult.collectAsState()
-    val verifyResult by viewModel.verifyCodeResult.collectAsState()
-    val isCodeSent = sendResult == "인증 코드 전송 성공"
-    val isCodeValid = code.value.length == 6
+    val isCodeSent = authState is EmailAuthState.SendSuccess
+    val isCodeValid = code.length == 6
     val timerText = String.format("%02d:%02d", timer / 60, timer % 60)
+    val isSending = authState is EmailAuthState.Sending // 파생 상태
+    val isVerifying = authState is EmailAuthState.Verifying // 파생 상태
 
-    // 인증 타이머
-    LaunchedEffect(isCodeSent) {
-        if (isCodeSent) {
-            timer = 180
-            while (timer > 0) {
-                delay(1000)
-                timer -= 1
+
+    // 상태에 따라 파생 값 계산
+    val sendResult: String? = when (val state = authState) {
+        is EmailAuthState.SendSuccess -> state.message
+        is EmailAuthState.SendError -> state.message
+        else -> null
+    }
+
+    val verifyResult: String? = when (val state = authState) {
+        is EmailAuthState.VerifySuccess -> "인증 성공"
+        is EmailAuthState.VerifyError -> state.message
+        else -> null
+    }
+
+    // 화면 진입 시 리셋
+    LaunchedEffect(Unit) {
+        viewModel.resetAll()
+    }
+
+
+    // 상태 변화 감지
+    LaunchedEffect(authState) {
+        when (authState) {
+            is EmailAuthState.SendSuccess -> {
+                Log.d("EmailVerificationScreen", "인증 코드 전송 성공")
             }
+            is EmailAuthState.SendError -> {
+                Log.e("EmailVerificationScreen", "전송 실패: ${(authState as EmailAuthState.SendError).message}")
+            }
+            is EmailAuthState.VerifySuccess -> {
+                Log.d("EmailVerificationScreen", "인증 성공")
+                signUpViewModel.updateForm {
+                    it.copy(email = email.trim())
+                }
+                navigator.navigate("sign_up_password")
+            }
+            is EmailAuthState.VerifyError -> {
+                Log.e("EmailVerificationScreen", "인증 실패: ${(authState as EmailAuthState.VerifyError).message}")
+            }
+            else -> Unit
         }
     }
 
-    // 결과 오면 토스트 + 잠금 해제
-    LaunchedEffect(sendResult) {
-        sendResult?.let { msg ->
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-            isSending = false
-        }
-    }
-    LaunchedEffect(verifyResult) {
-        verifyResult?.let { msg ->
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-            isVerifying = false
-        }
-    }
-    // 인증 성공 시 다음 화면으로
-    val isVerifySuccess by viewModel.isVerifySuccess.collectAsState()
-    LaunchedEffect(isVerifySuccess) {
-        if (isVerifySuccess) {
-            signUpViewModel.email = email.value.trim()
-            navigator.navigate("sign_up_password")
-        }
-    }
+
 
     // UI만 그리는 프레젠테이션 컴포저블에 상태/이벤트를 위임 -> 렌더 이슈로 부득이하게 프리뷰 구현을 위해 코드 추가.
     EmailVerificationScreenContent(
         navigator = navigator,
-        email = email.value,
-        onEmailChange = { email.value = it; errorMessage = "" },
-        code = code.value,
-        onCodeChange = { code.value = it; errorMessage = "" },
+        email = email,
+        onEmailChange = { email = it },
+        code = code,
+        onCodeChange = { code = it },
         isSending = isSending,
         isVerifying = isVerifying,
         timer = timer,
@@ -143,19 +134,8 @@ fun EmailVerificationScreen(
         isCodeValid = isCodeValid,
         timerText = timerText,
         emailValid = emailValid,
-        errorMessage = errorMessage,
-        onSendCode = {
-            val cleanEmail = email.value.trim()
-            if (isSending) return@EmailVerificationScreenContent
-            isSending = true
-            viewModel.sendEmailCode(cleanEmail)
-        },
-        onVerifyCode = {
-            val cleanEmail = email.value.trim()
-            if (isVerifying) return@EmailVerificationScreenContent
-            isVerifying = true
-            viewModel.verifyEmailCode(cleanEmail, code.value.trim())
-        }
+        onSendCode = { viewModel.sendEmailCode(email.trim()) },
+        onVerifyCode = { viewModel.verifyEmailCode(email.trim(), code.trim()) }
     )
 }
 
@@ -180,15 +160,12 @@ fun EmailVerificationScreenContent(
     isCodeValid: Boolean,
     timerText: String,
     emailValid: Boolean,
-    errorMessage: String,
     onSendCode: () -> Unit,
     onVerifyCode: () -> Unit
 ) {
 
     //디자인 모듈 불러오기
     val colorTheme = LocalColorTheme.current
-
-
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -232,7 +209,7 @@ fun EmailVerificationScreenContent(
             // 에러 문구
             val emailErrorText: String? = when {
                 email.isNotBlank() && !emailValid -> "이메일 양식이 올바르지 않습니다!"
-                sendResult == "이미 가입된 이메일입니다." || sendResult == "이미 가입된 이메일입니다" -> "이미 가입된 이메일입니다."
+                sendResult == AuthErrorMessages.EMAIL_ALREADY_EXISTS -> AuthErrorMessages.EMAIL_ALREADY_EXISTS
                 else -> null
             }
             emailErrorText?.let {
@@ -306,10 +283,11 @@ fun EmailVerificationScreenContent(
                 )
 
                 val codeErrorText: String? = when {
-                    verifyResult == "인증번호가 올바르지 않습니다" ||
-                            verifyResult == "인증 코드 불일치" ||
-                            verifyResult == "인증 실패" ->
-                        "이메일 인증 코드가 잘못 입력 되었습니다."
+                    verifyResult in listOf(
+                        "인증번호가 올바르지 않습니다",
+                        "인증 코드 불일치",
+                        AuthErrorMessages.VERIFY_FAILED
+                    ) -> AuthErrorMessages.INVALID_CODE
                     else -> null
                 }
 
@@ -326,9 +304,9 @@ fun EmailVerificationScreenContent(
                             start = (12.scaler)
                         )
                     )
-                }//TODO : 하진 언니한테 오류 멘트 받아올 수 있는 api 수정 부탁하기!
+                }
 
-            } else if (sendResult == "서버 오류") {
+            } else if (sendResult == AuthErrorMessages.SERVER_ERROR) {
                 Spacer(modifier = Modifier.height((8.scaler)))
                 Text(
                     text = "서버 오류: 잠시 후 다시 시도해주세요",
@@ -339,7 +317,7 @@ fun EmailVerificationScreenContent(
             }
         }
         // 하단 고정 영역
-        val isButtonEnabled = sendResult != "서버 오류" &&
+        val isButtonEnabled = sendResult != AuthErrorMessages.SERVER_ERROR &&
                 !isSending && !isVerifying &&
                 (if (isCodeSent) isCodeValid else emailValid)
 
@@ -406,7 +384,6 @@ fun EmailVerificationScreenPreview() {
         isCodeValid = false,
         timerText = "03:00",
         emailValid = true,
-        errorMessage = "",
         onSendCode = {},
         onVerifyCode = {}
     )
@@ -434,7 +411,6 @@ fun EmailVerificationScreen_TimerPreview() {
         isCodeValid = true,
         timerText = "02:33",
         emailValid = true,
-        errorMessage = "",
         onSendCode = {},
         onVerifyCode = {}
     )
