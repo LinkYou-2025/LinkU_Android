@@ -1,11 +1,8 @@
-package com.example.login.auth
+package com.example.login
 
 //피그마에서 스플래쉬 다음으로 나오는 로그인 화면 입니다.
 
-import android.app.Activity
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -14,10 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.WindowInsets
@@ -26,22 +20,16 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.draw.alpha
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.example.login.R
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.text.style.TextAlign
-import com.example.login.Paperlogy
-import com.example.login.ui.item.SocialLoginButton
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Devices
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.WindowInsetsCompat
-
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.DesignSystemBars
+import com.example.login.ui.item.SocialLoginButton
+import com.example.design.theme.font.Paperlogy
+import com.example.design.util.scaler
 
 
 @Composable
@@ -51,31 +39,19 @@ fun LoginScreen(
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
     showLogo: Boolean = true, //로고 숨김(애니메이션 동안)
-    //emailButtonColor: Color = Color(0x66FFFFFF),
-    //onSignUpClick: () -> Unit = {} //기존에 이메일로 시작하기 버튼이 반짝이인데 유지할지 말지 물어보기.
+    
 ) {
 
+    val colorTheme = LocalColorTheme.current
 
-    val isPreview = LocalInspectionMode.current
-    val view = LocalView.current
+    // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
+    DesignSystemBars(
+        statusBarColor = Color.Transparent,
+        navigationBarColor = Color.Transparent,
+        darkIcons = false,
+        immersive = true
+    )
 
-    if (!isPreview) {
-        val activity = view.context as Activity
-        val window = activity.window
-
-        SideEffect {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-
-            WindowInsetsControllerCompat(window, view).apply {
-                hide(
-                    WindowInsetsCompat.Type.statusBars() or
-                            WindowInsetsCompat.Type.navigationBars()
-                )
-                systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            }
-        }
-    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -98,7 +74,7 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 32.dp)
+                .padding(horizontal = 32.scaler)
         ) {
 
             Column(
@@ -125,7 +101,7 @@ fun LoginScreen(
 //                }
 
                 // 로고 아래 30dp 간격
-                Spacer(modifier = Modifier.height(30.dp))
+                Spacer(modifier = Modifier.height(30.scaler))
 
                 Column(
                     modifier = Modifier.alpha(contentAlpha),
@@ -136,20 +112,20 @@ fun LoginScreen(
                         text = "Link U, Think You",
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = Paperlogy,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = Color.White,
                         textAlign = TextAlign.Center
                     )
 
                     // 문구 간 25dp 간격
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(25.scaler))
 
                     Text(
                         text = "링큐에 오신 것을 \n환영해요",
                         fontSize = 22.sp,
                         lineHeight = 30.sp,
-                        fontFamily = Paperlogy,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(700),
                         color = Color.White,
                         textAlign = TextAlign.Center
@@ -165,22 +141,22 @@ fun LoginScreen(
         val imeBottom = WindowInsets.ime.getBottom(density)
         val navBottom = WindowInsets.navigationBars.getBottom(density)
 
-        val bottomPadding = when {
+        val bottomPadding = (when {
             imeBottom > 0 -> 20.dp
             navBottom > 0 -> 16.dp
             else -> 24.dp
-        } + 70.dp //바텀 네비게이션 바 대신 그만큼 올리기!
+        } + 70.dp).value.scaler//바텀 네비게이션 바 대신 그만큼 올리기!
 
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .alpha(contentAlpha)
                 .padding(
-                    start = 20.dp,
-                    end = 20.dp,
+                    start = 20.scaler,
+                    end = 20.scaler,
                     bottom = bottomPadding
                 ),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.scaler),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
@@ -209,7 +185,7 @@ fun LoginScreen(
                 textColor = Color.Black
             )
 
-            // 이메일 기존 그대로 유지. //TODO 채윤지 : 하진 언니로부터 샌드 그리드에서 변경된 api 발생시 재연동 작업 하기....
+            // 이메일 기존 그대로 유지. //TODO 채윤지 : 서원에게 변경된 otp api 받으면 재연동하기
             SocialLoginButton(
                 backgroundColor = Color.Transparent,
                 borderColor = Color.White,

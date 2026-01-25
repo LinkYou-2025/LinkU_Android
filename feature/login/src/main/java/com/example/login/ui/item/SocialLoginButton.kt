@@ -20,7 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 import com.example.login.R
 
 @Composable
@@ -33,11 +36,14 @@ fun SocialLoginButton(
     textColor: Color,
     onClick: () -> Unit = {}
 ) {
+
+
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = 372.dp) //  반응형 + 피그마 최대 너비
-            .height(50.dp),
+            .widthIn(max = (372.scaler)) // 너비 반응형 적용
+            .height((50.scaler)),
         color = backgroundColor,
         shape = RoundedCornerShape(18.dp),
         border = borderColor?.let { BorderStroke(1.dp, it) }
@@ -50,7 +56,7 @@ fun SocialLoginButton(
                     interactionSource = remember { MutableInteractionSource() },
                     onClick = onClick
                 )
-                .padding(horizontal = 18.dp),
+                .padding(horizontal = (18.scaler)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -60,15 +66,15 @@ fun SocialLoginButton(
                 Image(
                     painter = painterResource(iconRes),
                     contentDescription = null,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size((22.scaler))
                 )
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width((8.scaler)))
             }
 
             Text(
                 text = text,
-                fontFamily = Paperlogy,
+                fontFamily = Paperlogy.font,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -81,36 +87,28 @@ fun SocialLoginButton(
 @Preview(showBackground = true)
 @Composable
 fun SocialLoginButtonPreview() {
+    val colorTheme = LocalColorTheme.current
     Box(
         modifier = Modifier
             .fillMaxSize()
             //  프리뷰용 배경 (피그마 그라데이션)
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFF2C6FFF),
-                        Color(0xFFC800FF)
-                    )
-                )
-            ),
+            .background(brush = colorTheme.maincolor),
         contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp), // 좌우 여백 20
+                .padding(horizontal = (20.scaler)), // 좌우 여백 20
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp) // 버튼 간격 10
+            verticalArrangement = Arrangement.spacedBy((10.scaler)) //반응형으로 변경.ㄴ
         ) {
-
-
 
             // 카카오
             SocialLoginButton(
                 backgroundColor = Color(0xFFFEE500),
                 iconRes = R.drawable.icon_login_kakao,
                 text = "카카오로 시작하기",
-                textColor = Color.Black
+                textColor = colorTheme.black
             )
 
             //  네이버
@@ -118,16 +116,16 @@ fun SocialLoginButtonPreview() {
                 backgroundColor = Color(0xFF03C75A),
                 iconRes = R.drawable.icon_login_naver,
                 text = "네이버로 시작하기",
-                textColor = Color.White
+                textColor = colorTheme.white
             )
 
             // 구글
             SocialLoginButton(
-                backgroundColor = Color.White,
+                backgroundColor = colorTheme.white,
                 borderColor = Color(0xFFE0E0E0),
                 iconRes = R.drawable.icon_login_google,
                 text = "구글로 시작하기",
-                textColor = Color.Black
+                textColor = colorTheme.black
             )
 
             // 이메일

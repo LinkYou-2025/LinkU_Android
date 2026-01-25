@@ -1,16 +1,13 @@
-package com.example.login.auth
+package com.example.login.ui.terms
 
 
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,16 +16,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.login.R
-import com.example.login.Paperlogy
+import com.example.design.theme.font.Paperlogy
 
-/* ─────────────────────────────
-   공통 풋터 버튼 (양식 통일용)
-   ───────────────────────────── */
+//ui 수정 예정. 약관, 디자인 확정시 수정함.
 private val FOOTER_HEIGHT = 50.dp
 private val FOOTER_BOTTOM = 0.dp
 private val EXTRA_GAP = 0.dp
@@ -41,6 +35,9 @@ private fun AgreeFooterButton(
     text: String = "약관에 동의합니다",
     applyNavPadding: Boolean = true,
 ) {
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+    
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -64,7 +61,7 @@ private fun AgreeFooterButton(
             text = text,
             color = if (enabled) Color.White else Color.Gray,
             fontWeight = FontWeight.Bold,
-            fontFamily = Paperlogy
+            fontFamily = paperlogyFamily
         )
     }
 }
@@ -78,6 +75,10 @@ fun ServiceTermsScreen(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
+
+    // 2. 디자인 모듈의 폰트 패밀리 가져오기
+    val paperlogyFamily = Paperlogy.font
+
     val scrollState = rememberScrollState()
     val isAtBottom by remember { derivedStateOf { scrollState.value >= scrollState.maxValue } }
 
@@ -126,7 +127,7 @@ fun ServiceTermsScreen(
                         text = "서비스 이용약관",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 },
@@ -175,7 +176,7 @@ fun ServiceTermsScreen(
                         text = "앱 서비스 이용약관",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy,
+                        fontFamily = paperlogyFamily,
                         color = Color.Black
                     )
 
@@ -186,7 +187,7 @@ fun ServiceTermsScreen(
                         text = serviceTermsBody,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy
+                        fontFamily = paperlogyFamily
                     )
                 }
             }
