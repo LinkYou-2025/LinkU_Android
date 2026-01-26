@@ -171,44 +171,45 @@ fun BottomFolderGrid(
         }
 
 
-        // "분류되지 않은 링크" 텍스트
-        Text(
-            text = "분류되지 않은 링크",
-            fontSize = 20.sp,
-            lineHeight = 30.sp,
-            fontFamily = DefaultFont,
-            fontWeight = FontWeight(700),
-            color = Black,
-            modifier = Modifier.padding(top = 40.dp, bottom = 20.dp) // 위아래 간격 추가
-        )
+        if(linkList.isNotEmpty()){// "분류되지 않은 링크" 텍스트
+            Text(
+                text = "분류되지 않은 링크",
+                fontSize = 20.sp,
+                lineHeight = 30.sp,
+                fontFamily = DefaultFont,
+                fontWeight = FontWeight(700),
+                color = Black,
+                modifier = Modifier.padding(top = 40.dp, bottom = 20.dp) // 위아래 간격 추가
+            )
 
 
-        // Link Grid
-        VerticalGrid(
-            modifier = Modifier
-                .fillMaxWidth(),
-            columns = SimpleGridCells.Fixed(2),
-            horizontalArrangement = Arrangement.spacedBy(9.dp),
-            verticalArrangement = Arrangement.spacedBy(18.51.dp)
-        ) {
-            // items 람다 안에 file을 넘겨줘야 LinkItemLayout에서 사용할 수 있어!
-            for((i, link) in linkList.withIndex()){
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
-                ) {
-                    LinkItemLayout(
-                        link = link,
-                        onClick = {
-                            fileViewModel.onLinkClick?.invoke(link.linkuId)
-                        },
-                        onLongClick = {
-                            selectedLinkId = link.linkuId
+            // Link Grid
+            VerticalGrid(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                columns = SimpleGridCells.Fixed(2),
+                horizontalArrangement = Arrangement.spacedBy(9.dp),
+                verticalArrangement = Arrangement.spacedBy(18.51.dp)
+            ) {
+                // items 람다 안에 file을 넘겨줘야 LinkItemLayout에서 사용할 수 있어!
+                for ((i, link) in linkList.withIndex()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        contentAlignment = if (i % 2 == 0) Alignment.TopStart else Alignment.TopEnd
+                    ) {
+                        LinkItemLayout(
+                            link = link,
+                            onClick = {
+                                fileViewModel.onLinkClick?.invoke(link.linkuId)
+                            },
+                            onLongClick = {
+                                selectedLinkId = link.linkuId
 
-                            deleteModalWindowVisible = true
-                        }
-                    )
+                                deleteModalWindowVisible = true
+                            }
+                        )
+                    }
                 }
             }
         }

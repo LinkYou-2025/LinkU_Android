@@ -74,7 +74,7 @@ fun SignUpNicknameScreen(
                 color = colorTheme.black
             )
 
-            Spacer(Modifier.height((12.scaler)))
+            Spacer(Modifier.height((40.scaler)))
 
             LoginTextField(
                 value = nickname,
@@ -84,6 +84,14 @@ fun SignUpNicknameScreen(
                 },
                 hint = "닉네임을 입력해주세요.",
                 modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(Modifier.height((10.scaler)))
+
+            PasswordRuleItem(
+                text = "국문/영문 6자 이하",
+                satisfied = isNicknameValid,
+                modifier = Modifier.padding(start = (12.scaler))
             )
 
             when (nicknameState) {
@@ -102,20 +110,22 @@ fun SignUpNicknameScreen(
 
 
                 is NicknameCheckState.Duplicated -> {
-                    Spacer(Modifier.height((6.scaler)))
+                    Spacer(Modifier.height((12.scaler)))
                     Text(
                         text = "이미 사용 중인 닉네임입니다.",
                         fontSize = 13.sp,
                         lineHeight = 15.sp,
                         fontWeight = FontWeight(400),
                         fontFamily = Paperlogy.font,
-                        color = Color(0xFFFF5E5E)
+                        color = Color(0xFFFF5E5E),
+                        modifier = Modifier.padding(start = (12.scaler))
+
                     )
                 }
 
 
                 is NicknameCheckState.Error -> {
-                    Spacer(Modifier.height((6.scaler)))
+                    Spacer(Modifier.height((12.scaler)))
                     Text(
                         text = (nicknameState as NicknameCheckState.Error).message, //뷰모델 에러 메시지 사용.
                         //text = "서버 요청에 실패했습니다.",
@@ -123,20 +133,16 @@ fun SignUpNicknameScreen(
                         lineHeight = 15.sp,
                         fontWeight = FontWeight(400),
                         fontFamily = Paperlogy.font,
-                        color = Color(0xFFFF5E5E)
+                        color = Color(0xFFFF5E5E),
+                        modifier = Modifier.padding(start = (12.scaler))
                     )
                 }
 
                 else -> Unit
             }
 
-            Spacer(Modifier.height((12.scaler)))
 
-            PasswordRuleItem(
-                text = "국문/영문 6자 이하",
-                satisfied = isNicknameValid,
-                modifier = Modifier.padding(start = (32.scaler))
-            )
+
 
             Spacer(modifier = Modifier.weight(1f))
         }

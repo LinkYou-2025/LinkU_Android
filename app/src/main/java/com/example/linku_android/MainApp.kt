@@ -89,6 +89,7 @@ import androidx.core.net.toUri
 import com.example.curation.CurationDetailViewModel
 import com.example.linku_android.deeplink.appLinkRoute
 import com.example.login.ui.bottom_sheet.TermsAgreementSheet
+import com.example.login.viewmodel.LoginState
 
 
 @Composable
@@ -426,16 +427,20 @@ fun MainApp(
                     composable("email_login") {
 
                         val parentEntry = remember(navigator.currentBackStackEntry) {
-                            navigator.getBackStackEntry("auth_graph")
+                            runCatching {
+                                navigator.getBackStackEntry("auth_graph")
+                            }.getOrNull()
                         }
 
-                        val showTermsSheet by parentEntry.savedStateHandle
-                            .getStateFlow("show_terms_sheet", false)
-                            .collectAsStateWithLifecycle()
+
+                        val showTermsSheet by (parentEntry?.savedStateHandle
+                            ?.getStateFlow("show_terms_sheet", false)
+                            ?.collectAsStateWithLifecycle()
+                            ?: remember { mutableStateOf(false) })
 
                         //약관 바텀시트 떠 있을 때 백버튼 = 시트 닫기
                         BackHandler(enabled = showTermsSheet) {
-                            parentEntry.savedStateHandle["show_terms_sheet"] = false
+                            parentEntry?.savedStateHandle["show_terms_sheet"] = false
                         }
 
                         LaunchedEffect(Unit) { showNavBar = false }
@@ -443,58 +448,64 @@ fun MainApp(
                         //  로그인 상태 관찰
                         val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
 
-                        //  로그인 성공 시 즉시 재로드
-                        LaunchedEffect(loginState) {
-                            val loggedIn = (loginState.result != null) &&
-                                    (loginState.errorTag == null) &&
-                                    !loginState.loading
-                            if (loggedIn) {
-                                // 큐레이션 재시도 가능하게 잠금 해제 후 로드
-                                curationViewModel.invalidate()
-                                curationViewModel.loadMonthlyCuration()
-
-                                homeViewModel.refreshAfterLogin()
-                                // (최소 변경 원하시면: homeViewModel.loadUserBasics(); homeViewModel.loadRecentLinks())
-
-                                // 필요하면 Home/File 등 다른 화면도 같은 패턴으로 리프레시 트리거
-
-                                // 그리고 홈으로 이동
-                                navigator.navigate(NavigationRoute.Home.route) {
-                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
+                        //  로그인 성공 시 즉시 재로드 -> 중복 로직을 주석처리 했습니다.
+//                        LaunchedEffect(loginState) {
+//                            if (loginState is LoginState.Success) {  // Success 타입 체크
+//                                // 큐레이션 재시도 가능하게 잠금 해제 후 로드
+//                                curationViewModel.invalidate()
+//                                curationViewModel.loadMonthlyCuration()
+//
+//                                homeViewModel.refreshAfterLogin()
+//
+//                                // 그리고 홈으로 이동
+//                                navigator.navigate(NavigationRoute.Home.route) {
+//                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
+//                                    launchSingleTop = true
+//                                }
+//                            }
+//                        }
 
                         EmailLoginScreen(
                             loginViewModel = loginViewModel,
                             navigator = navigator,
                             onSignUpClick = {
-                                parentEntry.savedStateHandle["show_terms_sheet"] = true
+                                parentEntry?.savedStateHandle["show_terms_sheet"] = true
+                            },
+                            onLoginSuccess = {  // 콜백으로 네비게이션 처리
+                                curationViewModel.invalidate()
+                                curationViewModel.loadMonthlyCuration()
+                                homeViewModel.refreshAfterLogin()
+
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         )
 
-                        // EmailLogin 위에서 바텀 시트 렌더
-                        TermsAgreementSheet(
-                            navController = navigator,
-                            vm = hiltViewModel(parentEntry),
-                            visible = showTermsSheet,
-                            onClose = {
-                                parentEntry.savedStateHandle["show_terms_sheet"] = false
-                            },
-                            onClickTerms = {
-                                parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                navigator.navigate("terms/service")
-                            },
-                            onClickPrivacy = {
-                                parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                navigator.navigate("terms/privacy")
-                            },
-                            onClickMarketing = {
-                                parentEntry.savedStateHandle["show_terms_sheet"] = false
-                                navigator.navigate("terms/marketing")
-                            }
-                        )
+                        if (parentEntry != null) {
+                            TermsAgreementSheet(
+                                navController = navigator,
+                                vm = hiltViewModel(parentEntry),
+                                visible = showTermsSheet,
+                                onClose = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                },
+                                onClickTerms = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/service")
+                                },
+                                onClickPrivacy = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/privacy")
+                                },
+                                onClickMarketing = {
+                                    parentEntry.savedStateHandle["show_terms_sheet"] = false
+                                    navigator.navigate("terms/marketing")
+                                }
+                            )
+                        }
+
                     }
 
 
@@ -788,16 +799,19 @@ fun MainApp(
                         }
                     }
 
-                    // 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용
+                    // 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용 -> 정: sealed class로 변경했는데 문제 있으면 말씀해주세요.
                     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+                    Log.d("MainApp", "loginState: $loginState")
+
 
                     Log.d("MainApp", "loginState: $loginState")
 
                     LaunchedEffect(loginState) {
-                        val loggedIn = (loginState.result != null) && (loginState.errorTag == null) && !loginState.loading
-                        Log.d("MainApp", "loggedIn (deeplink): $loggedIn")
+//                        val loggedIn = (loginState.result != null) && (loginState.errorTag == null) && !loginState.loading
+//                        Log.d("MainApp", "loggedIn (deeplink): $loggedIn")
 
-                        if (loggedIn) {
+//                        if (loggedIn) {
+                        if (loginState is LoginState.Success) {
                             Log.d("MainApp", "로그인 완료 (deeplink)")
                             // pending 공유 폴더가 있으면 처리
                             deepLinkViewModel.consumePendingShare()?.let { pendingFolderId ->

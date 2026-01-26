@@ -10,111 +10,159 @@ import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
+
+// 로그인 상태 리펙토링
+sealed  class LoginState {
+    object Idle : LoginState()           // 초기 상태
+    object Loading : LoginState()        // 로그인 진행 중
+    data class Success(val result: LoginResult) : LoginState()  // 성공
+    data class Error(val errorType: LoginErrorType) : LoginState()  // 실패
+}
+
+enum class LoginErrorType(val message: String) {
+    INVALID_CREDENTIALS("이메일 또는 비밀번호가 올바르지 않습니다."),
+    SERVER_ERROR("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
+    NETWORK_ERROR("네트워크 연결을 확인해주세요."),
+    UNKNOWN_ERROR("알 수 없는 오류가 발생했습니다.")
+}
+
+sealed class AutoLoginState {
+    object Idle : AutoLoginState()
+    object Checking : AutoLoginState()
+    object Success : AutoLoginState()
+    object Failed : AutoLoginState()
+}
+
+
 
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
-    private val repo: UserRepository,
+    private val userRepository: UserRepository,
     private val sessionStore: SessionStore,
     private val authPreference: AuthPreference,
 ) : ViewModel() {
 
-    // UI가 사용할 단일 상태
-    data class LoginState(
-        val loading: Boolean = false,
-        val result: LoginResult? = null,   // userId, token, status, inactiveDate
-        val errorTag: String? = null       // "INVALID_CREDENTIALS", "SERVER_ERROR"
-    )
-
-    private val _loginState = MutableStateFlow(LoginState())
+    private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
 
+    private val _autoLoginState = MutableStateFlow<AutoLoginState>(AutoLoginState.Idle)
+    val autoLoginState: StateFlow<AutoLoginState> = _autoLoginState
+
     fun clearError() {
-        _loginState.update { it.copy(errorTag = null) }
+        if (_loginState.value is LoginState.Error) {
+            _loginState.value = LoginState.Idle
+        }
     }
+
     fun login(email: String, password: String) {
+        // 1. 입력 검증
+        if (email.isBlank() || password.isBlank()) {
+            _loginState.value = LoginState.Error(LoginErrorType.INVALID_CREDENTIALS)
+            return
+        }
+
         viewModelScope.launch {
-            _loginState.value = LoginState(loading = true)
             try {
-                val res: LoginResult = repo.login(email, password)
-                Log.d("LoginViewModel", "로그인 성공: userId=${res.userId}")
+                // 2. 로딩 시작
+                _loginState.value = LoginState.Loading
+                Log.d(TAG, "로그인 시도")
 
-                // 토큰 저장은 Repo에서 이미 처리됨. 여기서는 userId/세션만.
-                authPreference.userId = res.userId?.toLong()
-
-                sessionStore.saveLogin(
-                    userId   = res.userId?.toLong() ?: -1L,
-                    nickname = "",
-                    email    = "",
-                    gender   = "",
-                    jobId    = -1L,
-                    jobName  = "",
-                    myLinku  = -1L,
-                    myFolder = -1L,
-                    myAiLinku= -1L
+                // 3. API 호출
+                val result = userRepository.login(
+                    email = email.trim(),
+                    password = password.trim()
                 )
 
-                _loginState.value = LoginState(loading = false, result = res)
-                Log.d("LoginViewModel", "login() 완료")
+                Log.d(TAG, "로그인 성공")  // userId 안 찍는 고르 - 보안 문제 때문. 그러나 확인이 필요하다면,
+                //Log.d(TAG, "로그인 성공: userId=${res.userId}")
+
+                // 4. 세션 저장 (별도 함수로 분리)
+                saveUserSession(result)
+
+                // 5. 성공 상태
+                _loginState.value = LoginState.Success(result)
 
             } catch (e: HttpException) {
-                Log.e("LoginViewModel", "HttpException: code=${e.code()}, msg=${e.message}")
-                _loginState.value = LoginState(
-                    loading = false,
-                    errorTag = when (e.code()) {
-                        401, 403 -> "INVALID_CREDENTIALS"
-                        else -> "SERVER_ERROR"
+                Log.e(TAG, "로그인 실패 - HTTP 에러: ${e.code()}")
+                _loginState.value = LoginState.Error(
+                    when (e.code()) {
+                        401, 403 -> LoginErrorType.INVALID_CREDENTIALS
+                        in 500..599 -> LoginErrorType.SERVER_ERROR
+                        else -> LoginErrorType.UNKNOWN_ERROR
                     }
                 )
-            } catch (_: IllegalStateException) {
-                _loginState.value = LoginState(loading = false, errorTag = "INVALID_CREDENTIALS")
-            } catch (_: Exception) {
-                _loginState.value = LoginState(loading = false, errorTag = "SERVER_ERROR")
+            } catch (e: Exception) {
+                Log.e(TAG, "로그인 실패", e)
+                _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
             }
         }
     }
 
-    private val autoLoginTried = AtomicBoolean(false)
+    // 세션 저장.
+    private suspend fun saveUserSession(result: LoginResult) {
+        authPreference.userId = result.userId?.toLong()
 
-    fun tryAutoLogin(
-        onSuccess: () -> Unit,
-        onFail: () -> Unit
-    ) {
+        sessionStore.saveLogin(
+            userId = result.userId?.toLong() ?: -1L,
+            nickname = "",
+            email = "",
+            gender = "",
+            jobId = -1L,
+            jobName = "",
+            myLinku = -1L,
+            myFolder = -1L,
+            myAiLinku = -1L
+        )
+    }
 
-        if (!autoLoginTried.compareAndSet(false, true)) return
+
+    fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
+        // 이미 체크 중이면 무시
+        if (_autoLoginState.value == AutoLoginState.Checking) {
+            Log.d(TAG, "자동 로그인 이미 진행 중")
+            return
+        }
 
         viewModelScope.launch {
             try {
-                val refresh = authPreference.refreshToken
-                    ?: throw Exception("No refresh token stored")
+                _autoLoginState.value = AutoLoginState.Checking
 
-                Log.d("LoginViewModel", "자동 로그인 시도 (refresh token 존재)") //로그 정보 유출 방지
+                val refreshToken = authPreference.refreshToken
+                if (refreshToken.isNullOrBlank()) {
+                    throw IllegalStateException("저장된 리프레시 토큰이 없습니다.")
+                }
 
-                // 서버에 토큰 재발급 요청
-                val newTokens = repo.reissue(refresh)
+                val newTokens = userRepository.reissue(refreshToken)
 
-                // 새 토큰 저장
                 authPreference.accessToken = newTokens.accessToken
                 authPreference.refreshToken = newTokens.refreshToken
 
-                Log.d("LoginViewModel", "자동 로그인 성공 → 새로운 토큰 저장 완료")
-
+                Log.d(TAG, "자동 로그인 성공")
+                _autoLoginState.value = AutoLoginState.Success
                 onSuccess()
 
             } catch (e: Exception) {
-                Log.e("LoginViewModel", "자동 로그인 실패: ${e.message}", e)
+                Log.e(TAG, "자동 로그인 실패: ${e.message}", e)
 
-                // 자동 로그인 실패 → 토큰 삭제
-                authPreference.accessToken = null
-                authPreference.refreshToken = null
-                authPreference.userId = null
+                // 토큰 삭제
+                clearAuthData()
 
+                _autoLoginState.value = AutoLoginState.Failed
                 onFail()
             }
         }
+    }
+
+    private fun clearAuthData() {
+        authPreference.accessToken = null
+        authPreference.refreshToken = null
+        authPreference.userId = null
+    }
+    // 태그 상수 추가함.
+    companion object {
+        private const val TAG = "LoginViewModel"
     }
 }

@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
@@ -59,6 +60,13 @@ fun PasswordLoginTextField(
         mutableStateOf(TextFieldValue(text = value))
     }
 
+    // value 파라미터가 바뀌면 fieldValue 동기화
+    LaunchedEffect(value) {
+        if (fieldValue.text != value) {
+            fieldValue = TextFieldValue(text = value)
+        }
+    }
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -81,16 +89,17 @@ fun PasswordLoginTextField(
         Box {
             OutlinedTextField(
                 value = fieldValue,
-                onValueChange = { newValue ->
-                    val fixedValue = newValue.copy(composition = null)
-                    fieldValue = fixedValue
-                    onValueChange(fixedValue.text)
+                onValueChange = { newValue: TextFieldValue ->
+                    fieldValue = newValue
+                    onValueChange(newValue.text)
                 },
 
                 placeholder = {
                     Text(
                         text = hint,
                         fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight.Medium,
                         fontFamily = Paperlogy.font,
                         color = colorTheme.gray[400]!!
                     )
@@ -111,7 +120,8 @@ fun PasswordLoginTextField(
                             fontSize = 14.sp,
                             fontFamily = Paperlogy.font,
                             fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp
+                            letterSpacing = 2.sp,
+                            color = colorTheme.black
                         )
                     },
 
@@ -126,8 +136,8 @@ fun PasswordLoginTextField(
 
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colorTheme.white, shape)
-                    .padding(end = (40.scaler)),// 👁 아이콘 공간
+                    .background(colorTheme.white, shape),
+                    //.padding(end = (40.scaler)),// 👁 아이콘 공간
 
                 shape = shape,
 
@@ -148,12 +158,12 @@ fun PasswordLoginTextField(
                     else
                         R.drawable.ic_password_visibility_off
                 ),
-                contentDescription = null,
+                contentDescription = if (isPasswordVisible) "비밀번호 숨기기" else "비밀번호 보기", //직관적으로 수정.
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .padding(end = (18.scaler))
                     .size((22.scaler))
-                    .clickable {
+                    .noRippleClickable {  // 수정함.
                         isPasswordVisible = !isPasswordVisible
                     }
             )
