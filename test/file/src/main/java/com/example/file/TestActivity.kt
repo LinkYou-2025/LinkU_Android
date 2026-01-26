@@ -12,7 +12,7 @@ class TestActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            FileScreen()
+            FileApp()
         }
     }
 }
