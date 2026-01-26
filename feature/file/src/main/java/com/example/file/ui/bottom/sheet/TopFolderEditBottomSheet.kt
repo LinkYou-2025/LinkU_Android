@@ -1,10 +1,13 @@
 package com.example.file.ui.bottom.sheet
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import com.example.file.FileViewModel
 import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopFolderEditBottomSheet(
     folderStateViewModel: FolderStateViewModel,
@@ -16,6 +19,9 @@ fun TopFolderEditBottomSheet(
         placeholderText = "카테고리명은 현재 변경 불가능합니다.",
         isEditable = true,
         visible = folderStateViewModel.topFolderEditBottomSheetVisible,
+        sheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true
+        ),
         onColorIdDeliver = { colorId ->
             fileViewModel.updateCategoryColor(
                 categoryName = folderStateViewModel.readyToUpdateTopFolder!!.folderName,
