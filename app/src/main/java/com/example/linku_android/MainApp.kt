@@ -801,7 +801,7 @@ fun MainApp(
 
                     // 로그인 상태는 화면에서 '수집'하고, 그 값을 Effect key로 사용 -> 정: sealed class로 변경했는데 문제 있으면 말씀해주세요.
                     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
-                    Log.d("MainApp", "loginState: $loginState")
+                    //Log.d("MainApp", "loginState: $loginState")
 
 
                     Log.d("MainApp", "loginState: $loginState")

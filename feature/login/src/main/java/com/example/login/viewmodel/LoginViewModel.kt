@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 // 로그인 상태 리펙토링
@@ -94,7 +95,12 @@ open class LoginViewModel @Inject constructor(
                         else -> LoginErrorType.UNKNOWN_ERROR
                     }
                 )
-            } catch (e: Exception) {
+            } catch (e: IOException) {
+                // 네트워크 에러 별도 처리
+                Log.e(TAG, "로그인 실패 - 네트워크 에러", e)
+                _loginState.value = LoginState.Error(LoginErrorType.NETWORK_ERROR)  // _ 추가!
+            }
+            catch (e: Exception) {
                 Log.e(TAG, "로그인 실패", e)
                 _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
             }
@@ -120,7 +126,6 @@ open class LoginViewModel @Inject constructor(
 
 
     fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
-        // 이미 체크 중이면 무시
         if (_autoLoginState.value == AutoLoginState.Checking) {
             Log.d(TAG, "자동 로그인 이미 진행 중")
             return
@@ -136,7 +141,6 @@ open class LoginViewModel @Inject constructor(
                 }
 
                 val newTokens = userRepository.reissue(refreshToken)
-
                 authPreference.accessToken = newTokens.accessToken
                 authPreference.refreshToken = newTokens.refreshToken
 
@@ -144,12 +148,23 @@ open class LoginViewModel @Inject constructor(
                 _autoLoginState.value = AutoLoginState.Success
                 onSuccess()
 
+            } catch (e: HttpException) {
+                // 401/403만 토큰 삭제 - 토큰이 실제로 무효한 경우
+                Log.e(TAG, "자동 로그인 실패 - HTTP: ${e.code()}", e)
+                if (e.code() == 401 || e.code() == 403) {
+                    clearAuthData()
+                }
+                _autoLoginState.value = AutoLoginState.Failed
+                onFail()
+            } catch (e: IOException) {
+                // 네트워크 오류 - 토큰은 유지 (나중에 재시도 가능)
+                Log.e(TAG, "자동 로그인 실패 - 네트워크", e)
+                _autoLoginState.value = AutoLoginState.Failed
+                onFail()
             } catch (e: Exception) {
-                Log.e(TAG, "자동 로그인 실패: ${e.message}", e)
-
-                // 토큰 삭제
+                // 기타 예외 - 안전하게 토큰 삭제
+                Log.e(TAG, "자동 로그인 실패", e)
                 clearAuthData()
-
                 _autoLoginState.value = AutoLoginState.Failed
                 onFail()
             }
