@@ -60,6 +60,7 @@ import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
+import com.example.design.util.DesignSystemBars
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
 import com.example.home.HomeViewModel
@@ -135,6 +136,13 @@ fun HomeScreen(
     onLinkClick: (linkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
 ) {
+    //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
+    DesignSystemBars(
+        statusBarColor = Color.White,
+        navigationBarColor = Color.White,
+        darkIcons = true,
+        immersive = false
+    )
     var showRecs by remember { mutableStateOf(showRecommendations) }
     LaunchedEffect(showRecommendations) { showRecs = showRecommendations }
 

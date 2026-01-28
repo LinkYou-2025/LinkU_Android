@@ -16,14 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.design.R
-import com.example.login.Paperlogy
+import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.font.Paperlogy
+import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 
 //젠더, 직업 선택 버튼
@@ -33,18 +36,16 @@ fun OptionButton(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    height: Dp = 56.dp
+    height: Dp = 54.dp
 ) {
+
+    val colorTheme = LocalColorTheme.current
     val shape = RoundedCornerShape(18.dp)
 
-    val activeBorderGradient = listOf(
-        Color(0xFF2C6FFF),
-        Color(0xFFC800FF)
-    )
-
+    // 배경용 연한 그라데이션
     val selectedBackground = listOf(
-        Color(0xFF2C6FFF).copy(alpha = 0.18f),
-        Color(0xFFC800FF).copy(alpha = 0.16f)
+        colorTheme.blue[200]!!.copy(alpha = 0.18f),
+        colorTheme.purple[200]!!.copy(alpha = 0.16f)
     )
 
     Box(
@@ -53,11 +54,11 @@ fun OptionButton(
                 if (selected) {
                     Modifier
                         .fillMaxWidth()
-                        .height(54.dp)
+                        .height((54.scaler))
                 } else {
                     Modifier
-                        .width(372.dp)
-                        .height(54.dp)
+                        .width((372.scaler))
+                        .height((54.scaler))
                 }
             )
             .clip(shape)
@@ -69,23 +70,20 @@ fun OptionButton(
                     )
                 } else {
                     Modifier.background(
-                        color = Color.White,
+                        color = colorTheme.white,
                         shape = shape
                     )
                 }
             )
             .border(
                 width = 1.dp,
-                brush = if (selected)
-                    Brush.horizontalGradient(activeBorderGradient)
-                else
-                    Brush.linearGradient(
-                        listOf(Color(0xFFB7B9BF), Color(0xFFB7B9BF))
-                    ),
+                // ⭐ 여기서 메인 컬러를 바로 주입!
+                brush = if (selected) colorTheme.maincolor
+                else SolidColor(colorTheme.gray[400]!!),
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = 22.dp), // ⭐ 핵심
+            .padding(horizontal = (22.scaler)),
         contentAlignment = Alignment.CenterStart
     ){
         Row(
@@ -97,36 +95,17 @@ fun OptionButton(
                 text = text,
                 fontSize = 15.sp,
                 lineHeight = 22.sp, // 요구사항 반영
-                fontFamily = Paperlogy,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Normal,
-                color = if (selected) {
-                    Color.Black
-                } else {
-                    Color(0xFFA1A3A9)
-                }
+                color = if (selected) colorTheme.black else colorTheme.gray[500]!!
             )
 
             // 선택된 경우만 체크 표시
             if (selected) {
-                Box(
-                    modifier = Modifier
-                        .width(20.dp)
-                        .height(20.dp)
-                        .background(
-                            color = Color(0xFFCB59EB),
-                            shape = RoundedCornerShape(6.dp)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_checkbox_checked),
-                        contentDescription = "선택됨",
-                        modifier = Modifier
-                            .padding(1.5.dp)
-                            .width(9.54546.dp)
-                            .height(7.27273.dp)
-                    )
-                }
+                CheckIndicator(
+                    checked = selected,
+                    modifier = Modifier.size((20.scaler))
+                )
             }
         }
     }
@@ -134,15 +113,18 @@ fun OptionButton(
 
 @Preview(
     showBackground = true,
-    backgroundColor = 0xFFF5F6F9,
     name = "OptionButton - 비활성"
 )
 @Composable
 private fun OptionButtonPreview_Unselected() {
+    val colorTheme = LocalColorTheme.current
+
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(colorTheme.gray[100]!!)
+            .padding((16.scaler)) // 프리뷰 패딩 반응형 적용
     ) {
         OptionButton(
             text = "남성",
@@ -154,15 +136,17 @@ private fun OptionButtonPreview_Unselected() {
 
 @Preview(
     showBackground = true,
-    backgroundColor = 0xFFF5F6F9,
     name = "OptionButton - 활성"
 )
 @Composable
 private fun OptionButtonPreview_Selected() {
+    val colorTheme = LocalColorTheme.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .background(colorTheme.gray[100]!!)
+            .padding((16.scaler)) // 프리뷰 패딩 반응형 적용
     ) {
         OptionButton(
             text = "여성",

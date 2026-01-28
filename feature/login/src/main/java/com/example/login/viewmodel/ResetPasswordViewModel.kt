@@ -1,4 +1,4 @@
-package com.example.login.auth
+package com.example.login.viewmodel
 
 //유저 비밀번호 재설정 기능 수정으로 리펙X
 
@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+
+//여기 api 전면 수정 예정. 실제 api 연동은 1월 말~ 2월 초
 data class ResetPwUiState(
     val loading: Boolean = false,
     val success: Boolean = false,

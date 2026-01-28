@@ -54,21 +54,21 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.home.HomeApp
 import com.example.curation.ui.CurationDetailScreen
 import com.example.curation.ui.CurationScreen
-import com.example.login.auth.AnimatedLoginScreen
-import com.example.login.auth.EmailVerificationScreen
-import com.example.login.auth.ServiceTermsScreen
-import com.example.login.auth.PrivacyTermsScreenFixed
-import com.example.login.auth.MarketingTermsScreenComposable
-import com.example.login.auth.SignUpPasswordScreen
-import com.example.login.auth.EmailLoginScreen
-import com.example.login.auth.InterestContentScreen
-import com.example.login.auth.InterestPurposeScreen
-import com.example.login.auth.SignUpGenderScreen
-import com.example.login.auth.SignUpNicknameScreen
-import com.example.login.auth.SignUpJobScreen
-import com.example.login.auth.WelcomeScreen
-import com.example.login.auth.ResetPasswordScreen
-import com.example.login.auth.SignUpViewModel
+import com.example.login.ui.animation.AnimatedLoginScreen
+import com.example.login.ui.screen.EmailVerificationScreen
+import com.example.login.ui.terms.ServiceTermsScreen
+import com.example.login.ui.terms.PrivacyTermsScreenFixed
+import com.example.login.ui.terms.MarketingTermsScreenComposable
+import com.example.login.ui.screen.SignUpPasswordScreen
+import com.example.login.ui.screen.EmailLoginScreen
+import com.example.login.ui.screen.InterestContentScreen
+import com.example.login.ui.screen.InterestPurposeScreen
+import com.example.login.ui.screen.SignUpGenderScreen
+import com.example.login.ui.screen.SignUpNicknameScreen
+import com.example.login.ui.screen.SignUpJobScreen
+import com.example.login.ui.screen.WelcomeScreen
+import com.example.login.ui.screen.ResetPasswordScreen
+import com.example.login.viewmodel.SignUpViewModel
 import java.io.File
 import java.io.FileOutputStream
 
@@ -82,7 +82,7 @@ import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
-import com.example.login.auth.LoginViewModel
+import com.example.login.viewmodel.LoginViewModel
 
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
@@ -260,55 +260,38 @@ fun MainApp(
                 ) {
 
                     /* ① Login composable */
-                    composable(NavigationRoute.Login.route) { entry ->
-                        val parentEntry = entry
+                    composable(NavigationRoute.Login.route) { parentEntry ->
                         val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-                        val showTermsSheet by parentEntry.savedStateHandle
-                            .getStateFlow("show_terms_sheet", false)
-                            .collectAsStateWithLifecycle()
+                        val skipAnimation =
+                            parentEntry.savedStateHandle
+                                .get<Boolean>("skip_login_animation") == true
 
-                        BackHandler(enabled = showTermsSheet) {
-                            parentEntry.savedStateHandle["show_terms_sheet"] = false
-                        }
-
-                        // 이메일 인증에서 백버튼으로 갔을 때, 약관 페이지 나오는게 맞는지.
-
-                        //  이메일 인증에서 돌아오는지 확인
-                        var cameFromEmail by remember { mutableStateOf(false) }
-
-                        LaunchedEffect(navigator.currentBackStackEntry) {
-                            if (parentEntry.savedStateHandle.get<Boolean>("from_email_verification") == true) {
-                                cameFromEmail = true
-                                parentEntry.savedStateHandle["show_terms_sheet"] = true
-
-                                kotlinx.coroutines.delay(120)
-
-                                cameFromEmail = false
-                                parentEntry.savedStateHandle["from_email_verification"] = false
+                        // 읽은 직후 초기화
+                        LaunchedEffect(skipAnimation) {
+                            if (skipAnimation) {
+                                parentEntry.savedStateHandle["skip_login_animation"] = false
                             }
                         }
-
-                        // 약간의 지연 + 재렌더링 위해 빈 박스 만듬.
-                        if (cameFromEmail) {
-                            Box(Modifier.fillMaxSize()) {}
-                            return@composable
-                        }
-
-
                         AnimatedLoginScreen(
                             navigator = navigator,
+                            skipAnimation = skipAnimation,
                             onSignUpClick = {
                                 parentEntry.savedStateHandle["show_terms_sheet"] = true
                             }
                         )
-
                     }
 
                     /* ② Service Terms */
                     composable("terms/service") { entry ->
                         val parentEntry = remember(entry) { navigator.getBackStackEntry("auth_graph") }
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                        //시스템 백버튼 처리
+                        BackHandler {
+                            parentEntry.savedStateHandle["show_terms_sheet"] = true
+                            navigator.popBackStack()
+                        }
 
                         ServiceTermsScreen(
                             onBackClicked = {
@@ -368,6 +351,15 @@ fun MainApp(
 
 
                         val vm: SignUpViewModel = hiltViewModel(parentEntry)
+                        //백버튼으로 온 경우 애니메이션 적용X
+                        BackHandler {
+                            // 로그인 화면(AnimatedLoginScreen)에 애니메이션 스킵 플래그 전달함.
+                            parentEntry.savedStateHandle["skip_login_animation"] = true
+                            parentEntry.savedStateHandle["from_email_verification"] = true
+
+                            navigator.popBackStack()
+                        }
+
                         EmailVerificationScreen(
                             navigator = navigator,
                             parentEntry = parentEntry,     // ⬅ 추가
@@ -433,13 +425,18 @@ fun MainApp(
 
                     composable("email_login") {
 
-                        val parentEntry = remember {
+                        val parentEntry = remember(navigator.currentBackStackEntry) {
                             navigator.getBackStackEntry("auth_graph")
                         }
 
                         val showTermsSheet by parentEntry.savedStateHandle
                             .getStateFlow("show_terms_sheet", false)
                             .collectAsStateWithLifecycle()
+
+                        //약관 바텀시트 떠 있을 때 백버튼 = 시트 닫기
+                        BackHandler(enabled = showTermsSheet) {
+                            parentEntry.savedStateHandle["show_terms_sheet"] = false
+                        }
 
                         LaunchedEffect(Unit) { showNavBar = false }
 
@@ -821,12 +818,20 @@ fun MainApp(
 
                     // ❺ 실제 로그인 UI(AnimatedLoginScreen 등) 렌더링
                    // AnimatedLoginScreen(navigator = navigator)
-                    AnimatedLoginScreen(navigator = navigator, onSignUpClick = {})
+                    val skipAnimation =
+                        backStackEntry.savedStateHandle
+                            .get<Boolean>("skip_login_animation") == true
+
+                    AnimatedLoginScreen(
+                        navigator = navigator,
+                        skipAnimation = skipAnimation,
+                        onSignUpClick = {}
+                    )
                 }
 
 
 
-                // TODO: 로그인 되어 있지 않은 상황 처리
+                // TODO: 로그인 되어 있지 않은 상황 처리 ?이게 뭐람
                 // 링크 공유 앱링크
                 composable(
                     route = "open?action={action}&folderId={folderId}",
