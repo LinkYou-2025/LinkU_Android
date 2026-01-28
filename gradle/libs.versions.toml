@@ -33,8 +33,7 @@ media3CommonKtxVersion = "1.8.0"
 foundation = "1.9.5"
 composeTesting = "1.0.0-alpha09"
 toolsCore = "1.0.0-alpha14"
-foundationLayout = "1.10.0"
-
+foundationVersion = "1.10.1"
 
 
 [libraries]
@@ -84,8 +83,7 @@ media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", ver
 androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 androidx-compose-testing = { group = "androidx.xr.compose", name = "compose-testing", version.ref = "composeTesting" }
 androidx-tools-core = { group = "androidx.privacysandbox.tools", name = "tools-core", version.ref = "toolsCore" }
-androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
-
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 
 
 

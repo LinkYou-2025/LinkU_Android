@@ -151,25 +151,19 @@ class UserRepositoryImpl @Inject constructor(
 
     // 마이페이지 조회
     override suspend fun getUserInfo(userId: Long): UserInfo {
-        // val response = userApi.withAuth(authPreference) { getUserInfo(userId) }
         val response = userApi.getUserInfo(userId)
 
-        val dto: UserInfoDTO = response.result
+        val dto = response.result
             ?: throw IllegalStateException("마이페이지 조회 실패: ${response.message}")
 
-        // DTO -> 도메인 매핑을 여기서 바로 처리
-        val nick = dto.nickname ?: dto.nickName ?: ""   // ← Fallback 추가
-
-        // 서버에서 받은 enum 코드 → 화면 한글 라벨로 변환
+        // 서버 enum → 한글
         val displayPurposes = dto.purposes.map { reversePurposeMap[it] ?: it }
         val displayInterests = dto.interests.map { reverseInterestMap[it] ?: it }
 
-        // DTO -> 도메인 매핑을 여기서 바로 처리
         return UserInfo(
-//            nickname  = dto.nickname,
-            nickname  = nick,
+            nickname  = dto.nickName.orEmpty(),
             email     = dto.email,
-            gender    = dto.gender.value,   // "MALE" | "FEMALE"
+            gender    = dto.gender.value,
             jobId     = dto.job.id,
             jobName   = dto.job.name,
             myLinku   = dto.myLinku,
@@ -224,12 +218,11 @@ class UserRepositoryImpl @Inject constructor(
     //  닉네임 전용 메서드로 분리
     override suspend fun getNickname(userId: Long): String? {
         return try {
-            val res = userApi.getUserInfo(userId) // BaseResponse<UserInfoDTO>
-            // 서버 DTO 필드명 대응 (nickname 혹은 nickName)
-            val nick = res.result?.nickname ?: res.result?.nickName
+            val res = userApi.getUserInfo(userId)
+            val nick = res.result?.nickName
             Log.d("UserRepository", "닉네임=$nick")
             nick?.takeIf { it.isNotBlank() }
-        } catch (e: retrofit2.HttpException) {
+        } catch (e: HttpException) {
             if (e.code() == 500) null else throw e
         } catch (e: Exception) {
             Log.e("UserRepository", "닉네임 가져오기 실패", e)

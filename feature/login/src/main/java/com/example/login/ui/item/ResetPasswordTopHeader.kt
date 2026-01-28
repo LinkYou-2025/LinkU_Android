@@ -17,18 +17,22 @@ import com.example.design.modifier.noRippleClickable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
+import com.example.design.theme.LocalColorTheme
+import com.example.design.util.rememberFigmaDimens
+import com.example.design.util.scaler
 
 @Composable
 fun ResetPasswordTopHeader(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
-    // 🔑 피그마: Y 위치
-    val topOffset = screenHeight * (59f / 917f)
-    val startPadding = screenWidth * (20f / 412f)
+    // 1. 테마 및 반응형 유틸리티 가져오기
+    val colorTheme = LocalColorTheme.current
+
+    // 피그마 기준 해상도(412x917) 대비 반응형 좌표 계산
+    val topOffset = (59.scaler)
+    val startPadding = (20.scaler)
 
     Box(
         modifier = modifier
@@ -43,8 +47,8 @@ fun ResetPasswordTopHeader(
             painter = painterResource(id = R.drawable.ic_back_black),
             contentDescription = "뒤로가기",
             modifier = Modifier
-                .width(10.dp)
-                .height(16.25.dp)
+                .width((11.scaler))  //  너비 반응형 적용
+                .height((20.scaler))
                 .noRippleClickable { onBack() }
         )
     }
@@ -52,11 +56,13 @@ fun ResetPasswordTopHeader(
 
 @Preview(
     name = "ResetPasswordTopHeader Preview",
-    showBackground = true,
-    backgroundColor = 0xFFFFFFFF
+    showBackground = true
 )
 @Composable
 private fun ResetPasswordTopHeaderPreview() {
+
+    val colorTheme = LocalColorTheme.current
+
     Box(
         modifier = Modifier
             .fillMaxWidth()

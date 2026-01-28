@@ -21,7 +21,7 @@ fun BackIconButton(
         contentDescription = "Back",
         modifier = modifier
             .width(10.dp)
-            .height(16.25.dp)
+            .height(18.dp)
             .clickable { onClick() },
         contentScale = ContentScale.Fit
     )
