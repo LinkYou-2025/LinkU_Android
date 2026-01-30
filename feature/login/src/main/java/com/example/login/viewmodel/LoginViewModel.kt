@@ -124,7 +124,8 @@ open class LoginViewModel @Inject constructor(
         )
     }
 
-
+    // ServerApi.refreshToken() 호출 -> 성공하면 새로운 엑세스 토큰 발급하고 리프레쉬 토큰 저장함.
+    // 실패하는 경우 토큰 정리함.
     fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
         if (_autoLoginState.value == AutoLoginState.Checking) {
             Log.d(TAG, "자동 로그인 이미 진행 중")

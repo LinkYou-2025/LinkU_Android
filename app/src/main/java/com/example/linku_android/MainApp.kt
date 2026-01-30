@@ -110,6 +110,7 @@ fun MainApp(
 
     // 홈 화면에서 사용할 뷰모델
     val homeViewModel: HomeViewModel = hiltViewModel()
+    // 로그인 혹은 자동 로그인 성공 후 생성함. 여기서는 이미 AuthPreference 주입 끝.
 
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
@@ -221,6 +222,8 @@ fun MainApp(
 
                             onResult = {
                                 val auth = deps.authPreference()
+                                //스플래쉬에서 자동 로그인 조건 = refresh 토큰 존재 여부 확인
+                                //자동 로그인 판단을 여기서 한다고 생각하면 됨.
 
 
                                 val hasRefresh = !auth.refreshToken.isNullOrBlank()

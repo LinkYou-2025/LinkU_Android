@@ -44,6 +44,7 @@ class HomeViewModel @Inject constructor(
     private val recentRepository: RecentSearchRepository,
 ) : ViewModel() {
 
+    // 자돌 로그인 하고 이 함수가 가장 먼저 실행함.
     // 최초 진입 시 프로필 로드 (유지 가능)
     init {
         loadRecentLinks()
@@ -79,6 +80,7 @@ class HomeViewModel @Inject constructor(
     }
 
     // 🔧 1) public 으로, 그리고 userId 없으면 그냥 return
+    // 여기는 토큰 사용이 없음.
     fun loadUserBasics() {
         viewModelScope.launch {
             val userId = authPreference.userId
@@ -327,6 +329,7 @@ class HomeViewModel @Inject constructor(
 //    }
 
     // 최근 조회 링크 로딩
+    // 가장 먼저 호출되는 api? 토큰 달고 요청을 함.
     fun loadRecentLinks() {
         viewModelScope.launch {
             runCatching { linkuRepository.getRecentLinks(limit = 10) }

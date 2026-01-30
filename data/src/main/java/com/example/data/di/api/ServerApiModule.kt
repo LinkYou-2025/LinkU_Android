@@ -15,6 +15,10 @@ import javax.inject.Singleton
 import com.example.data.BuildConfig
 import com.example.data.api.UserApi
 
+/*
+* 토큰을 읽는 첫 번째 지점임.
+* AuthPreferenceImpl에 저장된 토큰 꺼내서 사용하는 곳.
+* */
 @Module
 @InstallIn(SingletonComponent::class)
 object ServerApiModule {
@@ -29,6 +33,7 @@ object ServerApiModule {
         }
 
         val client = OkHttpClient.Builder()
+            // api 요청 -> okhttp 요청을 보내기 전, 엑세스 토큰을 읽음. 값이 있으면 헤더 해서 서버로 전달
             .addNetworkInterceptor {
                 val request = it.request()
                     .newBuilder()

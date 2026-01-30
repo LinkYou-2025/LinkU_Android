@@ -25,8 +25,11 @@ import com.example.login.ui.item.PasswordRuleItem
 import com.example.login.ui.item.StepIndicator
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
+import com.example.login.ui.item.WrongRuleItem
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.login.viewmodel.NicknameCheckState
+
+//TODO : 닉네임 매게변수.. -> 사용자 이름
 
 @Composable
 fun SignUpNicknameScreen(
@@ -88,58 +91,24 @@ fun SignUpNicknameScreen(
 
             Spacer(Modifier.height((10.scaler)))
 
-            PasswordRuleItem(
-                text = "국문/영문 6자 이하",
-                satisfied = isNicknameValid,
-                modifier = Modifier.padding(start = (12.scaler))
-            )
-
+            // 상태에 따라 다른 컴포넌트 표시 => 수정사항 반영.
             when (nicknameState) {
-                  // 혹시 닉네임 유효성 검사 중 닉네임 확인 중이 필요하다면...
-//                is NicknameCheckState.Checking -> {
-//                    Spacer(Modifier.height((6.scaler)))
-//                    Text(
-//                        text = "닉네임 확인 중...",
-//                        fontSize = 13.sp,
-//                        lineHeight = 15.sp,
-//                        fontWeight = FontWeight(400),
-//                        fontFamily = Paperlogy.font,
-//                        color = colorTheme.black.copy(alpha = 0.5f)
-//                    )
-//                }
-
-
                 is NicknameCheckState.Duplicated -> {
-                    Spacer(Modifier.height((12.scaler)))
-                    Text(
+                    WrongRuleItem(
                         text = "이미 사용 중인 닉네임입니다.",
-                        fontSize = 13.sp,
-                        lineHeight = 15.sp,
-                        fontWeight = FontWeight(400),
-                        fontFamily = Paperlogy.font,
-                        color = Color(0xFFFF5E5E),
-                        modifier = Modifier.padding(start = (12.scaler))
-
-                    )
-                }
-
-
-                is NicknameCheckState.Error -> {
-                    Spacer(Modifier.height((12.scaler)))
-                    Text(
-                        text = (nicknameState as NicknameCheckState.Error).message, //뷰모델 에러 메시지 사용.
-                        //text = "서버 요청에 실패했습니다.",
-                        fontSize = 13.sp,
-                        lineHeight = 15.sp,
-                        fontWeight = FontWeight(400),
-                        fontFamily = Paperlogy.font,
-                        color = Color(0xFFFF5E5E),
                         modifier = Modifier.padding(start = (12.scaler))
                     )
                 }
-
-                else -> Unit
+                else -> {
+                    PasswordRuleItem(
+                        text = "국문/영문 6자 이하",
+                        satisfied = isNicknameValid,
+                        modifier = Modifier.padding(start = (12.scaler))
+                    )
+                }
             }
+
+
 
 
 
