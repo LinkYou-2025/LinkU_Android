@@ -20,6 +20,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import javax.inject.Inject
 
+/*
+* 여기는 인증이 필요한 모든 api의 시작으로 뷰모델은 토큰/인증/리프레쉬를 모르도록 설계함.
+* 모든 인증처리는 여기 withAuth()에서 시작함. withAuth() 최초 호출 지점은 여기임.
+* */
+
 class LinkuRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
@@ -137,7 +142,7 @@ class LinkuRepositoryImpl @Inject constructor(
 //        val response = serverApi.withAuth(authPreference) {
 //            recentLinks(limit = limit)   // BaseResponse<List<LinkuSimpleDTO>>
 //        }
-
+        //홈에서 가장 먼저 호출하는 api 여기서 withAuth 처음 진입함.
         val raw = serverApi.withAuth(authPreference) { recentLinks(limit = limit) }
 
         // BaseResponse<T> / T(List) 둘 다 커버

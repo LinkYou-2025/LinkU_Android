@@ -3,16 +3,22 @@ package com.example.data.implementation.preference
 import android.content.Context
 import com.example.data.preference.AuthPreference
 
+/*
+* 로그인/자동 로그인에 필요한 토큰 정보를 실제  SharedPreferences 저장.
+* 모든 토큰을 저장하는 위치임.
+* */
 class AuthPreferenceImpl(context: Context) : AuthPreference {
     companion object {
+        // SharedPreferences 파일 이름
         private const val PREF_NAME = "auth"
         private const val ACCESS_TOKEN_KEY = "access_token"
         private const val REFRESH_TOKEN_KEY = "refresh_token"
         private const val USER_ID_KEY = "user_id"
     }
-
+    // 실제 저장소.
     private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
+    // 모든 인증 api 요청에 사용하는 토큰, OkHttp NetworkInterceptor 읽고 Authorization 헤더에 붙음.
     override var accessToken: String?
         get() = pref.getString(ACCESS_TOKEN_KEY, null)
         set(value) {
@@ -20,11 +26,13 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
                 if (value == null) remove(ACCESS_TOKEN_KEY) else putString(ACCESS_TOKEN_KEY, value)
             }.apply()
         }
-
+    // 엑세스 토큰은 수명이 짧음. 재발급에 사용함. 스플래쉬에서 자동 로그인 가능 여부 판단의 기준임.
+    // 여기 값이 있음 -> 로그인 상태임 , 값이 없으면 로그인 화면임.
     override var refreshToken: String?
         get() = pref.getString(REFRESH_TOKEN_KEY, null)
         set(value) {
             pref.edit().apply {
+                //로그아웃 시 리프래쉬 토큰 제거함. -> 자동 로그인 깨짐.
                 if (value == null) remove(REFRESH_TOKEN_KEY) else putString(REFRESH_TOKEN_KEY, value)
             }.apply()
         }
@@ -40,16 +48,4 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
                 if (value == null) remove(USER_ID_KEY) else putLong(USER_ID_KEY, value)
             }.apply()
         }
-
-//    override var accessToken: String?
-//        get() = pref.getString(ACCESS_TOKEN_KEY, null)
-//        set(value) { pref.edit().putString(ACCESS_TOKEN_KEY, value).apply() }
-//
-//    override var refreshToken: String?
-//        get() = pref.getString(REFRESH_TOKEN_KEY, null)
-//        set(value) { pref.edit().putString(REFRESH_TOKEN_KEY, value).apply() }
-//
-//    override var userId: Long?
-//        get() = pref.getLong(USER_ID_KEY, -1L)
-//        set(value) { pref.edit().putLong(USER_ID_KEY, value ?: -1L).apply() }
 }
