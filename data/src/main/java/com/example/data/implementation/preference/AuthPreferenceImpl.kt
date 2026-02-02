@@ -1,6 +1,6 @@
 package com.example.data.implementation.preference
 
-import android.content.ContentValues.TAG
+
 import android.content.Context
 import android.util.Log
 import com.example.data.preference.AuthPreference
@@ -15,7 +15,12 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
         private const val PREF_NAME = "auth"
         private const val ACCESS_TOKEN_KEY = "access_token"
         private const val REFRESH_TOKEN_KEY = "refresh_token"
+        //EncryptedSharedPreferences을 적용을 고민했으나, coderabbitai에 피드백이 있어서 주석 남깁니다.
+        // 암호화로 나중에 오류 발생시 찾기 어려워 보이는데,어떻게 할지?
+        //TODO : 팀장에게 결정 부탁하기.
         private const val USER_ID_KEY = "user_id"
+
+        private const val TAG = "AuthPreferenceImpl" //태그 상수 정의
     }
     // 실제 저장소.
     private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)

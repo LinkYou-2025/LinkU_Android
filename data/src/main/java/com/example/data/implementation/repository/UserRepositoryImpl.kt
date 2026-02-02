@@ -75,7 +75,7 @@ class UserRepositoryImpl @Inject constructor(
                 checkNickname(nickname)  // ApiResponseString 반환
             }
             // response가 ApiResponseString이면 그에 맞게 처리
-            val isAvailable = response.result?.contains("사용 가능") == true
+            val isAvailable = response.isSuccess == true
             Log.d(TAG, "[닉네임 API 응답] 사용가능=$isAvailable")
             isAvailable
         } catch (e: ApiError) {
@@ -95,9 +95,11 @@ class UserRepositoryImpl @Inject constructor(
         Log.d(TAG, "[로그인 성공]")
 
         return LoginResult(
-            userId = response.userId?.toInt() ?: -1,
-            accessToken = response.accessToken ?: "",
-            refreshToken = response.refreshToken ?: "",
+            userId = response.userId?.toInt() ?: throw IllegalStateException("로그인 응답에 userId가 누락되었습니다."),
+            accessToken = response.accessToken
+                ?: throw ApiError.BusinessError(null, "accessToken이 없습니다"),
+            refreshToken = response.refreshToken
+                ?: throw ApiError.BusinessError(null, "refreshToken이 없습니다"),
             status = response.status ?: "",
             inactiveDate = response.inactiveDate?.toString()
         )
@@ -168,14 +170,17 @@ class UserRepositoryImpl @Inject constructor(
         Log.d(TAG, "[토큰 재발급 성공]")
 
         return TokenReissueResult(
-            accessToken = response.accessToken ?: "",
-            refreshToken = response.refreshToken ?: ""
+            accessToken = response.accessToken
+               ?: throw ApiError.BusinessError(null, "accessToken이 없습니다"),
+            refreshToken = response.refreshToken
+                ?: throw ApiError.BusinessError(null, "refreshToken이 없습니다")
         )
     }
 
     // ApiResponseString 반환 → withErrorHandlingRaw
     override suspend fun requestTempPassword(email: String): Boolean {
-        Log.d(TAG, "[임시PW 요청] email=$email")
+        Log.d(TAG, "[임시PW 요청] email=${email.take(3)}***")
+        // Log.d(TAG, "[임시PW 요청] email=$email") 보안 문제로 주석처리 단, 오류 발생시 사용해주세요.
 
         return try {
             val response = serverApi.withErrorHandlingRaw {
@@ -221,8 +226,18 @@ class UserRepositoryImpl @Inject constructor(
         purposes: List<String>,
         interests: List<String>
     ): Boolean {
-        val mappedPurposes = purposes.mapNotNull { purposeMap[it] }
-        val mappedInterests = interests.mapNotNull { interestMap[it] }
+        val mappedPurposes = purposes.map { purpose ->
+            purposeMap[purpose] ?: run {
+                Log.w(TAG, "알 수 없는 purpose 매핑 실패: $purpose")
+                purpose
+            }
+        }
+        val mappedInterests = interests.map { interest ->
+            interestMap[interest] ?: run {
+                Log.w(TAG, "알 수 없는 interest 매핑 실패: $interest")
+                interest
+            }
+        }
 
         val dto = UpdateProfileDTO(
             nickname = nickname,
