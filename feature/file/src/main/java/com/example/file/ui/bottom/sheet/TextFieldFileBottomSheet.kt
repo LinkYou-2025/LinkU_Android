@@ -185,7 +185,10 @@ fun TextFieldFileBottomSheet(
                     )
                 }
 
-                val rotation by animateFloatAsState(if (expanded) 180f else 0f, label = "")
+                val rotation by animateFloatAsState(
+                    targetValue = if (expanded) 180f else 0f,
+                    label = "화살표 회전 애니메이션"
+                )
 
                 val modifier = if(expanded) Modifier
                     .padding(start = 10.dp)
