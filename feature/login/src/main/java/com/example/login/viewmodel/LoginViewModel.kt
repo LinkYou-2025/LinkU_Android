@@ -138,7 +138,10 @@ open class LoginViewModel @Inject constructor(
 
     // ServerApi.refreshToken() 호출 -> 성공하면 새로운 엑세스 토큰 발급하고 리프레쉬 토큰 저장함.
     // 실패하는 경우 토큰 정리함.
-    fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
+    fun tryAutoLogin(
+        onSuccess: () -> Unit,
+        onFail: () -> Unit
+    ) {
         if (_autoLoginState.value == AutoLoginState.Checking) return
 
         viewModelScope.launch {
@@ -166,34 +169,81 @@ open class LoginViewModel @Inject constructor(
                     myAiLinku = userInfo.myAiLinku
                 )
 
-                Log.d(TAG, "자동 로그인 및 세션 갱신 성공")
+                Log.d(TAG, "자동 로그인 성공")
                 _autoLoginState.value = AutoLoginState.Success
                 onSuccess()
 
             } catch (e: ApiError.TokenExpired) {
-                // 토큰 만료: 확실한 세션 종료 상황이므로 로그아웃 후 로그인 창으로
-                Log.e(TAG, "자동 로그인 실패: 세션 만료")
-                userRepository.logout()
+                // 이 경우만 logout
+                Log.e(TAG, "자동 로그인 실패: 토큰 만료")
+                authPreference.clear()
                 _autoLoginState.value = AutoLoginState.Failed
                 onFail()
-            } catch (e: Exception) {
-                // 기타 예외 처리
-                Log.e(TAG, "자동 로그인 실패: 기타 오류(${e.message})")
-                _autoLoginState.value = AutoLoginState.Failed
 
-                if (e is ApiError.NetworkError || e is IOException) {
-                    // 네트워크 문제: 토큰은 유효할 수 있으므로 logout 시키지 않고 실패만 처리
-                    // Splash 화면 이후 네트워크 연결 확인 메시지를 띄우는 용도로 사용하나요????
-                    // TODO : 네트워크 문제로 아주 단시간 끊긴 경우 토큰은 유효하기에 이 상황에서 어떻게 해야하는지 다인언니랑 논의해야함.
-                    onFail()
-                } else {
-                    // 그 외 알 수 없는 인증 오류: 안전을 위해 로그아웃 처리
-                    userRepository.logout()
-                    onFail()
-                }
+            } catch (e: Exception) {
+                // 나머지는 절대 logout 하지 않음
+                Log.e(TAG, "자동 로그인 실패: ${e.message}")
+                _autoLoginState.value = AutoLoginState.Failed
+                onFail()
             }
         }
     }
+//    fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
+//        if (_autoLoginState.value == AutoLoginState.Checking) return
+//
+//        viewModelScope.launch {
+//            try {
+//                _autoLoginState.value = AutoLoginState.Checking
+//
+//                if (!authPreference.isLoggedIn) {
+//                    _autoLoginState.value = AutoLoginState.Failed
+//                    onFail()
+//                    return@launch
+//                }
+//
+//                val userId = authPreference.userId ?: -1L
+//                val userInfo = userRepository.getUserInfo(userId)
+//
+//                sessionStore.saveLogin(
+//                    userId = userId,
+//                    nickname = userInfo.nickname,
+//                    email = userInfo.email,
+//                    gender = userInfo.gender,
+//                    jobId = userInfo.jobId,
+//                    jobName = userInfo.jobName,
+//                    myLinku = userInfo.myLinku,
+//                    myFolder = userInfo.myFolder,
+//                    myAiLinku = userInfo.myAiLinku
+//                )
+//
+//                Log.d(TAG, "자동 로그인 및 세션 갱신 성공")
+//                _autoLoginState.value = AutoLoginState.Success
+//                onSuccess()
+//
+//            } catch (e: ApiError.TokenExpired) {
+//                // 토큰 만료: 확실한 세션 종료 상황이므로 로그아웃 후 로그인 창으로
+//                Log.e(TAG, "자동 로그인 실패: 세션 만료")
+//                userRepository.logout()
+//                _autoLoginState.value = AutoLoginState.Failed
+//                onFail()
+//            } catch (e: Exception) {
+//                // 기타 예외 처리
+//                Log.e(TAG, "자동 로그인 실패: 기타 오류(${e.message})")
+//                _autoLoginState.value = AutoLoginState.Failed
+//
+//                if (e is ApiError.NetworkError || e is IOException) {
+//                    // 네트워크 문제: 토큰은 유효할 수 있으므로 logout 시키지 않고 실패만 처리
+//                    // Splash 화면 이후 네트워크 연결 확인 메시지를 띄우는 용도로 사용하나요????
+//                    // TODO : 네트워크 문제로 아주 단시간 끊긴 경우 토큰은 유효하기에 이 상황에서 어떻게 해야하는지 다인언니랑 논의해야함.
+//                    onFail()
+//                } else {
+//                    // 그 외 알 수 없는 인증 오류: 안전을 위해 로그아웃 처리
+//                    userRepository.logout()
+//                    onFail()
+//                }
+//            }
+//        }
+//    }
 
     // 태그 상수 추가함.
     companion object {
