@@ -10,9 +10,21 @@ package com.example.data.preference
 
 
 interface AuthPreference {
+
+    val isLoggedIn : Boolean
+        get() = !refreshToken.isNullOrBlank() //로그인 상태 확인
     var accessToken: String? // 모든 인증 api 요청에 사용함.
     var refreshToken: String? // 자동로그인/ 엑세스 토큰 재발급의 기준임. 엑세스 토큰은 기간이 짧기에
     var userId: Long? // 사용자 확인용.
+
+
+    fun clear() //모든 인증 정보 삭제(로그아웃, 회원탈퇴)
+
+    fun saveTokens(
+        accessToken: String,
+        refreshToken: String,
+        userId: Long
+    )
 
 }
 
