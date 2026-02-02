@@ -30,7 +30,11 @@ object ServerApiModule {
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor {
         return HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
         }
     }
 
@@ -42,11 +46,22 @@ object ServerApiModule {
             val originalRequest = chain.request()
             val path = originalRequest.url.encodedPath
 
-            // 토큰이 필요 없는 경로 리스트
-            val skipAuthPaths = listOf("/reissue", "/login", "/join") // 서버 경로에 맞게 수정
+            // UserApi 정의서에 기반한 토큰 미필요 경로 리스트 (정확한 경로 명시)
+            val skipAuthPaths = setOf(
+                "/api/users/reissue",
+                "/api/users/login",
+                "/api/users/join",
+                "/api/users/check-nickname",
+                "/api/users/emails/code",
+                "/api/users/emails/verify",
+                "/api/users/password/temp"
+            )
 
-            val newRequest = if (skipAuthPaths.any { path.contains(it) }) {
-                originalRequest // 헤더를 추가하지 않고 보냄
+            // path가 "/api/users/login"일 때만 true가 됨
+            val isSkipPath = skipAuthPaths.contains(path)
+
+            val newRequest = if (isSkipPath) {
+                originalRequest
             } else {
                 originalRequest.newBuilder().apply {
                     authPreference.accessToken?.let { token ->
