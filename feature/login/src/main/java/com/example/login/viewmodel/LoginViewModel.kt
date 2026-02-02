@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.core.model.LoginResult
 import com.example.core.repository.UserRepository
 import com.example.core.session.SessionStore
+import com.example.data.api.ApiError
 import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +60,7 @@ open class LoginViewModel @Inject constructor(
     }
 
     fun login(email: String, password: String) {
-        // 1. 입력 검증
+        // 입력 검증
         if (email.isBlank() || password.isBlank()) {
             _loginState.value = LoginState.Error(LoginErrorType.INVALID_CREDENTIALS)
             return
@@ -67,23 +68,22 @@ open class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                // 2. 로딩 시작
+                // 로딩 시작
                 _loginState.value = LoginState.Loading
                 Log.d(TAG, "로그인 시도")
 
-                // 3. API 호출
+                // API 호출
                 val result = userRepository.login(
                     email = email.trim(),
                     password = password.trim()
                 )
 
-                Log.d(TAG, "로그인 성공")  // userId 안 찍는 고르 - 보안 문제 때문. 그러나 확인이 필요하다면,
-                //Log.d(TAG, "로그인 성공: userId=${res.userId}")
+                Log.d(TAG, "로그인 성공")
 
-                // 4. 세션 저장 (별도 함수로 분리)
+                // 세션 저장
                 saveUserSession(result)
 
-                // 5. 성공 상태
+                // 성공 상태
                 _loginState.value = LoginState.Success(result)
 
             } catch (e: HttpException) {
@@ -108,12 +108,22 @@ open class LoginViewModel @Inject constructor(
     }
 
     // 세션 저장.
+    // TODO : 하진언니(로그인 담당자) 로그인할 때, 세션정보(사용자 정보 받을 수 있도록 api 수정 요청하기)
     private suspend fun saveUserSession(result: LoginResult) {
-        authPreference.userId = result.userId?.toLong()
+        val userIdLong = result.userId.toLong()
 
+        // 보안 토큰 및 유저 식별자 저장
+        authPreference.saveTokens(
+            accessToken = result.accessToken,
+            refreshToken = result.refreshToken,
+            userId = userIdLong
+        )
+
+        // 사용자 세션 정보 저장 (마이페이지에서 활용하기)
+        // 이후 API에서 닉네임이나 이메일 등을 함께 준다면 이 부분을 result.nickname 등으로 채울 수 있음.
         sessionStore.saveLogin(
-            userId = result.userId?.toLong() ?: -1L,
-            nickname = "",
+            userId = userIdLong,
+            nickname = "", // 초기값, 필요시 result에 추가하여 전달 가능
             email = "",
             gender = "",
             jobId = -1L,
@@ -122,61 +132,69 @@ open class LoginViewModel @Inject constructor(
             myFolder = -1L,
             myAiLinku = -1L
         )
+
+        Log.d(TAG, "유저 세션 및 토큰 저장 완료 (ID: $userIdLong)")
     }
 
     // ServerApi.refreshToken() 호출 -> 성공하면 새로운 엑세스 토큰 발급하고 리프레쉬 토큰 저장함.
     // 실패하는 경우 토큰 정리함.
     fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
-        if (_autoLoginState.value == AutoLoginState.Checking) {
-            Log.d(TAG, "자동 로그인 이미 진행 중")
-            return
-        }
+        if (_autoLoginState.value == AutoLoginState.Checking) return
 
         viewModelScope.launch {
             try {
                 _autoLoginState.value = AutoLoginState.Checking
 
-                val refreshToken = authPreference.refreshToken
-                if (refreshToken.isNullOrBlank()) {
-                    throw IllegalStateException("저장된 리프레시 토큰이 없습니다.")
+                if (!authPreference.isLoggedIn) {
+                    _autoLoginState.value = AutoLoginState.Failed
+                    onFail()
+                    return@launch
                 }
 
-                val newTokens = userRepository.reissue(refreshToken)
-                authPreference.accessToken = newTokens.accessToken
-                authPreference.refreshToken = newTokens.refreshToken
+                val userId = authPreference.userId ?: -1L
+                val userInfo = userRepository.getUserInfo(userId)
 
-                Log.d(TAG, "자동 로그인 성공")
+                sessionStore.saveLogin(
+                    userId = userId,
+                    nickname = userInfo.nickname,
+                    email = userInfo.email,
+                    gender = userInfo.gender,
+                    jobId = userInfo.jobId,
+                    jobName = userInfo.jobName,
+                    myLinku = userInfo.myLinku,
+                    myFolder = userInfo.myFolder,
+                    myAiLinku = userInfo.myAiLinku
+                )
+
+                Log.d(TAG, "자동 로그인 및 세션 갱신 성공")
                 _autoLoginState.value = AutoLoginState.Success
                 onSuccess()
 
-            } catch (e: HttpException) {
-                // 401/403만 토큰 삭제 - 토큰이 실제로 무효한 경우
-                Log.e(TAG, "자동 로그인 실패 - HTTP: ${e.code()}", e)
-                if (e.code() == 401 || e.code() == 403) {
-                    clearAuthData()
-                }
-                _autoLoginState.value = AutoLoginState.Failed
-                onFail()
-            } catch (e: IOException) {
-                // 네트워크 오류 - 토큰은 유지 (나중에 재시도 가능)
-                Log.e(TAG, "자동 로그인 실패 - 네트워크", e)
+            } catch (e: ApiError.TokenExpired) {
+                // 토큰 만료: 확실한 세션 종료 상황이므로 로그아웃 후 로그인 창으로
+                Log.e(TAG, "자동 로그인 실패: 세션 만료")
+                userRepository.logout()
                 _autoLoginState.value = AutoLoginState.Failed
                 onFail()
             } catch (e: Exception) {
-                // 기타 예외 - 안전하게 토큰 삭제
-                Log.e(TAG, "자동 로그인 실패", e)
-                clearAuthData()
+                // 기타 예외 처리
+                Log.e(TAG, "자동 로그인 실패: 기타 오류(${e.message})")
                 _autoLoginState.value = AutoLoginState.Failed
-                onFail()
+
+                if (e is ApiError.NetworkError || e is IOException) {
+                    // 네트워크 문제: 토큰은 유효할 수 있으므로 logout 시키지 않고 실패만 처리
+                    // Splash 화면 이후 네트워크 연결 확인 메시지를 띄우는 용도로 사용하나요????
+                    // TODO : 네트워크 문제로 아주 단시간 끊긴 경우 토큰은 유효하기에 이 상황에서 어떻게 해야하는지 다인언니랑 논의해야함.
+                    onFail()
+                } else {
+                    // 그 외 알 수 없는 인증 오류: 안전을 위해 로그아웃 처리
+                    userRepository.logout()
+                    onFail()
+                }
             }
         }
     }
 
-    private fun clearAuthData() {
-        authPreference.accessToken = null
-        authPreference.refreshToken = null
-        authPreference.userId = null
-    }
     // 태그 상수 추가함.
     companion object {
         private const val TAG = "LoginViewModel"

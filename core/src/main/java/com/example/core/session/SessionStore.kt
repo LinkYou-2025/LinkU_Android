@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.first
 
 // 파일 최상위에 위치해야 합니다.
 private val Context.dataStore by preferencesDataStore(name = "session_prefs")
@@ -81,6 +82,28 @@ class SessionStore @Inject constructor(
             p.remove(Keys.USER_MY_FOLDER)
             p.remove(Keys.USER_MY_AI_LINKU)
         }
+    }
+
+    //프로필 수정 시 호출(닉네임, 작업만 변경) -> TODO : 지현이에게 전달
+    suspend fun updateProfile(nickname: String, jobId: Long, jobName: String) {
+        val current = session.first() // 현재 세션 스냅샷 가져오기
+        saveLogin(
+            userId = current.userId ?: -1L,
+            nickname = nickname,
+            email = current.email ?: "",
+            gender = current.gender ?: "",
+            jobId = jobId,
+            jobName = jobName,
+            myLinku = current.myLinku ?: -1L,
+            myFolder = current.myFolder ?: -1L,
+            myAiLinku = current.myAiLinku ?: -1L
+        )
+    }
+
+    // 닉네임만 수정할 때 -> TODO : 지현이에게 전달
+    suspend fun updateNickname(nickname: String) {
+        val current = session.first()
+        context.dataStore.edit { p -> p[Keys.USER_NICK] = nickname }
     }
 
     data class SessionSnapshot(
