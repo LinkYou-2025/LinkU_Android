@@ -2,6 +2,7 @@ package com.example.data.implementation.repository
 
 import android.util.Log
 import com.example.core.model.LoginResult
+import com.example.core.model.TokenReissueResult
 import com.example.core.model.UserInfo
 import com.example.core.repository.UserRepository
 import com.example.data.api.ServerApi
@@ -97,33 +98,7 @@ class UserRepositoryImpl @Inject constructor(
             inactiveDate = result.inactiveDate?.toString()
         )
     }
-//    override suspend fun login(email: String, password: String): LoginResult {
-//        val response = userApi.signIn(LoginRequestDTO(email, password))
-//        Log.d("UserRepository", "[로그인 응답] isSuccess=${response.isSuccess}, message=${response.message}, result=${response.result}")
-//        val result = response.result ?: throw IllegalStateException("로그인 실패: ${response.message}")
-//        authPreference.userId = result.userId?.toLong() ?: -1L //로그인할 때, userId 저장하기! -> 추후 큐레이션에 닉네임 표시용.
-//
-//        //  accessToken 저장 (if 사용 → 타입 추론 오류 방지)
-//        val accessToken: String? = result.accessToken
-//        if (accessToken != null) {
-//            // AuthPreference에 맞는 실제 메서드명으로 교체 필요
-//            authPreference.accessToken = accessToken
-//        }
-//        //inactiveDate(String?) → OffsetDateTime? 안전 변환
-//        val parsedInactiveDate: OffsetDateTime? = try {
-//            result.inactiveDate?.let { OffsetDateTime.parse(it) }
-//        } catch (e: DateTimeParseException) {
-//            Log.w("UserRepository", "inactiveDate 파싱 실패 → ${result.inactiveDate}")
-//            null
-//        }
-//
-//        return LoginResult(
-//            userId = result.userId?.toInt() ?: -1,
-//            token = result.accessToken ?: "",
-//            status = result.status ?: "",
-//            inactiveDate = result.inactiveDate?.toString()
-//        )
-//    }
+
     override suspend fun signUp(
         nickname: String,
         email: String,
@@ -155,65 +130,6 @@ class UserRepositoryImpl @Inject constructor(
 
         return response.isSuccess == true
     }
-//    override suspend fun signUp(
-//        nickname: String,
-//        email: String,
-//        password: String,
-//        gender: Int,
-//        jobId: Int,
-//        purposeList: List<String>,
-//        interestList: List<String>
-//    ): Boolean {
-//        // gender & jobId 유효성 체크
-//        require(gender in 1..2) { "gender 값이 잘못되었습니다. (1=남성, 2=여성)" }
-//        require(jobId in 1..6) { "jobId 값이 잘못되었습니다. (1~6)" }
-//
-//        // null 대신 항상 빈 리스트 전달
-//        val safePurposeList = if (purposeList.isEmpty()) emptyList() else purposeList
-//        val safeInterestList = if (interestList.isEmpty()) emptyList() else interestList
-//
-//        val dto = JoinDTO(
-//            nickName = nickname,
-//            email = email,
-//            password = password,
-//            gender = gender,
-//            jobId = jobId,
-//            purposeList = safePurposeList,
-//            interestList = safeInterestList
-//        )
-//
-//        val token = "Bearer ${authPreference.accessToken}" //  JWT 토큰 추가
-//        Log.d("UserRepository", " [회원가입 요청] token=$token dto=$dto")
-//
-//        // userApi.signUp에 토큰 전달 필요 → UserApi 수정 필요
-//        val response = userApi.signUp(dto, token)
-//
-//        Log.d("UserRepository", " [회원가입 응답] isSuccess=${response.isSuccess} message=${response.message}")
-//        return response.isSuccess == true
-//    }
-
-//    override suspend fun signUp(
-//        nickname: String,
-//        email: String,
-//        password: String,
-//        gender: Int,
-//        jobId: Int,
-//        purposeList: List<String>,
-//        interestList: List<String>
-//    ): Boolean {
-//        val dto = JoinDTO(
-//            nickName = nickname,
-//            email = email,
-//            password = password,
-//            gender = gender,
-//            jobId = jobId,
-//            purposeList = purposeList,
-//            interestList = interestList
-//        )
-//
-//        val response = userApi.signUp(dto)
-//        return response.isSuccess == true   // Boolean? → Boolean 변환
-//    }
 
     override suspend fun sendEmailCode(email: String, code: String): Boolean {
         val response = userApi.sendVerificationEmail(email, code)
@@ -235,25 +151,19 @@ class UserRepositoryImpl @Inject constructor(
 
     // 마이페이지 조회
     override suspend fun getUserInfo(userId: Long): UserInfo {
-        // val response = userApi.withAuth(authPreference) { getUserInfo(userId) }
         val response = userApi.getUserInfo(userId)
 
-        val dto: UserInfoDTO = response.result
+        val dto = response.result
             ?: throw IllegalStateException("마이페이지 조회 실패: ${response.message}")
 
-        // DTO -> 도메인 매핑을 여기서 바로 처리
-        val nick = dto.nickname ?: dto.nickName ?: ""   // ← Fallback 추가
-
-        // 서버에서 받은 enum 코드 → 화면 한글 라벨로 변환
+        // 서버 enum → 한글
         val displayPurposes = dto.purposes.map { reversePurposeMap[it] ?: it }
         val displayInterests = dto.interests.map { reverseInterestMap[it] ?: it }
 
-        // DTO -> 도메인 매핑을 여기서 바로 처리
         return UserInfo(
-//            nickname  = dto.nickname,
-            nickname  = nick,
+            nickname  = dto.nickName.orEmpty(),
             email     = dto.email,
-            gender    = dto.gender.value,   // "MALE" | "FEMALE"
+            gender    = dto.gender.value,
             jobId     = dto.job.id,
             jobName   = dto.job.name,
             myLinku   = dto.myLinku,
@@ -308,12 +218,11 @@ class UserRepositoryImpl @Inject constructor(
     //  닉네임 전용 메서드로 분리
     override suspend fun getNickname(userId: Long): String? {
         return try {
-            val res = userApi.getUserInfo(userId) // BaseResponse<UserInfoDTO>
-            // 서버 DTO 필드명 대응 (nickname 혹은 nickName)
-            val nick = res.result?.nickname ?: res.result?.nickName
+            val res = userApi.getUserInfo(userId)
+            val nick = res.result?.nickName
             Log.d("UserRepository", "닉네임=$nick")
             nick?.takeIf { it.isNotBlank() }
-        } catch (e: retrofit2.HttpException) {
+        } catch (e: HttpException) {
             if (e.code() == 500) null else throw e
         } catch (e: Exception) {
             Log.e("UserRepository", "닉네임 가져오기 실패", e)
@@ -321,7 +230,21 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    //유저 비밀번호 재설정
+    override suspend fun reissue(refreshToken: String): TokenReissueResult {
+        val response = userApi.reissue(refreshToken)
+
+        if (response.isSuccess != true || response.result == null) {
+            throw Exception("Token reissue failed: ${response.message}")
+        }
+
+        val r = response.result
+
+        return TokenReissueResult(
+            accessToken = r.accessToken ?: "",
+            refreshToken = r.refreshToken ?: ""
+        )
+    }
+
     //유저 비밀번호 재설정
     override suspend fun requestTempPassword(email: String): Boolean {
         return try {
@@ -348,4 +271,6 @@ class UserRepositoryImpl @Inject constructor(
             false
         }
     }
+
+
 }

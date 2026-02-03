@@ -3,7 +3,7 @@ package com.example.curation.ui
 import android.net.Uri
 import com.example.curation.R
 
-//아이콘 목록 정리
+//아이콘 목록 정리(이미지, 글자)
 
 fun resolveSourceIcon(domain: String?): Int {
     val host = (domain ?: "").lowercase()
@@ -16,7 +16,11 @@ fun resolveSourceIcon(domain: String?): Int {
                 host.contains("cafe")        -> R.drawable.ic_naver_cafe
         host.contains("naver.com") &&
                 host.contains("band")        -> R.drawable.ic_naver_band
-        host.contains("naver.com")       -> R.drawable.ic_naver
+        host.contains("naver.com") &&
+                host.contains("kin")         -> R.drawable.ic_naver_knowledge
+
+        host.contains("naver") -> R.drawable.ic_naver
+        //host.contains("naver.com")       -> R.drawable.ic_naver
         host.contains("google.")         -> R.drawable.ic_google
         host.contains("facebook.")       -> R.drawable.ic_facebook
         host.contains("instagram.")      -> R.drawable.ic_instargram
@@ -49,24 +53,31 @@ fun resolveSourceIcon(domain: String?): Int {
         host.contains("onetid.")         -> R.drawable.ic_onetid
         host.contains("cm.")             -> R.drawable.ic_cm
         host.contains("w.")              -> R.drawable.ic_w
-        else                             -> R.drawable.ic_naver      // 기본 아이콘(없으면 하나 추가)
+        else -> R.drawable.ic_link_null    // 기본 아이콘(없으면 하나 추가)
     }
 }
 
+//아이콘 -> 실제 화면에서 보이는 글자 정리.
 fun resolveSourceLabel(domain: String?): String {
     val host = (domain ?: "").lowercase()
     return when {
-        host.contains("blog.naver") -> "Naver Blog"
+        //네이버 뉴스 분기 추가
+        host.contains("news.naver") ||
+                host.contains("n.news.naver") -> "네이버 뉴스"
+
+        host.contains("blog.naver") -> "BLOG"
         host.contains("naver.com") &&
-                host.contains("shopping") -> "Naver Shopping"
+                host.contains("shopping") -> "네이버쇼핑"
 
         host.contains("naver.com") &&
-                host.contains("cafe") -> "Naver 카페"
+                host.contains("cafe") -> "네이버카페"
 
         host.contains("naver.com") &&
                 host.contains("band") -> "BAND"
-
-        host.contains("naver.com") -> "Naver"
+        host.contains("naver.com") &&
+                host.contains("kin") -> "네이버 지식IN"
+        // 위에 아무것도 안 걸렸지만 네이버 계열이면
+        host.contains("naver") -> "NAVER"
         host.contains("google.") -> "Google"
         host.contains("facebook.") -> "Facebook"
         host.contains("instagram.") -> "Instagram"
@@ -78,16 +89,16 @@ fun resolveSourceLabel(domain: String?): String {
         host.contains("musinsa.") -> "MUSINSA"
         host.contains("coupang.") -> "Coupang"
         host.contains("gmarket.") ||
-                host.contains("gmart.") -> "Gmarket"
+                host.contains("gmart.") -> "G마켓"
 
-        host.contains("kurly.") -> "Kurly"
+        host.contains("kurly.") -> "컬리"
         host.contains("kream.") -> "KREAM"
-        host.contains("ssg.") -> "SSG"
+        host.contains("ssg.") -> "SSG.COM"
         host.contains("linkedin.") -> "LinkedIn"
-        host.contains("jobkorea.") -> "JobKorea"
-        host.contains("ably.") -> "ABLY"
-        host.contains("zigzag.") -> "ZigZag"
-        host.contains("oliveyoung.") -> "Olive Young"
+        host.contains("jobkorea.") -> "잡코리아"
+        host.contains("ably.") -> "에이블리"
+        host.contains("zigzag.") -> "지그재그"
+        host.contains("oliveyoung.") -> "올리브영"
         host.contains("tistory.") -> "Tistory"
         host.contains("github.") -> "GitHub"
         host.contains("nytimes.") ||
@@ -102,8 +113,8 @@ fun resolveSourceLabel(domain: String?): String {
                 host.contains("bdhance.") -> "Behance"
 
         host.contains("onetid.") -> "원티드"
-        host.contains("cm.") -> "CM"
-        host.contains("w.") -> "W"
+        host.contains("cm.") -> "29CM"
+        host.contains("w.") -> "W컨셉"
         else -> (domain ?: "외부 링크")
     }
 }

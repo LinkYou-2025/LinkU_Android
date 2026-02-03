@@ -61,6 +61,7 @@ import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
+import com.example.design.util.DesignSystemBars
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
 import com.example.home.HomeViewModel
@@ -136,61 +137,13 @@ fun HomeScreen(
     onLinkClick: (linkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
 ) {
-//    var showRecs by remember { mutableStateOf(showRecommendations) }
-//    LaunchedEffect(showRecommendations) { showRecs = showRecommendations }
-//
-//    val listState = rememberLazyListState()
-//    val coroutineScope = rememberCoroutineScope()
-//
-//    var isTopBarExpanded by remember { mutableStateOf(true) }
-//    var selectedEmotion by remember { mutableStateOf<Long?>(null) }
-//    var selectedTask by remember { mutableStateOf<Long?>(null) }
-//    var isTopBarLockedCollapsed by remember { mutableStateOf(false) } // 접힘 고정
-//
-//    // 직업별 상황 리스트
-//    val jobSituations = remember(jobId) { situationsFor(jobId) }
-//
-//    // 아이템 개수와 TopBar 접힘 여부에 따라 필요한 여유(화면 비율) 계산
-//    fun slackFractionFor(count: Int, isExpanded: Boolean): Float = when (count) {
-//        0 -> 0f
-//        1 -> if (isExpanded) 0.55f else 0.48f
-//        2 -> if (isExpanded) 0.40f else 0.33f
-//        3 -> if (isExpanded) 0.28f else 0.22f
-//        else -> 0f
-//    }
-//
-//    LaunchedEffect(listState.firstVisibleItemScrollOffset, listState.firstVisibleItemIndex, isTopBarLockedCollapsed) {
-//        if (!isTopBarLockedCollapsed) {
-//            isTopBarExpanded =
-//                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-//        } else {
-//            // 고정 접힘이면 스크롤 상관없이 계속 접힘 유지
-//            isTopBarExpanded = false
-//        }
-//    }
-//
-//    // 추천 버튼 클릭 → 사전검증(링크 3개 미만이면 안내만), 아니면 API 호출
-//    // 개수 체크 제거: 에러 핸들링은 ViewModel이 함
-//    val onRecommendClick: () -> Unit = {
-//        if (selectedEmotion != null && selectedTask != null) {
-//            onClearNeedMoreNotice() // 이전 안내 끄기
-//            onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
-//            showRecs = true
-//            isTopBarLockedCollapsed = true
-//            isTopBarExpanded = false
-//            coroutineScope.launch { listState.animateScrollToItem(1) }
-//        }
-//    }
-//    val itemsToRender = if (showRecs) recommendedLinks else recentLinks
-//    val titleText = if (showRecs) "${userName}님의 오늘에 어울리는 콘텐츠예요!"
-//    else "${userName}님이 최근에 열람한 링크"
-//    // 비율 계산은 remember로 한 번 더 안정화해도 OK
-//    val slackFraction = remember(itemsToRender.size, isTopBarExpanded) {
-//        slackFractionFor(itemsToRender.size, isTopBarExpanded)
-//    }
-//
-//    val clipboardUrl by rememberClipboardUrl()
-//    var dismissedClipboardUrl by remember { mutableStateOf<String?>(null) }
+    //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
+    DesignSystemBars(
+        statusBarColor = Color.White,
+        navigationBarColor = Color.White,
+        darkIcons = true,
+        immersive = false
+    )
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()

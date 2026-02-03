@@ -116,9 +116,9 @@ fun BottomNavigationBar(
                             label = {
                                 Text(
                                     text = item.title,
-                                    fontSize = 12.sp,
+                                    fontSize = 14.sp,
                                     fontFamily = Paperlogy.font,
-                                    fontWeight = FontWeight.Normal,
+                                    fontWeight = FontWeight(400),
                                     style = if (selectedTab == item) {
                                         TextStyle(brush = Basic.maincolor)
                                     } else {
