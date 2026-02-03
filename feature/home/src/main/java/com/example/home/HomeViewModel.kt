@@ -107,6 +107,18 @@ class HomeViewModel @Inject constructor(
         loadRecentLinks()
     }
 
+    //로그아웃 시 모든 데이터 비워주는 기능
+    fun clearData() {
+        // 모든 상태값 초기화
+        userNameState.value = null
+        jobIdState.value = null
+        recentLinksState.value = emptyList()
+        linkDetailState.value = null
+        linkCache.clear() // 상세 정보 캐시도 삭제
+        _categoryColorMap.value = emptyMap()
+        categoryLoaded = false
+    }
+
 
 //    private fun loadUserBasics() {
 //        viewModelScope.launch {

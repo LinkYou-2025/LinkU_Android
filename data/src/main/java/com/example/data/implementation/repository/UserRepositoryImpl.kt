@@ -210,14 +210,30 @@ class UserRepositoryImpl @Inject constructor(
             nickname = dto.nickName.orEmpty(),
             email = dto.email,
             gender = dto.gender.value,
-            jobId = dto.job.id,
+            jobId = dto.job.id.toLong(),
             jobName = dto.job.name,
-            myLinku = dto.myLinku,
-            myFolder = dto.myFolder,
-            myAiLinku = dto.myAiLinku,
+            myLinku = dto.myLinku.toLong(),
+            myFolder = dto.myFolder.toLong(),
+            myAiLinku = dto.myAiLinku.toLong(),
             purposes = displayPurposes,
             interests = displayInterests
-        )
+        ).also { userInfo ->
+            // 세션을 업데이트, 지현이가 편할 수 있게
+            sessionStore.saveLogin(
+                userId = userId,
+                nickname = userInfo.nickname,
+                email = userInfo.email,
+                gender = userInfo.gender,
+                jobId = userInfo.jobId,
+                jobName = userInfo.jobName,
+                myLinku = userInfo.myLinku,
+                myFolder = userInfo.myFolder,
+                myAiLinku = userInfo.myAiLinku,
+                purposes = userInfo.purposes,
+                interests = userInfo.interests
+
+            )
+        }
     }
 
     override suspend fun updateUserInfo(
@@ -283,20 +299,15 @@ class UserRepositoryImpl @Inject constructor(
 
     // logout? - TODO : 지현아... 세션으로 마이페이지 해야할 듯...
     override suspend fun logout() {
-        runCatching {
-            serverApi.withAuthRaw(authPreference) {
-                logout()
-            }
-        }.onFailure { e ->
-            Log.w(TAG, "logout API failed: ${e.message}")
-        }
-
         clearAuthData()
+        Log.d(TAG, "로그아웃 완료")
     }
-
     private suspend fun clearAuthData() {
-        authPreference.clear()   // 토큰 비우기
-        sessionStore.clear()     // 유저정보 비우기
+        // 중복 실행 방지함. 이미 로그아웃 상태면 아무것도 하지 않음
+        if (authPreference.userId == null && !authPreference.isLoggedIn) return
+
+        authPreference.clear()
+        sessionStore.clear()
         Log.d(TAG, "모든 로컬 세션 데이터 삭제 완료")
     }
 
