@@ -195,8 +195,7 @@ fun HomeScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    var showRecs by remember { mutableStateOf(showRecommendations) }
-    LaunchedEffect(showRecommendations) { showRecs = showRecommendations }
+    var showRecs by remember(showRecommendations) { mutableStateOf(showRecommendations) }
 
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
@@ -208,20 +207,25 @@ fun HomeScreen(
     val jobSituations = remember(jobId) { situationsFor(jobId) }
 
     val density = LocalDensity.current
-    val collapseThresholdPx = remember(density) { with(density) { 20.dp.roundToPx() } }
+    val collapseThresholdDp = remember { 20.dp }
 
     // firstVisibleItemIndex>0 이면 이미 헤더가 올라간 상태라 무조건 접힘
-    val collapsedByScroll = remember(
+    LaunchedEffect(
         listState.firstVisibleItemIndex,
         listState.firstVisibleItemScrollOffset,
-        collapseThresholdPx
+        density
     ) {
-        listState.firstVisibleItemIndex > 0 ||
-                listState.firstVisibleItemScrollOffset > collapseThresholdPx
+        val scrollOffsetDp = with(density) { listState.firstVisibleItemScrollOffset.toDp() }
+
+        val shouldCollapse =
+            listState.firstVisibleItemIndex > 0 || scrollOffsetDp > collapseThresholdDp
+
+        // "접힘 고정" 상태에 스크롤 접힘을 누적
+        isTopBarLockedCollapsed = isTopBarLockedCollapsed || shouldCollapse
     }
 
-    // 고정 접힘이 우선
-    val topBarCollapsed = isTopBarLockedCollapsed || collapsedByScroll
+    // 고정 접힘이 우선 (collapsedByScroll 변수 삭제)
+    val topBarCollapsed = isTopBarLockedCollapsed
 
     var hasRequestedRecommend by remember { mutableStateOf(false) }
 

@@ -84,9 +84,8 @@ fun HomeTopBar(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
             .background(LocalColorTheme.current.white)
-            .padding(horizontal = 16.dp, vertical = 13.5.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 13.5.dp)
     ) {
-        Spacer(modifier = Modifier.height(6.5.dp))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
