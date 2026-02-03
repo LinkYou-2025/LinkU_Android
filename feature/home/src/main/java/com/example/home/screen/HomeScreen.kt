@@ -1,8 +1,5 @@
 package com.example.home.screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -16,8 +13,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -25,7 +20,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,17 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -56,20 +46,16 @@ import coil3.compose.AsyncImage
 import com.example.core.model.LinkSimpleInfo
 import com.example.design.BrushText
 import com.example.design.top.search.SearchBarTopSheet
-import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 import com.example.design.util.DesignSystemBars
-import com.example.file.ui.theme.FileTopBarLinkUFont
-import com.example.file.ui.theme.MainColor
 import com.example.home.HomeViewModel
 import com.example.home.R
 import com.example.home.component.ClipboardLinkPasteBanner
 import com.example.home.component.rememberClipboardUrl
 import com.example.home.ui.top.bar.HomeTopBar
 import kotlinx.coroutines.launch
-import com.example.design.R as Res
 
 data class LinkItem(
     val imageResId: Int?,  // 링크 대표 이미지
@@ -525,7 +511,7 @@ fun HomeScreen(
         onQueryDelete = { homeViewModel.removeRecentQuery(it) },
         onQueryClear = { homeViewModel.clearRecentQuery() },
         fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
-        recentQuerys = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
+        recentQueries = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
     )
 }
 

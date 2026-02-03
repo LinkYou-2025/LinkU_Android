@@ -284,7 +284,7 @@ fun FileScreen(
         onQueryDelete = { fileViewModel.removeRecentQuery(it) },
         onQueryClear = { fileViewModel.clearRecentQuery() },
         fastSearchItems = fileViewModel.fastSearchItems.collectAsState().value,
-        recentQuerys = fileViewModel.recentQueryList.collectAsState().value.map{it.text}
+        recentQueries = fileViewModel.recentQueryList.collectAsState().value.map{it.text}
     )
 }
 
