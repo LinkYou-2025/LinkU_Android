@@ -77,6 +77,13 @@ dependencies {
     implementation(project(":data"))
     implementation(project(":design"))
 
+
+    // 여기에 추가
+    implementation(project(":feature:home"))
+    implementation(project(":feature:curation"))
+    implementation(project(":feature:file"))
+
+
     // Retrofit2
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
@@ -93,4 +100,5 @@ dependencies {
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 }

@@ -57,11 +57,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.example.curation.ui.main_card.CurationHighlightSection
 import com.example.curation.ui.main_card.HighlightCurationCard
-import com.example.curation.ui.top_bar.CurationTopBar
 import com.example.design.top.search.SearchBarTopSheet
 import com.example.core.model.RecommendedLink
 import com.example.curation.ui.list_card.LikedCurationSkeleton
 import com.example.curation.ui.recommend_list.RecommendedLinkCardSkeleton
+import com.example.design.top.bar.TopBar
 
 // 간단 확장함수
 private fun String.toLabel(): String = runCatching {
@@ -114,7 +114,7 @@ fun CurationScreen(
 
     Scaffold(
         topBar = {
-            CurationTopBar(
+            TopBar(
                 onClickSearch = { viewModel.updateSearchTopSheetVisible(true) }
             )
         },
@@ -306,7 +306,7 @@ fun CurationScreen(
             onQueryDelete = { viewModel.removeRecentQuery(it) },
             onQueryClear = { viewModel.clearRecentQuery() },
             fastSearchItems = viewModel.fastSearchItems.collectAsState().value,
-            recentQuerys = viewModel.recentQueryList.collectAsState().value.map{it.text}
+            recentQueries = viewModel.recentQueryList.collectAsState().value.map{it.text}
         )
     }
 
@@ -455,7 +455,12 @@ fun PreviewCurationScreenExact() {
                 .background(LocalColorTheme.current.white),
             contentPadding = PaddingValues(bottom = 32.dp)
         ) {
-            item { CurationTopBar() }
+            item {
+                TopBar(
+                showSearchBar = true,
+                onClickSearch = {},  // Preview라서 빈 람다
+                onClickAlarm = {}
+            )  }
 
             item { Spacer(Modifier.height(19.dp)) }
 

@@ -24,9 +24,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -42,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -54,19 +52,19 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.design.R
 import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
+import com.example.design.theme.color.Basic
 import com.example.design.theme.domain.domainLogoPainterOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
-import androidx.compose.ui.platform.LocalUriHandler
-import com.example.design.R
 
 data class FastSearchItem(
     val id: Long,
@@ -74,20 +72,23 @@ data class FastSearchItem(
     val url: String,
 )
 
-// 빠른 링크 검색 탑 시트
+/**
+ * 상단에서 내려오는 형태의 빠른 링크 검색 탑 시트 컴포넌트입니다.
+ * 사용자가 검색어를 입력하여 링크를 빠르게 찾거나, 최근 검색 기록을 관리할 수 있는 기능을 제공합니다.
+ *
+ * @param visible 탑 시트의 표시 여부. true일 때 상단에서 아래로 애니메이션과 함께 나타납니다.
+ * @param onDismiss 탑 시트를 닫아야 할 때 호출되는 콜백 (배경 클릭, 뒤로가기 버튼 등).
+ * @param onQueryChange 검색어가 변경될 때 호출되는 콜백. 2자 이상의 입력에 대해 데바운스(350ms) 처리 후 실행됩니다.
+ * @param onQuerySave 현재 검색어를 최근 검색 기록에 저장하고자 할 때(예: 키보드 완료 버튼 클릭) 호출되는 콜백.
+ * @param onQueryDelete 최근 검색 기록에서 특정 검색어를 삭제할 때 호출되는 콜백.
+ * @param onQueryClear 최근 검색 기록의 모든 항목을 삭제할 때 호출되는 콜백.
+ * @param onLinkClick 검색 결과 중 특정 링크 아이템을 클릭했을 때 호출되는 콜백. 선택된 아이템의 고유 ID를 전달합니다.
+ * @param fastSearchItems 검색어에 따라 필터링되어 화면에 표시될 빠른 링크 검색 결과 리스트.
+ * @param recentQueries 사용자에게 보여줄 최근 검색 기록 문자열 리스트.
+ */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @Composable
 fun SearchBarTopSheet(
-    /*
-    * visible: 탑 시트가 보여지는지 여부
-    * onDismiss: 탑 시트를 닫을 때 호출되는 콜백
-    * onQueryChange: 검색어가 변경될 때 호출되는 콜백
-    * onQuerySave: 검색어를 저장할 때 호출되는 콜백
-    * onQueryDelete: 검색어를 삭제할 때 호출되는 콜백
-    * onQueryClear: 모든 검색어를 삭제할 때 호출되는 콜백
-    * fastSearchItems: 빠른 링크 검색 아이템 리스트
-    * recentQuerys: 최근 검색 기록 리스트
-    * */
     visible: Boolean,
     onDismiss: () -> Unit,
     onQueryChange: (String) -> Unit,
@@ -96,68 +97,104 @@ fun SearchBarTopSheet(
     onQueryClear: () -> Unit,
     onLinkClick: (Long) -> Unit,
     fastSearchItems: List<FastSearchItem> = emptyList(),
-    recentQuerys: List<String> = emptyList(),
+    recentQueries: List<String> = emptyList(),
 ) {
-    // 링큐 색상 테마
+    // 테마 및 리소스
     val colors = LocalColorTheme.current
-
-    // 링큐 폰트(paperlogy)
     val paperlogyFont = LocalFontTheme.current.font
-
-    // 키보드 컨트롤러 인스턴스
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    // 입력 텍스트
+    // 상태 관리
     var text by remember { mutableStateOf("") }
-
-    // 수정 상태
+    // 기본적으로 수정 모드는 꺼져있음
     var isEditMode by remember { mutableStateOf(false) }
 
-    // 검색창 입장 시 초기화
-    LaunchedEffect(Unit) {
+    /**
+     * 공통 초기화 + 닫기 처리
+     * (뒤로가기 / 딤 클릭 / 닫기 버튼에서 중복 제거)
+     */
+    fun resetAndDismiss() {
         text = ""
         isEditMode = false
+        keyboardController?.hide()
+        onDismiss()
     }
 
-    // 입력 변화 디바운스 수집 (2자 이상 + 350ms)
-    // - mapLatest: 새 입력이 오면 이전 요청(코루틴 Job) 자동 취소 → 레이스 방지
+    // 닫힐 때 상태 초기화 로직 (visible이 false가 될 때)
+    LaunchedEffect(visible) {
+        if (!visible) {
+            resetAndDismiss()
+        }
+    }
+
+/*
     LaunchedEffect(Unit) {
         snapshotFlow { text }
             .map { it.trim() }
             .filter { it.length >= 2 }    // 2자 이상일 때만
-            .debounce(350)                // 300~400ms 권장, 여기선 350ms
+            .debounce(350)                // 350ms 주기 탐색
             .distinctUntilChanged()
-            .mapLatest { q ->
-                onQueryChange(q)          // 최신 입력으로만 호출됨
-            }
-            .collect { /* no-op */ }
+            .mapLatest(onQueryChange)
+            .collect { *//* no-op *//* }
+    }*/
+
+    /**
+     * 검색어 변경 디바운스 처리
+     *
+     * - trim 적용
+     * - 2자 이상만 검색
+     * - 350ms 디바운스
+     * - 동일 값 중복 호출 방지
+     */
+    LaunchedEffect(text) {
+        snapshotFlow { text }
+            .map { it.trim() }
+            .filter { it.length >= 2 }
+            .debounce(350)
+            .distinctUntilChanged()
+            .collectLatest(onQueryChange)
     }
 
-
-    // 최근 검색 기록 아이템
+    /**
+     * 최근 검색어 목록의 개별 아이템을 표시하는 컴포저블입니다.
+     *
+     * 검색어를 칩(Chip) 형태로 표시하며, [isEditMode] 상태에 따라 두 가지 동작을 수행합니다:
+     * 1. 일반 모드: 텍스트 클릭 시 해당 검색어를 입력창에 반영합니다.
+     * 2. 수정 모드: 검색어 옆에 삭제 버튼을 표시하여 개별 기록을 삭제할 수 있게 합니다.
+     *
+     * @param query 표시할 최근 검색어 문자열입니다.
+     */
     @Composable
-    fun RecentQueryItem(recentText: String){
+    fun RecentQueryChip(query: String){
+
+        // 가로 캡슐 모양의 아이템
         Row (
             modifier = Modifier
+
+                // 검색어 길이에 따라 크기가 가변적
                 .wrapContentSize()
+
                 .background(
+                    // 양옆을 둥글게
                     shape = RoundedCornerShape(size = 10.dp),
+
+                    // Gray 100 배경색
                     color = colors.gray[100]
-                ),
+                )
+                .padding(horizontal = 15.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // 태그 텍스트
             Text(
                 modifier = Modifier
-                    .padding(horizontal = 15.dp, vertical = 10.dp)
                     .noRippleClickable {
                         if (!isEditMode) {
-                            text = recentText
+                            text = query
                             keyboardController?.hide()
                         }
                     },
-                text = recentText,
+                text = query,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontFamily = paperlogyFont,
@@ -171,55 +208,71 @@ fun SearchBarTopSheet(
                 Icon(
                     modifier = Modifier
                         .noRippleClickable{
-                            onQueryDelete(recentText)
+                            onQueryDelete(query)
                         },
-                    imageVector = Icons.Default.Close,
-                    tint = colors.gray[800],
-                    contentDescription = null,
+                    painter = painterResource(id = R.drawable.ic_recent_search_x),
+                    tint = colors.gray[500],
+                    contentDescription = "수정 상태에서만 보이는 삭제 버튼",
                 )
             }
         }
     }
 
-    // 빠른 링크 제목 부분 강조 텍스트
+    /**
+     * 검색어와 일치하는 텍스트 부분을 굵게(Bold) 강조하여 표시하는 컴포저블 함수입니다.
+     *
+     * 전체 문자열([fullText]) 내에서 사용자가 입력한 검색어([searchTerm])를 찾아
+     * 해당 부분에만 [FontWeight.Bold] 스타일을 적용한 [AnnotatedString]을 생성하여 출력합니다.
+     * 정규식을 사용하여 대소문자 구분 없이 일치하는 모든 구간을 처리하며,
+     * 텍스트가 길어질 경우 끝부분을 생략(...) 처리합니다.
+     *
+     * @param fullText 표시할 전체 원본 문자열입니다.
+     * @param searchTerm 강조 스타일을 적용할 검색어 문자열입니다.
+     */
     @Composable
     fun HighlightedText(
-        suggestion: String,
-        query: String
+        fullText: String,
+        searchTerm: String
     ) {
-        val annotatedString = buildAnnotatedString {
-            if (query.isEmpty()) {
-                append(suggestion)
+
+        // 검색어가 검색 결과에 강조된 문자열
+        val highlightedResult = buildAnnotatedString {
+
+            // 검색어가 없다면, 강조 없이 반환
+            if (searchTerm.isEmpty()) {
+                append(fullText)
                 return@buildAnnotatedString
             }
 
-            // query를 모두 찾아내는 정규식
-            val regex = Regex("(?i)${Regex.escape(query)}")
+            // 검색어를 모두 찾아내는 정규식
+            val regex = Regex("(?i)${Regex.escape(searchTerm)}")
             var lastIndex = 0
 
-            regex.findAll(suggestion).forEach { matchResult ->
-                val start = matchResult.range.first
-                val end = matchResult.range.last + 1
+            // 찾아낸 검색어들에 하이라이트 처리
+            regex.findAll(fullText).forEach { matchResult ->
+                val matchStart = matchResult.range.first
+                val matchEnd = matchResult.range.last + 1
 
                 // 검색어 앞부분 그대로 추가
-                append(suggestion.substring(lastIndex, start))
+                append(fullText.substring(lastIndex, matchStart))
 
                 // 검색어 부분 Bold 처리
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                    append(suggestion.substring(start, end))
+                    append(fullText.substring(matchStart, matchEnd))
                 }
 
-                lastIndex = end
+                lastIndex = matchEnd
             }
 
             // 마지막 남은 부분 추가
-            if (lastIndex < suggestion.length) {
-                append(suggestion.substring(lastIndex))
+            if (lastIndex < fullText.length) {
+                append(fullText.substring(lastIndex))
             }
         }
 
+        // 강조된 텍스트
         Text(
-            text = annotatedString,
+            text = highlightedResult,
             fontSize = 15.sp,
             lineHeight = 22.sp,
             fontFamily = paperlogyFont,
@@ -230,19 +283,29 @@ fun SearchBarTopSheet(
         )
     }
 
-    // 빠른 링크 검색 아이템
+    /**
+     * 빠른 링크 검색 결과를 표시하는 개별 아이템 컴포저블입니다.
+     *
+     * 해당 아이템은 링크의 도메인 로고 이미지와 함께 제목을 표시하며,
+     * 현재 검색어와 일치하는 제목의 텍스트 부분을 강조(Bold)하여 보여줍니다.
+     *
+     * @param fastSearchItem 표시할 검색 결과 아이템 데이터 ([FastSearchItem])
+     */
     @Composable
-    fun FastSearchItem(fastSearchItem: FastSearchItem){
+    fun FastSearchItemRow(fastSearchItem: FastSearchItem){
 
-        val domainImg = domainLogoPainterOrNull(fastSearchItem.url)
+        // 도메인 로고
+        val logoPainter = domainLogoPainterOrNull(fastSearchItem.url)
 
-        val uri = LocalUriHandler.current
+        // uri 핸들러
+        val uriHandler = LocalUriHandler.current
 
         // 링크 내용
         Row(
             modifier = Modifier
                 .noRippleClickable{
                     runCatching { onLinkClick(fastSearchItem.id) }
+                        .onFailure { /* 링크 클릭 에러 시 처리 */ }
                 },
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -258,19 +321,20 @@ fun SearchBarTopSheet(
                         shape = CircleShape
                     )
                     .background(colors.white),
-                painter = domainImg?:painterResource(R.drawable.logo_whiteback),
+                painter = logoPainter?:painterResource(R.drawable.logo_whiteback),
                 contentDescription = null
             )
 
             // 링크 제목
             HighlightedText(
-                suggestion = fastSearchItem.title,
-                query = text
+                fullText = fastSearchItem.title,
+                searchTerm = text
             )
         }
     }
 
-    // 바탕 Box
+    /* ===================== UI ===================== */
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -281,8 +345,13 @@ fun SearchBarTopSheet(
                     .matchParentSize()
                     // 뒷 배경 딤 효과
                     .background(Color.Black.copy(alpha = 0.3f))
-                    // 클릭 시, 닫힘
-                    .noRippleClickable { onDismiss() }
+
+                    // 뒷 배경 클릭 시 닫힘 및 검색어, 수정 모드 초기화
+                    .noRippleClickable {
+                        text = ""
+                        isEditMode = false
+                        onDismiss()
+                    }
             )
         }
 
@@ -326,8 +395,8 @@ fun SearchBarTopSheet(
                             // 위에서 46dp 떨어지게 위치
                             .padding(top = 46.dp),
 
-                        // 21dp 간격 가로 배치
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        // 20dp 간격 가로 배치
+                        horizontalArrangement = Arrangement.spacedBy(20.dp),
 
                         // 세로 중앙 정렬
                         verticalAlignment = Alignment.CenterVertically
@@ -338,14 +407,18 @@ fun SearchBarTopSheet(
                                 // 아이콘 크기
                                 .height(40.dp)
 
-                                // 클릭 시 닫힘
-                                .noRippleClickable { onDismiss() },
+                                // 뒤로 가기 클릭 시 닫힘 및 검색어, 수정 모드 초기화
+                                .noRippleClickable {
+                                    text = ""
+                                    isEditMode = false
+                                    onDismiss()
+                                },
 
                             // 아이콘 색상 Gray600
                             tint = colors.gray[600],
 
                             // compose 제공 왼쪽 화살표 이미지
-                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                            painter = painterResource(id = R.drawable.ic_back),
 
                             contentDescription = null
                         )
@@ -375,6 +448,8 @@ fun SearchBarTopSheet(
                                     painter = painterResource(id = R.drawable.ic_logo_white),
                                     contentDescription = "링큐 로고"
                                 )
+
+                                // 검색어 입력 부분
                                 BasicTextField(
                                     value = text,
                                     onValueChange = { text = it },
@@ -419,14 +494,17 @@ fun SearchBarTopSheet(
                                     }
                                 )
 
-                                Image(
-                                    modifier = Modifier
-                                        .padding(end = 18.dp)
-                                        .size(18.dp)
-                                        .noRippleClickable { text = "" },
-                                    painter = painterResource(R.drawable.ic_text_clear),
-                                    contentDescription = null
-                                )
+                                // 검색어 삭제 버튼
+                                if(text.isNotEmpty()){
+                                    Image(
+                                        modifier = Modifier
+                                            .padding(end = 18.dp)
+                                            .size(18.dp)
+                                            .noRippleClickable { text = "" },
+                                        painter = painterResource(R.drawable.ic_text_clear),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
                     }
@@ -440,78 +518,92 @@ fun SearchBarTopSheet(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+
+                        // 최근 검색 or 검색 결과
                         Text(
                             text = if (text.isEmpty()) "최근 검색" else "검색 결과",
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
                             fontFamily = paperlogyFont,
-                            fontWeight = FontWeight.Normal,
+                            fontWeight = FontWeight.Bold,
                             color = colors.black
                         )
 
+                        // 입력된 검색어가 없을 때,
                         if(text.isEmpty()){
-                            when (isEditMode) {
-                                true -> {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(15.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            modifier = Modifier.noRippleClickable {
-                                                onQueryClear()
-                                            },
-                                            text = "모두 지우기",
-                                            fontSize = 14.sp,
-                                            lineHeight = 20.sp,
-                                            fontFamily = paperlogyFont,
-                                            fontWeight = FontWeight.Normal,
-                                            color = colors.gray[400]
-                                        )
-                                        Text(
-                                            modifier = Modifier.noRippleClickable {
-                                                isEditMode = false
-                                            },
-                                            text = "완료",
-                                            fontSize = 14.sp,
-                                            lineHeight = 20.sp,
-                                            fontFamily = paperlogyFont,
-                                            fontWeight = FontWeight.Normal,
-                                            color = colors.black
-                                        )
-                                    }
-                                }
 
-                                false -> {
+                            // 수정 상태이면,
+                            if (isEditMode) {
+
+                                // 모두 지우기 버튼, 완료 버튼
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(15.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+
+                                    // 모두 지우기 버튼
                                     Text(
-                                        modifier = Modifier.noRippleClickable {
-                                            isEditMode = true
-                                        },
-                                        text = "수정",
+                                        modifier = Modifier.noRippleClickable (onClick = onQueryClear),
+                                        text = "모두 지우기",
                                         fontSize = 14.sp,
                                         lineHeight = 20.sp,
                                         fontFamily = paperlogyFont,
                                         fontWeight = FontWeight.Normal,
                                         color = colors.gray[400]
                                     )
+
+                                    // 완료 버튼
+                                    Text(
+
+                                        // 클릭 시, 일반 상태로 변경
+                                        modifier = Modifier.noRippleClickable {
+                                            isEditMode = false
+                                        },
+                                        text = "완료",
+                                        fontSize = 14.sp,
+                                        lineHeight = 20.sp,
+                                        fontFamily = paperlogyFont,
+                                        fontWeight = FontWeight.Normal,
+                                        color = colors.black
+                                    )
                                 }
+                            } else {    // 일반 상태일 때,
+
+                                // 수정 버튼
+                                Text(
+
+                                    // 클릭 시, 수정 상태로 변경
+                                    modifier = Modifier.noRippleClickable {
+                                        isEditMode = true
+                                    },
+                                    text = "수정",
+                                    fontSize = 14.sp,
+                                    lineHeight = 20.sp,
+                                    fontFamily = paperlogyFont,
+                                    fontWeight = FontWeight.Normal,
+                                    color = colors.gray[400]
+                                )
                             }
                         }
                     }
 
                     // 입력 여부에 따라 최근 검색 기록 or 검색 결과 표시
-                    when (text.isEmpty()) {
-                        true -> {
-                            LazyRow(
-                                modifier = Modifier.padding(top = 129.dp),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                items(recentQuerys) {
-                                    RecentQueryItem(it)
-                                }
+                    if (text.isBlank()) {
+
+                        // 최근 검색 기록
+                        LazyRow(
+                            modifier = Modifier.padding(top = 129.dp),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(recentQueries) {
+                                RecentQueryChip(it)
                             }
                         }
+                    } else {
 
-                        false -> {
+                        // 검색 결과가 있으면 검색 결과 표시,
+                        // 검색 결과가 없으면 "찾으시는 검색어 결과가 없어요!" 표시
+                        if(fastSearchItems.isNotEmpty()) {
                             LazyColumn(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -520,8 +612,33 @@ fun SearchBarTopSheet(
                                 verticalArrangement = Arrangement.spacedBy(15.dp)
                             ) {
                                 items(fastSearchItems) {
-                                    FastSearchItem(it)
+                                    FastSearchItemRow(it)
                                 }
+                            }
+                        } else {
+
+                            // "찾으시는 검색어 결과가 없어요!" 공간
+                            Row(
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 22.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ){
+                                // "찾으시는 검색어 결과가 없어요!" 아이콘
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    painter = painterResource(R.drawable.ic_search_bar_caution),
+                                    contentDescription = "\"찾으시는 검색어 결과가 없어요!\" 아이콘",
+                                    tint = Basic.negative
+                                )
+
+                                // "찾으시는 검색어 결과가 없어요!" 텍스트
+                                Text(
+                                    text = "찾으시는 검색어 결과가 없어요!",
+                                    fontSize = 13.sp,
+                                    color = Basic.negative
+                                )
                             }
                         }
                     }
@@ -543,6 +660,7 @@ private fun SearchBarTopSheetTest(){
         onQuerySave = {},
         onQueryDelete = {},
         onQueryClear = {},
-        onLinkClick = {}
+        onLinkClick = {},
+        recentQueries = listOf("최근 검색 1", "최근 검색 2", "최근 검색 3")
     )
 }
