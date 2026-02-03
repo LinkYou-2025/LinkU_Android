@@ -7,6 +7,7 @@ sealed class ThemeColorScheme(
 //    val isDark: Boolean,
 
     val maincolor: Brush,
+    val backgroundmaincolor: Brush,
     val blue: ColorMap = ColorMap(
         50 to Color(0xFFE5EDFF),
         100 to Color(0xFF95B6FF),
