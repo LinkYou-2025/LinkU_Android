@@ -510,7 +510,7 @@ fun HomeScreen(
         onQueryDelete = { homeViewModel.removeRecentQuery(it) },
         onQueryClear = { homeViewModel.clearRecentQuery() },
         fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
-        recentQuerys = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
+        recentQueries = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
     )
 }
 

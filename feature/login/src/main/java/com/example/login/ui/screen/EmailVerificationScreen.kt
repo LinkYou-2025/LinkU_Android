@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.font.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
+import com.example.design.modifier.noRippleClickable
 import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.StepIndicator
 import com.example.login.ui.item.BottomGradientButton
@@ -313,6 +314,7 @@ fun EmailVerificationScreenContent(
                     text = "서버 오류: 잠시 후 다시 시도해주세요",
                     color = Color.Red,
                     fontSize = 13.sp,
+                    fontFamily = Paperlogy.font,
                     modifier = Modifier.padding((8.scaler))
                 )
             }
@@ -341,7 +343,7 @@ fun EmailVerificationScreenContent(
                     .padding(
                         bottom = (21.scaler)
                     )
-                    .clickable {
+                    .noRippleClickable {
                         // TODO: 재전송 안내 api 개발시 연동하기!
                     }
             )

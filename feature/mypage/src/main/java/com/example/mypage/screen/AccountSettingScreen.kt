@@ -62,7 +62,8 @@ fun AccountSettingScreen(
     jobPlaceholder: String,
     initialPurposeTags: Set<String> = emptySet(),
     initialContentTags: Set<String> = emptySet(),
-    onSubmit: (nickname: String, jobId: Long, purposes: List<String>, interests: List<String>) -> Unit
+    onSubmit: (nickname: String, jobId: Long, jobName: String, purposes: List<String>, interests: List<String>) -> Unit
+    //onSubmit: (nickname: String, jobId: Long, purposes: List<String>, interests: List<String>) -> Unit
 ) {
     val username = nicknamePlaceholder
     val userjob  = jobPlaceholder
@@ -339,6 +340,7 @@ fun AccountSettingScreen(
                         onSubmit(
                             finalNickname,
                             jobId,
+                            selectedJob,
                             selectedPurposeTags.toList(),
                             selectedContentTags.toList()
                         )
