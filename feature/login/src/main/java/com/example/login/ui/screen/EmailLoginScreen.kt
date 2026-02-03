@@ -237,28 +237,26 @@ fun EmailLoginScreen(
             val dividerStartPos = (220.scaler) // | 시작점
             val signUpStartPos = (247.scaler)  // 회원가입 시작점
 
-            Box(
+            Row(
                 modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
                     .height((30.scaler)), // 클릭 영역 확보를 위한 높이
-                contentAlignment = Alignment.CenterStart //세로 중앙 정렬
-            ) {
-                // 1. 비밀번호 재설정
+                horizontalArrangement = Arrangement.spacedBy(25.dp, alignment = Alignment.CenterHorizontally),
+                verticalAlignment = Alignment.CenterVertically
+            ){
                 Text(
                     text = "비밀번호 재설정",
                     fontSize = 15.sp,
                     fontFamily = Paperlogy.font,
                     color = Color(0xFF87898F),
                     modifier = Modifier
-                        .offset(x = resetStartPos) // 항상 101/412 지점
                         .noRippleClickable {
                             //if (loginState !is LoginState.Loading) { -> 혹시 나중에 로딩중이 길어지면 사용해주세요.
                             navigator.navigate("resetPassword")
                             //}
                         }
                 )
-
-                // 2. 구분선 (|) // TODO : 비밀번호 재설정, 회원가입 대비 내려가서 부득이하게 약간 위로 올림. 다현이랑 조절해보기.
                 Text(
                     text = "|",
                     fontSize = 14.sp,
@@ -266,30 +264,23 @@ fun EmailLoginScreen(
                     color = Color(0xFF87898F),
                     style = TextStyle(
                         baselineShift = BaselineShift(0.3f)  // 약간 위로 올림
-                    ),
-                    //style = TextStyle(baselineShift = BaselineShift(0.15f)),
-                    modifier = Modifier
-                        .offset(x = dividerStartPos) // 항상 220/412 지점
+                    )
                 )
-
-                // 3. 회원가입
                 Text(
                     text = "회원가입",
                     fontSize = 15.sp,
                     fontFamily = Paperlogy.font,
                     color = Color(0xFF87898F),
                     modifier = Modifier
-                        .offset(x = signUpStartPos) // 항상 247/412 지점
                         .noRippleClickable {
                             focusManager.clearFocus()
                             onSignUpClick()
                         }
                 )
             }
-
-            }
         }
     }
+}
 
 
 
