@@ -19,7 +19,7 @@ data class CurationLinksUiState(
 data class CurationDetailUiState(
     val loading: Boolean = false,
     val topTags: List<String> = emptyList(),
-    val headerMent: String? = null,
+    val headerMent: String? = null,//TODO : api 확인하기.
     val footerMent: String? = null,
     val liked: Boolean? = null,
     val likeBusy: Boolean = false,

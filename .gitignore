@@ -1,4 +1,6 @@
 *.iml
+*.jks
+*.keystore
 .gradle
 /local.properties
 .idea/
@@ -26,3 +28,4 @@ local.properties
 /app/release/app-release.apk
 /app/release/baselineProfiles/0/app-release.dm
 /app/src/main/java/com/example/linku_android/FrontRules.kt
+/app/release/

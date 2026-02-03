@@ -4,11 +4,7 @@ import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
 data class UserInfoDTO(
-//    @Json(name = "nickname")
-//    val nickname: String,
-
-    @Json(name = "nickname")
-    val nickname: String? = null,
+    // Done 통합 : 01.13 완료 했습니다. (username 제거)
     @Json(name = "nickName")
     val nickName: String? = null,
 

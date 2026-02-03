@@ -1,6 +1,7 @@
 package com.example.core.repository
 
 import com.example.core.model.LoginResult
+import com.example.core.model.TokenReissueResult
 import com.example.core.model.UserInfo
 
 
@@ -25,9 +26,8 @@ interface UserRepository {
     // 닉네임 전용 메서드 추가
     suspend fun getNickname(userId: Long): String?
 
-    // 유저 id 가져오기
-    //suspend fun getUserInfo(userId: Long): String?
 
+    suspend fun reissue(refreshToken: String): TokenReissueResult
     //유저 비밀번호 재설정
     suspend fun requestTempPassword(email: String): Boolean
 

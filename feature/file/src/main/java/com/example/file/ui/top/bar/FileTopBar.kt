@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
@@ -207,4 +208,9 @@ fun FileTopBar(
     showBackground = true)
 @Composable
 private fun FileTopBarTest() {
+    FileTopBar(
+        viewModel(),
+        viewModel(),
+        viewModel(),
+    )
 }

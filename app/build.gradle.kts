@@ -12,6 +12,7 @@ android {
     namespace = "com.example.linku_android"
     compileSdk = 35
 
+
     defaultConfig {
         applicationId = "com.example.linku_android"
         minSdk = 26

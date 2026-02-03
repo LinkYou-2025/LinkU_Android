@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
+import com.example.design.theme.color.Basic
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray300
@@ -63,9 +66,13 @@ fun FileBottomSheet(
 ) {
     if(visible) {
         ModalBottomSheet(
-            modifier = modifier
-                //.height(900.dp) // 바텀 시트의 스튜디오 렌더링 시 주석 해제
-            ,
+            modifier = modifier,
+            dragHandle = {
+                BottomSheetDefaults.DragHandle(
+                    width = 40.dp,
+                    color = Basic.gray[300]
+                )
+            },
             sheetState = sheetState,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
@@ -140,6 +147,7 @@ fun FileBottomSheet(
 @Composable
 private fun FileEditBottomSheetTest(){
     FileBottomSheet(
+        modifier = Modifier.height(900.dp),
         title = "해당 카테고리를 수정하시겠습니까?",
         body = "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
         buttonText = "저장",
