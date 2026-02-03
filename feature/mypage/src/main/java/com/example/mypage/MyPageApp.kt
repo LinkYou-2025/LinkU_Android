@@ -106,49 +106,79 @@ fun MyPageApp(
 //            }
 //        }
         composable("account") {
-            AccountSettingScreen(
-                navController = navController,
-                nicknamePlaceholder = session.nickname ?: "",
-                jobPlaceholder = session.jobName ?: "",
-                // 세션에서 바로 가져올 수 있음!  api 호출 줄임.
-                initialPurposeTags = emptySet(),
-                initialContentTags = emptySet(),
-                onSubmit = { nickname, jobId, purposes, interests ->
-                    /**
-                     * TODO: 지현이에게 전달
-                     *
-                     * [사용자 정보 수정 방법]
-                     * 아래 함수 호출하면 자동으로:
-                     * 1. 서버 API 호출 (DB 수정)
-                     * 2. 로컬 세션 업데이트 (UI 즉시 반영)
-                     *
-                     *
-                     * - nickname: 새 닉네임
-                     * - jobId: 직업 ID (Long)
-                     * - jobName: 직업 이름 (UI 표시용)
-                     * - purposes: 사용 목적 리스트 (한글 그대로 전달)
-                     *   ex) listOf("취업·커리어 준비", "학업/리포트 정리")
-                     * - interests: 관심 콘텐츠 리스트 (한글 그대로 전달)
-                     *   ex) listOf("IT/개발", "비즈니스/마케팅")
-                     *
-                     * jobName은 선택한 직업의 이름을 넘겨야 UI에 바로 반영
-                     */
-                    viewModel.updateUserInfo(
-                        nickname = nickname,
-                        jobId = jobId,
-                        jobName = "", // 직업 이름.
-                        purposes = purposes,
-                        interests = interests,
-                        onSuccess = {
-                            Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-                            navController.popBackStack("mypage", inclusive = false)
-                        },
-                        onError = { msg ->
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                        }
-                    )
-                }
-            )
+            // nickname이나 purposes가 로드될 때까지 기다립니다.
+            android.util.Log.d("MyPageApp", "태그 데이터 확인 - Purposes: ${session.purposes}, Interests: ${session.interests}")
+            if (session.nickname != null) {
+                AccountSettingScreen(
+                    navController = navController,
+                    nicknamePlaceholder = session.nickname ?: "",
+                    jobPlaceholder = session.jobName ?: "",
+                    initialPurposeTags = session.purposes.toSet(),
+                    initialContentTags = session.interests.toSet(),
+                    onSubmit = { nickname, jobId, jobName, purposes, interests ->
+                        viewModel.updateUserInfo(
+                            nickname = nickname,
+                            jobId = jobId,
+                            jobName = jobName,
+                            purposes = purposes,
+                            interests = interests,
+                            onSuccess = {
+                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack("mypage", inclusive = false)
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                )
+            } else {
+                // 로딩 중일 때 보여줄 화면 (잠시 빈 화면 혹은 프로그레스바)
+                // 아무것도 안 써두면 데이터가 올 때까지 잠깐 멈춰있다가 나타납니다.
+            }
+//            AccountSettingScreen(
+//                navController = navController,
+//                nicknamePlaceholder = session.nickname ?: "",
+//                jobPlaceholder = session.jobName ?: "",
+//                // 세션에서 바로 가져올 수 있음!  api 호출 줄임.
+//                initialPurposeTags = session.purposes.toSet(),    // 세션에서 가져옴
+//                initialContentTags = session.interests.toSet(),   // 세션에서 가져옴
+//                onSubmit = { nickname, jobId, jobName, purposes, interests ->
+//                    /**
+//                     * TODO: 지현이에게 전달
+//                     *
+//                     * [사용자 정보 수정 방법]
+//                     * 아래 함수 호출하면 자동으로:
+//                     * 1. 서버 API 호출 (DB 수정)
+//                     * 2. 로컬 세션 업데이트 (UI 즉시 반영)
+//                     *
+//                     *
+//                     * - nickname: 새 닉네임
+//                     * - jobId: 직업 ID (Long)
+//                     * - jobName: 직업 이름 (UI 표시용)
+//                     * - purposes: 사용 목적 리스트 (한글 그대로 전달)
+//                     *   ex) listOf("취업·커리어 준비", "학업/리포트 정리")
+//                     * - interests: 관심 콘텐츠 리스트 (한글 그대로 전달)
+//                     *   ex) listOf("IT/개발", "비즈니스/마케팅")
+//                     *
+//                     * jobName은 선택한 직업의 이름을 넘겨야 UI에 바로 반영
+//                     */
+//                    viewModel.updateUserInfo(
+//                        nickname = nickname,
+//                        jobId = jobId,
+//                        jobName = jobName,// 직업 이름.
+//                        purposes = purposes,
+//                        interests = interests,
+//                        onSuccess = {
+//                            Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
+//                            navController.popBackStack("mypage", inclusive = false)
+//                        },
+//                        onError = { msg ->
+//                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//                        }
+//                    )
+//                }
+//            )
         }
 //        composable("account") {
 //            ui.userInfo?.let { user ->
