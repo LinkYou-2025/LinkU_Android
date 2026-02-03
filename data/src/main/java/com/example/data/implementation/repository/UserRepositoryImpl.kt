@@ -34,32 +34,32 @@ class UserRepositoryImpl @Inject constructor(
 ) : UserRepository {
 
 
-    // ENUM 매핑
+    // ENUM 매핑s
     private val purposeMap = mapOf(
-        "취업·커리어 준비" to "CAREER",
-        "학업/리포트 정리" to "STUDY",
-        "업무자료 아카이빙" to "WORK",
-        "사이드 프로젝트/창업 준비" to "SIDE_PROJECT",
         "자기계발/정보 수집" to "SELF_DEVELOPMENT",
-        "그냥 나중에 읽고 싶은 글 저장" to "LATER_READING",
-        "인사이트 모으기" to "INSIGHTS",
+        "사이드 프로젝트/창업 준비" to "SIDE_PROJECT",
+        "기타" to "OTHERS",
+        "그냥 나중에 읽고싶은 글 저장" to "LATER_READING",
+        "취업·커리어 준비" to "CAREER",
         "블로그/콘텐츠 작성 참고용" to "CREATION_REFERENCE",
-        "기타" to "OTHERS"
+        "인사이트 모으기" to "INSIGHTS",
+        "업무자료 아카이빙" to "WORK",
+        "학업/리포트 정리" to "STUDY"
     )
 
     private val interestMap = mapOf(
         "비즈니스/마케팅" to "BUSINESS",
-        "IT/개발" to "IT",
-        "디자인/크리에이티브" to "DESIGN",
-        "심리/자기계발" to "PSYCHOLOGY",
-        "커리어/채용" to "CAREER",
-        "시사/트렌드" to "CURRENT_EVENTS",
         "학업/리포트 참고" to "STUDY",
-        "스타트업/창업" to "STARTUP",
-        "사회/문화/환경" to "SOCIETY",
+        "커리어/채용" to "CAREER",
+        "심리/자기계발" to "PSYCHOLOGY",
+        "디자인/크리에이티브" to "DESIGN",
+        "IT/개발" to "IT",
         "글쓰기/콘텐츠 작성" to "WRITING",
-        "책/인사이트 요약" to "INSIGHTS",
-        "그냥 모아두고 싶은 글들" to "COLLECT"
+        "시사/트렌드" to "CURRENT_EVENTS",
+        "스타트업/창업" to "STARTUP",
+        "그냥 모아두고 싶은 글들" to "COLLECT",
+        "사회/문화/환경" to "SOCIETY",
+        "책/인사이트 요약" to "INSIGHTS"
     )
 
     private val reversePurposeMap = purposeMap.entries.associate { it.value to it.key }
@@ -114,6 +114,7 @@ class UserRepositoryImpl @Inject constructor(
         purposeList: List<String>,
         interestList: List<String>
     ): Boolean {
+        // UI에서 넘어온 한글 리스트를 ENUM 리스트로 변환
         val safePurposeList = purposeList.map { purposeMap[it] ?: it }
         val safeInterestList = interestList.map { interestMap[it] ?: it }
 
@@ -199,12 +200,24 @@ class UserRepositoryImpl @Inject constructor(
     // 인증 필요 API (withAuth)
 
     override suspend fun getUserInfo(userId: Long): UserInfo {
+        //val fullToken = authPreference.accessToken
+        //Log.d(TAG, "📍 Full AccessToken: $fullToken")
         val dto = serverApi.withAuth(authPreference) {
             getUserInfo(userId)
         }
 
+        // 📍 서버 원본 데이터 확인
+        Log.d(TAG, "📍 [서버 원본] purposes: ${dto.purposes}")
+        Log.d(TAG, "📍 [서버 원본] interests: ${dto.interests}")
+
+
+        // 서버에서 온 ENUM(CAREER 등)을 UI용 한글("취업 커리어 준비")로 변환
         val displayPurposes = dto.purposes.map { reversePurposeMap[it] ?: it }
         val displayInterests = dto.interests.map { reverseInterestMap[it] ?: it }
+
+        // 📍 변환 후 데이터 확인
+        Log.d(TAG, "📍 [변환 후] purposes: $displayPurposes")
+        Log.d(TAG, "📍 [변환 후] interests: $displayInterests")
 
         return UserInfo(
             nickname = dto.nickName.orEmpty(),
@@ -219,6 +232,8 @@ class UserRepositoryImpl @Inject constructor(
             interests = displayInterests
         ).also { userInfo ->
             // 세션을 업데이트, 지현이가 편할 수 있게
+            Log.d(TAG, "📍 [세션 저장] purposes: ${userInfo.purposes}")
+            Log.d(TAG, "📍 [세션 저장] interests: ${userInfo.interests}")
             sessionStore.saveLogin(
                 userId = userId,
                 nickname = userInfo.nickname,
@@ -233,6 +248,7 @@ class UserRepositoryImpl @Inject constructor(
                 interests = userInfo.interests
 
             )
+            Log.d(TAG, "📍 [세션 저장 완료]")
         }
     }
 
@@ -242,18 +258,9 @@ class UserRepositoryImpl @Inject constructor(
         purposes: List<String>,
         interests: List<String>
     ): Boolean {
-        val mappedPurposes = purposes.map { purpose ->
-            purposeMap[purpose] ?: run {
-                Log.w(TAG, "알 수 없는 purpose 매핑 실패: $purpose")
-                purpose
-            }
-        }
-        val mappedInterests = interests.map { interest ->
-            interestMap[interest] ?: run {
-                Log.w(TAG, "알 수 없는 interest 매핑 실패: $interest")
-                interest
-            }
-        }
+        // 수정 시에도 한글 -> ENUM 변환 후 전송
+        val mappedPurposes = purposes.map { purposeMap[it] ?: it }
+        val mappedInterests = interests.map { interestMap[it] ?: it }
 
         val dto = UpdateProfileDTO(
             nickname = nickname,

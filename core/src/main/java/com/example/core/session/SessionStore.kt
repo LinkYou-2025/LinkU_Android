@@ -159,8 +159,8 @@ class SessionStore @Inject constructor(
                 myLinku = p[Keys.USER_MY_LINKU],
                 myFolder = p[Keys.USER_MY_FOLDER],
                 myAiLinku = p[Keys.USER_MY_AI_LINKU],
-                purposes = p[Keys.USER_PURPOSES]?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
-                interests = p[Keys.USER_INTERESTS]?.split(",")?.filter { it.isNotBlank() } ?: emptyList(),
+                purposes = p[Keys.USER_PURPOSES]?.split(",")?.map { it.trim() }?.filter { it.isNotBlank() } ?: emptyList(),
+                interests = p[Keys.USER_INTERESTS]?.split(",")?.map { it.trim() }?.filter { it.isNotBlank() } ?: emptyList(),
             )
         }
 
