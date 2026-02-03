@@ -1,5 +1,11 @@
 package com.example.home.ui.top.bar
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -23,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -38,9 +45,11 @@ import com.example.design.theme.color.Basic
 import com.example.design.top.bar.AlarmButton
 import com.example.file.ui.theme.FileTopBarLinkUFont
 import com.example.file.ui.theme.MainColor
+import com.example.home.R
 import com.example.home.screen.Situation
 import com.example.home.ui.top.bar.component.EmotionSelector
 import com.example.home.ui.top.bar.component.HomeSearchBar
+import com.example.home.ui.top.bar.component.SelectedSummaryRow
 import com.example.home.ui.top.bar.component.TaskSelector
 
 @Composable
@@ -54,7 +63,11 @@ fun HomeTopBar(
     situations: List<Situation>,
     recommendEnabled: Boolean,
     onRecommendClick: () -> Unit,
+    isCollapsed: Boolean,
+    onExpandClick: () -> Unit,
+    hasRequestedRecommend: Boolean,
 ) {
+
     val buttonBrush =
         if (recommendEnabled) Basic.maincolor
         else Brush.horizontalGradient(
@@ -64,13 +77,6 @@ fun HomeTopBar(
             )
         )
 
-    val selectedBrush = Brush.horizontalGradient(
-        listOf(
-            Color(0xFF2C6FFF).copy(alpha = 0.2f),
-            Color(0xFFC800FF).copy(alpha = 0.2f)
-        )
-    )
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -78,7 +84,7 @@ fun HomeTopBar(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
             .background(LocalColorTheme.current.white)
-            .padding(horizontal = 16.dp, vertical = 20.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 13.5.dp)
     ) {
         Row(
             modifier = Modifier
@@ -128,69 +134,106 @@ fun HomeTopBar(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        Text(
-            text = "${userName}님의 감정과 상황을 알려주세요!",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.black,
-            modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
-        )
-
-        Text(
-            text = "오늘의 감정은 어때요?",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.gray[700],
-            modifier = Modifier.padding(start = 8.dp, bottom = 15.dp)
-        )
-
-        EmotionSelector(
-            selectedEmotionId = selectedEmotionId,
-            onEmotionChange = onEmotionChange
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        Text(
-            text = "지금 뭐하는 중이에요?",
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.gray[700],
-            modifier = Modifier.padding(start = 8.dp, bottom = 14.dp)
-        )
-
-        TaskSelector(
-            selectedTask = selectedTaskId,
-            onTaskChange = onTaskChange,
-            situations = situations
-        )
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // 링크 추천 버튼
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 80.dp, end = 80.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        AnimatedVisibility(
+            visible = !isCollapsed,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .width(220.dp)
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(brush = buttonBrush)
-                    .clickable(enabled = recommendEnabled) { onRecommendClick() },
-                contentAlignment = Alignment.Center
-            ) {
+            Column {
                 Text(
-                    text = "링크 추천해줘!",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.white
+                    text = "${userName}님의 감정과 상황을 알려주세요!",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = LocalFontTheme.current.font,
+                    color = LocalColorTheme.current.black,
+                    modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                )
+
+                Text(
+                    text = "오늘의 감정은 어때요?",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = LocalFontTheme.current.font,
+                    color = LocalColorTheme.current.gray[700],
+                    modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
+                )
+
+                EmotionSelector(
+                    selectedEmotionId = selectedEmotionId,
+                    onEmotionChange = onEmotionChange
+                )
+
+                Spacer(modifier = Modifier.height(13.dp))
+
+                Text(
+                    text = "지금 뭐하는 중이에요?",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = LocalFontTheme.current.font,
+                    color = LocalColorTheme.current.gray[700],
+                    modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
+                )
+
+                TaskSelector(
+                    selectedTask = selectedTaskId,
+                    onTaskChange = onTaskChange,
+                    situations = situations
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                // 링크 추천 버튼
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 80.dp, end = 80.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .width(220.dp)
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(brush = buttonBrush)
+                            .clickable(enabled = recommendEnabled) { onRecommendClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "링크 추천해줘!",
+                            style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
+                            color = LocalColorTheme.current.white
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(6.5.dp))
+                }
+            }
+        }
+
+        AnimatedVisibility(
+            visible = isCollapsed,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if ((selectedEmotionId != null && selectedTaskId != null) && hasRequestedRecommend) {
+                    SelectedSummaryRow(
+                        selectedEmotionId = selectedEmotionId,
+                        selectedTaskId = selectedTaskId,
+                        situations = situations,
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(13.dp))
+
+                Image(
+                    painter = painterResource(R.drawable.ic_down_arrow),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(44.dp)
+                        .align(Alignment.CenterHorizontally)
+                        .clickable { onExpandClick() }
                 )
             }
         }
@@ -223,6 +266,9 @@ fun PreviewHomeTopBar() {
         onTaskChange = { selectedTask = it },
         situations = sampleSituations,
         recommendEnabled = (selectedEmotion != null && selectedTask != null),
-        onRecommendClick = { /* preview no-op */ }
+        onRecommendClick = { /* preview no-op */ },
+        isCollapsed = false,
+        onExpandClick = { },
+        hasRequestedRecommend = false
     )
 }
