@@ -87,6 +87,7 @@ import com.example.login.viewmodel.LoginViewModel
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
 import com.example.curation.CurationDetailViewModel
+import com.example.linku_android.curation.curationGraph
 import com.example.linku_android.deeplink.appLinkRoute
 import com.example.login.LoginApp
 import com.example.login.ui.bottom_sheet.TermsAgreementSheet
@@ -122,6 +123,9 @@ fun MainApp(
 
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
+
+    // 마이페이지에서 사용할 뷰모델
+    val mypageViewModel: MyPageViewModel = hiltViewModel()
 
     var currentLinkuNavigationItem by remember { mutableStateOf<LinkuNavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
@@ -285,6 +289,11 @@ fun MainApp(
                         loginViewModel = loginViewModel,
                         showNavBar = { showNavBar = it },
                         onLoginSuccess = {
+                            // 세선 정보가 저장 후, 홈 화면 데이터 즉시 로드
+                            homeViewModel.refreshAfterLogin()
+                            // 마이페이지 정보도 미리 로그(자연스럽게?)
+                            mypageViewModel.refreshUserInfo()
+
                             showNavBar = true
                             currentLinkuNavigationItem = LinkuNavigationItem.HOME
 
@@ -336,59 +345,11 @@ fun MainApp(
                     }
                 }
 
-
-                navigation(
-                    startDestination = NavigationRoute.Curation.route, // 예: "curation"
-                    route = "curation_graph"                           // 그래프 스코프 이름
-                ) {
-                    // 리스트(하이라이트) 화면
-                    composable(NavigationRoute.Curation.route) { backStackEntry ->
-                        LaunchedEffect(Unit) {
-                            showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.CURATION
-                        }
-
-
-                        // 그래프 스코프 BackStackEntry를 기억
-                        val parentEntry = remember(backStackEntry) {
-                            navigator.getBackStackEntry("curation_graph")
-                        }
-                        //그래프 스코프의 VM (재컴포지션/탭 전환에도 동일 인스턴스 유지)
-                        val curationVm: CurationViewModel = hiltViewModel(parentEntry)
-
-                        CurationScreen(
-                            viewModel = curationVm,
-                            onOpenDetail = { userId: Long, curationId: Long ->
-                                navigator.navigate("curation_detail/$userId/$curationId") {
-                                    launchSingleTop = true
-                                }
-                            }
-                        )
-                    }
-
-                    // 디테일 화면
-                    composable("curation_detail/{userId}/{curationId}") { backStack ->
-                        val userId = backStack.arguments?.getString("userId")!!.toLong()
-                        val curationId = backStack.arguments?.getString("curationId")!!.toLong()
-
-                        // 같은 그래프 스코프의 홈 VM은 parent에서
-                        val parentEntry = remember(backStack) {
-                            navigator.getBackStackEntry("curation_graph")
-                        }
-                        val homeVm: CurationViewModel = hiltViewModel(parentEntry)
-
-                        // 디테일 VM은 "현재 destination(backStack)" 스코프에서 생성해야 함!
-                        val detailVm: CurationDetailViewModel = hiltViewModel(backStack)
-
-                        CurationDetailScreen(
-                            userId = userId,
-                            curationId = curationId,
-                            detailViewModel = detailVm,   // 디테일 전용 VM
-                            homeViewModel   = homeVm,     // 리스트 화면과 같은 CurationViewModel 공유
-                            onBack = { navigator.popBackStack() }
-                        )
-                    }
-                }
+                // 큐레이션 파트 리팩토링 적용
+                curationGraph(
+                    navigator = navigator,
+                    showNavBar = { showNavBar = it }
+                )
 
 
                 with(NavigationRoute.MyPage) {
@@ -396,20 +357,29 @@ fun MainApp(
                         LaunchedEffect(Unit) {
                             showNavBar = true
                             currentLinkuNavigationItem = LinkuNavigationItem.MY_PAGE
+                            // 화면 진입 시 최신 정보 로드
+                            mypageViewModel.refreshUserInfo()
+                            //mypageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
 
-                        val mypageViewModel: MyPageViewModel = hiltViewModel()
+
 
                         MyPageApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
                                 showNavBar = false  // 바텀바 끄기
                                 currentLinkuNavigationItem = null
+
+                                homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 navigator.navigate("login_root") {
-                                    popUpTo(0) { inclusive = true }
+                                    // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
+                                    popUpTo(navigator.graph.findStartDestination().id) {
+                                        inclusive = true
+                                    }
+                                    //popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
 //                                navigator.navigate(NavigationRoute.Login.route) {

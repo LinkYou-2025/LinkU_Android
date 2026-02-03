@@ -16,6 +16,20 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
+/**
+ * 세션 정리
+ * 1. 로그인 -> 2. 로그인 api 호출 -> 3. 토큰 저장(authPreference)
+ * 4. 사용자 정보 전체 조회 (GET /api/users/{userId}) -> 5. 세션 풀세팅
+ * 6. 로그인 성공(Main 진입하면서 ui는 이미 완성된 세션을 구독함.)
+ * 
+ * 
+ * 자동 로그인
+ * 1. 앱 시작 -> 2. authPreference.isLoggedIn == true로 자동 로그인 판단.
+ * 3. fetchAndSaveUserSession(userId)- 서버로부터 사용자 정보 받아서 앱 세션 저장소에 만들어 놓음.
+ * 4. 세션 스토어 풀 세팅함.(api 호출 줄임) -> 5. AutoLoginState.Success한 뒤, 6. 메인 진입.
+ * */
+
+
 // 로그인 상태 리펙토링
 sealed  class LoginState {
     object Idle : LoginState()           // 초기 상태
@@ -39,13 +53,33 @@ sealed class AutoLoginState {
 }
 
 
-
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val sessionStore: SessionStore,
     private val authPreference: AuthPreference,
 ) : ViewModel() {
+
+    // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
+    private suspend fun fetchAndSaveUserSession(userId: Long) {
+        val userInfo = userRepository.getUserInfo(userId) // 사용자 정보 조회 api GET /api/users/{userId} 이용.
+
+        sessionStore.saveLogin( // SessionStore에 세션 생성.
+            userId = userId,
+            nickname = userInfo.nickname,
+            email = userInfo.email,
+            gender = userInfo.gender,
+            jobId = userInfo.jobId,
+            jobName = userInfo.jobName,
+            myLinku = userInfo.myLinku,
+            myFolder = userInfo.myFolder,
+            myAiLinku = userInfo.myAiLinku,
+            purposes = userInfo.purposes,
+            interests = userInfo.interests
+        )
+
+        Log.d(TAG, "유저 세션 풀 세팅 완료 (ID: $userId)")
+    }
 
     private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
     val loginState: StateFlow<LoginState> = _loginState
@@ -80,8 +114,17 @@ open class LoginViewModel @Inject constructor(
 
                 Log.d(TAG, "로그인 성공")
 
-                // 세션 저장
-                saveUserSession(result)
+                val userId = result.userId.toLong()
+
+                // 토큰 + userId 저장
+                authPreference.saveTokens(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    userId = userId
+                )
+
+                // 마이페이지 조회 → 세션 풀 세팅
+                fetchAndSaveUserSession(userId)
 
                 // 성공 상태
                 _loginState.value = LoginState.Success(result)
@@ -107,37 +150,10 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
-    // 세션 저장.
-    // TODO : 하진언니(로그인 담당자) 로그인할 때, 세션정보(사용자 정보 받을 수 있도록 api 수정 요청하기)
-    private suspend fun saveUserSession(result: LoginResult) {
-        val userIdLong = result.userId.toLong()
-
-        // 보안 토큰 및 유저 식별자 저장
-        authPreference.saveTokens(
-            accessToken = result.accessToken,
-            refreshToken = result.refreshToken,
-            userId = userIdLong
-        )
-
-        // 사용자 세션 정보 저장 (마이페이지에서 활용하기)
-        // 이후 API에서 닉네임이나 이메일 등을 함께 준다면 이 부분을 result.nickname 등으로 채울 수 있음.
-        sessionStore.saveLogin(
-            userId = userIdLong,
-            nickname = "", // 초기값, 필요시 result에 추가하여 전달 가능
-            email = "",
-            gender = "",
-            jobId = -1L,
-            jobName = "",
-            myLinku = -1L,
-            myFolder = -1L,
-            myAiLinku = -1L
-        )
-
-        Log.d(TAG, "유저 세션 및 토큰 저장 완료 (ID: $userIdLong)")
-    }
 
     // ServerApi.refreshToken() 호출 -> 성공하면 새로운 엑세스 토큰 발급하고 리프레쉬 토큰 저장함.
     // 실패하는 경우 토큰 정리함.
+    // 자동 로그인 시점에 마이페이지 조회 → 세션 풀 세팅함.
     fun tryAutoLogin(
         onSuccess: () -> Unit,
         onFail: () -> Unit
@@ -154,23 +170,13 @@ open class LoginViewModel @Inject constructor(
                     return@launch
                 }
 
-                val userId = authPreference.userId ?: -1L
-                val userInfo = userRepository.getUserInfo(userId)
+                val userId = authPreference.userId //비정상 상태일 경우에는
+                    ?: throw IllegalStateException("userId missing")
+                fetchAndSaveUserSession(userId) //세션 풀세팅
 
-                sessionStore.saveLogin(
-                    userId = userId,
-                    nickname = userInfo.nickname,
-                    email = userInfo.email,
-                    gender = userInfo.gender,
-                    jobId = userInfo.jobId,
-                    jobName = userInfo.jobName,
-                    myLinku = userInfo.myLinku,
-                    myFolder = userInfo.myFolder,
-                    myAiLinku = userInfo.myAiLinku
-                )
 
                 Log.d(TAG, "자동 로그인 성공")
-                _autoLoginState.value = AutoLoginState.Success
+                _autoLoginState.value = AutoLoginState.Success // 이 앱 안에 ui에 바로 쓸 세션이 있음.
                 onSuccess()
 
             } catch (e: ApiError.TokenExpired) {
@@ -188,62 +194,30 @@ open class LoginViewModel @Inject constructor(
             }
         }
     }
-//    fun tryAutoLogin(onSuccess: () -> Unit, onFail: () -> Unit) {
-//        if (_autoLoginState.value == AutoLoginState.Checking) return
-//
-//        viewModelScope.launch {
-//            try {
-//                _autoLoginState.value = AutoLoginState.Checking
-//
-//                if (!authPreference.isLoggedIn) {
-//                    _autoLoginState.value = AutoLoginState.Failed
-//                    onFail()
-//                    return@launch
-//                }
-//
-//                val userId = authPreference.userId ?: -1L
-//                val userInfo = userRepository.getUserInfo(userId)
-//
-//                sessionStore.saveLogin(
-//                    userId = userId,
-//                    nickname = userInfo.nickname,
-//                    email = userInfo.email,
-//                    gender = userInfo.gender,
-//                    jobId = userInfo.jobId,
-//                    jobName = userInfo.jobName,
-//                    myLinku = userInfo.myLinku,
-//                    myFolder = userInfo.myFolder,
-//                    myAiLinku = userInfo.myAiLinku
-//                )
-//
-//                Log.d(TAG, "자동 로그인 및 세션 갱신 성공")
-//                _autoLoginState.value = AutoLoginState.Success
-//                onSuccess()
-//
-//            } catch (e: ApiError.TokenExpired) {
-//                // 토큰 만료: 확실한 세션 종료 상황이므로 로그아웃 후 로그인 창으로
-//                Log.e(TAG, "자동 로그인 실패: 세션 만료")
-//                userRepository.logout()
-//                _autoLoginState.value = AutoLoginState.Failed
-//                onFail()
-//            } catch (e: Exception) {
-//                // 기타 예외 처리
-//                Log.e(TAG, "자동 로그인 실패: 기타 오류(${e.message})")
-//                _autoLoginState.value = AutoLoginState.Failed
-//
-//                if (e is ApiError.NetworkError || e is IOException) {
-//                    // 네트워크 문제: 토큰은 유효할 수 있으므로 logout 시키지 않고 실패만 처리
-//                    // Splash 화면 이후 네트워크 연결 확인 메시지를 띄우는 용도로 사용하나요????
-//                    // TODO : 네트워크 문제로 아주 단시간 끊긴 경우 토큰은 유효하기에 이 상황에서 어떻게 해야하는지 다인언니랑 논의해야함.
-//                    onFail()
-//                } else {
-//                    // 그 외 알 수 없는 인증 오류: 안전을 위해 로그아웃 처리
-//                    userRepository.logout()
-//                    onFail()
-//                }
-//            }
-//        }
-//    }
+
+    // 마이페이지 로그아웃
+    fun logout(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            try {
+                //  서버에 로그아웃 알림? 필요할까요?
+                // userRepository.logout()
+
+                // 로컬 저장소 비우기 (토큰, 유저 아이디 삭제)
+                authPreference.clear()
+
+                // 인메모리 세션 스토어 비우기 -> 아예 비울 수 있도록.
+                sessionStore.clear() // SessionStore에 clear() 함수가 있다고 가정
+
+                Log.d("LoginVM", "로그아웃 및 세션 정리 완료")
+                onComplete()
+            } catch (e: Exception) {
+                Log.e("LoginVM", "로그아웃 중 오류 발생", e)
+                // 에러가 나더라도 로컬 데이터는 지워야 함
+                authPreference.clear()
+                onComplete()
+            }
+        }
+    }
 
     // 태그 상수 추가함.
     companion object {
