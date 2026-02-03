@@ -2,9 +2,8 @@ package com.example.core.model
 
 data class LoginResult(
     val userId: Int,
-    val token: String,
+    val accessToken: String,   // token에서 수정
+    val refreshToken: String,
     val status: String,
     val inactiveDate: String? = null
 )
-/*
-도메인 모델링. 뷰 모델에서 사용하기 쉬움!*/

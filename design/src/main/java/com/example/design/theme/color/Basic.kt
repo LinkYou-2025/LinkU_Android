@@ -11,6 +11,12 @@ data object Basic: ThemeColorScheme(
             Color(0xFFC800FF) //수정함.
         )
     ),
+    backgroundmaincolor = Brush.horizontalGradient(
+        listOf(
+            Color(0xFF2C6FFF).copy(0.1f),
+            Color(0xFFCB59EB).copy(0.1f)
+        )
+    ),
     blue = ColorMap(
         50 to Color(0xFFE5EDFF),
         100 to Color(0xFF95B6FF),

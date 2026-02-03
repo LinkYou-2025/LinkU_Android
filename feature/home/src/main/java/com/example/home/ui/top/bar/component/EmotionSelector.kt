@@ -51,15 +51,12 @@ fun EmotionSelector(
         R.drawable.ic_calm_gray,
         R.drawable.ic_excite_gray,
         R.drawable.ic_sad_gray,
-//        R.drawable.ic_irritation_gray,
-        R.drawable.ic_anger_gray,  // 임시방편으로 사용
+        R.drawable.ic_irritation_gray,
         R.drawable.ic_anger_gray
     )
 
     val emotionIds = listOf(1L, 2L, 3L, 4L, 5L, 6L)
-
     val hasSelection = selectedEmotionId != null
-    val dimmedBg = Color(0xFFF5F6F9)
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -71,11 +68,6 @@ fun EmotionSelector(
             val isSelected = selectedEmotionId == id
             val isDimmed = hasSelection && !isSelected
 
-            val bgColor = when {
-                isSelected -> LocalColorTheme.current.blue[50]
-                isDimmed -> dimmedBg
-                else -> LocalColorTheme.current.gray[100]
-            }
 
             val iconResId = if (isDimmed) grayIcons[idx] else colorIcons[idx]
 
@@ -83,7 +75,13 @@ fun EmotionSelector(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(bgColor)
+                    .then(
+                        if (isSelected) {
+                            Modifier.background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
+                        } else {
+                            Modifier.background(color = LocalColorTheme.current.gray[100], shape = RoundedCornerShape(18.dp))
+                        }
+                    )
                     .then(
                         if (isSelected) Modifier.border(
                             width = 1.dp,

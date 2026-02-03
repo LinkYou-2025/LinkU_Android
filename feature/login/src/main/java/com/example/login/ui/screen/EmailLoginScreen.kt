@@ -38,12 +38,16 @@ import com.example.design.util.DesignSystemBars
 import com.example.login.viewmodel.LoginViewModel
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.login.viewmodel.LoginState
+import com.example.login.viewmodel.LoginErrorType
 
 @Composable
 fun EmailLoginScreen(
     navigator: NavHostController,
     loginViewModel: LoginViewModel? = null,
-    onSignUpClick: () -> Unit
+    onSignUpClick: () -> Unit,
+    onLoginSuccess: () -> Unit = {}
 ) {
 
     // 1. 키보드 제어를 위한 FocusManager 가져오기
@@ -52,6 +56,22 @@ fun EmailLoginScreen(
     // 2. 디자인 모듈의 폰트 패밀리 가져오기
     val colorTheme = LocalColorTheme.current
 
+    // LoginState 관찰 추가
+    val loginState by loginViewModel?.loginState?.collectAsStateWithLifecycle()
+        ?: remember { mutableStateOf(LoginState.Idle) }
+
+    LaunchedEffect(loginState) {
+        when (loginState) {
+            is LoginState.Success -> {
+                focusManager.clearFocus()
+                onLoginSuccess()
+            }
+            is LoginState.Error -> {
+                focusManager.clearFocus()
+            }
+            else -> {}
+        }
+    }
 
     // 로그인 입력 화면부터는 시스템 바 다시 표시
     DesignSystemBars(
@@ -79,9 +99,6 @@ fun EmailLoginScreen(
     val imeBottom = if (isInPreview) 0 else WindowInsets.ime.getBottom(density)
     val isKeyboardOpen = imeBottom > 0
     val buttonOffsetY = if (isKeyboardOpen) 0.dp else (-4.scaler)
-
-    // 🔑 BottomGradientButton 내부 padding과 동일한 값 계산
-    val navBottom = WindowInsets.navigationBars.getBottom(density)
 
 
 
@@ -137,7 +154,12 @@ fun EmailLoginScreen(
             ) {
                 LoginTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        // 입력 시 에러 초기화.
+                        if (loginState is LoginState.Error) {
+                            loginViewModel?.clearError()
+                        } },
                     hint = "이메일",
                     textStyle = TextStyle(
                         fontSize = 14.sp,
@@ -152,8 +174,35 @@ fun EmailLoginScreen(
 
                 PasswordLoginTextField(
                     value = password,
-                    onValueChange = { password = it }
+                    onValueChange = {
+                        password = it
+                        // 입력 시 에러 초기화.
+                        if (loginState is LoginState.Error) {
+                            loginViewModel?.clearError()
+                        }
+                    }
                 )
+
+                // 에러 메시지 추가
+                if (loginState is LoginState.Error) {
+                    Spacer(Modifier.height(12.scaler))
+
+                    Box(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = (loginState as LoginState.Error).errorType.message,
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                lineHeight = 15.sp,
+                                fontFamily = Paperlogy.font,
+                                fontWeight = FontWeight(400),
+                                color = Color(0xFFFF5E5E)
+                            ),
+                            modifier = Modifier.padding(start = 22.scaler)  // 오른쪽으로 22만큼
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.height((45.scaler)))
@@ -166,10 +215,11 @@ fun EmailLoginScreen(
             ) {
                 GradientButtonCore(
                     text = "로그인하기",
-                    enabled = isFormValid,
+                    enabled = isFormValid && loginState !is LoginState.Loading, //로딩 중 비활성화.
                     activeGradient = colorTheme.maincolor,
                     inactiveGradient = colorTheme.inactiveColor,
                     onClick = {
+                        //focusManager.clearFocus() //키보드 내리기 필요하다면 사용하기.
                         loginViewModel?.login(
                             email.trim(),
                             password.trim()
@@ -190,7 +240,8 @@ fun EmailLoginScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height((30.scaler)) // 클릭 영역 확보를 위한 높이
+                    .height((30.scaler)), // 클릭 영역 확보를 위한 높이
+                contentAlignment = Alignment.CenterStart //세로 중앙 정렬
             ) {
                 // 1. 비밀번호 재설정
                 Text(
@@ -201,17 +252,22 @@ fun EmailLoginScreen(
                     modifier = Modifier
                         .offset(x = resetStartPos) // 항상 101/412 지점
                         .noRippleClickable {
+                            //if (loginState !is LoginState.Loading) { -> 혹시 나중에 로딩중이 길어지면 사용해주세요.
                             navigator.navigate("resetPassword")
+                            //}
                         }
                 )
 
-                // 2. 구분선 (|)
+                // 2. 구분선 (|) // TODO : 비밀번호 재설정, 회원가입 대비 내려가서 부득이하게 약간 위로 올림. 다현이랑 조절해보기.
                 Text(
                     text = "|",
                     fontSize = 14.sp,
                     fontFamily = Paperlogy.font,
                     color = Color(0xFF87898F),
-                    style = TextStyle(baselineShift = BaselineShift(0.15f)),
+                    style = TextStyle(
+                        baselineShift = BaselineShift(0.3f)  // 약간 위로 올림
+                    ),
+                    //style = TextStyle(baselineShift = BaselineShift(0.15f)),
                     modifier = Modifier
                         .offset(x = dividerStartPos) // 항상 220/412 지점
                 )
@@ -246,7 +302,9 @@ fun EmailLoginPreview() {
     EmailLoginScreen(
         navigator = rememberNavController(),
         loginViewModel = null,
-        onSignUpClick = {}
+        onSignUpClick = {},
+        onLoginSuccess = {}
+
     )
 }
 
