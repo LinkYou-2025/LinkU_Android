@@ -23,7 +23,9 @@ import kotlinx.coroutines.flow.first
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import com.example.core.model.SystemBarMode
 import com.example.core.session.SessionStore
+import com.example.core.system.SystemBarController
 import com.example.data.preference.AuthPreference
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -45,12 +47,17 @@ interface SplashDeps {
 fun Splash(onResult: (Boolean) -> Unit) {
 
     //바텀바 숨김
-    DesignSystemBars(
-        statusBarColor = Color.Transparent,
-        navigationBarColor = Color.Transparent,
-        darkIcons = false,
-        immersive = true
-    )
+    val systemBarController =
+        LocalContext.current as? SystemBarController
+    val isPreview = LocalInspectionMode.current
+    // 시스템 바 숨김 : 디자이너와 협의한 내역
+    if (!isPreview && systemBarController != null) {
+        DisposableEffect(Unit) {
+            systemBarController.setSystemBarMode(SystemBarMode.HIDDEN)
+            onDispose { }
+        }
+    }
+
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
 
