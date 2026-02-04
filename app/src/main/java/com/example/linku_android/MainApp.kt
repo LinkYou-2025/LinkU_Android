@@ -68,10 +68,11 @@ import com.example.login.viewmodel.LoginViewModel
 
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
+import com.example.core.model.auth.LoginState
 import com.example.linku_android.curation.curationGraph
 import com.example.linku_android.deeplink.appLinkRoute
 import com.example.login.LoginApp
-import com.example.login.viewmodel.LoginState
+
 
 
 @Composable

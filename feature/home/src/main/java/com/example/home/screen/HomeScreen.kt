@@ -147,10 +147,12 @@ fun HomeScreen(
     val isPreview = LocalInspectionMode.current
 
     // Home 진입 시 시스템 바 표시
-    if (!isPreview && systemBarController != null) {
-        DisposableEffect(Unit) {
+    DisposableEffect(Unit) { // systemBarController 대신 Unit 권장
+        if (!isPreview && systemBarController != null) {
             systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
-            onDispose { }
+        }
+        onDispose {
+            // 이 화면을 나갈 때의 동작이 필요 없다면 비움..
         }
     }
 
