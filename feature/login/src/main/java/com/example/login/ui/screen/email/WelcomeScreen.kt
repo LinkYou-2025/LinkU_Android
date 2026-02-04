@@ -39,9 +39,13 @@ import com.example.login.viewmodel.SignUpViewModel
 import android.app.Activity
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import com.example.core.model.SystemBarMode
 import com.example.core.model.auth.SignUpState
+import com.example.core.system.SystemBarController
 
 @Composable
 fun WelcomeScreen(
@@ -53,26 +57,19 @@ fun WelcomeScreen(
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
 
-    //여기만 안드로이드 자체 바텀바 컬러 변경
-    val view = LocalView.current
+    //  시스템 바 숨기기 설정
+    val systemBarController = LocalContext.current as? SystemBarController
+    val isPreview = LocalInspectionMode.current
+
     DisposableEffect(Unit) {
-        val activity = view.context as? Activity
-            ?: return@DisposableEffect onDispose { }
-        val window = activity.window
-        val insetsController = WindowCompat.getInsetsController(window, view)
-
-        //  기존 값 백업
-        val originalNavColor = window.navigationBarColor
-        val originalAppearance = insetsController.isAppearanceLightNavigationBars
-
-        // WelcomeScreen 진입 시 적용
-        window.navigationBarColor = Color(0xFFC800FF).toArgb()
-        insetsController.isAppearanceLightNavigationBars = false // 아이콘 흰색
-
+        if (!isPreview && systemBarController != null) {
+            systemBarController.setSystemBarMode(SystemBarMode.HIDDEN)
+        }
         onDispose {
-            //  WelcomeScreen 벗어날 때 원복
-            window.navigationBarColor = originalNavColor
-            insetsController.isAppearanceLightNavigationBars = originalAppearance
+            // WelcomeScreen을 떠날 때 다시 바텀바를 보여줌
+            if (!isPreview && systemBarController != null) {
+                systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
+            }
         }
     }
 
@@ -87,6 +84,14 @@ fun WelcomeScreen(
     //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
     var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
+    //화면 진입 시 자동 회원가입 요청
+    LaunchedEffect(Unit) {
+        if (!isSignUpRequested) {
+            isSignUpRequested = true
+            Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
+            signUpViewModel?.signUp()
+        }
+    }
 
     // 서버 응답 감지
     LaunchedEffect(signUpState) {
@@ -136,46 +141,110 @@ fun WelcomeScreen(
             )
     ) {
         // 중앙 콘텐츠 (Column)
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
+            // 1. 중앙 콘텐츠 레이어 (로고 및 텍스트)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter) // 상단 기준 정렬 후 offset으로 세밀하게 이동
+                    .offset(y = (configuration.screenHeightDp.dp * (394f / 917f)) - (65.scaler / 2)),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.img_logo_white),
+                    contentDescription = "Logo",
+                    modifier = Modifier
+                        // X축 오프셋은 기존 계산식 유지
+                        .offset(x = (160.scaler) - (configuration.screenWidthDp.dp / 2) + (46.scaler))
+                        .width(92.scaler)
+                        .height(65.scaler),
+                    contentScale = ContentScale.Fit
+                )
 
-            // 로고 위치 (394/917)
-            Spacer(modifier = Modifier.height((394.scaler)))
-            Image(
-                painter = painterResource(id = R.drawable.img_logo_white),
-                contentDescription = "Logo",
-                Modifier
-                    .offset(x = (160.scaler) - (configuration.screenWidthDp.dp / 2) + (46.scaler)) // 시작 너비 보정
-                    .width((92.scaler))
-                    .height((65.scaler)),
-                contentScale = ContentScale.Fit
-            )
+                Spacer(modifier = Modifier.height(20.scaler))
 
-            Spacer(modifier = Modifier.height((20.scaler)))
+                Text(
+                    text = "링큐에 오신 걸 환영해요!",
+                    color = colorTheme.white,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Paperlogy.font,
+                    textAlign = TextAlign.Center // 피그마와 동일하게 중앙 정렬
+                )
 
-            Text(
-                text = "링큐에 오신 걸 환영해요!",
-                color = colorTheme.white,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy.font,
-                textAlign = TextAlign.Start
-            )
+                Spacer(modifier = Modifier.height(16.scaler))
 
-            Spacer(modifier = Modifier.height((16.scaler)))
+                Text(
+                    text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
+                    color = colorTheme.white,
+                    fontSize = 16.sp,
+                    fontFamily = Paperlogy.font,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            }
 
-            Text(
-                text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
-                color = colorTheme.white,
-                fontSize = 16.sp,
-                fontFamily = Paperlogy.font,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-
-            )
+            // 2. 하단 버튼 레이어
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.BottomCenter)
+                    .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
+                    .height(50.scaler)
+                    .background(Color.White, shape = RoundedCornerShape(18.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "로그인 하러가기",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(brush = colorTheme.maincolor),
+                    fontFamily = Paperlogy.font
+                )
+            }
         }
+//        Column(
+//            modifier = Modifier.fillMaxSize(),
+//            horizontalAlignment = Alignment.CenterHorizontally
+//        ) {
+//
+//            // 로고 위치 (394/917)
+//            Spacer(modifier = Modifier.height((394.scaler)))
+//            Image(
+//                painter = painterResource(id = R.drawable.img_logo_white),
+//                contentDescription = "Logo",
+//                Modifier
+//                    .offset(x = (160.scaler) - (configuration.screenWidthDp.dp / 2) + (46.scaler)) // 시작 너비 보정
+//                    .width((92.scaler))
+//                    .height((65.scaler)),
+//                contentScale = ContentScale.Fit
+//            )
+//
+//            Spacer(modifier = Modifier.height((20.scaler)))
+//
+//            Text(
+//                text = "링큐에 오신 걸 환영해요!",
+//                color = colorTheme.white,
+//                fontSize = 22.sp,
+//                fontWeight = FontWeight.Bold,
+//                fontFamily = Paperlogy.font,
+//                textAlign = TextAlign.Start
+//            )
+//
+//            Spacer(modifier = Modifier.height((16.scaler)))
+//
+//            Text(
+//                text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
+//                color = colorTheme.white,
+//                fontSize = 16.sp,
+//                fontFamily = Paperlogy.font,
+//                fontWeight = FontWeight.Bold,
+//                textAlign = TextAlign.Center
+//
+//            )
+//        }
         // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
         Box(
             modifier = Modifier
@@ -187,13 +256,7 @@ fun WelcomeScreen(
                     Color.White,
                     shape = RoundedCornerShape(18.dp)
                 )
-                .clickable(enabled = !isSignUpRequested) {
-                    if (!isSignUpRequested) {
-                        isSignUpRequested = true
-                        Log.d("WelcomeScreen", "회원가입 API 호출 시도")
-                        signUpViewModel?.signUp()
-                    }
-                },
+                .clickable(enabled = false) { /* 더 이상 사용 안 함 */ },
             contentAlignment = Alignment.Center
         ) {
             Text(

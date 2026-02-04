@@ -77,11 +77,13 @@ fun EmailLoginScreen(
         LocalContext.current as? SystemBarController
     val isPreview = LocalInspectionMode.current
 
-    // 로그인 입력 화면부터는 시스템 바 다시 표시
-    if (!isPreview && systemBarController != null) {
-        DisposableEffect(systemBarController) {
+    // 로그인 입력 화면 진입 시 시스템 바 복구
+    DisposableEffect(Unit) { // systemBarController 대신 Unit 권장
+        if (!isPreview && systemBarController != null) {
             systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
-            onDispose { }
+        }
+        onDispose {
+            // 이 화면을 나갈 때의 동작이 필요 없음. 비움.
         }
     }
 
