@@ -11,7 +11,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,28 +46,11 @@ import com.example.mypage.MyPageViewModel
 //import com.example.mypage.MyPageScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import androidx.navigation.compose.navigation
 
 
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.home.HomeApp
-import com.example.curation.ui.CurationDetailScreen
-import com.example.curation.ui.CurationScreen
 import com.example.login.ui.animation.AnimatedLoginScreen
-import com.example.login.ui.screen.EmailVerificationScreen
-import com.example.login.ui.terms.ServiceTermsScreen
-import com.example.login.ui.terms.PrivacyTermsScreenFixed
-import com.example.login.ui.terms.MarketingTermsScreenComposable
-import com.example.login.ui.screen.SignUpPasswordScreen
-import com.example.login.ui.screen.EmailLoginScreen
-import com.example.login.ui.screen.InterestContentScreen
-import com.example.login.ui.screen.InterestPurposeScreen
-import com.example.login.ui.screen.SignUpGenderScreen
-import com.example.login.ui.screen.SignUpNicknameScreen
-import com.example.login.ui.screen.SignUpJobScreen
-import com.example.login.ui.screen.WelcomeScreen
-import com.example.login.ui.screen.ResetPasswordScreen
-import com.example.login.viewmodel.SignUpViewModel
 import java.io.File
 import java.io.FileOutputStream
 
@@ -86,11 +68,9 @@ import com.example.login.viewmodel.LoginViewModel
 
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
-import com.example.curation.CurationDetailViewModel
 import com.example.linku_android.curation.curationGraph
 import com.example.linku_android.deeplink.appLinkRoute
 import com.example.login.LoginApp
-import com.example.login.ui.bottom_sheet.TermsAgreementSheet
 import com.example.login.viewmodel.LoginState
 
 

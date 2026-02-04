@@ -1,4 +1,4 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -10,17 +10,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.font.Paperlogy
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.ui.unit.Dp
 import com.example.design.theme.LocalColorTheme
-import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 import com.example.login.ui.item.BottomGradientButton
-import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.StepIndicator
 import com.example.login.ui.item.PasswordRuleItem
 import com.example.login.ui.item.PasswordLoginTextField

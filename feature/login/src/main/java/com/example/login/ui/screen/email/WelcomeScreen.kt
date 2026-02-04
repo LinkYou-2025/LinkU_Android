@@ -1,4 +1,4 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 import android.util.Log
 import androidx.activity.compose.BackHandler
@@ -34,16 +34,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import com.example.design.theme.LocalColorTheme
-import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 import com.example.login.viewmodel.SignUpViewModel
 import android.app.Activity
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import com.example.login.viewmodel.SignUpState
+import com.example.core.model.auth.SignUpState
 
 @Composable
 fun WelcomeScreen(

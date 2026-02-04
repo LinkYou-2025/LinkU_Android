@@ -1,4 +1,4 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 import CircleItem
 import androidx.compose.foundation.background
@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,11 +25,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.font.Paperlogy
 import androidx.compose.ui.unit.Dp
+import com.example.core.model.auth.Interest
 import com.example.design.theme.LocalColorTheme
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.StepIndicator
 import com.example.login.viewmodel.SignUpViewModel
-import com.example.login.viewmodel.Interest
+
 /**
  * 관심사 선택 화면의 버블 데이터 클래스
  */

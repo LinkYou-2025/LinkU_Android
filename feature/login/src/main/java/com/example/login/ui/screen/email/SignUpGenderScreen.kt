@@ -1,4 +1,4 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 
 import androidx.compose.foundation.background
@@ -7,24 +7,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.example.core.model.auth.Gender
 import com.example.design.theme.font.Paperlogy
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.StepIndicator
 import com.example.login.ui.item.OptionButton
-import com.example.design.util.rememberFigmaDimens
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.scaler
-import com.example.login.viewmodel.Gender
+
 
 
 @Composable
