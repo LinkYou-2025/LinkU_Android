@@ -30,6 +30,7 @@ import com.example.login.ui.item.PasswordLoginTextField
 import com.example.design.modifier.noRippleClickable
 import android.util.Patterns
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
@@ -39,6 +40,8 @@ import com.example.login.viewmodel.LoginViewModel
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.model.SystemBarMode
+import com.example.core.system.SystemBarController
 import com.example.login.viewmodel.LoginState
 import com.example.login.viewmodel.LoginErrorType
 
@@ -73,13 +76,17 @@ fun EmailLoginScreen(
         }
     }
 
+    val systemBarController =
+        LocalContext.current as? SystemBarController
+    val isPreview = LocalInspectionMode.current
+
     // 로그인 입력 화면부터는 시스템 바 다시 표시
-    DesignSystemBars(
-        statusBarColor = colorTheme.white,
-        navigationBarColor = colorTheme.white,
-        darkIcons = true,
-        immersive = false
-    )
+    if (!isPreview && systemBarController != null) {
+        DisposableEffect(systemBarController) {
+            systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
+            onDispose { }
+        }
+    }
 
 
     var email by remember { mutableStateOf("") }

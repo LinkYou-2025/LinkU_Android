@@ -5,28 +5,64 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.core.model.SystemBarMode
+import com.example.core.system.SystemBarController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : ComponentActivity(), SystemBarController {
+    private var currentSystemBarMode: SystemBarMode? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         intent?.data?.let { Log.d("DEEPLINK", "onCreate uri = $it") }
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        //WindowCompat.setDecorFitsSystemWindows(window, false)
         //enableEdgeToEdge()
         setContent {
             MainApp(
                 viewModel = hiltViewModel()
             )
         }
+    }
 
+    /**
+     *  SystemBarController 구현
+     * 앱 전역 시스템 바 단일 제어 지점
+     */
+    override fun setSystemBarMode(mode: SystemBarMode) {
+        if (currentSystemBarMode == mode) return
+        currentSystemBarMode = mode
 
+        WindowCompat.setDecorFitsSystemWindows(
+            window,
+            mode == SystemBarMode.VISIBLE
+        )
 
+        val controller = WindowInsetsControllerCompat(
+            window,
+            window.decorView
+        )
+
+        if (mode == SystemBarMode.VISIBLE) {
+            controller.show(
+                WindowInsetsCompat.Type.statusBars() or
+                        WindowInsetsCompat.Type.navigationBars()
+            )
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+        } else {
+            controller.hide(
+                WindowInsetsCompat.Type.statusBars() or
+                        WindowInsetsCompat.Type.navigationBars()
+            )
+            controller.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
 
     }
-}
+    }

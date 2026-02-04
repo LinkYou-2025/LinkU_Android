@@ -4,6 +4,8 @@ import android.util.Log
 import com.example.core.model.LoginResult
 import com.example.core.model.TokenReissueResult
 import com.example.core.model.UserInfo
+import com.example.core.model.auth.Interest
+import com.example.core.model.auth.Purpose
 import com.example.core.repository.UserRepository
 import com.example.core.session.SessionStore
 import com.example.data.api.ApiError
@@ -13,17 +15,11 @@ import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.server.DeleteReasonDTO
-import com.example.data.api.dto.server.UserInfoDTO
 import com.example.data.api.withAuth
-import com.example.data.api.withAuthHeaderRaw
-import com.example.data.api.dto.server.TempPasswordRequestDTO
 import com.example.data.api.dto.server.UpdateProfileDTO
 import com.example.data.api.withAuthRaw
 import com.example.data.api.withErrorHandling
 import com.example.data.api.withErrorHandlingRaw
-import retrofit2.HttpException
-import java.time.OffsetDateTime
-import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -32,39 +28,6 @@ class UserRepositoryImpl @Inject constructor(
     private val authPreference: AuthPreference,
     private val sessionStore: SessionStore
 ) : UserRepository {
-
-
-    // ENUM 매핑s
-    private val purposeMap = mapOf(
-        "자기계발/정보 수집" to "SELF_DEVELOPMENT",
-        "사이드 프로젝트/창업 준비" to "SIDE_PROJECT",
-        "기타" to "OTHERS",
-        "그냥 나중에 읽고싶은 글 저장" to "LATER_READING",
-        "취업·커리어 준비" to "CAREER",
-        "블로그/콘텐츠 작성 참고용" to "CREATION_REFERENCE",
-        "인사이트 모으기" to "INSIGHTS",
-        "업무자료 아카이빙" to "WORK",
-        "학업/리포트 정리" to "STUDY"
-    )
-
-    private val interestMap = mapOf(
-        "비즈니스/마케팅" to "BUSINESS",
-        "학업/리포트 참고" to "STUDY",
-        "커리어/채용" to "CAREER",
-        "심리/자기계발" to "PSYCHOLOGY",
-        "디자인/크리에이티브" to "DESIGN",
-        "IT/개발" to "IT",
-        "글쓰기/콘텐츠 작성" to "WRITING",
-        "시사/트렌드" to "CURRENT_EVENTS",
-        "스타트업/창업" to "STARTUP",
-        "그냥 모아두고 싶은 글들" to "COLLECT",
-        "사회/문화/환경" to "SOCIETY",
-        "책/인사이트 요약" to "INSIGHTS"
-    )
-
-    private val reversePurposeMap = purposeMap.entries.associate { it.value to it.key }
-    private val reverseInterestMap = interestMap.entries.associate { it.value to it.key }
-
 
     // checkNickname - ApiResponseString 반환하므로 withErrorHandlingRaw 사용
     override suspend fun checkNickname(nickname: String): Boolean {
@@ -114,9 +77,17 @@ class UserRepositoryImpl @Inject constructor(
         purposeList: List<String>,
         interestList: List<String>
     ): Boolean {
-        // UI에서 넘어온 한글 리스트를 ENUM 리스트로 변환
-        val safePurposeList = purposeList.map { purposeMap[it] ?: it }
-        val safeInterestList = interestList.map { interestMap[it] ?: it }
+        // enum 사용: 한글 displayName → serverKey 변환
+        val safePurposeList = purposeList.mapNotNull { displayName ->
+            Purpose.fromDisplayName(displayName)?.serverKey.also {
+                if (it == null) Log.w(TAG, "알 수 없는 Purpose: $displayName")
+            }
+        }
+        val safeInterestList = interestList.mapNotNull { displayName ->
+            Interest.fromDisplayName(displayName)?.serverKey.also {
+                if (it == null) Log.w(TAG, "알 수 없는 Interest: $displayName")
+            }
+        }
 
         require(safePurposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
         require(safeInterestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
@@ -197,6 +168,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
 
+
     // 인증 필요 API (withAuth)
 
     override suspend fun getUserInfo(userId: Long): UserInfo {
@@ -211,9 +183,16 @@ class UserRepositoryImpl @Inject constructor(
         Log.d(TAG, "📍 [서버 원본] interests: ${dto.interests}")
 
 
-        // 서버에서 온 ENUM(CAREER 등)을 UI용 한글("취업 커리어 준비")로 변환
-        val displayPurposes = dto.purposes.map { reversePurposeMap[it] ?: it }
-        val displayInterests = dto.interests.map { reverseInterestMap[it] ?: it }
+        val displayPurposes = dto.purposes.mapNotNull { serverKey ->
+            Purpose.fromServerKey(serverKey)?.displayName ?: serverKey.also {
+                Log.w(TAG, "알 수 없는 Purpose serverKey: $serverKey")
+            }
+        }
+        val displayInterests = dto.interests.mapNotNull { serverKey ->
+            Interest.fromServerKey(serverKey)?.displayName ?: serverKey.also {
+                Log.w(TAG, "알 수 없는 Interest serverKey: $serverKey")
+            }
+        }
 
         // 📍 변환 후 데이터 확인
         Log.d(TAG, "📍 [변환 후] purposes: $displayPurposes")
@@ -259,8 +238,12 @@ class UserRepositoryImpl @Inject constructor(
         interests: List<String>
     ): Boolean {
         // 수정 시에도 한글 -> ENUM 변환 후 전송
-        val mappedPurposes = purposes.map { purposeMap[it] ?: it }
-        val mappedInterests = interests.map { interestMap[it] ?: it }
+        val mappedPurposes = purposes.mapNotNull { displayName ->
+            Purpose.fromDisplayName(displayName)?.serverKey
+        }
+        val mappedInterests = interests.mapNotNull { displayName ->
+            Interest.fromDisplayName(displayName)?.serverKey
+        }
 
         val dto = UpdateProfileDTO(
             nickname = nickname,
@@ -304,7 +287,7 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    // logout? - TODO : 지현아... 세션으로 마이페이지 해야할 듯...
+    // logout
     override suspend fun logout() {
         clearAuthData()
         Log.d(TAG, "로그아웃 완료")

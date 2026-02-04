@@ -6,6 +6,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.model.auth.Gender
+import com.example.core.model.auth.Interest
+import com.example.core.model.auth.NicknameCheckState
+import com.example.core.model.auth.Purpose
+import com.example.core.model.auth.SignUpForm
+import com.example.core.model.auth.SignUpState
 import com.example.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -13,115 +19,6 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
-// 모든 회원가입 입력 데이터를 담는 데이터 클래스
-data class SignUpForm(
-    val email: String = "",
-    val password: String = "",
-    val nickname: String = "",
-    val gender: Gender = Gender.NONE,
-    val jobId: Int = 0,
-    val purposeList: List<Purpose> = emptyList(),
-    val interestList: List<Interest> = emptyList(),
-    val agreeTerms: Boolean = false,    // 필수
-    val agreePrivacy: Boolean = false,  // 필수
-    val agreeMarketing: Boolean = false // 선택
-)
-
-// signUpSuccess는 null 허용 안 할 순 없어? -> 이렇게 아예 state로 분리하는 것은 어떤지.
-sealed class SignUpState {
-    object Idle : SignUpState()           // 초기 상태
-    object Loading : SignUpState()        // 진행 중
-    object Success : SignUpState()        // 성공
-    data class Error(val message: String) : SignUpState()  // 실패
-}
-
-// 닉네임 중복 상태 체크
-sealed class NicknameCheckState {
-    object Idle : NicknameCheckState()
-    object Checking : NicknameCheckState()  // Loading 역할
-    object Available : NicknameCheckState()
-    object Duplicated : NicknameCheckState()
-    data class Error(val message: String) : NicknameCheckState()
-}
-
-// 성별
-enum class Gender(val value: Int){
-    NONE(0), // 미선택 판단
-    MALE(1), // 남성인 경우 api에 gender 값으로 1이 전달됩니다.
-    FEMALE(2) // 여성인 경우 api에 gender 값으로 2이 전달됩니다.
-}
-
-// 직업
-enum class Job(val id: Int, val displayName: String) {
-    NONE(0, "미선택"),
-    HIGH_SCHOOL(1, "고등학생"),
-    COLLEGE(2, "대학생"),
-    WORKER(3, "직장인"),
-    SELF_EMPLOYED(4, "자영업자"),
-    FREELANCER(5, "프리랜서"),
-    JOB_SEEKER(6, "취준생");
-
-    companion object {
-        // NONE을 제외한 선택 가능한 직업 리스트
-        fun getAllJobs(): List<Job> = values().filter { it != NONE }
-
-        // ID로 Job 찾기
-        fun fromId(id: Int): Job = values().find { it.id == id } ?: NONE
-    }
-}
-
-// 목적
-enum class Purpose(val code: String, val displayName: String) {
-    SELF_DEVELOPMENT("SELF_DEVELOPMENT", "자기개발\n/정보수집"),
-    SIDE_PROJECT("SIDE_PROJECT", "사이드 프로젝트\n/창업준비"),
-    OTHERS("OTHERS", "기타"),
-    LATER_READING("LATER_READING", "그냥 나중에\n읽고 싶은 글 저장"),
-    CAREER("CAREER", "취업 커리어 준비"),
-    CREATION_REFERENCE("CREATION_REFERENCE", "블로그/콘텐츠 작성 참고용"),
-    INSIGHTS("INSIGHTS", "인사이트 모으기"),
-    WORK("WORK", "업무자료 아카이빙"),
-    STUDY("STUDY", "학업/리포트 정리");
-
-    companion object {
-        // 모든 Purpose 리스트 반환
-        fun getAllPurposes(): List<Purpose> = values().toList()
-
-        // code로 Purpose 찾기
-        fun fromCode(code: String): Purpose? = values().find { it.code == code }
-
-        // displayName으로 Purpose 찾기
-        fun fromDisplayName(displayName: String): Purpose? =
-            values().find { it.displayName == displayName }
-    }
-}
-
-// 관심사
-enum class Interest(val code: String, val displayName: String) {
-    BUSINESS("BUSINESS", "비즈니스/마케팅"),
-    DESIGN("DESIGN", "디자인/\n크리에이티브"),
-    IT("IT", "IT/개발"),
-    STARTUP("STARTUP", "스타트업/창업"),
-    SOCIETY("SOCIETY", "사회/문화/환경"),
-    STUDY("STUDY", "학업/\n리포트 참고"),
-    WRITING("WRITING", "글쓰기/콘텐츠\n작성"),
-    INSIGHTS("INSIGHTS", "책/인사이트\n요약"),
-    PSYCHOLOGY("PSYCHOLOGY", "심리/자기계발"),
-    CURRENT_EVENTS("CURRENT_EVENTS", "시사/트렌드"),
-    COLLECT("COLLECT", "그냥 모아두고\n싶은 글들"),
-    CAREER("CAREER", "커리어/채용");
-
-    companion object {
-        // 모든 Interest 리스트 반환
-        fun getAllInterests(): List<Interest> = values().toList()
-
-        // code로 Interest 찾기
-        fun fromCode(code: String): Interest? = values().find { it.code == code }
-
-        // displayName으로 Interest 찾기
-        fun fromDisplayName(displayName: String): Interest? =
-            values().find { it.displayName == displayName }
-    }
-}
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
@@ -264,8 +161,8 @@ class SignUpViewModel @Inject constructor(
                 Log.d("SignUpViewModel", "[회원가입 요청] $signUpForm")
 
                 // Purpose enum의 code 값을 List<String>으로 변환
-                val purposeCodes = signUpForm.purposeList.map { it.code }
-                val interestCodes = signUpForm.interestList.map { it.code }
+                val purposeKeys = signUpForm.purposeList.map { it.serverKey }
+                val interestKeys = signUpForm.interestList.map { it.serverKey }
 
                 val success = userRepository.signUp(
                     nickname = signUpForm.nickname,
@@ -273,8 +170,8 @@ class SignUpViewModel @Inject constructor(
                     password = signUpForm.password,
                     gender = signUpForm.gender.value,
                     jobId = signUpForm.jobId,
-                    purposeList = purposeCodes,
-                    interestList = interestCodes
+                    purposeList = purposeKeys,
+                    interestList = interestKeys
                 )
 
                 _signUpState.value = if (success) {
