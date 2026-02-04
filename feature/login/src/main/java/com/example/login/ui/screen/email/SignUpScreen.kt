@@ -1,4 +1,4 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 
 import androidx.compose.foundation.background
@@ -11,7 +11,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -23,7 +22,6 @@ import androidx.compose.ui.unit.sp
 import com.example.login.R
 import com.example.design.theme.font.Paperlogy
 import com.example.design.theme.LocalColorTheme
-import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 
 //어차피.. 수정되니까.. 리펙X

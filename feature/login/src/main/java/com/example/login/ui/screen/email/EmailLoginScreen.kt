@@ -1,4 +1,4 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,7 +20,6 @@ import com.example.login.R
 import com.example.design.theme.font.Paperlogy
 import com.example.login.ui.item.LoginTextField
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.TextStyle
@@ -35,15 +34,13 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
-import com.example.design.util.DesignSystemBars
 import com.example.login.viewmodel.LoginViewModel
-import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.model.SystemBarMode
+import com.example.core.model.auth.LoginState
 import com.example.core.system.SystemBarController
-import com.example.login.viewmodel.LoginState
-import com.example.login.viewmodel.LoginErrorType
+
 
 @Composable
 fun EmailLoginScreen(

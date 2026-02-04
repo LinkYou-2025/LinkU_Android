@@ -1,11 +1,10 @@
-package com.example.login.ui.screen
+package com.example.login.ui.screen.email
 
 import android.util.Log
 import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -24,6 +23,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.font.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
+import com.example.core.model.auth.AuthErrorMessages
+import com.example.core.model.auth.EmailAuthState
 import com.example.design.modifier.noRippleClickable
 import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.StepIndicator
@@ -32,8 +33,6 @@ import com.example.login.viewmodel.EmailAuthViewModel
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.scaler
-import com.example.login.viewmodel.AuthErrorMessages
-import com.example.login.viewmodel.EmailAuthState
 import java.util.Locale
 
 /**
