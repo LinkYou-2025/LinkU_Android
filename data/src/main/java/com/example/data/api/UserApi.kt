@@ -8,6 +8,7 @@ import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.JoinResultDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.api.dto.server.LoginResultDTO
+import com.example.data.api.dto.server.SocialProfileRequestDTO
 import com.example.data.api.dto.server.TempPasswordRequestDTO
 import com.example.data.api.dto.server.TokenPair
 import com.example.data.api.dto.server.UpdateProfileDTO
@@ -88,4 +89,12 @@ interface UserApi {
         @Query("email") email: String,
         @Query("code") code: String
     ): BaseResponse<EmailVerificationResponse>
+
+
+    //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
+    @PATCH("/api/users/social/complete")
+    suspend fun completeSocialProfile(
+        @Header("Authorization") authorization: String,
+        @Body body: SocialProfileRequestDTO
+    ): ApiResponseString
 }

@@ -78,6 +78,7 @@ import com.example.login.LoginApp
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
+    socialLoginData: SocialLoginData? = null
 ) {
 
 
@@ -90,6 +91,30 @@ fun MainApp(
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
+
+    // 소셜 로그인 딥링크 처리
+    LaunchedEffect(socialLoginData) {
+        socialLoginData?.let { data ->
+            Log.d("SOCIAL_LOGIN", "=== MainApp에서 소셜 로그인 처리 ===")
+            Log.d("SOCIAL_LOGIN", "provider: ${data.provider}")
+            Log.d("SOCIAL_LOGIN", "token 길이: ${data.token.length}")
+            loginViewModel.handleSocialLoginToken(data.token, data.provider)
+        }
+    }
+
+    // 소셜 로그인 성공 시 홈으로 이동
+    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(loginState) {
+        Log.d("SOCIAL_LOGIN", "loginState 변경: $loginState")
+        if (loginState is LoginState.Success && socialLoginData != null) {
+            Log.d("MainApp", "소셜 로그인 성공! 홈으로 이동")
+            navigator.navigate(NavigationRoute.Home.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     // 홈 화면에서 사용할 뷰모델
     val homeViewModel: HomeViewModel = hiltViewModel()

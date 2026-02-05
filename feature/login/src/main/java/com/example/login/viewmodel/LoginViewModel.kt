@@ -205,4 +205,42 @@ open class LoginViewModel @Inject constructor(
     companion object {
         private const val TAG = "LoginViewModel"
     }
+
+    // 소셜 로그인 토큰 처리(딥링크를 통해 받은 토큰 처리)
+    fun handleSocialLoginToken(token: String, provider: String) {
+        viewModelScope.launch {
+            try {
+                Log.d("SOCIAL_LOGIN", "=== ViewModel 토큰 처리 시작 ===")
+                Log.d("SOCIAL_LOGIN", "provider: $provider")
+                Log.d("SOCIAL_LOGIN", "token 길이: ${token.length}")
+                _loginState.value = LoginState.Loading
+                Log.d(TAG, "소셜 로그인 처리: $provider")
+
+                // TODO: 서버에서 userId도 같이 받아야 함!
+                // 지금은 임시로 0L 사용
+                authPreference.saveTokens(
+                    accessToken = token,
+                    refreshToken = "",  // 서버 응답에 따라
+                    userId = 0L  // 서버에서 userId 받으면 수정
+                )
+                Log.d("SOCIAL_LOGIN", "토큰 저장 완료")
+
+
+                _loginState.value = LoginState.Success(
+                    LoginResult(
+                        accessToken = token,
+                        refreshToken = "",
+                        userId = 0,
+                        status = "SUCCESS",
+                        inactiveDate = null
+                    )
+                )
+                Log.d("SOCIAL_LOGIN", " LoginState.Success 설정 완료")
+
+            } catch (e: Exception) {
+                Log.e(TAG, "소셜 로그인 실패", e)
+                _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+            }
+        }
+    }
 }

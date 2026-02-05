@@ -31,7 +31,15 @@ import com.example.login.viewmodel.LoginViewModel
 import com.example.login.viewmodel.SignUpViewModel
 //import com.example.linku_android.deeplink.DeepLinkHandlerViewModel
 import androidx.navigation.compose.NavHost
+import com.example.login.ui.screen.social.SocialEntryScreen
+import com.example.login.ui.screen.social.SocialGenderScreen
+import com.example.login.ui.screen.social.SocialInterestScreen
+import com.example.login.ui.screen.social.SocialJobScreen
+import com.example.login.ui.screen.social.SocialNicknameScreen
+import com.example.login.ui.screen.social.SocialPurposeScreen
+import com.example.login.ui.screen.social.WelcomeSocialScreen
 import com.example.login.viewmodel.EmailAuthViewModel
+import com.example.login.viewmodel.SocialAuthViewModel
 
 /**
  * 안전하게 auth_graph의 BackStackEntry를 가져오는 확장 함수
@@ -183,6 +191,8 @@ fun LoginApp(
                     val onBack: () -> Unit = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                         navController.popBackStack()
+                        Unit
+
                     }
                     BackHandler { onBack() }
 
@@ -241,5 +251,232 @@ fun LoginApp(
                 ResetPasswordScreen(navigator = navController)
             }
         }
+
+        /**
+         *  소셜 로그인 회원가입 순서(소셜 로그인(자동로그인) 미구현 -> 하게 된다면 따로 SocialLoginViewModel 파겠습니다.
+         *
+         *  1. 스플래쉬 -> 2. 로그인 스크린 -> 3. 여기서 카카오, 네이버, 구글은 선택시 -> 4. 딥링크로 이동함. ->
+         *  5. 딥링크 회원가입 끝나면 -> 5. SocialNicknameScreen으로 이동함. 6. SocialGenderScreen ->
+         *  7. SocialJobScreen -> 8. SocialPurposeScreen -> 9. SocialContentScreen ->
+         *  10. WelcomeSocialScreen -> 11. 홈 스크린으로 이동하기!
+         *
+         *  소셜 로그인, 자동 로그인
+         *  지민아 이거는 한 번 서원이 통해서 정리해줄 수 있어?
+         *  지금 이름이 세션스토어이지 이게 DataStore를 이용해서 만든거야.
+         *  현재는 로그인 할 때,  userId를 통해서, 아예 로그인할 때, /api/users/{userId} 통해서
+         *  마이페이지 조회까지 1번에 해서 변경사항이 없다면,
+         *  데이터 스토어(파일 이름 세션 스토어)로 저장했는데 소셜 로그인인 경우는 어떻게 처리해야할지 모르겠네
+         *  유저 id 반환하는지 확인 해줄 수 있을까? 서원이에게 소셜 로그인에서 자동 로그인을 위한 토큰 발급 해주는 api에서
+         *  userId만 있어도 괜찮을 것 같기는 한데, 한 번 확인 좀 부탁할게.
+         *
+         * */
+
+        navigation(
+            route = "social_auth_graph",
+            startDestination = "social_entry"
+        ) {
+
+            /**
+             *  딥링크 진입 → ACTIVE / TEMP 분기
+             */
+            composable("social_entry") { backStackEntry ->
+                val socialToken =
+                    backStackEntry.savedStateHandle.get<String>("socialToken") ?: ""
+                val status =
+                    backStackEntry.savedStateHandle.get<String>("status") ?: ""
+
+                SocialEntryScreen(
+                    navController = navController,
+                    socialToken = socialToken,
+                    status = status,
+                    onLoginSuccess = onLoginSuccess
+                )
+            }
+
+            /**
+             *  약관 게이트 (로그인 화면 + 약관 바텀시트)
+             *  약관 동의 상태만 필요 → SignUpViewModel 사용
+             */
+            composable("social_login_gate") { entry ->
+
+                val signUpVm: SignUpViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+
+                val showTermsSheet by entry.savedStateHandle
+                    .getStateFlow("show_terms_sheet", true)
+                    .collectAsStateWithLifecycle()
+
+                BackHandler(enabled = showTermsSheet) {
+                    entry.savedStateHandle["show_terms_sheet"] = false
+                }
+
+                LoginScreen(
+                    navigator = navController
+                )
+
+                TermsAgreementSheet(
+                    navController = navController,
+                    vm = signUpVm,
+                    visible = showTermsSheet,
+                    onClose = {
+                        entry.savedStateHandle["show_terms_sheet"] = false
+                    },
+                    onClickTerms = {
+                        entry.savedStateHandle["show_terms_sheet"] = false
+                        navController.navigate("social_terms/service")
+                    },
+                    onClickPrivacy = {
+                        entry.savedStateHandle["show_terms_sheet"] = false
+                        navController.navigate("social_terms/privacy")
+                    },
+                    onClickMarketing = {
+                        entry.savedStateHandle["show_terms_sheet"] = false
+                        navController.navigate("social_terms/marketing")
+                    }
+                )
+            }
+
+            /**
+             *  소셜 약관 상세
+             */
+            composable("social_terms/service") {
+                val vm: SignUpViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+
+                val onBack = {
+                    navController.popBackStack()
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("show_terms_sheet", true)
+                    Unit
+                }
+
+                ServiceTermsScreen(
+                    onBackClicked = onBack,
+                    onAgreeClicked = {
+                        vm.setAgreeTerms(true)
+                        onBack()
+                    }
+                )
+            }
+
+            composable("social_terms/privacy") {
+                val vm: SignUpViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+
+                val onBack = {
+                    navController.popBackStack()
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("show_terms_sheet", true)
+                    Unit
+                }
+
+                PrivacyTermsScreenFixed(
+                    onBackClicked = onBack,
+                    onAgreeClicked = {
+                        vm.setAgreePrivacy(true)
+                        onBack()
+                    }
+                )
+            }
+
+            composable("social_terms/marketing") {
+                val vm: SignUpViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+
+                val onBack = {
+                    navController.popBackStack()
+                    navController.currentBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("show_terms_sheet", true)
+                    Unit
+                }
+
+                MarketingTermsScreenComposable(
+                    onBackClicked = onBack,
+                    onAgreeClicked = {
+                        vm.setAgreeMarketing(true)
+                        onBack()
+                    }
+                )
+            }
+
+            /**
+             *  소셜 회원가입 입력 플로우
+             *  여기부터는 전부 SocialAuthViewModel
+             */
+            composable("social_nickname") {
+                val vm: SocialAuthViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+                SocialNicknameScreen(navController, vm)
+            }
+
+            composable("social_gender") {
+                val vm: SocialAuthViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+                SocialGenderScreen(navController, vm)
+            }
+
+            composable("social_job") {
+                val vm: SocialAuthViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+                SocialJobScreen(navController, vm)
+            }
+
+            composable("social_purpose") {
+                val vm: SocialAuthViewModel = hiltViewModel(
+                    navController.getBackStackEntry("social_auth_graph")
+                )
+                SocialPurposeScreen(navController, vm)
+            }
+
+            /**
+             *  마지막: 관심사 → completeSocialProfile 단 1회 호출
+             */
+            composable("social_interest") {
+
+                val parentEntry = navController.getBackStackEntry("social_auth_graph")
+                val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
+
+                val socialToken =
+                    parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
+
+                SocialInterestScreen(
+                    navigator = navController,
+                    viewModel = vm,
+                    onComplete = {
+                        vm.completeSocialProfile(
+                            socialToken = socialToken,
+                            onSuccess = {
+                                navController.navigate("social_welcome") {
+                                    popUpTo("social_auth_graph") { inclusive = true }
+                                }
+                            }
+                        )
+                    }
+                )
+            }
+
+            /**
+             *  소셜 회원가입 완료
+             */
+            composable("social_welcome") {
+                WelcomeSocialScreen(
+                    navigator = navController
+                )
+            }
+        }
+
+
     }
+
+
 }
