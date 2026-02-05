@@ -3,6 +3,7 @@ package com.example.login
 //피그마에서 스플래쉬 다음으로 나오는 로그인 화면 입니다.
 
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -30,6 +31,8 @@ import com.example.design.util.DesignSystemBars
 import com.example.login.ui.item.SocialLoginButton
 import com.example.design.theme.font.Paperlogy
 import com.example.design.util.scaler
+import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.ui.platform.LocalContext
 
 
 @Composable
@@ -43,6 +46,7 @@ fun LoginScreen(
 ) {
 
     val colorTheme = LocalColorTheme.current
+    val context = LocalContext.current
 
     // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
     DesignSystemBars(
@@ -165,7 +169,12 @@ fun LoginScreen(
                 backgroundColor = Color(0xFFFEE500),
                 iconRes = R.drawable.icon_login_kakao,
                 text = "카카오로 시작하기",
-                textColor = Color.Black
+                textColor = Color.Black,
+                onClick = {
+                    val url = "https://linkuserver.store/login/kakao"
+                    val customTabsIntent = CustomTabsIntent.Builder().build()
+                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                }
             )
 
             // 네이버
@@ -182,7 +191,12 @@ fun LoginScreen(
                 borderColor = Color(0xFFE0E0E0),
                 iconRes = R.drawable.icon_login_google,
                 text = "구글로 시작하기",
-                textColor = Color.Black
+                textColor = Color.Black,
+                onClick = {
+                    val url = "https://linkuserver.store/login/google"
+                    val customTabsIntent = CustomTabsIntent.Builder().build()
+                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                }
             )
 
             // 이메일 기존 그대로 유지. //TODO 채윤지 : 서원에게 변경된 otp api 받으면 재연동하기

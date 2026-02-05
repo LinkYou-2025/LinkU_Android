@@ -3,6 +3,10 @@ package com.example.core.repository
 import com.example.core.model.LoginResult
 import com.example.core.model.TokenReissueResult
 import com.example.core.model.UserInfo
+import com.example.core.model.auth.Gender
+import com.example.core.model.auth.Interest
+import com.example.core.model.auth.Job
+import com.example.core.model.auth.Purpose
 
 
 interface UserRepository {
@@ -44,4 +48,14 @@ interface UserRepository {
 
     // 로그아웃
     suspend fun logout()
+
+    //소셜 로그인 이후 사용자 정보 받음
+    suspend fun completeSocialProfile(
+        socialToken: String,
+        nickname: String,
+        gender: Gender,
+        job: Job,
+        purposes: List<Purpose>,
+        interests: List<Interest>
+    ): Boolean
 }

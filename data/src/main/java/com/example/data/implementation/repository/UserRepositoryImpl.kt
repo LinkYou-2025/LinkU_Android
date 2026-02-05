@@ -21,6 +21,8 @@ import com.example.data.api.withAuthRaw
 import com.example.data.api.withErrorHandling
 import com.example.data.api.withErrorHandlingRaw
 import javax.inject.Inject
+import com.example.data.mapper.SocialProfileMapper
+import com.example.core.model.auth.*
 
 class UserRepositoryImpl @Inject constructor(
     private val userApi: UserApi,
@@ -303,5 +305,36 @@ class UserRepositoryImpl @Inject constructor(
 
     companion object {
         private const val TAG = "UserRepository"
+    }
+
+    // 소셜로 회원가입 이후 프로필 정보 입력 받는 api
+    override suspend fun completeSocialProfile(
+        socialToken: String,
+        nickname: String,
+        gender: Gender,
+        job: Job,
+        purposes: List<Purpose>,
+        interests: List<Interest>
+    ): Boolean {
+
+        val request = SocialProfileMapper.toRequest(
+            nickName = nickname,
+            gender = gender,
+            job = job,
+            purposes = purposes,
+            interests = interests
+        )
+
+        return try {
+            userApi.completeSocialProfile(
+                authorization = "Bearer $socialToken",
+                body = request
+            )
+            Log.d(TAG, "[소셜 프로필 완료] 성공")
+            true
+        } catch (e: ApiError) {
+            Log.e(TAG, "[소셜 프로필 완료 실패] ${e.message}")
+            false
+        }
     }
 }
