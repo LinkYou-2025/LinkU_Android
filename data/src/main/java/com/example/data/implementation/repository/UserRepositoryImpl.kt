@@ -23,6 +23,7 @@ import com.example.data.api.withErrorHandlingRaw
 import javax.inject.Inject
 import com.example.data.mapper.SocialProfileMapper
 import com.example.core.model.auth.*
+import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl @Inject constructor(
     private val userApi: UserApi,
@@ -30,6 +31,9 @@ class UserRepositoryImpl @Inject constructor(
     private val authPreference: AuthPreference,
     private val sessionStore: SessionStore
 ) : UserRepository {
+
+    override val sessionState: Flow<SessionStore.SessionSnapshot>
+        get() = sessionStore.session //레포지토리가 세션 Flow를 책임질 수 있도록 수정함.
 
     // checkNickname - ApiResponseString 반환하므로 withErrorHandlingRaw 사용
     override suspend fun checkNickname(nickname: String): Boolean {
@@ -291,7 +295,9 @@ class UserRepositoryImpl @Inject constructor(
 
     // logout
     override suspend fun logout() {
-        clearAuthData()
+        authPreference.clear()
+        sessionStore.clear()
+        //clearAuthData()
         Log.d(TAG, "로그아웃 완료")
     }
     private suspend fun clearAuthData() {
@@ -337,4 +343,35 @@ class UserRepositoryImpl @Inject constructor(
             false
         }
     }
+
+    override suspend fun refreshUserInfo(userId: Long) {
+        getUserInfo(userId)
+        // getUserInfo 내부에서 sessionStore.saveLogin()
+    }
+
+    override suspend fun updateUserProfile(
+        nickname: String,
+        jobId: Long,
+        jobName: String,
+        purposes: List<String>,
+        interests: List<String>
+    ) {
+        // 서버 DB 수정
+        updateUserInfo(
+            nickname = nickname,
+            jobId = jobId,
+            purposes = purposes,
+            interests = interests
+        )
+
+        // 서버 성공 시 로컬 세션 즉시 반영
+        sessionStore.updateProfile(
+            nickname = nickname,
+            jobId = jobId,
+            jobName = jobName,
+            purposes = purposes,
+            interests = interests
+        )
+    }
+
 }
