@@ -7,9 +7,15 @@ import com.example.core.model.auth.Gender
 import com.example.core.model.auth.Interest
 import com.example.core.model.auth.Job
 import com.example.core.model.auth.Purpose
+import com.example.core.session.SessionStore
+import kotlinx.coroutines.flow.Flow
 
 
 interface UserRepository {
+
+    val sessionState: Flow<SessionStore.SessionSnapshot>
+    //레포지토리가 세션 상태 플로우 제공하도록 수정함.
+
     suspend fun checkNickname(nickname: String): Boolean
     //suspend fun getNickname(userId: Long): String?
     suspend fun login(email: String, password: String): LoginResult
@@ -38,6 +44,7 @@ interface UserRepository {
     // 마이페이지 조회
     suspend fun getUserInfo(userId: Long): UserInfo
 
+    suspend fun refreshUserInfo(userId: Long)
     // 마이페이지 계정 수정
     suspend fun updateUserInfo(
         nickname: String,
@@ -58,4 +65,14 @@ interface UserRepository {
         purposes: List<Purpose>,
         interests: List<Interest>
     ): Boolean
+
+    suspend fun updateUserProfile(
+        nickname: String,
+        jobId: Long,
+        jobName: String,
+        purposes: List<String>,
+        interests: List<String>
+    )
+
+
 }
