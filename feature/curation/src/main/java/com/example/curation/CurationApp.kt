@@ -1,6 +1,5 @@
 package com.example.linku_android.curation
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -9,7 +8,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.example.curation.CurationDetailViewModel
 import com.example.curation.CurationViewModel
-import com.example.curation.ui.CurationDetailScreen
+import com.example.curation.ui.screen.CurationDetailScreen
 import com.example.curation.ui.CurationScreen
 
 /**

@@ -45,8 +45,8 @@ class CurationViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _nickname = MutableStateFlow<String?>(null)
-    val nickname: StateFlow<String?> = _nickname
+    private val _nickname = MutableStateFlow("세나")
+    val nickname: StateFlow<String> = _nickname
 
     private val _recentCuration = MutableStateFlow<CurationItem?>(null)
     val recentCuration: StateFlow<CurationItem?> = _recentCuration
