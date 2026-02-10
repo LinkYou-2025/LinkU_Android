@@ -4,8 +4,11 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -23,6 +26,8 @@ import coil3.compose.SubcomposeAsyncImage
 import com.example.curation.R
 import com.example.design.util.scaler
 import kotlin.math.absoluteValue
+import androidx.compose.animation.core.snap
+
 
 /**
  * 큐레이션 메인 카드 페이저
@@ -32,13 +37,13 @@ import kotlin.math.absoluteValue
  */
 @Composable
 fun CurationMainCardPager(
+    pagerState: PagerState,
     imageUrls: List<String?>, // 3개의 이미지 URL
-    modifier: Modifier = Modifier
+    isDetailOpen: Boolean,
+    modifier: Modifier = Modifier,
+    onCardClick: (index: Int, imageUrl: String?) -> Unit = { _, _ -> } // 추가
 ) {
-    val pagerState = rememberPagerState(
-        initialPage = 0,
-        pageCount = { imageUrls.size }
-    )
+
 
     Column(
         modifier = modifier,
@@ -46,6 +51,7 @@ fun CurationMainCardPager(
     ) {
         HorizontalPager(
             state = pagerState,
+            userScrollEnabled = !isDetailOpen,
             contentPadding = PaddingValues(horizontal = 33.scaler), // 양옆 여백으로 미리보기
             pageSpacing = 12.scaler,
             modifier = Modifier
@@ -62,14 +68,16 @@ fun CurationMainCardPager(
             // 애니메이션으로 크기 전환
             val cardWidth by animateDpAsState(
                 targetValue = if (isSelected) 346.scaler else 288.scaler,
-                animationSpec = tween(300),
+                animationSpec = if (isDetailOpen) snap() else tween(300),
                 label = "cardWidth"
             )
+
             val cardHeight by animateDpAsState(
                 targetValue = if (isSelected) 432.scaler else 360.scaler,
-                animationSpec = tween(300),
+                animationSpec = if (isDetailOpen) snap() else tween(300),
                 label = "cardHeight"
             )
+
 
             // 스케일 기반 부드러운 전환 (선택사항)
             val scale = 1f - (pageOffset * 0.3f).coerceIn(0f, 0.3f)
@@ -84,7 +92,9 @@ fun CurationMainCardPager(
                     modifier = Modifier
                         .width(cardWidth)
                         .height(cardHeight)
+                        .clickable { onCardClick(page, imageUrls[page]) }
                 )
+
             }
         }
 
@@ -98,33 +108,6 @@ fun CurationMainCardPager(
     }
 }
 
-@Composable
-private fun CurationCardItem(
-    imageUrl: String?,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.scaler))
-            .background(Color(0xFFF2F2F2))
-    ) {
-        if (imageUrl.isNullOrBlank()) {
-            Image(
-                painter = painterResource(id = R.drawable.img_curation_example),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
-        } else {
-            SubcomposeAsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
-        }
-    }
-}
 
 @Composable
 private fun CurationPagerIndicator(
@@ -153,10 +136,11 @@ private fun CurationPagerIndicator(
     }
 }
 
+/*
 @Preview(showBackground = true)
 @Composable
 private fun PreviewCurationMainCardPager() {
     CurationMainCardPager(
         imageUrls = listOf(null, null, null)
     )
-}
+}*/

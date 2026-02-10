@@ -1,5 +1,7 @@
 package com.example.curation.ui
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
@@ -18,6 +20,7 @@ import com.example.curation.CurationViewModel
 import com.example.design.top.bar.TopBar
 import com.example.design.util.scaler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -28,74 +31,156 @@ import com.example.curation.R
 import com.example.curation.ui.effect.highlight.RadialGradientCircle
 import com.example.curation.ui.main_card.CurationMainCard
 import com.example.curation.ui.main_card.CurationMainCardPager
+import com.example.curation.ui.screen.detail.CurationMonthDetailOverlay
 import com.example.design.theme.font.Paperlogy
+import androidx.compose.foundation.pager.rememberPagerState
 
+
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun CurationScreen(
     viewModel: CurationViewModel = hiltViewModel(),
-    onOpenDetail: (Long, Long) -> Unit = { _, _ -> }
+    //onOpenDetail: (userId: Long, curationId: Long, imageUrl: String?, cardIndex: Int) -> Unit = { _, _, _, _ -> } // 파라미터 4개로 변경
 ) {
     val nickname by viewModel.nickname.collectAsState()
+
+    // Pager 상태를 Screen에서 고정
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { 3 }
+    )
+
+    // 디테일 오버레이 상태
+    var showDetail by remember { mutableStateOf(false) }
+    var selectedImageUrl by remember { mutableStateOf<String?>(null) }
+    var selectedPage by remember { mutableStateOf(0) }
 
 
     LaunchedEffect(Unit) {
         viewModel.loadNickname()
     }
 
+    SharedTransitionLayout {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        // 전체 화면 기준 배경
-        // 핑크 원
-        RadialGradientCircle(
-            color = Color(0xFFC800FF),
-            modifier = Modifier.offset(
-                x = (-88).scaler,
-                y = (-12).scaler
-            )
-        )
-        //블루 원
-        RadialGradientCircle(
-            color = Color(0xFF2C6FFF), //color = Color(0xFFC800FF),
-            modifier = Modifier.offset(
-                x = 24.scaler,
-                y = (-6).scaler
-            )
-        )
-        // 로고
-        Image(
-            painter = painterResource(id = R.drawable.img_curation_logo),
-            contentDescription = "logo",
-            modifier = Modifier
-                .offset(
-                    x = 224.scaler,
-                    y = 95.scaler
+            // 전체 화면 기준 배경
+            // 핑크 원
+            RadialGradientCircle(
+                color = Color(0xFFC800FF),
+                modifier = Modifier.offset(
+                    x = (-88).scaler,
+                    y = (-12).scaler
                 )
-                .size(
-                    width = 197.scaler,
-                    height = 140.scaler
-                )
-        )
-
-        // 실제 화면
-        Scaffold(
-            topBar = {
-                TopBar(showSearchBar = false,backgroundColor = null)
-            },
-            containerColor = Color.Transparent
-        ) { innerPadding ->
-
-            CurationScreenContent(
-                nickname = nickname.ifBlank { "세나" },
-                modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
             )
+            //블루 원
+            RadialGradientCircle(
+                color = Color(0xFF2C6FFF), //color = Color(0xFFC800FF),
+                modifier = Modifier.offset(
+                    x = 24.scaler,
+                    y = (-6).scaler
+                )
+            )
+            // 로고
+            Image(
+                painter = painterResource(id = R.drawable.img_curation_logo),
+                contentDescription = "logo",
+                modifier = Modifier
+                    .offset(
+                        x = 224.scaler,
+                        y = 95.scaler
+                    )
+                    .size(
+                        width = 197.scaler,
+                        height = 140.scaler
+                    )
+            )
+
+            // 실제 화면
+            Scaffold(
+                topBar = {
+                    TopBar(showSearchBar = false, backgroundColor = null)
+                },
+                containerColor = Color.Transparent
+            ) { innerPadding ->
+
+                CurationScreenContent(
+                    nickname = nickname.ifBlank { "세나" },
+                    pagerState = pagerState,
+                    isDetailOpen = showDetail,
+                    // TODO: 실제 curationId
+                    onCardClick = { index, imageUrl ->
+                        selectedPage = index
+                        selectedImageUrl = imageUrl
+                        showDetail = true
+                    },
+                    modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
+                )
+            }
+
+            // 디테일 오버레이 (CurationScreen 위에 띄움)
+            if (showDetail) {
+                CurationMonthDetailOverlay(
+                    page = selectedPage,
+                    imageUrl = selectedImageUrl,
+                    onBack = { showDetail = false }
+                )
+            }
         }
     }
 }
-
+// CurationScreen.kt
 @Composable
 private fun CurationScreenContent(
     nickname: String,
+    pagerState: PagerState,
+    isDetailOpen: Boolean,
+    onCardClick: (index: Int, imageUrl: String?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        // 타이틀 이미지
+        Image(
+            painter = painterResource(id = R.drawable.img_curation_title),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(start = 24.scaler, top = 28.scaler)
+                .size(width = 102.scaler, height = 15.scaler)
+        )
+
+        Spacer(modifier = Modifier.height(12.scaler))
+
+        // 닉네임 텍스트
+        Text(
+            text = "${nickname}님을 위한 링큐레이션",
+            style = TextStyle(
+                fontSize = 22.sp,
+                lineHeight = 30.sp,
+                fontFamily = Paperlogy.font,
+                fontWeight = FontWeight(700),
+                color = Color(0xFF1451D5)
+            ),
+            modifier = Modifier.padding(horizontal = 20.scaler)
+        )
+
+        Spacer(modifier = Modifier.height(26.scaler))
+
+        // 카드 페이저 (고정된 위치에서 시작)
+        CurationMainCardPager(
+            imageUrls = listOf(null, null, null),
+            pagerState = pagerState,
+            isDetailOpen = isDetailOpen,
+            onCardClick = onCardClick
+        )
+    }
+}
+/*
+@Composable
+private fun CurationScreenContent(
+    nickname: String,
+    pagerState: PagerState,
+    onCardClick: (index: Int, imageUrl: String?) -> Unit, // 추가
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -135,18 +220,19 @@ private fun CurationScreenContent(
                 Spacer(modifier = Modifier.height(26.scaler))
 
                 CurationMainCardPager(
-                    imageUrls = listOf(null, null, null), // 실제로는 API에서 받아온 URL 리스트
-                    modifier = Modifier.padding(horizontal = 0.dp) // 패딩은 Pager 내부에서 처리
+                    imageUrls = listOf(null, null, null),
+                    pagerState = pagerState,
+                    onCardClick = onCardClick // 전달
                 )
 
 
             }
         }
     }
-}
+}*/
 
 
-@Preview(
+/*@Preview(
     showBackground = true,
     backgroundColor = 0xFFFFFFFF
 )
@@ -196,6 +282,8 @@ fun PreviewCurationScreenFull() {
 
             CurationScreenContent(
                 nickname = "세나",
+                onCardClick = { _, _ -> },
+
                 modifier = Modifier.padding(
                     top = innerPadding.calculateTopPadding()
                 )
@@ -203,7 +291,7 @@ fun PreviewCurationScreenFull() {
         }
     }
 }
-
+*/
 
 //package com.example.curation.ui
 //
