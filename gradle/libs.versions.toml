@@ -34,6 +34,9 @@ foundation = "1.9.5"
 composeTesting = "1.0.0-alpha09"
 toolsCore = "1.0.0-alpha14"
 foundationVersion = "1.10.1"
+foundationLayout = "1.10.0"
+foundationLayoutVersion = "1.10.2"
+
 
 
 [libraries]
@@ -84,6 +87,9 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-compose-testing = { group = "androidx.xr.compose", name = "compose-testing", version.ref = "composeTesting" }
 androidx-tools-core = { group = "androidx.privacysandbox.tools", name = "tools-core", version.ref = "toolsCore" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
+androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayoutVersion" }
+
 
 
 
