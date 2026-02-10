@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import com.example.curation.R
 import com.example.curation.ui.effect.highlight.RadialGradientCircle
 import com.example.curation.ui.main_card.CurationMainCard
+import com.example.curation.ui.main_card.CurationMainCardPager
 import com.example.design.theme.font.Paperlogy
 
 @Composable
@@ -107,10 +108,15 @@ private fun CurationScreenContent(
                 Image(
                     painter = painterResource(id = R.drawable.img_curation_title),
                     contentDescription = null,
-                    modifier = Modifier.padding(
+                    modifier = Modifier
+                        .padding(
                         start = 24.scaler,
                         top = 28.scaler
                     )
+                        .size(
+                            width = 102.scaler,
+                            height = 15.scaler
+                        )
                 )
 
                 Spacer(modifier = Modifier.height(12.scaler))
@@ -128,11 +134,11 @@ private fun CurationScreenContent(
                 )
                 Spacer(modifier = Modifier.height(26.scaler))
 
-                CurationMainCard(
-                    imageUrl = null, // 일단 로딩/프리뷰 단계
-                    modifier = Modifier
-                        .padding(horizontal = 33.scaler)
+                CurationMainCardPager(
+                    imageUrls = listOf(null, null, null), // 실제로는 API에서 받아온 URL 리스트
+                    modifier = Modifier.padding(horizontal = 0.dp) // 패딩은 Pager 내부에서 처리
                 )
+
 
             }
         }
