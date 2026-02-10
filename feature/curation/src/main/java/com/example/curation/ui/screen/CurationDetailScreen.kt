@@ -1,20 +1,16 @@
-package com.example.curation.ui
+package com.example.curation.ui.screen
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,50 +28,33 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.clip
 
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.example.curation.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.curation.CurationDetailViewModel
-import com.example.curation.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.Dp
 import com.example.core.model.RecommendedLink
 import com.example.curation.CurationLinksUiState
 
-import kotlin.math.ceil
 import kotlin.math.min
 import com.example.curation.CurationViewModel
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.offset
 
-import androidx.compose.ui.platform.LocalContext
-import coil3.compose.AsyncImage
-import coil3.request.ImageRequest
-import coil3.request.crossfade
 import androidx.compose.runtime.*
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.text.TextStyle
 import com.example.curation.CurationDetailUiState
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.core.util.ensureHttpScheme
 import com.example.curation.ui.detail_card.HighlightCard
 import com.example.curation.ui.recommend_list.CurationRecommendedLinksSection
 import com.example.curation.ui.recommend_list.RecommendedLinkCardSkeleton
 import com.example.curation.ui.recommend_list.SkeletonEnd
 import com.example.curation.ui.recommend_list.SkeletonStart
-import kotlinx.coroutines.delay
 
 
 //헬퍼
@@ -122,8 +101,8 @@ fun CurationDetailScreen(
     }
 
     val monthLabel = remember {
-        java.time.LocalDate.now()
-            .format(java.time.format.DateTimeFormatter.ofPattern("M월", java.util.Locale.KOREAN))
+        LocalDate.now()
+            .format(DateTimeFormatter.ofPattern("M월", Locale.KOREAN))
     }
 
     CurationDetailScreenContent(
