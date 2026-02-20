@@ -136,6 +136,7 @@ fun HomeScreen(
     jobId: Long,
     onLinkClick: (linkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
+    onAlarmClick: () -> Unit,
 ) {
     //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
     DesignSystemBars(
@@ -266,7 +267,8 @@ fun HomeScreen(
 
                         coroutineScope.launch { listState.animateScrollToItem(0) } // 맨 위로 올려서 펼침 유지
                     },
-                    hasRequestedRecommend = hasRequestedRecommend
+                    hasRequestedRecommend = hasRequestedRecommend,
+                    onAlarmClick = onAlarmClick,
                 )
             }
 

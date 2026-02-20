@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.home.screen.AlarmScreen
 import com.example.home.screen.HomeScreen
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
@@ -22,7 +23,10 @@ import java.io.FileOutputStream
 import java.io.InputStream
 
 @Composable
-fun HomeApp(viewModel: HomeViewModel) {
+fun HomeApp(
+    viewModel: HomeViewModel,
+    onNavigateToMyPage: () -> Unit,
+) {
     val context = LocalContext.current
     val navController = rememberNavController()
 
@@ -93,7 +97,8 @@ fun HomeApp(viewModel: HomeViewModel) {
                 onNavigateToSaveLink = { url ->
                     viewModel.setUrl(url)  // url 세팅
                     navController.navigate("savelink")    // 저장 화면 이동
-                }
+                },
+                onAlarmClick = { navController.navigate("alarm") }
             )
         }
 
@@ -223,6 +228,19 @@ fun HomeApp(viewModel: HomeViewModel) {
                     onCancelAi = { viewModel.cancelAiArticleJob() },
                 )
             }
+        }
+
+        composable("alarm") {
+            AlarmScreen(
+                onNavigateToMyPage = onNavigateToMyPage,
+                onBack = { navController.popBackStack() },
+                onNavigateToHome = {
+                    navController.navigate("onboarding") {
+                        popUpTo("onboarding") { inclusive = false }
+                        launchSingleTop = true
+                    }
+                }
+            )
         }
     }
 }
