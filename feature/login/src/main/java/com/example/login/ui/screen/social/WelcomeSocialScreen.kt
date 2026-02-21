@@ -50,7 +50,8 @@ import com.example.core.system.SystemBarController
 @Composable
 fun WelcomeSocialScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel? = null,
+    onLoginSuccess: () -> Unit = {}
 ) {
     //디자인 모듈 가져오기.
     val colorTheme = LocalColorTheme.current
@@ -85,7 +86,7 @@ fun WelcomeSocialScreen(
     var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
     //화면 진입 시 자동 회원가입 요청
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit) {// Unit은 절대 안 바뀜. 그렇지만 이게 맞는 설계이니
         if (!isSignUpRequested) {
             isSignUpRequested = true
             Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
@@ -98,11 +99,13 @@ fun WelcomeSocialScreen(
         when (signUpState) {
             is SignUpState.Success -> {
                 Log.d("WelcomeScreen", "회원가입 성공")
+                onLoginSuccess()  //  MainApp의 홈 이동 로직 호출
                 navigator.navigate("email_login") {
                     popUpTo("auth_graph") { inclusive = true }
                 }
                 isSignUpRequested = false
             }
+            // 재시도 문제가 있음. 사용자에게 회원가입 시패시 안내를 하고 재시도를 하도록 해야함.
             is SignUpState.Error -> {
                 val message = (signUpState as SignUpState.Error).message
                 Log.e("WelcomeScreen", "회원가입 실패: $message")
@@ -193,100 +196,48 @@ fun WelcomeSocialScreen(
                     .align(Alignment.BottomCenter)
                     .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
                     .height(50.scaler)
-                    .background(Color.White, shape = RoundedCornerShape(18.dp)),
+                    .background(Color.White, shape = RoundedCornerShape(18.dp))
+                    .clickable {
+                        when (signUpState) {
+                            is SignUpState.Error -> {
+                                // 실패 시 재시도
+                                isSignUpRequested = false
+                                signUpViewModel?.signUp()
+                            }
+
+                            is SignUpState.Success -> onLoginSuccess()
+                            else -> {} // Loading 중엔 무시
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "홈으로 이동하기?", //TODO 다인언니 : 소셜 로그인 후 나와야하는 화면 이동 문구 생성 요청하기
-                    // 저는 홈으로 이동하는 걸 생각했는데 다른 것을 생각한다면 말해주세용
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(brush = colorTheme.maincolor),
-                    fontFamily = Paperlogy.font
-                )
+                //  상태에 따라 버튼 내용 변경
+                when (signUpState) {
+                    is SignUpState.Loading -> CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = Color(0xFFC800FF),
+                        strokeWidth = 2.dp
+                    )
+
+                    is SignUpState.Error -> Text(
+                        text = "다시 시도하기",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        style = TextStyle(brush = colorTheme.maincolor),
+                        fontFamily = Paperlogy.font
+                    )
+
+                    else -> Text(
+                        text = "홈으로 이동하기",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        style = TextStyle(brush = colorTheme.maincolor),
+                        fontFamily = Paperlogy.font
+                    )
+                }
             }
-        }
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//
-//            // 로고 위치 (394/917)
-//            Spacer(modifier = Modifier.height((394.scaler)))
-//            Image(
-//                painter = painterResource(id = R.drawable.img_logo_white),
-//                contentDescription = "Logo",
-//                Modifier
-//                    .offset(x = (160.scaler) - (configuration.screenWidthDp.dp / 2) + (46.scaler)) // 시작 너비 보정
-//                    .width((92.scaler))
-//                    .height((65.scaler)),
-//                contentScale = ContentScale.Fit
-//            )
-//
-//            Spacer(modifier = Modifier.height((20.scaler)))
-//
-//            Text(
-//                text = "링큐에 오신 걸 환영해요!",
-//                color = colorTheme.white,
-//                fontSize = 22.sp,
-//                fontWeight = FontWeight.Bold,
-//                fontFamily = Paperlogy.font,
-//                textAlign = TextAlign.Start
-//            )
-//
-//            Spacer(modifier = Modifier.height((16.scaler)))
-//
-//            Text(
-//                text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
-//                color = colorTheme.white,
-//                fontSize = 16.sp,
-//                fontFamily = Paperlogy.font,
-//                fontWeight = FontWeight.Bold,
-//                textAlign = TextAlign.Center
-//
-//            )
-//        }
-        // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(start = (20.scaler), end = (20.scaler), bottom = bottomPadding)
-                .height((50.scaler))
-                .background(
-                    Color.White,
-                    shape = RoundedCornerShape(18.dp)
-                )
-                .clickable(enabled = false) { /* 더 이상 사용 안 함 */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "로그인 하러가기",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                style = TextStyle(brush = colorTheme.maincolor),
-                fontFamily = Paperlogy.font
-            )
 
-            // 혹시 로딩 표시가 필요하다면?
-            /*
-            * if (signUpState is SignUpState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color(0xFFC800FF),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = "로그인 하러가기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(brush = colorTheme.maincolor),
-                    fontFamily = Paperlogy.font
-                )
-            }*/
         }
-
 
     }
 }

@@ -205,26 +205,31 @@ open class LoginViewModel @Inject constructor(
     companion object {
         private const val TAG = "LoginViewModel"
     }
-
+    // 소셜 로그인 토큰 처리 (딥링크를 통해 받은 토큰 처리)
+//  TODO: 백엔드 수정 완료 후 아래 내용 업데이트 필요
+// 1. refreshToken 딥링크 응답에 추가되면 → authPreference.saveTokens에 실제값 저장
+// 2. GET /api/users/me API 추가되면 → userId 조회 후 fetchAndSaveUserSession 호출
+// 3. 현재는 자동 로그인 불가 상태 (refreshToken 빈값으로 isLoggedIn = false)
     // 소셜 로그인 토큰 처리(딥링크를 통해 받은 토큰 처리)
     fun handleSocialLoginToken(token: String, provider: String) {
         viewModelScope.launch {
             try {
-                Log.d("SOCIAL_LOGIN", "=== ViewModel 토큰 처리 시작 ===")
-                Log.d("SOCIAL_LOGIN", "provider: $provider")
-                Log.d("SOCIAL_LOGIN", "token 길이: ${token.length}")
+                if (token.isBlank()) {
+                    _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+                    return@launch
+                }
                 _loginState.value = LoginState.Loading
-                Log.d(TAG, "소셜 로그인 처리: $provider")
 
-                // TODO: 서버에서 userId도 같이 받아야 함!
-                // 지금은 임시로 0L 사용
-                authPreference.saveTokens(
+                // 현재 코드는 임시 상태이며 현재 회원가인 딥링크에서 refreshToken, userId x.
+                // authPreference.saveTokens 호출 주석처리함. 추후 백엔드 수정하는대로 수정함.
+                /*
+                * authPreference.saveTokens(
                     accessToken = token,
                     refreshToken = "",  // 서버 응답에 따라
                     userId = 0L  // 서버에서 userId 받으면 수정
                 )
                 Log.d("SOCIAL_LOGIN", "토큰 저장 완료")
-
+                * */
 
                 _loginState.value = LoginState.Success(
                     LoginResult(

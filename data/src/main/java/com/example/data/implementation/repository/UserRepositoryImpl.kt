@@ -339,8 +339,9 @@ class UserRepositoryImpl @Inject constructor(
             Log.d(TAG, "[소셜 프로필 완료] 성공")
             true
         } catch (e: ApiError) {
+            // data 레이어 예외를 core/일반 예외로 변환 후 던짐
             Log.e(TAG, "[소셜 프로필 완료 실패] ${e.message}")
-            false
+            throw Exception(e.message ?: "소셜 프로필 완료 실패")
         }
     }
 
