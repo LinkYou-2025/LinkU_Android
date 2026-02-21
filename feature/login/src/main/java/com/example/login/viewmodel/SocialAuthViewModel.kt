@@ -8,7 +8,6 @@ import com.example.core.model.auth.Job
 import com.example.core.model.auth.Purpose
 import com.example.core.model.auth.Interest
 import com.example.core.repository.UserRepository
-import com.example.data.api.ApiError
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -166,7 +165,7 @@ class SocialAuthViewModel @Inject constructor(
 
                 Log.d(TAG, "소셜 프로필 완료 API 호출 시작")
 
-                userRepository.completeSocialProfile(
+                val success = userRepository.completeSocialProfile(
                     socialToken = socialToken,
                     nickname = _nickname.value,
                     gender = _gender.value,
@@ -175,14 +174,16 @@ class SocialAuthViewModel @Inject constructor(
                     interests = _interests.value
                 )
 
-                Log.d(TAG, "소셜 프로필 완료 성공")
-                onSuccess()
+                if (success) {
+                    Log.d(TAG, "소셜 프로필 완료 성공")
+                    onSuccess()
+                } else {
+                    Log.e(TAG, "소셜 프로필 완료 실패 (서버 반환 false)")
+                    _error.value = IllegalStateException("프로필 저장에 실패했습니다.")
+                }
 
-            } catch (e: ApiError) {
-                Log.e(TAG, "소셜 프로필 완료 실패(ApiError): ${e.message}")
-                _error.value = e
             } catch (e: Exception) {
-                Log.e(TAG, "알 수 없는 오류", e)
+                Log.e(TAG, "소셜 프로필 완료 실패: ${e.message}")
                 _error.value = e
             } finally {
                 _isLoading.value = false

@@ -38,6 +38,7 @@ import com.example.design.util.scaler
 import com.example.login.viewmodel.SignUpViewModel
 import android.app.Activity
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -82,7 +83,8 @@ fun WelcomeScreen(
         mutableStateOf(SignUpState.Idle)
     }
     //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
-    var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
+    // 컴포지션 변경으로 초기화 우려가 있었음. remember -> rememberSaveable으로 수정.
+    var isSignUpRequested by rememberSaveable { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
     //화면 진입 시 자동 회원가입 요청
     LaunchedEffect(Unit) {
@@ -205,86 +207,8 @@ fun WelcomeScreen(
                 )
             }
         }
-//        Column(
-//            modifier = Modifier.fillMaxSize(),
-//            horizontalAlignment = Alignment.CenterHorizontally
-//        ) {
-//
-//            // 로고 위치 (394/917)
-//            Spacer(modifier = Modifier.height((394.scaler)))
-//            Image(
-//                painter = painterResource(id = R.drawable.img_logo_white),
-//                contentDescription = "Logo",
-//                Modifier
-//                    .offset(x = (160.scaler) - (configuration.screenWidthDp.dp / 2) + (46.scaler)) // 시작 너비 보정
-//                    .width((92.scaler))
-//                    .height((65.scaler)),
-//                contentScale = ContentScale.Fit
-//            )
-//
-//            Spacer(modifier = Modifier.height((20.scaler)))
-//
-//            Text(
-//                text = "링큐에 오신 걸 환영해요!",
-//                color = colorTheme.white,
-//                fontSize = 22.sp,
-//                fontWeight = FontWeight.Bold,
-//                fontFamily = Paperlogy.font,
-//                textAlign = TextAlign.Start
-//            )
-//
-//            Spacer(modifier = Modifier.height((16.scaler)))
-//
-//            Text(
-//                text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
-//                color = colorTheme.white,
-//                fontSize = 16.sp,
-//                fontFamily = Paperlogy.font,
-//                fontWeight = FontWeight.Bold,
-//                textAlign = TextAlign.Center
-//
-//            )
-//        }
-        // 버튼을 Box의 직접 자식으로 두고, 하단 정렬
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .padding(start = (20.scaler), end = (20.scaler), bottom = bottomPadding)
-                .height((50.scaler))
-                .background(
-                    Color.White,
-                    shape = RoundedCornerShape(18.dp)
-                )
-                .clickable(enabled = false) { /* 더 이상 사용 안 함 */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "로그인 하러가기",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                style = TextStyle(brush = colorTheme.maincolor),
-                fontFamily = Paperlogy.font
-            )
 
-            // 혹시 로딩 표시가 필요하다면?
-            /*
-            * if (signUpState is SignUpState.Loading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color(0xFFC800FF),
-                    strokeWidth = 2.dp
-                )
-            } else {
-                Text(
-                    text = "로그인 하러가기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(brush = colorTheme.maincolor),
-                    fontFamily = Paperlogy.font
-                )
-            }*/
-        }
+
 
 
     }

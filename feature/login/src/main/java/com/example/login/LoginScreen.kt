@@ -33,6 +33,7 @@ import com.example.design.theme.font.Paperlogy
 import com.example.design.util.scaler
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.ui.platform.LocalContext
+import com.example.login.constants.ServerConfig
 
 
 @Composable
@@ -171,7 +172,7 @@ fun LoginScreen(
                 text = "카카오로 시작하기",
                 textColor = Color.Black,
                 onClick = {
-                    val url = "https://linkuserver.store/login/kakao"
+                    val url = ServerConfig.KAKAO_LOGIN_URL
                     val customTabsIntent = CustomTabsIntent.Builder().build()
                     customTabsIntent.launchUrl(context, Uri.parse(url))
                 }
@@ -193,7 +194,7 @@ fun LoginScreen(
                 text = "구글로 시작하기",
                 textColor = Color.Black,
                 onClick = {
-                    val url = "https://linkuserver.store/login/google"
+                    val url = ServerConfig.GOOGLE_LOGIN_URL
                     val customTabsIntent = CustomTabsIntent.Builder().build()
                     customTabsIntent.launchUrl(context, Uri.parse(url))
                 }

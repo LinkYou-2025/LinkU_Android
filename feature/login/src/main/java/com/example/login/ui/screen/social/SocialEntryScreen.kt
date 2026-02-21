@@ -24,9 +24,15 @@ fun SocialEntryScreen(
 
         // social_auth_graph 스코프에 socialToken 저장
         // 이후 모든 소셜 플로우 화면에서 안전하게 사용 가능
-        navController
-            .getBackStackEntry("social_auth_graph")
-            .savedStateHandle["socialToken"] = socialToken
+        try{
+            navController
+                .getBackStackEntry("social_auth_graph")
+                .savedStateHandle["socialToken"] = socialToken
+        } catch (e: IllegalAccessException){
+            // social_auth_graph가 백스택에 없는 경우 처리
+            navController.popBackStack()
+            return@LaunchedEffect
+        }
 
         when (status) {
 
