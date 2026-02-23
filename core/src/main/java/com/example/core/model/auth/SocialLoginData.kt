@@ -1,6 +1,15 @@
-package com.example.linku_android.deeplink
+package com.example.core.model.auth
 
-//02.21 -> 오늘 서원이로부터 전달함. 백 수정되는대로 헨들러 수정하겠음. 아래는 수정할 예시.
+data class SocialLoginData(
+    val provider: String,//카카오, 네이버, 구글
+    val result: String,
+    val status: String?,
+    val accessToken: String?,
+    val refreshToken: String?,
+    val socialToken: String?,
+    val errorCode: String?
+)
+
 /**
  * data class SocialLoginData(
  *     val provider: String,       // kakao / google / naver
