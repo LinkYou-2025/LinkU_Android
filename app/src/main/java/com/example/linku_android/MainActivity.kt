@@ -11,8 +11,9 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.core.model.SystemBarMode
 import com.example.core.system.SystemBarController
+import com.example.linku_android.deeplink.extractSocialDeepLinkData
 import dagger.hilt.android.AndroidEntryPoint
-
+import com.example.linku_android.deeplink.SocialDeepLinkBus
 @AndroidEntryPoint
 class MainActivity : ComponentActivity(), SystemBarController {
     private var currentSystemBarMode: SystemBarMode? = null
@@ -21,7 +22,8 @@ class MainActivity : ComponentActivity(), SystemBarController {
         super.onCreate(savedInstanceState)
 
         intent?.data?.let { Log.d("DEEPLINK", "onCreate uri = $it") }
-
+        // 앱이 꺼진 상태에서 딥링크로 실행된 경우
+        intent?.let { handleDeepLinkIntent(it) }
         //WindowCompat.setDecorFitsSystemWindows(window, false)
         //enableEdgeToEdge()
         // 최초 실행 딥링크
@@ -38,13 +40,26 @@ class MainActivity : ComponentActivity(), SystemBarController {
         super.onNewIntent(intent)
         setIntent(intent)
 
-        // 딥링크만 업데이트
-        //socialLoginState.value = extractDeepLinkData(intent)
+        // 앱 실행 중 딥링크 들어온 경우
+        handleDeepLinkIntent(intent)
+    }
+
+    private fun handleDeepLinkIntent(intent: Intent) {
+        val uri = intent.data ?: return
+
+        when (uri.host) {
+            "auth" -> {
+                val data = extractSocialDeepLinkData(intent) ?: return
+                Log.d("DEEPLINK", "소셜 로그인 딥링크 수신: $data")
+                SocialDeepLinkBus.emit(data)  // ← 다음 단계에서 만들 파일
+            }
+        }
     }
 
 
 
-        /**
+
+    /**
      *  SystemBarController 구현
      * 앱 전역 시스템 바 단일 제어 지점
      */

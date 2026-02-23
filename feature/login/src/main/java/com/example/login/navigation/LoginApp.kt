@@ -45,9 +45,22 @@ import com.example.login.viewmodel.SocialAuthViewModel
 fun LoginApp(
     onLoginSuccess: () -> Unit,
     loginViewModel: LoginViewModel,
-    showNavBar: (Boolean) -> Unit
+    showNavBar: (Boolean) -> Unit,
+    initialSocialToken: String? = null,
 ) {
     val navController = rememberNavController()
+
+    // 추가: 소셜 딥링크로 진입한 경우 social_entry로 바로 이동
+    LaunchedEffect(initialSocialToken) {
+        if (!initialSocialToken.isNullOrBlank()) {
+            navController.navigate(
+                "social_entry?socialToken=$initialSocialToken&status=TEMP"
+            ) {
+                popUpTo("auth_graph") { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
