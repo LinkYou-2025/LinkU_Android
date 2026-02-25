@@ -29,7 +29,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.Color
 import com.example.curation.R
 import com.example.curation.ui.effect.highlight.RadialGradientCircle
-import com.example.curation.ui.main_card.CurationMainCard
 import com.example.curation.ui.main_card.CurationMainCardPager
 import com.example.curation.ui.screen.detail.CurationMonthDetailOverlay
 import com.example.design.theme.font.Paperlogy
