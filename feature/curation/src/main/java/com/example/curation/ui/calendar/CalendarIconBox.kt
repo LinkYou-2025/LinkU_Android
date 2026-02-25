@@ -29,8 +29,8 @@ import androidx.compose.runtime.remember
 import java.time.LocalDate
 // 월 약어 리스트
 private val MONTH_LABELS = listOf(
-    "JAN", "FEB", "MAR", "APR", "MAY", "JUNE",
-    "JULY", "AUG", "SEP", "OCT", "NOV", "DEC"
+    "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
+    "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
 )
 
 
