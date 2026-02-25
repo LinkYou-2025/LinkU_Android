@@ -1,6 +1,5 @@
 package com.example.file.ui.content
 
-import androidx.lifecycle.lifecycleScope
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -12,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,16 +26,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.design.modifier.noRippleClickable
 import com.example.file.FileViewModel
 import com.example.file.R
-import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.item.LinkItemLayout
 import com.example.file.ui.modal.FileModalWindow
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
-import kotlinx.coroutines.launch
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun LinksGrid(
@@ -164,8 +161,8 @@ fun LinksGrid(
         },
         onDismiss = { deleteModalWindowVisible = false },
         title = "해당 링크를 삭제하시겠습니까?",
-        positiveText = "삭제",
-        negativeText = "취소"
+        positiveText = "삭제하기",
+        negativeText = "취소하기"
     ) {
         Text(
             text = "삭제 시 해당 링크가 영구적으로 제거되며\n복구가 불가능합니다.",

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,9 +37,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.file.R
 import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.color.Basic
+import com.example.file.R
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray300
@@ -73,6 +72,9 @@ fun FileBottomSheet(
                     color = Basic.gray[300]
                 )
             },
+
+            // 딤 효과 수치
+            scrimColor = Basic.black.copy(alpha = 0.5f),
             sheetState = sheetState,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
@@ -85,26 +87,29 @@ fun FileBottomSheet(
                     .padding(bottom = 20.dp)
                     .padding(horizontal = 20.dp),
             ) {
+
                 Text(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     text = title,
                     fontSize = 18.sp,
-                    lineHeight = 22.sp,
                     fontFamily = DefaultFont,
                     fontWeight = FontWeight(500),
                     color = Black,
                 )
+
+                Spacer(modifier = Modifier.height(11.dp))
+
                 Text(
                     modifier = Modifier
-                        .padding(start = 10.dp, top = 14.dp),
+                        .padding(start = 10.dp),
                     text = body,
                     fontSize = 15.sp,
-                    lineHeight = 22.sp,
                     fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
                     color = Gray600,
                 )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 content()

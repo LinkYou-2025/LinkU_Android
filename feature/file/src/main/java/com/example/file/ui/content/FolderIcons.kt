@@ -19,7 +19,7 @@ import com.example.file.ui.theme.White
 
 // 공유 폴더 사람 아이콘
 @Composable
-fun ShareFolderIcon(
+internal fun ShareFolderIcon(
     tint: Color
 ) {
     Icon(
@@ -31,7 +31,7 @@ fun ShareFolderIcon(
 
 // 잠금 폴더 자물쇠 아이콘
 @Composable
-fun LockFolderIcon(
+internal fun LockFolderIcon(
     tint: Color
 ) {
     Icon(
@@ -43,7 +43,7 @@ fun LockFolderIcon(
 
 // 수정 연필 아이콘
 @Composable
-fun PencilIcon(
+internal fun PencilIcon(
     tint: Color
 ) {
     Icon(
@@ -55,7 +55,7 @@ fun PencilIcon(
 
 // 북마크 별 아이콘
 @Composable
-fun BookMarkStar(
+internal fun BookMarkStar(
     isBookmarked: Boolean
 ) {
     val modifier = if(isBookmarked) Modifier

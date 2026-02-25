@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,6 +46,7 @@ import com.example.core.model.LinkItemInfo
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
+import com.example.design.theme.color.Basic
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray100
@@ -62,9 +64,9 @@ fun LinkCategorizationBottomSheet(
 ) {
     val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
-    var link by remember { mutableStateOf<LinkItemInfo?>(null) }
+    //var link by remember { mutableStateOf<LinkItemInfo?>(null) }
 
-    var selectedLinks = mutableListOf<LinkItemInfo>()
+    val selectedLinks = remember { mutableStateListOf<LinkItemInfo>() }
 
     val scope = rememberCoroutineScope()
 
@@ -75,15 +77,17 @@ fun LinkCategorizationBottomSheet(
         title = "${folderStateViewModel.selectedTopFolder?.folderName?:""} 폴더의 미분류 링크 목록",
         body = "하위폴더에 추가하실 링크를 선택해주세요!",
         buttonText = "추가",
+        isReady = selectedLinks.isNotEmpty(),
         visible = folderStateViewModel.linkCategorizationBottomSheetVisible,
         onOkay = {
             scope.launch{
-                selectedLinks.map {
-                    fileViewModel.updateLinkFolder(
-                        it,
-                        folderStateViewModel.selectedBottomFolder?.folderId!!
-                    )
+                val folderId = requireNotNull(folderStateViewModel.selectedBottomFolder?.folderId)
+
+                selectedLinks.forEach {
+                    fileViewModel.updateLinkFolder(it, folderId)
                 }
+
+                selectedLinks.clear()
             }
         },
         onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
@@ -95,7 +99,7 @@ fun LinkCategorizationBottomSheet(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(links) {
-                val l = it
+                val link = it
                 val title = it.title
                 val url = it.url
                 val icon = domainLogoPainterOrNull(it.url)?:painterResource(R.drawable.link_categorization_default)
@@ -104,64 +108,71 @@ fun LinkCategorizationBottomSheet(
                 var checked by remember { mutableStateOf(false)}
                 Row(
                     modifier = Modifier
-                        //.height(60.dp)
+                        .height(60.dp)
+                        .offset(x = (-20).dp)
                         .noRippleClickable{
                             if(checked){
                                 Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.remove(l)
-                                checked = selectedLinks.contains(l)
+                                selectedLinks.remove(link)
+                                checked = selectedLinks.contains(link)
                             } else {
                                 Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.add(l)
-                                checked = selectedLinks.contains(l)
+                                selectedLinks.add(link)
+                                checked = selectedLinks.contains(link)
                             }
                         },
-                    horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(18.dp)),
                         checked = checked,
                         onCheckedChange = {
                             if(checked){
                                 Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.remove(l)
-                                checked = selectedLinks.contains(l)
+                                selectedLinks.remove(link)
+                                checked = selectedLinks.contains(link)
                             } else {
                                 Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.add(l)
-                                checked = selectedLinks.contains(l)
+                                selectedLinks.add(link)
+                                checked = selectedLinks.contains(link)
                             }
                         },
                         colors = CheckboxDefaults.colors(
                             checkedColor = Purple200,
+                            uncheckedColor = Basic.gray[200],
                         )
                     )
 
                     Box(
                         modifier = Modifier
-                            .height(60.dp)
-                            .background(Gray100),
+                            //.height(60.dp)
+                            .background(
+                                color = Gray100,
+                                shape = RoundedCornerShape(18.dp)
+                                )
+                            /*.clip(RoundedCornerShape(18.dp))*/,
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .clip(RoundedCornerShape(18.dp)),
+                                .fillMaxHeight(),
                             painter = img,
                             contentDescription = null
                         )
                     }
 
+
                     Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(vertical = 8.dp),
+                        modifier = Modifier.fillMaxHeight(),
+                        //verticalArrangement = Arrangement.SpaceBetween
+
                     ) {
+                        // 링크 상단 패딩
+                        Spacer(modifier = Modifier.height(7.dp))
+
                         Text(
                             text = title,
                             fontSize = 15.sp,
-                            lineHeight = 22.sp,
                             fontFamily = DefaultFont,
                             fontWeight = FontWeight(500),
                             color = Black,
@@ -194,7 +205,6 @@ fun LinkCategorizationBottomSheet(
                             Text(
                                 text = url,
                                 fontSize = 12.sp,
-                                lineHeight = 14.sp,
                                 fontFamily = DefaultFont,
                                 fontWeight = FontWeight(400),
                                 color = Gray800,
@@ -202,7 +212,10 @@ fun LinkCategorizationBottomSheet(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+                        // 링크 하단 패딩
+                        Spacer(modifier = Modifier.height(7.dp))
                     }
+
                 }
             }
         }
