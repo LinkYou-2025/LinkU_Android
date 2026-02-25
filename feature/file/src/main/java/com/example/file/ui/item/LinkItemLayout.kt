@@ -6,6 +6,8 @@ import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -28,25 +29,24 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.compose.rememberNavController
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -54,8 +54,6 @@ import coil3.request.error
 import coil3.request.fallback
 import coil3.request.placeholder
 import com.example.core.model.LinkItemInfo
-import com.example.design.modifier.noRippleClickable
-import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
@@ -66,11 +64,12 @@ import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.White
 import com.example.file.ui.theme.domainLogoPainterOrNull
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import java.time.OffsetDateTime
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalTextApi::class
+)
 @Composable
 fun LinkItemLayout(
     link: LinkItemInfo? = null,
@@ -78,7 +77,6 @@ fun LinkItemLayout(
     onLongClick: (Long) -> Unit = {},
 ) {
     val tags = link?.tags?:emptyList()
-    var showDialog by remember { mutableStateOf(false) }
 
     val domainIcon = link?.let{ domainLogoPainterOrNull(it.url) }
 
@@ -99,28 +97,38 @@ fun LinkItemLayout(
         Box (
             // 태그 배경: 크기 wrap, 둥근 모서리(6dp), Gray100 배경색
             modifier = Modifier
-                .wrapContentSize()
                 .background(
                     shape = RoundedCornerShape(size = 6.dp),
                     color = Gray100
-                ),
+                )
+                .padding(horizontal = 6.dp, vertical = 1.dp),
+            contentAlignment = Alignment.Center
         ) {
+
             // 태그 텍스트
             Text(
-                // 태그 텍스트를 Box 중앙에 정렬, 내부 여백(가로 6dp, 세로 3dp)
+                // 태그 텍스트를 Box 중앙에 정렬, 내부 여백(가로 1dp, 세로 2dp)
                 modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 6.dp, vertical = 1.dp),
+                    .padding(horizontal = 1.dp, vertical = 2.dp),
                 text = tag,
-                // 폰트 크기(10sp)
-                fontSize = 10.sp,
+                // 폰트 크기(12sp)
+                fontSize = 12.sp,
                 // 폰트
                 fontFamily = DefaultFont,
                 // 폰트 굵기(Normal)
                 fontWeight = FontWeight.Normal,
                 // 글자색(Gray600)
                 color = Gray600,
+
+                textAlign = TextAlign.Center,
+
+                style = TextStyle(
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false
+                    )
+                )
             )
+
         }
     }
 
@@ -128,7 +136,7 @@ fun LinkItemLayout(
             indication = null,
             interactionSource = remember { MutableInteractionSource() },
             onClick = {
-                link?.linkuId?.let {
+                link.linkuId.let {
                     Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
                     onClick(link)
                 }
@@ -144,21 +152,17 @@ fun LinkItemLayout(
         // 카드 크기: 가로 181dp, 세로 267dp
         modifier = Modifier
             .width(181.dp)
-            //.height(267.dp)
-            then(modifier)
-            /*.pointerInput(Unit) {
-                detectTapGestures(
-                    onLongPress = {
-                        showDialog = true // 꾹 누르면 Dialog 띄우기
-                    }
-                )
-            }*/,
+            .then(modifier)
+            .shadow(
+                elevation = 4.dp,
+                shape = RoundedCornerShape(18.dp)
+            ),
         // 모서리 둥글게(18dp)
-        shape = RoundedCornerShape(18.dp),
+        //shape = RoundedCornerShape(18.dp),
         // 카드 배경색(White)
         color = White,
         // 그림자(입체감) 효과(20dp)
-        shadowElevation = 5.dp//(if(painter == null) 0 else 5).dp,
+        //shadowElevation = 5.dp//(if(painter == null) 0 else 5).dp,
     ) {
         // 내용 전체를 세로로 배치하는 Column
         Column (
@@ -197,11 +201,13 @@ fun LinkItemLayout(
                 }
             }
 
+            // 링크 메인 이미지, 제목 사이 간격
+            Spacer(modifier = Modifier.height(10.dp))
+
             // (2) 링크 제목
             Text(
                 // 위쪽 여백(10dp)
-                modifier = Modifier
-                    .padding(top = 10.dp),
+                modifier = Modifier,
                 text = link?.title?:"제목",
                 // 폰트 크기(15sp)
                 fontSize = 15.sp,
@@ -215,12 +221,14 @@ fun LinkItemLayout(
                 overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
             )
 
+            // 링크 제목, 태그 사이 간격
+            Spacer(modifier = Modifier.height(1.dp))
+
             // (3) 링크 분류 태그(여러 개를 Row에 배치)
             LazyRow(
                 // 가로 전체 채우기, 위쪽 여백(8dp)
                 modifier = Modifier
-                    .height(30.dp)
-                    .padding(top = 8.dp),
+                    .height(30.dp),
                 // 태그 간 5dp 간격, 왼쪽 정렬
                 horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
                 // 세로 중앙 정렬
@@ -232,8 +240,8 @@ fun LinkItemLayout(
                 }
             }
 
-            // (4) 남은 공간 모두 차지하는 Spacer (아래로 밀어내기)
-            Spacer(modifier = Modifier.height(8.dp))
+            // 링크 태그, 설명 프레임 사이 간격
+            Spacer(modifier = Modifier.height(5.dp))
 
             // (5) 링크 설명 프레임 (도메인, 아이콘 등)
             Row(
@@ -300,7 +308,7 @@ private fun LinkItemTest() {
         contentAlignment = Alignment.TopCenter
     ){
         Box(
-            modifier = Modifier.alpha(0.35f),
+            //modifier = Modifier.alpha(0.35f),
         ){
             LinkItemLayout(
                 link = null
@@ -323,5 +331,6 @@ private fun LinkItemTest() {
             textAlign = TextAlign.Center,
         )
     }
-}
 
+    LinkItemLayout {  }
+}

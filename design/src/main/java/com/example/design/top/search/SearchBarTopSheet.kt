@@ -146,7 +146,7 @@ fun SearchBarTopSheet(
      * - 350ms 디바운스
      * - 동일 값 중복 호출 방지
      */
-    LaunchedEffect(text) {
+    LaunchedEffect(Unit) {
         snapshotFlow { text }
             .map { it.trim() }
             .filter { it.length >= 2 }
