@@ -181,7 +181,7 @@ class UserRepositoryImpl @Inject constructor(
         //val fullToken = authPreference.accessToken
         //Log.d(TAG, "📍 Full AccessToken: $fullToken")
         val dto = serverApi.withAuth(authPreference) {
-            getUserInfo(userId)
+            getUserInfo(/*userId*/)
         }
 
         // 📍 서버 원본 데이터 확인
@@ -282,7 +282,7 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getNickname(userId: Long): String? {
         return try {
             val dto = serverApi.withAuth(authPreference) {
-                getUserInfo(userId)
+                getUserInfo(/*userId*/)
             }
             val nick = dto.nickName
             Log.d(TAG, "닉네임=$nick")

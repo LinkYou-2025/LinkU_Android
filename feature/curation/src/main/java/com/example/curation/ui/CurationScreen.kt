@@ -175,6 +175,74 @@ private fun CurationScreenContent(
         )
     }
 }
+
+@OptIn(ExperimentalSharedTransitionApi::class)
+@Preview(
+    showBackground = true,
+    backgroundColor = 0xFFFFFFFF, // 어두운 배경
+    widthDp = 390,
+    heightDp = 844
+)
+@Composable
+fun PreviewCurationScreen() {
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { 3 }
+    )
+
+    SharedTransitionLayout {
+        Box(modifier = Modifier.fillMaxSize()) {
+
+            // 핑크 원
+            RadialGradientCircle(
+                color = Color(0xFFC800FF),
+                modifier = Modifier.offset(
+                    x = (-88).scaler,
+                    y = (-12).scaler
+                )
+            )
+
+            // 블루 원
+            RadialGradientCircle(
+                color = Color(0xFF2C6FFF),
+                modifier = Modifier.offset(
+                    x = 24.scaler,
+                    y = (-6).scaler
+                )
+            )
+
+            // 로고
+            Image(
+                painter = painterResource(id = R.drawable.img_curation_logo),
+                contentDescription = "logo",
+                modifier = Modifier
+                    .offset(
+                        x = 224.scaler,
+                        y = 95.scaler
+                    )
+                    .size(
+                        width = 197.scaler,
+                        height = 140.scaler
+                    )
+            )
+
+            Scaffold(
+                topBar = {
+                    TopBar(showSearchBar = false, backgroundColor = null)
+                },
+                containerColor = Color.Transparent
+            ) { innerPadding ->
+                CurationScreenContent(
+                    nickname = "세나",
+                    pagerState = pagerState,
+                    isDetailOpen = false,
+                    onCardClick = { _, _ -> },
+                    modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
+                )
+            }
+        }
+    }
+}
 /*
 @Composable
 private fun CurationScreenContent(

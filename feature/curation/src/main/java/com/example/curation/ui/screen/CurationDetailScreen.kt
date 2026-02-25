@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import com.example.curation.Paperlogy
 import com.example.design.theme.LocalColorTheme
 import com.example.curation.CurationDetailViewModel
 import java.time.LocalDate
@@ -55,6 +54,7 @@ import com.example.curation.ui.recommend_list.CurationRecommendedLinksSection
 import com.example.curation.ui.recommend_list.RecommendedLinkCardSkeleton
 import com.example.curation.ui.recommend_list.SkeletonEnd
 import com.example.curation.ui.recommend_list.SkeletonStart
+import com.example.design.theme.font.Paperlogy
 
 
 //헬퍼
@@ -174,7 +174,7 @@ private fun CurationDetailScreenContent(
                 Text(
                     text = "추천 링크",
                     style = MaterialTheme.typography.titleMedium.copy(
-                        fontFamily = Paperlogy,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp
                     ),
@@ -345,7 +345,7 @@ fun TagChip(text: String) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = Paperlogy,
+                fontFamily = Paperlogy.font,
                 fontSize = 12.sp,
                 color = Color.Gray
             )
@@ -382,7 +382,7 @@ private fun PositiveNoteCard(
                 style = TextStyle(
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    fontFamily = Paperlogy,
+                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(400),
                     color = Color(0xFF43454B)
                 )
