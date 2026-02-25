@@ -144,7 +144,7 @@ fun BottomFolderGrid(
                             folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
                         },
                         onChangeSharing = {
-                            fileViewModel.changeSharing(folder)
+                            fileViewModel.folderToPrivate(folder)
                         }
                     )
                 }

@@ -511,6 +511,8 @@ class FileViewModel @Inject constructor(
                     onGetLinks = { list -> _notCategorizationLinks.value = list.map { it.copy() } }
                 )
 
+                Log.d("FileViewModel", "getNotCategorizationLinks try result: ${_subFolders.value}")
+
                 Log.d("FileViewModel", "getNotCategorizationLinks try result: ${_notCategorizationLinks.value}")
 
             } catch (e: Exception) {
@@ -1055,24 +1057,25 @@ class FileViewModel @Inject constructor(
         }
         Log.d("FileViewModel", "receiveSharedFolder return")
     }
-
-    // 공개/비공개 전환
-    fun changeSharing(folder: FolderSimpleInfo){
-        Log.d("FileViewModel", "changeSharing")
+    // 공개 전환
+    fun folderToShare(folder: FolderSimpleInfo){
+        Log.d("FileViewModel", "folderToShare")
 
         viewModelScope.launch {
-            Log.d("FileViewModel", "changeSharing launch")
+            Log.d("FileViewModel", "folderToShare launch")
 
             startLoading()
             _errorMessage.value = null
 
-            try{
-                Log.d("FileViewModel", "changeSharing try")
+            try {
+                Log.d("FileViewModel", "folderToShare try")
 
-                val isSharing = folder.isSharing == "share"
+                val isPrivate = folder.isSharing == "private"
 
-                if(!isSharing){
-                    folderRepository.setFolderViewerPermission(folder.folderId)
+                if (isPrivate) {
+                    Log.d("FileViewModel", "folderToShare isPrivate true")
+
+                    //folderRepository.setFolderPublicPermission(folder.folderId)
 
                     _subFolders.update { list ->
                         list.map {
@@ -1083,8 +1086,39 @@ class FileViewModel @Inject constructor(
                             }
                         }
                     }
+                }
+                Log.d("FileViewModel", "folderToShare try result")
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "folderToShare catch: $e.message")
 
-                }else{
+                _errorMessage.value = e.message
+            } finally {
+                Log.d("FileViewModel", "folderToShare finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "folderToShare return")
+
+    }
+    // 비공개 전환
+    fun folderToPrivate(folder: FolderSimpleInfo){
+        Log.d("FileViewModel", "folderToPrivate")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "folderToPrivate launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try{
+                Log.d("FileViewModel", "folderToPrivate try")
+
+                val isSharing = folder.isSharing == "share"
+
+                if(isSharing){
+                    Log.d("FileViewModel", "folderToPrivate isSharing true")
+
                     folderRepository.setFolderPrivatePermission(folder.folderId)
 
                     _subFolders.update { list ->
@@ -1098,18 +1132,18 @@ class FileViewModel @Inject constructor(
                     }
                 }
 
-                Log.d("FileViewModel", "changeSharing try result")
+                Log.d("FileViewModel", "folderToPrivate try result")
             }catch (e: Exception){
-                Log.d("FileViewModel", "changeSharing catch: $e.message")
+                Log.d("FileViewModel", "folderToPrivate catch: $e.message")
 
                 _errorMessage.value = e.message
             }finally {
-                Log.d("FileViewModel", "changeSharing finally")
+                Log.d("FileViewModel", "folderToPrivate finally")
 
                 stopLoading()
             }
         }
-        Log.d("FileViewModel", "changeSharing return")
+        Log.d("FileViewModel", "folderToPrivate return")
     }
 
     // ---------- share method ----------
