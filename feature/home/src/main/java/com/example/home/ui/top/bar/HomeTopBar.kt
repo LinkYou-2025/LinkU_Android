@@ -66,6 +66,7 @@ fun HomeTopBar(
     isCollapsed: Boolean,
     onExpandClick: () -> Unit,
     hasRequestedRecommend: Boolean,
+    onAlarmClick: () -> Unit,
 ) {
 
     val buttonBrush =
@@ -119,7 +120,9 @@ fun HomeTopBar(
 
             // 알림
             Box(
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable { onAlarmClick() }
             ) {
                 AlarmButton(
                     isNoticeExist = isNoticeExist,
@@ -269,6 +272,7 @@ fun PreviewHomeTopBar() {
         onRecommendClick = { /* preview no-op */ },
         isCollapsed = false,
         onExpandClick = { },
-        hasRequestedRecommend = false
+        hasRequestedRecommend = false,
+        onAlarmClick = {}
     )
 }

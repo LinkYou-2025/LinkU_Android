@@ -327,7 +327,19 @@ fun MainApp(
                         }
 
 
-                        HomeApp(viewModel = homeViewModel)
+                        HomeApp(
+                            viewModel = homeViewModel,
+                            onNavigateToMyPage = {  // TODO: 추후 알림 설정 페이지로 이동
+                                navigator.navigate(NavigationRoute.MyPage.route) {
+                                    popUpTo(navigator.graph.findStartDestination().id) {
+                                        saveState = true
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
                     }
                 }
 

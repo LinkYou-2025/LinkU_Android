@@ -3,6 +3,9 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
+
     // Hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
@@ -101,6 +104,16 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    //coil
+    // coil
     implementation("io.coil-kt:coil-compose:2.4.0")
+
+    // FCM
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
+
 }
