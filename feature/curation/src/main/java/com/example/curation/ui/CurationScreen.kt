@@ -34,6 +34,7 @@ import com.example.curation.ui.main_card.CurationMainCardPager
 import com.example.curation.ui.screen.detail.CurationMonthDetailOverlay
 import com.example.design.theme.font.Paperlogy
 import androidx.compose.foundation.pager.rememberPagerState
+import com.example.curation.ui.calendar.CalendarBox
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -161,7 +162,7 @@ private fun CurationScreenContent(
                 fontWeight = FontWeight(700),
                 color = Color(0xFF1451D5)
             ),
-            modifier = Modifier.padding(horizontal = 20.scaler)
+            modifier = Modifier.padding(horizontal = 24.scaler)
         )
 
         Spacer(modifier = Modifier.height(26.scaler))
@@ -173,6 +174,27 @@ private fun CurationScreenContent(
             isDetailOpen = isDetailOpen,
             onCardClick = onCardClick
         )
+
+        Spacer(modifier = Modifier.height(33.scaler))
+
+        Text(
+            text = "지난 큐레이션",
+            style = TextStyle(
+                fontSize = 22.sp,
+                lineHeight = 30.sp,
+                fontFamily = Paperlogy.font,
+                fontWeight = FontWeight(700),
+                color = Color(0xFF000208)
+            ),
+            modifier = Modifier.padding(horizontal = 24.scaler)
+        )
+
+        Spacer(modifier = Modifier.height(18.scaler))
+
+        CalendarBox(
+            modifier = Modifier.padding(horizontal = 18.scaler)
+        )
+
     }
 }
 
