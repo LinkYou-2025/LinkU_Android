@@ -49,7 +49,7 @@ interface UserApi {
     ): BaseResponse<withDrawalResultDTO>
 
     // 로그인
-    @POST("/api/users/login")
+    @POST("/api/v1/users/login")
     suspend fun signIn(
         @Body body: LoginRequestDTO
     ): BaseResponse<LoginResultDTO>
@@ -63,9 +63,9 @@ interface UserApi {
 
 
     // 마이페이지 조회
-    @GET("/api/users/{userId}")
+    @GET("/api/v1/users/me")
     suspend fun getUserInfo(
-        @Path("userId") userId: Long
+//        @Path("userId") userId: Long
     ): BaseResponse<UserInfoDTO>
 
     // 마이페이지 수정

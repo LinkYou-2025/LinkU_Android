@@ -124,7 +124,7 @@ fun MainApp(
 
 
     val socialLoginEvent by loginViewModel.socialLoginEvent.collectAsStateWithLifecycle()
-
+4
     LaunchedEffect(socialLoginEvent) {
         val event = socialLoginEvent as? SocialLoginEvent.NavigateToSocialEntry ?: return@LaunchedEffect
         pendingSocialToken = event.socialToken

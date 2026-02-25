@@ -39,10 +39,10 @@ import com.example.curation.ui.resolveSourceLabel
 import com.example.core.model.RecommendedLink
 import com.example.curation.R
 import coil3.request.crossfade
-import com.example.curation.Paperlogy
 import com.example.curation.ui.util.ShimmerSkeleton
 import com.example.curation.ui.util.rememberScaleFactor
 import com.example.curation.ui.util.shimmer
+import com.example.design.theme.font.Paperlogy
 import java.net.URI
 
 
@@ -229,7 +229,7 @@ fun RecommendedLinkCard(
                     Text(
                         text = link.title,
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontFamily = Paperlogy,
+                            fontFamily = Paperlogy.font,
                             lineHeight = 22.sp,
                             fontWeight = FontWeight(500),
                             fontSize = titleSize
@@ -276,7 +276,7 @@ fun RecommendedLinkCard(
                         Text(
                             text = sourceLabel,
                             style = MaterialTheme.typography.bodySmall.copy(
-                                fontFamily = Paperlogy,
+                                fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight(600),
                                 fontSize = sourceSize,
                                 color = Color(0xFF43454B)
@@ -305,7 +305,7 @@ fun TagChip(text: String) {
             style = TextStyle(
                 fontSize = 10.sp,
                 lineHeight = 12.sp,
-                fontFamily = Paperlogy,
+                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight(500),
                 color = Color(0xFF87898F)
             ),
