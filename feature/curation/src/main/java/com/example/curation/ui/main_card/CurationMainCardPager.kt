@@ -89,12 +89,13 @@ fun CurationMainCardPager(
             ) {
                 CurationCardItem(
                     imageUrl = imageUrls[page],
+                    page = page,
+                    totalPage = imageUrls.size,
+                    onCheckOutClick = { onCardClick(page, imageUrls[page]) }, // ← 추가
                     modifier = Modifier
                         .width(cardWidth)
                         .height(cardHeight)
-                        .clickable { onCardClick(page, imageUrls[page]) }
                 )
-
             }
         }
 
