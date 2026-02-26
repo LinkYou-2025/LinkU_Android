@@ -25,26 +25,18 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.curation.Paperlogy
-import com.example.design.theme.LocalColorTheme
 import com.example.curation.R
 import com.example.curation.CurationDetailUiState
-import com.example.curation.ui.util.rememberScaleFactor
-import com.example.curation.ui.util.shimmer
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.example.design.theme.font.Paperlogy
 import java.util.*
 
 
-//큐레이션 디테일 화면 맨 위에 있는 카드
+//큐레이션 디테일 화면 맨 위에 있는 카드 -> 곧 지워지지 않을까 싶지만, 재사용성 여부로 남김.
 
 @Composable
 fun HighlightCard(
@@ -110,7 +102,7 @@ fun HighlightCard(
                 color = Color.White,
                 style = TextStyle(
                     fontSize = 16.sp,
-                    fontFamily = Paperlogy,
+                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Medium
                 ),
                 modifier = Modifier.align(Alignment.Center)
@@ -156,7 +148,7 @@ fun HighlightCard(
                     color = Color.White,
                     style = TextStyle(
                         fontSize = 20.sp,
-                        fontFamily = Paperlogy,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight.Bold
                     ),
                     maxLines = 1
@@ -173,7 +165,7 @@ fun HighlightCard(
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontSize = 16.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy
+                        fontFamily = Paperlogy.font,
                     ),
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis
@@ -186,7 +178,7 @@ fun HighlightCard(
                     color = Color.White,
                     style = MaterialTheme.typography.bodySmall.copy(
                         fontSize = 13.sp,
-                        fontFamily = Paperlogy,
+                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight.Medium
                     )
                 )
@@ -298,7 +290,7 @@ private fun EmotionChip(text: String) {
             text = text,
             color = Color(0xFF9A3AB5),
             style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = Paperlogy,
+                fontFamily = Paperlogy.font,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             ),

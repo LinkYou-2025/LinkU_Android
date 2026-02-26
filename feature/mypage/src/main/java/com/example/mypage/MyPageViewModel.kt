@@ -19,12 +19,11 @@ import javax.inject.Inject
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val sessionStore: SessionStore, //세션 스토어 추가.
     private val authPreference: AuthPreference
 ): ViewModel() {
 
     // 별도 로딩(api 호출 없이) 로컬에 저장된 데이터 바로 보여줌.
-    val sessionState: StateFlow<SessionStore.SessionSnapshot> = sessionStore.session
+    val sessionState = userRepository.sessionState
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -88,7 +87,7 @@ class MyPageViewModel @Inject constructor(
         val id = authPreference.userId ?: return
         viewModelScope.launch {
             runCatching {
-                userRepository.getUserInfo(id)
+                userRepository.refreshUserInfo(id)
             }.onFailure { e ->
                 Log.e("MyPageViewModel", "데이터 동기화 실패: ${e.message}")
             }
@@ -110,20 +109,16 @@ class MyPageViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
-                // 1) DB 변경 : UserRepository를 통해 PATCH /api/users/profile API 호출
-                val success = userRepository.updateUserInfo(nickname, jobId, purposes, interests)
-                if (success) {
-                    // 다시 fetch 해서 최신 데이터 반영
-                    //loadUserInfo()
-
-                    // 서버 성공 시(DB 변경 성공시) 세션만 즉시 업데이트(ui 자동 갱신)
-                    sessionStore.updateProfile(nickname, jobId, jobName, purposes, interests)
-                    onSuccess()
-                } else {
-                    onError("변경에 실패했습니다.")
-                }
+                userRepository.updateUserProfile(
+                    nickname = nickname,
+                    jobId = jobId,
+                    jobName = jobName,
+                    purposes = purposes,
+                    interests = interests
+                )
+                onSuccess()
             } catch (e: Exception) {
-                onError("API 호출 실패: ${e.message}")
+                onError("변경에 실패했습니다: ${e.message}")
             }
         }
     }
@@ -140,9 +135,6 @@ class MyPageViewModel @Inject constructor(
                 userRepository.deleteUser(reason)
                 Log.d("MyPageViewModel", "✅ 회원 탈퇴 성공")
 
-                // 토큰/세션 정리
-                authPreference.clear()
-                sessionStore.clear()
 
                 onSuccess()
             } catch (e: Exception) {

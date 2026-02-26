@@ -15,6 +15,11 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import com.example.core.model.auth.AutoLoginState
+import com.example.core.model.auth.LoginErrorType
+import com.example.core.model.auth.LoginState
+import com.example.core.model.auth.SocialLoginData
+import com.example.core.model.auth.SocialLoginEvent
 
 /**
  * 세션 정리
@@ -30,27 +35,6 @@ import javax.inject.Inject
  * */
 
 
-// 로그인 상태 리펙토링
-sealed  class LoginState {
-    object Idle : LoginState()           // 초기 상태
-    object Loading : LoginState()        // 로그인 진행 중
-    data class Success(val result: LoginResult) : LoginState()  // 성공
-    data class Error(val errorType: LoginErrorType) : LoginState()  // 실패
-}
-
-enum class LoginErrorType(val message: String) {
-    INVALID_CREDENTIALS("이메일 또는 비밀번호가 올바르지 않습니다."),
-    SERVER_ERROR("서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
-    NETWORK_ERROR("네트워크 연결을 확인해주세요."),
-    UNKNOWN_ERROR("알 수 없는 오류가 발생했습니다.")
-}
-
-sealed class AutoLoginState {
-    object Idle : AutoLoginState()
-    object Checking : AutoLoginState()
-    object Success : AutoLoginState()
-    object Failed : AutoLoginState()
-}
 
 
 @HiltViewModel
@@ -222,5 +206,87 @@ open class LoginViewModel @Inject constructor(
     // 태그 상수 추가함.
     companion object {
         private const val TAG = "LoginViewModel"
+    }
+    // 소셜 로그인 토큰 처리 (딥링크를 통해 받은 토큰 처리)
+//  TODO: 백엔드 수정 완료 후 아래 내용 업데이트 필요
+// 1. refreshToken 딥링크 응답에 추가되면 → authPreference.saveTokens에 실제값 저장
+// 2. GET /api/users/me API 추가되면 → userId 조회 후 fetchAndSaveUserSession 호출
+// 3. 현재는 자동 로그인 불가 상태 (refreshToken 빈값으로 isLoggedIn = false)
+    // 소셜 로그인 토큰 처리(딥링크를 통해 받은 토큰 처리)
+    private val _socialLoginEvent = MutableStateFlow<SocialLoginEvent?>(null)
+    val socialLoginEvent: StateFlow<SocialLoginEvent?> = _socialLoginEvent
+
+    fun consumeSocialLoginEvent() {
+        _socialLoginEvent.value = null
+    }
+
+    fun handleSocialDeepLink(data: SocialLoginData) {
+        viewModelScope.launch {
+            Log.d("SOCIAL_VM", "handleSocialDeepLink 호출됨: $data")
+            try {
+                _loginState.value = LoginState.Loading
+
+                when {
+                    // 기존 유저 - 바로 홈으로
+                    data.result == "SUCCESS" && data.status == "ACTIVE" -> {
+                        Log.d("SOCIAL_VM", "ACTIVE 케이스 진입")
+                        val accessToken  = data.accessToken  ?: run {
+                            _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+                            return@launch
+                        }
+                        val refreshToken = data.refreshToken ?: run {
+                            _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+                            return@launch
+                        }
+                        // TODO: 서원이 /api/users/me API 확인 후 아래 작업 필요
+                        // 1. GET /api/users/me 호출 → 실제 userId 조회
+                        // 2. authPreference.saveTokens(userId = 실제값) 으로 교체
+                        // 3. fetchAndSaveUserSession(userId) 호출 → 세션 풀 세팅
+                        // 4. 현재는 userId=0L 임시값이라 자동 로그인 불가 상태
+
+                        // TODO: 서원이 /api/users/me 확인 후 userId 실제값으로 교체
+                        authPreference.saveTokens(
+                            accessToken  = accessToken,
+                            refreshToken = refreshToken,
+                            userId       = 0L // TODO: 실제 userId로 교체 필요 - 지금 자동 로그인 불가, 닉네임 제대로 안 내려옴.
+                        )
+                        Log.d(TAG, "소셜 ACTIVE 토큰 저장 완료")
+
+                        _loginState.value = LoginState.Success(
+                            LoginResult(
+                                accessToken  = accessToken,
+                                refreshToken = refreshToken,
+                                userId       = 0,
+                                status       = "ACTIVE",
+                                inactiveDate = null
+                            )
+                        )
+                    }
+
+                    // 신규 유저 - 프로필 입력 화면으로
+                    data.result == "SUCCESS" && data.status == "TEMP" -> {
+                        val socialToken = data.socialToken ?: run {
+                            _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+                            return@launch
+                        }
+                        Log.d(TAG, "소셜 TEMP → SocialEntry로 이동")
+
+                        _socialLoginEvent.value = SocialLoginEvent.NavigateToSocialEntry(
+                            socialToken = socialToken,
+                            provider    = data.provider
+                        )
+                        _loginState.value = LoginState.Idle
+                    }
+
+                    data.result == "FAIL" -> {
+                        Log.e(TAG, "소셜 로그인 실패: ${data.errorCode}")
+                        _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "소셜 딥링크 처리 실패", e)
+                _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+            }
+        }
     }
 }
