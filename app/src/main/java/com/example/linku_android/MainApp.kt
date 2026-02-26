@@ -11,7 +11,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,28 +46,11 @@ import com.example.mypage.MyPageViewModel
 //import com.example.mypage.MyPageScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
-import androidx.navigation.compose.navigation
 
 
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.home.HomeApp
-import com.example.curation.ui.CurationDetailScreen
-import com.example.curation.ui.CurationScreen
 import com.example.login.ui.animation.AnimatedLoginScreen
-import com.example.login.ui.screen.EmailVerificationScreen
-import com.example.login.ui.terms.ServiceTermsScreen
-import com.example.login.ui.terms.PrivacyTermsScreenFixed
-import com.example.login.ui.terms.MarketingTermsScreenComposable
-import com.example.login.ui.screen.SignUpPasswordScreen
-import com.example.login.ui.screen.EmailLoginScreen
-import com.example.login.ui.screen.InterestContentScreen
-import com.example.login.ui.screen.InterestPurposeScreen
-import com.example.login.ui.screen.SignUpGenderScreen
-import com.example.login.ui.screen.SignUpNicknameScreen
-import com.example.login.ui.screen.SignUpJobScreen
-import com.example.login.ui.screen.WelcomeScreen
-import com.example.login.ui.screen.ResetPasswordScreen
-import com.example.login.viewmodel.SignUpViewModel
 import java.io.File
 import java.io.FileOutputStream
 
@@ -86,19 +68,20 @@ import com.example.login.viewmodel.LoginViewModel
 
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
-import com.example.curation.CurationDetailViewModel
+import com.example.core.model.auth.LoginState
+import com.example.core.model.auth.SocialLoginEvent
 import com.example.linku_android.curation.curationGraph
+import com.example.linku_android.deeplink.SocialDeepLinkBus
 import com.example.linku_android.deeplink.appLinkRoute
-import com.example.login.LoginApp
-import com.example.login.ui.bottom_sheet.TermsAgreementSheet
-import com.example.login.viewmodel.LoginState
+import com.example.login.navigation.LoginApp
+
 
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
-) {
 
+) {
 
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     LaunchedEffect(Unit) {
@@ -127,8 +110,50 @@ fun MainApp(
     // 마이페이지에서 사용할 뷰모델
     val mypageViewModel: MyPageViewModel = hiltViewModel()
 
+    // TEMP 토큰 임시 보관
+    var pendingSocialToken by remember { mutableStateOf<String?>(null) }
+
+    // SocialDeepLinkBus 구독 - MainActivity에서 emit한 소셜 딥링크 수신
+    LaunchedEffect(Unit) {
+        Log.d("SOCIAL_VM", "Bus 구독 시작")
+        SocialDeepLinkBus.flow.collect { data ->
+            Log.d("SOCIAL_VM", "MainApp Bus 수신: $data")
+            loginViewModel.handleSocialDeepLink(data)
+        }
+    }
+
+
+    val socialLoginEvent by loginViewModel.socialLoginEvent.collectAsStateWithLifecycle()
+4
+    LaunchedEffect(socialLoginEvent) {
+        val event = socialLoginEvent as? SocialLoginEvent.NavigateToSocialEntry ?: return@LaunchedEffect
+        pendingSocialToken = event.socialToken
+        navigator.navigate("login_root") {
+            popUpTo(0) { inclusive = true }
+            launchSingleTop = true
+        }
+        loginViewModel.consumeSocialLoginEvent()
+    }
+
+
     var currentLinkuNavigationItem by remember { mutableStateOf<LinkuNavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
+
+    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
+    LaunchedEffect(loginState) {
+        if (loginState is LoginState.Success) {
+            Log.d("SOCIAL_VM", "LoginState.Success 감지 → 홈 이동")
+            homeViewModel.refreshAfterLogin()
+            mypageViewModel.refreshUserInfo()
+            showNavBar = true
+            currentLinkuNavigationItem = LinkuNavigationItem.HOME
+            navigator.navigate(NavigationRoute.Home.route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
 
     var saveLinkEntryTriggered by remember { mutableStateOf(false) }
 
@@ -206,7 +231,7 @@ fun MainApp(
             val deps = remember {
                 EntryPointAccessors.fromApplication(app, SplashDeps::class.java)
             }
-            val loginVM: LoginViewModel = hiltViewModel()
+
 
 
             NavHost(
@@ -261,7 +286,7 @@ fun MainApp(
                                 autoLoginTried = true
 
                                 // refresh 있음 → 자동로그인 시도
-                                loginVM.tryAutoLogin(
+                                loginViewModel.tryAutoLogin(
                                     onSuccess = {
                                         navigator.navigate(NavigationRoute.Home.route) {
                                             popUpTo(NavigationRoute.Splash.route) { inclusive = true }
@@ -288,7 +313,9 @@ fun MainApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
                         showNavBar = { showNavBar = it },
+                        initialSocialToken = pendingSocialToken,
                         onLoginSuccess = {
+                            pendingSocialToken = null
                             // 세선 정보가 저장 후, 홈 화면 데이터 즉시 로드
                             homeViewModel.refreshAfterLogin()
                             // 마이페이지 정보도 미리 로그(자연스럽게?)

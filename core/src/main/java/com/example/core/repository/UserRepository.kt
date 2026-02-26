@@ -3,37 +3,19 @@ package com.example.core.repository
 import com.example.core.model.LoginResult
 import com.example.core.model.TokenReissueResult
 import com.example.core.model.UserInfo
+import com.example.core.model.auth.Gender
+import com.example.core.model.auth.Interest
+import com.example.core.model.auth.Job
+import com.example.core.model.auth.Purpose
+import com.example.core.session.SessionStore
+import kotlinx.coroutines.flow.Flow
 
-
-// 목적 (Purposes)
-private val purposeMap = mapOf(
-    "자기개발" to "SELF_DEVELOPMENT",
-    "사이드 프로젝트/창업준비" to "SIDE_PROJECT",
-    "기타" to "OTHERS",
-    "그냥 나중에 읽고 싶은 글 저장" to "LATER_READING",
-    "취업 커리어 준비" to "CAREER",
-    "블로그/콘텐츠 작성 참고용" to "CREATION_REFERENCE",
-    "인사이트 모으기" to "INSIGHTS",
-    "업무자료 아카이빙" to "WORK"
-)
-
-// 관심 분야 (Interests)
-private val interestMap = mapOf(
-    "비즈니스/마케팅" to "BUSINESS",
-    "학업/리포트" to "STUDY",
-    "커리어/채용" to "CAREER",
-    "심리/자기개발" to "PSYCHOLOGY",
-    "디자인/크리에이티브" to "DESIGN",
-    "it 개발" to "IT",
-    "글쓰기/콘텐츠 작성" to "WRITING",
-    "시사/트렌드" to "CURRENT_EVENTS",
-    "스타트업/창업" to "STARTUP",
-    "그냥 모아두고 싶은 글들" to "COLLECT",
-    "사회/문화/환경" to "SOCIETY",
-    "책/인 사이트 요약" to "INSIGHTS"
-)
 
 interface UserRepository {
+
+    val sessionState: Flow<SessionStore.SessionSnapshot>
+    //레포지토리가 세션 상태 플로우 제공하도록 수정함.
+
     suspend fun checkNickname(nickname: String): Boolean
     //suspend fun getNickname(userId: Long): String?
     suspend fun login(email: String, password: String): LoginResult
@@ -62,6 +44,7 @@ interface UserRepository {
     // 마이페이지 조회
     suspend fun getUserInfo(userId: Long): UserInfo
 
+    suspend fun refreshUserInfo(userId: Long)
     // 마이페이지 계정 수정
     suspend fun updateUserInfo(
         nickname: String,
@@ -72,4 +55,24 @@ interface UserRepository {
 
     // 로그아웃
     suspend fun logout()
+
+    //소셜 로그인 이후 사용자 정보 받음
+    suspend fun completeSocialProfile(
+        socialToken: String,
+        nickname: String,
+        gender: Gender,
+        job: Job,
+        purposes: List<Purpose>,
+        interests: List<Interest>
+    ): Boolean
+
+    suspend fun updateUserProfile(
+        nickname: String,
+        jobId: Long,
+        jobName: String,
+        purposes: List<String>,
+        interests: List<String>
+    )
+
+
 }

@@ -4,6 +4,8 @@ import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.model.auth.AuthErrorMessages
+import com.example.core.model.auth.EmailAuthState
 import com.example.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -16,26 +18,6 @@ import retrofit2.HttpException
 import javax.inject.Inject
 import kotlin.random.Random
 import kotlinx.coroutines.Job
-
-sealed class EmailAuthState {
-    object Idle : EmailAuthState()
-    object Sending : EmailAuthState()
-    data class SendSuccess(val message: String) : EmailAuthState()
-    data class SendError(val message: String) : EmailAuthState()
-    object Verifying : EmailAuthState()
-    object VerifySuccess : EmailAuthState()
-    data class VerifyError(val message: String) : EmailAuthState()
-}
-
-// 에러 메시지 상수
-object AuthErrorMessages {
-    const val INVALID_EMAIL_FORMAT = "잘못된 이메일 형식"
-    const val EMAIL_ALREADY_EXISTS = "이미 가입된 이메일입니다."
-    const val SERVER_ERROR = "서버 오류"
-    const val VERIFY_FAILED = "인증 실패"
-    const val NETWORK_ERROR = "네트워크 오류"
-    const val INVALID_CODE = "이메일 인증 코드가 잘못 입력 되었습니다."
-}
 
 //여기 api 전면 수정 예정. 실제 api 연동은 1월 말~ 2월 초
 // TODO : 하진 언니에게 otp 번호 생성은 백에서 할 수 있도록 수정 요청하기!

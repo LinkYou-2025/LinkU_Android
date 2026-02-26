@@ -90,6 +90,7 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+    implementation("androidx.browser:browser:1.7.0")
 
     // SharedPreference
     implementation(libs.preference.ktx)
