@@ -11,11 +11,11 @@ import retrofit2.http.Path
 
 interface CategoryApi {
     // 카테고리 색상 목록 조회
-    @GET("/api/categories")
+    @GET("categories")
     suspend fun getCategoryColor(): BaseResponse<List<CategoryColorListResponseDTO>>
 
     // (중분류) 폴더 색 수정
-    @PUT("/api/categories/{categoryId}/color")
+    @PUT("categories/{categoryId}/color")
     suspend fun updateCategoryColor(
         @Path("categoryId") categoryId: Long,
         @Body body: UpdateCategoryColorRequestDTO
