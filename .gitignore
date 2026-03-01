@@ -29,3 +29,4 @@ local.properties
 /app/release/baselineProfiles/0/app-release.dm
 /app/src/main/java/com/example/linku_android/FrontRules.kt
 /app/release/
+/.kotlin/
