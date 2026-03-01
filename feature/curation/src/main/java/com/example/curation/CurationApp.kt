@@ -19,6 +19,27 @@ import com.example.curation.ui.screen.detail.CurationMonthDetailScreen
  * 큐레이션 기능의 내비게이션 그래프 정의
  * 이건 아예 전면 변경이라 일단 MainAPP에서 분리만 시켰습니다.
  */
+
+/**
+ * 아래는 추후 큐레이션 두번째 카드 ui 완성되는대로 붙이겠습니다.(뒤로 가기, 홈으로 이동)
+ * composable("curation_keyword_detail") { backStackEntry ->
+ *     showNavBar(false)
+ *
+ *     val parentEntry = remember(backStackEntry) {
+ *         navigator.getBackStackEntry("curation")
+ *     }
+ *     val curationVm: CurationViewModel = hiltViewModel(parentEntry)
+ *
+ *     CurationKeywordDetailScreen(
+ *         viewModel = curationVm,
+ *         onBack = { navigator.popBackStack() },          // 이전 화면(curation_list)으로
+ *         onHome = { navigator.navigate("home") {         // 홈으로 이동
+ *             popUpTo("curation") { inclusive = false }
+ *             launchSingleTop = true
+ *         }}
+ *     )
+ * }
+ * */
 @OptIn (ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,

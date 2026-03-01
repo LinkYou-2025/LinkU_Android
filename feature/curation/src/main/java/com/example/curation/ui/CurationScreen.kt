@@ -56,10 +56,6 @@ fun CurationScreen(
     var selectedPage by remember { mutableStateOf(0) }
 
 
-    LaunchedEffect(Unit) {
-        viewModel.loadNickname()
-    }
-
     SharedTransitionLayout {
         Box(modifier = Modifier.fillMaxSize()) {
 
