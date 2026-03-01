@@ -11,24 +11,27 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties()
-localProperties.load(FileInputStream(rootProject.file("local.properties")))
+val localProperties = Properties().apply {
+    load(FileInputStream(rootProject.file("local.properties")))
+}
 
-val apiDomain = "https://linkuserver.store/"
-val apiVersion = "api/v1/"
+val serverDomain =
+    localProperties.getProperty("SERVER_DOMAIN") ?: "https://linkuserver.store"
 
-val serverBaseApiAddress = apiDomain + apiVersion
+val apiVersion =
+    localProperties.getProperty("API_VERSION") ?: "api/v1"
+
+val serverBaseUrl = "$serverDomain/$apiVersion/"
 
 android {
     namespace = "com.example.data"
     compileSdk = 36
-
     defaultConfig {
         minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseApiAddress\"")
+        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
     }
 
     buildTypes {
