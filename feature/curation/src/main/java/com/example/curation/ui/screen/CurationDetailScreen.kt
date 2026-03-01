@@ -74,10 +74,6 @@ fun CurationDetailScreen(
     onBack: () -> Unit = {},
 
 ) {
-    // 닉네임 로드 (홈 VM)
-    LaunchedEffect(Unit) {
-        homeViewModel.loadNickname()
-    }
 
 
     val nicknameState = homeViewModel.nickname.collectAsState(initial = "")

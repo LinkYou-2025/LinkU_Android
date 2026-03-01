@@ -19,10 +19,12 @@ import androidx.compose.runtime.setValue
 import com.example.core.model.search.RecentQuery
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.RecentSearchRepository
+import com.example.core.session.SessionStore
 import com.example.design.top.search.FastSearchItem
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
@@ -32,7 +34,7 @@ class CurationViewModel @Inject constructor(
     private val repository: CurationRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
-
+    private val sessionStore: SessionStore,
     private val recentRepository: RecentSearchRepository,
     private val linkuRepository: LinkuRepository,
 ) : ViewModel() {
@@ -45,8 +47,16 @@ class CurationViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    private val _nickname = MutableStateFlow("세나")
-    val nickname: StateFlow<String> = _nickname
+    val session = sessionStore.session //닉네임, 직업 정보
+
+    // 닉네임, 직업 session에서 직접
+    val nickname = sessionStore.session
+        .map { it.nickname ?: "세나" }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "세나")
+
+    val jobName = sessionStore.session
+        .map { it.jobName ?: "직장인" }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, "직장인")
 
     private val _recentCuration = MutableStateFlow<CurationItem?>(null)
     val recentCuration: StateFlow<CurationItem?> = _recentCuration
@@ -86,25 +96,7 @@ class CurationViewModel @Inject constructor(
     }
 
 
-    // 닉네임 가져오기
-    fun loadNickname() {
-        viewModelScope.launch {
-            val uid = requireUserId()
-            if (uid <= 0L) {
-                _nickname.value = "세나"
-                return@launch
-            }
 
-            runCatching { userRepository.getNickname(uid) }
-                .onSuccess { nick ->
-                    _nickname.value = nick ?: "세나"
-                }
-                .onFailure { e ->
-                    Log.e("UserRepository", "닉네임 가져오기 실패", e)
-                    _nickname.value = "세나"
-                }
-        }
-    }
     // retrofit2에 의존하지 않고, 예외에 code() 메서드가 있으면 꺼내오는 유틸
     private fun httpStatusCodeOrMinus1(throwable: Throwable): Int {
         return runCatching {
@@ -493,7 +485,7 @@ fun toggleHighlightLike() {
     }
 
     init {
-        loadNickname()
+
         loadMonthlyCuration()
 
     }
