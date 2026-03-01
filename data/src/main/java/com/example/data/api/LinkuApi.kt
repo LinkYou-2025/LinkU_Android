@@ -24,7 +24,7 @@ import retrofit2.http.Query
 interface LinkuApi {
     // 링크를 폴더에 저장(링크 생성)
     @Multipart
-    @POST("/api/linku")
+    @POST("linku")
     suspend fun addLink(
         @Part image: MultipartBody.Part?,
         @Part("linku") linku: RequestBody,
@@ -33,45 +33,45 @@ interface LinkuApi {
     ): BaseResponse<LinkuResultDTO>
 
     // 링크 상세보기
-    @GET("/api/linku/{linkuid}")
+    @GET("linku/{linkuid}")
     suspend fun viewDetailLink(
         @Path("linkuid") linkuid: Long
     ): BaseResponse<LinkuResultDTO>
 
-    @GET("/api/linku/{userId}/{linkuid}")
+    @GET("linku/{userId}/{linkuid}")
     suspend fun viewDetailLink(
         @Path("userId") userId: Long,
         @Path("linkuid") linkuid: Long
     ): BaseResponse<LinkuResultDTO>
 
     // 링크 체크
-    @GET("/api/linku/exist")
+    @GET("linku/exist")
     suspend fun checkLink(
         @Query("url") url: String
     ): BaseResponse<LinkuIsExistDTO>
 
     // 링크 수정
-    @PATCH("/api/linku/{linkuId}")
+    @PATCH("linku/{linkuId}")
     suspend fun updateLink(
         @Path("linkuId") linkuId: Long,
         @Body body: LinkuUpdateDTO
     ): BaseResponse<LinkuResultDTO>
 
     // 링크의 폴더 바꾸기
-    @PATCH("/api/linku/{linkuid}")
+    @PATCH("linku/{linkuid}")
     suspend fun updateLinkFolder(
         @Path("linkuid") linkuId: Long,
         @Body body: UpdateLinkFolderDTO
     ): BaseResponse<LinkuResultDTO>
 
     // 최근 열람한 링크 불러오기
-    @GET("/api/linku/recent")
+    @GET("linku/recent")
     suspend fun recentLinks(
         @Query("limit") limit: Int = 10
     ) : BaseResponse<List<LinkuSimpleDTO>>
 
     // 링크 추천
-    @GET("/api/linku/recommend")
+    @GET("linku/recommend")
     suspend fun recommendLink(
         @Query("situationId") situationId: Long,
         @Query("emotionId") emotionId: Long,
@@ -80,19 +80,19 @@ interface LinkuApi {
     ) : BaseResponse<List<LinkuSimpleDTO>>
 
     // 빠른 링크 검색
-    @GET("/api/linku/search/quick")
+    @GET("linku/search/quick")
     suspend fun quickSearch(
         @Query("keyword") keyword: String
     ) : BaseResponse<List<QuickSearchResult>>
 
     // 링크 삭제
-    @DELETE("/api/linku/{userLinkuId}")
+    @DELETE("linku/{userLinkuId}")
     suspend fun deleteLink(
         @Path("userLinkuId") userLinkuId: Long
     ): Response<Unit>
 
     // 링크 상세보기(userLinkuId 갖고오기용)
-    @GET("/api/linku/{linkuid}")
+    @GET("linku/{linkuid}")
     suspend fun getDetailLink(
         @Path("linkuid") linkuid: Long
     ): BaseResponse<GetDetailLinkDTO>
