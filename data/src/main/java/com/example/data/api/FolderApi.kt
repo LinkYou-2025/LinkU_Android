@@ -26,7 +26,6 @@ import retrofit2.http.Query
 
 interface FolderApi {
     // 폴더 북마크 등록/해제 (북마크 설정/해제)
-    // ✅
     @PATCH("folders/{folderId}/bookmark")
     suspend fun updateBookmark(
         @Path("folderId") folderId: Long,
@@ -34,24 +33,20 @@ interface FolderApi {
     ): BaseResponse<UpdateBookmarkResponseDTO>
 
     // 내 폴더 조회 (트리) (내 폴더 목록(트리) 조회)
-    // 작업 중
     @GET("folders/my")
     suspend fun getMyFolders(): BaseResponse<List<FolderTreeResponseDTO>>
 
     // (중분류) 중분류 폴더 조회
-    // ✅
     @GET("folders/parentFolders")
     suspend fun getParentfolders(): BaseResponse<List<GetParentFoldersDTO>>
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
-    // ✅
     @GET("folders/{parentFolderId}/subfolders")
     suspend fun getSubfolders(
         @Path("parentFolderId") parentFolderId: Long
     ): BaseResponse<List<FolderListResponseDTO>>
 
     // (소분류) 폴더 내부 링크 조회 (커서)
-    // 콜백 함수 등록
     @GET("folders/{folderId}/linkus")
     suspend fun getLinksFolders(
         @Path("folderId") folderId: Long,
@@ -60,7 +55,6 @@ interface FolderApi {
     ): BaseResponse<LinksFoldersResponseDTO>
 
     // (소분류) 폴더 생성 (소분류 폴더 생성)
-    // ✅
     @POST("folders/{parentFolderId}/subfolders")
     suspend fun createSubfolder(
         @Path("parentFolderId") parentFolderId: Long,
@@ -68,7 +62,6 @@ interface FolderApi {
     ): BaseResponse<FolderResponseDTO>
 
     // (소분류) 폴더 수정 (소분류 폴더 수정)
-    // 콜백 함수 등록
     @PUT("folders/subfolders/{folderId}")
     suspend fun updateSubfolder(
         @Path("folderId") folderId: Long,
@@ -76,40 +69,34 @@ interface FolderApi {
     ): BaseResponse<FolderResponseDTO>
 
     // (소분류) 폴더 삭제 (소분류 폴더 삭제)
-    // ✅
     @DELETE("folders/subfolders/{folderId}")
     suspend fun deleteSubfolder(
         @Path("folderId") folderId: Long
     ): Response<Unit>
 
     // 공유 받은 폴더 목록 조회
-    // ✅
     @GET("folders/shared")
     suspend fun getSharedFolders(): BaseResponse<List<GetSharedFoldersDTO>>
 
     // 공유 받은 폴더 삭제
-    // ✅
     @DELETE("folders/shared/{folderId}")
     suspend fun deleteSharedFolder(
         @Path("folderId") folderId: Long
     ): Response<Unit>
 
     // 폴더 공유 (뷰어 권한 설정)
-    // 콜백 함수 등록
     @POST("folders/share/{folderId}")
     suspend fun setFolderViewerPermission(
         @Path("folderId") folderId: Long
     ): BaseResponse<ShareFolderResponseDTO>
 
     // <임의추가> 폴더 뷰어 조회
-    // 작업중
     @GET("folders/share/{folderId}/members")
     suspend fun getFolderViewers(
-        @Path("folderID") folderId: Long
+        @Path("folderId") folderId: Long
     ): BaseResponse<List<ViewerResponseDTO>>
 
     // <임의추가> 뷰어 권한 수정
-    // 작업중
     @PUT("folders/share/{folderId}/members/{userFolderId}")
     suspend fun updateViewerPermission(
         @Path("folderId") folderId: Long,
@@ -118,7 +105,6 @@ interface FolderApi {
     ): BaseResponse<ShareFolderResponseDTO>
 
     // 폴더 비공개 전환
-    // 콜백 함수 등록
     @POST("folders/share/{folderId}/unshare")
     suspend fun setFolderPrivate(
         @Path("folderId") folderId: Long
