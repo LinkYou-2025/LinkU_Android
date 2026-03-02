@@ -11,27 +11,27 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties()
-localProperties.load(FileInputStream(rootProject.file("local.properties")))
-//인식이 오류가.. 있어서... 부득이하게 넣었는데, 추후 수정하겠습니다!
-val serverBaseUrl = localProperties.getProperty("SERVER_BASE_URL") ?: "https://linkuserver.store/"
+val localProperties = Properties().apply {
+    load(FileInputStream(rootProject.file("local.properties")))
+}
+
+val serverDomain =
+    localProperties.getProperty("SERVER_DOMAIN") ?: "https://linkuserver.store"
+
+val apiVersion =
+    localProperties.getProperty("API_VERSION") ?: "api/v1"
+
+val serverBaseUrl = "$serverDomain/$apiVersion/"
 
 android {
     namespace = "com.example.data"
-    compileSdk = 35
-
+    compileSdk = 36
     defaultConfig {
         minSdk = 26
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
-
-//        buildConfigField(
-//            "String",
-//            "SERVER_BASE_URL",
-//            "\"${localProperties.getProperty("SERVER_BASE_URL") ?: serverBaseUrl}\""
-//        )
     }
 
     buildTypes {
