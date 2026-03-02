@@ -91,4 +91,12 @@ dependencies {
     implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
     implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+
+    // TODO: Add the dependencies for Firebase products you want to use
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation("com.google.firebase:firebase-analytics")
 }
