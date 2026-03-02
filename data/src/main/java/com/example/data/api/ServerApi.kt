@@ -11,5 +11,6 @@ interface ServerApi :
     AIArticleApi,
     FolderApi,
     CategoryApi,
-    RefreshApi
+    RefreshApi,
+    AlarmApi
 

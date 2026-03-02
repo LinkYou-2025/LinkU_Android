@@ -11,6 +11,7 @@ import com.example.core.model.LinkResultInfo
 import com.example.core.model.LinkSimpleInfo
 import com.example.core.model.search.RecentQuery
 import com.example.core.repository.AIArticleRepository
+import com.example.core.repository.AlarmRepository
 import com.example.core.repository.CategoryRepository
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.RecentSearchRepository
@@ -42,6 +43,7 @@ class HomeViewModel @Inject constructor(
     private val aiArticleRepository: AIArticleRepository,
     private val categoryRepository: CategoryRepository,
     private val recentRepository: RecentSearchRepository,
+    private val alarmRepository: AlarmRepository,
 ) : ViewModel() {
 
     // 자돌 로그인 하고 이 함수가 가장 먼저 실행함.
@@ -658,4 +660,13 @@ class HomeViewModel @Inject constructor(
         Log.d("HomeViewModel", "clearRecentQuery return")
     }
     // ---------- search method ----------
+
+    // 알림
+    fun registerFcmToken(token: String) {
+        viewModelScope.launch {
+            alarmRepository.registerFcmToken(token)
+                .onSuccess { Log.d("HomeViewModel", "FCM 토큰 등록 성공") }
+                .onFailure { e -> Log.e("HomeViewModel", "FCM 토큰 등록 실패", e) }
+        }
+    }
 }

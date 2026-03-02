@@ -18,6 +18,7 @@ import com.example.home.screen.AlarmScreen
 import com.example.home.screen.HomeScreen
 import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
+import com.google.firebase.messaging.FirebaseMessaging
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -74,6 +75,19 @@ fun HomeApp(
         popExitTransition = { ExitTransition.None }
     ) {
         composable("onboarding") {
+
+            // 홈 진입 시 FCM 토큰 등록
+            LaunchedEffect(Unit) {
+                FirebaseMessaging.getInstance().token
+                    .addOnSuccessListener { token ->
+                        Log.d("HomeApp", "fcm token = $token")
+                        viewModel.registerFcmToken(token)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e("HomeApp", "FCM 토큰 가져오기 실패", e)
+                    }
+            }
+
             HomeScreen(
                 homeViewModel = viewModel,
                 userName = viewModel.userName.orEmpty().ifBlank { "링큐" },
