@@ -6,6 +6,7 @@ import com.example.core.model.CurationDetail
 
 
 interface CurationRepository {
+    //좋아요 기능 자체 삭제.
      // 최근 큐레이션 불러오기
      suspend fun getMyRecentCuration(userId: Long): CurationItem
 
@@ -18,13 +19,5 @@ interface CurationRepository {
      //큐레이션 추천(기본 페이지)
      suspend fun getHomeRecommendedLinksTop2(userId: Long, curationId: Long): List<RecommendedLink>
 
-     //큐레이션 좋아요(기본 페이지)
-     suspend fun getLikedCurations(userId: Long): List<CurationItem>
 
-     //큐레이션 좋아요 등록,취소
-     suspend fun likeCuration(curationId: Long, userId: Long)
-     suspend fun unlikeCuration(curationId: Long, userId: Long)
-
-     //큐레이션 현재 좋아요 상태 추가!
-     suspend fun isCurationLiked(curationId: Long, userId: Long): Boolean
 }
