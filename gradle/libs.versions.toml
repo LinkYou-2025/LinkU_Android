@@ -1,5 +1,5 @@
 [versions]
-agp = "8.9.1"
+agp = "8.13.2"
 kotlin = "2.0.0"
 coreKtx = "1.16.0"
 junit = "4.13.2"
@@ -26,7 +26,6 @@ androidx-test = "1.4.0"
 testng = "6.9.6"
 media3CommonKtx = "1.5.1"
 runtimeAndroid = "1.7.7"
-firebaseMessagingKtx = "24.1.1"
 navigationComposeJvmstubs = "2.9.3"
 gson = "2.10.1"
 media3CommonKtxVersion = "1.8.0"
@@ -35,6 +34,7 @@ composeTesting = "1.0.0-alpha09"
 toolsCore = "1.0.0-alpha14"
 foundationVersion = "1.10.1"
 foundationLayout = "1.10.0"
+firebaseBom = "34.9.0"
 
 
 
@@ -54,8 +54,8 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-hilt-android = { group = "com.google.dagger", name = "hilt-android", version = "2.54" }
-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version = "2.54" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 androidx-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "androidx-hilt" }
 androidx-hilt-navigation = {group = "androidx.hilt", name = "hilt-navigation-fragment", version.ref = "androidx-hilt"}
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
@@ -73,7 +73,6 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx", version.ref = "media3CommonKtx" }
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android", version.ref = "runtimeAndroid" }
-firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 
 androidx-navigation-compose-jvmstubs = { group = "androidx.navigation", name = "navigation-compose-jvmstubs", version.ref = "navigationComposeJvmstubs" }
 #androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt" }
@@ -87,8 +86,8 @@ androidx-compose-testing = { group = "androidx.xr.compose", name = "compose-test
 androidx-tools-core = { group = "androidx.privacysandbox.tools", name = "tools-core", version.ref = "toolsCore" }
 androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundationVersion" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
-
-
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
 
 
 [plugins]

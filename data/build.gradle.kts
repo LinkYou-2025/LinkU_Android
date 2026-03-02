@@ -61,7 +61,6 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(libs.material)
-    implementation(libs.firebase.messaging.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
@@ -95,4 +94,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }
