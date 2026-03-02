@@ -7,7 +7,7 @@ import retrofit2.http.POST
 
 interface AlarmApi {
     // FCM 토큰 등록
-    @POST("/api/v1/alarm/fcmtoken")
+    @POST("alarm/fcmtoken")
     suspend fun registerFcmToken(
         @Body body: AlarmFcmTokenDTO
     ): BaseResponse<String>
