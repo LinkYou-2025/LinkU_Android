@@ -74,7 +74,6 @@ class CurationDetailViewModel @Inject constructor(
         _userId.value = userId
         _curationId.value = curationId
         if (loadDetail) loadCurationDetail(curationId)
-        refreshLike() // 현재 좋아요 상태 조회
         if (loadLinks) loadRecommendedLinks(userId, curationId)
     }
 
@@ -102,56 +101,8 @@ class CurationDetailViewModel @Inject constructor(
         }
     }
 
-    /** 현재 좋아요 상태 새로고침 */
-    fun refreshLike(userId: Long? = null, curationId: Long? = null) {
-        val uid = userId ?: _userId.value
-        val cid = curationId ?: _curationId.value
-        if (uid <= 0 || cid <= 0) return
 
-        viewModelScope.launch {
-            runCatching { repo.isCurationLiked(cid, uid) }
-                .onSuccess { liked ->
-                    android.util.Log.d("CurationDetailVM", "좋아요 조회 성공: user=$uid, curation=$cid, liked=$liked")
-                    _detail.value = _detail.value.copy(liked = liked) }
-                .onFailure { e ->
-                    android.util.Log.e("CurationDetailVM", "좋아요 조회 실패: user=$uid, curation=$cid, error=${e.message}", e)
-                    _detail.value = _detail.value.copy(liked = false)
-                }
-        }
-    }
 
-    /** 하트 토글 (낙관적 업데이트 + 실패 롤백) */
-    fun toggleLike() {
-        val uid = _userId.value
-        val cid = _curationId.value
-        val current = _detail.value.liked ?: false
-        if (uid <= 0 || cid <= 0 || _detail.value.likeBusy) return
-
-        // 낙관적 업데이트 + busy on
-        _detail.value = _detail.value.copy(liked = !current, likeBusy = true, error = null)
-
-        viewModelScope.launch {
-            val result = runCatching {
-                if (current) repo.unlikeCuration(cid, uid) else repo.likeCuration(cid, uid)
-            }
-
-            _detail.value = result.fold(
-                onSuccess = {
-                    // 성공: busy off, 상태 유지
-                    _detail.value.copy(likeBusy = false)
-                },
-                onFailure = { e ->
-                    // 실패: 롤백 + 메시지
-                    val msg = e.message.orEmpty()
-                    val userMsg =
-                        if (msg.contains("Token", true) && msg.contains("expired", true))
-                            "세션이 만료됐어요. 다시 로그인해 주세요."
-                        else "좋아요 처리에 실패했어요"
-                    _detail.value.copy(liked = current, likeBusy = false, error = userMsg)
-                }
-            )
-        }
-    }
 
     /** 편의: 디테일/링크/좋아요 한 번에 로드 */
     fun loadAll(userId: Long, curationId: Long) {

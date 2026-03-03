@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.font.Paperlogy
 import com.example.design.util.scaler
+import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * 키워드 칩의 우선순위 레벨
@@ -124,6 +125,7 @@ fun KeywordChip(
             text = text,
             maxLines = 1,
             softWrap = false,
+            overflow = TextOverflow.Ellipsis,
             style = TextStyle(
                 fontSize = fontSize,
                 lineHeight = 25.sp,

@@ -164,14 +164,19 @@ fun MainApp(
     // 큐레이션 탭이 선택된 상태를 유지할 수 있도록 함.
     // 하위 라우트 추가 시에도 바텀탭 선택 상태 유지를 위해 startsWith로 통일 상태 추가
     // TODO 지민 : 코드 확인 부탁.
-    val currentLinkuNavigationItem = when {
-        currentRoute?.startsWith(NavigationRoute.Curation.route) == true ->
-            LinkuNavigationItem.CURATION
-        // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
+    fun isTabRoute(current: String?, root: String): Boolean =
+        current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
 
-        currentRoute?.startsWith(NavigationRoute.Home.route) == true -> LinkuNavigationItem.HOME
-        currentRoute?.startsWith(NavigationRoute.File.route) == true -> LinkuNavigationItem.FILE
-        currentRoute?.startsWith(NavigationRoute.MyPage.route) == true -> LinkuNavigationItem.MY_PAGE
+    val currentLinkuNavigationItem = when {
+        isTabRoute(currentRoute, NavigationRoute.Curation.route) ->
+            LinkuNavigationItem.CURATION
+
+        // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
+        isTabRoute(currentRoute, NavigationRoute.Home.route) ||
+                currentRoute == "savelink" ||
+                currentRoute == "savelinkresult/{linkuId}" -> LinkuNavigationItem.HOME
+        isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
+        isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
         else -> null
     }
 
