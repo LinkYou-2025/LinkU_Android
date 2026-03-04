@@ -18,12 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SheetState
@@ -178,8 +175,8 @@ fun TextFieldFileBottomSheet(
                 ) {
 
                     Icon(
-                        modifier = Modifier.width(15.dp),
-                        imageVector = Icons.Default.Check,
+                        modifier = Modifier.fillMaxWidth(0.45f),
+                        painter = painterResource(R.drawable.ic_top_folders_menu),
                         tint = White,
                         contentDescription = null
                     )
