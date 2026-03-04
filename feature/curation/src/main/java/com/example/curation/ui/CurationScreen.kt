@@ -34,6 +34,7 @@ import com.example.curation.ui.screen.detail.CurationMonthDetailOverlay
 import com.example.design.theme.font.Paperlogy
 import androidx.compose.foundation.pager.rememberPagerState
 import com.example.curation.ui.calendar.CalendarBox
+import com.example.curation.ui.screen.CurationKeywordDetailScreen
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -52,6 +53,7 @@ fun CurationScreen(
 
     // 디테일 오버레이 상태
     var showDetail by remember { mutableStateOf(false) }
+    var showKeywordDetail by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var selectedPage by remember { mutableStateOf(0) }
 
@@ -107,7 +109,10 @@ fun CurationScreen(
                     onCardClick = { index, imageUrl ->
                         selectedPage = index
                         selectedImageUrl = imageUrl
-                        showDetail = true
+                        when (index) {
+                            1 -> showKeywordDetail = true  // 2번 카드 → 키워드 화면
+                            else -> showDetail = true      // 1, 3번 카드 → 기존 오버레이?
+                        }
                     },
                     modifier = Modifier.padding(top = innerPadding.calculateTopPadding())
                 )
@@ -119,6 +124,14 @@ fun CurationScreen(
                     page = selectedPage,
                     imageUrl = selectedImageUrl,
                     onBack = { showDetail = false }
+                )
+            }
+
+            // 2번 카드 전용 추가 : 키워드 화면
+            if (showKeywordDetail) {
+                CurationKeywordDetailScreen(
+                    onBack = { showKeywordDetail = false },
+                    onHome = { showKeywordDetail = false }
                 )
             }
         }
