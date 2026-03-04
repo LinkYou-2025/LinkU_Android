@@ -60,7 +60,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 //    implementation(libs.androidx.navigation.compose.jvmstubs)
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(libs.androidx.navigation.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -70,10 +70,10 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // coil 의존성 추가
-    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
-    implementation("io.coil-kt.coil3:coil-svg:3.0.4")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation(libs.coil3.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.svg)
+    implementation(libs.accompanist.systemuicontroller)
 
     // 의존성 정의
     implementation(project(":core"))
