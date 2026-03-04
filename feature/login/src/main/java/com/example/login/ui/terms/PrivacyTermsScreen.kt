@@ -187,7 +187,8 @@ fun PrivacyTermsScreen(
                     }
                 }
             }
-            Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
+            Spacer(Modifier.height(EXTRA_GAP))
+            //Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
 
         }
     }

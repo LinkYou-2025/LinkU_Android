@@ -142,41 +142,21 @@ fun MarketingTermsScreenComposable(
                             color = Color.Black
                         )
 
-                        when {
-                            title.contains("2. 수집항목") -> {
-                                Spacer(Modifier.height(8.dp))
-                                Image(
-                                    painter = painterResource(id = R.drawable.img_marketing_table),
-                                    contentDescription = "개인정보 수집 항목 표",
-                                    contentScale = ContentScale.FillWidth,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp)
-                                        .clip(RoundedCornerShape(4.dp))
-                                )
-                                Text(
-                                    text = MarketingTermsData.TABLE_NOTE,
-                                    fontSize = 14.sp,
-                                    lineHeight = 22.sp,
-                                    fontFamily = Paperlogy.font
-                                )
-                            }
+                        Spacer(Modifier.height(4.dp))
 
-                            body.isNotEmpty() -> {
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    text = body,
-                                    fontSize = 14.sp,
-                                    lineHeight = 22.sp,
-                                    fontFamily = Paperlogy.font
-                                )
-                            }
-                        }
+                        Text(
+                            text = body,
+                            fontSize = 14.sp,
+                            lineHeight = 22.sp,
+                            fontFamily = Paperlogy.font
+                        )
                     }
                 }
-                Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
+
 
             }
+            Spacer(Modifier.height(EXTRA_GAP))
+            //Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
         }
     }
 }

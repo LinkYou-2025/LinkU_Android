@@ -155,8 +155,9 @@ fun ServiceTermsScreen(
                     }
                 }
             }
+            Spacer(Modifier.height(EXTRA_GAP))
             // 하단 버튼과 겹치지 않게 여백 추가
-            Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
+            //Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
         }
     }
 }
