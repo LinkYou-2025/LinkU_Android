@@ -1,6 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
+    //alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 
     // Hilt
@@ -10,7 +12,8 @@ plugins {
 
 android {
     namespace = "com.example.login"
-    compileSdk = 35
+
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
@@ -32,9 +35,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
+/*    kotlinOptions {
         jvmTarget = "11"
-    }
+    }*/
     buildFeatures {
         compose = true
         buildConfig = true
@@ -43,6 +46,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.11"
     }
+}
+
+kotlin {
+  compilerOptions {
+      jvmTarget.set(JvmTarget.JVM_11)
+  }
 }
 
 dependencies {
@@ -58,7 +67,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.tools.core)
-    implementation(libs.androidx.foundation)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material.icons.extended)
     androidTestImplementation(libs.androidx.ui.test.android)
     androidTestImplementation(libs.androidx.compose.testing)
     testImplementation(libs.junit)
