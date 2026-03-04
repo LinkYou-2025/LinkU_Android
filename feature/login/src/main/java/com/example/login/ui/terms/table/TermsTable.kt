@@ -87,7 +87,7 @@ fun RowScope.TableCell(
 fun TermsTable4Col(
     headers: List<String>,
     rows: List<List<String>>,
-    weights: List<Float> = listOf(0.3f, 0.25f, 0.25f, 0.25f) // 컬럼별 비율 조정 가능
+    weights: List<Float> = listOf(0.25f, 0.25f, 0.25f, 0.25f)  // 컬럼별 비율 조정 가능
 ) {
     val borderColor = Color(0xFFB7B9BF)
     val borderWidth = 0.5.dp
@@ -103,7 +103,7 @@ fun TermsTable4Col(
             verticalAlignment = Alignment.CenterVertically
         ) {
             headers.forEachIndexed { index, header ->
-                TableCell(text = header, weight = weights[index], isHeader = true)
+                TableCell(text = header, weight = weights.getOrElse(index) { 1f / headers.size }, isHeader = true)
                 if (index < headers.lastIndex) {
                     VerticalDivider(color = borderColor, thickness = borderWidth)
                 }
