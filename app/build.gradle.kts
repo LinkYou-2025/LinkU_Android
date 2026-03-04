@@ -93,9 +93,9 @@ dependencies {
     // Retrofit2
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
-    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+    implementation(libs.converter.moshi)
+    implementation(libs.logging.interceptor)
+    implementation(libs.moshi.kotlin)
 
     // SharedPreference
     implementation(libs.preference.ktx)
@@ -110,18 +110,18 @@ dependencies {
 
     implementation(libs.androidx.hilt.navigation)
     implementation(libs.androidx.hilt.navigation.compose)
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // coil
-    implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation(libs.coil.compose)
 
     // FCM
     // Import the Firebase BoM
-    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
+    implementation(platform(libs.firebase.bom))
 
 
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
-    implementation("com.google.firebase:firebase-analytics")
+    implementation(libs.firebase.analytics)
 
 }
