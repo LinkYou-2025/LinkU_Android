@@ -11,7 +11,7 @@ object MarketingTermsData {
     """.trimIndent()
 
     val sections = listOf(
-        "1. 수집 및 이용 목적" to """
+        "1. 수집 및 이용 항목" to """
             • 이메일 주소
             • 앱 푸시 알림 토큰
         """.trimIndent(),
