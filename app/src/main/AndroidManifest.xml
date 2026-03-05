@@ -1,80 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:tools="http://schemas.android.com/tools"
+<manifest
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    >
     <uses-permission android:name="android.permission.INTERNET" />
 
-<application
-    android:name=".MainApplication"
-    android:enableOnBackInvokedCallback="true"
-    android:allowBackup="true"
-    android:dataExtractionRules="@xml/data_extraction_rules"
-    android:fullBackupContent="@xml/backup_rules"
-    android:icon="@mipmap/ic_launcher"
-    android:label="@string/app_name"
-    android:roundIcon="@mipmap/ic_launcher_round"
-    android:supportsRtl="true"
-    android:theme="@style/Theme.LinkU_Android"
-    android:networkSecurityConfig="@xml/network_security_config"
-    tools:targetApi="31">
-    <!-- 추가 앱이 이미 실행 중일 때, onNewIntent()를 받을 수 있도록 launchMode="singleTask"추가함.
-      여기서 MainActivity.kt - onNewIntent에서 딥링크 수신 → SocialDeepLinkBus로 전달-->
-    <activity
-        android:name=".MainActivity"
-        android:launchMode="singleTask"
-        android:exported="true"
+    <application
+        android:name=".MainApplication"
+        android:enableOnBackInvokedCallback="true"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.LinkU_Android">
-        <intent-filter>
-            <action android:name="android.intent.action.MAIN" />
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.LinkU_Android"
+        android:networkSecurityConfig="@xml/network_security_config"
+        tools:targetApi="31">
+        <!-- 추가 앱이 이미 실행 중일 때, onNewIntent()를 받을 수 있도록 launchMode="singleTask"추가함.
+          여기서 MainActivity.kt - onNewIntent에서 딥링크 수신 → SocialDeepLinkBus로 전달-->
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTask"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.LinkU_Android">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
 
-            <category android:name="android.intent.category.LAUNCHER" />
-        </intent-filter>
-        <!-- 폴더 공유 앱링크 -->
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data
-                android:scheme="linku"
-                android:host="open" />
-        </intent-filter>
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
 
-        <!-- 소셜 로그인 딥링크 추가 서원이가 app.deeplink.base-url을 linku://로 바꾸면 소셜 성공 후 리다이렉트
-         앱에서 받으려면scheme=linku, host=auth 등록함. -->
-        <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data
-                android:scheme="linku"
-                android:host="auth" />
-        </intent-filter>
-        <!-- TODO: 서원이 linku:// 배포 완료 후 아래 두 intent-filter 삭제 -->
-        <intent-filter android:autoVerify="true">
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data
-                android:scheme="https"
-                android:host="linkuserver.store"
-                android:path="/open"/>
-        </intent-filter>
+            <!-- 폴더 공유 앱링크 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="linku"
+                    android:host="open" />
+            </intent-filter>
 
-        <intent-filter android:autoVerify="true">
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data
-                android:scheme="https"
-                android:host="linkuserver.store"
-                android:path="/auth" />
-        </intent-filter>
-        <!-- TODO 끝 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="linku"
+                    android:host="auth" />
+            </intent-filter>
 
-    </activity>
-</application>
+            <!-- 폴더 공유 앱링크 (http) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="linkuserver.store"
+                    android:path="/open"/>
+            </intent-filter>
 
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="linkuserver.store"
+                    android:path="/auth" />
+            </intent-filter>
+        </activity>
+    </application>
 </manifest>
 

@@ -42,10 +42,6 @@ android {
         compose = true
         buildConfig = true
     }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.11"
-    }
 }
 
 kotlin {
@@ -79,8 +75,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
-    implementation ("androidx.navigation:navigation-compose:2.5.3")
+    implementation(libs.accompanist.navigation.animation)
+    implementation (libs.androidx.navigation.compose)
 
     // 의존성 정의
     implementation(project(":core"))
@@ -97,10 +93,10 @@ dependencies {
     // Retrofit2
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
-    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
-    implementation("androidx.browser:browser:1.7.0")
+    implementation(libs.converter.moshi)
+    implementation(libs.logging.interceptor)
+    implementation(libs.moshi.kotlin)
+    implementation(libs.androidx.browser)
 
     // SharedPreference
     implementation(libs.preference.ktx)
@@ -110,6 +106,10 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
-    implementation("androidx.navigation:navigation-compose:2.7.7")
+    implementation(libs.androidx.hilt.navigation.compose)
+
+    // Kakao
+    implementation(libs.v2.common)
+    implementation(libs.v2.auth)
+    implementation(libs.v2.user)
 }

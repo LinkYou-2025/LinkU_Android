@@ -53,11 +53,11 @@ dependencies {
     // ✅ Retrofit2 & OkHttp 추가 (버전은 app 모듈과 동일한 libs 사용)
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
-    implementation("com.squareup.okhttp3:okhttp:4.11.0") // OkHttp
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0") // 로깅
+    implementation(libs.okhttp) // OkHttp
+    implementation(libs.logging.interceptor) // 로깅
 
     // ✅ Gson (Retrofit gson converter에서 필요)
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
     // ✅ 코틀린 런타임 (이미 있음)
     implementation(libs.androidx.runtime.android)
@@ -86,8 +86,8 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
-    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+    implementation(libs.androidx.hilt.navigation.compose)
 
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.androidx.datastore.preferences)
 
 }
