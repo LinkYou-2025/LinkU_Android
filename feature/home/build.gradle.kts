@@ -74,13 +74,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     // coil 의존성 추가
-    implementation("io.coil-kt.coil3:coil-compose:3.0.4")
-    implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.4")
-    implementation("io.coil-kt.coil3:coil-svg:3.0.4")
-    implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.1")
+    implementation(libs.coil3.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.svg)
+    implementation(libs.accompanist.systemuicontroller)
 
     // Glide 의존성
-    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.glide)
 
     // 의존성 정의
     implementation(project(":core"))
@@ -97,7 +97,7 @@ dependencies {
     // Retrofit2
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
-    implementation("com.squareup.retrofit2:converter-moshi:2.11.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
-    implementation("com.squareup.moshi:moshi-kotlin:1.15.2")
+    implementation(libs.converter.moshi)
+    implementation(libs.logging.interceptor)
+    implementation(libs.moshi.kotlin)
 }
