@@ -41,6 +41,9 @@ toolsCore = "1.0.0-alpha14"
 media3 = "1.9.2"
 accompanist = "0.36.0"
 ksp = "2.3.6"
+kakao = "2.23.2"
+v2Auth = "2.11.0"
+v2Common = "2.11.0"
 
 
 
@@ -108,6 +111,9 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-compose-testing = { group = "androidx.xr.compose", name = "compose-testing", version.ref = "composeTesting" }
 androidx-tools-core = { group = "androidx.privacysandbox.tools", name = "tools-core", version.ref = "toolsCore" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout"  }
+v2-common = { module = "com.kakao.sdk:v2-common", version.ref = "kakao" }
+v2-auth = { module = "com.kakao.sdk:v2-auth", version.ref = "kakao" }
+v2-user = { module = "com.kakao.sdk:v2-user", version.ref = "kakao" }
 
 
 

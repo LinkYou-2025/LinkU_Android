@@ -107,4 +107,9 @@ dependencies {
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
     implementation(libs.androidx.hilt.navigation.compose)
+
+    // Kakao
+    implementation(libs.v2.common)
+    implementation(libs.v2.auth)
+    implementation(libs.v2.user)
 }
