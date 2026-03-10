@@ -99,7 +99,7 @@ interface UserApi {
     ): ApiResponseString
 
     //카카오톡 로그인 api
-    @POST("/api/auth/mobile/kakao")
+    @POST("auth/mobile/kakao")
     suspend fun kakaoLogin(
         @Body request: KakaoLoginRequestDTO
     ): BaseResponse<KakaoLoginResponseDTO>
