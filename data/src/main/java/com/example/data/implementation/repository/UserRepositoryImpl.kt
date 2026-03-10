@@ -385,7 +385,7 @@ class UserRepositoryImpl @Inject constructor(
         try{
             Log.d("UserRepositoryImpl", "loginWithKakao try")
 
-            kakaoResponse = serverApi.withAuth(authPreference){
+            kakaoResponse = serverApi.withErrorHandling {
                 kakaoLogin(KakaoLoginRequestDTO(token = token))
             }
 

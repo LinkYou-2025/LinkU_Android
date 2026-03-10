@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.core.model.auth.NicknameCheckState
+import com.example.data.preference.AuthPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
@@ -37,7 +38,8 @@ import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class SocialAuthViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authPreference: AuthPreference
 ) : ViewModel() {
 
     companion object {
@@ -140,6 +142,12 @@ class SocialAuthViewModel @Inject constructor(
             try{
                 Log.d("SocialAuthViewModel", "loadWithKakao try")
                 val result = userRepository.loginWithKakao(token)
+                authPreference.saveTokens(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    userId = result.userId
+                )
+
                 _kakaoLoginState.value = KakaoLoginState.Success(result)
             }catch (e: Exception){
                 Log.d(TAG, "loadWithKakao catch: ${e.message}")

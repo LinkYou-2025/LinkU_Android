@@ -90,6 +90,9 @@ fun LoginApp(
 
             // 1. 로그인
             authComposable("login") { parentEntry ->
+                // 추가함 :  parentEntry → auth_graph 전체를 범위로 하는 ViewModel 로그인 상태가 화면 전환 중에도 유지됨.
+                val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
+
                 val skipAnimation =
                     parentEntry.savedStateHandle.get<Boolean>("skip_login_animation") ?: false
 
@@ -100,6 +103,7 @@ fun LoginApp(
                 AnimatedLoginScreen(
                     navigator = navController,
                     skipAnimation = skipAnimation,
+                    viewModel = socialAuthVm, //추가함 : 받아서 -> 로그인 스크린으로 전달함.
                     onSignUpClick = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                         navController.navigate("email_login")
@@ -309,6 +313,7 @@ fun LoginApp(
             // 약관 게이트
             socialComposable("social_login_gate") { parentEntry, entry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+                val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
 
                 val showTermsSheet by entry.savedStateHandle
                     .getStateFlow("show_terms_sheet", true)
@@ -318,7 +323,10 @@ fun LoginApp(
                     entry.savedStateHandle["show_terms_sheet"] = false
                 }
 
-                LoginScreen(navigator = navController)
+                LoginScreen(
+                    navigator = navController,
+                    viewModel = socialAuthVm)
+
 
                 TermsAgreementSheet(
                     navController = navController,
