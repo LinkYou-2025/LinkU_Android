@@ -1,6 +1,8 @@
 package com.example.data.api
 
 import com.example.data.api.dto.BaseResponse
+import com.example.data.api.dto.login.kakao.KakaoLoginRequestDTO
+import com.example.data.api.dto.login.kakao.KakaoLoginResponseDTO
 import com.example.data.api.dto.server.ApiResponseString
 import com.example.data.api.dto.server.DeleteReasonDTO
 import com.example.data.api.dto.server.EmailVerificationResponse
@@ -9,7 +11,6 @@ import com.example.data.api.dto.server.JoinResultDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.api.dto.server.LoginResultDTO
 import com.example.data.api.dto.server.SocialProfileRequestDTO
-import com.example.data.api.dto.server.TempPasswordRequestDTO
 import com.example.data.api.dto.server.TokenPair
 import com.example.data.api.dto.server.UpdateProfileDTO
 import com.example.data.api.dto.server.UserInfoDTO
@@ -18,7 +19,6 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.http.Header
 
@@ -97,4 +97,10 @@ interface UserApi {
         @Header("Authorization") authorization: String,
         @Body body: SocialProfileRequestDTO
     ): ApiResponseString
+
+    //카카오톡 로그인 api
+    @POST("/api/auth/mobile/kakao")
+    suspend fun kakaoLogin(
+        @Body request: KakaoLoginRequestDTO
+    ): BaseResponse<KakaoLoginResponseDTO>
 }

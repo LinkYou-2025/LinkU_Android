@@ -1,7 +1,7 @@
 package com.example.core.model
 
 data class LoginResult(
-    val userId: Int,
+    val userId: Long,
     val accessToken: String,   // token에서 수정
     val refreshToken: String,
     val status: String,
