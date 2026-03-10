@@ -1,5 +1,7 @@
 package com.example.curation.ui.calendar
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,13 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.curation.R
 import com.example.design.theme.font.Laundrygothic
 import com.example.design.util.scaler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.remember
 import java.time.LocalDate
+import com.example.curation.R
 // 월 약어 리스트
 private val MONTH_LABELS = listOf(
     "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -34,6 +36,7 @@ private val MONTH_LABELS = listOf(
 )
 
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarIconBox(
     modifier: Modifier = Modifier

@@ -4,6 +4,7 @@ package com.example.login
 
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -32,13 +33,23 @@ import com.example.login.ui.item.SocialLoginButton
 import com.example.design.theme.font.Paperlogy
 import com.example.design.util.scaler
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.login.constants.ServerConfig
+import com.example.login.viewmodel.SocialAuthViewModel
+import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.model.ClientError
+import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.user.UserApiClient
 
-
+private const val TAG = "LoginScreen"
 @Composable
 fun LoginScreen(
     navigator: NavHostController,
+    viewModel: SocialAuthViewModel,
     logoOffsetY: Float = 0f,
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
@@ -48,6 +59,22 @@ fun LoginScreen(
 
     val colorTheme = LocalColorTheme.current
     val context = LocalContext.current
+
+    //카카오 로그인 state 수집
+    val kakaoLoginState by viewModel.kakaoLoginState.collectAsState()
+
+
+    LaunchedEffect(kakaoLoginState) {
+        when (kakaoLoginState) {
+            is SocialAuthViewModel.KakaoLoginState.Success -> {
+                // TODO: 다음 화면으로 이동
+            }
+            is SocialAuthViewModel.KakaoLoginState.Error -> {
+                // TODO: 에러 메시지 표시
+            }
+            else -> {}
+        }
+    }
 
     // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
     DesignSystemBars(
@@ -172,9 +199,39 @@ fun LoginScreen(
                 text = "카카오로 시작하기",
                 textColor = Color.Black,
                 onClick = {
-                    val url = ServerConfig.KAKAO_LOGIN_URL
-                    val customTabsIntent = CustomTabsIntent.Builder().build()
-                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                    //https://developers.kakao.com/docs/latest/ko/kakaologin/android 예제 코드 그대로 사용함.
+                    // 카카오계정으로 로그인 공통 callback 구성
+                    // 카카오톡으로 로그인 할 수 없어 카카오계정으로 로그인할 경우 사용됨
+                    val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
+                        if (error != null) {
+                            Log.e(TAG, "카카오계정으로 로그인 실패", error)
+                        } else if (token != null) {
+                            viewModel.loginWithKakao(token.accessToken) //뷰모델에서 로그인 상태 확인 함수 사용용으로 1줄 추가함.
+                            Log.i(TAG, "카카오계정으로 로그인 성공 ${token.accessToken}")
+                        }
+                    }
+
+                    // 카카오톡이 설치되어 있으면 카카오톡으로 로그인, 아니면 카카오계정으로 로그인
+                    if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
+                        UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
+                            if (error != null) {
+                                Log.e(TAG, "카카오톡으로 로그인 실패", error)
+
+                                // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
+                                // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
+                                if (error is ClientError && error.reason == ClientErrorCause.Cancelled) {
+                                    return@loginWithKakaoTalk
+                                }
+
+                                // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인 시도
+                                UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+                            } else if (token != null) {
+                                Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
+                            }
+                        }
+                    } else {
+                        UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+                    }
                 }
             )
 
@@ -215,13 +272,12 @@ fun LoginScreen(
     }
 }
 
-@Preview(
-    showBackground = true,
-    device = Devices.PIXEL_6
-)
+@Preview(showBackground = true, device = Devices.PIXEL_6)
 @Composable
 fun LoginScreenPreview() {
     val navController = rememberNavController()
-    LoginScreen(navigator = navController)
+    LoginScreen(
+        navigator = navController,
+        viewModel = viewModel() // 프리뷰용
+    )
 }
-

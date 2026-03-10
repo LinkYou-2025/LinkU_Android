@@ -23,6 +23,8 @@ import com.example.data.api.withErrorHandlingRaw
 import javax.inject.Inject
 import com.example.data.mapper.SocialProfileMapper
 import com.example.core.model.auth.*
+import com.example.data.api.dto.login.kakao.KakaoLoginRequestDTO
+import com.example.data.api.dto.login.kakao.KakaoLoginResponseDTO
 import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl @Inject constructor(
@@ -64,7 +66,7 @@ class UserRepositoryImpl @Inject constructor(
         Log.d(TAG, "[로그인 성공]")
 
         return LoginResult(
-            userId = response.userId?.toInt() ?: throw IllegalStateException("로그인 응답에 userId가 누락되었습니다."),
+            userId = response.userId ?: throw IllegalStateException("로그인 응답에 userId가 누락되었습니다."),
             accessToken = response.accessToken
                 ?: throw ApiError.BusinessError(null, "accessToken이 없습니다"),
             refreshToken = response.refreshToken
@@ -373,6 +375,37 @@ class UserRepositoryImpl @Inject constructor(
             purposes = purposes,
             interests = interests
         )
+    }
+
+    override suspend fun loginWithKakao(token: String): LoginResult {
+        Log.d("UserRepositoryImpl", "loginWithKakao token: $token")
+
+        val kakaoResponse: KakaoLoginResponseDTO
+
+        try{
+            Log.d("UserRepositoryImpl", "loginWithKakao try")
+
+            kakaoResponse = serverApi.withAuth(authPreference){
+                kakaoLogin(KakaoLoginRequestDTO(token = token))
+            }
+
+            Log.d("UserRepositoryImpl", "loginWithKakao response: $kakaoResponse")
+        } catch (e: Exception){
+            Log.d("UserRepositoryImpl", "loginWithKakao error: $e")
+            throw e
+        }
+
+        Log.d("UserRepositoryImpl", "loginWithKakao return: $kakaoResponse")
+
+        return kakaoResponse.run {
+            LoginResult(
+                userId = this.userId,
+                accessToken = this.accessToken,
+                refreshToken = this.refreshToken,
+                status = this.status
+            )
+        }
+
     }
 
 }
