@@ -379,19 +379,21 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun loginWithKakao(token: String): LoginResult {
         Log.d("UserRepositoryImpl", "loginWithKakao token: $token")
-
+        //Log.d(TAG, "loginWithKakao start")
         val kakaoResponse: KakaoLoginResponseDTO
 
         try{
             Log.d("UserRepositoryImpl", "loginWithKakao try")
-
+            // Log.d(TAG, "loginWithKakao try")
             kakaoResponse = serverApi.withErrorHandling {
                 kakaoLogin(KakaoLoginRequestDTO(token = token))
             }
 
             Log.d("UserRepositoryImpl", "loginWithKakao response: $kakaoResponse")
+            //Log.d(TAG, "loginWithKakao success: userId=${kakaoResponse.userId}, status=${kakaoResponse.status}")
         } catch (e: Exception){
             Log.e("UserRepositoryImpl", "loginWithKakao error: $e")
+            //Log.e(TAG, "loginWithKakao error", e)
             throw e
         }
 

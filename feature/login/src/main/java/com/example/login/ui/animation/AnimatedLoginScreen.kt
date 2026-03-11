@@ -33,7 +33,8 @@ fun AnimatedLoginScreen(
     navigator: NavHostController,
     onSignUpClick: () -> Unit,
     skipAnimation: Boolean = false,
-    viewModel: SocialAuthViewModel
+    viewModel: SocialAuthViewModel,
+    onLoginSuccess: () -> Unit = {}
 ) {
 
     // 1. 디자인 모듈 컬러 테마 가져오기
@@ -123,6 +124,7 @@ fun AnimatedLoginScreen(
     LoginScreen(
         navigator = navigator,
         viewModel = viewModel,
+        onLoginSuccess = onLoginSuccess,
         contentAlpha = contentAlpha.value,
         logoSlot = {
             Box(

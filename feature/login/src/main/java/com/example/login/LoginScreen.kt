@@ -63,6 +63,7 @@ private fun handleKakaoLogin(
         } else if (token != null) {
             viewModel.loginWithKakao(token.accessToken) //뷰모델에서 로그인 상태 확인 함수 사용용으로 1줄 추가함.
             Log.i(TAG, "카카오계정으로 로그인 성공 ${token.accessToken}")
+            //Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
         }
     }
 
@@ -83,6 +84,7 @@ private fun handleKakaoLogin(
             } else if (token != null) {
                 viewModel.loginWithKakao(token.accessToken) // 로그인 성공시 호출함.
                 Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
+                //Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
             }
         }
     } else {
@@ -94,6 +96,7 @@ private fun handleKakaoLogin(
 fun LoginScreen(
     navigator: NavHostController,
     viewModel: SocialAuthViewModel,
+    onLoginSuccess: () -> Unit = {},
     logoOffsetY: Float = 0f,
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
@@ -111,7 +114,12 @@ fun LoginScreen(
     LaunchedEffect(kakaoLoginState) {
         when (kakaoLoginState) {
             is SocialAuthViewModel.KakaoLoginState.Success -> {
-                // TODO: 다음 화면으로 이동
+                val result = (kakaoLoginState as SocialAuthViewModel.KakaoLoginState.Success).result
+
+                when (result.status) {
+                    "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
+                    "TEMP" -> navigator.navigate("social_login_gate") // 신규 유저 → 약관
+                }
             }
             is SocialAuthViewModel.KakaoLoginState.Error -> {
                 // TODO: 에러 메시지 표시
