@@ -391,7 +391,7 @@ class UserRepositoryImpl @Inject constructor(
 
             Log.d("UserRepositoryImpl", "loginWithKakao response: $kakaoResponse")
         } catch (e: Exception){
-            Log.d("UserRepositoryImpl", "loginWithKakao error: $e")
+            Log.e("UserRepositoryImpl", "loginWithKakao error: $e")
             throw e
         }
 
