@@ -104,6 +104,7 @@ fun LoginApp(
                     navigator = navController,
                     skipAnimation = skipAnimation,
                     viewModel = socialAuthVm, //추가함 : 받아서 -> 로그인 스크린으로 전달함.
+                    onLoginSuccess = onLoginSuccess,
                     onSignUpClick = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                         navController.navigate("email_login")
@@ -325,7 +326,10 @@ fun LoginApp(
 
                 LoginScreen(
                     navigator = navController,
-                    viewModel = socialAuthVm)
+                    viewModel = socialAuthVm,
+                    onLoginSuccess = onLoginSuccess
+
+                )
 
 
                 TermsAgreementSheet(
