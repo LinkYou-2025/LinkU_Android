@@ -120,9 +120,11 @@ fun LoginScreen(
                     "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
                     "TEMP" -> navigator.navigate("social_login_gate") // 신규 유저 → 약관
                 }
+                viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
             }
             is SocialAuthViewModel.KakaoLoginState.Error -> {
                 // TODO: 에러 메시지 표시
+                viewModel.resetKakaoLoginState()
             }
             else -> {}
         }
