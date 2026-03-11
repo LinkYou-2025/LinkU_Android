@@ -59,6 +59,11 @@ class SocialAuthViewModel @Inject constructor(
     private val _kakaoLoginState = MutableStateFlow<KakaoLoginState>(KakaoLoginState.Idle)
     val kakaoLoginState: StateFlow<KakaoLoginState> = _kakaoLoginState
 
+    //reset 함수 추가
+    fun resetKakaoLoginState() {
+        _kakaoLoginState.value = KakaoLoginState.Idle
+    }
+
     // 입력 상태
     private val _nickname = MutableStateFlow("")
     val nickname: StateFlow<String> = _nickname
