@@ -52,6 +52,13 @@ fun LinksGrid(
 
     val isShareMode = folderStateViewModel.isSharedFolders
 
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+    * 스크롤은 compose 전 자식 요소에게 크기를 물어보고 최종 크기를 결정하는 방식.   *
+    * SequentialGrid 기반인 VerticalGrid는 SubcomposeLayout임.                       *
+    * 이는 자식에게 묻는 과정에서 compose가 다시 발생하는 문제로 최신부턴 사용 불가. *
+    * 그러므로 꼭 LazyVertical 그리드로 변경 예정.                                   *
+    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
     VerticalGrid(
         modifier = Modifier
             .fillMaxWidth(),
