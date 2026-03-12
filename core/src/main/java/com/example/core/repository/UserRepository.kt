@@ -74,5 +74,8 @@ interface UserRepository {
         interests: List<String>
     )
 
+    suspend fun loginWithKakao(
+        token : String): LoginResult
+
 
 }

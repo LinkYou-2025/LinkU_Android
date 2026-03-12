@@ -26,12 +26,15 @@ import com.example.login.LoginScreen
 import com.example.design.theme.LocalColorTheme
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
+import com.example.login.viewmodel.SocialAuthViewModel
 
 @Composable
 fun AnimatedLoginScreen(
     navigator: NavHostController,
     onSignUpClick: () -> Unit,
-    skipAnimation: Boolean = false
+    skipAnimation: Boolean = false,
+    viewModel: SocialAuthViewModel,
+    onLoginSuccess: () -> Unit = {}
 ) {
 
     // 1. 디자인 모듈 컬러 테마 가져오기
@@ -120,6 +123,8 @@ fun AnimatedLoginScreen(
 
     LoginScreen(
         navigator = navigator,
+        viewModel = viewModel,
+        onLoginSuccess = onLoginSuccess,
         contentAlpha = contentAlpha.value,
         logoSlot = {
             Box(

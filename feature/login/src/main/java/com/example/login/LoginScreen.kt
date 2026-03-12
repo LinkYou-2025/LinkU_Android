@@ -3,7 +3,9 @@ package com.example.login
 //피그마에서 스플래쉬 다음으로 나오는 로그인 화면 입니다.
 
 
+import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -32,13 +34,76 @@ import com.example.login.ui.item.SocialLoginButton
 import com.example.design.theme.font.Paperlogy
 import com.example.design.util.scaler
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.login.constants.ServerConfig
+import com.example.login.viewmodel.SocialAuthViewModel
+import com.kakao.sdk.auth.model.OAuthToken
+import com.kakao.sdk.common.model.ClientError
+import com.kakao.sdk.common.model.ClientErrorCause
+import com.kakao.sdk.user.UserApiClient
 
+private const val TAG = "LoginScreen"
+
+
+// 카카오 로그인 로직 분리
+// https://developers.kakao.com/docs/latest/ko/kakaologin/android 예제 코드 그대로 사용함.
+private fun handleKakaoLogin(
+    context: Context,
+    viewModel: SocialAuthViewModel
+) {
+    // 카카오계정으로 로그인 공통 callback 구성
+    // 카카오톡으로 로그인 할 수 없어 카카오계정으로 로그인할 경우 사용됨
+    // callback 나중에 결과가 오면 실행해줘 등록하는 함수임.
+    // OAuthToken? → 성공하면 토큰이 올 자리 (실패하면 null)  Throwable? → 실패하면 에러가 올 자리 (성공하면 null)
+    val callback: (OAuthToken?, Throwable?) -> Unit = { token, error ->
+        if (error != null) {
+            // 실패 시
+            Log.e(TAG, "카카오계정으로 로그인 실패", error)
+        } else if (token != null) {
+            // 카카오 sdk가 토큰을 받아오면 밑에 뷰모델 호출
+            viewModel.loginWithKakao(token.accessToken) //뷰모델에서 로그인 상태 확인 함수 사용용으로 1줄 추가함.
+            Log.i(TAG, "카카오계정으로 로그인 성공 ${token.accessToken}")
+            //Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
+        }
+    }
+
+    // 카카오톡이 설치되어 있으면 카카오톡으로 로그인, 아니면 카카오계정으로 로그인
+    if (UserApiClient.instance.isKakaoTalkLoginAvailable(context)) {
+        // 카카오톡 앱이 설치된 경우
+        UserApiClient.instance.loginWithKakaoTalk(context) { token, error ->
+            // 실패하면 -> 앱으로 로그인 & 성공하면 viewModel.loginWithKakao() 호출
+            if (error != null) {
+                Log.e(TAG, "카카오톡으로 로그인 실패", error)
+                // 사용자가 카카오톡 설치 후 디바이스 권한 요청 화면에서 로그인을 취소한 경우,
+                // 의도적인 로그인 취소로 보고 카카오계정으로 로그인 시도 없이 로그인 취소로 처리 (예: 뒤로 가기)
+                if (error is ClientError && error.reason == ClientErrorCause.Cancelled) {
+                    return@loginWithKakaoTalk // 사용자가 의도적으로 취소 -> 그냥 맘춤
+                }
+                // 카카오톡에 연결된 카카오계정이 없는 경우, 카카오계정으로 로그인 시도
+                UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+            }
+            // 카카오톡 없음 -> 바로 카카오계정
+            else if (token != null) {
+                viewModel.loginWithKakao(token.accessToken) // 로그인 성공시 호출함.
+                Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
+                //Log.i(TAG, "카카오톡으로 로그인 성공 ${token.accessToken}")
+            }
+        }
+    } else {
+        // 카카오톡 앱이 없는 경우
+        UserApiClient.instance.loginWithKakaoAccount(context, callback = callback)
+    }
+}
 
 @Composable
 fun LoginScreen(
     navigator: NavHostController,
+    viewModel: SocialAuthViewModel,
+    onLoginSuccess: () -> Unit = {},
     logoOffsetY: Float = 0f,
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
@@ -48,6 +113,29 @@ fun LoginScreen(
 
     val colorTheme = LocalColorTheme.current
     val context = LocalContext.current
+
+    //카카오 로그인 state 수집
+    val kakaoLoginState by viewModel.kakaoLoginState.collectAsState()
+
+
+    LaunchedEffect(kakaoLoginState) {
+        when (kakaoLoginState) {
+            is SocialAuthViewModel.KakaoLoginState.Success -> {
+                val result = (kakaoLoginState as SocialAuthViewModel.KakaoLoginState.Success).result
+
+                when (result.status) {
+                    "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
+                    "TEMP" -> navigator.navigate("social_login_gate") // 신규 유저 → 약관
+                }
+                viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
+            }
+            is SocialAuthViewModel.KakaoLoginState.Error -> {
+                // TODO: 에러 메시지 표시
+                viewModel.resetKakaoLoginState()
+            }
+            else -> {}
+        }
+    }
 
     // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
     DesignSystemBars(
@@ -172,9 +260,7 @@ fun LoginScreen(
                 text = "카카오로 시작하기",
                 textColor = Color.Black,
                 onClick = {
-                    val url = ServerConfig.KAKAO_LOGIN_URL
-                    val customTabsIntent = CustomTabsIntent.Builder().build()
-                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                    handleKakaoLogin(context, viewModel)
                 }
             )
 
@@ -215,13 +301,12 @@ fun LoginScreen(
     }
 }
 
-@Preview(
-    showBackground = true,
-    device = Devices.PIXEL_6
-)
+@Preview(showBackground = true, device = Devices.PIXEL_6)
 @Composable
 fun LoginScreenPreview() {
     val navController = rememberNavController()
-    LoginScreen(navigator = navController)
+    LoginScreen(
+        navigator = navController,
+        viewModel = viewModel() // 프리뷰용
+    )
 }
-

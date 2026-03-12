@@ -159,6 +159,7 @@ private suspend fun <T> ServerApi.withTokenRefresh(
 
 /**
  * BaseResponse 검증 - isSuccess 확인 후 result 반환
+ * 내부용. isSuccess 확인 + result 꺼내기
  */
 suspend fun <T> ServerApi.withCheck(
     getter: suspend ServerApi.() -> BaseResponse<T>
@@ -170,11 +171,13 @@ suspend fun <T> ServerApi.withCheck(
             message = response.message ?: "요청 처리 중 오류가 발생했습니다"
         )
     }
-    return response.result
+    return response.result ?: throw ApiError.ServerError(0, "결과값이 없습니다")
 }
 /**
  * 인증 불필요 + BaseResponse<T> 반환
+ * 토큰 없는 API (로그인, 회원가입 등)
  */
+//UserRepositoryImpl.kt 에서 사용함.
 suspend fun <T> ServerApi.withErrorHandling(
     block: suspend ServerApi.() -> BaseResponse<T>
 ): T {
@@ -188,6 +191,7 @@ suspend fun <T> ServerApi.withErrorHandling(
 /**
  * 인증 불필요 + 임의 타입 반환 (BaseResponse 아닌 경우)
  * 예: ApiResponseString, Unit 등
+ * 토큰 없는 API인데 BaseResponse 형식이 아닐 때
  */
 suspend fun <T> ServerApi.withErrorHandlingRaw(
     block: suspend ServerApi.() -> T
@@ -203,6 +207,7 @@ suspend fun <T> ServerApi.withErrorHandlingRaw(
 
 /**
  * 기본 인증 API 호출 - BaseResponse
+ * 대부분일 것 같은데
  */
 suspend fun <T> ServerApi.withAuth(
     authPreference: AuthPreference,
@@ -213,6 +218,7 @@ suspend fun <T> ServerApi.withAuth(
 
 /**
  * 인증 필요 + 임의 타입 반환 - baseResponse 아닌 경우.
+ * 토큰 필요한데 BaseResponse 형식이 아닐 때
  * */
 suspend fun <T> ServerApi.withAuthRaw(
     authPreference: AuthPreference,
@@ -223,6 +229,7 @@ suspend fun <T> ServerApi.withAuthRaw(
 
 /**
  * 인증 필요 + Unit 반환 (logout 등)
+ * 토큰 필요한데 반환값 없을 때 (로그아웃 등)
  */
 suspend fun ServerApi.withAuthUnit(
     authPreference: AuthPreference,
@@ -237,6 +244,7 @@ suspend fun ServerApi.withAuthUnit(
 
 /**
  * 204 No Content 허용 버전
+ * 토큰 필요한데 204 응답 올 때
  */
 suspend fun <T> ServerApi.withAuthResp204Raw(
     authPreference: AuthPreference,
@@ -257,58 +265,5 @@ suspend fun <T> ServerApi.withAuthResp204Raw(
     return withTokenRefresh(authPreference) { execute() }
 }
 
-/**
- * 수동 헤더 전달 버전 - Interceptor 안 쓰는 API용
- */
-suspend fun <T> ServerApi.withAuthHeaderRaw(
-    authPreference: AuthPreference,
-    routine: suspend ServerApi.(String) -> T
-): T = withTokenRefresh(authPreference) {
-    val access = authPreference.accessToken
-        ?: throw ApiError.TokenExpired("다시 로그인해주세요")
-    routine("Bearer $access")
-}
-
-/**
- * Call 기반 + Timeout
- */
-suspend fun <T> ServerApi.withAuthCallRaw(
-    authPreference: AuthPreference,
-    timeoutSec: Long = 60,
-    build: ServerApi.() -> Call<T>
-): T = withContext(Dispatchers.IO) {
-
-    suspend fun execute(): T {
-        val response = build().apply {
-            timeout().timeout(timeoutSec, TimeUnit.SECONDS)
-        }.execute()
-
-        if (!response.isSuccessful) throw HttpException(response)
-        return response.body() ?: throw ApiError.ServerError(
-            code = response.code(),
-            message = "Empty response body"
-        )
-    }
-
-    withTokenRefresh(authPreference) { execute() }
-}
-
-/**
- * Call + BaseResponse 검증
- */
-suspend fun <R> ServerApi.withAuthCallChecked(
-    authPreference: AuthPreference,
-    timeoutSec: Long = 60,
-    build: ServerApi.() -> Call<BaseResponse<R>>
-): R = withContext(Dispatchers.IO) {
-    val base = withAuthCallRaw(authPreference, timeoutSec, build)
-    if (!base.isSuccess) {
-        throw ApiError.BusinessError(
-            errorCode = base.code,
-            message = base.message ?: "요청 처리 중 오류가 발생했습니다"
-        )
-    }
-    base.result ?: throw ApiError.ServerError(0, "Empty result")
-}
 
 

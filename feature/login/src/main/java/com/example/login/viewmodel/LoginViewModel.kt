@@ -98,7 +98,7 @@ open class LoginViewModel @Inject constructor(
 
                 Log.d(TAG, "로그인 성공")
 
-                val userId = result.userId.toLong()
+                val userId = result.userId
 
                 // 토큰 + userId 저장
                 authPreference.saveTokens(
