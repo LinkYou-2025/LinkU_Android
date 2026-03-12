@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -42,7 +43,7 @@ fun RadialGradientCircle(
 
     Box(
         modifier = modifier
-            .size(size)
+            .requiredSize(size)   // 부모 constraint 무시하고 강제로 정사각형 유지
             .alpha(alpha)
             .clip(CircleShape)
             .background(

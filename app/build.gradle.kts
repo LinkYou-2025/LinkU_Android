@@ -1,5 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     //alias(libs.plugins.kotlin.android)
@@ -12,6 +12,14 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
+}
+
+val kakaoNativeAppKey =
+    localProperties.getProperty("KAKAO_NATIVE_APP_KEY") ?: "fail"
 
 android {
     namespace = "com.example.linku_android"
@@ -27,6 +35,14 @@ android {
         versionName = "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField(
+            "String",
+            "KAKAO_NATIVE_APP_KEY",
+            "\"$kakaoNativeAppKey\""
+        )
+    }
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -120,5 +136,8 @@ dependencies {
     // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
+
+    // 카카오 로그인
+    implementation(libs.v2.user)
 
 }

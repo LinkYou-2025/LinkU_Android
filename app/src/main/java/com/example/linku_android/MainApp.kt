@@ -136,7 +136,7 @@ fun MainApp(
     }
 
 
-    var currentLinkuNavigationItem by remember { mutableStateOf<LinkuNavigationItem?>(null) }
+
     var showNavBar by remember { mutableStateOf(false) }
 
     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
@@ -146,7 +146,6 @@ fun MainApp(
             homeViewModel.refreshAfterLogin()
             mypageViewModel.refreshUserInfo()
             showNavBar = true
-            currentLinkuNavigationItem = LinkuNavigationItem.HOME
             navigator.navigate(NavigationRoute.Home.route) {
                 popUpTo(0) { inclusive = true }
                 launchSingleTop = true
@@ -160,6 +159,26 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    //루트 기반 자동 계싼으로 변경함.
+    // 큐레이션으로 시작하는 모든 라우트를 큐레이션으로 인식하기에, 하위 화면에 있어도 바텀 네비게이션에
+    // 큐레이션 탭이 선택된 상태를 유지할 수 있도록 함.
+    // 하위 라우트 추가 시에도 바텀탭 선택 상태 유지를 위해 startsWith로 통일 상태 추가
+    // TODO 지민 : 코드 확인 부탁.
+    fun isTabRoute(current: String?, root: String): Boolean =
+        current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
+
+    val currentLinkuNavigationItem = when {
+        isTabRoute(currentRoute, NavigationRoute.Curation.route) ->
+            LinkuNavigationItem.CURATION
+
+        // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
+        isTabRoute(currentRoute, NavigationRoute.Home.route) ||
+                currentRoute == "savelink" ||
+                currentRoute == "savelinkresult/{linkuId}" -> LinkuNavigationItem.HOME
+        isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
+        isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
+        else -> null
+    }
 
     // 액티비티 참조 + 두번뒤로 시간 기록
     val context = LocalContext.current
@@ -187,11 +206,6 @@ fun MainApp(
                             LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
                             LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
                         }
-
-
-
-                        // 현재 화면의 route
-                        val currentRoute = navigator.currentBackStackEntry?.destination?.route
 
 
                     if (currentRoute == route) {
@@ -275,15 +289,10 @@ fun MainApp(
                                     navigator.navigate("login_root") {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                     }
-//                                    navigator.navigate("auth_graph") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
+
                                     return@Splash
                                 }
 
-                                //수정!
-                                autoLoginTried = true
 
                                 // refresh 있음 → 자동로그인 시도
                                 loginViewModel.tryAutoLogin(
@@ -297,10 +306,7 @@ fun MainApp(
                                         navigator.navigate("login_root") {
                                             popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         }
-//                                        navigator.navigate("auth_graph") {
-//                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                            launchSingleTop = true
-//                                        }
+
                                     }
                                 )
                             }
@@ -322,7 +328,6 @@ fun MainApp(
                             mypageViewModel.refreshUserInfo()
 
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.HOME
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
@@ -350,7 +355,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.HOME
+
                         }
 
 
@@ -374,7 +379,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.FILE
+
                         }
 
                         FileApp(
@@ -395,7 +400,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.MY_PAGE
+
                             // 화면 진입 시 최신 정보 로드
                             mypageViewModel.refreshUserInfo()
                             //mypageViewModel.loadUserInfo()
@@ -408,7 +413,7 @@ fun MainApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
                                 showNavBar = false  // 바텀바 끄기
-                                currentLinkuNavigationItem = null
+
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
@@ -642,11 +647,11 @@ fun MainApp(
                         backStackEntry.savedStateHandle
                             .get<Boolean>("skip_login_animation") == true
 
-                    AnimatedLoginScreen(
-                        navigator = navigator,
-                        skipAnimation = skipAnimation,
-                        onSignUpClick = {}
-                    )
+//                    AnimatedLoginScreen( // 이전 딥링크 접속시, 로그인이 안됐을 때 로그인 화면 처리 확인을 몰라 일단 주석처리를 진행함.
+//                        navigator = navigator, //TODO : 추후 수정하기
+//                        skipAnimation = skipAnimation,
+//                        onSignUpClick = {}
+//                    )
                 }
 
 

@@ -74,10 +74,6 @@ fun CurationDetailScreen(
     onBack: () -> Unit = {},
 
 ) {
-    // 닉네임 로드 (홈 VM)
-    LaunchedEffect(Unit) {
-        homeViewModel.loadNickname()
-    }
 
 
     val nicknameState = homeViewModel.nickname.collectAsState(initial = "")
@@ -91,14 +87,9 @@ fun CurationDetailScreen(
     val detail by detailViewModel.detail.collectAsStateWithLifecycle()
     val linksState by detailViewModel.links.collectAsStateWithLifecycle()
 
-    val liked by homeViewModel.highlightLiked.collectAsStateWithLifecycle(initialValue = null)
+
     val likeBusy by homeViewModel.likeBusy.collectAsStateWithLifecycle()
 
-    //좋아요 상태 로드
-    LaunchedEffect(curationId) {
-        homeViewModel.refreshHighlightLike(curationId)   // 초기 좋아요 상태 로드
-        homeViewModel.setCurrentCurationId(curationId)   // ← 현재 CID를 뷰모델에 주입
-    }
 
     val monthLabel = remember {
         LocalDate.now()
@@ -111,10 +102,8 @@ fun CurationDetailScreen(
         linksState = linksState,
         onBack = onBack,
         detailState = detail,
-        liked = liked,
-        likeBusy = likeBusy,
-        onToggleLike = { homeViewModel.toggleLikeFor(curationId) }
-        //onToggleLike = { homeViewModel.toggleHighlightLike() }
+
+
     )
 }
 
@@ -126,9 +115,7 @@ private fun CurationDetailScreenContent(
     linksState: CurationLinksUiState,
     onBack: () -> Unit = {},
     detailState: CurationDetailUiState,
-    liked: Boolean?,
-    likeBusy: Boolean,
-    onToggleLike: () -> Unit
+
 ) {
     val uri = LocalUriHandler.current
 
@@ -151,9 +138,11 @@ private fun CurationDetailScreenContent(
                 monthLabel = monthLabel,
                 onBack = onBack,
                 detailState = detailState,
-                liked = liked ?: false,
-                likeBusy = likeBusy,
-                onToggleLike = onToggleLike
+                // 에러 해결을 위해 아래 3개 파라미터 추가 - 추후 api 변동시 삭제 예정.
+                liked = false,
+                likeBusy = false,
+                onToggleLike = {}
+
             )
         }
 
@@ -524,9 +513,7 @@ private fun PreviewCurationDetailScreen() {
             linksState = CurationLinksUiState(loading = false, items = demo),
             detailState = demoDetail,
             onBack = {},
-            liked = false,          // 프리뷰 기본값
-            likeBusy = false,       // 프리뷰 기본값
-            onToggleLike = {}       // 프리뷰 기본값
+
         )
     }
 }

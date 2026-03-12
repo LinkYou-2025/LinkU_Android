@@ -3,6 +3,7 @@ package com.example.login.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.model.LoginResult
 import com.example.core.model.auth.Gender
 import com.example.core.model.auth.Job
 import com.example.core.model.auth.Purpose
@@ -14,10 +15,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import com.example.core.model.auth.NicknameCheckState
+import com.example.data.preference.AuthPreference
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.update
 
 
 /**
@@ -34,13 +38,30 @@ import kotlinx.coroutines.flow.filter
 
 @HiltViewModel
 class SocialAuthViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val authPreference: AuthPreference
 ) : ViewModel() {
 
     companion object {
         private const val TAG = "SocialAuthViewModel"
         private const val NICKNAME_DEBOUNCE_TIME = 500L
         private const val MAX_NICKNAME_LENGTH = 6
+    }
+
+    sealed class KakaoLoginState {
+        object Idle : KakaoLoginState() // 아무것도 하지 않는 초기상태.
+        object Loading : KakaoLoginState() // 로딩 중
+        data class Success(val result: LoginResult) : KakaoLoginState() //loginResult에서 성공 + 데이터 가져옴.
+        data class Error(val message: String) : KakaoLoginState()
+    }
+
+    //kakao 로그인 stateflow
+    private val _kakaoLoginState = MutableStateFlow<KakaoLoginState>(KakaoLoginState.Idle)
+    val kakaoLoginState: StateFlow<KakaoLoginState> = _kakaoLoginState
+
+    //reset 함수 추가
+    fun resetKakaoLoginState() {
+        _kakaoLoginState.value = KakaoLoginState.Idle
     }
 
     // 입력 상태
@@ -114,6 +135,35 @@ class SocialAuthViewModel @Inject constructor(
             }
         }
     }
+
+    fun loginWithKakao(token : String) {
+        Log.d("SocialAuthViewModel", "loadKakaoLogin")
+
+        viewModelScope.launch {
+            Log.d("SocialAuthViewModel", "loadWithKakao launch")
+
+            _kakaoLoginState.value = KakaoLoginState.Loading
+
+            try{
+                Log.d("SocialAuthViewModel", "loadWithKakao try")
+                val result = userRepository.loginWithKakao(token)
+                authPreference.saveTokens(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    userId = result.userId
+                )
+
+                _kakaoLoginState.value = KakaoLoginState.Success(result)
+            }catch (e: Exception){
+                Log.d(TAG, "loadWithKakao catch: ${e.message}")
+                _kakaoLoginState.value = KakaoLoginState.Error(e.message ?: "카카오 로그인 실패")
+            }
+
+            Log.d("SocialAuthViewModel", "loadWithKakao end")
+        }
+        Log.d("SocialAuthViewModel", "loadWithKakao return")
+    }
+
 
     fun updateNickname(input: String) {
         if (_nickname.value == input) return

@@ -162,7 +162,7 @@ class LinkuRepositoryImpl @Inject constructor(
                 emotionId = dto.emotionId,
                 title = dto.title.orEmpty(),
                 domain = dto.domain.orEmpty(),
-                domainImageUrl = dto.domainImageUrl,
+                domainImageUrl = dto.domainImageUrl, //TODO : 이거 도메인 정보만 받고, 프론트에서 아예 이미지를 주는게 서버비 절감에 도움이 될 것 같은데.... 지현아 괜찮아?
                 linkuImageUrl = dto.linkuImageUrl,
                 aiArticleExists = dto.aiArticleExists == true
             )
