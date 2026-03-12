@@ -647,11 +647,11 @@ fun MainApp(
                         backStackEntry.savedStateHandle
                             .get<Boolean>("skip_login_animation") == true
 
-                    AnimatedLoginScreen(
-                        navigator = navigator,
-                        skipAnimation = skipAnimation,
-                        onSignUpClick = {}
-                    )
+//                    AnimatedLoginScreen( // 이전 딥링크 접속시, 로그인이 안됐을 때 로그인 화면 처리 확인을 몰라 일단 주석처리를 진행함.
+//                        navigator = navigator, //TODO : 추후 수정하기
+//                        skipAnimation = skipAnimation,
+//                        onSignUpClick = {}
+//                    )
                 }
 
 

@@ -21,7 +21,6 @@ import kotlinx.coroutines.withContext
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import retrofit2.HttpException
-import com.example.data.api.withAuthCallChecked
 import com.example.data.api.CurationApi
 import com.example.data.api.dto.BaseResponse
 import com.squareup.moshi.Types
