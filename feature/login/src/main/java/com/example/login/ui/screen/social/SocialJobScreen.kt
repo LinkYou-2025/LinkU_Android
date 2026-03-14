@@ -1,24 +1,20 @@
 package com.example.login.ui.screen.social
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.core.model.auth.Job
-import com.example.design.theme.LocalColorTheme
-import com.example.design.theme.font.Paperlogy
 import com.example.design.util.scaler
-import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.OptionButton
-import com.example.login.ui.item.StepIndicator
+import com.example.login.ui.layout.SignUpStepLayout
+import com.example.login.ui.layout.SignUpStepLayoutPreview
 import com.example.login.viewmodel.SocialAuthViewModel
 
 @Composable
@@ -26,8 +22,6 @@ fun SocialJobScreen(
     navigator: NavHostController,
     viewModel: SocialAuthViewModel
 ) {
-    // 디자인 테마
-    val colorTheme = LocalColorTheme.current
 
     // SocialAuthViewModel 상태
     val selectedJob by viewModel.job.collectAsStateWithLifecycle()
@@ -35,72 +29,58 @@ fun SocialJobScreen(
 
     val isButtonEnabled = selectedJob != Job.NONE
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(colorTheme.white)
+    SignUpStepLayout(
+        currentStep = 3,
+        totalSteps = 3,
+        label = "프로필 설정",
+        title = "현재 하고 계신 일이나\n활동을 알려주세요",
+        buttonEnabled = isButtonEnabled,
+        onNextClick = {
+            navigator.navigate("social_purpose") { launchSingleTop = true }
+        }
     ) {
+        Spacer(Modifier.height(4.scaler)) // layout 32 + 4 = 기존 36과 동일
 
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = 20.scaler,
-                    end = 20.scaler,
-                    top = 60.scaler,
-                    bottom = 72.scaler
-                ),
-            horizontalAlignment = Alignment.Start
-        ) {
-
-            StepIndicator(
-                currentStep = 3,
-                totalSteps = 6,
-                label = "프로필 설정"
+        jobs.forEach { job ->
+            OptionButton(
+                text = job.displayName,
+                selected = selectedJob == job,
+                onClick = { viewModel.updateJob(job) },
+                modifier = Modifier.fillMaxWidth()
             )
-
-            Spacer(Modifier.height(36.scaler))
-
-            Text(
-                text = "현재 하고 계신 일이나\n활동을 알려주세요",
-                fontSize = 22.sp,
-                lineHeight = 30.sp,
-                fontFamily = Paperlogy.font,
-                fontWeight = FontWeight.Bold,
-                color = colorTheme.black,
-                textAlign = TextAlign.Start
-            )
-
-            Spacer(Modifier.height(32.scaler))
-
-            jobs.forEach { job ->
-                OptionButton(
-                    text = job.displayName,
-                    selected = selectedJob == job,
-                    onClick = {
-                        viewModel.updateJob(job)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(12.scaler))
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(Modifier.height(12.scaler))
         }
 
+        Spacer(modifier = Modifier.weight(1f))
+    }
+}
 
-        BottomGradientButton(
-            text = "다음",
-            enabled = isButtonEnabled,
-            activeGradient = colorTheme.maincolor,
-            inactiveGradient = colorTheme.inactiveColor,
-            onClick = {
-                navigator.navigate("social_purpose") {
-                    launchSingleTop = true
-                }
-            },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+@Preview(showBackground = true, name = "소셜 직업 선택 - 프리뷰")
+@Composable
+fun SocialJobScreenPreview() {
+    var selectedJob by remember { mutableStateOf(Job.NONE) }
+    val jobs = Job.getAllJobs()
+
+    SignUpStepLayoutPreview(
+        currentStep = 3,
+        totalSteps = 3,
+        label = "프로필 설정",
+        title = "현재 하고 계신 일이나\n활동을 알려주세요",
+        buttonEnabled = selectedJob != Job.NONE,
+        onNextClick = {}
+    ) {
+        Spacer(Modifier.height(4.scaler))
+
+        jobs.forEach { job ->
+            OptionButton(
+                text = job.displayName,
+                selected = selectedJob == job,
+                onClick = { selectedJob = job },
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(Modifier.height(12.scaler))
+        }
+
+        Spacer(modifier = Modifier.weight(1f))
     }
 }

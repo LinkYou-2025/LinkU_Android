@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.ThemeProvider
 import com.example.design.util.rememberFigmaDimens
 import com.example.design.util.scaler
 
@@ -142,7 +143,7 @@ fun PasswordLoginTextField(
                 shape = shape,
 
                 colors = TextFieldDefaults.colors(
-                    cursorColor = Color.Black,
+                    cursorColor = colorTheme.black,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     focusedContainerColor = Color.Transparent,
@@ -225,7 +226,7 @@ private fun PasswordLoginTextFieldVisiblePreview() {
             .padding((16.scaler))
     ) {
         // 강제로 눈 열린 상태 확인용
-        CompositionLocalProvider {
+        ThemeProvider {
             PasswordLoginTextField(
                 value = password,
                 onValueChange = { password = it }

@@ -104,4 +104,4 @@ object ServiceTermsData {
 
         "부칙" to "본 약관은 2025년 03월 03일부터 시행됩니다."
     )
-} //TODO : 런칭 전
+} //TODO : 런칭 전 날짜 수정하기.

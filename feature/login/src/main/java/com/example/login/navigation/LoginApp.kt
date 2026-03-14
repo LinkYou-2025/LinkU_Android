@@ -26,7 +26,6 @@ import com.example.login.ui.screen.email.SignUpJobScreen
 import com.example.login.ui.screen.email.SignUpNicknameScreen
 import com.example.login.ui.screen.email.SignUpPasswordScreen
 import com.example.login.ui.screen.email.WelcomeScreen
-import com.example.login.ui.screen.social.SocialEntryScreen
 import com.example.login.ui.screen.social.SocialGenderScreen
 import com.example.login.ui.screen.social.SocialInterestScreen
 import com.example.login.ui.screen.social.SocialJobScreen
@@ -46,21 +45,9 @@ fun LoginApp(
     onLoginSuccess: () -> Unit,
     loginViewModel: LoginViewModel,
     showNavBar: (Boolean) -> Unit,
-    initialSocialToken: String? = null,
 ) {
     val navController = rememberNavController()
 
-    // 추가: 소셜 딥링크로 진입한 경우 social_entry로 바로 이동
-    LaunchedEffect(initialSocialToken) {
-        if (!initialSocialToken.isNullOrBlank()) {
-            navController.navigate(
-                "social_entry?socialToken=$initialSocialToken&status=TEMP"
-            ) {
-                popUpTo("auth_graph") { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-    }
 
     NavHost(
         navController = navController,
@@ -253,7 +240,7 @@ fun LoginApp(
          */
         navigation(
             route = "social_auth_graph",
-            startDestination = "social_entry"
+            startDestination = "social_login_gate"
         ) {
 
             fun socialComposable(
@@ -272,44 +259,7 @@ fun LoginApp(
                 }
             }
 
-            //   navArgument 방식으로 변경
-            //    TODO: 백엔드 수정 후 아래 작업 예정
-            //   1. navDeepLink { uriPattern = "https://linkuserver.store/auth?..." } 추가
-            //   2. provider, result, accessToken, refreshToken, errorCode 파라미터 추가
-            //   3. SocialEntryScreen 파라미터 확장 => 서원이 작업 후 확장.
-            composable(
-                route = "social_entry?socialToken={socialToken}&status={status}",
-                arguments = listOf(
-                    navArgument("socialToken") {
-                        type         = NavType.StringType
-                        defaultValue = ""
-                    },
-                    navArgument("status") {
-                        type         = NavType.StringType
-                        defaultValue = ""
-                    }
-                )
-            ) { entry ->
-                val socialToken = entry.arguments?.getString("socialToken") ?: ""
-                val status      = entry.arguments?.getString("status")      ?: ""
 
-                // status가 비어있으면 잘못된 진입 → 로그인으로 복귀
-                if (status.isBlank()) {
-                    LaunchedEffect(Unit) {
-                        navController.navigate("login") {
-                            popUpTo("social_auth_graph") { inclusive = true }
-                        }
-                    }
-                    return@composable
-                }
-
-                SocialEntryScreen(
-                    navController  = navController,
-                    socialToken    = socialToken,
-                    status         = status,
-                    onLoginSuccess = onLoginSuccess
-                )
-            }
 
             // 약관 게이트
             socialComposable("social_login_gate") { parentEntry, entry ->

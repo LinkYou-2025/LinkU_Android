@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.design.theme.LocalColorTheme
 import com.example.login.R
 import com.example.design.theme.font.Paperlogy
 import com.example.login.ui.item.AgreeFooterButton
@@ -40,7 +41,7 @@ fun MarketingTermsScreenComposable(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
-
+    val colorTheme = LocalColorTheme.current
     val scrollState = rememberScrollState()
     val isAtBottom by remember {
         derivedStateOf {
@@ -60,7 +61,7 @@ fun MarketingTermsScreenComposable(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp) // 상단바 여백 확보를 위한 높이
-                    .background(Color.White)
+                    .background(colorTheme.white)
             ) {
                 // 뒤로가기 버튼
                 IconButton(
@@ -96,7 +97,7 @@ fun MarketingTermsScreenComposable(
                 onClick = onAgreeClicked
             )
         },
-        containerColor = Color.White,
+        containerColor = colorTheme.white,
     ) { innerPadding ->
 
         Column(
@@ -110,7 +111,9 @@ fun MarketingTermsScreenComposable(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(18.dp)) // ✅ 배경색 추가
+                    .background(
+                        color = colorTheme.gray[100],
+                        shape = RoundedCornerShape(18.dp))
                     .padding(24.dp)
             ) {
                 Column {
@@ -119,7 +122,7 @@ fun MarketingTermsScreenComposable(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = Paperlogy.font,
-                        color = Color.Black
+                        color = colorTheme.black
                     )
 
                     Spacer(Modifier.height(4.dp))
@@ -139,7 +142,7 @@ fun MarketingTermsScreenComposable(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = Paperlogy.font,
-                            color = Color.Black
+                            color = colorTheme.black
                         )
 
                         Spacer(Modifier.height(4.dp))
@@ -148,7 +151,8 @@ fun MarketingTermsScreenComposable(
                             text = body,
                             fontSize = 14.sp,
                             lineHeight = 22.sp,
-                            fontFamily = Paperlogy.font
+                            fontFamily = Paperlogy.font,
+                            color = colorTheme.black
                         )
                     }
                 }

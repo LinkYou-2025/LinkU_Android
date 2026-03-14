@@ -113,7 +113,7 @@ fun SocialInterestScreen(
             ) {
                 StepIndicator(
                     currentStep = 5,
-                    totalSteps = 6,
+                    totalSteps = 3,
                     label = "관심사 설정"
                 )
 
