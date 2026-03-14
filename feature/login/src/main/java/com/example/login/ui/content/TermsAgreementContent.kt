@@ -58,7 +58,7 @@ fun TermsAgreementContent(
         //  바텀시트 실제 높이 기준
         val topPadding = maxHeight * (46f / 280f)
 
-        Box(modifier = Modifier.fillMaxWidth() .background(Color.White)) {
+        Box(modifier = Modifier.fillMaxWidth() .background(colorTheme.white)) {
 
             Column {
 
@@ -80,7 +80,7 @@ fun TermsAgreementContent(
                             .size(22.scaler) // 반응형 적용
                             .border(
                                 width = 1.dp,
-                                color = if (agreeAll) Color(0xFFD35EFF) else colorTheme.gray[300]!!,
+                                color = if (agreeAll) colorTheme.purple[200]!! else colorTheme.gray[300]!!,
                                 shape = RoundedCornerShape(6.scaler) //반응형 적용
                             )
                             .background(
@@ -133,7 +133,7 @@ fun TermsAgreementContent(
 
                 /* ───── Divider (좌우 20) ───── */
                 Divider(
-                    color = Color(0xFFD4E1FF),
+                    color = colorTheme.blue[50]!!,
                     modifier = Modifier
                         .padding(horizontal = (20.scaler), vertical = (16.scaler))
                 )

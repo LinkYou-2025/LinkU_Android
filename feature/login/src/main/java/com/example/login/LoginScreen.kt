@@ -39,7 +39,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.login.constants.ServerConfig
 import com.example.login.viewmodel.SocialAuthViewModel
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
@@ -148,16 +147,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFC800FF),
-                        Color(0xFF2C6FFF)
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset.Infinite
-                )
-            )
+            .background(brush = colorTheme.linearMainColor)
             .navigationBarsPadding()
     ) {
 
@@ -207,7 +197,7 @@ fun LoginScreen(
                         lineHeight = 16.sp,
                         fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
-                        color = Color.White,
+                        color = colorTheme.white,
                         textAlign = TextAlign.Center
                     )
 
@@ -220,7 +210,7 @@ fun LoginScreen(
                         lineHeight = 30.sp,
                         fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(700),
-                        color = Color.White,
+                        color = colorTheme.white,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -255,10 +245,10 @@ fun LoginScreen(
 
             // 카카오
             SocialLoginButton( //TODO 채윤지 : kakao sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFFFEE500),
+                backgroundColor = Color(0xFFFEE500), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
                 iconRes = R.drawable.icon_login_kakao,
                 text = "카카오로 시작하기",
-                textColor = Color.Black,
+                textColor = colorTheme.black,
                 onClick = {
                     handleKakaoLogin(context, viewModel)
                 }
@@ -266,33 +256,31 @@ fun LoginScreen(
 
             // 네이버
             SocialLoginButton( //TODO 지현 : naver sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFF03C75A),
+                backgroundColor = Color(0xFF03C75A), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
                 iconRes = R.drawable.icon_login_naver,
                 text = "네이버로 시작하기",
-                textColor = Color.White
+                textColor = colorTheme.white
             )
 
             // 구글
             SocialLoginButton( //TODO 지민 : 구글 sns api 로그인 나오면 연동하기
-                backgroundColor = Color.White,
+                backgroundColor = colorTheme.white,
                 borderColor = Color(0xFFE0E0E0),
                 iconRes = R.drawable.icon_login_google,
                 text = "구글로 시작하기",
-                textColor = Color.Black,
+                textColor = colorTheme.black,
                 onClick = {
-                    val url = ServerConfig.GOOGLE_LOGIN_URL
-                    val customTabsIntent = CustomTabsIntent.Builder().build()
-                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                    // TODO : 연동해주세요.
                 }
             )
 
             // 이메일 기존 그대로 유지. //TODO 채윤지 : 서원에게 변경된 otp api 받으면 재연동하기
             SocialLoginButton(
                 backgroundColor = Color.Transparent,
-                borderColor = Color.White,
+                borderColor = colorTheme.white,
                 iconRes = null,
                 text = "이메일로 시작하기",
-                textColor = Color.White,
+                textColor = colorTheme.white,
                 onClick = {
                     navigator.navigate("email_login")
                 }

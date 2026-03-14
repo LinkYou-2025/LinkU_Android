@@ -40,7 +40,7 @@ import com.example.home.screen.SaveLinkResultScreen
 import com.example.home.screen.SaveLinkScreen
 import com.example.linku_android.navigation.LinkuNavigationItem
 
-//import com.example.login.LoginScreen
+
 import com.example.mypage.MyPageApp
 import com.example.mypage.MyPageViewModel
 //import com.example.mypage.MyPageScreen
@@ -50,7 +50,6 @@ import androidx.navigation.navArgument
 
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.home.HomeApp
-import com.example.login.ui.animation.AnimatedLoginScreen
 import java.io.File
 import java.io.FileOutputStream
 
@@ -69,9 +68,7 @@ import com.example.login.viewmodel.LoginViewModel
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
 import com.example.core.model.auth.LoginState
-import com.example.core.model.auth.SocialLoginEvent
 import com.example.linku_android.curation.curationGraph
-import com.example.linku_android.deeplink.SocialDeepLinkBus
 import com.example.linku_android.deeplink.appLinkRoute
 import com.example.login.navigation.LoginApp
 
@@ -109,32 +106,6 @@ fun MainApp(
 
     // 마이페이지에서 사용할 뷰모델
     val mypageViewModel: MyPageViewModel = hiltViewModel()
-
-    // TEMP 토큰 임시 보관
-    var pendingSocialToken by remember { mutableStateOf<String?>(null) }
-
-    // SocialDeepLinkBus 구독 - MainActivity에서 emit한 소셜 딥링크 수신
-    LaunchedEffect(Unit) {
-        Log.d("SOCIAL_VM", "Bus 구독 시작")
-        SocialDeepLinkBus.flow.collect { data ->
-            Log.d("SOCIAL_VM", "MainApp Bus 수신: $data")
-            loginViewModel.handleSocialDeepLink(data)
-        }
-    }
-
-
-    val socialLoginEvent by loginViewModel.socialLoginEvent.collectAsStateWithLifecycle()
-4
-    LaunchedEffect(socialLoginEvent) {
-        val event = socialLoginEvent as? SocialLoginEvent.NavigateToSocialEntry ?: return@LaunchedEffect
-        pendingSocialToken = event.socialToken
-        navigator.navigate("login_root") {
-            popUpTo(0) { inclusive = true }
-            launchSingleTop = true
-        }
-        loginViewModel.consumeSocialLoginEvent()
-    }
-
 
 
     var showNavBar by remember { mutableStateOf(false) }
@@ -319,9 +290,7 @@ fun MainApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
                         showNavBar = { showNavBar = it },
-                        initialSocialToken = pendingSocialToken,
                         onLoginSuccess = {
-                            pendingSocialToken = null
                             // 세선 정보가 저장 후, 홈 화면 데이터 즉시 로드
                             homeViewModel.refreshAfterLogin()
                             // 마이페이지 정보도 미리 로그(자연스럽게?)
