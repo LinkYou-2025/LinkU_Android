@@ -30,7 +30,7 @@ fun SocialNicknameScreen(
 
     // 닉네임 유효성 (기존 로직 그대로)
     val isNicknameValid =
-        nickname.isNotBlank() && nickname.length <= 6
+        nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
 
     val isButtonEnabled =
         isNicknameValid && nicknameState == NicknameCheckState.Available

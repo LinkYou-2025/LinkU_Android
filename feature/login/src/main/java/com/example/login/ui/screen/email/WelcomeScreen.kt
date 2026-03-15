@@ -47,6 +47,7 @@ import androidx.core.view.WindowCompat
 import com.example.core.model.SystemBarMode
 import com.example.core.model.auth.SignUpState
 import com.example.core.system.SystemBarController
+import com.example.login.BuildConfig
 
 @Composable
 fun WelcomeScreen(
@@ -88,9 +89,9 @@ fun WelcomeScreen(
 
     //화면 진입 시 자동 회원가입 요청 하나라도 비면 회원가입 불가.
     LaunchedEffect(Unit) {
-        if (!isSignUpRequested) {
-            isSignUpRequested = true
-            // 로그 추가
+        //릴리즈 빌드에는 로그 찍히지 않음. 디버그로는 확인가능함. api 연동 확인용으로 일단 놓음.
+        // TODO : 런칭 전 해당 로그 삭제.
+        if (BuildConfig.DEBUG) {
             Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
             Log.d("WelcomeScreen", "email: ${signUpViewModel?.signUpForm?.email}")
             Log.d("WelcomeScreen", "nickname: ${signUpViewModel?.signUpForm?.nickname}")
@@ -99,8 +100,8 @@ fun WelcomeScreen(
             Log.d("WelcomeScreen", "purposeList: ${signUpViewModel?.signUpForm?.purposeList}")
             Log.d("WelcomeScreen", "interestList: ${signUpViewModel?.signUpForm?.interestList}")
             Log.d("WelcomeScreen", "=====================")
-            signUpViewModel?.signUp()
         }
+        signUpViewModel?.signUp()
     }
 //    LaunchedEffect(Unit) {
 //        if (!isSignUpRequested) {

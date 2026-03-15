@@ -57,7 +57,7 @@ fun SignUpStepLayout(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorTheme.white)
+            .background(bgColor)
     ) {
         Column(
             modifier = Modifier

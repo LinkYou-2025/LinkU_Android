@@ -140,7 +140,7 @@ fun InterestPurposeScreen(
     val selectedPurposes = remember {
         mutableStateListOf<Purpose>().apply {
             // 기존 선택된 목적이 있으면 복원
-            signUpViewModel?.signUpForm?.purposeList?.let { addAll(it) }
+            signUpViewModel.signUpForm.purposeList?.let { addAll(it) }
         }
     }
 
@@ -159,7 +159,7 @@ fun InterestPurposeScreen(
                     if (selectedPurposes.isEmpty()) return@BottomGradientButton
 
                     // Purpose enum 리스트를 그대로 전달
-                    signUpViewModel?.onPurposeListChanged(selectedPurposes.toList())
+                    signUpViewModel.onPurposeListChanged(selectedPurposes.toList())
                     navigator.navigate("sign_up_interest")
                 }
             )

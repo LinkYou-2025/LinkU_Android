@@ -65,7 +65,7 @@ fun EmailInputScreen(
             text = "계정 복구 및 알림 수신에 사용됩니다",
             fontSize = 14.sp,
             fontFamily = Paperlogy.font,
-            color = LocalColorTheme.current.gray[500]!!
+            color = LocalColorTheme.current.gray[500]
         )
 
         Spacer(Modifier.height(20.scaler)) // 12 + 32(layout) 차이 보정 → subTitle 후 32 확보
@@ -103,7 +103,7 @@ fun EmailInputScreenPreview_Empty() {
             text = "계정 복구 및 알림 수신에 사용됩니다",
             fontSize = 14.sp,
             fontFamily = Paperlogy.font,
-            color = LocalColorTheme.current.gray[500]!!
+            color = LocalColorTheme.current.gray[500]
         )
         Spacer(Modifier.height(20.scaler))
         LoginTextField(
@@ -130,7 +130,7 @@ fun EmailInputScreenPreview_Invalid() {
             text = "계정 복구 및 알림 수신에 사용됩니다",
             fontSize = 14.sp,
             fontFamily = Paperlogy.font,
-            color = LocalColorTheme.current.gray[500]!!
+            color = LocalColorTheme.current.gray[500]
         )
         Spacer(Modifier.height(20.scaler))
         LoginTextField(
@@ -162,7 +162,7 @@ fun EmailInputScreenPreview_Valid() {
             text = "계정 복구 및 알림 수신에 사용됩니다",
             fontSize = 14.sp,
             fontFamily = Paperlogy.font,
-            color = LocalColorTheme.current.gray[500]!!
+            color = LocalColorTheme.current.gray[500]
         )
         Spacer(Modifier.height(20.scaler))
         LoginTextField(
