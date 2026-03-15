@@ -51,7 +51,7 @@ import com.example.core.system.SystemBarController
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel //null 불가.
 ) {
     //디자인 모듈 가져오기.
     val colorTheme = LocalColorTheme.current
@@ -86,14 +86,29 @@ fun WelcomeScreen(
     // 컴포지션 변경으로 초기화 우려가 있었음. remember -> rememberSaveable으로 수정.
     var isSignUpRequested by rememberSaveable { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
-    //화면 진입 시 자동 회원가입 요청
+    //화면 진입 시 자동 회원가입 요청 하나라도 비면 회원가입 불가.
     LaunchedEffect(Unit) {
         if (!isSignUpRequested) {
             isSignUpRequested = true
-            Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
+            // 로그 추가
+            Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
+            Log.d("WelcomeScreen", "email: ${signUpViewModel?.signUpForm?.email}")
+            Log.d("WelcomeScreen", "nickname: ${signUpViewModel?.signUpForm?.nickname}")
+            Log.d("WelcomeScreen", "gender: ${signUpViewModel?.signUpForm?.gender}")
+            Log.d("WelcomeScreen", "jobId: ${signUpViewModel?.signUpForm?.jobId}")
+            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel?.signUpForm?.purposeList}")
+            Log.d("WelcomeScreen", "interestList: ${signUpViewModel?.signUpForm?.interestList}")
+            Log.d("WelcomeScreen", "=====================")
             signUpViewModel?.signUp()
         }
     }
+//    LaunchedEffect(Unit) {
+//        if (!isSignUpRequested) {
+//            isSignUpRequested = true
+//            Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
+//            signUpViewModel?.signUp()
+//        }
+//    }
 
     // 서버 응답 감지
     LaunchedEffect(signUpState) {
@@ -209,9 +224,3 @@ fun WelcomeScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    val fakeNavController = rememberNavController()
-    WelcomeScreen(navigator = fakeNavController)
-}

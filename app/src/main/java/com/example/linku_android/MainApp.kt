@@ -115,7 +115,7 @@ fun MainApp(
         if (loginState is LoginState.Success) {
             Log.d("SOCIAL_VM", "LoginState.Success 감지 → 홈 이동")
             homeViewModel.refreshAfterLogin()
-            mypageViewModel.refreshUserInfo()
+            //mypageViewModel.refreshUserInfo() //로그인시 세션을 주기에 불필요함.
             showNavBar = true
             navigator.navigate(NavigationRoute.Home.route) {
                 popUpTo(0) { inclusive = true }
@@ -294,7 +294,7 @@ fun MainApp(
                             // 세선 정보가 저장 후, 홈 화면 데이터 즉시 로드
                             homeViewModel.refreshAfterLogin()
                             // 마이페이지 정보도 미리 로그(자연스럽게?)
-                            mypageViewModel.refreshUserInfo()
+                            // mypageViewModel.refreshUserInfo() //중복 호출 제거함.
 
                             showNavBar = true
 

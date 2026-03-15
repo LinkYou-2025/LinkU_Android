@@ -11,12 +11,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 import com.example.core.model.auth.AutoLoginState
 import com.example.core.model.auth.LoginErrorType
 import com.example.core.model.auth.LoginState
+import com.example.data.api.toLoginErrorType
 
 /**
  * 세션 정리
@@ -110,23 +109,9 @@ open class LoginViewModel @Inject constructor(
                 // 성공 상태
                 _loginState.value = LoginState.Success(result)
 
-            } catch (e: HttpException) {
-                Log.e(TAG, "로그인 실패 - HTTP 에러: ${e.code()}")
-                _loginState.value = LoginState.Error(
-                    when (e.code()) {
-                        401, 403 -> LoginErrorType.INVALID_CREDENTIALS
-                        in 500..599 -> LoginErrorType.SERVER_ERROR
-                        else -> LoginErrorType.UNKNOWN_ERROR
-                    }
-                )
-            } catch (e: IOException) {
-                // 네트워크 에러 별도 처리
-                Log.e(TAG, "로그인 실패 - 네트워크 에러", e)
-                _loginState.value = LoginState.Error(LoginErrorType.NETWORK_ERROR)  // _ 추가!
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e(TAG, "로그인 실패", e)
-                _loginState.value = LoginState.Error(LoginErrorType.UNKNOWN_ERROR)
+                _loginState.value = LoginState.Error(e.toLoginErrorType())
             }
         }
     }

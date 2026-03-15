@@ -83,7 +83,7 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
     // 토큰 저장(로그인 성공시)
     override fun saveTokens(
         accessToken: String,
-        refreshToken: String,
+        refreshToken: String?, //소셜 로그인시 중간에 null로 옴.
         userId: Long
     ) {
         pref.edit()

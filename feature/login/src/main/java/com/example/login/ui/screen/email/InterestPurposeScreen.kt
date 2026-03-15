@@ -127,7 +127,7 @@ private fun PurposeCloudScrollable(
 @Composable
 fun InterestPurposeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel //null 불가.
     //signUpViewModel: SignUpViewModel = hiltViewModel()  // Preview에서는 null, 실제 앱에서는 Hilt로 주입
 ) {
 
@@ -240,15 +240,3 @@ fun InterestPurposeScreen(
 
 
 
-//--------------------------------------------------------------------------
-/**
- * Preview - 미리보기
- */
-@Preview(showBackground = true)
-@Composable
-fun InterestPurposeScreenPreview() {
-    val fakeNavController = rememberNavController()
-    InterestPurposeScreen(
-        navigator = fakeNavController // ViewModel 없이 호출!
-    )
-}

@@ -68,7 +68,7 @@ val interestUIList = listOf(
 @Composable
 fun InterestContentScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel
 ) {
 
     // 2. 디자인 모듈의 폰트 패밀리 가져오기
@@ -245,16 +245,3 @@ private fun InterestCloudScrollable(
     }
 }
 
-
-
-/**
- * Preview: 화면 ui 확인용. 그 이상도 이하도 아닌... 코드!
- */
-@Preview(showBackground = true)
-@Composable
-fun InterestContentScreenPreview() {
-    val fakeNavController = rememberNavController()
-    InterestContentScreen(
-        navigator = fakeNavController
-    )
-}

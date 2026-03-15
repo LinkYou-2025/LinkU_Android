@@ -22,7 +22,7 @@ interface AuthPreference {
 
     fun saveTokens(
         accessToken: String,
-        refreshToken: String,
+        refreshToken: String?, //sns 로그인 중 에는 null로 옴.
         userId: Long
     )
 

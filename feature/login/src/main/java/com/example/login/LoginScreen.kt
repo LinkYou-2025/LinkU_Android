@@ -44,7 +44,9 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
-
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 private const val TAG = "LoginScreen"
 
 
@@ -107,6 +109,7 @@ fun LoginScreen(
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
     showLogo: Boolean = true, //로고 숨김(애니메이션 동안)
+    buttonsEnabled: Boolean = true, // 중복 로그인 방지.
     
 ) {
 
@@ -124,7 +127,12 @@ fun LoginScreen(
 
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
-                    "TEMP" -> navigator.navigate("social_login_gate") // 신규 유저 → 약관
+                    "TEMP" -> {
+                        navigator.navigate("social_login_gate")
+                        // navigate 후 social_auth_graph의 savedStateHandle에 토큰 저장
+                        navigator.getBackStackEntry("social_auth_graph")
+                            .savedStateHandle["socialToken"] = result.accessToken
+                    }
                 }
                 viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
             }
@@ -250,7 +258,8 @@ fun LoginScreen(
                 text = "카카오로 시작하기",
                 textColor = colorTheme.black,
                 onClick = {
-                    handleKakaoLogin(context, viewModel)
+                    if (buttonsEnabled) handleKakaoLogin(context, viewModel)
+                    //약관 화면에서 중복 로그인 방지.
                 }
             )
 
@@ -285,6 +294,71 @@ fun LoginScreen(
                     navigator.navigate("email_login")
                 }
             )
+        }
+    }
+}
+
+// 소셜 로그인 전용 배경 just 배경용.(기능 없음)
+@Composable
+fun LoginBackground() {
+    val colorTheme = LocalColorTheme.current
+    DesignSystemBars(
+        statusBarColor = Color.Transparent,
+        navigationBarColor = Color.Transparent,
+        darkIcons = false,
+        immersive = true
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush = colorTheme.linearMainColor)
+            .navigationBarsPadding()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.scaler)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.fillMaxHeight(228f / 917f))
+
+                // 로고 이미지
+                Image(
+                    painter = painterResource(id = R.drawable.img_login_logo),
+                    contentDescription = "LinkU Logo",
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(106.dp),
+                    contentScale = ContentScale.Fit
+                )
+
+                Spacer(modifier = Modifier.height(30.scaler))
+
+                Text(
+                    text = "Link U, Think You",
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    fontFamily = Paperlogy.font,
+                    fontWeight = FontWeight(500),
+                    color = colorTheme.white,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(25.scaler))
+
+                Text(
+                    text = "링큐에 오신 것을 \n환영해요",
+                    fontSize = 22.sp,
+                    lineHeight = 30.sp,
+                    fontFamily = Paperlogy.font,
+                    fontWeight = FontWeight(700),
+                    color = colorTheme.white,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
