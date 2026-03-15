@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -26,28 +25,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.core.error.SameNameException
 import com.example.design.modifier.noRippleClickable
+import com.example.design.top.search.SearchBarTopSheet
 import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet
+import com.example.file.ui.bottom.sheet.ShareBottomSheet
 import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
 import com.example.file.ui.content.BottomFolderGrid
 import com.example.file.ui.content.LinksGrid
+import com.example.file.ui.content.SharedBottomFolderGrid
+import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.content.TopFolderGrid
-import com.example.file.viewmodel.edit.state.EditStateViewModel
-import com.example.file.viewmodel.folder.state.FolderState
-import com.example.file.viewmodel.folder.state.FolderStateViewModel
+import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
-import com.example.design.top.search.SearchBarTopSheet
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.core.error.SameNameException
-import com.example.file.ui.bottom.sheet.ShareBottomSheet
-import com.example.file.ui.content.SharedBottomFolderGrid
-import com.example.file.ui.content.SharedTopFolderGrid
-import com.example.file.ui.modal.FileModalWindow
+import com.example.file.viewmodel.edit.state.EditStateViewModel
+import com.example.file.viewmodel.folder.state.FolderState
+import com.example.file.viewmodel.folder.state.FolderStateViewModel
 import kotlinx.coroutines.launch
 
 @Composable
@@ -109,65 +108,58 @@ fun FileScreen(
                     bottom = 0.dp // bottom만 제거
                 )
         ) {
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp)
-            ) {
-                item {
-                    when(folderStateViewModel.currentFolderState) {
-                        FolderState.TOP -> {
-                            if(!folderStateViewModel.isSharedFolders){
-                                TopFolderGrid(
-                                    fileViewModel = fileViewModel,
-                                    folderStateViewModel = folderStateViewModel,
-                                    editStateViewModel = editStateViewModel
-                                )
-                            }else{
-                                SharedTopFolderGrid(
-                                    fileViewModel = fileViewModel,
-                                    folderStateViewModel = folderStateViewModel,
-                                    editStateViewModel = editStateViewModel
-                                )
-                            }
-                        }
-                        FolderState.BOTTOM -> {
-                            if(!folderStateViewModel.isSharedFolders){
-                                BottomFolderGrid(
-                                    fileViewModel = fileViewModel,
-                                    editStateViewModel = editStateViewModel,
-                                    folderStateViewModel = folderStateViewModel,
-                                    onFolderAdd = {
-                                        folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                                    }
-                                )
-                            }else{
-                                SharedBottomFolderGrid(
-                                    fileViewModel = fileViewModel,
-                                    editStateViewModel = editStateViewModel,
-                                    folderStateViewModel = folderStateViewModel
-                                )
-                            }
-                        }
-                        FolderState.LINKS -> {
-                            LinksGrid(
-                                fileViewModel = fileViewModel,
-                                folderStateViewModel = folderStateViewModel,
-                            )
-                        }
+            when(folderStateViewModel.currentFolderState) {
+                FolderState.TOP -> {
+                    if(!folderStateViewModel.isSharedFolders){
+                        TopFolderGrid(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
+                            fileViewModel = fileViewModel,
+                            folderStateViewModel = folderStateViewModel,
+                            editStateViewModel = editStateViewModel
+                        )
+                    }else{
+                        SharedTopFolderGrid(
+                            fileViewModel = fileViewModel,
+                            folderStateViewModel = folderStateViewModel,
+                            editStateViewModel = editStateViewModel
+                        )
                     }
+                }
+                FolderState.BOTTOM -> {
+                    if(!folderStateViewModel.isSharedFolders){
+                        BottomFolderGrid(
+                            fileViewModel = fileViewModel,
+                            editStateViewModel = editStateViewModel,
+                            folderStateViewModel = folderStateViewModel,
+                            onFolderAdd = {
+                                folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                            }
+                        )
+                    }else{
+                        SharedBottomFolderGrid(
+                            fileViewModel = fileViewModel,
+                            editStateViewModel = editStateViewModel,
+                            folderStateViewModel = folderStateViewModel
+                        )
+                    }
+                }
+                FolderState.LINKS -> {
+                    LinksGrid(
+                        fileViewModel = fileViewModel,
+                        folderStateViewModel = folderStateViewModel,
+                    )
                 }
             }
 
-            Box(
+            ShareButton(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 19.dp, bottom = 8.dp)
                     .noRippleClickable {
                         folderStateViewModel.updateShareBottomSheetVisible(true)
                     }
-            ) {
-                ShareButton()
-            }
+            )
         }
 
         if (
