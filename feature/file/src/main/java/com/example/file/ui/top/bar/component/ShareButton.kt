@@ -27,7 +27,7 @@ import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
 
 @Composable
-fun ShareButton(
+internal fun ShareButton(
     modifier: Modifier = Modifier
 ) {
     // 내부 배치 레이아웃
@@ -35,13 +35,14 @@ fun ShareButton(
         modifier = Modifier
             // 전체 영역을 가득 채우도록
             .size(width = 146.dp, height = 50.dp)
-            .then(modifier)
 
             // 버튼 배경에 그라데이션 브러시 적용 (MainColor)
             .background(
                 shape = RoundedCornerShape(size = 22.dp),
                 brush = MainColor
-            ),
+            )
+
+            .then(modifier),
 
         // 가로 정렬 방법 (요소 간 8dp 간격, 가로 중앙 정렬)
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
@@ -86,7 +87,7 @@ fun ShareButton(
             // 사용할 아이콘 이미지 리소스
             painter = painterResource(id = R.drawable.share_icon_img),
 
-            // 이미지 설명 ("공유 버튼 아이콘")
+            // 이미지 설명
             contentDescription = "공유 버튼 아이콘"
         )
     }
@@ -94,6 +95,6 @@ fun ShareButton(
 
 @Preview(showBackground = false)
 @Composable
-fun ShareButtonTest() {
+private fun ShareButtonTest() {
     ShareButton()
 }
