@@ -291,7 +291,10 @@ fun LoginScreen(
                 text = "이메일로 시작하기",
                 textColor = colorTheme.white,
                 onClick = {
-                    navigator.navigate("email_login")
+                    //navigator.navigate("email_login")
+                    if (buttonsEnabled) {
+                        navigator.navigate("email_login")
+                    }
                 }
             )
         }

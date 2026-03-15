@@ -112,7 +112,7 @@ fun SocialInterestScreen(
                     .padding(horizontal = 20.dp)
             ) {
                 StepIndicator(
-                    currentStep = 5,
+                    currentStep = 3,
                     totalSteps = 3,
                     label = "관심사 설정"
                 )

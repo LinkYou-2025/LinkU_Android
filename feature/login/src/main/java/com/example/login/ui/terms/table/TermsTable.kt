@@ -23,7 +23,7 @@ fun TermsTable(
     rows: List<Pair<String, String>>
 ) {
     val colorTheme = LocalColorTheme.current
-    val borderColor = colorTheme.gray[400]!!
+    val borderColor = colorTheme.gray[400]
     val borderWidth = 0.5.dp
 
     Column(
@@ -93,7 +93,7 @@ fun TermsTable4Col(
     weights: List<Float> = listOf(0.25f, 0.25f, 0.25f, 0.25f)  // 컬럼별 비율 조정 가능
 ) {
     val colorTheme = LocalColorTheme.current
-    val borderColor = colorTheme.gray[400]!!
+    val borderColor = colorTheme.gray[400]
     val borderWidth = 0.5.dp
 
     Column(

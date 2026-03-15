@@ -16,6 +16,7 @@ import com.example.core.model.auth.AutoLoginState
 import com.example.core.model.auth.LoginErrorType
 import com.example.core.model.auth.LoginState
 import com.example.data.api.toLoginErrorType
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 세션 정리
@@ -109,6 +110,8 @@ open class LoginViewModel @Inject constructor(
                 // 성공 상태
                 _loginState.value = LoginState.Success(result)
 
+            } catch (e: CancellationException) {
+                 throw e
             } catch (e: Exception) {
                 Log.e(TAG, "로그인 실패", e)
                 _loginState.value = LoginState.Error(e.toLoginErrorType())
