@@ -1,5 +1,8 @@
 package com.example.core.model
 
+import com.example.core.model.auth.Gender
+
+
 data class UserInfo(
     val nickname: String,
     val email: String,

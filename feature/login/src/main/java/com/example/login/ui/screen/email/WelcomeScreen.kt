@@ -117,7 +117,8 @@ fun WelcomeScreen(
             is SignUpState.Error -> {
                 val message = (signUpState as SignUpState.Error).message
                 Log.e("WelcomeScreen", "회원가입 실패: $message")
-
+                // 에러 시 이전 단계로 돌아감.
+                navigator.popBackStack()
             }
             is SignUpState.Loading -> {
                 Log.d("WelcomeScreen", "회원가입 진행 중...")

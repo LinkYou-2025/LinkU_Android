@@ -45,9 +45,9 @@ fun EmailInputScreen(
     }
 
     var email by remember { mutableStateOf("") }
-    val emailValid = remember(email) {
-        val trimmed = email.trim()
-        email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val trimmed = email.trim()
+    val emailValid = remember(trimmed) {
+        trimmed.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(trimmed).matches()
     }
 
     SignUpStepLayout(

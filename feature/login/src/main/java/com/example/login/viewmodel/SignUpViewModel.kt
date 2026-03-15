@@ -183,9 +183,11 @@ class SignUpViewModel @Inject constructor(
                 _signUpState.value = if (success) {
                     SignUpState.Success
                 } else {
+                    isSignUpRequested = false
                     SignUpState.Error("회원가입에 실패했습니다.")
                 }
             } catch (e: Exception) {
+                isSignUpRequested = false
                 _signUpState.value = SignUpState.Error(
                     e.message ?: "알 수 없는 오류가 발생했습니다."
                 )
