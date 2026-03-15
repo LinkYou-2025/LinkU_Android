@@ -19,7 +19,7 @@ interface UserRepository {
     suspend fun checkNickname(nickname: String): Boolean
     //suspend fun getNickname(userId: Long): String?
     suspend fun login(email: String, password: String): LoginResult
-    suspend fun signUp(
+    suspend fun signUpWithEmail(
         nickname: String,
         email: String,
         password: String,

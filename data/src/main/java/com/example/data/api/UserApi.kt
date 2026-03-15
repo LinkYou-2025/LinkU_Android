@@ -31,7 +31,7 @@ interface UserApi {
     ): BaseResponse<TokenPair>
 
     @POST("users/join")
-    suspend fun signUp(
+    suspend fun signUpWithEmail(
         @Body joinDTO: JoinDTO
     ): BaseResponse<JoinResultDTO>
 

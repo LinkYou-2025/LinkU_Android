@@ -74,14 +74,7 @@
                     android:scheme="kakao${KAKAO_NATIVE_APP_KEY}"
                     android:host="oauth" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="kakao${KAKAO_NATIVE_APP_KEY}"
-                    android:host="oauth" />
-            </intent-filter>
+
         </activity>
     </application>
 </manifest>

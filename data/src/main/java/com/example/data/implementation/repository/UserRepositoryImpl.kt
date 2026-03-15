@@ -76,7 +76,7 @@ class UserRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun signUp(
+    override suspend fun signUpWithEmail(
         nickname: String,
         email: String,
         password: String,
@@ -110,7 +110,7 @@ class UserRepositoryImpl @Inject constructor(
             interestList = safeInterestList
         )
 
-        serverApi.withErrorHandling { signUp(dto) }
+        serverApi.withErrorHandling { signUpWithEmail(dto) }
         Log.d(TAG, "[회원가입 성공]")
         return true
     }

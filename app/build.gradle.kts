@@ -19,7 +19,9 @@ val localProperties = Properties().apply {
 }
 
 val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
-    ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing in local.properties")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing or blank in local.properties")
 
 android {
     namespace = "com.example.linku_android"
