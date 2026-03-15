@@ -35,8 +35,8 @@ internal fun TopFolderGrid(
     editStateViewModel: EditStateViewModel
 ){
     FolderGrid(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
+        modifier = modifier,
+        contentPadding = contentPadding,
         folderList = fileViewModel.parentFolders.collectAsState().value,
         categoryColorMap = fileViewModel.categoryColorMap.collectAsState().value,
         onFolderClick = { folder ->
