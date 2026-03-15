@@ -97,8 +97,8 @@ class UserRepositoryImpl @Inject constructor(
             }
         }
 
-        require(safePurposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
-        require(safeInterestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
+        require(purposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
+        require(interestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
 
         val dto = JoinDTO(
             nickName = nickname,
@@ -106,8 +106,8 @@ class UserRepositoryImpl @Inject constructor(
             password = password,
             gender = gender,
             jobId = jobId,
-            purposeList = safePurposeList,
-            interestList = safeInterestList
+            purposeList = purposeList,
+            interestList = interestList
         )
 
         serverApi.withErrorHandling { signUpWithEmail(dto) }
@@ -340,8 +340,7 @@ class UserRepositoryImpl @Inject constructor(
             )
             Log.d(TAG, "[소셜 프로필 완료] 성공")
             true
-        } catch (e: ApiError) {
-            // data 레이어 예외를 core/일반 예외로 변환 후 던짐
+        } catch (e: Exception) {
             Log.e(TAG, "[소셜 프로필 완료 실패] ${e.message}")
             throw Exception(e.message ?: "소셜 프로필 완료 실패")
         }
