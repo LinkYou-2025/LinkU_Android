@@ -46,6 +46,7 @@ fun EmailInputScreen(
 
     var email by remember { mutableStateOf("") }
     val emailValid = remember(email) {
+        val trimmed = email.trim()
         email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
