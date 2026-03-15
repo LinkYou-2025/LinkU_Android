@@ -66,16 +66,15 @@
                     android:path="/open"/>
             </intent-filter>
 
-            <intent-filter android:autoVerify="true">
+            <!-- 카카오 로그인 콜백 로컬 프로퍼티에 꼭 각자 디버그 키 넣어주세요. -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
-                    android:scheme="https"
-                    android:host="linkuserver.store"
-                    android:path="/auth" />
+                    android:scheme="kakao${KAKAO_NATIVE_APP_KEY}"
+                    android:host="oauth" />
             </intent-filter>
-            <!-- 카카오 로그인 콜백 로컬 프로퍼티에 꼭 각자 디버그 키 넣어주세요. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
