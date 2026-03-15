@@ -12,7 +12,7 @@ data class UserInfoDTO(
     val email: String,
 
     @Json(name = "gender") //03.14 테스트 계정 성별 null로 수정함.
-    val gender: Gender?,
+    val gender: Gender,
 
     @Json(name = "job")
     val job: Job,

@@ -209,8 +209,7 @@ class UserRepositoryImpl @Inject constructor(
         return UserInfo(
             nickname = dto.nickName.orEmpty(),
             email = dto.email,
-            gender = dto.gender?.value ?: "", //테스트 계정, 성별 null로 임시로 수정함.
-//            gender = dto.gender.value,
+            gender = dto.gender.value,
             jobId = dto.job.id.toLong(),
             jobName = dto.job.name,
             myLinku = dto.myLinku.toLong(),
