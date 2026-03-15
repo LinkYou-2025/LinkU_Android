@@ -27,7 +27,12 @@ fun TermsAgreementSheet(
     onClose: () -> Unit,
     onClickTerms: () -> Unit,
     onClickPrivacy: () -> Unit,
-    onClickMarketing: () -> Unit
+    onClickMarketing: () -> Unit,
+    onNext: () -> Unit = {  // 기본값은 기존 동작인 이메일 인증 화면으로 유지
+        navController.navigate("email_verification") {
+            launchSingleTop = true
+        }
+    }
 ) {
     if (!visible) return
 
@@ -57,9 +62,10 @@ fun TermsAgreementSheet(
             onNextClicked = { t, p, _ ->
                 if (t && p) {
                     onClose()
-                    navController.navigate("email_verification") {
-                        launchSingleTop = true
-                    }
+                    onNext()  // navigate 직접 호출 대신 콜백으로
+//                    navController.navigate("email_verification") {
+//                        launchSingleTop = true
+//                    }
                 }
             }
         )
