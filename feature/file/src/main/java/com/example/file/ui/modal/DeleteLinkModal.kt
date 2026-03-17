@@ -107,7 +107,7 @@ fun DeleteLinkModal(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewDeleteLinkModal() {
+private fun PreviewDeleteLinkModal() {
     DeleteLinkModal(
         onDismiss = {},
         onConfirm = {}
