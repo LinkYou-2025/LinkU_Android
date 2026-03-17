@@ -59,7 +59,6 @@ import androidx.navigation.navDeepLink
 import com.example.curation.CurationViewModel
 import com.example.file.FileApp
 import com.example.file.FileViewModel
-import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
@@ -70,6 +69,7 @@ import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
 import com.example.core.model.auth.LoginState
 import com.example.core.model.auth.SocialLoginEvent
+import com.example.design.modal.ModalWindow
 import com.example.linku_android.curation.curationGraph
 import com.example.linku_android.deeplink.SocialDeepLinkBus
 import com.example.linku_android.deeplink.appLinkRoute
@@ -573,7 +573,7 @@ fun MainApp(
 
                         Log.d("MainApp", "On Modal")
 
-                        FileModalWindow(
+                        ModalWindow(
                             visible = visible,
                             title = "접근 권한이 없습니다.",
                             onOkay = { visible = false },

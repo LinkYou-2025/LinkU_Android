@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.core.error.SameNameException
+import com.example.design.modal.ModalWindow
 import com.example.design.modifier.noRippleClickable
 import com.example.design.top.search.SearchBarTopSheet
 import com.example.file.ui.bottom.sheet.BottomFolderEditBottomSheet
@@ -40,7 +41,6 @@ import com.example.file.ui.content.LinksGrid
 import com.example.file.ui.content.SharedBottomFolderGrid
 import com.example.file.ui.content.SharedTopFolderGrid
 import com.example.file.ui.content.TopFolderGrid
-import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.White
 import com.example.file.ui.top.bar.FileTopBar
 import com.example.file.ui.top.bar.component.ShareButton
@@ -245,7 +245,7 @@ fun FileScreen(
     )
 
     // 소분류 수정/추가 시 이름 중복 경고 모달창
-    FileModalWindow(
+    ModalWindow(
         visible = sameNameExceptionModalVisible,
         onDismiss = { sameNameExceptionModalVisible = false },
         title = "이미 존재하는 폴더명입니다.",

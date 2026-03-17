@@ -58,13 +58,13 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.core.model.FolderSimpleInfo
+import com.example.design.modal.ModalWindow
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.TopFolderItemLayout
-import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.Black
 import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.ui.theme.DefaultFont
@@ -73,7 +73,6 @@ import com.example.file.ui.theme.Gray600
 import com.example.file.ui.theme.Gray800
 import com.example.file.ui.theme.MainColor
 import com.example.file.ui.theme.White
-import com.example.file.viewmodel.edit.state.EditStateViewModel
 import com.example.file.viewmodel.folder.state.FolderState
 import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
@@ -334,7 +333,7 @@ fun ShareBottomSheet(
         Spacer(modifier = Modifier.height(bottomSpacerHeight))
     }
 
-    FileModalWindow(
+    ModalWindow(
         visible = modalOpen,
         title = "링크가 복사되었습니다!",
         onOkay = {

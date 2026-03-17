@@ -1,4 +1,4 @@
-package com.example.file.ui.modal
+package com.example.design.modal
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,10 +26,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.modifier.noRippleClickable
-import com.example.file.ui.theme.*
+import com.example.design.theme.LocalFontTheme
+import com.example.design.theme.color.Basic
 
 @Composable
-fun FileModalWindow(
+fun ModalWindow(
     visible: Boolean,
     onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
@@ -42,7 +43,7 @@ fun FileModalWindow(
         Dialog(onDismissRequest = { onDismiss() }) {
             Surface(
                 shape = RoundedCornerShape(20.dp),
-                color = White
+                color = Basic.white
             ){
                 Column(
                     modifier = Modifier
@@ -57,9 +58,9 @@ fun FileModalWindow(
                         text = title,
                         fontSize = 18.sp,
                         lineHeight = 22.sp,
-                        fontFamily = DefaultFont,
+                        fontFamily = LocalFontTheme.current.font,
                         fontWeight = FontWeight(500),
-                        color = Black,
+                        color = Basic.black,
                         textAlign = TextAlign.Center,
                     )
 
@@ -77,11 +78,11 @@ fun FileModalWindow(
                                     .fillMaxHeight()
                                     .border(
                                         width = 1.dp,
-                                        brush = MainColor,
+                                        brush = Basic.maincolor,
                                         shape = RoundedCornerShape(size = 14.dp)
                                     )
                                     .background(
-                                        color = White,
+                                        color = Basic.white,
                                         shape = RoundedCornerShape(size = 14.dp)
                                     )
                                     .noRippleClickable {onDismiss()},
@@ -96,13 +97,13 @@ fun FileModalWindow(
                                                 fontSize = 16.sp,
 
                                                 // 사용할 폰트 (paperlogy 폰트)
-                                                fontFamily = DefaultFont,
+                                                fontFamily = LocalFontTheme.current.font,
 
                                                 // 폰트 굵기 (500)
                                                 fontWeight = FontWeight(500),
 
                                                 // 텍스트 그라데이션 색상(링큐 메인 색상)
-                                                brush = MainColor,
+                                                brush = Basic.maincolor,
                                             )
                                         ) {
                                             // 실제 표시할 텍스트
@@ -117,7 +118,7 @@ fun FileModalWindow(
                                 .weight(1f)
                                 .fillMaxHeight()
                                 .background(
-                                    brush = MainColor,
+                                    brush = Basic.maincolor,
                                     shape = RoundedCornerShape(size = 14.dp)
                                 )
                                 .noRippleClickable{
@@ -129,9 +130,9 @@ fun FileModalWindow(
                             Text(
                                 text = positiveText,
                                 fontSize = 16.sp,
-                                fontFamily = DefaultFont,
+                                fontFamily = LocalFontTheme.current.font,
                                 fontWeight = FontWeight(500),
-                                color = White,
+                                color = Basic.white,
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -145,8 +146,8 @@ fun FileModalWindow(
 
 @Preview(showBackground = true)
 @Composable
-private fun FileModalWindowTest(){
-    FileModalWindow(
+private fun ModalWindowTest(){
+    ModalWindow(
         true,
         {},
         {},
@@ -158,9 +159,9 @@ private fun FileModalWindowTest(){
             text = "해당 폴더는 타인과 공유중인 폴더입니다.\n비공개 폴더로 전환하시겠습니까?",
             fontSize = 15.sp,
             lineHeight = 22.sp,
-            fontFamily = DefaultFont,
+            fontFamily = LocalFontTheme.current.font,
             fontWeight = FontWeight(400),
-            color = Gray600,
+            color = Basic.gray[600],
             textAlign = TextAlign.Center,
         )
     }

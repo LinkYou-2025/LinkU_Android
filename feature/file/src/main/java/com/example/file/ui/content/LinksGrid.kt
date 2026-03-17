@@ -26,11 +26,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.design.modal.ModalWindow
 import com.example.design.modifier.noRippleClickable
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.file.ui.item.LinkItemLayout
-import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.Black
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
@@ -137,7 +137,7 @@ fun LinksGrid(
     }
 
     // 분류되지 않는 링크가 없으면 뜨는 모달창
-    FileModalWindow(
+    ModalWindow(
         visible = categorizationModalWindowVisible,
         onDismiss = { categorizationModalWindowVisible = false },
         title = "분류되지 않은 링크가 없습니다.",
@@ -155,7 +155,7 @@ fun LinksGrid(
     }
 
     // 링크 삭제 모달창
-    FileModalWindow(
+    ModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
             // ✅ 확인에서 안전하게 현재 선택된 id로 삭제

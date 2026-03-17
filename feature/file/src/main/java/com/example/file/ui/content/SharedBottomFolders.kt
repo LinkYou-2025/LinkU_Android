@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.design.modal.ModalWindow
 import com.example.file.FileViewModel
 import com.example.file.ui.item.EmptyFolderItemLayout
-import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.theme.DefaultFont
 import com.example.file.ui.theme.Gray600
 import com.example.file.viewmodel.edit.state.EditStateViewModel
@@ -81,7 +81,7 @@ fun SharedBottomFolderGrid(
                 )
             }
 
-            FileModalWindow(
+            ModalWindow(
                 visible = visible,
                 onOkay = {
                     fileViewModel.deleteSharedFolder(folder.folderId)

@@ -30,10 +30,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.example.design.modal.ModalWindow
 import com.example.file.FileViewModel
 import com.example.file.R
 import com.example.design.modifier.noRippleClickable
-import com.example.file.ui.modal.FileModalWindow
 import com.example.file.ui.item.BottomFolderItemLayout
 import com.example.file.ui.item.EmptyFolderItemLayout
 import com.example.file.ui.item.LinkItemLayout
@@ -156,7 +156,7 @@ fun BottomFolderGrid(
                     )
                 }
 
-                FileModalWindow(
+                ModalWindow(
                     visible = visible,
                     onOkay = {fileViewModel.deleteSubfolder(folder.folderId, i)},
                     onDismiss = {visible = false},
@@ -223,7 +223,7 @@ fun BottomFolderGrid(
     }
 
     // 링크 삭제 모달창
-    FileModalWindow(
+    ModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
             // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
