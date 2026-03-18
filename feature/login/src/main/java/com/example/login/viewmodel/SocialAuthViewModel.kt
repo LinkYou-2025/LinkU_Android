@@ -217,7 +217,7 @@ class SocialAuthViewModel @Inject constructor(
 
                 val success = userRepository.completeSocialProfile(
                     socialToken = socialToken,
-                    nickname = _nickname.value,
+                    nickName = _nickname.value,
                     gender = _gender.value,
                     job = _job.value,
                     purposes = _purposes.value,

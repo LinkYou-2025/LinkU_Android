@@ -59,7 +59,7 @@ interface UserRepository {
     //소셜 로그인 이후 사용자 정보 받음
     suspend fun completeSocialProfile(
         socialToken: String,
-        nickname: String,
+        nickName: String,
         gender: Gender,
         job: Job,
         purposes: List<Purpose>,

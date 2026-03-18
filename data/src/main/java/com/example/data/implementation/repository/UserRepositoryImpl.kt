@@ -10,7 +10,6 @@ import com.example.core.repository.UserRepository
 import com.example.core.session.SessionStore
 import com.example.data.api.ApiError
 import com.example.data.api.ServerApi
-import com.example.data.api.UserApi
 import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.preference.AuthPreference
@@ -28,7 +27,6 @@ import com.example.data.api.dto.login.kakao.KakaoLoginResponseDTO
 import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl @Inject constructor(
-    private val userApi: UserApi,
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
     private val sessionStore: SessionStore
@@ -85,17 +83,7 @@ class UserRepositoryImpl @Inject constructor(
         purposeList: List<String>,
         interestList: List<String>
     ): Boolean {
-        // enum 사용: 한글 displayName → serverKey 변환
-        val safePurposeList = purposeList.mapNotNull { displayName ->
-            Purpose.fromDisplayName(displayName)?.serverKey.also {
-                if (it == null) Log.w(TAG, "알 수 없는 Purpose: $displayName")
-            }
-        }
-        val safeInterestList = interestList.mapNotNull { displayName ->
-            Interest.fromDisplayName(displayName)?.serverKey.also {
-                if (it == null) Log.w(TAG, "알 수 없는 Interest: $displayName")
-            }
-        }
+        Log.d(TAG, "[회원가입 시도]")
 
         require(purposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
         require(interestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
@@ -180,8 +168,7 @@ class UserRepositoryImpl @Inject constructor(
     // 인증 필요 API (withAuth)
 
     override suspend fun getUserInfo(userId: Long): UserInfo {
-        //val fullToken = authPreference.accessToken
-        //Log.d(TAG, "📍 Full AccessToken: $fullToken")
+
         val dto = serverApi.withAuth(authPreference) {
             getUserInfo(/*userId*/)
         }
@@ -210,11 +197,11 @@ class UserRepositoryImpl @Inject constructor(
             nickname = dto.nickName.orEmpty(),
             email = dto.email,
             gender = dto.gender.value,
-            jobId = dto.job.id.toLong(),
+            jobId = dto.job.id,
             jobName = dto.job.name,
-            myLinku = dto.myLinku.toLong(),
-            myFolder = dto.myFolder.toLong(),
-            myAiLinku = dto.myAiLinku.toLong(),
+            myLinku = dto.myLinku,
+            myFolder = dto.myFolder,
+            myAiLinku = dto.myAiLinku,
             purposes = displayPurposes,
             interests = displayInterests
         ).also { userInfo ->
@@ -302,14 +289,7 @@ class UserRepositoryImpl @Inject constructor(
         //clearAuthData()
         Log.d(TAG, "로그아웃 완료")
     }
-    private suspend fun clearAuthData() {
-        // 중복 실행 방지함. 이미 로그아웃 상태면 아무것도 하지 않음
-        if (authPreference.userId == null && !authPreference.isLoggedIn) return
 
-        authPreference.clear()
-        sessionStore.clear()
-        Log.d(TAG, "모든 로컬 세션 데이터 삭제 완료")
-    }
 
     companion object {
         private const val TAG = "UserRepository"
@@ -318,7 +298,7 @@ class UserRepositoryImpl @Inject constructor(
     // 소셜로 회원가입 이후 프로필 정보 입력 받는 api
     override suspend fun completeSocialProfile(
         socialToken: String,
-        nickname: String,
+        nickName: String,
         gender: Gender,
         job: Job,
         purposes: List<Purpose>,
@@ -326,24 +306,22 @@ class UserRepositoryImpl @Inject constructor(
     ): Boolean {
 
         val request = SocialProfileMapper.toRequest(
-            nickName = nickname,
+            nickName = nickName,
             gender = gender,
             job = job,
             purposes = purposes,
             interests = interests
         )
 
-        return try {
-            userApi.completeSocialProfile(
+        serverApi.withErrorHandling {
+            completeSocialProfile(
                 authorization = "Bearer $socialToken",
                 body = request
             )
-            Log.d(TAG, "[소셜 프로필 완료] 성공")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "[소셜 프로필 완료 실패] ${e.message}")
-            throw Exception(e.message ?: "소셜 프로필 완료 실패")
         }
+
+        Log.d(TAG, "[소셜 프로필 완료] 성공")
+        return true
     }
 
     override suspend fun refreshUserInfo(userId: Long) {
@@ -398,14 +376,12 @@ class UserRepositoryImpl @Inject constructor(
 
         Log.d("UserRepositoryImpl", "loginWithKakao return: $kakaoResponse")
 
-        return kakaoResponse.run {
-            LoginResult(
-                userId = this.userId,
-                accessToken = this.accessToken,
-                refreshToken = this.refreshToken,
-                status = this.status
-            )
-        }
+        return LoginResult( // run을 간결하게 수정함.
+            userId = kakaoResponse.userId,
+            accessToken = kakaoResponse.accessToken,
+            refreshToken = kakaoResponse.refreshToken,
+            status = kakaoResponse.status
+        )
 
     }
 
