@@ -29,6 +29,22 @@ import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
 
+/**
+ * 사용자에게 중요한 정보를 알리거나 특정 동작에 대한 확인을 받기 위한 모달 다이얼로그 창입니다.
+ *
+ * 이 컴포넌트는 화면 중앙에 배치되며, 제목, 본문 콘텐츠, 그리고 최대 2개의 버튼(확인/취소)을 제공합니다.
+ * [negativeText]가 비어있지 않은 경우에만 취소 버튼이 활성화됩니다.
+ *
+ * @param visible 모달 창의 표시 여부. true일 때 화면에 나타납니다.
+ * @param onOkay '확인' 성격의 버튼을 클릭했을 때 실행될 콜백 함수.
+ * @param onDismiss 모달을 닫아야 할 때(취소 버튼 클릭 또는 외부 영역 클릭 시) 실행될 콜백 함수.
+ * @param positiveText 확인 버튼에 표시될 텍스트.
+ * @param negativeText 취소 버튼에 표시될 텍스트. 빈 문자열일 경우 취소 버튼은 표시되지 않습니다.
+ * @param title 모달 상단에 표시될 강조된 제목 텍스트.
+ * @param textBody 모달 중앙에 배치될 사용자 정의 Composable 본문 내용.
+ *
+ * @see androidx.compose.ui.window.Dialog
+ */
 @Composable
 fun ModalWindow(
     visible: Boolean,
