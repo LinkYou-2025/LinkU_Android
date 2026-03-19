@@ -1,6 +1,7 @@
 package com.example.mypage.component
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,14 +21,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.color.Basic
+import com.example.mypage.R
 
 @Composable
 fun LogoutModal(
@@ -40,29 +45,43 @@ fun LogoutModal(
             .background(LocalColorTheme.current.white),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Column (
+            modifier = Modifier
+                .wrapContentSize()
+                .padding(top = 23.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_linku_blur),
+                contentDescription = null,
+                modifier = Modifier
+                    .height(30.dp)
+            )
+        }
+
         Text(
             text = "로그아웃 하시겠습니까?",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium), fontFamily = LocalFontTheme.current.font,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.black,
-            modifier = Modifier.padding(top = 45.dp)
+            modifier = Modifier.padding(top = 22.dp)
         )
 
         Text(
-            text = "오늘 저장한 링크들, 나중에 꼭 다시 꺼내보세요!",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+            text = "오늘 저장한 링크들, 나중에 꼭 다시 꺼내보세요!\n링큐가 당신의 다음 순간도 함께할게요.",
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Normal,
+            fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.gray[600],
-            modifier = Modifier.padding(top = 35.dp)
-        )
-
-        Text(
-            text = "링큐가 당신의 다음 순간도 함께할게요.",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-            color = LocalColorTheme.current.gray[600]
+            modifier = Modifier.padding(top = 15.dp)
         )
 
         Row(
             modifier = Modifier
-                .padding(top = 36.dp, start = 27.dp, end = 27.dp)
+                .padding(top = 25.dp, start = 27.dp, end = 27.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -110,7 +129,7 @@ fun LogoutModal(
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = false)
 @Composable
 fun PreviewLogoutModal() {
     LogoutModal(
