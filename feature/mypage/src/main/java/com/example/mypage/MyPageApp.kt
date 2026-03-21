@@ -45,11 +45,8 @@ fun MyPageApp(
         composable("mypage") {
             // 3. sessionSnapshot 데이터를 직접 넘겨줌
             MyPageScreen(
-                navController = navController,
                 nickname = session.nickname ?: "",
                 email = session.email ?: "",
-                gender = session.gender ?: "",
-                jobName = session.jobName ?: "",
                 myLinku = session.myLinku ?: 0L,
                 myFolder = session.myFolder ?: 0L,
                 myAiLinku = session.myAiLinku ?: 0L,

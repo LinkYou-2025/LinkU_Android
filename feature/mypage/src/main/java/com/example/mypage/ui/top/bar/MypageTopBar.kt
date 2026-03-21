@@ -38,18 +38,18 @@ import com.example.design.R as Res
 
 @Composable
 fun MypageTopBar(
-    infoCardVisible: Boolean,
     isNoticeExist: Boolean,  // 알림 존재 여부
-    onAlarmClick: () -> Unit,
     nickname: String,
     email: String,
     myLinku: Long,
     myFolder: Long,
     myAiLinku: Long,
     socialLoginType: String,
+    onAlarmClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
@@ -149,137 +149,122 @@ fun MypageTopBar(
                 }
             }
 
-            AnimatedVisibility(
-                visible = infoCardVisible,
-                enter = slideInVertically(
-                    initialOffsetY = { it } // 아래에서 위로 등장
-                ) + fadeIn(),
-                exit = slideOutVertically(
-                    targetOffsetY = { -it } // 위로 사라짐
-                ) + fadeOut()
+            Spacer(modifier = Modifier.height(15.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-
+                // 나의 링크
                 Column(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(LocalColorTheme.current.gray[100])
+                        .border(
+                            1.dp,
+                            LocalColorTheme.current.gray[200],
+                            RoundedCornerShape(14.dp)
+                        )
+                        .padding(vertical = 14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(15.dp))
+                    Text(
+                        text = "나의 링크",
+                        color = LocalColorTheme.current.gray[700],
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
 
+                    Text(
+                        text = myLinku.toString(),
+                        color = LocalColorTheme.current.black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalFontTheme.current.font
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(9.dp))
+
+                // 나의 폴더
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(LocalColorTheme.current.gray[100])
+                        .border(
+                            1.dp,
+                            LocalColorTheme.current.gray[200],
+                            RoundedCornerShape(14.dp)
+                        )
+                        .padding(vertical = 14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "나의 폴더",
+                        color = LocalColorTheme.current.gray[700],
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+
+                    Text(
+                        text = myFolder.toString(),
+                        color = LocalColorTheme.current.black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalFontTheme.current.font
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(9.dp))
+
+                // AI 요약 링크
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(LocalColorTheme.current.backgroundmaincolor)
+                        .border(
+                            1.dp,
+                            LocalColorTheme.current.inactiveColor,
+                            RoundedCornerShape(14.dp)
+                        )
+                        .padding(vertical = 14.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // 나의 링크
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(LocalColorTheme.current.gray[100])
-                                .border(
-                                    1.dp,
-                                    LocalColorTheme.current.gray[200],
-                                    RoundedCornerShape(14.dp)
-                                )
-                                .padding(vertical = 14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "나의 링크",
-                                color = LocalColorTheme.current.gray[700],
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                fontFamily = LocalFontTheme.current.font,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
+                        Image(
+                            painter = painterResource(R.drawable.ic_sparkle),
+                            contentDescription = null,
+                            modifier = Modifier.size(11.31.dp, 13.21.dp)
+                        )
 
-                            Text(
-                                text = myLinku.toString(),
-                                color = LocalColorTheme.current.black,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = LocalFontTheme.current.font
-                            )
-                        }
+                        Spacer(modifier = Modifier.width(4.56.dp))
 
-                        Spacer(modifier = Modifier.width(9.dp))
-
-                        // 나의 폴더
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(LocalColorTheme.current.gray[100])
-                                .border(
-                                    1.dp,
-                                    LocalColorTheme.current.gray[200],
-                                    RoundedCornerShape(14.dp)
-                                )
-                                .padding(vertical = 14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = "나의 폴더",
-                                color = LocalColorTheme.current.gray[700],
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                fontFamily = LocalFontTheme.current.font,
-                                modifier = Modifier.padding(bottom = 4.dp)
-                            )
-
-                            Text(
-                                text = myFolder.toString(),
-                                color = LocalColorTheme.current.black,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = LocalFontTheme.current.font
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(9.dp))
-
-                        // AI 요약 링크
-                        Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(LocalColorTheme.current.backgroundmaincolor)
-                                .border(
-                                    1.dp,
-                                    LocalColorTheme.current.inactiveColor,
-                                    RoundedCornerShape(14.dp)
-                                )
-                                .padding(vertical = 14.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(bottom = 4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_sparkle),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(11.31.dp, 13.21.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(4.56.dp))
-
-                                Text(
-                                    text = "AI 요약 링크",
-                                    color = LocalColorTheme.current.gray[700],
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    fontFamily = LocalFontTheme.current.font,
-                                )
-                            }
-
-                            Text(
-                                text = myAiLinku.toString(),
-                                color = LocalColorTheme.current.black,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                fontFamily = LocalFontTheme.current.font
-                            )
-                        }
+                        Text(
+                            text = "AI 요약 링크",
+                            color = LocalColorTheme.current.gray[700],
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            fontFamily = LocalFontTheme.current.font,
+                        )
                     }
+
+                    Text(
+                        text = myAiLinku.toString(),
+                        color = LocalColorTheme.current.black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalFontTheme.current.font
+                    )
                 }
             }
         }
@@ -290,7 +275,6 @@ fun MypageTopBar(
 @Composable
 fun PreviewMypageTopBar() {
     MypageTopBar(
-        infoCardVisible = true,
         isNoticeExist = true,
         onAlarmClick = {},
         nickname = "세나",
