@@ -3,7 +3,7 @@ package com.example.data.api.dto.user
 import com.squareup.moshi.Json
 import java.time.OffsetDateTime
 
-data class SignUpResponseDTO(
+data class SignUpEmailResponseDTO(
 
     @Json(name = "userId")
     val userId: Long,

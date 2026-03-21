@@ -10,7 +10,7 @@ import com.example.core.repository.UserRepository
 import com.example.core.session.SessionStore
 import com.example.data.api.ApiError
 import com.example.data.api.ServerApi
-import com.example.data.api.dto.user.SignUpRequestDTO
+import com.example.data.api.dto.user.SignUpEmailRequestDTO
 import com.example.data.api.dto.user.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.user.DeleteUserRequestDTO
@@ -88,7 +88,7 @@ class UserRepositoryImpl @Inject constructor(
         require(purposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
         require(interestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
 
-        val dto = SignUpRequestDTO(
+        val dto = SignUpEmailRequestDTO(
             nickName = nickname,
             email = email,
             password = password,
