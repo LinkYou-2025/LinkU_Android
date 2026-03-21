@@ -30,3 +30,6 @@ local.properties
 /app/src/main/java/com/example/linku_android/FrontRules.kt
 /app/release/
 /.kotlin/
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
