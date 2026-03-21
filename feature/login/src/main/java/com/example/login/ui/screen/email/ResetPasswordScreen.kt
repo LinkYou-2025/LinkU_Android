@@ -147,7 +147,7 @@ fun ResetPasswordScreen(
             onClick = {
                 keyboardController?.hide()
                 focusManager.clearFocus()
-                viewModel?.request(email)
+//                viewModel?.request(email)
             },
             modifier = Modifier.align(Alignment.BottomCenter)
         )

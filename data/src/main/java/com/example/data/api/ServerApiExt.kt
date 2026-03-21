@@ -4,19 +4,14 @@ package com.example.data.api
 import com.example.core.error.TokenExpiredException
 import com.example.core.model.auth.LoginErrorType
 import com.example.data.api.dto.BaseResponse
-import com.example.data.api.dto.server.RefreshTokenRequest
 import com.example.data.preference.AuthPreference
 import retrofit2.Response
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import retrofit2.Call
 import retrofit2.HttpException
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.util.concurrent.TimeUnit
 
 // 추후 기능 확장용 - 네트웤, 서버 오류시 모달창에 활용 -> 기능 확장용
 sealed class ApiError : Exception() {
@@ -129,8 +124,8 @@ private suspend fun ServerApi.refreshTokenIfNeeded(
 ) = refreshMutex.withLock {
     val refresh = authPreference.refreshToken
         ?: throw ApiError.TokenExpired("다시 로그인해주세요")
-
-    val pair = withCheck { refreshToken(RefreshTokenRequest(refresh)) }
+    //헤더 방식으로 변환.
+    val pair = withCheck { reissue(refresh) }
     pair.refreshToken?.let { authPreference.refreshToken = it }
     pair.accessToken?.let { authPreference.accessToken = it }
 }
@@ -180,7 +175,7 @@ suspend fun <T> ServerApi.withCheck(
  */
 //UserRepositoryImpl.kt 에서 사용함.
 suspend fun <T> ServerApi.withErrorHandling(
-    block: suspend ServerApi.() -> BaseResponse<T>
+    block: suspend ServerApi.() -> BaseResponse<T> // block = "ServerApi 안에서 실행되는 suspend 람다"
 ): T {
     return try {
         withCheck { block() }

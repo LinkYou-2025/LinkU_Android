@@ -27,17 +27,17 @@ class ResetPasswordViewModel @Inject constructor(
     private val _ui = MutableStateFlow(ResetPwUiState())
     val ui: StateFlow<ResetPwUiState> = _ui
 
-    fun request(email: String) {
-        viewModelScope.launch {
-            _ui.value = ResetPwUiState(loading = true)
-            val ok = repo.requestTempPassword(email)
-            _ui.value = if (ok) {
-                ResetPwUiState(loading = false, success = true)
-            } else {
-                ResetPwUiState(loading = false, success = false, error = "전송에 실패했어요. 이메일을 확인하고 다시 시도해 주세요.")
-            }
-        }
-    }
+//    fun request(email: String) {
+//        viewModelScope.launch {
+//            _ui.value = ResetPwUiState(loading = true)
+//            val ok = repo.requestTempPassword(email)
+//            _ui.value = if (ok) {
+//                ResetPwUiState(loading = false, success = true)
+//            } else {
+//                ResetPwUiState(loading = false, success = false, error = "전송에 실패했어요. 이메일을 확인하고 다시 시도해 주세요.")
+//            }
+//        }
+//    }
 
     fun consumeSuccess() {
         _ui.value = _ui.value.copy(success = false)

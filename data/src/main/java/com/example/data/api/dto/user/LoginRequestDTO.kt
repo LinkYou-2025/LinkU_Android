@@ -1,4 +1,4 @@
-package com.example.data.api.dto.server
+package com.example.data.api.dto.user
 
 import com.squareup.moshi.Json
 

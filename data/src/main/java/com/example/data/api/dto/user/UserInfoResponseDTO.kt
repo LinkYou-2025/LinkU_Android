@@ -1,9 +1,9 @@
-package com.example.data.api.dto.server
+package com.example.data.api.dto.user
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
-data class UserInfoDTO(
+data class UserInfoResponseDTO(
     // Done 통합 : 01.13 완료 했습니다. (username 제거)
     @Json(name = "nickName")
     val nickName: String? = null,
