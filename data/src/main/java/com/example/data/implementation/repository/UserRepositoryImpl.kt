@@ -70,7 +70,7 @@ class UserRepositoryImpl @Inject constructor(
             refreshToken = response.refreshToken
                 ?: throw ApiError.BusinessError(null, "refreshToken이 없습니다"),
             status = response.status ?: "",
-            inactiveDate = response.inactiveDate?.toString()
+            inactiveDate = response.inactiveDate?.toString() ?: ""  // null이면 빈 문자열
         )
     }
 
@@ -354,6 +354,8 @@ class UserRepositoryImpl @Inject constructor(
         )
     }
 
+    //tag 상수로 통일하기. 지금 serverApi.withErrorHandling  적극적으로 리펙토링하기.
+
     override suspend fun loginWithKakao(token: String): LoginResult {
         Log.d("UserRepositoryImpl", "loginWithKakao token: $token")
         //Log.d(TAG, "loginWithKakao start")
@@ -380,7 +382,8 @@ class UserRepositoryImpl @Inject constructor(
             userId = kakaoResponse.userId,
             accessToken = kakaoResponse.accessToken,
             refreshToken = kakaoResponse.refreshToken,
-            status = kakaoResponse.status
+            status = kakaoResponse.status ?: "",
+            inactiveDate = ""  // 카카오 로그인엔 inactiveDate 없으니까 빈 문자열
         )
 
     }

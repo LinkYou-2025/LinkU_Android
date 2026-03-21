@@ -11,13 +11,12 @@ object SocialProfileMapper {
         job: Job,
         purposes: List<Purpose>,
         interests: List<Interest>
-    ): SocialProfileRequestDTO {
-        return SocialProfileRequestDTO(
+    ) = SocialProfileRequestDTO(
             nickName = nickName,
             gender = gender.value,
             jobId = job.id,
             purposeList = purposes.map { it.serverKey },
             interestList = interests.map { it.serverKey }
         )
-    }
+
 }
