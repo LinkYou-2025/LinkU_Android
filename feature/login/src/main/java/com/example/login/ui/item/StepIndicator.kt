@@ -18,6 +18,11 @@ import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.font.Paperlogy
 import com.example.design.util.rememberFigmaDimens
 
+/**
+ * 직접 ui를 만들어서 추후 4,5,6단계도 손쉽게 확장이 가능함.
+ * 추후 기능 확장까지 고려함.
+ * */
+
 @Composable
 fun StepIndicator(
     currentStep: Int,
@@ -31,7 +36,8 @@ fun StepIndicator(
 
     val activeColor = colorTheme.purple[200]
     val completedColor = colorTheme.purple[100]
-    val inactiveColor = Color(0xFFD6D6D6) // 디자인 토큰 없으면 유지하는 컬러.
+    val inactiveColor = colorTheme.gray[300]
+    val white = colorTheme.white
 
     Column(
         modifier = modifier,
@@ -66,7 +72,7 @@ fun StepIndicator(
                                 fontSize = 16.sp,
                                 fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = white
                             )
                         }
 
@@ -76,7 +82,7 @@ fun StepIndicator(
                                 fontSize = if (isStep3Current) 18.sp else 16.sp,
                                 fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                color = white
                             )
                         }
 

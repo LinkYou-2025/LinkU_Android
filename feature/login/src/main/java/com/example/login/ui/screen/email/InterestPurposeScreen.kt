@@ -127,7 +127,7 @@ private fun PurposeCloudScrollable(
 @Composable
 fun InterestPurposeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel //null 불가.
     //signUpViewModel: SignUpViewModel = hiltViewModel()  // Preview에서는 null, 실제 앱에서는 Hilt로 주입
 ) {
 
@@ -140,7 +140,7 @@ fun InterestPurposeScreen(
     val selectedPurposes = remember {
         mutableStateListOf<Purpose>().apply {
             // 기존 선택된 목적이 있으면 복원
-            signUpViewModel?.signUpForm?.purposeList?.let { addAll(it) }
+            signUpViewModel.signUpForm.purposeList.let { addAll(it) }
         }
     }
 
@@ -159,7 +159,7 @@ fun InterestPurposeScreen(
                     if (selectedPurposes.isEmpty()) return@BottomGradientButton
 
                     // Purpose enum 리스트를 그대로 전달
-                    signUpViewModel?.onPurposeListChanged(selectedPurposes.toList())
+                    signUpViewModel.onPurposeListChanged(selectedPurposes.toList())
                     navigator.navigate("sign_up_interest")
                 }
             )
@@ -240,15 +240,3 @@ fun InterestPurposeScreen(
 
 
 
-//--------------------------------------------------------------------------
-/**
- * Preview - 미리보기
- */
-@Preview(showBackground = true)
-@Composable
-fun InterestPurposeScreenPreview() {
-    val fakeNavController = rememberNavController()
-    InterestPurposeScreen(
-        navigator = fakeNavController // ViewModel 없이 호출!
-    )
-}

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.design.theme.LocalColorTheme
 import com.example.login.R
 import com.example.design.theme.font.Paperlogy
 import com.example.login.ui.item.AgreeFooterButton
@@ -37,7 +38,7 @@ fun ServiceTermsScreen(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
-
+    val colorTheme = LocalColorTheme.current
     val scrollState = rememberScrollState()
     val isAtBottom by remember {
         derivedStateOf {
@@ -58,7 +59,7 @@ fun ServiceTermsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp) // 상단바 여백 확보를 위한 높이
-                    .background(Color.White)
+                    .background(colorTheme.white)
             ) {
                 // 뒤로가기 버튼
                 IconButton(
@@ -106,7 +107,9 @@ fun ServiceTermsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(18.dp))
+                    .background(
+                        color = colorTheme.gray[100],
+                        shape = RoundedCornerShape(18.dp))
                     .padding(24.dp)
             ) {
                 Column {
@@ -116,7 +119,7 @@ fun ServiceTermsScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         fontFamily = Paperlogy.font,
-                        color = Color.Black
+                        color = colorTheme.black
                     )
 
                     Spacer(Modifier.height(20.dp))
@@ -127,7 +130,7 @@ fun ServiceTermsScreen(
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         fontFamily = Paperlogy.font,
-                        color = Color.Black
+                        color = colorTheme.black
                     )
 
                     // 각 조항 반복 렌더링
@@ -140,7 +143,7 @@ fun ServiceTermsScreen(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = Paperlogy.font,
-                            color = Color.Black
+                            color = colorTheme.black
                         )
 
                         Spacer(Modifier.height(10.dp)) // 제목과 본문 사이 간격
@@ -150,7 +153,7 @@ fun ServiceTermsScreen(
                             fontSize = 14.sp,
                             lineHeight = 22.sp,
                             fontFamily = Paperlogy.font,
-                            color = Color(0xFF424242)
+                            color = colorTheme.black
                         )
                     }
                 }

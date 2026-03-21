@@ -126,7 +126,7 @@ fun ResetPasswordScreen(
                 Spacer(Modifier.height((8f.scaler)))
                 Text(
                     text = ui.error,
-                    color = Color(0xFFFF3B30),
+                    color = colorTheme.negative,
                     fontSize = 12.sp,
                     fontFamily = Paperlogy.font,
                     modifier = Modifier.padding(

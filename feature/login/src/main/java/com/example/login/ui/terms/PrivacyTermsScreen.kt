@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import com.example.design.theme.LocalColorTheme
 import com.example.login.ui.item.AgreeFooterButton
 import com.example.login.ui.terms.data.PrivacyTermsData
 import com.example.login.ui.terms.table.TermsTable
@@ -38,7 +39,7 @@ fun PrivacyTermsScreen(
     onBackClicked: () -> Unit
 ) {
 
-
+    val colorTheme = LocalColorTheme.current
     val scrollState = rememberScrollState()
     val isAtBottom by remember {
         derivedStateOf {
@@ -57,7 +58,7 @@ fun PrivacyTermsScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp) // 상단바 여백 확보를 위한 높이
-                    .background(Color.White)
+                    .background(colorTheme.white)
             ) {
 
                 IconButton(
@@ -79,6 +80,7 @@ fun PrivacyTermsScreen(
                     fontSize = 16.sp,
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,
+                    color = colorTheme.black,
                     fontFamily = Paperlogy.font,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -93,7 +95,7 @@ fun PrivacyTermsScreen(
                 onClick = onAgreeClicked
             )
         },
-        containerColor = Color.White,
+        containerColor = colorTheme.white,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -105,7 +107,9 @@ fun PrivacyTermsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(Color(0xFFF5F6F9), shape = RoundedCornerShape(18.dp)) //배경 + 둥근
+                    .background(
+                        color = colorTheme.gray[100],
+                        shape = RoundedCornerShape(18.dp)) //배경 + 둥근
                     .padding(24.dp)
             ) {
                 Column {
@@ -114,7 +118,7 @@ fun PrivacyTermsScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         fontFamily = Paperlogy.font,
-                        color = Color.Black
+                        color = colorTheme.black
                     )
 
                     Spacer(Modifier.height(20.dp))
@@ -124,7 +128,7 @@ fun PrivacyTermsScreen(
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                         fontFamily = Paperlogy.font,
-                        color = Color.Black
+                        color = colorTheme.black
                     )
 
                     PrivacyTermsData.sections.forEach { (title, body) ->
@@ -135,7 +139,7 @@ fun PrivacyTermsScreen(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = Paperlogy.font,
-                            color = Color.Black
+                            color = colorTheme.black
                         )
 
                         Spacer(Modifier.height(10.dp))
@@ -172,7 +176,7 @@ fun PrivacyTermsScreen(
                                 Text(
                                     text = body,
                                     fontSize = 14.sp, lineHeight = 22.sp,
-                                    fontFamily = Paperlogy.font, color = Color(0xFF424242)
+                                    fontFamily = Paperlogy.font, color = colorTheme.black
                                 )
                                 Spacer(Modifier.height(15.dp))
                                 TermsTable4Col(
@@ -182,7 +186,7 @@ fun PrivacyTermsScreen(
                             }
 
                             else -> Text(text = body, fontSize = 14.sp, lineHeight = 22.sp,
-                                fontFamily = Paperlogy.font, color = Color(0xFF424242))
+                                fontFamily = Paperlogy.font, color = colorTheme.black)
                         }
                     }
                 }

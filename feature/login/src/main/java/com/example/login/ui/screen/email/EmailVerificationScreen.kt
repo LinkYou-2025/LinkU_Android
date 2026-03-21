@@ -48,6 +48,7 @@ fun EmailVerificationScreen(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
 
+
     BackHandler {
         parentEntry.savedStateHandle["from_email_verification"] = true
         navigator.popBackStack()   // ← 이게 정답
@@ -193,7 +194,7 @@ fun EmailVerificationScreenContent(
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = Paperlogy.font,
-                color = Color.Black
+                color = colorTheme.black
             )
             Spacer(modifier = Modifier.height((32.scaler)))
             // 이메일 입력 필드
@@ -217,7 +218,7 @@ fun EmailVerificationScreenContent(
                 Spacer(modifier = Modifier.height((6.scaler)))
                 Text(
                     text = it,
-                    color = Color(0xFFFF5E5E),
+                    color = colorTheme.negative,
                     fontSize = 13.sp,
                     fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Medium,
@@ -258,7 +259,7 @@ fun EmailVerificationScreenContent(
                         if (sendResult == "서버 오류") {
                             Text(
                                 text = "서버 오류",
-                                color = Color(0xFFFF5E5E),
+                                color = colorTheme.negative,
                                 fontSize = 13.sp,
                                 lineHeight = 15.sp,
                                 fontFamily = Paperlogy.font,
@@ -268,7 +269,7 @@ fun EmailVerificationScreenContent(
                         } else {
                             Text(
                                 text = timerText,
-                                color = Color(0xFFFF5E5E),
+                                color = colorTheme.negative,
                                 fontSize = 13.sp,
                                 fontFamily = Paperlogy.font,
                                 modifier = textModifier
@@ -296,7 +297,7 @@ fun EmailVerificationScreenContent(
                     Spacer(modifier = Modifier.height((12.scaler)))
                     Text(
                         text = it,
-                        color = Color(0xFFFF5E5E),
+                        color = colorTheme.negative,
                         fontSize = 13.sp,
                         lineHeight = 15.sp,
                         fontFamily = Paperlogy.font,
@@ -311,7 +312,7 @@ fun EmailVerificationScreenContent(
                 Spacer(modifier = Modifier.height((8.scaler)))
                 Text(
                     text = "서버 오류: 잠시 후 다시 시도해주세요",
-                    color = Color.Red,
+                    color = colorTheme.negative,
                     fontSize = 13.sp,
                     fontFamily = Paperlogy.font,
                     modifier = Modifier.padding((8.scaler))

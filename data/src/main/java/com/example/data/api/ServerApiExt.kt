@@ -2,6 +2,7 @@ package com.example.data.api
 
 
 import com.example.core.error.TokenExpiredException
+import com.example.core.model.auth.LoginErrorType
 import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.server.RefreshTokenRequest
 import com.example.data.preference.AuthPreference
@@ -263,6 +264,22 @@ suspend fun <T> ServerApi.withAuthResp204Raw(
     }
 
     return withTokenRefresh(authPreference) { execute() }
+}
+
+// 로그인 오류 타입 명시
+fun Exception.toLoginErrorType(): LoginErrorType = when (this) {
+    is ApiError.Unauthorized,
+    is ApiError.BusinessError -> LoginErrorType.INVALID_CREDENTIALS
+    is ApiError.NetworkError  -> LoginErrorType.NETWORK_ERROR
+    is ApiError.ServerError   -> LoginErrorType.SERVER_ERROR
+    is ApiError.TokenExpired  -> LoginErrorType.SERVER_ERROR
+    is HttpException -> when (code()) {
+        401, 403     -> LoginErrorType.INVALID_CREDENTIALS
+        in 500..599  -> LoginErrorType.SERVER_ERROR
+        else         -> LoginErrorType.UNKNOWN_ERROR
+    }
+    is IOException -> LoginErrorType.NETWORK_ERROR
+    else           -> LoginErrorType.UNKNOWN_ERROR
 }
 
 

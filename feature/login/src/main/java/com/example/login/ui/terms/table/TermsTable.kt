@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.font.Paperlogy
 
 @Composable
@@ -21,7 +22,8 @@ fun TermsTable(
     headers: Pair<String, String>,
     rows: List<Pair<String, String>>
 ) {
-    val borderColor = Color(0xFFB7B9BF)
+    val colorTheme = LocalColorTheme.current
+    val borderColor = colorTheme.gray[400]
     val borderWidth = 0.5.dp
 
     Column(
@@ -61,6 +63,7 @@ fun RowScope.TableCell(
     weight: Float,
     isHeader: Boolean = false
 ) {
+    val colorTheme = LocalColorTheme.current
     val verticalPadding = if (isHeader) 10.dp else 22.dp
 
     Box(
@@ -75,7 +78,7 @@ fun RowScope.TableCell(
             fontSize = 13.sp,
             fontFamily = Paperlogy.font,
             fontWeight = if (isHeader) FontWeight.Medium else FontWeight.Normal,
-            color = Color.Black,
+            color = colorTheme.black,
             textAlign = TextAlign.Start,
             lineHeight = 18.sp
         )
@@ -89,7 +92,8 @@ fun TermsTable4Col(
     rows: List<List<String>>,
     weights: List<Float> = listOf(0.25f, 0.25f, 0.25f, 0.25f)  // 컬럼별 비율 조정 가능
 ) {
-    val borderColor = Color(0xFFB7B9BF)
+    val colorTheme = LocalColorTheme.current
+    val borderColor = colorTheme.gray[400]
     val borderWidth = 0.5.dp
 
     Column(

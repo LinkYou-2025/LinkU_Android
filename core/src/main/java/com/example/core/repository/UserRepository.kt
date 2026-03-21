@@ -19,7 +19,7 @@ interface UserRepository {
     suspend fun checkNickname(nickname: String): Boolean
     //suspend fun getNickname(userId: Long): String?
     suspend fun login(email: String, password: String): LoginResult
-    suspend fun signUp(
+    suspend fun signUpWithEmail(
         nickname: String,
         email: String,
         password: String,
@@ -59,7 +59,7 @@ interface UserRepository {
     //소셜 로그인 이후 사용자 정보 받음
     suspend fun completeSocialProfile(
         socialToken: String,
-        nickname: String,
+        nickName: String,
         gender: Gender,
         job: Job,
         purposes: List<Purpose>,

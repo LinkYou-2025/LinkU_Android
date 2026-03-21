@@ -142,16 +142,22 @@ class SignUpViewModel @Inject constructor(
             _nicknameState.value != NicknameCheckState.Available -> "닉네임 중복 확인이 필요합니다."
             signUpForm.gender == Gender.NONE -> "성별을 선택해주세요."
             signUpForm.jobId == 0 -> "직업을 선택해주세요."
+            signUpForm.purposeList.isEmpty() -> "목적을 선택해주세요."
+            signUpForm.interestList.isEmpty() -> "관심사를 선택해주세요."
             !signUpForm.agreeTerms || !signUpForm.agreePrivacy -> "필수 약관에 동의해주세요."
             else -> null
         }
     }
-
+    private var isSignUpRequested = false //중복 호출 방지.
     // 최종 회원가입 로직
     fun signUp() {
+        if (isSignUpRequested) return  // 이미 요청했으면 아무것도 안 함.
+        isSignUpRequested = true //처음 호출 시 true로 잠금.
+
         // 유효성 검사
         validateSignUpForm()?.let { errorMessage ->
             _signUpState.value = SignUpState.Error(errorMessage)
+            isSignUpRequested = false  // 유효성 실패시 다시 시도 가능하게 잠금을 해제함.
             return
         }
 
@@ -164,7 +170,7 @@ class SignUpViewModel @Inject constructor(
                 val purposeKeys = signUpForm.purposeList.map { it.serverKey }
                 val interestKeys = signUpForm.interestList.map { it.serverKey }
 
-                val success = userRepository.signUp(
+                val success = userRepository.signUpWithEmail(
                     nickname = signUpForm.nickname,
                     email = signUpForm.email,
                     password = signUpForm.password,
@@ -177,9 +183,11 @@ class SignUpViewModel @Inject constructor(
                 _signUpState.value = if (success) {
                     SignUpState.Success
                 } else {
+                    isSignUpRequested = false
                     SignUpState.Error("회원가입에 실패했습니다.")
                 }
             } catch (e: Exception) {
+                isSignUpRequested = false
                 _signUpState.value = SignUpState.Error(
                     e.message ?: "알 수 없는 오류가 발생했습니다."
                 )

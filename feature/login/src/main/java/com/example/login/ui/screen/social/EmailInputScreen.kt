@@ -23,12 +23,15 @@ import com.example.login.ui.item.LoginTextField
 import com.example.login.ui.item.StepIndicator
 import com.example.login.ui.item.BottomGradientButton
 import com.example.login.ui.item.WrongRuleItem
+import com.example.login.ui.layout.SignUpStepLayout
+import com.example.login.ui.layout.SignUpStepLayoutPreview
 import com.example.login.viewmodel.SignUpViewModel
 
 /**
  * 소셜 로그인 후 이메일 입력 화면
  * - OTP 인증 없이 이메일 형식만 검증
  * - 형식이 맞으면 다음 단계로 진행
+ * 사용하지 않는 ui이지만, 혹시나 이메일 받아야 하는 순간(?)이 있을까봐 그대로 둠.
  */
 @Composable
 fun EmailInputScreen(
@@ -42,158 +45,133 @@ fun EmailInputScreen(
     }
 
     var email by remember { mutableStateOf("") }
-
-    val emailValid = remember(email) {
-        email.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    val trimmed = email.trim()
+    val emailValid = remember(trimmed) {
+        trimmed.isNotBlank() && Patterns.EMAIL_ADDRESS.matcher(trimmed).matches()
     }
 
-    EmailInputScreenContent(
-        email = email,
-        onEmailChange = { email = it },
-        emailValid = emailValid,
+    SignUpStepLayout(
+        currentStep = 1,
+        totalSteps = 3,
+        label = "계정 정보",
+        title = "이메일 주소를 입력해주세요",
+        buttonEnabled = emailValid,
         onNextClick = {
-            signUpViewModel.updateForm {
-                it.copy(email = email.trim())
-            }
-            navigator.navigate("sign_up_password") // 또는 다음 화면 route
-        },
-        onBackClick = {
-            parentEntry.savedStateHandle["from_email_input"] = true
-            navigator.popBackStack()
+            signUpViewModel.updateForm { it.copy(email = email.trim()) }
+            navigator.navigate("sign_up_password")
         }
-    )
-}
+    ) {
+        // title 아래 기존 12 → layout 32 이미 있으니 subTitle 바로 배치
+        Text(
+            text = "계정 복구 및 알림 수신에 사용됩니다",
+            fontSize = 14.sp,
+            fontFamily = Paperlogy.font,
+            color = LocalColorTheme.current.gray[500]
+        )
 
-@Composable
-fun EmailInputScreenContent(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    emailValid: Boolean,
-    onNextClick: () -> Unit,
-    onBackClick: () -> Unit
-) {
-    val colorTheme = LocalColorTheme.current
+        Spacer(Modifier.height(20.scaler)) // 12 + 32(layout) 차이 보정 → subTitle 후 32 확보
 
-    // 이메일 에러 텍스트
-    val emailErrorText: String? = when {
-        email.isNotBlank() && !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
-            "이메일 양식이 올바르지 않습니다!"
-        else -> null
-    }
+        LoginTextField(
+            value = email,
+            onValueChange = { email = it },
+            hint = "이메일 주소를 입력해주세요",
+            modifier = Modifier.fillMaxWidth()
+        )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(
-                    start = 20.scaler,
-                    end = 20.scaler,
-                    top = 60.scaler,
-                    bottom = 72.scaler
-                ),
-            horizontalAlignment = Alignment.Start
-        ) {
-            // 1단계 인디케이터
-            StepIndicator(
-                currentStep = 1,
-                totalSteps = 3,
-                label = "계정 정보"
+        if (email.isNotBlank() && !emailValid) {
+            Spacer(Modifier.height(10.scaler))
+            WrongRuleItem(
+                text = "이메일 양식이 올바르지 않습니다!",
+                modifier = Modifier.padding(start = 12.scaler)
             )
-
-            Spacer(modifier = Modifier.height(36.scaler))
-
-            // 타이틀
-            Text(
-                text = "이메일 주소를 입력해주세요",
-                fontSize = 22.sp,
-                lineHeight = 30.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy.font,
-                color = Color.Black
-            )
-
-            Spacer(modifier = Modifier.height(12.scaler))
-
-            // 서브 타이틀
-            Text(
-                text = "계정 복구 및 알림 수신에 사용됩니다",
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = Paperlogy.font,
-                color = colorTheme.gray[500]!!
-            )
-
-            Spacer(modifier = Modifier.height(32.scaler))
-
-            // 이메일 입력 필드
-            LoginTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                hint = "이메일 주소를 입력해주세요",
-                enabled = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            // 에러 문구
-            emailErrorText?.let {
-                Spacer(modifier = Modifier.height(10.scaler))
-                WrongRuleItem(
-                    text = it,
-                    modifier = Modifier.padding(start = 12.scaler) // 20 + 12 = 32
-                )
-            }
         }
 
-        // 하단 버튼
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            BottomGradientButton(
-                text = "다음",
-                enabled = emailValid,
-                activeGradient = colorTheme.maincolor,
-                inactiveGradient = colorTheme.inactiveColor,
-                onClick = onNextClick
-            )
-        }
+        Spacer(modifier = Modifier.weight(1f))
     }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "이메일 입력 - 빈 상태")
 @Composable
 fun EmailInputScreenPreview_Empty() {
-    EmailInputScreenContent(
-        email = "",
-        onEmailChange = {},
-        emailValid = false,
-        onNextClick = {},
-        onBackClick = {}
-    )
+    SignUpStepLayoutPreview(
+        currentStep = 1,
+        totalSteps = 3,
+        label = "계정 정보",
+        title = "이메일 주소를 입력해주세요",
+        buttonEnabled = false
+    ) {
+        Text(
+            text = "계정 복구 및 알림 수신에 사용됩니다",
+            fontSize = 14.sp,
+            fontFamily = Paperlogy.font,
+            color = LocalColorTheme.current.gray[500]
+        )
+        Spacer(Modifier.height(20.scaler))
+        LoginTextField(
+            value = "",
+            onValueChange = {},
+            hint = "이메일 주소를 입력해주세요",
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.weight(1f))
+    }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "이메일 입력 - 오류")
 @Composable
-fun EmailInputScreenPreview_InvalidEmail() {
-    EmailInputScreenContent(
-        email = "linku",
-        onEmailChange = {},
-        emailValid = false,
-        onNextClick = {},
-        onBackClick = {}
-    )
+fun EmailInputScreenPreview_Invalid() {
+    SignUpStepLayoutPreview(
+        currentStep = 1,
+        totalSteps = 3,
+        label = "계정 정보",
+        title = "이메일 주소를 입력해주세요",
+        buttonEnabled = false
+    ) {
+        Text(
+            text = "계정 복구 및 알림 수신에 사용됩니다",
+            fontSize = 14.sp,
+            fontFamily = Paperlogy.font,
+            color = LocalColorTheme.current.gray[500]
+        )
+        Spacer(Modifier.height(20.scaler))
+        LoginTextField(
+            value = "linku",
+            onValueChange = {},
+            hint = "이메일 주소를 입력해주세요",
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(10.scaler))
+        WrongRuleItem(
+            text = "이메일 양식이 올바르지 않습니다!",
+            modifier = Modifier.padding(start = 12.scaler)
+        )
+        Spacer(modifier = Modifier.weight(1f))
+    }
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, name = "이메일 입력 - 유효")
 @Composable
-fun EmailInputScreenPreview_ValidEmail() {
-    EmailInputScreenContent(
-        email = "test@example.com",
-        onEmailChange = {},
-        emailValid = true,
-        onNextClick = {},
-        onBackClick = {}
-    )
+fun EmailInputScreenPreview_Valid() {
+    SignUpStepLayoutPreview(
+        currentStep = 1,
+        totalSteps = 3,
+        label = "계정 정보",
+        title = "이메일 주소를 입력해주세요",
+        buttonEnabled = true
+    ) {
+        Text(
+            text = "계정 복구 및 알림 수신에 사용됩니다",
+            fontSize = 14.sp,
+            fontFamily = Paperlogy.font,
+            color = LocalColorTheme.current.gray[500]
+        )
+        Spacer(Modifier.height(20.scaler))
+        LoginTextField(
+            value = "test@example.com",
+            onValueChange = {},
+            hint = "이메일 주소를 입력해주세요",
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.weight(1f))
+    }
 }
