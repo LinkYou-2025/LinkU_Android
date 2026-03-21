@@ -3,11 +3,10 @@ package com.example.data.api
 import com.example.data.api.dto.BaseResponse
 import com.example.data.api.dto.login.kakao.KakaoLoginRequestDTO
 import com.example.data.api.dto.login.kakao.KakaoLoginResponseDTO
-import com.example.data.api.dto.server.ApiResponseString
 import com.example.data.api.dto.user.DeleteUserRequestDTO
 import com.example.data.api.dto.user.EmailVerificationResponseDTO
-import com.example.data.api.dto.user.SignUpRequestDTO
-import com.example.data.api.dto.user.SignUpResponseDTO
+import com.example.data.api.dto.user.SignUpEmailRequestDTO
+import com.example.data.api.dto.user.SignUpEmailResponseDTO
 import com.example.data.api.dto.user.LoginRequestDTO
 import com.example.data.api.dto.user.LoginResponseDTO
 import com.example.data.api.dto.user.SocialProfileResponseDTO
@@ -33,8 +32,8 @@ interface UserApi {
 
     @POST("users/join")
     suspend fun signUpWithEmail(
-        @Body signUpRequestDTO: SignUpRequestDTO
-    ): BaseResponse<SignUpResponseDTO>
+        @Body signUpEmailRequestDTO: SignUpEmailRequestDTO
+    ): BaseResponse<SignUpEmailResponseDTO>
 
 
     @GET("users/check-nickname")
