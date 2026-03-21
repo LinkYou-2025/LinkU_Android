@@ -80,7 +80,7 @@ fun InterestContentScreen(
     val selectedInterests = remember {
         mutableStateListOf<Interest>().apply {
             // 기존 선택된 관심사가 있으면 복원
-            signUpViewModel.signUpForm.interestList?.let { addAll(it) }
+            signUpViewModel.signUpForm.interestList.let { addAll(it) }
         }
     }
 

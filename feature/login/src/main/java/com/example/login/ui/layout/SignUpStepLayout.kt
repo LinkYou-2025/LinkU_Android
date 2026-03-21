@@ -47,12 +47,17 @@ fun SignUpStepLayout(
     buttonText: String = "다음",
     buttonEnabled: Boolean,
     onNextClick: () -> Unit,
-    backgroundColor: Color? = null,          // null이면 colorTheme.white 자동 사용
+    backgroundColor: Color = Color.Unspecified,          // null이면 colorTheme.white 자동 사용
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null, // EmailVerification 예외 대응
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colorTheme = LocalColorTheme.current
-    val bgColor = backgroundColor ?: colorTheme.white  // 다크모드 시 colorTheme.dark 등으로 교체 가능
+
+    val bgColor = if (backgroundColor == Color.Unspecified) {
+        colorTheme.white
+    } else {
+        backgroundColor
+    }
 
     Box(
         modifier = Modifier

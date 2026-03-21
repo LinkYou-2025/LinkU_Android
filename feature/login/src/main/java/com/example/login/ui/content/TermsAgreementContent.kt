@@ -80,11 +80,11 @@ fun TermsAgreementContent(
                             .size(22.scaler) // 반응형 적용
                             .border(
                                 width = 1.dp,
-                                color = if (agreeAll) colorTheme.purple[200]!! else colorTheme.gray[300]!!,
+                                color = if (agreeAll) colorTheme.purple[200] else colorTheme.gray[300],
                                 shape = RoundedCornerShape(6.scaler) //반응형 적용
                             )
                             .background(
-                                color = if (agreeAll) colorTheme.purple[200]!! else colorTheme.white,
+                                color = if (agreeAll) colorTheme.purple[200] else colorTheme.white,
                                 shape = RoundedCornerShape(6.scaler) //반응형 적용
                             )
                             .clickable {
@@ -125,7 +125,7 @@ fun TermsAgreementContent(
                         lineHeight = 14.sp,
                         fontWeight = FontWeight(400),
                         fontFamily = paperlogyFamily,
-                        color = colorTheme.gray[600]!!
+                        color = colorTheme.gray[600]
                     )
                 }
 
@@ -133,7 +133,7 @@ fun TermsAgreementContent(
 
                 /* ───── Divider (좌우 20) ───── */
                 Divider(
-                    color = colorTheme.blue[50]!!,
+                    color = colorTheme.blue[50],
                     modifier = Modifier
                         .padding(horizontal = (20.scaler), vertical = (16.scaler))
                 )
@@ -148,7 +148,7 @@ fun TermsAgreementContent(
                     AgreementItem(
                         title = "이용약관",
                         suffix = "(필수)",
-                        suffixColor = colorTheme.blue[200]!!,
+                        suffixColor = colorTheme.blue[200],
                         checked = agreeTerms,
                         onCheckedChange = onAgreeTermsChange,
                         onRowClick = onClickTerms
@@ -157,7 +157,7 @@ fun TermsAgreementContent(
                     AgreementItem(
                         title = "개인정보 처리방침",
                         suffix = "(필수)",
-                        suffixColor = colorTheme.blue[200]!!,
+                        suffixColor = colorTheme.blue[200],
                         checked = agreePrivacy,
                         onCheckedChange = onAgreePrivacyChange,
                         onRowClick = onClickPrivacy
@@ -166,7 +166,7 @@ fun TermsAgreementContent(
                     AgreementItem(
                         title = "마케팅 수신 동의",
                         suffix = "(선택)",
-                        suffixColor = colorTheme.gray[400]!!,
+                        suffixColor = colorTheme.gray[400],
                         checked = agreeMarketing,
                         onCheckedChange = onAgreeMarketingChange,
                         onRowClick = onClickMarketing

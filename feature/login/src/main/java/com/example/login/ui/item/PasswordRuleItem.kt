@@ -48,7 +48,7 @@ fun PasswordRuleItem(
             fontSize = 12.sp,
             fontWeight = FontWeight(400),
             fontFamily = Paperlogy.font,
-            color = colorTheme.gray[600]!!
+            color = colorTheme.gray[600]
         )
     }
 }

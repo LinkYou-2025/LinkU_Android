@@ -30,7 +30,7 @@ fun CheckIndicator(
         modifier = modifier
             .size(18.dp)
             .background(
-                color = if (checked) colorTheme.purple[200]!! else colorTheme.gray[300]!!,
+                color = if (checked) colorTheme.purple[200] else colorTheme.gray[300],
                 shape = RoundedCornerShape(5.dp)
             ),
         contentAlignment = Alignment.Center

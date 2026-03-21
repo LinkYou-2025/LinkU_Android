@@ -3,11 +3,11 @@ package com.example.data.api.dto.server
 import com.squareup.moshi.Json
 
 data class SocialProfileRequestDTO(
-    val nickName: String,
-    val gender: Int,
-    val jobId: Int,
-    val purposeList: List<String>,
-    val interestList: List<String>
+    @Json(name = "nickName") val nickName: String,
+    @Json(name = "gender") val gender: Int,
+    @Json(name = "jobId") val jobId: Int,
+    @Json(name = "purposeList") val purposeList: List<String>,
+    @Json(name = "interestList") val interestList: List<String>
 )
 
 data class SocialCompleteResultDTO(

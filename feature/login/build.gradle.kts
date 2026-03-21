@@ -112,4 +112,16 @@ dependencies {
     implementation(libs.v2.common)
     implementation(libs.v2.auth)
     implementation(libs.v2.user)
+
+    // 네이버 로그인
+    implementation(libs.naver.oauth)
+
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.lottie)
 }

@@ -13,8 +13,8 @@ interface AuthPreference {
 
     val isLoggedIn : Boolean
         get() = !refreshToken.isNullOrBlank() //로그인 상태 확인
-    var accessToken: String? // 모든 인증 api 요청에 사용함.
-    var refreshToken: String? // 자동로그인/ 엑세스 토큰 재발급의 기준임. 엑세스 토큰은 기간이 짧기에
+    var accessToken: String // 모든 인증 api 요청에 사용함.
+    var refreshToken: String // 자동로그인/ 엑세스 토큰 재발급의 기준임. 엑세스 토큰은 기간이 짧기에
     var userId: Long? // 사용자 확인용.
 
 
@@ -22,7 +22,7 @@ interface AuthPreference {
 
     fun saveTokens(
         accessToken: String,
-        refreshToken: String?, //sns 로그인 중 에는 null로 옴.
+        refreshToken: String, //sns 로그인 중 에는 null로 옴.
         userId: Long
     )
 

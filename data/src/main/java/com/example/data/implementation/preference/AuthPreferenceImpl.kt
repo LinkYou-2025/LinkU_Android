@@ -26,8 +26,8 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
     private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
     // 모든 인증 api 요청에 사용하는 토큰, OkHttp NetworkInterceptor 읽고 Authorization 헤더에 붙음.
-    override var accessToken: String?
-        get() = pref.getString(ACCESS_TOKEN_KEY, null)
+    override var accessToken: String
+        get() = pref.getString(ACCESS_TOKEN_KEY, "") ?: ""
         set(value) {
             pref.edit().apply {
                 if (value == null) remove(ACCESS_TOKEN_KEY)
@@ -36,8 +36,8 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
         }
     // 엑세스 토큰은 수명이 짧음. 재발급에 사용함. 스플래쉬에서 자동 로그인 가능 여부 판단의 기준임.
     // 여기 값이 있음 -> 로그인 상태임 , 값이 없으면 로그인 화면임.
-    override var refreshToken: String?
-        get() = pref.getString(REFRESH_TOKEN_KEY, null)
+    override var refreshToken: String
+        get() = pref.getString(REFRESH_TOKEN_KEY, "") ?: ""
         set(value) {
             pref.edit().apply {
                 //로그아웃 시 리프래쉬 토큰 제거함. -> 자동 로그인 깨짐.
@@ -83,7 +83,7 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
     // 토큰 저장(로그인 성공시)
     override fun saveTokens(
         accessToken: String,
-        refreshToken: String?, //소셜 로그인시 중간에 null로 옴.
+        refreshToken: String, //TODO : 수정하기.
         userId: Long
     ) {
         pref.edit()
