@@ -34,6 +34,8 @@ fun WrongRuleItem(
     modifier: Modifier = Modifier
 ) {
 
+    val colorTheme = LocalColorTheme.current
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -48,7 +50,7 @@ fun WrongRuleItem(
             fontSize = 13.sp,
             fontWeight = FontWeight(400),
             fontFamily = Paperlogy.font,
-            color = Color(0xFFFF5E5E)
+            color = colorTheme.negative
         )
     }
 }

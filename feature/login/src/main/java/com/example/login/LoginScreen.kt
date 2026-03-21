@@ -39,13 +39,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.login.constants.ServerConfig
 import com.example.login.viewmodel.SocialAuthViewModel
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
-
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
 private const val TAG = "LoginScreen"
 
 
@@ -108,6 +109,7 @@ fun LoginScreen(
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
     showLogo: Boolean = true, //로고 숨김(애니메이션 동안)
+    buttonsEnabled: Boolean = true, // 중복 로그인 방지.
     
 ) {
 
@@ -125,7 +127,12 @@ fun LoginScreen(
 
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
-                    "TEMP" -> navigator.navigate("social_login_gate") // 신규 유저 → 약관
+                    "TEMP" -> {
+                        navigator.navigate("social_login_gate")
+                        // navigate 후 social_auth_graph의 savedStateHandle에 토큰 저장
+                        navigator.getBackStackEntry("social_auth_graph")
+                            .savedStateHandle["socialToken"] = result.accessToken
+                    }
                 }
                 viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
             }
@@ -148,16 +155,7 @@ fun LoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        Color(0xFFC800FF),
-                        Color(0xFF2C6FFF)
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset.Infinite
-                )
-            )
+            .background(brush = colorTheme.linearMainColor)
             .navigationBarsPadding()
     ) {
 
@@ -207,7 +205,7 @@ fun LoginScreen(
                         lineHeight = 16.sp,
                         fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
-                        color = Color.White,
+                        color = colorTheme.white,
                         textAlign = TextAlign.Center
                     )
 
@@ -220,7 +218,7 @@ fun LoginScreen(
                         lineHeight = 30.sp,
                         fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(700),
-                        color = Color.White,
+                        color = colorTheme.white,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -255,48 +253,115 @@ fun LoginScreen(
 
             // 카카오
             SocialLoginButton( //TODO 채윤지 : kakao sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFFFEE500),
+                backgroundColor = Color(0xFFFEE500), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
                 iconRes = R.drawable.icon_login_kakao,
                 text = "카카오로 시작하기",
-                textColor = Color.Black,
+                textColor = colorTheme.black,
                 onClick = {
-                    handleKakaoLogin(context, viewModel)
+                    if (buttonsEnabled) handleKakaoLogin(context, viewModel)
+                    //약관 화면에서 중복 로그인 방지.
                 }
             )
 
             // 네이버
             SocialLoginButton( //TODO 지현 : naver sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFF03C75A),
+                backgroundColor = Color(0xFF03C75A), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
                 iconRes = R.drawable.icon_login_naver,
                 text = "네이버로 시작하기",
-                textColor = Color.White
+                textColor = colorTheme.white
             )
 
             // 구글
             SocialLoginButton( //TODO 지민 : 구글 sns api 로그인 나오면 연동하기
-                backgroundColor = Color.White,
+                backgroundColor = colorTheme.white,
                 borderColor = Color(0xFFE0E0E0),
                 iconRes = R.drawable.icon_login_google,
                 text = "구글로 시작하기",
-                textColor = Color.Black,
+                textColor = colorTheme.black,
                 onClick = {
-                    val url = ServerConfig.GOOGLE_LOGIN_URL
-                    val customTabsIntent = CustomTabsIntent.Builder().build()
-                    customTabsIntent.launchUrl(context, Uri.parse(url))
+                    // TODO : 연동해주세요.
                 }
             )
 
             // 이메일 기존 그대로 유지. //TODO 채윤지 : 서원에게 변경된 otp api 받으면 재연동하기
             SocialLoginButton(
                 backgroundColor = Color.Transparent,
-                borderColor = Color.White,
+                borderColor = colorTheme.white,
                 iconRes = null,
                 text = "이메일로 시작하기",
-                textColor = Color.White,
+                textColor = colorTheme.white,
                 onClick = {
-                    navigator.navigate("email_login")
+                    //navigator.navigate("email_login")
+                    if (buttonsEnabled) {
+                        navigator.navigate("email_login")
+                    }
                 }
             )
+        }
+    }
+}
+
+// 소셜 로그인 전용 배경 just 배경용.(기능 없음)
+@Composable
+fun LoginBackground() {
+    val colorTheme = LocalColorTheme.current
+    DesignSystemBars(
+        statusBarColor = Color.Transparent,
+        navigationBarColor = Color.Transparent,
+        darkIcons = false,
+        immersive = true
+    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush = colorTheme.linearMainColor)
+            .navigationBarsPadding()
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.scaler)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.fillMaxHeight(228f / 917f))
+
+                // 로고 이미지
+                Image(
+                    painter = painterResource(id = R.drawable.img_login_logo),
+                    contentDescription = "LinkU Logo",
+                    modifier = Modifier
+                        .width(150.dp)
+                        .height(106.dp),
+                    contentScale = ContentScale.Fit
+                )
+
+                Spacer(modifier = Modifier.height(30.scaler))
+
+                Text(
+                    text = "Link U, Think You",
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    fontFamily = Paperlogy.font,
+                    fontWeight = FontWeight(500),
+                    color = colorTheme.white,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(25.scaler))
+
+                Text(
+                    text = "링큐에 오신 것을 \n환영해요",
+                    fontSize = 22.sp,
+                    lineHeight = 30.sp,
+                    fontFamily = Paperlogy.font,
+                    fontWeight = FontWeight(700),
+                    color = colorTheme.white,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

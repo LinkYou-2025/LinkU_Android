@@ -106,8 +106,8 @@ fun SocialPurposeScreen(
 
             Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                 StepIndicator(
-                    currentStep = 4,
-                    totalSteps = 6,
+                    currentStep = 3,
+                    totalSteps = 3,
                     label = "관심사 설정"
                 )
             }

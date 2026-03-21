@@ -3,10 +3,10 @@ package com.example.data.api.dto.login.kakao
 import com.squareup.moshi.Json
 
 data class KakaoLoginResponseDTO(
-    val userId: Long,
-    val accessToken: String,
-    val refreshToken: String,
-    val status: String
+    @Json(name = "userId") val userId: Long,
+    @Json(name = "accessToken") val accessToken: String,
+    @Json(name = "refreshToken") val refreshToken: String, // sns 회원가입 중간에는 null
+    @Json(name = "status") val status: String
 )
 
 data class KakaoLoginRequestDTO(

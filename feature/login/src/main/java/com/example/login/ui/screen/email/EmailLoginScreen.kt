@@ -115,7 +115,7 @@ fun EmailLoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(colorTheme.white)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -203,7 +203,7 @@ fun EmailLoginScreen(
                                 lineHeight = 15.sp,
                                 fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight(400),
-                                color = Color(0xFFFF5E5E)
+                                color = colorTheme.negative
                             ),
                             modifier = Modifier.padding(start = 22.scaler)  // 오른쪽으로 22만큼
                         )
@@ -255,7 +255,7 @@ fun EmailLoginScreen(
                     text = "비밀번호 재설정",
                     fontSize = 15.sp,
                     fontFamily = Paperlogy.font,
-                    color = Color(0xFF87898F),
+                    color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
                             //if (loginState !is LoginState.Loading) { -> 혹시 나중에 로딩중이 길어지면 사용해주세요.
@@ -267,7 +267,7 @@ fun EmailLoginScreen(
                     text = "|",
                     fontSize = 14.sp,
                     fontFamily = Paperlogy.font,
-                    color = Color(0xFF87898F),
+                    color = colorTheme.gray[600],
                     style = TextStyle(
                         baselineShift = BaselineShift(0.3f)  // 약간 위로 올림
                     )
@@ -276,7 +276,7 @@ fun EmailLoginScreen(
                     text = "회원가입",
                     fontSize = 15.sp,
                     fontFamily = Paperlogy.font,
-                    color = Color(0xFF87898F),
+                    color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
                             focusManager.clearFocus()

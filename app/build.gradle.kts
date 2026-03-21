@@ -18,8 +18,10 @@ val localProperties = Properties().apply {
     if (file.exists()) load(file.inputStream())
 }
 
-val kakaoNativeAppKey =
-    localProperties.getProperty("KAKAO_NATIVE_APP_KEY") ?: "fail"
+val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing or blank in local.properties")
 
 android {
     namespace = "com.example.linku_android"
@@ -40,6 +42,8 @@ android {
             "KAKAO_NATIVE_APP_KEY",
             "\"$kakaoNativeAppKey\""
         )
+        // 로컬 프로퍼티에 각자 디버그 키(개발 테스트) 꼭 넣어서 주세요. 안 그러면 실행 안됩니다.
+        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
     }
     buildFeatures {
         buildConfig = true
@@ -139,5 +143,17 @@ dependencies {
 
     // 카카오 로그인
     implementation(libs.v2.user)
+
+    // 네이버 로그인
+    implementation(libs.naver.oauth)
+
+    implementation(libs.androidx.security.crypto)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.fragment.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+
+    implementation(libs.kotlinx.coroutines.android)
+
+    implementation(libs.lottie)
 
 }

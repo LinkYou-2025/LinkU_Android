@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.design.theme.LocalColorTheme
 
 /**
  * 서비스 내 모든 약관 동의 화면에서 공통으로 사용하는 하단 버튼
@@ -21,19 +22,14 @@ fun AgreeFooterButton(
     modifier: Modifier = Modifier,
     applyNavPadding: Boolean = true
 ) {
-    // 디자인 가이드에 정의된 고정 그라데이션 색상
-    val activeBrush = Brush.horizontalGradient(
-        listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-    )
-    val inactiveBrush = Brush.horizontalGradient(
-        listOf(Color(0xFFE1D6F9), Color(0xFFF3E7FB))
-    )
+
+    val colorTheme = LocalColorTheme.current
 
     GradientButtonCore(
         text = text,
         enabled = enabled,
-        activeGradient = activeBrush,
-        inactiveGradient = inactiveBrush,
+        activeGradient = colorTheme.maincolor,
+        inactiveGradient = colorTheme.inactiveColor,
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()

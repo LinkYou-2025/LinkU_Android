@@ -1,18 +1,18 @@
 package com.example.login.navigation
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import com.example.login.LoginScreen
 import com.example.login.ui.animation.AnimatedLoginScreen
 import com.example.login.ui.bottom_sheet.TermsAgreementSheet
@@ -26,7 +26,6 @@ import com.example.login.ui.screen.email.SignUpJobScreen
 import com.example.login.ui.screen.email.SignUpNicknameScreen
 import com.example.login.ui.screen.email.SignUpPasswordScreen
 import com.example.login.ui.screen.email.WelcomeScreen
-import com.example.login.ui.screen.social.SocialEntryScreen
 import com.example.login.ui.screen.social.SocialGenderScreen
 import com.example.login.ui.screen.social.SocialInterestScreen
 import com.example.login.ui.screen.social.SocialJobScreen
@@ -40,31 +39,32 @@ import com.example.login.viewmodel.EmailAuthViewModel
 import com.example.login.viewmodel.LoginViewModel
 import com.example.login.viewmodel.SignUpViewModel
 import com.example.login.viewmodel.SocialAuthViewModel
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import com.example.login.R
 
 @Composable
 fun LoginApp(
     onLoginSuccess: () -> Unit,
     loginViewModel: LoginViewModel,
     showNavBar: (Boolean) -> Unit,
-    initialSocialToken: String? = null,
 ) {
     val navController = rememberNavController()
 
-    // 추가: 소셜 딥링크로 진입한 경우 social_entry로 바로 이동
-    LaunchedEffect(initialSocialToken) {
-        if (!initialSocialToken.isNullOrBlank()) {
-            navController.navigate(
-                "social_entry?socialToken=$initialSocialToken&status=TEMP"
-            ) {
-                popUpTo("auth_graph") { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-    }
 
     NavHost(
         navController = navController,
-        startDestination = "auth_graph"
+        startDestination = "auth_graph",
+        // 기본 트랜지션 애니메이션 제거
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None },
     ) {
 
         // 이메일 인증으로 로그인하기.
@@ -235,25 +235,23 @@ fun LoginApp(
 
         /**
          * 소셜 로그인 회원가입 순서
-         * 1. 스플래쉬 → 2. 로그인 → 3. 소셜 버튼 선택 → 4. 딥링크 진입
-         * 5. SocialNicknameScreen → 6. Gender → 7. Job → 8. Purpose → 9. Interest
-         * 10. WelcomeSocialScreen → 11. 홈
+         * 1. 스플래쉬 → 2. 로그인 → 3. 카카오 버튼 선택 → 4. 카카오 SDK 인증
+         * 5. social_login_gate (약관 동의) → 6. SocialNicknameScreen → 7. Gender
+         * 8. Job → 9. Purpose → 10. Interest → 11. WelcomeSocialScreen → 12. 홈
          *
-         *   social_entry: savedStateHandle → navArgument 방식으로 변경
-         *   백엔드 응답 확정 전 socialToken, status 2개만 우선 적용
-         *   TODO: 백엔드 수정 후 navDeepLink + provider/result/accessToken/refreshToken/errorCode 추가
+         *   카카오 로그인: 딥링크 방식 → 카카오 SDK 방식으로 변경
+         *   LoginScreen에서 KakaoLoginState.Success(TEMP) 감지 시 social_login_gate로 이동
+         *   accessToken은 social_auth_graph의 savedStateHandle["socialToken"]에 저장
+         *   social_interest에서 socialToken을 꺼내 completeSocialProfile API 호출
          *
-         *   socialComposable: rememberSocialParentEntry null-safe 처리
-         *   null이면 NavigateToLoginOnError 호출 → 이메일 플로우와 동일한 안전 패턴
-         *   NavEntryHelper.kt의 rememberSocialParentEntry에 try-catch 추가 필요
+         *   socialComposable: rememberSocialParentEntry로 social_auth_graph 스코프 ViewModel 공유
+         *   null이면 NavigateToLoginOnError 호출 → 로그인 화면으로 안전하게 복귀
          *
-         *   social_welcome: onLoginSuccess 전달
-         *   WelcomeSocialScreen에 onLoginSuccess 콜백 전달 → 홈 이동 가능
-         *   composable 중첩 버그도 함께 수정
+         *   social_welcome: onLoginSuccess 콜백 전달 → 홈 이동
          */
         navigation(
             route = "social_auth_graph",
-            startDestination = "social_entry"
+            startDestination = "social_login_gate"
         ) {
 
             fun socialComposable(
@@ -272,44 +270,7 @@ fun LoginApp(
                 }
             }
 
-            //   navArgument 방식으로 변경
-            //    TODO: 백엔드 수정 후 아래 작업 예정
-            //   1. navDeepLink { uriPattern = "https://linkuserver.store/auth?..." } 추가
-            //   2. provider, result, accessToken, refreshToken, errorCode 파라미터 추가
-            //   3. SocialEntryScreen 파라미터 확장 => 서원이 작업 후 확장.
-            composable(
-                route = "social_entry?socialToken={socialToken}&status={status}",
-                arguments = listOf(
-                    navArgument("socialToken") {
-                        type         = NavType.StringType
-                        defaultValue = ""
-                    },
-                    navArgument("status") {
-                        type         = NavType.StringType
-                        defaultValue = ""
-                    }
-                )
-            ) { entry ->
-                val socialToken = entry.arguments?.getString("socialToken") ?: ""
-                val status      = entry.arguments?.getString("status")      ?: ""
 
-                // status가 비어있으면 잘못된 진입 → 로그인으로 복귀
-                if (status.isBlank()) {
-                    LaunchedEffect(Unit) {
-                        navController.navigate("login") {
-                            popUpTo("social_auth_graph") { inclusive = true }
-                        }
-                    }
-                    return@composable
-                }
-
-                SocialEntryScreen(
-                    navController  = navController,
-                    socialToken    = socialToken,
-                    status         = status,
-                    onLoginSuccess = onLoginSuccess
-                )
-            }
 
             // 약관 게이트
             socialComposable("social_login_gate") { parentEntry, entry ->
@@ -327,8 +288,18 @@ fun LoginApp(
                 LoginScreen(
                     navigator = navController,
                     viewModel = socialAuthVm,
-                    onLoginSuccess = onLoginSuccess
-
+                    onLoginSuccess = onLoginSuccess,
+                    buttonsEnabled = false,  // 버튼 비활성화
+                    logoSlot = {
+                        Image(
+                            painter = painterResource(id = R.drawable.img_login_logo),
+                            contentDescription = "LinkU Logo",
+                            modifier = Modifier
+                                .width(150.dp)
+                                .height(106.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
                 )
 
 
@@ -337,6 +308,11 @@ fun LoginApp(
                     vm            = signUpVm,
                     visible       = showTermsSheet,
                     onClose       = { entry.savedStateHandle["show_terms_sheet"] = false },
+                    onNext = {
+                        navController.navigate("social_nickname") {  // 소셜 로그인시에는 닉네임으로!
+                            launchSingleTop = true
+                        }
+                    },
                     onClickTerms  = {
                         entry.savedStateHandle["show_terms_sheet"] = false
                         navController.navigate("social_terms/service")

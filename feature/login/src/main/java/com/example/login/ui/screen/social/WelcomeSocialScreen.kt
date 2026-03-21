@@ -135,12 +135,7 @@ fun WelcomeSocialScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF2C6FFF), // 위
-                        Color(0xFFC800FF)  // 아래
-                    )
-                )
+                colorTheme.verticalMainColor
             )
     ) {
         // 중앙 콘텐츠 (Column)
@@ -196,7 +191,7 @@ fun WelcomeSocialScreen(
                     .align(Alignment.BottomCenter)
                     .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
                     .height(50.scaler)
-                    .background(Color.White, shape = RoundedCornerShape(18.dp))
+                    .background(colorTheme.white, shape = RoundedCornerShape(18.dp))
                     .clickable {
                         when (signUpState) {
                             is SignUpState.Error -> {
@@ -215,7 +210,7 @@ fun WelcomeSocialScreen(
                 when (signUpState) {
                     is SignUpState.Loading -> CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = Color(0xFFC800FF),
+                        color = colorTheme.accentColor,
                         strokeWidth = 2.dp
                     )
 

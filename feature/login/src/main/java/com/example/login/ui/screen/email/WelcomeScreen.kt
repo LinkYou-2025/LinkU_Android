@@ -47,11 +47,12 @@ import androidx.core.view.WindowCompat
 import com.example.core.model.SystemBarMode
 import com.example.core.model.auth.SignUpState
 import com.example.core.system.SystemBarController
+import com.example.login.BuildConfig
 
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null
+    signUpViewModel: SignUpViewModel //null 불가.
 ) {
     //디자인 모듈 가져오기.
     val colorTheme = LocalColorTheme.current
@@ -82,17 +83,25 @@ fun WelcomeScreen(
     val signUpState by signUpViewModel?.signUpState?.collectAsState() ?: remember {
         mutableStateOf(SignUpState.Idle)
     }
-    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
-    // 컴포지션 변경으로 초기화 우려가 있었음. remember -> rememberSaveable으로 수정.
-    var isSignUpRequested by rememberSaveable { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
-    //화면 진입 시 자동 회원가입 요청
+
+    //화면 진입 시 자동 회원가입 요청 하나라도 비면 회원가입 불가.
     LaunchedEffect(Unit) {
-        if (!isSignUpRequested) {
-            isSignUpRequested = true
-            Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
-            signUpViewModel?.signUp()
+
+
+        //릴리즈 빌드에는 로그 찍히지 않음. 디버그로는 확인가능함. api 연동 확인용으로 일단 놓음.
+        // TODO : 런칭 전 해당 로그 삭제.
+        if (BuildConfig.DEBUG) {
+            Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
+            Log.d("WelcomeScreen", "email: ${signUpViewModel?.signUpForm?.email}")
+            Log.d("WelcomeScreen", "nickname: ${signUpViewModel?.signUpForm?.nickname}")
+            Log.d("WelcomeScreen", "gender: ${signUpViewModel?.signUpForm?.gender}")
+            Log.d("WelcomeScreen", "jobId: ${signUpViewModel?.signUpForm?.jobId}")
+            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel?.signUpForm?.purposeList}")
+            Log.d("WelcomeScreen", "interestList: ${signUpViewModel?.signUpForm?.interestList}")
+            Log.d("WelcomeScreen", "=====================")
         }
+        signUpViewModel.signUp()
     }
 
     // 서버 응답 감지
@@ -103,12 +112,13 @@ fun WelcomeScreen(
                 navigator.navigate("email_login") {
                     popUpTo("auth_graph") { inclusive = true }
                 }
-                isSignUpRequested = false
+
             }
             is SignUpState.Error -> {
                 val message = (signUpState as SignUpState.Error).message
                 Log.e("WelcomeScreen", "회원가입 실패: $message")
-                isSignUpRequested = false
+                // 에러 시 이전 단계로 돌아감.
+                navigator.popBackStack()
             }
             is SignUpState.Loading -> {
                 Log.d("WelcomeScreen", "회원가입 진행 중...")
@@ -134,12 +144,7 @@ fun WelcomeScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF2C6FFF), // 위
-                        Color(0xFFC800FF)  // 아래
-                    )
-                )
+                colorTheme.verticalMainColor
             )
     ) {
         // 중앙 콘텐츠 (Column)
@@ -195,7 +200,7 @@ fun WelcomeScreen(
                     .align(Alignment.BottomCenter)
                     .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
                     .height(50.scaler)
-                    .background(Color.White, shape = RoundedCornerShape(18.dp)),
+                    .background(colorTheme.white, shape = RoundedCornerShape(18.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -214,9 +219,3 @@ fun WelcomeScreen(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    val fakeNavController = rememberNavController()
-    WelcomeScreen(navigator = fakeNavController)
-}

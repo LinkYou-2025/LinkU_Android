@@ -106,7 +106,7 @@ fun PasswordResetScreen() {
                     singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.White, shape = RoundedCornerShape(16.dp)),
+                        .background(colorTheme.white, shape = RoundedCornerShape(16.dp)),
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
@@ -131,7 +131,7 @@ fun PasswordResetScreen() {
         ) {
             Text(
                 text = "임시 비밀번호 받기",
-                color = Color.White,
+                color = colorTheme.white,
                 fontFamily = Paperlogy.font,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold

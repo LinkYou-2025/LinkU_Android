@@ -10,6 +10,7 @@ import com.example.data.api.dto.server.JoinDTO
 import com.example.data.api.dto.server.JoinResultDTO
 import com.example.data.api.dto.server.LoginRequestDTO
 import com.example.data.api.dto.server.LoginResultDTO
+import com.example.data.api.dto.server.SocialCompleteResultDTO
 import com.example.data.api.dto.server.SocialProfileRequestDTO
 import com.example.data.api.dto.server.TokenPair
 import com.example.data.api.dto.server.UpdateProfileDTO
@@ -31,7 +32,7 @@ interface UserApi {
     ): BaseResponse<TokenPair>
 
     @POST("users/join")
-    suspend fun signUp(
+    suspend fun signUpWithEmail(
         @Body joinDTO: JoinDTO
     ): BaseResponse<JoinResultDTO>
 
@@ -96,7 +97,7 @@ interface UserApi {
     suspend fun completeSocialProfile(
         @Header("Authorization") authorization: String,
         @Body body: SocialProfileRequestDTO
-    ): ApiResponseString
+    ): BaseResponse<SocialCompleteResultDTO>
 
     //카카오톡 로그인 api
     @POST("auth/mobile/kakao")

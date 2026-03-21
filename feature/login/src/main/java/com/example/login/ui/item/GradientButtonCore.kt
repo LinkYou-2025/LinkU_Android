@@ -64,10 +64,7 @@ fun GradientButtonCore(
     showBackground = true,
     name = "GradientButtonCore - Enabled"
 )
-@Preview(
-    showBackground = true,
-    name = "GradientButtonCore - Enabled"
-)
+
 @Composable
 private fun GradientButtonCoreEnabledPreview() {
     // 실제 앱에서는 LocalColorTheme이 주입되지만,
@@ -75,7 +72,7 @@ private fun GradientButtonCoreEnabledPreview() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(Color.White) //프리뷰니까 그냥 절대 컬러로 놓겠습니당
             .padding(20.dp)
     ) {
         GradientButtonCore(

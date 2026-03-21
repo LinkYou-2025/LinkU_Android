@@ -30,6 +30,7 @@ fun ResetPasswordTopHeader(
     // 1. 테마 및 반응형 유틸리티 가져오기
     val colorTheme = LocalColorTheme.current
 
+
     // 피그마 기준 해상도(412x917) 대비 반응형 좌표 계산
     val topOffset = (59.scaler)
     val startPadding = (20.scaler)
@@ -66,7 +67,7 @@ private fun ResetPasswordTopHeaderPreview() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
+            .background(Color.White) //프리뷰라 굳이 수정하지 않음.
     ) {
         ResetPasswordTopHeader(
             onBack = {}

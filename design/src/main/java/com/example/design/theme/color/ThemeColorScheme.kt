@@ -1,5 +1,6 @@
 package com.example.design.theme.color
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
@@ -8,6 +9,17 @@ sealed class ThemeColorScheme(
 
     val maincolor: Brush,
     val backgroundmaincolor: Brush,
+
+    val verticalMainColor: Brush = Brush.verticalGradient(  //웰컴 스크린 사용
+        listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+    ),
+
+    val linearMainColor: Brush = Brush.linearGradient(  //로그인 스크린 사용
+        colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
+        start = Offset(0f, 0f),
+        end = Offset.Infinite
+    ),
+
     val blue: ColorMap = ColorMap(
         50 to Color(0xFFE5EDFF),
         100 to Color(0xFF95B6FF),
@@ -36,8 +48,13 @@ sealed class ThemeColorScheme(
         listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
     ),
 
+
     val black: Color = Color(0xFF000208),
     val white: Color = Color(0xFFFFFFFF),
     val positive: Color = Color(0xFF35DF79),
     val negative: Color = Color(0xFFFF5E5E),
+
+    val accentColor: Color = Color(0xFFC800FF)
+
+
 )
