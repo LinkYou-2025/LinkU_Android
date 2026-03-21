@@ -10,12 +10,12 @@ import com.example.core.repository.UserRepository
 import com.example.core.session.SessionStore
 import com.example.data.api.ApiError
 import com.example.data.api.ServerApi
-import com.example.data.api.dto.server.JoinDTO
-import com.example.data.api.dto.server.LoginRequestDTO
+import com.example.data.api.dto.user.SignUpRequestDTO
+import com.example.data.api.dto.user.LoginRequestDTO
 import com.example.data.preference.AuthPreference
-import com.example.data.api.dto.server.DeleteReasonDTO
+import com.example.data.api.dto.user.DeleteUserRequestDTO
 import com.example.data.api.withAuth
-import com.example.data.api.dto.server.UpdateProfileDTO
+import com.example.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.example.data.api.withAuthRaw
 import com.example.data.api.withErrorHandling
 import com.example.data.api.withErrorHandlingRaw
@@ -88,7 +88,7 @@ class UserRepositoryImpl @Inject constructor(
         require(purposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
         require(interestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
 
-        val dto = JoinDTO(
+        val dto = SignUpRequestDTO(
             nickName = nickname,
             email = email,
             password = password,
@@ -146,22 +146,22 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     // ApiResponseString 반환 → withErrorHandlingRaw
-    override suspend fun requestTempPassword(email: String): Boolean {
-        Log.d(TAG, "[임시PW 요청] email=${email.take(3)}***")
-        // Log.d(TAG, "[임시PW 요청] email=$email") 보안 문제로 주석처리 단, 오류 발생시 사용해주세요.
-
-        return try {
-            val response = serverApi.withErrorHandlingRaw {
-                requestTempPassword(email)
-            }
-            val success = response.isSuccess == true
-            Log.d(TAG, "[임시PW 요청 결과] success=$success")
-            success
-        } catch (e: ApiError) {
-            Log.e(TAG, "[임시PW 요청 실패] ${e.message}")
-            false
-        }
-    }
+//    override suspend fun requestTempPassword(email: String): Boolean {
+//        Log.d(TAG, "[임시PW 요청] email=${email.take(3)}***")
+//        // Log.d(TAG, "[임시PW 요청] email=$email") 보안 문제로 주석처리 단, 오류 발생시 사용해주세요.
+//
+//        return try {
+//            val response = serverApi.withErrorHandlingRaw {
+//                requestTempPassword(email)
+//            }
+//            val success = response.isSuccess == true
+//            Log.d(TAG, "[임시PW 요청 결과] success=$success")
+//            success
+//        } catch (e: ApiError) {
+//            Log.e(TAG, "[임시PW 요청 실패] ${e.message}")
+//            false
+//        }
+//    }
 
 
 
@@ -240,7 +240,7 @@ class UserRepositoryImpl @Inject constructor(
             Interest.fromDisplayName(displayName)?.serverKey
         }
 
-        val dto = UpdateProfileDTO(
+        val dto = UpdateUserProfileRequestDTO(
             nickname = nickname,
             jobId = jobId,
             purposes = mappedPurposes,
@@ -262,7 +262,7 @@ class UserRepositoryImpl @Inject constructor(
 
     // BaseResponse<withDrawalResultDTO> 반환 → withAuth
     override suspend fun deleteUser(reason: String): Boolean {
-        val dto = DeleteReasonDTO(reason)
+        val dto = DeleteUserRequestDTO(reason)
         serverApi.withAuth(authPreference) { deleteUser(dto) }
         return true
     }

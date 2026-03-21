@@ -1,7 +1,7 @@
 package com.example.data.mapper
 
 import com.example.core.model.auth.*
-import com.example.data.api.dto.server.SocialProfileRequestDTO
+import com.example.data.api.dto.user.SocialProfileRequestDTO
 
 object SocialProfileMapper {
 

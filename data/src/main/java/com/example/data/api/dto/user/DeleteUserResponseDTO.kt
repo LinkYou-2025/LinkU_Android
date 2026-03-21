@@ -1,9 +1,9 @@
-package com.example.data.api.dto.server
+package com.example.data.api.dto.user
 
 import com.squareup.moshi.Json
 import java.time.OffsetDateTime
 
-data class withDrawalResultDTO(
+data class DeleteUserResponseDTO(
 
     @Json(name = "userId")
     val userId: Long,

@@ -1,8 +1,8 @@
-package com.example.data.api.dto.server
+package com.example.data.api.dto.user
 
 import com.squareup.moshi.Json
 
-data class JoinDTO (
+data class SignUpRequestDTO (
 
     @Json(name = "nickName")
     val nickName: String,
