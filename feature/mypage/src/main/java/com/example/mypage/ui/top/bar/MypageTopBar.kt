@@ -133,7 +133,7 @@ fun MypageTopBar(
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.gray[100])
                         .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(14.dp))
-                        .padding(horizontal = 35.dp, vertical = 14.dp),
+                        .padding(vertical = 14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -163,7 +163,7 @@ fun MypageTopBar(
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.gray[100])
                         .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(14.dp))
-                        .padding(horizontal = 35.dp, vertical = 14.dp),
+                        .padding(vertical = 14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -193,7 +193,7 @@ fun MypageTopBar(
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.backgroundmaincolor)
                         .border(1.dp, LocalColorTheme.current.inactiveColor, RoundedCornerShape(14.dp))
-                        .padding(horizontal = 35.dp, vertical = 14.dp),
+                        .padding(vertical = 14.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
