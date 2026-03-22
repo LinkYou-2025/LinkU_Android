@@ -137,6 +137,7 @@ fun AlarmSettingScreen(
     }
 }
 
+// TODO: 컴포넌트로 빼기
 @Composable
 fun NotificationSwitch(
     title: String,
