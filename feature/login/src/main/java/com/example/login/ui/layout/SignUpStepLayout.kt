@@ -39,7 +39,7 @@ import com.example.login.ui.item.StepIndicator
 
 
 @Composable
-fun SignUpStepLayout(
+internal fun SignUpStepLayout(
     currentStep: Int,
     totalSteps: Int,
     label: String,
