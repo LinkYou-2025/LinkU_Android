@@ -10,8 +10,8 @@ import com.example.core.repository.UserRepository
 import com.example.core.session.SessionStore
 import com.example.data.api.ApiError
 import com.example.data.api.ServerApi
-import com.example.data.api.dto.user.SignUpEmailRequestDTO
-import com.example.data.api.dto.user.LoginRequestDTO
+import com.example.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
+import com.example.data.api.dto.auth.login.email.LoginRequestDTO
 import com.example.data.preference.AuthPreference
 import com.example.data.api.dto.user.DeleteUserRequestDTO
 import com.example.data.api.withAuth
@@ -22,8 +22,8 @@ import com.example.data.api.withErrorHandlingRaw
 import javax.inject.Inject
 import com.example.data.mapper.SocialProfileMapper
 import com.example.core.model.auth.*
-import com.example.data.api.dto.login.kakao.KakaoLoginRequestDTO
-import com.example.data.api.dto.login.kakao.KakaoLoginResponseDTO
+import com.example.data.api.dto.auth.login.kakao.KakaoLoginRequestDTO
+import com.example.data.api.dto.auth.login.kakao.KakaoLoginResponseDTO
 import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl @Inject constructor(

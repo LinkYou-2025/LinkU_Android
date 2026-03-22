@@ -1,4 +1,4 @@
-package com.example.data.api.dto.login.kakao
+package com.example.data.api.dto.auth.login.kakao
 
 
 
