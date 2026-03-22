@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,37 +46,50 @@ fun AlarmSettingScreen(
     var isNoticeEventEnabled by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LocalColorTheme.current.gray[100])
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 59.dp, start = 20.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .padding(top = 59.dp, start = 20.dp, end = 20.dp)
+                .height(24.dp)
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_back),
                 contentDescription = null,
                 modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .width(10.dp)
                     .clickable { navController.popBackStack() }
             )
 
-            Spacer(modifier = Modifier.width(135.dp))
-
             Text(
                 text = "알림 설정",
-                style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                color = LocalColorTheme.current.black
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                fontFamily = LocalFontTheme.current.font,
+                color = LocalColorTheme.current.black,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(40.75.dp))
 
         // 알림 수신 설정 토글
         Column(modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 20.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(LocalColorTheme.current.white)
+            .graphicsLayer {
+                shadowElevation = 12.dp.toPx()
+                ambientShadowColor = Color.Black.copy(alpha = 0.02f)
+                spotShadowColor = Color.Black.copy(alpha = 0.02f)
+            }
+            .padding(horizontal = 20.dp, vertical = 18.dp)
+
         ) {
             NotificationSwitch(
                 title = "알림 수신 설정",
@@ -87,26 +99,38 @@ fun AlarmSettingScreen(
                     if (isChecked) {
                         isAICurationEnabled = true
                         isNoticeEventEnabled = true
+                    } else {
+                        isAICurationEnabled = false
+                        isNoticeEventEnabled = false
                     }
                 }
             )
 
             if (isAlarmEnabled) {
-
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
                     title = "AI 큐레이션 알림",
                     checked = isAICurationEnabled,
-                    onCheckedChange = { isAICurationEnabled = it }
+                    onCheckedChange = { checked ->
+                        isAICurationEnabled = checked
+                        if (!checked && !isNoticeEventEnabled) {
+                            isAlarmEnabled = false
+                        }
+                    }
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
-                    title = "공지사항/ 이벤트 알림",
+                    title = "공지사항 / 이벤트 알림",
                     checked = isNoticeEventEnabled,
-                    onCheckedChange = { isNoticeEventEnabled = it }
+                    onCheckedChange = { checked ->
+                        isNoticeEventEnabled = checked
+                        if (!checked && !isAICurationEnabled) {
+                            isAlarmEnabled = false
+                        }
+                    }
                 )
             }
         }
@@ -126,7 +150,7 @@ fun NotificationSwitch(
     ) {
         Text(
             text = title,
-            fontSize = 16.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
             color = LocalColorTheme.current.black,
             fontFamily = LocalFontTheme.current.font,
