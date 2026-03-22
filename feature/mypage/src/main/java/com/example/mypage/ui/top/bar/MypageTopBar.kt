@@ -26,12 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.design.BrushText
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
+import com.example.design.theme.ThemeProvider
 import com.example.design.top.bar.AlarmButton
 import com.example.mypage.R
 import com.example.design.R as Res
@@ -135,7 +138,6 @@ fun MypageTopBar(
                             color = LocalColorTheme.current.black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            fontFamily = LocalFontTheme.current.font
                         )
                     }
 
@@ -144,7 +146,6 @@ fun MypageTopBar(
                         color = LocalColorTheme.current.gray[600],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = LocalFontTheme.current.font
                     )
                 }
             }
@@ -159,22 +160,22 @@ fun MypageTopBar(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .height(67.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.gray[100])
                         .border(
                             1.dp,
                             LocalColorTheme.current.gray[200],
                             RoundedCornerShape(14.dp)
-                        )
-                        .padding(vertical = 14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = "나의 링크",
                         color = LocalColorTheme.current.gray[700],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = LocalFontTheme.current.font,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
@@ -183,7 +184,6 @@ fun MypageTopBar(
                         color = LocalColorTheme.current.black,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = LocalFontTheme.current.font
                     )
                 }
 
@@ -193,22 +193,22 @@ fun MypageTopBar(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .height(67.dp)
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.gray[100])
                         .border(
                             1.dp,
                             LocalColorTheme.current.gray[200],
                             RoundedCornerShape(14.dp)
-                        )
-                        .padding(vertical = 14.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
                     Text(
                         text = "나의 폴더",
                         color = LocalColorTheme.current.gray[700],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = LocalFontTheme.current.font,
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
 
@@ -217,7 +217,6 @@ fun MypageTopBar(
                         color = LocalColorTheme.current.black,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = LocalFontTheme.current.font
                     )
                 }
 
@@ -249,21 +248,23 @@ fun MypageTopBar(
 
                         Spacer(modifier = Modifier.width(4.56.dp))
 
-                        Text(
+                        BrushText(
                             text = "AI 요약 링크",
-                            color = LocalColorTheme.current.gray[700],
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            fontFamily = LocalFontTheme.current.font,
+                            brush = LocalColorTheme.current.maincolor,
+                            style = TextStyle(
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
                         )
                     }
 
-                    Text(
+                    BrushText(
                         text = myAiLinku.toString(),
-                        color = LocalColorTheme.current.black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = LocalFontTheme.current.font
+                        brush = LocalColorTheme.current.maincolor,
+                        style = TextStyle(
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
                     )
                 }
             }
@@ -274,14 +275,16 @@ fun MypageTopBar(
 @Preview(showBackground = false)
 @Composable
 fun PreviewMypageTopBar() {
-    MypageTopBar(
-        isNoticeExist = true,
-        onAlarmClick = {},
-        nickname = "세나",
-        email = "linkU2025@gmail.com",
-        myLinku = 63,
-        myFolder = 5,
-        myAiLinku = 48,
-        socialLoginType = "google"
-    )
+    ThemeProvider {
+        MypageTopBar(
+            isNoticeExist = true,
+            onAlarmClick = {},
+            nickname = "세나",
+            email = "linkU2025@gmail.com",
+            myLinku = 63,
+            myFolder = 5,
+            myAiLinku = 48,
+            socialLoginType = "google"
+        )
+    }
 }
