@@ -13,7 +13,7 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-// 추후 기능 확장용 - 네트웤, 서버 오류시 모달창에 활용 -> 기능 확장용
+// 추후 기능 확장용 - 네트워크, 서버 오류시 모달창에 활용 -> 기능 확장용
 sealed class ApiError : Exception() {
 
     // 인증 관련
@@ -108,8 +108,8 @@ private fun Exception.toApiError(): ApiError = when (this) {
  */
 private fun shouldRefreshToken(e: Exception): Boolean = when (e) {
     is HttpException -> e.code() == 401
-    is TokenExpiredException -> true
-    is ApiError.Unauthorized -> true
+    is TokenExpiredException,
+    is ApiError.Unauthorized,
     is ApiError.TokenExpired -> true
     else -> false
 }
@@ -156,6 +156,7 @@ private suspend fun <T> ServerApi.withTokenRefresh(
 /**
  * BaseResponse 검증 - isSuccess 확인 후 result 반환
  * 내부용. isSuccess 확인 + result 꺼내기
+ * 서버 응답이 비즈니스 로직상 성공인가?를 검증하는 함수
  */
 suspend fun <T> ServerApi.withCheck(
     getter: suspend ServerApi.() -> BaseResponse<T>
