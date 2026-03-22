@@ -7,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -15,7 +14,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import dagger.hilt.android.EntryPointAccessors
@@ -24,21 +22,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.example.core.model.SystemBarMode
-import com.example.core.session.SessionStore
+import com.example.core.session.LoginSessionStore
 import com.example.core.system.SystemBarController
 import com.example.data.preference.AuthPreference
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import com.example.design.util.PixelScaler
-import com.example.design.util.DesignSystemBars
-
 
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface SplashDeps {
-    fun sessionStore(): SessionStore
+    fun sessionStore(): LoginSessionStore
     fun authPreference(): AuthPreference
 }
 

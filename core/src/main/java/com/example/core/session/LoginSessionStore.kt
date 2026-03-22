@@ -2,7 +2,6 @@ package com.example.core.session
 
 
 import android.content.Context
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -13,7 +12,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlinx.coroutines.flow.first
 
 /**
  * [지현이 사용법 요약]
@@ -33,7 +31,7 @@ import kotlinx.coroutines.flow.first
 private val Context.dataStore by preferencesDataStore(name = "session_prefs")
 
 @Singleton
-class SessionStore @Inject constructor(
+class LoginSessionStore @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     private object Keys {

@@ -19,14 +19,12 @@ import androidx.compose.runtime.setValue
 import com.example.core.model.search.RecentQuery
 import com.example.core.repository.LinkuRepository
 import com.example.core.repository.RecentSearchRepository
-import com.example.core.session.SessionStore
+import com.example.core.session.LoginSessionStore
 import com.example.design.top.search.FastSearchItem
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 
 
 @HiltViewModel
@@ -34,7 +32,7 @@ class CurationViewModel @Inject constructor(
     private val repository: CurationRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
-    private val sessionStore: SessionStore,
+    private val loginSessionStore: LoginSessionStore,
     private val recentRepository: RecentSearchRepository,
     private val linkuRepository: LinkuRepository,
 ) : ViewModel() {
@@ -47,14 +45,14 @@ class CurationViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    val session = sessionStore.session //닉네임, 직업 정보
+    val session = loginSessionStore.session //닉네임, 직업 정보
 
     // 닉네임, 직업 session에서 직접
-    val nickname = sessionStore.session
+    val nickname = loginSessionStore.session
         .map { it.nickname ?: "세나" }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "세나")
 
-    val jobName = sessionStore.session
+    val jobName = loginSessionStore.session
         .map { it.jobName ?: "직장인" }
         .stateIn(viewModelScope, SharingStarted.Eagerly, "직장인")
 

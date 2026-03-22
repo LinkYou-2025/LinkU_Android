@@ -7,13 +7,13 @@ import com.example.core.model.auth.Gender
 import com.example.core.model.auth.Interest
 import com.example.core.model.auth.Job
 import com.example.core.model.auth.Purpose
-import com.example.core.session.SessionStore
+import com.example.core.session.LoginSessionStore
 import kotlinx.coroutines.flow.Flow
 
 
 interface UserRepository {
 
-    val sessionState: Flow<SessionStore.SessionSnapshot>
+    val sessionState: Flow<LoginSessionStore.SessionSnapshot>
     //레포지토리가 세션 상태 플로우 제공하도록 수정함.
 
     suspend fun checkNickname(nickname: String): Boolean

@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.repository.UserRepository
-import com.example.core.session.SessionStore
+import com.example.core.session.LoginSessionStore
 import com.example.data.api.ApiError
 import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -37,7 +37,7 @@ import kotlin.coroutines.cancellation.CancellationException
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val sessionStore: SessionStore,
+    private val loginSessionStore: LoginSessionStore,
     private val authPreference: AuthPreference,
 ) : ViewModel() {
 
@@ -45,7 +45,7 @@ open class LoginViewModel @Inject constructor(
     private suspend fun fetchAndSaveUserSession(userId: Long) {
         val userInfo = userRepository.getUserInfo(userId) // 사용자 정보 조회 api GET /api/users/{userId} 이용.
 
-        sessionStore.saveLogin( // SessionStore에 세션 생성.
+        loginSessionStore.saveLogin( // SessionStore에 세션 생성.
             userId = userId,
             nickname = userInfo.nickname,
             email = userInfo.email,
@@ -175,7 +175,7 @@ open class LoginViewModel @Inject constructor(
                 authPreference.clear()
 
                 // 인메모리 세션 스토어 비우기 -> 아예 비울 수 있도록.
-                sessionStore.clear() // SessionStore에 clear() 함수가 있다고 가정
+                loginSessionStore.clear() // SessionStore에 clear() 함수가 있다고 가정
 
                 Log.d("LoginVM", "로그아웃 및 세션 정리 완료")
                 onComplete()
