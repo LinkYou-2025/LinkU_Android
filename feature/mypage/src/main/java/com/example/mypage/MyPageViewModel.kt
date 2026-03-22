@@ -3,15 +3,11 @@ package com.example.mypage
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.core.model.UserInfo
 import com.example.core.repository.UserRepository
-import com.example.core.session.SessionStore
+import com.example.core.session.LoginSessionStore
 import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -27,7 +23,7 @@ class MyPageViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SessionStore.SessionSnapshot(false, null,
+            initialValue = LoginSessionStore.SessionSnapshot(false, null,
                 null, null, null, null, null, null, null, null,
                     emptyList(), emptyList() )
         )

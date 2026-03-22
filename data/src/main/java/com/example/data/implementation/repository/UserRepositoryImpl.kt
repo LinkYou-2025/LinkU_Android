@@ -7,7 +7,7 @@ import com.example.core.model.UserInfo
 import com.example.core.model.auth.Interest
 import com.example.core.model.auth.Purpose
 import com.example.core.repository.UserRepository
-import com.example.core.session.SessionStore
+import com.example.core.session.LoginSessionStore
 import com.example.data.api.ApiError
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
@@ -29,11 +29,11 @@ import kotlinx.coroutines.flow.Flow
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
-    private val sessionStore: SessionStore
+    private val loginSessionStore: LoginSessionStore
 ) : UserRepository {
 
-    override val sessionState: Flow<SessionStore.SessionSnapshot>
-        get() = sessionStore.session //레포지토리가 세션 Flow를 책임질 수 있도록 수정함.
+    override val sessionState: Flow<LoginSessionStore.SessionSnapshot>
+        get() = loginSessionStore.session //레포지토리가 세션 Flow를 책임질 수 있도록 수정함.
 
     // checkNickname - ApiResponseString 반환하므로 withErrorHandlingRaw 사용
     override suspend fun checkNickname(nickname: String): Boolean {
@@ -208,7 +208,7 @@ class UserRepositoryImpl @Inject constructor(
             // 세션을 업데이트, 지현이가 편할 수 있게
             Log.d(TAG, "📍 [세션 저장] purposes: ${userInfo.purposes}")
             Log.d(TAG, "📍 [세션 저장] interests: ${userInfo.interests}")
-            sessionStore.saveLogin(
+            loginSessionStore.saveLogin(
                 userId = userId,
                 nickname = userInfo.nickname,
                 email = userInfo.email,
@@ -285,7 +285,7 @@ class UserRepositoryImpl @Inject constructor(
     // logout
     override suspend fun logout() {
         authPreference.clear()
-        sessionStore.clear()
+        loginSessionStore.clear()
         //clearAuthData()
         Log.d(TAG, "로그아웃 완료")
     }
@@ -345,7 +345,7 @@ class UserRepositoryImpl @Inject constructor(
         )
 
         // 서버 성공 시 로컬 세션 즉시 반영
-        sessionStore.updateProfile(
+        loginSessionStore.updateProfile(
             nickname = nickname,
             jobId = jobId,
             jobName = jobName,
