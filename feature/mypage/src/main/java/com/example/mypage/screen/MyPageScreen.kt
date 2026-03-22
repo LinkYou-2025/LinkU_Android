@@ -69,7 +69,6 @@ fun MyPageScreen(
     onNavigateTerms: () -> Unit = {},
     onRequestLogout: () -> Unit = {}
 ) {
-    var showQuitDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
@@ -230,10 +229,7 @@ fun MyPageScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 6.dp)
-                        .clickable {
-                            showQuitDialog = true
-                            onNavigateQuit()
-                        }
+                        .clickable { onNavigateQuit() }
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -252,6 +248,30 @@ fun MyPageScreen(
             }
 
             Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+
+    if (showLogoutDialog) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0x66000000))
+                .zIndex(1f)
+                .clickable(enabled = false) {},
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                LogoutModal(
+                    onDismiss = { showLogoutDialog = false },
+                    onConfirm = {
+                        showLogoutDialog = false
+                        onRequestLogout()
+                    }
+                )
+            }
         }
     }
 }
