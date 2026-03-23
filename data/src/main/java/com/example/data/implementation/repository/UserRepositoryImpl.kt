@@ -7,7 +7,7 @@ import com.example.core.model.UserInfo
 import com.example.core.model.auth.Interest
 import com.example.core.model.auth.Purpose
 import com.example.core.repository.UserRepository
-import com.example.core.session.LoginSessionStore
+import com.example.core.datastore.session.LoginSessionStore
 import com.example.data.api.ApiError
 import com.example.data.api.ServerApi
 import com.example.data.api.dto.auth.signup.email.SignUpEmailRequestDTO

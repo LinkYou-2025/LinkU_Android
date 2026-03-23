@@ -22,7 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.example.core.model.SystemBarMode
-import com.example.core.session.LoginSessionStore
+import com.example.core.datastore.session.LoginSessionStore
 import com.example.core.system.SystemBarController
 import com.example.data.preference.AuthPreference
 import dagger.hilt.EntryPoint

@@ -3,6 +3,7 @@ package com.example.linku_android
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.core.datastore.session.LoginSessionStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.example.core.repository.RecentSearchRepository
@@ -11,7 +12,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val recentRepository: RecentSearchRepository,
-    val loginSessionStore: com.example.core.session.LoginSessionStore
+    val loginSessionStore: LoginSessionStore
 ): ViewModel() {
     
     // 최근 검색 기록 전체 삭제
