@@ -7,7 +7,7 @@ import com.example.core.model.auth.Gender
 import com.example.core.model.auth.Interest
 import com.example.core.model.auth.Job
 import com.example.core.model.auth.Purpose
-import com.example.core.session.LoginSessionStore
+import com.example.core.datastore.session.LoginSessionStore
 import kotlinx.coroutines.flow.Flow
 
 

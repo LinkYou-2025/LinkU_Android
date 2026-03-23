@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.repository.UserRepository
-import com.example.core.session.LoginSessionStore
+import com.example.core.datastore.session.LoginSessionStore
 import com.example.data.api.ApiError
 import com.example.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel

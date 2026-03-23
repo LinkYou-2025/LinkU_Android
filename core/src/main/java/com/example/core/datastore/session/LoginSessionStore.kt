@@ -1,4 +1,4 @@
-package com.example.core.session
+package com.example.core.datastore.session
 
 
 import android.content.Context
