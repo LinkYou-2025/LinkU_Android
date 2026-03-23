@@ -22,44 +22,44 @@ import retrofit2.http.Query
 interface AuthApi {
 
     //자동 로그인을 위한 토큰 재발급 API
-    @POST("users/reissue")
+    @POST("auth/token/reissue")
     suspend fun reissue(
         @Header("Refresh-Token") refreshToken: String //헤더로 받음. DTO 불필요
     ): BaseResponse<RefreshTokenResponseDTO>
 
-    @POST("users/join")
+    @POST("auth/signup/email")
     suspend fun signUpWithEmail(
         @Body signUpEmailRequestDTO: SignUpEmailRequestDTO
     ): BaseResponse<SignUpEmailResponseDTO>
 
 
-    @GET("users/check-nickname")
+    @GET("auth/check-nickname")
     suspend fun checkNickname(
         @Query("nickname") nickname: String //@ Query로 닉네임을 전달. DTO 불필요
     ): BaseResponse<String> //BaseResponse 형태임. 별도 클래스 생성 없음.
 
     // 로그인
-    @POST("users/login")
+    @POST("auth/login")
     suspend fun signIn(
         @Body body: LoginRequestDTO
     ): BaseResponse<LoginResponseDTO>
 
     // 이메일 인증 코드 전송
-    @POST("users/emails/code")
+    @POST("auth/email/code")
     suspend fun sendVerificationEmail(
         @Query("email") email: String,
         @Query("code") code: String
     ): BaseResponse<String> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
     // 이메일 인증 코드 검증
-    @GET("users/emails/verify")
+    @GET("auth/email/verify")
     suspend fun checkVerificationEmail(
         @Query("email") email: String,
         @Query("code") code: String
     ): BaseResponse<EmailVerificationResponseDTO>
 
     //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
-    @PATCH("users/social/complete")
+    @PATCH("auth/signup/social/profile")
     suspend fun completeSocialProfile(
         @Header("Authorization") authorization: String,
         @Body body: SocialProfileRequestDTO
