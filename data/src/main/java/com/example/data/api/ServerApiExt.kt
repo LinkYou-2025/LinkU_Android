@@ -94,6 +94,7 @@ private fun HttpException.toApiError(): ApiError = when (code()) {
  * TODO : 다인 언니로부터 멘트 확정시 수정하기.
  */
 private fun Exception.toApiError(): ApiError = when (this) {
+    // 여기서 this는 함수를 호출한 exception 객체 본인
     is ApiError -> this
     is HttpException -> toApiError()
     is TokenExpiredException -> ApiError.TokenExpired(message ?: "토큰이 만료되었습니다")
