@@ -12,7 +12,7 @@ import com.example.core.model.auth.NicknameCheckState
 import com.example.core.model.auth.Purpose
 import com.example.core.model.auth.SignUpForm
 import com.example.core.model.auth.SignUpState
-import com.example.core.repository.UserRepository
+import com.example.core.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     // 상수 분리
@@ -103,13 +103,12 @@ class SignUpViewModel @Inject constructor(
         viewModelScope.launch {
             _nicknameState.value = NicknameCheckState.Checking
             try {
-                val available = userRepository.checkNickname(input)
-                _nicknameState.value = if (available) {
-                    NicknameCheckState.Available
-                } else {
-                    NicknameCheckState.Duplicated
-                }
+                authRepository.checkNickname(input)
+                // 여기까지 왔다 = 성공
+                _nicknameState.value = NicknameCheckState.Available
             } catch (e: Exception) {
+                // 중복 → ApiError.BusinessError(message="중복된 닉네임입니다.")
+                // 네트워크 → ApiError.NetworkError
                 _nicknameState.value = NicknameCheckState.Error(
                     e.message ?: "닉네임 확인 중 오류가 발생했습니다."
                 )
@@ -166,26 +165,20 @@ class SignUpViewModel @Inject constructor(
                 _signUpState.value = SignUpState.Loading
                 Log.d("SignUpViewModel", "[회원가입 요청] $signUpForm")
 
-                // Purpose enum의 code 값을 List<String>으로 변환
-                val purposeKeys = signUpForm.purposeList.map { it.serverKey }
-                val interestKeys = signUpForm.interestList.map { it.serverKey }
-
-                val success = userRepository.signUpWithEmail(
+                val result = authRepository.signUpWithEmail(  // Boolean → SignUpEmailResult
                     nickname = signUpForm.nickname,
                     email = signUpForm.email,
                     password = signUpForm.password,
                     gender = signUpForm.gender.value,
                     jobId = signUpForm.jobId,
-                    purposeList = purposeKeys,
-                    interestList = interestKeys
+                    purposeList = signUpForm.purposeList,
+                    interestList = signUpForm.interestList
                 )
 
-                _signUpState.value = if (success) {
-                    SignUpState.Success
-                } else {
-                    isSignUpRequested = false
-                    SignUpState.Error("회원가입에 실패했습니다.")
-                }
+                // 성공 → result 반환됨 (실패면 예외 throw되어 catch로 감)
+                Log.d("SignUpViewModel", "[회원가입 성공] userId=${result.userId}")
+                _signUpState.value = SignUpState.Success
+
             } catch (e: Exception) {
                 isSignUpRequested = false
                 _signUpState.value = SignUpState.Error(

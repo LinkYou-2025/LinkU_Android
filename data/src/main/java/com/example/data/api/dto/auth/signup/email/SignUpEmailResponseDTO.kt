@@ -9,6 +9,7 @@ data class SignUpEmailResponseDTO(
     val userId: Long,
 
     @Json(name = "createdAt")
-    val createdAt: OffsetDateTime
+    val createdAt: String
+
 
 )
