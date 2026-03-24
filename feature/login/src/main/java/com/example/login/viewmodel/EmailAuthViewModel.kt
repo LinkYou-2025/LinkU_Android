@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.core.model.auth.AuthErrorMessages
 import com.example.core.model.auth.EmailAuthState
-import com.example.core.repository.UserRepository
+import com.example.core.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,7 +23,7 @@ import kotlinx.coroutines.Job
 // TODO : 하진 언니에게 otp 번호 생성은 백에서 할 수 있도록 수정 요청하기!
 @HiltViewModel
 class EmailAuthViewModel @Inject constructor(
-    private val userRepository: UserRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     companion object {
@@ -101,7 +101,7 @@ class EmailAuthViewModel @Inject constructor(
 
             Log.d("EmailAuthVM", "Generated code = $code")
             try {
-                val ok = userRepository.sendEmailCode(email, code)
+                val ok = authRepository.sendEmailCode(email, code)
                 Log.d("EmailAuthVM", "Server sendEmailCode result = $ok")
 
                 if (ok) {
@@ -128,7 +128,7 @@ class EmailAuthViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = EmailAuthState.Verifying
             try {
-                val ok = userRepository.verifyEmailCode(email, code)
+                val ok = authRepository.verifyEmailCode(email, code)
                 if (ok) {
                     stopTimer() // 성공 시 타이머 중지
                     _authState.value = EmailAuthState.VerifySuccess

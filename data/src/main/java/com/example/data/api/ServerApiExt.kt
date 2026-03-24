@@ -98,7 +98,6 @@ private fun HttpException.toApiError(): ApiError {
 /**
  * 일반 Exception → ApiError 변환
  * Exception(모든 에러 최상위),
- * TODO : 다인 언니로부터 멘트 확정시 수정하기.
  */
 private fun Exception.toApiError(): ApiError {
     return when (this) {

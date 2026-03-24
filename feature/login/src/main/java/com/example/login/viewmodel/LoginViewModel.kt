@@ -15,6 +15,7 @@ import javax.inject.Inject
 import com.example.core.model.auth.AutoLoginState
 import com.example.core.model.auth.LoginErrorType
 import com.example.core.model.auth.LoginState
+import com.example.core.repository.AuthRepository
 import com.example.data.api.toLoginErrorType
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -36,7 +37,8 @@ import kotlin.coroutines.cancellation.CancellationException
 
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    private val authRepository: AuthRepository,
+    private val userRepository: UserRepository, //getUserInfo 사용함.
     private val loginSessionStore: LoginSessionStore,
     private val authPreference: AuthPreference,
 ) : ViewModel() {
@@ -88,7 +90,7 @@ open class LoginViewModel @Inject constructor(
                 Log.d(TAG, "로그인 시도")
 
                 // API 호출
-                val result = userRepository.login(
+                val result = authRepository.login(
                     email = email.trim(),
                     password = password.trim()
                 )
@@ -164,29 +166,6 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
-    // 마이페이지 로그아웃
-    fun logout(onComplete: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                //  서버에 로그아웃 알림? 필요할까요?
-                // userRepository.logout()
-
-                // 로컬 저장소 비우기 (토큰, 유저 아이디 삭제)
-                authPreference.clear()
-
-                // 인메모리 세션 스토어 비우기 -> 아예 비울 수 있도록.
-                loginSessionStore.clear() // SessionStore에 clear() 함수가 있다고 가정
-
-                Log.d("LoginVM", "로그아웃 및 세션 정리 완료")
-                onComplete()
-            } catch (e: Exception) {
-                Log.e("LoginVM", "로그아웃 중 오류 발생", e)
-                // 에러가 나더라도 로컬 데이터는 지워야 함
-                authPreference.clear()
-                onComplete()
-            }
-        }
-    }
 
     // 태그 상수 추가함.
     companion object {

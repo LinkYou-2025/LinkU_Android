@@ -8,7 +8,7 @@ import com.example.core.model.auth.Gender
 import com.example.core.model.auth.Job
 import com.example.core.model.auth.Purpose
 import com.example.core.model.auth.Interest
-import com.example.core.repository.UserRepository
+import com.example.core.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -38,7 +38,7 @@ import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class SocialAuthViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    private val authRepository: AuthRepository,
     private val authPreference: AuthPreference
 ) : ViewModel() {
 
@@ -111,30 +111,23 @@ class SocialAuthViewModel @Inject constructor(
     private fun isValidNickname(input: String): Boolean =
         input.isNotBlank() && input.length in 1..MAX_NICKNAME_LENGTH
 
+    //닉네임 중복 체크
     private fun checkNicknameInternal(nickname: String) {
         viewModelScope.launch {
             try {
                 _nicknameCheckState.value = NicknameCheckState.Checking
-
-                // 실제 서버 API 호출
-                val available = userRepository.checkNickname(nickname)
-
-                _nicknameCheckState.value =
-                    if (available) {
-                        NicknameCheckState.Available
-                    } else {
-                        NicknameCheckState.Duplicated
-                    }
-
+                authRepository.checkNickname(nickname)
+                // 여기까지 왔다 = 성공
+                _nicknameCheckState.value = NicknameCheckState.Available
             } catch (e: Exception) {
                 Log.e(TAG, "닉네임 중복 체크 실패", e)
-                _nicknameCheckState.value =
-                    NicknameCheckState.Error(
-                        e.message ?: "닉네임 확인 중 오류가 발생했습니다."
-                    )
+                _nicknameCheckState.value = NicknameCheckState.Error(
+                    e.message ?: "닉네임 확인 중 오류가 발생했습니다."
+                )
             }
         }
     }
+
 
     fun loginWithKakao(token : String) {
         Log.d("SocialAuthViewModel", "loadKakaoLogin")
@@ -146,7 +139,7 @@ class SocialAuthViewModel @Inject constructor(
 
             try{
                 Log.d("SocialAuthViewModel", "loadWithKakao try")
-                val result = userRepository.loginWithKakao(token)
+                val result = authRepository.loginWithKakao(token)
                 authPreference.saveTokens(
                     accessToken = result.accessToken,
                     refreshToken = result.refreshToken,
@@ -215,7 +208,7 @@ class SocialAuthViewModel @Inject constructor(
 
                 Log.d(TAG, "소셜 프로필 완료 API 호출 시작")
 
-                val success = userRepository.completeSocialProfile(
+                val success = authRepository.completeSocialProfile(
                     socialToken = socialToken,
                     nickName = _nickname.value,
                     gender = _gender.value,
