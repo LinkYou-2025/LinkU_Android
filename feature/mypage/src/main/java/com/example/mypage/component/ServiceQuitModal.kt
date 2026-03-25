@@ -69,7 +69,7 @@ fun ServiceQuitModal(
         )
 
         Text(
-            text = "회원 탈퇴시 모든 데이터가 삭제되며\n이후 복구가 불가능하니 신중히 결정해주세요.",
+            text = "계정을 탈퇴하면 14일 이후\n회원님의 모든 활동 정보가 삭제됩니다.",
             fontSize = 15.sp,
             lineHeight = 22.sp,
             textAlign = TextAlign.Center,
