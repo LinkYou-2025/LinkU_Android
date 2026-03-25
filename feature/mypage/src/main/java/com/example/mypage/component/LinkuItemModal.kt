@@ -1,0 +1,58 @@
+package com.example.mypage.component
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.design.modifier.noRippleClickable
+import com.example.design.theme.LocalColorTheme
+import com.example.design.theme.ThemeProvider
+
+@Composable
+fun LinkuItemModal(
+    onClickModal: () -> Unit = { }
+) {
+    Column(
+        modifier = Modifier
+            .width(120.dp)
+            .graphicsLayer {
+                shadowElevation = 10.dp.toPx()
+                this.shape = shape
+                clip = true
+            }
+            .clip(RoundedCornerShape(14.dp))
+            .background(LocalColorTheme.current.white)
+            .padding(horizontal = 15.dp, vertical = 10.dp)
+            .noRippleClickable { onClickModal() }
+    ) {
+        Text(
+            text = "삭제하기",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = LocalColorTheme.current.gray[800],
+            modifier = Modifier.width(90.dp)
+        )
+    }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun PreviewLinkuItemModal() {
+    ThemeProvider {
+        LinkuItemModal(onClickModal = { })
+    }
+}
