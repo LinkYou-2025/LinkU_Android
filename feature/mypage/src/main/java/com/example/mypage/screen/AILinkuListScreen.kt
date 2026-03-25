@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.design.modifier.noRippleClickable
@@ -42,6 +43,7 @@ import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.ThemeProvider
 import com.example.mypage.R
 import com.example.mypage.component.AILinkuItem
+import com.example.mypage.component.DeleteLinkuModal
 import com.example.design.R as Res
 
 data class DummyAILinku(
@@ -135,6 +137,7 @@ fun AILinkuListScreen(
 ) {
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
+    var deleteTarget by remember { mutableStateOf<DummyAILinku?>(null) }
 
     val categories = listOf("취업", "자기계발", "디자인", "개발", "마케팅")
 
@@ -150,134 +153,162 @@ fun AILinkuListScreen(
         dummyLinks.filter { it.category == selectedCategory }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100])
-            .padding(horizontal = 20.dp)
+    Box(
+        modifier = Modifier.fillMaxSize()
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 58.dp)
-                .height(24.dp)
+                .fillMaxSize()
+                .background(LocalColorTheme.current.gray[100])
+                .padding(horizontal = 20.dp)
         ) {
-            Image(
-                painter = painterResource(R.drawable.ic_back),
-                contentDescription = null,
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .width(10.dp)
-                    .noRippleClickable { navController.popBackStack() }
-            )
-
-            Row(
-                modifier = Modifier.align(Alignment.Center),
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxWidth()
+                    .padding(top = 58.dp)
+                    .height(24.dp)
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_sparkle),
+                    painter = painterResource(R.drawable.ic_back),
                     contentDescription = null,
                     modifier = Modifier
-                        .width(16.42.dp)
-                        .height(17.51.dp)
+                        .align(Alignment.CenterStart)
+                        .width(10.dp)
+                        .noRippleClickable { navController.popBackStack() }
                 )
 
-                Spacer(modifier = Modifier.width(4.dp))
-
-                Text(
-                    text = "AI 요약 링크",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.black
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.49.dp))
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            FilterChip(
-                text = "전체",
-                selected = selectedCategory == null,
-                onClick = { selectedCategory = null }
-            )
-
-            CategoryDropdownChip(
-                text = selectedCategory ?: "카테고리",
-                expanded = isCategoryMenuExpanded,
-                onClick = { isCategoryMenuExpanded = true },
-                onDismiss = { isCategoryMenuExpanded = false },
-                categories = categories,
-                onCategorySelected = {
-                    selectedCategory = it
-                    isCategoryMenuExpanded = false
-                }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(15.dp))
-
-        // 링크 리스트
-        if (filteredLinks.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(R.drawable.img_empty_ailinku),
+                        painter = painterResource(R.drawable.ic_sparkle),
                         contentDescription = null,
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier
+                            .width(16.42.dp)
+                            .height(17.51.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
 
                     Text(
-                        text = "아직 생성된 AI 요약 링크가 없어요.",
-                        fontSize = 15.sp,
+                        text = "AI 요약 링크",
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.gray[800]
-                    )
-
-                    Spacer(modifier = Modifier.height(5.dp))
-
-                    Text(
-                        text = "링크를 저장하고 AI 요약을 생성해보세요.",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.gray[600]
+                        color = LocalColorTheme.current.black
                     )
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                itemsIndexed(
-                    items = filteredLinks,
-                    key = { _, item -> item.id }
-                ) { index, link ->
-                    AILinkuItem(
-                        linkTitle = link.title,
-                        tags = link.tags,
-                        domainImage = link.domainImage,
-                        domainName = link.domainName,
-                        onClickDelete = {
-                            dummyLinks.remove(link)
-                        }
-                    )
 
-                    if (index == filteredLinks.lastIndex) {
-                        Spacer(modifier = Modifier.height(100.dp))
+            Spacer(modifier = Modifier.height(32.49.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilterChip(
+                    text = "전체",
+                    selected = selectedCategory == null,
+                    onClick = { selectedCategory = null }
+                )
+
+                CategoryDropdownChip(
+                    text = selectedCategory ?: "카테고리",
+                    expanded = isCategoryMenuExpanded,
+                    onClick = { isCategoryMenuExpanded = true },
+                    onDismiss = { isCategoryMenuExpanded = false },
+                    categories = categories,
+                    onCategorySelected = {
+                        selectedCategory = it
+                        isCategoryMenuExpanded = false
+                    }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(15.dp))
+
+            // 링크 리스트
+            if (filteredLinks.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(R.drawable.img_empty_ailinku),
+                            contentDescription = null,
+                            modifier = Modifier.size(80.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        Text(
+                            text = "아직 생성된 AI 요약 링크가 없어요.",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = LocalColorTheme.current.gray[800]
+                        )
+
+                        Spacer(modifier = Modifier.height(5.dp))
+
+                        Text(
+                            text = "링크를 저장하고 AI 요약을 생성해보세요.",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = LocalColorTheme.current.gray[600]
+                        )
                     }
                 }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    itemsIndexed(
+                        items = filteredLinks,
+                        key = { _, item -> item.id }
+                    ) { index, link ->
+                        AILinkuItem(
+                            linkTitle = link.title,
+                            tags = link.tags,
+                            domainImage = link.domainImage,
+                            domainName = link.domainName,
+                            onClickDelete = {
+                                deleteTarget = link
+                            }
+                        )
+
+                        if (index == filteredLinks.lastIndex) {
+                            Spacer(modifier = Modifier.height(100.dp))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (deleteTarget != null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0x66000000))
+                .zIndex(1f)
+                .noRippleClickable(enabled = true) {},
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier.padding(horizontal = 20.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                DeleteLinkuModal(
+                    onDismiss = { deleteTarget = null },
+                    onConfirm = {
+                        dummyLinks.remove(deleteTarget)  // TODO: 추후 실제 삭제 API 연동
+                        deleteTarget = null
+                    }
+                )
             }
         }
     }
