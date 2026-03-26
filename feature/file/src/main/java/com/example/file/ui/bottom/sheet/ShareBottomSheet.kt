@@ -271,7 +271,6 @@ fun ShareBottomSheet(
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ){
-            val dummyVM: EditStateViewModel = viewModel()
             val categoryColorStyle = fileViewModel.categoryColorMap.collectAsState().value[selectedTopFolder?.folderName]
 
             when(state){
@@ -285,17 +284,14 @@ fun ShareBottomSheet(
                     TopFolderItemLayout(
                         modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        folderName = selectedTopFolder!!.folderName,
-                        isBookmarked = selectedTopFolder!!.isBookmarked,
-                        editStateViewModel = dummyVM,
+                        folder = selectedTopFolder!!
                     ) { }
                 }
                 FolderState.LINKS -> {
                     BottomFolderItemLayout(
                         modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        folder = selectedBottomFolder!!,
-                        editStateViewModel = dummyVM,
+                        folder = selectedBottomFolder!!
                     )
                 }
             }

@@ -44,10 +44,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.core.model.FolderSimpleInfo
-import com.example.design.modifier.noRippleClickable
 import com.example.design.modifier.innerRingShadow
+import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.color.CategoryColorStyle
 import com.example.file.R
 import com.example.file.ui.content.BookMarkStar
@@ -61,7 +60,6 @@ import com.example.file.ui.theme.Gray200
 import com.example.file.ui.theme.Gray300
 import com.example.file.ui.theme.Gray500
 import com.example.file.ui.theme.White
-import com.example.file.viewmodel.edit.state.EditStateViewModel
 
 @Composable
 fun FolderItemLayout(
@@ -85,7 +83,6 @@ fun FolderItemLayout(
     // 높이를 정했다면: 원하는 height + .fillMaxWidth() 제거 등 자유롭게
     Surface(
         modifier = modifier
-            .then(Modifier)
             .aspectRatio(aspect, matchHeightConstraintsFirst = false),
         shape = RoundedCornerShape(28.5.dp),
         color = backgroundColor,
@@ -286,10 +283,9 @@ fun EmptyFolderItemLayout(
 fun TopFolderItemLayout(
     modifier: Modifier = Modifier,
     colorStyle: CategoryColorStyle,
-    folderName: String = "",
+    folder: FolderSimpleInfo,
     visibleBookmarked: Boolean = true,
-    isBookmarked: Boolean = false,
-    editStateViewModel: EditStateViewModel,
+    isEditMode: Boolean = false,
     onBookmark: () -> Unit
 ){
     FolderItemLayout(
@@ -301,7 +297,7 @@ fun TopFolderItemLayout(
         leftIcon = {},
         rightIcon = {
             if(visibleBookmarked){
-                if (editStateViewModel.isEditMode) {
+                if (isEditMode) {
                     Box(
                         modifier = Modifier
                     ) {
@@ -314,13 +310,13 @@ fun TopFolderItemLayout(
                                 onBookmark()
                             }
                     ) {
-                        BookMarkStar(isBookmarked)
+                        BookMarkStar(folder.isBookmarked)
                     }
                 }
             }
         },
         textBackgroundColor = colorStyle.color4,
-        folderName = folderName,
+        folderName = folder.folderName,
         modifier = modifier
     )
 }
@@ -330,8 +326,7 @@ fun BottomFolderItemLayout(
     modifier: Modifier = Modifier,
     colorStyle: CategoryColorStyle,
     folder: FolderSimpleInfo,
-    visibleBookmarked: Boolean = true,
-    editStateViewModel: EditStateViewModel,
+    isEditMode: Boolean = false,
     onEdit: ()-> Unit = {},
     onChangeSharing: () -> Unit = {}
 ){
@@ -344,7 +339,7 @@ fun BottomFolderItemLayout(
         leftIcon = {
             Box(
                 modifier = Modifier.noRippleClickable{
-                    if(editStateViewModel.isEditMode){
+                    if (isEditMode) {
                         onChangeSharing()
                     }
                 }
@@ -359,12 +354,10 @@ fun BottomFolderItemLayout(
             }
         },
         rightIcon = {
-            if(editStateViewModel.isEditMode){
+            if (isEditMode) {
                 Box(
                     modifier = Modifier.noRippleClickable{
-                        if(editStateViewModel.isEditMode) {
-                            onEdit()
-                        }
+                        onEdit()
                     }
                 ) {
                     PencilIcon(colorStyle.color2)
@@ -384,8 +377,13 @@ private fun FolderItemTest() {
         EmptyFolderItemLayout()
         TopFolderItemLayout(
             colorStyle = CategoryColorStyle.categoryStyleList[0],
-            folderName = "기본skskskskskskskksksks",
-            editStateViewModel = viewModel()
+            folder = FolderSimpleInfo(
+                folderId = 0,
+                folderName = "기본skskskskskskskksksks",
+                parentFolderId = 0,
+                isBookmarked = false,
+                isSharing = null
+            )
         ){}
         BottomFolderItemLayout(
             folder = FolderSimpleInfo(
@@ -396,7 +394,6 @@ private fun FolderItemTest() {
                 isSharing = "share"
             ),
             colorStyle = CategoryColorStyle.categoryStyleList[0],
-            editStateViewModel = viewModel()
         )
     }
 }
