@@ -77,9 +77,12 @@ open class LoginViewModel @Inject constructor(
     }
 
     fun login(email: String, password: String) {
-        // 입력 검증
+        // 이메일이나 비밀번호가 비어있는 경우
         if (email.isBlank() || password.isBlank()) {
+            //error로 처리함. 이메일 주소 혹은 비밀번호 다시 확인하세요. 메시지를 담아서 전달함.
+            // TODO : 어 그냥 이메일 입력해주세요, 비밀번호 입력해주세요 넣으면 되는거 아닌가?
             _loginState.value = LoginState.Error(LoginErrorType.INVALID_CREDENTIALS)
+            // 서버 호출할 필요 없음. 바로 종료
             return
         }
 
@@ -90,33 +93,36 @@ open class LoginViewModel @Inject constructor(
                 Log.d(TAG, "로그인 시도")
 
                 // API 호출
-                val result = authRepository.login(
-                    email = email.trim(),
-                    password = password.trim()
+                val loginResult = authRepository.login(
+                    email = email.trim(), // 공백 제거
+                    password = password.trim() // 공백 제거
                 )
 
-                Log.d(TAG, "로그인 성공")
+                // TODO: INACTIVE 처리 — 다인 언니/서원이 확인 후 추가
+                // if (loginResult.status == "INACTIVE") {
+                //     _loginState.value = LoginState.Error(LoginErrorType.INACTIVE_User_Error)
+                //     return@launch
+                // }
 
-                val userId = result.userId
 
                 // 토큰 + userId 저장
                 authPreference.saveTokens(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                    userId = userId
+                    accessToken = loginResult.accessToken,
+                    refreshToken = loginResult.refreshToken,
+                    userId = loginResult.userId
                 )
 
                 // 마이페이지 조회 → 세션 풀 세팅
-                fetchAndSaveUserSession(userId)
+                fetchAndSaveUserSession(loginResult.userId)
 
                 // 성공 상태
-                _loginState.value = LoginState.Success(result)
+                _loginState.value = LoginState.Success(loginResult)
 
-            } catch (e: CancellationException) {
-                 throw e
-            } catch (e: Exception) {
-                Log.e(TAG, "로그인 실패", e)
-                _loginState.value = LoginState.Error(e.toLoginErrorType())
+            } catch (exception: CancellationException) {
+                 throw exception
+            } catch (exception: Exception) {
+                Log.e(TAG, "로그인 실패", exception)
+                _loginState.value = LoginState.Error(exception.toLoginErrorType())
             }
         }
     }
