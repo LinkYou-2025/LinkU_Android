@@ -1,0 +1,222 @@
+const https = require("https");
+
+const GITHUB_TOKEN = process.env.PERSONAL_TOKEN;
+const DISCORD_WEBHOOK = process.env.DISCORD_WEBHOOK;
+const ORG = "LinkYou-2025";
+const REPO = "LinkU_Android";
+
+const MEMBERS = {
+  ugmin1030: { name: "지민", style: "t" },
+  Hongji03: { name: "지현", style: "f" },
+};
+
+function githubGet(path) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: "api.github.com",
+      path,
+      headers: {
+        Authorization: `token ${GITHUB_TOKEN}`,
+        "User-Agent": "linku-bot",
+        Accept: "application/vnd.github+json",
+      },
+    };
+    https.get(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        try { resolve(JSON.parse(data)); }
+        catch (e) { reject(e); }
+      });
+    }).on("error", reject);
+  });
+}
+
+function getKSTRange(daysAgo = 0) {
+  const now = new Date();
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  kst.setUTCDate(kst.getUTCDate() - daysAgo);
+  const dateStr = kst.toISOString().slice(0, 10);
+  const since = new Date(`${dateStr}T00:00:00+09:00`).toISOString();
+  const until = new Date(`${dateStr}T23:59:59+09:00`).toISOString();
+  return { since, until, dateStr };
+}
+
+async function getCommitCount(login, since, until) {
+  try {
+    const branches = await githubGet(`/repos/${ORG}/${REPO}/branches`);
+    const seenSHAs = new Set();
+    let count = 0;
+    for (const branch of branches) {
+      const commits = await githubGet(
+        `/repos/${ORG}/${REPO}/commits?author=${login}&since=${since}&until=${until}&sha=${branch.name}&per_page=100`
+      );
+      if (!Array.isArray(commits)) continue;
+      for (const c of commits) {
+        if (seenSHAs.has(c.sha)) continue;
+        if (c.parents && c.parents.length >= 2) continue;
+        seenSHAs.add(c.sha);
+        count++;
+      }
+    }
+    return count;
+  } catch { return 0; }
+}
+
+async function getPRCount(login, since, until) {
+  try {
+    const prs = await githubGet(`/repos/${ORG}/${REPO}/pulls?state=all&per_page=100`);
+    if (!Array.isArray(prs)) return 0;
+    return prs.filter((pr) => {
+      const created = new Date(pr.created_at);
+      return pr.user.login === login && created >= new Date(since) && created <= new Date(until);
+    }).length;
+  } catch { return 0; }
+}
+
+async function getReviewCount(login, since, until) {
+  try {
+    const prs = await githubGet(`/repos/${ORG}/${REPO}/pulls?state=all&per_page=100`);
+    if (!Array.isArray(prs)) return 0;
+    let count = 0;
+    for (const pr of prs) {
+      const reviews = await githubGet(`/repos/${ORG}/${REPO}/pulls/${pr.number}/reviews`);
+      if (!Array.isArray(reviews)) continue;
+      count += reviews.filter((r) => {
+        const submitted = new Date(r.submitted_at);
+        return r.user.login === login && submitted >= new Date(since) && submitted <= new Date(until);
+      }).length;
+    }
+    return count;
+  } catch { return 0; }
+}
+
+async function getIssueCount(login, since, until) {
+  try {
+    const issues = await githubGet(`/repos/${ORG}/${REPO}/issues?state=all&since=${since}&per_page=100`);
+    if (!Array.isArray(issues)) return 0;
+    return issues.filter((i) => {
+      const created = new Date(i.created_at);
+      return i.user.login === login && !i.pull_request && created >= new Date(since) && created <= new Date(until);
+    }).length;
+  } catch { return 0; }
+}
+
+async function hasNoCommitFor3Days(login) {
+  for (let i = 0; i < 3; i++) {
+    const { since, until } = getKSTRange(i);
+    const count = await getCommitCount(login, since, until);
+    if (count > 0) return false;
+  }
+  return true;
+}
+
+function calcScore({ commits, prs, reviews, issues }) {
+  return commits * 3 + prs * 5 + reviews * 2 + issues * 1;
+}
+
+function getPraiseMessage(login, stats) {
+  const { name, style } = MEMBERS[login];
+  const score = calcScore(stats);
+  if (style === "f") {
+    if (score >= 15) return `🌸 ${name}아 오늘 너무 열심히 했잖아ㅠㅠ 커밋 ${stats.commits}개에 PR도 ${stats.prs}개라니.. 진짜 링큐 없어서는 안 될 존재야💖`;
+    if (score >= 5) return `☺️ ${name}아 오늘도 묵묵하게 해줬구나🥹 커밋 ${stats.commits}개 확인했어, 고마워 진심으로!`;
+    return `🥺 ${name}아.. 오늘 좀 힘들었어? 괜찮아, 내일 또 같이 하면 되지~`;
+  }
+  if (style === "t") {
+    if (score >= 15) return `📊 ${name} 오늘 기여 지표 — 커밋 ${stats.commits} / PR ${stats.prs} / 리뷰 ${stats.reviews} / 이슈 ${stats.issues}. 총점 ${score}점. 팀장답게 최상위 퍼포먼스.`;
+    if (score >= 5) return `📈 ${name} 오늘 점수 ${score}점 (커밋 ${stats.commits}, PR ${stats.prs}). 꾸준한 기여 확인됨. 유지 요망.`;
+    return `📉 ${name} 오늘 기여 점수 ${score}점. 커밋 ${stats.commits}개. 팀장으로서 좀 더 가시적인 기여 필요.`;
+  }
+}
+
+function getScoldMessage(login) {
+  const { name, style } = MEMBERS[login];
+  if (style === "f") return `😢 ${name}아... 3일째 커밋이 없어ㅠㅠ 혹시 많이 힘들어? 그래도 링큐는 너를 기다리고 있어.. 제발 돌아와줘🙏`;
+  if (style === "t") return `🚨 ${name} 경고: 3일 연속 커밋 0건. 팀장으로서 기여 부재는 팀 전체 속도에 영향을 줍니다. 즉시 확인 바랍니다.`;
+}
+
+function sendDiscord(content) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ content });
+    const url = new URL(DISCORD_WEBHOOK);
+    const options = {
+      hostname: url.hostname,
+      path: url.pathname + url.search,
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+    };
+    const req = https.request(options, (res) => { res.on("data", () => {}); res.on("end", resolve); });
+    req.on("error", reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+async function getWeeklyStats(login) {
+  let total = { commits: 0, prs: 0, reviews: 0, issues: 0 };
+  for (let i = 0; i < 7; i++) {
+    const { since, until } = getKSTRange(i);
+    const [commits, prs, reviews, issues] = await Promise.all([
+      getCommitCount(login, since, until),
+      getPRCount(login, since, until),
+      getReviewCount(login, since, until),
+      getIssueCount(login, since, until),
+    ]);
+    total.commits += commits; total.prs += prs; total.reviews += reviews; total.issues += issues;
+  }
+  return total;
+}
+
+async function main() {
+  const isWeekly = process.env.WEEKLY === "true";
+  const { since, until, dateStr } = getKSTRange(0);
+  const logins = Object.keys(MEMBERS);
+  const results = [];
+
+  for (const login of logins) {
+    const stats = isWeekly
+      ? await getWeeklyStats(login)
+      : await Promise.all([
+          getCommitCount(login, since, until),
+          getPRCount(login, since, until),
+          getReviewCount(login, since, until),
+          getIssueCount(login, since, until),
+        ]).then(([commits, prs, reviews, issues]) => ({ commits, prs, reviews, issues }));
+    const score = calcScore(stats);
+    const noCommit3Days = !isWeekly && (await hasNoCommitFor3Days(login));
+    results.push({ login, stats, score, noCommit3Days });
+  }
+
+  results.sort((a, b) => b.score - a.score);
+  const medals = ["👑", "🥈", "🥉"];
+  const period = isWeekly ? "이번 주" : dateStr;
+
+  let msg = isWeekly
+    ? `📅 **${period} 링큐 Android 주간 랭킹!**\n\n`
+    : `🏆 **${period} (KST) 오늘의 링큐 기여왕!**\n\n`;
+
+  results.forEach((r, i) => {
+    const { name } = MEMBERS[r.login];
+    msg += `${medals[i] || "🎖"} **${i + 1}위 ${name}** — `;
+    msg += `커밋 ${r.stats.commits} / PR ${r.stats.prs} / 리뷰 ${r.stats.reviews} / 이슈 ${r.stats.issues} (${r.score}점)\n`;
+    msg += getPraiseMessage(r.login, r.stats) + "\n\n";
+  });
+
+  const idleMembers = results.filter((r) => r.noCommit3Days);
+  if (idleMembers.length > 0) {
+    msg += `\n━━━━━━━━━━━━━━━━━━━━━━\n🚨 **3일 이상 커밋 없음 경고**\n\n`;
+    idleMembers.forEach((r) => { msg += getScoldMessage(r.login) + "\n"; });
+  }
+
+  msg += `\n링큐 화이팅!! 오늘도 앱 완성을 향해 🚀`;
+  await sendDiscord(msg);
+  console.log("✅ 디스코드 전송 완료!");
+}
+
+main().catch((e) => { console.error("❌ 오류 발생:", e); process.exit(1); });
+```
+
+붙여넣고 커밋 메시지:
+```
+🤖 Add LinkU bot script
