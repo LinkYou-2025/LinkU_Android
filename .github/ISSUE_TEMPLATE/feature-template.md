@@ -1,19 +1,16 @@
----
-name: Feature Template
-about: 기능 추가를 위한 이슈 템플릿
-title: 'Feature: 제목을 적어주세요'
-labels: ''
-assignees: ''
-
----
-
-## :sparkles: 설명 
-> 기능에 대한 자세한 설명을 적어주세요.
-
-## :pushpin: 해야 할 일
-- [ ] 기능 구현을 위해
-- [ ] 해야 할 일들을
-- [ ] 적어주세요.
-
-## :calendar: 기한
-> 기한이 설정된 경우 적어주세요.
+name: Feature request
+description: Suggest an idea for this project
+title: "[Feature]: "
+labels: "기능"
+body:
+  - type: markdown
+    attributes:
+      value: |
+          새로운 기능에 대해서 설명해주세요.
+  - type: textarea
+    id: context
+    attributes:
+      label: 기능
+      description: 어떤 기능인가요?
+    validations:
+      required: false
