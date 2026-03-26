@@ -2,8 +2,8 @@ name: LinkU Daily Bot
 
 on:
   schedule:
-    - cron: "0 14 * * *"      # 매일 KST 23시 (일간 랭킹)
-    - cron: "0 14 * * 0"      # 매주 일요일 KST 23시 (주간 랭킹)
+    - cron: "0 14 * * *"
+    - cron: "0 14 * * 0"
   workflow_dispatch:
     inputs:
       weekly:
@@ -23,18 +23,9 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Run LinkU Bot (Daily)
-        if: github.event.schedule == '0 14 * * *' || github.event_name == 'workflow_dispatch'
+      - name: Run LinkU Bot
         env:
           PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
           WEEKLY: ${{ github.event.inputs.weekly || 'false' }}
-        run: node .github/bot/index.js
-
-      - name: Run LinkU Bot (Weekly)
-        if: github.event.schedule == '0 14 * * 0'
-        env:
-          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-          WEEKLY: 'true'
         run: node .github/bot/index.js
