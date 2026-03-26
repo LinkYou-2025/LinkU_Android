@@ -31,7 +31,7 @@ class SignUpViewModel @Inject constructor(
         private const val MAX_NICKNAME_LENGTH = 6 //닉네임은 6글자 이하
     }
 
-    // 회원가입 전체 입력 폼
+    // 회원가입 전체 입력 폼 컴포즈가 해당 변수 감지하여 값이 바뀌면 ui에 알림
     var signUpForm by mutableStateOf(SignUpForm())
         private set
 
@@ -49,18 +49,18 @@ class SignUpViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             nicknameQuery
-                .debounce(NICKNAME_DEBOUNCE_TIME)
+                .debounce(NICKNAME_DEBOUNCE_TIME) //0.5초 동안 입력 없으면
                 .distinctUntilChanged()
                 .filter { isValidNickname(it) }
                 .collect { query ->
-                    checkNickname(query)
+                    checkNickname(query) //서버에 물어봄
                 }
         }
     }
 
     // 공통 데이터
     fun updateForm(update: (SignUpForm) -> SignUpForm) {
-        signUpForm = update(signUpForm)
+        signUpForm = update(signUpForm) // signUpForm을 넣으면 새 SignUpForm 나옴
     }
 
     // 약관 동의 관련 로직
@@ -86,24 +86,28 @@ class SignUpViewModel @Inject constructor(
     }
 
     // 닉네임 관련 로직
-    fun onNicknameChanged(input: String) {
-        if (input == signUpForm.nickname) return
+    fun onNicknameChanged(nickname: String) {
+        // 입력이 기존 닉네임과 같으면 아무것도 안 함 (불필요한 중복 체크 방지)
+        // 현재 signUpForm.nickname = "링큐"이고 input도 "링큐"이면 똑같음 아무것도 안하는 return
+        if (nickname == signUpForm.nickname) return
 
-        updateForm { it.copy(nickname = input) }
+        // 폼에 새로운 닉네임 저장 -> ui 화면에 반영함.
+        updateForm { it.copy(nickname = nickname) } // ui 표시용(폼에 저장)
 
-        if (isValidNickname(input)) {
-            nicknameQuery.value = input
+        if (isValidNickname(nickname)) {
+            nicknameQuery.value = nickname // 유효할 경우 , 중복 체크 파이프라인으로 이동
         } else {
-            _nicknameState.value = NicknameCheckState.Idle
+            _nicknameState.value = NicknameCheckState.Idle // 유효하지 않으면 상태 초기화
+            // 유효하지 않을 때 리셋 시켜서, 서버 중복 호출이 되지 않도록 함.
         }
     }
 
     // 닉네임 중복 체크
-    private fun checkNickname(input: String) {
+    private fun checkNickname(nickname: String) {
         viewModelScope.launch {
             _nicknameState.value = NicknameCheckState.Checking
             try {
-                authRepository.checkNickname(input)
+                authRepository.checkNickname(nickname)
                 // 여기까지 왔다 = 성공
                 _nicknameState.value = NicknameCheckState.Available
             } catch (e: Exception) {

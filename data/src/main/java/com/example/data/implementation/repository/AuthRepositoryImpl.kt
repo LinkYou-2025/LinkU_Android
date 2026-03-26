@@ -38,20 +38,23 @@ class AuthRepositoryImpl @Inject constructor(
         Log.d(TAG, "[로그인 시도]")
 
         // API 호출 및 결과 수신
-        val EmailSignUpResponse = serverApi.withErrorHandling {
+        val emailSignUpResponse = serverApi.withErrorHandling {
             signIn(LoginRequestDTO(email, password))
         }
 
         Log.d(TAG, "[로그인 성공]")
 
+        // INACTIVE인데 inactiveDate가 null이면 서버 오류 -> 백엔드 서원이의 요청임.
+        if (emailSignUpResponse.status == "INACTIVE" && emailSignUpResponse.inactiveDate == null) {
+            throw ApiError.BusinessError(null, "INACTIVE 상태인데 inactiveDate가 없습니다")
+        }
+
         return LoginResult(
-            userId = EmailSignUpResponse.userId ?: throw IllegalStateException("로그인 응답에 userId가 누락되었습니다."),
-            accessToken = EmailSignUpResponse.accessToken
-                ?: throw ApiError.BusinessError(null, "accessToken이 없습니다"),
-            refreshToken = EmailSignUpResponse.refreshToken
-                ?: throw ApiError.BusinessError(null, "refreshToken이 없습니다"),
-            status = EmailSignUpResponse.status ?: "",
-            inactiveDate = EmailSignUpResponse.inactiveDate?.toString() ?: ""  // null이면 빈 문자열
+            userId = emailSignUpResponse.userId,
+            accessToken = emailSignUpResponse.accessToken,
+            refreshToken = emailSignUpResponse.refreshToken,
+            status = emailSignUpResponse.status.ifBlank { "ACTIVE" }, // 빈 문자열이면 ACTIVE
+            inactiveDate = emailSignUpResponse.inactiveDate  // String? 그대로
         )
     } //TODO :뷰모델에서 어떤 에러인지 판단하도록 수정하기.
     //여기서부터 낼 리펙토링하기!

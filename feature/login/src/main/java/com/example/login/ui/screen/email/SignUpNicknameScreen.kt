@@ -25,7 +25,7 @@ fun SignUpNicknameScreen(
 ) {
 
     // 뷰모델의 상태 확인.
-    val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음.
+    val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음. 컴포즈가 이 값을 읽는 순간부터 바로 감시 시작함.
     val nicknameState by signUpViewModel.nicknameState.collectAsState()
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
 
@@ -45,14 +45,14 @@ fun SignUpNicknameScreen(
         Spacer(Modifier.height(8.scaler)) // layout 내부 32 + 여기 8 = 기존 40과 동일
 
         LoginTextField(
-            value = nickname,
-            onValueChange = { signUpViewModel.onNicknameChanged(it) },
+            value = nickname, // signUpForm.nickname을 화면에 표시
+            onValueChange = { signUpViewModel.onNicknameChanged(nickname) },
             hint = "닉네임을 입력해주세요.",
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(Modifier.height(10.scaler))
-
+        // ui 오류 메시지는 이미 사용 중인 닉네임입니다.가 전부이기에 간단하게 구현함.
         when (nicknameState) {
             is NicknameCheckState.Duplicated -> WrongRuleItem(
                 text = "이미 사용 중인 닉네임입니다.",
