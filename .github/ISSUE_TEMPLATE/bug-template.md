@@ -1,18 +1,26 @@
----
-name: Bug Template
-about: 버그 제보를 위한 템플릿
-title: 'Bug: 제목을 적어주세요'
-labels: ''
-assignees: ''
-
----
-
-## :bug: 설명
-> 버그가 발생하는 상황에 대한 설명을 자세히 적어주세요.
-> 해당 상황을 캡처하여 첨부할 수 있다면 좋습니다.
-
-## :bulb: 예상 원인
-> 버그의 원인을 예상할 수 있다면 적어주세요.
-
-## :calendar: 기한
-> 기한이 설정된 경우 적어주세요.
+name: Bug Report
+description: Create a report to help us improve
+title: "[Bug]: "
+labels: "버그"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        버그 제보를 해주세요
+  - type: checkboxes
+    id: duplicated-check
+    attributes:
+      label: 이미 제보된 버그인가요?
+      description: 이미 제보된 Issue 인지 확인해주세요!
+      options:
+      - label: 제보된 버그인 지 찾아봤습니다.
+        required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 무슨 버그인가요?
+      description: 기대되는 동작은 무엇인지 설명해주세요
+      placeholder: 버그에 대해서 설명해주세요!
+      value: "A bug happened!"
+    validations:
+      required: true
