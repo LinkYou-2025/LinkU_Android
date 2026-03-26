@@ -1,0 +1,40 @@
+name: LinkU Daily Bot
+
+on:
+  schedule:
+    - cron: "0 14 * * *"      # 매일 KST 23시 (일간 랭킹)
+    - cron: "0 14 * * 0"      # 매주 일요일 KST 23시 (주간 랭킹)
+  workflow_dispatch:
+    inputs:
+      weekly:
+        description: '주간 랭킹 실행 여부'
+        required: false
+        default: 'false'
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run LinkU Bot (Daily)
+        if: github.event.schedule == '0 14 * * *' || github.event_name == 'workflow_dispatch'
+        env:
+          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          WEEKLY: ${{ github.event.inputs.weekly || 'false' }}
+        run: node .github/bot/index.js
+
+      - name: Run LinkU Bot (Weekly)
+        if: github.event.schedule == '0 14 * * 0'
+        env:
+          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          WEEKLY: 'true'
+        run: node .github/bot/index.js
