@@ -145,7 +145,7 @@ fun BottomFolderGrid(
                         modifier = Modifier.fillMaxSize(164f/174f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = folder,
-                        editStateViewModel = editStateViewModel,
+                        isEditMode = editStateViewModel.isEditMode,
                         onEdit = {
                             folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
                             folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)

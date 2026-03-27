@@ -1,0 +1,33 @@
+name: LinkU Daily Bot
+
+on:
+  schedule:
+    - cron: "0 14 * * *"
+    - cron: "0 14 * * 0"
+  workflow_dispatch:
+    inputs:
+      weekly:
+        description: '주간 랭킹 실행 여부'
+        required: false
+        default: 'false'
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: develop //브랜치 추가함.
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run LinkU Bot
+        env:
+          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+          WEEKLY: ${{ github.event.inputs.weekly || 'false' }}
+        run: node .github/bot/index.js
