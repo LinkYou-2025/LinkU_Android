@@ -1,4 +1,4 @@
-package com.example.core
+package com.linku.link
 
 import org.junit.Test
 
