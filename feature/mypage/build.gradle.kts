@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mypage"
+    namespace = "com.linku.mypage"
 
     compileSdk = 36
 

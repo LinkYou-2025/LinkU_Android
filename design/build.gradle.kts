@@ -7,7 +7,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.design"
+    namespace = "com.linku.design"
 
     compileSdk = 36
 

@@ -11,7 +11,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.login"
+    namespace = "com.linku.login"
 
     compileSdk = 36
 

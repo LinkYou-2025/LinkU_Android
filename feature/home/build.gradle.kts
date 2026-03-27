@@ -12,7 +12,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.home"
+    namespace = "com.linku.home"
 
     compileSdk = 36
 
