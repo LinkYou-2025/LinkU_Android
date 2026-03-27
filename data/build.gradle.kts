@@ -25,7 +25,7 @@ val apiVersion =
 val serverBaseUrl = "$serverDomain/$apiVersion/"
 
 android {
-    namespace = "com.example.data"
+    namespace = "com.linku.data"
     compileSdk = 36
     defaultConfig {
         minSdk = 26

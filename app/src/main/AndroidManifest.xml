@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:name=".MainApplication"
+        android:name="com.linku.MainApplication"
         android:enableOnBackInvokedCallback="true"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -24,7 +24,7 @@
             android:value="${KAKAO_NATIVE_APP_KEY}" />
 
         <activity
-            android:name=".MainActivity"
+            android:name="com.linku.MainActivity"
             android:launchMode="singleTask"
             android:exported="true"
             android:label="@string/app_name"
