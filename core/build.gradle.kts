@@ -10,7 +10,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.core"
+    namespace = "com.linku.core"
 
     compileSdk = 36
 
