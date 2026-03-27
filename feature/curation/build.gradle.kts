@@ -11,7 +11,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.curation"
+    namespace = "com.linku.curation"
 
     compileSdk = 36
 

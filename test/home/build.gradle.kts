@@ -11,12 +11,12 @@ plugins {
 }
 
 android {
-    namespace = "com.example.linku.test.home"
+    namespace = "com.linku.linku.test.home"
 
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.linku.test.home"
+        applicationId = "com.linku.linku.test.home"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
