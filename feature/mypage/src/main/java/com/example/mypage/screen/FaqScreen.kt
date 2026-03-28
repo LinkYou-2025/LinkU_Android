@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +79,48 @@ fun FaqScreen(
         ),
         Faq(
             id = 3,
+            question = "카테고리는 수정할 수 있나요?",
+            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
+            category = "카테고리"
+        ),
+        Faq(
+            id = 4,
+            question = "링크에 붙은 별 표시는 무엇인가요?",
+            answer = "AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다.",
+            category = "링크"
+        ),
+        Faq(
+            id = 5,
+            question = "폴더는 어떻게 추가하나요?",
+            answer = "메인 화면에서 폴더 추가 버튼을 눌러 새 폴더를 만들 수 있습니다.",
+            category = "폴더"
+        ),
+        Faq(
+            id = 6,
+            question = "카테고리는 수정할 수 있나요?",
+            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
+            category = "카테고리"
+        ),
+        Faq(
+            id = 7,
+            question = "카테고리는 수정할 수 있나요?",
+            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
+            category = "카테고리"
+        ),
+        Faq(
+            id = 8,
+            question = "링크에 붙은 별 표시는 무엇인가요?",
+            answer = "AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다.",
+            category = "링크"
+        ),
+        Faq(
+            id = 9,
+            question = "폴더는 어떻게 추가하나요?",
+            answer = "메인 화면에서 폴더 추가 버튼을 눌러 새 폴더를 만들 수 있습니다.",
+            category = "폴더"
+        ),
+        Faq(
+            id = 10,
             question = "카테고리는 수정할 수 있나요?",
             answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
             category = "카테고리"
@@ -218,9 +265,11 @@ fun FaqScreen(
 
         // FAQ 리스트
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
                 bottom = 24.dp
@@ -233,6 +282,45 @@ fun FaqScreen(
                 FaqItem(
                     question = faq.question,
                     answer = faq.answer
+                )
+            }
+        }
+
+        // 하단 피드백 보내기
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            LocalColorTheme.current.white
+                        )
+                    )
+                )
+                .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 10.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "찾으시는 질문이 없으신가요?",
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Normal,
+                color = LocalColorTheme.current.gray[700]
+
+            )
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(LocalColorTheme.current.maincolor)
+                    .padding(top = 19.dp, start = 23.5.dp, end = 28.5.dp, bottom = 19.dp)
+            ) {
+                Text(
+                    text = "피드백 보내기",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = LocalColorTheme.current.white
                 )
             }
         }
