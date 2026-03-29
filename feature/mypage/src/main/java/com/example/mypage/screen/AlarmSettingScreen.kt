@@ -42,8 +42,10 @@ fun AlarmSettingScreen(
     navController: NavController
 ) {
     var isAlarmEnabled by remember { mutableStateOf(false) }
+    var isLinkActivityEnabled by remember { mutableStateOf(false) }
+    var isFolderShareEnabled by remember { mutableStateOf(false) }
     var isAICurationEnabled by remember { mutableStateOf(false) }
-    var isNoticeEventEnabled by remember { mutableStateOf(false) }
+    var isNoticeServiceEnabled by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -97,11 +99,15 @@ fun AlarmSettingScreen(
                 onCheckedChange = { isChecked ->
                     isAlarmEnabled = isChecked
                     if (isChecked) {
+                        isLinkActivityEnabled = true
+                        isFolderShareEnabled = true
                         isAICurationEnabled = true
-                        isNoticeEventEnabled = true
+                        isNoticeServiceEnabled = true
                     } else {
+                        isLinkActivityEnabled = false
+                        isFolderShareEnabled = false
                         isAICurationEnabled = false
-                        isNoticeEventEnabled = false
+                        isNoticeServiceEnabled = false
                     }
                 }
             )
@@ -110,11 +116,16 @@ fun AlarmSettingScreen(
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
-                    title = "AI 큐레이션 알림",
-                    checked = isAICurationEnabled,
+                    title = "링크 활동 알림",
+                    checked = isLinkActivityEnabled,
                     onCheckedChange = { checked ->
-                        isAICurationEnabled = checked
-                        if (!checked && !isNoticeEventEnabled) {
+                        isLinkActivityEnabled = checked
+                        if (
+                            !checked &&
+                            !isFolderShareEnabled &&
+                            !isAICurationEnabled &&
+                            !isNoticeServiceEnabled
+                        ) {
                             isAlarmEnabled = false
                         }
                     }
@@ -123,11 +134,52 @@ fun AlarmSettingScreen(
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
-                    title = "공지사항 / 이벤트 알림",
-                    checked = isNoticeEventEnabled,
+                    title = "폴더 공유 및 권한 알림",
+                    checked = isFolderShareEnabled,
                     onCheckedChange = { checked ->
-                        isNoticeEventEnabled = checked
-                        if (!checked && !isAICurationEnabled) {
+                        isFolderShareEnabled = checked
+                        if (
+                            !checked &&
+                            !isLinkActivityEnabled &&
+                            !isAICurationEnabled &&
+                            !isNoticeServiceEnabled
+                        ) {
+                            isAlarmEnabled = false
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                SubNotificationSwitch(
+                    title = "AI 큐레이션 알림",
+                    checked = isAICurationEnabled,
+                    onCheckedChange = { checked ->
+                        isAICurationEnabled = checked
+                        if (
+                            !checked &&
+                            !isLinkActivityEnabled &&
+                            !isFolderShareEnabled &&
+                            !isNoticeServiceEnabled
+                        ) {
+                            isAlarmEnabled = false
+                        }
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                SubNotificationSwitch(
+                    title = "공지 및 서비스 알림",
+                    checked = isNoticeServiceEnabled,
+                    onCheckedChange = { checked ->
+                        isNoticeServiceEnabled = checked
+                        if (
+                            !checked &&
+                            !isLinkActivityEnabled &&
+                            !isFolderShareEnabled &&
+                            !isAICurationEnabled
+                        ) {
                             isAlarmEnabled = false
                         }
                     }
