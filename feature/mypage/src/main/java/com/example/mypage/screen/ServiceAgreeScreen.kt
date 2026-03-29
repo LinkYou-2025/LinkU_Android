@@ -37,7 +37,8 @@ import com.example.design.R as Res
 
 @Composable
 fun ServiceAgreeScreen(
-    navController: NavController
+    navController: NavController,
+    onMarketingAgreeClick: () -> Unit
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -152,7 +153,7 @@ fun ServiceAgreeScreen(
                     modifier = Modifier
                         .size(8.dp, 14.dp)
                         .noRippleClickable() {
-                            uriHandler.openUri("https://linkuterms.site/terms.html")
+                            onMarketingAgreeClick()
                         }
                 )
             }
@@ -166,6 +167,9 @@ fun PreviewServiceAgreeScreen() {
     val navController = rememberNavController()
 
     ThemeProvider {
-        ServiceAgreeScreen(navController = navController)
+        ServiceAgreeScreen(
+            navController = navController,
+            onMarketingAgreeClick = {}
+        )
     }
 }
