@@ -8,6 +8,7 @@ const REPO = "LinkU_Android";
 const MEMBERS = {
   ugmin1030: { name: "지민", style: "t" },
   Hongji03: { name: "지현", style: "f" },
+  KateteDeveloper: { name: "윤지", style: "t2" },
 };
 
 function githubGet(path) {
@@ -125,8 +126,13 @@ function getPraiseMessage(login, stats) {
   }
    if (style === "t") {
     if (score >= 15) return `🔍 ${name} 오늘 커밋 ${stats.commits}개 전부 한 줄 한 줄 꼼꼼하게 짠 거 다 보여. PR ${stats.prs}개까지.. 총점 ${score}점. 코드 퀄리티는 역시 지민이지.`;
-    if (score >= 5) return `📐 ${name} 오늘 점수 ${score}점. 커밋 ${stats.commits}개, 허투루 짠 코드 하나도 없는 거 알고 있음. 꼼꼼함이 팀의 기반이야.`;
+    if (score >= 5) return `📐 ${name} 오늘 점수 ${score}점. 커밋 ${stats.commits}개, 허투루 짠 코드 하나도 없는 거 알고 있음. 꼼꼼함이 팀의 기반이야. 진찌 안드 팀장이 최고다. 항상 믿는거 알지?`;
     return `📋 ${name} 오늘 커밋 ${stats.commits}개. 적어도 한 줄 한 줄 신중하게 썼을 거라 믿고 있지. 내일 더 일해보자~!`;
+  }
+   if (style === "t2") {
+    if (score >= 15) return `🔥 윤지 오늘 커밋 ${stats.commits}개. 코드 한 줄 치기 전에 다 이해하고 짜는 거 티 나. PR ${stats.prs}개까지.. 총점 ${score}점. 팀원 중에 제일 꼼꼼한 거 인정.`;
+    if (score >= 5) return `💻 윤지 오늘 점수 ${score}점. 커밋 ${stats.commits}개, 대충 짠 코드 없는 거 알고 있음. 오늘도 링큐 지탱해줘서 고마워.`;
+    return `오늘 커밋 ${stats.commits}개. 오늘은 조용했네. 생각하면서 코딩하는 스타일인 거 알아서 믿고 있음. 내일 보여줘.`;
   }
 }
 
@@ -134,6 +140,7 @@ function getScoldMessage(login) {
   const { name, style } = MEMBERS[login];
   if (style === "f") return `😢 ${name}아... 3일째 커밋이 없어ㅠㅠ 혹시 많이 힘들어? 그래도 링큐는 너를 기다리고 있어.. 제발 돌아와줘🙏`;
   if (style === "t") return `🚨 ${name} 3일 연속 커밋이 없습니다.... 팀장님 조금만 더 힘내주세요...`;
+  if (style === "t2") return `📵 윤지 3일 연속 커밋 0건. 분석하느라 바쁜 거 알겠는데.. 커밋 한 개만이라도 부탁해요🥺`;
 }
 
 function sendDiscord(content) {
