@@ -64,13 +64,20 @@ function getThisWeekKSTRange() {
 
 async function getCommitCount(login, since, until) {
   try {
-    const branches = await githubGet(`/repos/${ORG}/${REPO}/branches`);
+    const branches = await githubGet(`/repos/${ORG}/${REPO}/branches?per_page=100`);
+    if (!Array.isArray(branches)) return 0;
     const seenSHAs = new Set();
     let count = 0;
-    for (const branch of branches) {
-      const commits = await githubGet(
-        `/repos/${ORG}/${REPO}/commits?author=${login}&since=${since}&until=${until}&sha=${branch.name}&per_page=100`
-      );
+
+    // 브랜치별 병렬 처리
+    const results = await Promise.all(
+      branches.map(branch =>
+        githubGet(`/repos/${ORG}/${REPO}/commits?author=${login}&since=${since}&until=${until}&sha=${branch.name}&per_page=100`)
+          .catch(() => [])
+      )
+    );
+
+    for (const commits of results) {
       if (!Array.isArray(commits)) continue;
       for (const c of commits) {
         if (seenSHAs.has(c.sha)) continue;
@@ -83,10 +90,22 @@ async function getCommitCount(login, since, until) {
   } catch { return 0; }
 }
 
+async function getAllPages(path) {
+  const results = [];
+  let page = 1;
+  while (true) {
+    const data = await githubGet(`${path}&page=${page}&per_page=100`).catch(() => []);
+    if (!Array.isArray(data) || data.length === 0) break;
+    results.push(...data);
+    if (data.length < 100) break;
+    page++;
+  }
+  return results;
+}
+
 async function getPRCount(login, since, until) {
   try {
-    const prs = await githubGet(`/repos/${ORG}/${REPO}/pulls?state=all&per_page=100`);
-    if (!Array.isArray(prs)) return 0;
+    const prs = await getAllPages(`/repos/${ORG}/${REPO}/pulls?state=all`);
     return prs.filter((pr) => {
       const created = new Date(pr.created_at);
       return pr.user.login === login && created >= new Date(since) && created <= new Date(until);
@@ -96,17 +115,16 @@ async function getPRCount(login, since, until) {
 
 async function getReviewCount(login, since, until) {
   try {
-    const prs = await githubGet(`/repos/${ORG}/${REPO}/pulls?state=all&per_page=100`);
-    if (!Array.isArray(prs)) return 0;
+    const prs = await getAllPages(`/repos/${ORG}/${REPO}/pulls?state=all`);
     let count = 0;
-    for (const pr of prs) {
-      const reviews = await githubGet(`/repos/${ORG}/${REPO}/pulls/${pr.number}/reviews`);
-      if (!Array.isArray(reviews)) continue;
+    await Promise.all(prs.map(async (pr) => {
+      const reviews = await githubGet(`/repos/${ORG}/${REPO}/pulls/${pr.number}/reviews`).catch(() => []);
+      if (!Array.isArray(reviews)) return;
       count += reviews.filter((r) => {
         const submitted = new Date(r.submitted_at);
         return r.user.login === login && submitted >= new Date(since) && submitted <= new Date(until);
       }).length;
-    }
+    }));
     return count;
   } catch { return 0; }
 }
