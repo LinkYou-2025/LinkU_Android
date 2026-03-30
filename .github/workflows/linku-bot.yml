@@ -18,7 +18,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ref: develop //브랜치 추가함.
+          ref: develop
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
