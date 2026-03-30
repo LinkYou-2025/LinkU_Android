@@ -120,20 +120,20 @@ function getPraiseMessage(login, stats) {
   const score = calcScore(stats);
   if (style === "f") {
     if (score >= 15) return `🌸 ${name}아 오늘 너무 열심히 했잖아ㅠㅠ 커밋 ${stats.commits}개에 PR도 ${stats.prs}개라니.. 진짜 링큐 없어서는 안 될 존재야💖`;
-    if (score >= 5) return `☺️ ${name}아 오늘도 묵묵하게 해줬구나🥹 커밋 ${stats.commits}개 확인했어, 고마워 진심으로!`;
-    return `🥺 ${name}아.. 오늘 좀 힘들었어? 괜찮아, 내일 또 같이 하면 되지~`;
+    if (score >= 5) return `☺️ ${name}아 오늘도 묵묵하게 해줬구나🥹 커밋 ${stats.commits}개 확인했어, 너무 수고했어!!`;
+    return `🥺 ${name}아.. 오늘 좀 힘들었어? 괜찮아, 내일 더 일을 하면 되지~`;
   }
-  if (style === "t") {
-    if (score >= 15) return `📊 ${name} 오늘 기여 지표 — 커밋 ${stats.commits} / PR ${stats.prs} / 리뷰 ${stats.reviews} / 이슈 ${stats.issues}. 총점 ${score}점. 팀장답게 최상위 퍼포먼스.`;
-    if (score >= 5) return `📈 ${name} 오늘 점수 ${score}점 (커밋 ${stats.commits}, PR ${stats.prs}). 꾸준한 기여 확인됨. 유지 요망.`;
-    return `📉 ${name} 오늘 기여 점수 ${score}점. 커밋 ${stats.commits}개. 팀장으로서 좀 더 가시적인 기여 필요.`;
+   if (style === "t") {
+    if (score >= 15) return `🔍 ${name} 오늘 커밋 ${stats.commits}개 전부 한 줄 한 줄 꼼꼼하게 짠 거 다 보여. PR ${stats.prs}개까지.. 총점 ${score}점. 코드 퀄리티는 역시 지민이지.`;
+    if (score >= 5) return `📐 ${name} 오늘 점수 ${score}점. 커밋 ${stats.commits}개, 허투루 짠 코드 하나도 없는 거 알고 있음. 꼼꼼함이 팀의 기반이야.`;
+    return `📋 ${name} 오늘 커밋 ${stats.commits}개. 적어도 한 줄 한 줄 신중하게 썼을 거라 믿고 있지. 내일 더 일해보자~!`;
   }
 }
 
 function getScoldMessage(login) {
   const { name, style } = MEMBERS[login];
   if (style === "f") return `😢 ${name}아... 3일째 커밋이 없어ㅠㅠ 혹시 많이 힘들어? 그래도 링큐는 너를 기다리고 있어.. 제발 돌아와줘🙏`;
-  if (style === "t") return `🚨 ${name} 경고: 3일 연속 커밋 0건. 팀장으로서 기여 부재는 팀 전체 속도에 영향을 줍니다. 즉시 확인 바랍니다.`;
+  if (style === "t") return `🚨 ${name} 3일 연속 커밋이 없습니다.... 팀장님 조금만 더 힘내주세요...`;
 }
 
 function sendDiscord(content) {
@@ -205,7 +205,7 @@ async function main() {
 
   const idleMembers = results.filter((r) => r.noCommit3Days);
   if (idleMembers.length > 0) {
-    msg += `\n━━━━━━━━━━━━━━━━━━━━━━\n🚨 **3일 이상 커밋 없음 경고**\n\n`;
+    msg += `\n━━━━━━━━━━━━━━━━━━━━━━\n🚨 **3일 이상 커밋 없음.. 다인 언니가 슬퍼하고 있어요**\n\n`;
     idleMembers.forEach((r) => { msg += getScoldMessage(r.login) + "\n"; });
   }
 
@@ -215,8 +215,3 @@ async function main() {
 }
 
 main().catch((e) => { console.error("❌ 오류 발생:", e); process.exit(1); });
-```
-
-붙여넣고 커밋 메시지:
-```
-🤖 Add LinkU bot script
