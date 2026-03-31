@@ -4,7 +4,7 @@
     "type": "APK",
     "kind": "Directory"
   },
-  "applicationId": "com.example.linku_android",
+  "applicationId": "com.linku",
   "variantName": "release",
   "elements": [
     {
