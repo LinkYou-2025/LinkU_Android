@@ -36,6 +36,7 @@ import com.example.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.example.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.example.file.ui.bottom.sheet.ShareBottomSheet
 import com.example.file.ui.bottom.sheet.TopFolderEditBottomSheet
+import com.example.file.ui.bottom.sheet._ShareBottomSheet
 import com.example.file.ui.content.BottomFolderGrid
 import com.example.file.ui.content.LinksGrid
 import com.example.file.ui.content.SharedBottomFolderGrid
@@ -259,11 +260,13 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    ShareBottomSheet(
+    _ShareBottomSheet(){}
+    /*ShareBottomSheet(
         userName = fileViewModel.nickname.collectAsState().value?:"",
         folderStateViewModel = folderStateViewModel,
         fileViewModel = fileViewModel,
-    )
+    )*/
+
     // ---------- bottom sheets ----------
 
     // 검색창 탑 시트
