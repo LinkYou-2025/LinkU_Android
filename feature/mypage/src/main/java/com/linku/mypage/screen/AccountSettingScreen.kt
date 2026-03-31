@@ -1,0 +1,559 @@
+package com.linku.mypage.screen
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.color.Basic
+import com.linku.mypage.R
+
+@Composable
+fun AccountSettingScreen(
+    navController: NavController,
+    nicknamePlaceholder: String,
+    jobPlaceholder: String,
+    initialPurposeTags: Set<String> = emptySet(),
+    initialContentTags: Set<String> = emptySet(),
+    onSubmit: (nickname: String, jobId: Long, jobName: String, purposes: List<String>, interests: List<String>) -> Unit
+    //onSubmit: (nickname: String, jobId: Long, purposes: List<String>, interests: List<String>) -> Unit
+) {
+    val username = nicknamePlaceholder
+    val userjob  = jobPlaceholder
+    var name by remember(nicknamePlaceholder) { mutableStateOf("") }
+
+    val purposeTagRows = listOf(
+        listOf("업무자료 아카이빙", "인사이트 모으기"),
+        listOf("학업/리포트 정리", "그냥 나중에 읽고싶은 글 저장"),
+        listOf("취업·커리어 준비", "사이드 프로젝트/창업 준비"),
+        listOf("블로그/콘텐츠 작성 참고용", "자기계발/정보 수집"),
+        listOf("기타")
+    )
+
+    val contentTagRows = listOf(
+        listOf("비즈니스/마케팅", "디자인/크리에이티브"),
+        listOf("커리어/채용", "학업/리포트 참고", "시사/트렌드"),
+        listOf("심리/자기계발", "글쓰기/콘텐츠 작성", "IT/개발"),
+        listOf("스타트업/창업", "그냥 모아두고 싶은 글들"),
+        listOf("사회/문화/환경", "책/인사이트 요약")
+    )
+
+    // 서버에서 내려온 초기 선택값으로 세팅
+    var selectedPurposeTags by remember(initialPurposeTags) { mutableStateOf(initialPurposeTags) }
+    var selectedContentTags by remember(initialContentTags) { mutableStateOf(initialContentTags) }
+
+    // 드롭다운 옵션 (직업 목록)
+    val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
+    var selectedJob by remember(jobPlaceholder) {
+        mutableStateOf(
+            jobPlaceholder.takeIf { it.isNotBlank() } ?: jobOptions.first()
+        )
+    }
+
+    // 변경 사항이 있는지 여부 확인
+    val isModified =
+        (name.isNotBlank() && name != username) ||
+                (selectedJob != userjob) ||
+                (selectedPurposeTags != initialPurposeTags) ||
+                (selectedContentTags != initialContentTags)
+
+    // 비활성화용 그라데이션 브러시
+    val inactiveBrush = Brush.horizontalGradient(
+        listOf(
+            Color(0xFFD4E1FF),
+            Color(0xFFF2CCFF)
+        )
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LocalColorTheme.current.white)
+    ) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
+                .padding(bottom = 80.dp)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 59.dp, start = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_back),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(10.dp)
+                        .clickable { navController.popBackStack() }
+                )
+
+                Spacer(modifier = Modifier.width(135.dp))
+
+                Text(
+                    text = "계정 설정",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                    color = LocalColorTheme.current.black
+                )
+            }
+
+            Spacer(modifier = Modifier.height(41.75.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+            ) {
+                Text(
+                    text = "닉네임",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                    color = LocalColorTheme.current.black,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 50.dp)
+                        .border(
+                            width = 1.dp,
+                            color = LocalColorTheme.current.gray[200],
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        .background(LocalColorTheme.current.white)
+                        .clip(RoundedCornerShape(18.dp))
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        // 텍스트 입력 필드
+                        BasicTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = LocalColorTheme.current.black,
+                                fontSize = 14.sp,
+                                fontFamily = LocalFontTheme.current.font
+                            ),
+                            modifier = Modifier.weight(1f),
+                            decorationBox = { innerTextField ->
+                                if (name.isEmpty()) {
+                                    Text(
+                                        text = username,
+                                        style = TextStyle(
+                                            color = LocalColorTheme.current.gray[400],
+                                            fontSize = 14.sp,
+                                            fontFamily = LocalFontTheme.current.font
+                                        ),
+                                        modifier = Modifier.padding(6.dp)
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        )
+
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete_gray),
+                            contentDescription = null,
+                            tint = Color.Unspecified,
+                            modifier = Modifier
+                                .size(18.dp)
+                                .then(
+                                    if (name.isNotEmpty()) Modifier.clickable { name = "" }
+                                    else Modifier // 클릭 불가 상태
+                                )
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp)
+                    ) {
+                Text(
+                    text = "현재 하고 계신 일이나 활동",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                    color = LocalColorTheme.current.black,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                CustomDropdownMenu(
+                    options = jobOptions,
+                    selectedOption = selectedJob,
+                    onOptionSelected = { selectedJob = it },
+                    defaultOption = userjob
+                )
+            }
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "링큐 활용 목적",
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                        color = LocalColorTheme.current.black
+                    )
+
+                    Text(
+                        text = "복수선택",
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                        color = LocalColorTheme.current.blue[200],
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                }
+            }
+
+            // 선택
+            SelectableTag(
+                tagRows = purposeTagRows,
+                selectedTags = selectedPurposeTags,
+                onTagClick = {
+                    selectedPurposeTags = if (it in selectedPurposeTags) selectedPurposeTags - it else selectedPurposeTags + it
+                }
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Column {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "관심 콘텐츠",
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
+                        color = LocalColorTheme.current.black
+                    )
+
+                    Text(
+                        text = "복수선택",
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
+                        color = LocalColorTheme.current.blue[200],
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                }
+            }
+
+            // 선택
+            SelectableTag(
+                tagRows = contentTagRows,
+                selectedTags = selectedContentTags,
+                onTagClick = {
+                    selectedContentTags = if (it in selectedContentTags) selectedContentTags - it else selectedContentTags + it
+                }
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(start = 20.dp, end = 20.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(
+                        if (isModified) Basic.maincolor else inactiveBrush
+                    )
+                    .clickable(enabled = isModified) {
+                        val finalNickname = if (name.isNotBlank()) name else username
+                        val jobId = when (selectedJob) {
+                            "고등학생" -> 1L
+                            "대학생" -> 2L
+                            "직장인" -> 3L
+                            "자영업자" -> 4L
+                            "프리랜서" -> 5L
+                            "취준생" -> 6L
+                            else -> 0L
+                        }
+                        onSubmit(
+                            finalNickname,
+                            jobId,
+                            selectedJob,
+                            selectedPurposeTags.toList(),
+                            selectedContentTags.toList()
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "변경하기",
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
+                    color = LocalColorTheme.current.white
+                )
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+        }
+    }
+}
+
+@Composable
+fun CustomDropdownMenu(
+    options: List<String>,
+    selectedOption: String,
+    onOptionSelected: (String) -> Unit,
+    menuMaxHeight: Dp = 230.dp,
+    defaultOption: String
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.background(Color.Transparent)) {
+        // 드롭다운 버튼
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 50.dp)
+                .clip(RoundedCornerShape(18.dp))
+                .background(LocalColorTheme.current.white)
+                .border(
+                    width = 1.dp,
+                    color = LocalColorTheme.current.gray[200],
+                    shape = RoundedCornerShape(18.dp)
+                )
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 21.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = selectedOption,
+                    color = if (selectedOption == defaultOption)
+                        LocalColorTheme.current.gray[400]
+                    else
+                        LocalColorTheme.current.black,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    fontFamily = LocalFontTheme.current.font,
+                    modifier = Modifier.padding(start = 1.dp)
+                )
+                Icon(
+                    painter = painterResource(
+                        if (expanded) R.drawable.ic_arrow_up else R.drawable.ic_arrow_down
+                    ),
+                    contentDescription = "드롭다운"
+                )
+            }
+        }
+
+        // 드롭다운 메뉴(아래로 뜨는 메뉴)
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .width(352.dp)
+                .background(LocalColorTheme.current.white, RoundedCornerShape(12.dp))
+                .heightIn(max = menuMaxHeight),
+            offset = DpOffset(x = 0.dp, y = 10.dp)
+        ) {
+            options.forEach { option ->
+                val isSelected = (option == selectedOption)
+                // 직접 커스텀
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                        .padding(horizontal = 21.dp, vertical = 6.dp), // 👉 원하는 만큼!
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isSelected) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_checked),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(12.dp))
+                    } else {
+                        Spacer(Modifier.width(25.dp))
+                    }
+                    BrushText(
+                        text = option,
+                        brush = if (isSelected) Basic.maincolor else null,
+                        color = if (!isSelected) LocalColorTheme.current.gray[800] else Color.Unspecified,
+                        style = TextStyle(
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Normal,
+                            fontFamily = LocalFontTheme.current.font
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectableTag(
+    tagRows: List<List<String>>, // 줄마다 보여줄 태그들
+    selectedTags: Set<String>,
+    onTagClick: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(15.dp))
+
+        tagRows.forEach { rowTags ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                rowTags.forEach { tag ->
+                    val isSelected = tag in selectedTags
+
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(15.dp))
+                            .border(
+                                width = 1.dp,
+                                brush = if (isSelected) Basic.maincolor
+                                    else
+                                        Brush.horizontalGradient(
+                                            listOf(LocalColorTheme.current.gray[200], LocalColorTheme.current.gray[200])
+                                        ),
+                                shape = RoundedCornerShape(15.dp)
+                            )
+                            .background(LocalColorTheme.current.white)
+                            .clickable { onTagClick(tag) }
+                            .padding(horizontal = 15.dp, vertical = 10.dp)
+                    ) {
+                        BrushText(
+                            text = tag,
+                            brush = if (isSelected) Basic.maincolor else null,
+                            color = if (!isSelected) LocalColorTheme.current.gray[700] else Color.Unspecified,
+                            style = TextStyle(
+                                fontSize = 13.9.sp,
+                                fontWeight = FontWeight.Normal,
+                                fontFamily = LocalFontTheme.current.font
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun BrushText(
+    text: String,
+    brush: Brush? = null,
+    color: Color = Color.Unspecified,
+    style: TextStyle = TextStyle.Default,
+    modifier: Modifier = Modifier,
+    fontFamily: FontFamily? = null,
+) {
+    // 기본값: 테마의 폰트 사용 (LocalFontTheme는 당신이 만든 compositionLocal)
+    val family = fontFamily ?: LocalFontTheme.current.font
+
+    // 전체 텍스트에 적용될 스타일에 fontFamily 병합
+    val styleWithFamily = style.merge(TextStyle(fontFamily = family))
+
+    if (brush != null) {
+        BasicText(
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(brush = brush, fontSize = style.fontSize, fontWeight = style.fontWeight, fontFamily = family )) {
+                    append(text)
+                }
+            },
+            style = styleWithFamily,
+            modifier = modifier,
+        )
+    } else {
+        BasicText(
+            text = text,
+            style = styleWithFamily.copy(color = color),
+            modifier = modifier,
+        )
+    }
+}
+
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewAccountSettingScreen() {
+//    val navController = rememberNavController()
+//    AccountSettingScreen(
+//        navController = navController,
+//        nicknamePlaceholder = "세나",
+//        jobPlaceholder = "대학생",
+//        onSubmit = {}
+//    )
+//}

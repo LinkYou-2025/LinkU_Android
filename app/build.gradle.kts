@@ -14,13 +14,13 @@ plugins {
 }
 
 android {
-    namespace = "com.example.linku_android"
+    namespace = "com.linku"
 
     compileSdk = 36
 
 
     defaultConfig {
-        applicationId = "com.example.linku_android"
+        applicationId = "com.linku"
         minSdk = 26
         targetSdk = 35
         versionCode = 1
