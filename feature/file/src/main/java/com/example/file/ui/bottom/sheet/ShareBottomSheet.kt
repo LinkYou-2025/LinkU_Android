@@ -78,7 +78,7 @@ import com.example.file.viewmodel.folder.state.FolderStateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareBottomSheet(
+internal fun ShareBottomSheet(
     userName: String,
     folderStateViewModel: FolderStateViewModel,
     fileViewModel: FileViewModel
