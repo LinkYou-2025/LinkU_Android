@@ -25,15 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Brush.Companion.linearGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,7 +36,6 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.design.theme.LocalColorTheme
-import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
 import com.example.design.theme.color.Basic
 import com.example.mypage.R
@@ -235,7 +229,7 @@ fun ServiceQuitScreen(
                             Image(
                                 painter = painterResource(
                                     if (isAgreeChecked) R.drawable.ic_checkbox_checked
-                                    else R.drawable.ic_checkbox_unchecked
+                                    else R.drawable.ic_checkbox_empty
                                 ),
                                 contentDescription = null,
                                 modifier = Modifier.clickable { isAgreeChecked = !isAgreeChecked }

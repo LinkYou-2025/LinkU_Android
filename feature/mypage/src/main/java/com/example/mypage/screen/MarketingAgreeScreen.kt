@@ -255,7 +255,7 @@ fun MarketingAgreeScreen(
             Image(
                 painter = painterResource(
                     if (isChecked) R.drawable.ic_checkbox_checked_purple
-                    else R.drawable.ic_checkbox_unchecked
+                    else R.drawable.ic_checkbox_empty
                 ),
                 contentDescription = null,
                 modifier = Modifier
