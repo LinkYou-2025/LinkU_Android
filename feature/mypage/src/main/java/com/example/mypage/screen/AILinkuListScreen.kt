@@ -46,7 +46,7 @@ import com.example.mypage.component.AILinkuItem
 import com.example.mypage.component.DeleteLinkuModal
 import com.example.design.R as Res
 
-data class DummyAILinku(
+data class AILinkuUiModel(
     val id: Int,
     val title: String,
     val tags: List<String>,
@@ -55,102 +55,27 @@ data class DummyAILinku(
     val category: String
 )
 
-private val previewDummyLinks = listOf(
-    DummyAILinku(
-        id = 1,
-        title = "요즘 대학생들이 진짜 쓰는 앱 TOP 10 정리",
-        tags = listOf("생산성·툴", "트렌드"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "자기계발"
-    ),
-    DummyAILinku(
-        id = 2,
-        title = "신입 개발자 포트폴리오에서 꼭 보여줘야 하는 것들",
-        tags = listOf("포트폴리오", "개발"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "개발"
-    ),
-    DummyAILinku(
-        id = 3,
-        title = "디자인 전공생이 참고하면 좋은 UX 리서치 방법",
-        tags = listOf("UX", "디자인"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "디자인"
-    ),
-    DummyAILinku(
-        id = 4,
-        title = "요즘 대학생들이 진짜 쓰는 앱 TOP 10 정리",
-        tags = listOf("생산성·툴", "트렌드"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "자기계발"
-    ),
-    DummyAILinku(
-        id = 5,
-        title = "신입 개발자 포트폴리오에서 꼭 보여줘야 하는 것들",
-        tags = listOf("포트폴리오", "개발"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "개발"
-    ),
-    DummyAILinku(
-        id = 6,
-        title = "디자인 전공생이 참고하면 좋은 UX 리서치 방법",
-        tags = listOf("UX", "디자인"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "디자인"
-    ),
-    DummyAILinku(
-        id = 7,
-        title = "요즘 대학생들이 진짜 쓰는 앱 TOP 10 정리",
-        tags = listOf("생산성·툴", "트렌드"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "자기계발"
-    ),
-    DummyAILinku(
-        id = 8,
-        title = "신입 개발자 포트폴리오에서 꼭 보여줘야 하는 것들",
-        tags = listOf("포트폴리오", "개발"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "개발"
-    ),
-    DummyAILinku(
-        id = 9,
-        title = "디자인 전공생이 참고하면 좋은 UX 리서치 방법",
-        tags = listOf("UX", "디자인"),
-        domainImage = Res.drawable.ic_domain_blog_naver_logo,
-        domainName = "BLOG",
-        category = "디자인"
-    ),
-)
-
 @Composable
 fun AILinkuListScreen(
     navController: NavController,
-    initialLinks: List<DummyAILinku> = previewDummyLinks
+    links: List<AILinkuUiModel>
 ) {
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
-    var deleteTarget by remember { mutableStateOf<DummyAILinku?>(null) }
+    var deleteTarget by remember { mutableStateOf<AILinkuUiModel?>(null) }
 
     val categories = listOf("취업", "자기계발", "디자인", "개발", "마케팅")
 
-    val dummyLinks = remember(initialLinks) {
-        mutableStateListOf<DummyAILinku>().apply {
-            addAll(initialLinks)
+    val currentLinks = remember(links) {
+        mutableStateListOf<AILinkuUiModel>().apply {
+            addAll(links)
         }
     }
 
     val filteredLinks = if (selectedCategory == null) {
-        dummyLinks
+        currentLinks
     } else {
-        dummyLinks.filter { it.category == selectedCategory }
+        currentLinks.filter { it.category == selectedCategory }
     }
 
     Box(
@@ -305,7 +230,7 @@ fun AILinkuListScreen(
                 DeleteLinkuModal(
                     onDismiss = { deleteTarget = null },
                     onConfirm = {
-                        dummyLinks.remove(deleteTarget)  // TODO: 추후 실제 삭제 API 연동
+                        currentLinks.remove(deleteTarget)  // TODO: 추후 실제 삭제 API 연동
                         deleteTarget = null
                     }
                 )
@@ -441,6 +366,25 @@ private fun CategoryDropdownChip(
     }
 }
 
+private val previewAiLinks = listOf(
+    AILinkuUiModel(
+        id = 1,
+        title = "요즘 대학생들이 진짜 쓰는 앱 TOP 10 정리",
+        tags = listOf("생산성·툴", "트렌드"),
+        domainImage = Res.drawable.ic_domain_blog_naver_logo,
+        domainName = "BLOG",
+        category = "자기계발"
+    ),
+    AILinkuUiModel(
+        id = 2,
+        title = "신입 개발자 포트폴리오에서 꼭 보여줘야 하는 것들",
+        tags = listOf("포트폴리오", "개발"),
+        domainImage = Res.drawable.ic_domain_blog_naver_logo,
+        domainName = "BLOG",
+        category = "개발"
+    )
+)
+
 @Preview(showBackground = true)
 @Composable
 fun PreviewAILinkuListScreen() {
@@ -449,7 +393,7 @@ fun PreviewAILinkuListScreen() {
     ThemeProvider {
         AILinkuListScreen(
             navController = navController,
-            initialLinks = previewDummyLinks
+            links = previewAiLinks
         )
     }
 }
@@ -462,7 +406,7 @@ fun PreviewAILinkuEmptyScreen() {
     ThemeProvider {
         AILinkuListScreen(
             navController = navController,
-            initialLinks = emptyList()
+            links = emptyList()
         )
     }
 }

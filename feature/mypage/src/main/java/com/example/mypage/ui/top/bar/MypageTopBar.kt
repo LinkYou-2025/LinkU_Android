@@ -1,14 +1,8 @@
 package com.example.mypage.ui.top.bar
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,8 +26,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.design.BrushText
+import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
-import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
 import com.example.design.top.bar.AlarmButton
 import com.example.mypage.R
@@ -49,6 +43,7 @@ fun MypageTopBar(
     myAiLinku: Long,
     socialLoginType: String,
     onAlarmClick: () -> Unit,
+    onAISummaryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -82,7 +77,7 @@ fun MypageTopBar(
                 Box(
                     modifier = Modifier
                         .size(30.dp)
-                        .clickable { onAlarmClick() }
+                        .noRippleClickable { onAlarmClick() }
                 ) {
                     AlarmButton(
                         isNoticeExist = isNoticeExist,
@@ -233,7 +228,8 @@ fun MypageTopBar(
                             LocalColorTheme.current.inactiveColor,
                             RoundedCornerShape(14.dp)
                         )
-                        .padding(vertical = 14.dp),
+                        .padding(vertical = 14.dp)
+                        .noRippleClickable { onAISummaryClick() },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
@@ -279,6 +275,7 @@ fun PreviewMypageTopBar() {
         MypageTopBar(
             isNoticeExist = true,
             onAlarmClick = {},
+            onAISummaryClick = {},
             nickname = "세나",
             email = "linkU2025@gmail.com",
             myLinku = 63,
