@@ -3,7 +3,6 @@ package com.example.mypage.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
@@ -47,7 +47,7 @@ import com.example.mypage.R
 fun ChangePasswordScreen(
     navController: NavController,
     userEmail: String,
-    onClickFinish: () -> Unit
+    onClickFinish: (String) -> Unit
 ) {
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
@@ -81,7 +81,7 @@ fun ChangePasswordScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(10.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(
@@ -213,7 +213,7 @@ fun ChangePasswordScreen(
                         tint = Color.Unspecified,
                         modifier = Modifier
                             .size(18.dp)
-                            .clickable { isPasswordVisible = !isPasswordVisible }
+                            .noRippleClickable { isPasswordVisible = !isPasswordVisible }
                     )
                 }
             }
@@ -341,7 +341,7 @@ fun ChangePasswordScreen(
                         tint = Color.Unspecified,
                         modifier = Modifier
                             .size(18.dp)
-                            .clickable { isConfirmPasswordVisible = !isConfirmPasswordVisible }
+                            .noRippleClickable { isConfirmPasswordVisible = !isConfirmPasswordVisible }
                     )
                 }
             }
@@ -404,8 +404,8 @@ fun ChangePasswordScreen(
                         )
                     }
                 )
-                .clickable(enabled = isChangePasswordEnabled) {
-                    onClickFinish()
+                .noRippleClickable(enabled = isChangePasswordEnabled) {
+                    onClickFinish(password)
                 }
                 .padding(vertical = 15.dp),
             contentAlignment = Alignment.Center
