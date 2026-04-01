@@ -46,7 +46,6 @@ import com.example.design.modifier.noRippleClickable
 import com.example.design.theme.LocalColorTheme
 import com.example.design.theme.LocalFontTheme
 import com.example.design.theme.ThemeProvider
-import com.example.design.theme.color.Basic
 import com.example.mypage.R
 
 @Composable
@@ -550,7 +549,7 @@ private fun JobDropdownItem(
                 if (selected) {
                     R.drawable.ic_checkbox_checked
                 } else {
-                    R.drawable.ic_checkbox_unchecked
+                    R.drawable.ic_checkbox_empty
                 }
             ),
             contentDescription = null,
