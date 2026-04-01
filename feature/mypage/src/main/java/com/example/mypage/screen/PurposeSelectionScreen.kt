@@ -43,7 +43,7 @@ import com.example.mypage.component.CustomInfoSelectionItem
 @Composable
 fun PurposeSelectionScreen(
     navController: NavController,
-    onNextClick: () -> Unit
+    onNextClick: () -> Unit  // TODO: 목적 저장 API 연결
 ) {
     val purposeItems = listOf(
         "취업·커리어 준비",
