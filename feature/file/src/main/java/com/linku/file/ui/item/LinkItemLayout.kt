@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,15 +55,8 @@ import coil3.request.error
 import coil3.request.fallback
 import coil3.request.placeholder
 import com.linku.core.model.LinkItemInfo
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.theme.Black
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray100
-import com.linku.file.ui.theme.Gray200
-import com.linku.file.ui.theme.Gray400
-import com.linku.file.ui.theme.Gray600
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.White
 import com.linku.file.ui.theme.domainLogoPainterOrNull
 
 @OptIn(
@@ -76,6 +70,8 @@ fun LinkItemLayout(
     onClick: (LinkItemInfo?) -> Unit = {},
     onLongClick: (Long) -> Unit = {},
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val tags = link?.tags?:emptyList()
 
     val domainIcon = link?.let{ domainLogoPainterOrNull(it.url) }
@@ -99,7 +95,7 @@ fun LinkItemLayout(
             modifier = Modifier
                 .background(
                     shape = RoundedCornerShape(size = 6.dp),
-                    color = Gray100
+                    color = colors.gray[100]
                 )
                 .padding(horizontal = 6.dp, vertical = 1.dp),
             contentAlignment = Alignment.Center
@@ -113,12 +109,10 @@ fun LinkItemLayout(
                 text = tag,
                 // 폰트 크기(12sp)
                 fontSize = 12.sp,
-                // 폰트
-                fontFamily = DefaultFont,
                 // 폰트 굵기(Normal)
                 fontWeight = FontWeight.Normal,
                 // 글자색(Gray600)
-                color = Gray600,
+                color = colors.gray[600],
 
                 textAlign = TextAlign.Center,
 
@@ -160,7 +154,7 @@ fun LinkItemLayout(
         // 모서리 둥글게(18dp)
         //shape = RoundedCornerShape(18.dp),
         // 카드 배경색(White)
-        color = White,
+        color = colors.white,
         // 그림자(입체감) 효과(20dp)
         //shadowElevation = 5.dp//(if(painter == null) 0 else 5).dp,
     ) {
@@ -180,7 +174,7 @@ fun LinkItemLayout(
                     .clip(RoundedCornerShape(18.dp))
                     .size(157.dp)
                     .align(Alignment.CenterHorizontally)
-                    .background(color = if (isNotAdder) Gray100 else White),
+                    .background(color = if (isNotAdder) colors.gray[100] else colors.white),
                 contentAlignment = Alignment.Center
             ){
                 if(isNotAdder){
@@ -195,7 +189,7 @@ fun LinkItemLayout(
                     Icon(
                         modifier = Modifier.width(90.dp),
                         painter = painterResource(com.linku.design.R.drawable.logo_whiteback),
-                        tint = Gray400,
+                        tint = colors.gray[400],
                         contentDescription = null
                     )
                 }
@@ -211,12 +205,10 @@ fun LinkItemLayout(
                 text = link?.title?:"제목",
                 // 폰트 크기(15sp)
                 fontSize = 15.sp,
-                // 폰트
-                fontFamily = DefaultFont,
                 // 폰트 굵기(Medium, 500)
                 fontWeight = FontWeight(500),
                 // 글자색(Black)
-                color = Black,
+                color = colors.black,
                 maxLines = 1, // 최대 2줄
                 overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
             )
@@ -259,7 +251,7 @@ fun LinkItemLayout(
                     modifier = Modifier
                         .size(26.dp)
                         .clip(CircleShape)
-                        .background(Gray200),
+                        .background(colors.gray[200]),
                     contentAlignment = Alignment.Center
                 ){
                     // 도메인 아이콘
@@ -285,14 +277,11 @@ fun LinkItemLayout(
                     // 폰트 크기 (12sp)
                     fontSize = 12.sp,
 
-                    // 폰트 (paperlogy 폰트)
-                    fontFamily = DefaultFont,
-
                     // 폰트 굵기 (Bold)
                     fontWeight = FontWeight.Bold,
 
                     // 글자색 (Gray800)
-                    color = Gray800,
+                    color = colors.gray[800],
                     maxLines = 1, // 최대 1줄
                     overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
                 )
@@ -304,6 +293,8 @@ fun LinkItemLayout(
 @Preview(showBackground = true)
 @Composable
 private fun LinkItemTest() {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         contentAlignment = Alignment.TopCenter
     ){
@@ -325,9 +316,8 @@ private fun LinkItemTest() {
             modifier = Modifier.padding(top = 147.dp),
             text = "링크 추가하기",
             fontSize = 15.sp,
-            fontFamily = DefaultFont,
             fontWeight = FontWeight(500),
-            color = Black,
+            color = colors.black,
             textAlign = TextAlign.Center,
         )
     }

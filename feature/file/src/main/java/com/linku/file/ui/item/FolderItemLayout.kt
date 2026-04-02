@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,18 +49,12 @@ import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modifier.innerRingShadow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.content.BookMarkStar
 import com.linku.file.ui.content.LockFolderIcon
 import com.linku.file.ui.content.PencilIcon
 import com.linku.file.ui.content.ShareFolderIcon
-import com.linku.file.ui.theme.Black
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray100
-import com.linku.file.ui.theme.Gray200
-import com.linku.file.ui.theme.Gray300
-import com.linku.file.ui.theme.Gray500
-import com.linku.file.ui.theme.White
 
 @Composable
 fun FolderItemLayout(
@@ -74,6 +69,8 @@ fun FolderItemLayout(
     textBackgroundColor: Color,
     folderName: String = "",
 ) {
+    val colors = MaterialTheme.linkuColors
+
     // 디자인 원본 기준 사이즈 (너가 쓰던 고정 dp)
     val baseW = 165.3.dp
     val baseH = 145.8535.dp
@@ -228,9 +225,8 @@ fun FolderItemLayout(
                                 Text(
                                     text = folderName.first().toString(),
                                     fontSize = ssp(15.sp),
-                                    fontFamily = DefaultFont,
                                     fontWeight = FontWeight.Bold,
-                                    color = White,
+                                    color = colors.white,
                                 )
                             }
 
@@ -239,9 +235,8 @@ fun FolderItemLayout(
                                     .padding(end = s(17.499.dp)),
                                 text = folderName,
                                 fontSize = ssp(15.sp),
-                                fontFamily = DefaultFont,
                                 fontWeight = FontWeight.Medium,
-                                color = Black,
+                                color = colors.black,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -253,27 +248,27 @@ fun FolderItemLayout(
     }
 }
 
-val topFolderMaskBrush = Brush.verticalGradient(
-    colorStops = arrayOf(
-        1.0f to Gray100.copy(alpha = 0.7f),
-        0.2f to Gray200.copy(alpha = 1.0f),
-    )
-)
-
 @Composable
 fun EmptyFolderItemLayout(
     modifier: Modifier = Modifier,
     folderName: String = ""
 ){
+    val colors = MaterialTheme.linkuColors
+
     FolderItemLayout(
-        backgroundColor = Gray200,
-        color1 = Gray300,
-        color2 = Gray200,
-        color3 = White,
-        folderMaskBrush = topFolderMaskBrush,
+        backgroundColor = colors.gray[200],
+        color1 = colors.gray[300],
+        color2 = colors.gray[200],
+        color3 = colors.white,
+        folderMaskBrush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                1.0f to colors.gray[100].copy(alpha = 0.7f),
+                0.2f to colors.gray[200].copy(alpha = 1.0f),
+            )
+        ),
         leftIcon = {},
         rightIcon = {},
-        textBackgroundColor = Gray500,
+        textBackgroundColor = colors.gray[500],
         folderName = folderName,
         modifier = modifier
     )
@@ -288,12 +283,19 @@ fun TopFolderItemLayout(
     isEditMode: Boolean = false,
     onBookmark: () -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
+
     FolderItemLayout(
-        backgroundColor = Gray200,
+        backgroundColor = colors.gray[200],
         color1 = colorStyle.color3,
         color2 = colorStyle.color2,
         color3 = colorStyle.color1,
-        folderMaskBrush = topFolderMaskBrush,
+        folderMaskBrush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                1.0f to colors.gray[100].copy(alpha = 0.7f),
+                0.2f to colors.gray[200].copy(alpha = 1.0f),
+            )
+        ),
         leftIcon = {},
         rightIcon = {
             if(visibleBookmarked){
@@ -330,11 +332,13 @@ fun BottomFolderItemLayout(
     onEdit: ()-> Unit = {},
     onChangeSharing: () -> Unit = {}
 ){
+    val colors = MaterialTheme.linkuColors
+
     FolderItemLayout(
         backgroundColor = colorStyle.color1,
         color1 = colorStyle.color2,
         color2 = colorStyle.color1,
-        color3 = White,
+        color3 = colors.white,
         folderMaskBrush = colorStyle.verticalGradient(),
         leftIcon = {
             Box(

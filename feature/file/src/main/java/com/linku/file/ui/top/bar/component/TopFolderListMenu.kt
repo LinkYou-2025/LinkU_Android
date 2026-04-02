@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,13 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.gradientTint
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.file.ui.theme.Black
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
@@ -123,6 +120,7 @@ private fun TopFolderListMenuLayout(
     onSelectMyFolders: () -> Unit,
     onSelectSharedFolders: () -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
     // 선택된 폴더
     val selectedText = if (isSharedFolders) "공유받은 폴더" else "나의 폴더"
 
@@ -144,7 +142,7 @@ private fun TopFolderListMenuLayout(
         offset = DpOffset(0.dp, 10.dp),
         expanded = topMenuExpanded,
         onDismissRequest = onDismissRequest,
-        containerColor = Basic.white
+        containerColor = colors.white
     ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(13.dp, Alignment.CenterVertically),
@@ -180,6 +178,8 @@ private fun TopFolderListMenuRow(
     selectedText: String,
     onClick: () -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
+
     /*
      * 폴더 목록의 개별 항목
      *
@@ -212,8 +212,8 @@ private fun TopFolderListMenuRow(
                 .gradientTint(
                     // 선택된 항목은 그라데이션,
                     // 아닌 항목은 체크가 안 보이게 흰색.
-                    brush = if (selectedOption == selectedText) MainColor
-                            else Brush.horizontalGradient(listOf(White, White)),
+                    brush = if (selectedOption == selectedText) colors.maincolor
+                            else Brush.horizontalGradient(listOf(colors.white, colors.white)),
 
                     // 공간 내 로고 부분만 색칠하기 위해 SrcAtop으로 설정
                     blendMode = BlendMode.SrcAtop
@@ -231,9 +231,6 @@ private fun TopFolderListMenuRow(
                         // 폰트 크기 (15sp)
                         fontSize = 15.sp,
 
-                        // 사용할 폰트 (paperlogy 폰트)
-                        fontFamily = DefaultFont,
-
                         // 폰트 굵기
                         fontWeight = FontWeight(
                             weight = if (selectedOption == selectedText) 500
@@ -241,8 +238,8 @@ private fun TopFolderListMenuRow(
                         ),
 
                         // 텍스트 그라데이션 색상(링큐 메인 색상)
-                        brush = if (selectedOption == selectedText) MainColor
-                                else Brush.horizontalGradient(listOf(Black, Black))
+                        brush = if (selectedOption == selectedText) colors.maincolor
+                                else Brush.horizontalGradient(listOf(colors.black, colors.black))
                     )
                 ) {
                     // 항목명 텍스트

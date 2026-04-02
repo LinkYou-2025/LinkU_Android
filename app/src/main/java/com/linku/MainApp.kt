@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,8 +60,6 @@ import androidx.navigation.navDeepLink
 import com.linku.curation.CurationViewModel
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray600
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.login.viewmodel.LoginViewModel
@@ -73,6 +72,7 @@ import com.linku.design.modal.ModalWindow
 import com.linku.curation.curationGraph
 import com.linku.deeplink.SocialDeepLinkBus
 import com.linku.deeplink.appLinkRoute
+import com.linku.design.theme.linkuColors
 import com.linku.login.navigation.LoginApp
 
 
@@ -173,7 +173,7 @@ fun MainApp(
         }
     }
 
-
+    val colors = MaterialTheme.linkuColors
 
     ThemeProvider {
         MainScreen(
@@ -584,9 +584,8 @@ fun MainApp(
                                 text = "링큐 회원만 폴더를 공유받을 수 있습니다.\n폴더를 확인하기 위해 로그인/회원가입 해주세요.",
                                 fontSize = 15.sp,
                                 lineHeight = 22.sp,
-                                fontFamily = DefaultFont,
                                 fontWeight = FontWeight.Normal,
-                                color = Gray600,
+                                color = colors.gray[600],
                                 textAlign = TextAlign.Center,
                             )
                         }

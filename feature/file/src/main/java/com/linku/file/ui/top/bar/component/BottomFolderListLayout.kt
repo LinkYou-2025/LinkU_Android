@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -29,8 +30,7 @@ import com.linku.file.R
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.White
+import com.linku.design.theme.linkuColors
 import kotlin.collections.get
 
 @Composable
@@ -38,6 +38,8 @@ fun BottomFolderListLayout(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var text = if(!folderStateViewModel.isSharedFolders)(
         folderStateViewModel.selectedTopFolder?.folderName +
                 if (folderStateViewModel.currentFolderState == FolderState.LINKS)
@@ -57,7 +59,7 @@ fun BottomFolderListLayout(
         modifier = Modifier
             .height(35.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(White)
+            .background(colors.white)
             .background(brush = colorStyle.horizontalGradient())
             // 가로 111.28947dp, 세로 35dp로 전체 크기 지정
             .padding(horizontal = 15.dp),
@@ -82,7 +84,6 @@ fun BottomFolderListLayout(
                 text = text,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
-                fontFamily = DefaultFont,
                 fontWeight = FontWeight(500),
                 color = colorStyle.color4,
                 textAlign = TextAlign.Center,

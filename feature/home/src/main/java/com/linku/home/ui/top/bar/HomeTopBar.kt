@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -42,9 +43,9 @@ import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.font.Taebaek
+import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
-import com.linku.file.ui.theme.FileTopBarLinkUFont
-import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
 import com.linku.home.screen.Situation
 import com.linku.home.ui.top.bar.component.EmotionSelector
@@ -68,6 +69,7 @@ fun HomeTopBar(
     hasRequestedRecommend: Boolean,
     onAlarmClick: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
 
     val buttonBrush =
         if (recommendEnabled) Basic.maincolor
@@ -102,12 +104,12 @@ fun HomeTopBar(
                             fontSize = 24.sp,
 
                             // 사용할 폰트 (태백 폰트)
-                            fontFamily = FileTopBarLinkUFont,
+                            fontFamily = Taebaek.font,
 
                             fontWeight = FontWeight.Normal,
 
                             // 텍스트 그라데이션 색상(링큐 메인 색상)
-                            brush = MainColor,
+                            brush = colors.maincolor,
                         )
                     ) {
                         // 실제 표시할 텍스트
