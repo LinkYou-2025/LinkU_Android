@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,10 +40,8 @@ import com.linku.file.ui.item.EmptyFolderItemLayout
 import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import com.linku.file.ui.theme.Black
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray600
+import com.linku.design.theme.linkuColors
 import com.linku.file.viewmodel.folder.state.FolderState
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -53,6 +52,8 @@ fun BottomFolderGrid(
     folderStateViewModel: FolderStateViewModel,
     onFolderAdd: () -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
+
     val interactionSource = remember { MutableInteractionSource() }
 
     val folderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
@@ -102,9 +103,8 @@ fun BottomFolderGrid(
                     Text(
                         text = "폴더 추가하기",
                         fontSize = 15.sp,
-                        fontFamily = DefaultFont,
                         fontWeight = FontWeight(500),
-                        color = Black,
+                        color = colors.black,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -168,9 +168,8 @@ fun BottomFolderGrid(
                         text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
-                        fontFamily = DefaultFont,
                         fontWeight = FontWeight(400),
-                        color = Gray600,
+                        color = colors.gray[600],
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -183,9 +182,8 @@ fun BottomFolderGrid(
                 text = "분류되지 않은 링크",
                 fontSize = 20.sp,
                 lineHeight = 30.sp,
-                fontFamily = DefaultFont,
                 fontWeight = FontWeight(700),
-                color = Black,
+                color = colors.black,
                 modifier = Modifier.padding(top = 40.dp, bottom = 20.dp) // 위아래 간격 추가
             )
 
@@ -243,9 +241,8 @@ fun BottomFolderGrid(
             text = "삭제 시 해당 링크가 영구적으로 제거되며\n복구가 불가능합니다.",
             fontSize = 15.sp,
             lineHeight = 22.sp,
-            fontFamily = DefaultFont,
             fontWeight = FontWeight(400),
-            color = Gray600,
+            color = colors.gray[600],
             textAlign = TextAlign.Center,
         )
     }

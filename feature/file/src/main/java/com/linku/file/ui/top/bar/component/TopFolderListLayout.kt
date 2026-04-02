@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,17 +25,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray500
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun TopFolderListLayout(
     folderStateViewModel: FolderStateViewModel
 ) {
+    val colors = MaterialTheme.linkuColors
     val folderName = if (folderStateViewModel.isSharedFolders) "공유받은 폴더" else "나의 폴더"
 
     // 레이아웃의 배경틀
@@ -44,7 +43,7 @@ fun TopFolderListLayout(
             .height(35.dp),
 
         // 배경색 (White)
-        color = White,
+        color = colors.white,
 
         // 모서리 둥글게 (14dp)
         shape = RoundedCornerShape(14.dp),
@@ -75,14 +74,11 @@ fun TopFolderListLayout(
                             // 폰트 크기 (16sp)
                             fontSize = 16.sp,
 
-                            // 사용할 폰트 (paperlogy 폰트)
-                            fontFamily = DefaultFont,
-
                             // 폰트 굵기 (Bold)
                             fontWeight = FontWeight.Bold,
 
                             // 텍스트 그라데이션 색상(링큐 메인 색상)
-                            brush = MainColor,
+                            brush = colors.maincolor,
                         )
                     ) {
                         // 실제 표시할 텍스트
@@ -100,7 +96,7 @@ fun TopFolderListLayout(
             // 아래 화살표 모양 아이콘
             Icon(
                 // 아이콘 색상 (Gray500)
-                tint = Gray500,
+                tint = colors.gray[500],
 
                 // 사용할 아이콘 이미지 리소스 (drawable/check_img.xml)
                 painter = painterResource(id = R.drawable.check_img),

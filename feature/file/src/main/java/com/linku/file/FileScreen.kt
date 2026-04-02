@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -30,6 +31,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.error.SameNameException
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.linkuColors
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
@@ -41,7 +43,6 @@ import com.linku.file.ui.content.LinksGrid
 import com.linku.file.ui.content.SharedBottomFolderGrid
 import com.linku.file.ui.content.SharedTopFolderGrid
 import com.linku.file.ui.content.TopFolderGrid
-import com.linku.file.ui.theme.White
 import com.linku.file.ui.top.bar.FileTopBar
 import com.linku.file.ui.top.bar.component.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
@@ -55,6 +56,8 @@ fun FileScreen(
     editStateViewModel:EditStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel()
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Log.d("FileScreen", "FileScreen")
     // 한 번만 데이터 로딩 (최초 진입 시)
     LaunchedEffect(Unit) {
@@ -89,7 +92,7 @@ fun FileScreen(
         modifier = Modifier
             .fillMaxSize()
             .noRippleClickable { },
-        containerColor = White,
+        containerColor = colors.white,
         topBar = {
             FileTopBar(
                 fileViewModel = fileViewModel,

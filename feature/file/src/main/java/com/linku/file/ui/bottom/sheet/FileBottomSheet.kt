@@ -17,6 +17,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
@@ -38,16 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.theme.Black
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray300
-import com.linku.file.ui.theme.Gray400
-import com.linku.file.ui.theme.Gray600
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,22 +56,24 @@ fun FileBottomSheet(
     onDismiss: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+    
     if(visible) {
         ModalBottomSheet(
             modifier = modifier,
             dragHandle = {
                 BottomSheetDefaults.DragHandle(
                     width = 40.dp,
-                    color = Basic.gray[300]
+                    color = colors.gray[300]
                 )
             },
 
             // 딤 효과 수치
-            scrimColor = Basic.black.copy(alpha = 0.5f),
+            scrimColor = colors.black.copy(alpha = 0.5f),
             sheetState = sheetState,
             onDismissRequest = onDismiss,
             tonalElevation = 8.dp,
-            containerColor = White,
+            containerColor = colors.white,
         ) {
             Column(
                 modifier = Modifier
@@ -93,9 +88,8 @@ fun FileBottomSheet(
                         .padding(start = 10.dp),
                     text = title,
                     fontSize = 18.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight(500),
-                    color = Black,
+                    color = colors.black,
                 )
 
                 Spacer(modifier = Modifier.height(11.dp))
@@ -105,9 +99,8 @@ fun FileBottomSheet(
                         .padding(start = 10.dp),
                     text = body,
                     fontSize = 15.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
-                    color = Gray600,
+                    color = colors.gray[600],
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -121,7 +114,7 @@ fun FileBottomSheet(
                         .height(50.dp)
                         .clip(shape = RoundedCornerShape(18.dp))
                         .background(
-                            brush = MainColor,
+                            brush = colors.maincolor,
                             alpha = if (isReady) 1f else 0.5f
                         )
                         .noRippleClickable {
@@ -136,9 +129,8 @@ fun FileBottomSheet(
                         text = buttonText,
                         fontSize = 16.sp,
                         lineHeight = 20.sp,
-                        fontFamily = DefaultFont,
                         fontWeight = FontWeight(700),
-                        color = White,
+                        color = colors.white,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -151,6 +143,7 @@ fun FileBottomSheet(
 @Preview(showBackground = true, heightDp = 2000)
 @Composable
 private fun FileEditBottomSheetTest(){
+    val colors = MaterialTheme.linkuColors
     FileBottomSheet(
         modifier = Modifier.height(900.dp),
         title = "해당 카테고리를 수정하시겠습니까?",
@@ -164,7 +157,7 @@ private fun FileEditBottomSheetTest(){
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .border(1.dp, MainColor, RoundedCornerShape(18.dp))
+                .border(1.dp, colors.maincolor, RoundedCornerShape(18.dp))
                 .padding(horizontal = 21.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -174,8 +167,7 @@ private fun FileEditBottomSheetTest(){
                 onValueChange = { text = it },
                 textStyle = TextStyle(
                     fontSize = 14.sp,
-                    color = Gray400,
-                    fontFamily = DefaultFont,
+                    color = colors.gray[400],
                     fontWeight = FontWeight.Normal,
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -187,9 +179,8 @@ private fun FileEditBottomSheetTest(){
                         if (text.isEmpty()) {
                             Text(
                                 text = "카테고리명은 최대 10자입니다", // placeholder
-                                color = Gray400,
+                                color = colors.gray[400],
                                 fontSize = 14.sp,
-                                fontFamily = DefaultFont,
                                 fontWeight = FontWeight.Normal,
                             )
                         }
@@ -211,9 +202,8 @@ private fun FileEditBottomSheetTest(){
                     text = "색상",
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
-                    color = Gray800,
+                    color = colors.gray[800],
                 )
                 Text(
                     modifier = Modifier
@@ -221,21 +211,20 @@ private fun FileEditBottomSheetTest(){
                     text = "(색상은 한 번 지정하면 변경 불가합니다)",
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
-                    color = Gray400,
+                    color = colors.gray[400],
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 Surface(
                     modifier = Modifier
                         .size(25.dp),
-                    color = Gray300,
+                    color = colors.gray[300],
                     shape = CircleShape
                 ) { }
                 Icon(
                     modifier = Modifier
                         .padding(start = 10.dp),
-                    tint = Gray600,
+                    tint = colors.gray[600],
                     painter = painterResource(id = R.drawable.check_img),
                     contentDescription = "아래 화살표"
                 )
