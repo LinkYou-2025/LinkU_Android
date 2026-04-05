@@ -1,7 +1,6 @@
 package com.linku.design
 
 import androidx.compose.ui.graphics.Color
-import com.linku.design.theme.color.Basic
 
 //@Deprecated("Use LocalColorTheme instead.") val Color.Companion.MainColor get() = Basic.maincolor
 

@@ -26,9 +26,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.design.modifier.noRippleClickable
-import com.linku.file.ui.theme.FileTopBarLinkUFont
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
 import com.linku.file.ui.top.bar.component.BottomFolderListLayout
 import com.linku.file.ui.top.bar.component.BottomFolderListMenu
 import com.linku.file.ui.top.bar.component.EditButton
@@ -38,6 +35,9 @@ import com.linku.file.ui.top.bar.component.TopFolderListMenu
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.font.Taebaek
+import com.linku.design.theme.linkuColors
 
 
 @Composable
@@ -46,6 +46,8 @@ fun FileTopBar(
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     // 내부 요소들을 겹쳐서 배치하는 Box
     Box(
         // 전체 영역을 가득 채우도록
@@ -55,7 +57,7 @@ fun FileTopBar(
             .height(206.dp)
             .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))
             // Box 배경에 메인 그라데이션 적용
-            .background(brush = MainColor)
+            .background(brush = colors.maincolor)
     ) {
 
         // 1. 흐린 로고 (배경 맨 뒤)
@@ -71,7 +73,7 @@ fun FileTopBar(
                 // 아이콘 크기 지정 (149.49 x 106 dp)
                 .size(width = 149.49561.dp, height = 106.dp),
             // 아이콘 색상 (흰색)
-            tint = White,
+            tint = colors.white,
             // 사용할 아이콘 이미지 리소스
             painter = painterResource(id = R.drawable.linku_logo),
             // 이미지 설명 ("링큐 투명 로고")
@@ -90,11 +92,11 @@ fun FileTopBar(
             // 폰트 크기 (24sp)
             fontSize = 24.sp,
             // 사용할 폰트
-            fontFamily = FileTopBarLinkUFont,
+            fontFamily = Taebaek.font,
             // 폰트 굵기 (Normal)
             fontWeight = FontWeight(400),
             // 글자색 (흰색)
-            color = White,
+            color = colors.white,
         )
 
         // 3. 검색창 (FileSearchBar)
@@ -172,7 +174,7 @@ fun FileTopBar(
                 // 아이콘 크기 (22.26 x 27.18 dp)
                 .size(width = 22.25668.dp, height = 27.17871.dp),
             // 아이콘 색상 (흰색)
-            tint = White,
+            tint = colors.white,
             // 사용할 아이콘 이미지 리소스
             painter = painterResource(id = com.linku.design.R.drawable.ic_alarm),
             // 이미지 설명 ("알람")

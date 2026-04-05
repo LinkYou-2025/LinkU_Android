@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -50,15 +51,8 @@ import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
 import com.linku.file.R
 import com.linku.design.modifier.noRippleClickable
-import com.linku.file.ui.theme.Black
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray300
-import com.linku.file.ui.theme.Gray400
-import com.linku.file.ui.theme.Gray600
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
+import com.linku.design.theme.linkuColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,9 +68,11 @@ fun TextFieldFileBottomSheet(
     onColorIdDeliver: (Int) -> Unit = {},
     onDismiss: () -> Unit,
 ){
+    val colors = MaterialTheme.linkuColors
+
     var colorId by remember { mutableIntStateOf(-1) }
     var expanded by remember { mutableStateOf(false) }
-    var selectedColor by remember { mutableStateOf(Gray300) }
+    var selectedColor by remember { mutableStateOf(colors.gray[300]) }
     var text by remember { mutableStateOf("") }
 
     LaunchedEffect(visible) {
@@ -100,7 +96,7 @@ fun TextFieldFileBottomSheet(
             }
         },
         onDismiss = {
-            selectedColor = Gray300
+            selectedColor = colors.gray[300]
             expanded = false
             onDismiss()
         }
@@ -109,7 +105,7 @@ fun TextFieldFileBottomSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp)
-                .border(1.dp, MainColor, RoundedCornerShape(18.dp))
+                .border(1.dp, colors.maincolor, RoundedCornerShape(18.dp))
                 .padding(horizontal = 21.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -119,8 +115,7 @@ fun TextFieldFileBottomSheet(
                 onValueChange = { text = it },
                 textStyle = TextStyle(
                     fontSize = 14.sp,
-                    color = Black,
-                    fontFamily = DefaultFont,
+                    color = colors.black,
                     fontWeight = FontWeight.Normal,
                 ),
                 modifier = Modifier.fillMaxWidth(),
@@ -132,9 +127,8 @@ fun TextFieldFileBottomSheet(
                         if (text.isEmpty()) {
                             Text(
                                 text = " $placeholderText", // placeholder
-                                color = Gray400,
+                                color = colors.gray[400],
                                 fontSize = 14.sp,
-                                fontFamily = DefaultFont,
                                 fontWeight = FontWeight.Normal,
                             )
                         }
@@ -159,9 +153,8 @@ fun TextFieldFileBottomSheet(
                     text = "색상 변경",
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight.Normal,
-                    color = Gray800,
+                    color = colors.gray[800],
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -177,7 +170,7 @@ fun TextFieldFileBottomSheet(
                     Icon(
                         modifier = Modifier.fillMaxWidth(0.45f),
                         painter = painterResource(R.drawable.ic_top_folders_menu),
-                        tint = White,
+                        tint = colors.white,
                         contentDescription = null
                     )
                 }
@@ -193,14 +186,14 @@ fun TextFieldFileBottomSheet(
                     .drawWithCache {
                         onDrawWithContent {
                             drawContent()
-                            drawRect(MainColor, blendMode = BlendMode.SrcAtop)
+                            drawRect(colors.maincolor, blendMode = BlendMode.SrcAtop)
                         }
                     } else Modifier.padding(start = 10.dp)
                 Icon(
                     modifier = modifier
                         .rotate(rotation)
                         .noRippleClickable { expanded = !expanded },
-                    tint = Gray600,
+                    tint = colors.gray[600],
                     painter = painterResource(id = R.drawable.check_img),
                     contentDescription = "아래 화살표"
                 )

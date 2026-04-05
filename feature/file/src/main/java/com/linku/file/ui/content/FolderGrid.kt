@@ -1,4 +1,4 @@
-package com.example.file.ui.content
+package com.linku.file.ui.content
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,9 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.core.model.FolderSimpleInfo
-import com.example.design.modifier.noRippleClickable
-import com.example.design.theme.color.CategoryColorStyle
+import com.linku.core.model.FolderSimpleInfo
+import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.color.CategoryColorStyle
 
 @Composable
 internal fun FolderGrid(

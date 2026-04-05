@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,12 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.White
 
 @Composable
 fun FileSearchBar() {
+    val colors = MaterialTheme.linkuColors
 
     // 검색창 전체 바탕(틀)
     Surface(
@@ -41,7 +41,7 @@ fun FileSearchBar() {
         shape = RoundedCornerShape(18.dp),
 
         // 외곽선(테두리) 두께 1dp, 색상(흰색)
-        border = BorderStroke(1.dp, White)
+        border = BorderStroke(1.dp, colors.white)
     ) {
 
         // 배경 Surface (반투명 흰색)
@@ -50,7 +50,7 @@ fun FileSearchBar() {
             modifier = Modifier.fillMaxSize(),
 
             // 배경색 (흰색, alpha=0.15 → 매우 연한 반투명)
-            color = White.copy(alpha = 0.15f),
+            color = colors.white.copy(alpha = 0.15f),
 
             // 모서리 둥글게 (18dp)
             shape = RoundedCornerShape(18.dp)
@@ -74,7 +74,7 @@ fun FileSearchBar() {
                 modifier = Modifier.padding(start = 18.51.dp),
 
                 // 아이콘 색상 (흰색)
-                tint = White,
+                tint = colors.white,
 
                 // 사용할 아이콘 이미지 리소스 (drawable/linku_logo.xml)
                 painter = painterResource(id = R.drawable.linku_logo),
@@ -94,14 +94,11 @@ fun FileSearchBar() {
                 // 한 줄 높이 (20sp)
                 lineHeight = 20.sp,
 
-                // 지정 폰트 (paperlogy 등)
-                fontFamily = DefaultFont,
-
                 // 폰트 굵기 (Medium)
                 fontWeight = FontWeight(500),
 
                 // 글자색 (흰색)
-                color = White,
+                color = colors.white,
             )
         }
     }

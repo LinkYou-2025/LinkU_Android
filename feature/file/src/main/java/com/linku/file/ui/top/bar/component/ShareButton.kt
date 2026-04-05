@@ -5,31 +5,28 @@ package com.linku.file.ui.top.bar.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
 
 @Composable
 internal fun ShareButton(
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
     // 내부 배치 레이아웃
     Row(
         modifier = Modifier
@@ -39,7 +36,7 @@ internal fun ShareButton(
             // 버튼 배경에 그라데이션 브러시 적용 (MainColor)
             .background(
                 shape = RoundedCornerShape(size = 22.dp),
-                brush = MainColor
+                brush = colors.maincolor
             )
 
             .then(modifier),
@@ -62,14 +59,11 @@ internal fun ShareButton(
             // 한 줄 높이 (20sp)
             lineHeight = 20.sp,
 
-            // 지정 폰트 (paperlogy 등)
-            fontFamily = DefaultFont,
-
             // 굵기 (Bold)
             fontWeight = FontWeight.Bold,
 
             // 글자색 (흰색)
-            color = White,
+            color = colors.white,
 
             // 텍스트 정렬 (가운데)
             textAlign = TextAlign.Center,
@@ -82,7 +76,7 @@ internal fun ShareButton(
                 .size(width = 17.29426.dp, height = 14.dp),
 
             // 아이콘 색상 (흰색)
-            tint = White,
+            tint = colors.white,
 
             // 사용할 아이콘 이미지 리소스
             painter = painterResource(id = R.drawable.share_icon_img),

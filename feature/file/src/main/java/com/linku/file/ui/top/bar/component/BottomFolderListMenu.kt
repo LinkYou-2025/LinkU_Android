@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,12 +42,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.color.Basic
 import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.White
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
@@ -57,6 +55,8 @@ fun BottomFolderListMenu(
     folderStateViewModel: FolderStateViewModel,
     onChangeFolder: () -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
+
     val isLinks = folderStateViewModel.currentFolderState == FolderState.LINKS
     val parentFolders = fileViewModel.parentFolders.collectAsStateWithLifecycle().value
     val subFolders = fileViewModel.subFolders.collectAsStateWithLifecycle().value
@@ -116,6 +116,8 @@ private fun BottomFolderListMenuLayout(
     subFolderName: (FolderSimpleInfo) -> String,
     onSubFolderClick: (FolderSimpleInfo) -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
+
     // ----------------------------스크롤 바 추후 수정----------------------------
     val menuHeight = 264f
     val menuWidth = 205f
@@ -201,7 +203,7 @@ private fun BottomFolderListMenuLayout(
                     .fillMaxWidth()
                     /*.background(
                         shape = RoundedCornerShape(18.dp),
-                        color = Basic.blue[200].copy(alpha = 0.5f)
+                        color = colors.blue[200].copy(alpha = 0.5f)
                     )*/
                 )
 
@@ -211,7 +213,7 @@ private fun BottomFolderListMenuLayout(
                         .fillMaxWidth()
                         .height(thumbHeight.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .background(Basic.gray[500])
+                        .background(colors.gray[500])
                 )
             }
         } else {
@@ -232,7 +234,7 @@ private fun BottomFolderListMenuLayout(
         offset = DpOffset(0.dp, 10.dp),
         expanded = bottomMenuExpanded,
         onDismissRequest = onDismissRequest,
-        containerColor = White,
+        containerColor = colors.white,
     ) {
 
         // 링크 목록 위 스크롤 바를 띄우는 박스
@@ -300,6 +302,7 @@ private fun BottomFolderListMenuRow(
     enabled: Boolean,
     onClick: () -> Unit
 ){
+    val colors = MaterialTheme.linkuColors
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -321,9 +324,8 @@ private fun BottomFolderListMenuRow(
             text = text,
             fontSize = 15.sp,
             lineHeight = 22.sp,
-            fontFamily = DefaultFont,
             fontWeight = FontWeight(400),
-            color = Gray800,
+            color = colors.gray[800],
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

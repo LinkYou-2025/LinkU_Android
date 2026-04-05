@@ -13,10 +13,8 @@ import com.squareup.moshi.JsonWriter
 import com.squareup.moshi.ToJson
 import com.linku.data.util.toOffsetDateTimeInKorea
 import java.lang.reflect.Type
-import java.time.Instant
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class OffsetDateTimeSerializer: JsonDeserializer<OffsetDateTime>, JsonSerializer<OffsetDateTime>,

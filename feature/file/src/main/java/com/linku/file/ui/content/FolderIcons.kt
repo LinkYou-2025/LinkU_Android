@@ -2,6 +2,7 @@ package com.linku.file.ui.content
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
@@ -10,12 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.theme.Blue300
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.Purple200
-import com.linku.file.ui.theme.White
 
 // 공유 폴더 사람 아이콘
 @Composable
@@ -58,16 +55,17 @@ internal fun PencilIcon(
 internal fun BookMarkStar(
     isBookmarked: Boolean
 ) {
+    val colors = MaterialTheme.linkuColors
     val modifier = if(isBookmarked) Modifier
         .graphicsLayer(alpha = 0.99f)
         .drawWithCache {
             onDrawWithContent {
                 drawContent()
-                drawRect(MainColor, blendMode = BlendMode.SrcAtop)
+                drawRect(colors.maincolor, blendMode = BlendMode.SrcAtop)
             }
         } else Modifier
     Icon(
-        tint = White,
+        tint = colors.white,
         painter = painterResource(R.drawable.bookmark_star_icon),
         modifier = modifier,
         contentDescription = null,
@@ -77,10 +75,11 @@ internal fun BookMarkStar(
 @Preview(showBackground = true)
 @Composable
 private fun FolderIconsTest() {
+    val colors = MaterialTheme.linkuColors
     Column {
-        ShareFolderIcon(Blue300)
-        LockFolderIcon(Purple200)
-        PencilIcon(Gray800)
+        ShareFolderIcon(colors.blue[300])
+        LockFolderIcon(colors.purple[200])
+        PencilIcon(colors.gray[800])
         BookMarkStar(true)
     }
 }
