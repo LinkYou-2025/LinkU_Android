@@ -3,7 +3,6 @@ package com.linku.data.api
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.FolderCreateRequestDTO
 import com.linku.data.api.dto.server.FolderListResponseDTO
-import com.linku.data.api.dto.server.FolderPermissionRequestDTO
 import com.linku.data.api.dto.server.FolderResponseDTO
 import com.linku.data.api.dto.server.FolderTreeResponseDTO
 import com.linku.data.api.dto.server.FolderUpdateRequestDTO

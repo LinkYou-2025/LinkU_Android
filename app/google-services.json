@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "338497125500",
+    "project_id": "linku-7f9e4",
+    "storage_bucket": "linku-7f9e4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:338497125500:android:0aa677277b4fa02fae9df9",
+        "android_client_info": {
+          "package_name": "com.linku"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyACCYA1_j1r3qGUblQK0moONpNKd-winqo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

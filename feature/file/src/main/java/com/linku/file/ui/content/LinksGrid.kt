@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,14 +27,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
-import com.linku.file.ui.modal.FileModalWindow
-import com.linku.file.ui.theme.Black
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray600
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
@@ -41,6 +40,7 @@ fun LinksGrid(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ){
+    val colors = MaterialTheme.linkuColors
     val linkList = fileViewModel.links.collectAsStateWithLifecycle().value
 
     val hasNotCategorizationLinks = fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle().value.isNotEmpty()
@@ -102,9 +102,8 @@ fun LinksGrid(
                         modifier = Modifier.padding(top = 147.dp),
                         text = "링크 추가하기",
                         fontSize = 15.sp,
-                        fontFamily = DefaultFont,
                         fontWeight = FontWeight(500),
-                        color = Black,
+                        color = colors.black,
                         textAlign = TextAlign.Center,
                     )
                 }
@@ -137,7 +136,7 @@ fun LinksGrid(
     }
 
     // 분류되지 않는 링크가 없으면 뜨는 모달창
-    FileModalWindow(
+    ModalWindow(
         visible = categorizationModalWindowVisible,
         onDismiss = { categorizationModalWindowVisible = false },
         title = "분류되지 않은 링크가 없습니다.",
@@ -147,15 +146,14 @@ fun LinksGrid(
             text = "새 링크를 저장한 뒤 분류해보세요!",
             fontSize = 15.sp,
             lineHeight = 22.sp,
-            fontFamily = DefaultFont,
             fontWeight = FontWeight.Normal,
-            color = Gray600,
+            color = colors.gray[600],
             textAlign = TextAlign.Center
         )
     }
 
     // 링크 삭제 모달창
-    FileModalWindow(
+    ModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
             // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
@@ -175,9 +173,8 @@ fun LinksGrid(
             text = "삭제 시 해당 링크가 영구적으로 제거되며\n복구가 불가능합니다.",
             fontSize = 15.sp,
             lineHeight = 22.sp,
-            fontFamily = DefaultFont,
             fontWeight = FontWeight(400),
-            color = Gray600,
+            color = colors.gray[600],
             textAlign = TextAlign.Center,
         )
     }

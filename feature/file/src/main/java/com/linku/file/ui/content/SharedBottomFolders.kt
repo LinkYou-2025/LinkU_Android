@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -22,11 +23,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
+import com.linku.design.modal.ModalWindow
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.ui.item.EmptyFolderItemLayout
-import com.linku.file.ui.modal.FileModalWindow
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray600
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -38,6 +38,7 @@ fun SharedBottomFolderGrid(
     folderStateViewModel: FolderStateViewModel,
     editStateViewModel: EditStateViewModel
 ) {
+    val colors = MaterialTheme.linkuColors
     val folderList by fileViewModel.sharedBottomFolders.collectAsStateWithLifecycle()
     val interactionSource = remember { MutableInteractionSource() }
 
@@ -81,7 +82,7 @@ fun SharedBottomFolderGrid(
                 )
             }
 
-            FileModalWindow(
+            ModalWindow(
                 visible = visible,
                 onOkay = {
                     fileViewModel.deleteSharedFolder(folder.folderId)
@@ -94,9 +95,8 @@ fun SharedBottomFolderGrid(
                     text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight(400),
-                    color = Gray600,
+                    color = colors.gray[600],
                     textAlign = TextAlign.Center,
                 )
             }

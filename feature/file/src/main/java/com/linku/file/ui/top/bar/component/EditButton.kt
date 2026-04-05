@@ -2,6 +2,7 @@
 
 package com.linku.file.ui.top.bar.component
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -11,17 +12,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.linkuColors
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.White
-
 
 @Composable
 fun EditButton(
     editStateViewModel: EditStateViewModel,
     folderViewModel: FolderStateViewModel
 ) {
+    val colors = MaterialTheme.linkuColors
 
     // 수정 버튼
     Text(
@@ -41,14 +41,11 @@ fun EditButton(
         // 한 줄 높이 (22sp)
         lineHeight = 22.sp,
 
-        // 사용할 폰트 (paperlogy 폰트)
-        fontFamily = DefaultFont,
-
         // 폰트 굵기 (보통)
         fontWeight = FontWeight.Normal,
 
         // 글자색 (White)
-        color = White,
+        color = colors.white,
 
         // 텍스트 정렬 방식 (오른쪽 정렬)
         textAlign = TextAlign.Right,

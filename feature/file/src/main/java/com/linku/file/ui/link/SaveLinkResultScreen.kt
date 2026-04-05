@@ -25,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,11 +56,9 @@ import com.linku.core.model.AiArticle
 import com.linku.core.model.LinkResultInfo
 import com.linku.design.BrushText
 import com.linku.design.R
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.LocalFontTheme
-import com.linku.design.theme.color.Basic
 import com.linku.design.theme.color.CategoryColorStyle
-import kotlinx.coroutines.delay
+import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import java.time.OffsetDateTime
 
 private fun emotionDisplayName(id: Long?): String? = when (id) {
@@ -134,6 +133,8 @@ fun SaveLinkResultScreen(
     aiProgress: Float = 0f,
     onCancelAi: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
     // 서버 데이터 바인딩 (널/로딩 방어)
     val titleFromServer = link?.title.orEmpty()
     val memoFromServer = link?.memo.orEmpty()
@@ -253,7 +254,7 @@ fun SaveLinkResultScreen(
                 initialEmotionLabel = emotionLabel,
                 categoryLabels = categoryLabels,
                 dotColorOf = { label ->
-                    categoryColorMap[label]?.color4 ?: LocalColorTheme.current.gray[300]
+                    categoryColorMap[label]?.color4 ?: colors.gray[300]
                 },
                 onCategorySelected = { label ->
                     selectedCategoryId = categoryIdOf(label)
@@ -270,8 +271,8 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "링크",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.gray[800],
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = font),
+                    color = colors.gray[800],
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
@@ -282,14 +283,14 @@ fun SaveLinkResultScreen(
                         .fillMaxWidth()
                         .heightIn(min = 51.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp))
+                        .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
                         .padding(horizontal = 22.dp, vertical = 15.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
                     Text(
                         text = linku,
-                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
-                        color = LocalColorTheme.current.black
+                        style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = font, lineHeight = 20.sp),
+                        color = colors.black
                     )
                 }
             }
@@ -300,8 +301,8 @@ fun SaveLinkResultScreen(
                     .height(209.3.dp)
                     .padding(top = 18.dp, start = 20.dp, end = 20.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(LocalColorTheme.current.gray[100])
-                    .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp)),
+                    .background(colors.gray[100])
+                    .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp)),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (!imageUrl.isNullOrBlank()) {
@@ -324,8 +325,8 @@ fun SaveLinkResultScreen(
                         )
                         Text(
                             text = "이미지 업로드하기",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font),
-                            color = LocalColorTheme.current.gray[500],
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = font),
+                            color = colors.gray[500],
                             modifier = Modifier.padding(top = 8.dp)
                         )
                     }
@@ -346,15 +347,15 @@ fun SaveLinkResultScreen(
                     ) {
                         Text(
                             text = "키워드 (AI추출 태그)",
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                            color = LocalColorTheme.current.gray[800]
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = font),
+                            color = colors.gray[800]
                         )
 
                         if (isEditMode) {
                             Text(
                                 text = "수정 불가",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.blue[200],
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = font),
+                                color = colors.blue[200],
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                         }
@@ -367,7 +368,7 @@ fun SaveLinkResultScreen(
                             .fillMaxWidth()
                             .heightIn(min = 51.dp)
                             .clip(RoundedCornerShape(18.dp))
-                            .background(LocalColorTheme.current.gray[100])
+                            .background(colors.gray[100])
                             .padding(horizontal = 22.dp, vertical = 15.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
@@ -375,15 +376,15 @@ fun SaveLinkResultScreen(
                             isAiLoading -> {
                                 Text(
                                     "키워드 추출 중...",
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                                    color = LocalColorTheme.current.gray[400]
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = font),
+                                    color = colors.gray[400]
                                 )
                             }
                             isKeywordEmpty -> {
                                 Text(
                                     text = keywordPlaceholder,
-                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                                    color = LocalColorTheme.current.gray[400]
+                                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = font),
+                                    color = colors.gray[400]
                                 )
                             }
                             else -> {
@@ -423,11 +424,11 @@ fun SaveLinkResultScreen(
 //                                }
                                 BrushText(
                                     text = displayKeyword,
-                                    brush = Basic.maincolor, // 이미 쓰는 메인 그라데이션
+                                    brush = colors.maincolor, // 이미 쓰는 메인 그라데이션
                                     style = TextStyle(
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
-                                        fontFamily = LocalFontTheme.current.font // Paperlogy 적용
+                                        fontFamily = font // Paperlogy 적용
                                     ),
                                     modifier = Modifier.fillMaxWidth() // 필요시 정렬/패딩 추가
                                 )
@@ -489,11 +490,11 @@ fun SaveLinkResultScreen(
 //                        }
                         BrushText(
                             text = "AI 본문 요약",
-                            brush = Basic.maincolor,
+                            brush = colors.maincolor,
                             style = TextStyle(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                fontFamily = LocalFontTheme.current.font // Paperlogy 적용
+                                fontFamily = font // Paperlogy 적용
                             ),
                             modifier = Modifier.padding(start = 4.dp)
                         )
@@ -502,8 +503,8 @@ fun SaveLinkResultScreen(
                         if (isEditMode) {
                             Text(
                                 text = "수정 불가",
-                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                                color = LocalColorTheme.current.blue[200],
+                                style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = font),
+                                color = colors.blue[200],
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                         }
@@ -517,12 +518,12 @@ fun SaveLinkResultScreen(
                             .clip(RoundedCornerShape(18.dp))
                             .background(
                                 if (isSummaryEmpty) {
-                                    SolidColor(LocalColorTheme.current.gray[100])
+                                    SolidColor(colors.gray[100])
                                 } else {
                                     Brush.horizontalGradient(
                                         listOf(
-                                            LocalColorTheme.current.blue[200].copy(alpha = 0.1f),
-                                            LocalColorTheme.current.purple[200].copy(alpha = 0.1f)
+                                            colors.blue[200].copy(alpha = 0.1f),
+                                            colors.purple[200].copy(alpha = 0.1f)
                                         )
                                     )
                                 }
@@ -536,10 +537,10 @@ fun SaveLinkResultScreen(
                                 isSummaryEmpty -> summaryPlaceholder
                                 else -> displaySummary
                             },
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, fontFamily = font, lineHeight = 20.sp),
                             color = when {
-                                isAiLoading || isSummaryEmpty -> LocalColorTheme.current.gray[400]
-                                else -> LocalColorTheme.current.black
+                                isAiLoading || isSummaryEmpty -> colors.gray[400]
+                                else -> colors.black
                             }
                         )
                     }
@@ -553,8 +554,8 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "메모",
-                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.gray[800],
+                    style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = font),
+                    color = colors.gray[800],
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
@@ -576,7 +577,7 @@ fun SaveLinkResultScreen(
                         .fillMaxWidth()
                         .heightIn(min = 51.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .background(LocalColorTheme.current.gray[100])
+                        .background(colors.gray[100])
                         .padding(horizontal = 22.dp, vertical = 15.dp)
                         .then(
                             if (isEditMode) Modifier.clickable { isMemoEditing = true } else Modifier
@@ -587,7 +588,7 @@ fun SaveLinkResultScreen(
                         BasicTextField(
                             value = memoText,
                             onValueChange = { memoText = it },
-                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
+                            textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, color = colors.black, fontFamily = font, lineHeight = 20.sp),
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(memoFocusRequester)
@@ -595,8 +596,8 @@ fun SaveLinkResultScreen(
                     } else {
                         Text(
                             text = memoText,
-                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = LocalFontTheme.current.font, lineHeight = 20.sp),
-                            color = LocalColorTheme.current.black,
+                            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Light, fontFamily = font, lineHeight = 20.sp),
+                            color = colors.black,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -631,7 +632,7 @@ fun SaveLinkResultScreen(
                         .height(50.dp)
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .background(LocalColorTheme.current.blue[200])
+                        .background(colors.blue[200])
                         .clickable {
 //                            if (hasContent) {
 //                                // 이미 요약/키워드가 있으면 네트워크 호출 없이 즉시 펼치기
@@ -656,8 +657,8 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = "AI 요약 보기",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
-                        color = LocalColorTheme.current.white
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = font),
+                        color = colors.white
                     )
                 }
 
@@ -669,8 +670,8 @@ fun SaveLinkResultScreen(
                 ) {
                     Text(
                         text = "AI가 링크 내용을 바탕으로 요약해드려요! 이용해보시겠어요?",
-                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                        color = LocalColorTheme.current.gray[400]
+                        style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Normal, fontFamily = font),
+                        color = colors.gray[400]
                     )
                 }
 
@@ -708,7 +709,7 @@ fun SaveLinkResultScreen(
                 modifier = Modifier
                     .height(50.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(brush = Basic.maincolor)
+                    .background(brush = colors.maincolor)
                     .padding(horizontal = 16.dp)
                     .clickable {
 //                        Log.d("SaveLinkResultScreen", "링크 버튼 클릭! linku='$linku'")
@@ -726,8 +727,8 @@ fun SaveLinkResultScreen(
             ) {
                 Text(
                     text = "링크 바로 가기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.white
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = font),
+                    color = colors.white
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
@@ -777,8 +778,10 @@ private fun TopBar(
     onCategorySelected: (String) -> Unit = {},
     onEmotionSelected: (String) -> Unit = {},
     categoryLabels: List<String> = emptyList(),
-    dotColorOf: @Composable (String) -> Color = { LocalColorTheme.current.gray[300] },
+    dotColorOf: @Composable (String) -> Color = { MaterialTheme.linkuColors.gray[300] },
 ) {
+    val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
     // 태그 샘플
 //    val tags = listOf("카테고리", "감정")
 
@@ -805,7 +808,7 @@ private fun TopBar(
             .clip(
                 RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp)
             )
-            .background(LocalColorTheme.current.blue[200])
+            .background(colors.blue[200])
     ) {
         Image(
             painter = painterResource(R.drawable.ic_transparent_logo_background),
@@ -836,8 +839,8 @@ private fun TopBar(
 
                 Text(
                     text = "저장된 링크",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.white
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, fontFamily = font),
+                    color = colors.white
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -845,8 +848,8 @@ private fun TopBar(
                 Box(modifier = Modifier.width(40.dp), contentAlignment = Alignment.CenterStart) {
                     Text(
                         text = if (isEditMode) "완료" else "수정",
-                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, fontFamily = LocalFontTheme.current.font),
-                        color = LocalColorTheme.current.blue[50],
+                        style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Normal, fontFamily = font),
+                        color = colors.blue[50],
                         modifier = Modifier
                             .clickable {
                                 onEditClick(title)
@@ -881,7 +884,7 @@ private fun TopBar(
                             if (isEditMode) {
                                 Modifier
                                     .clip(RoundedCornerShape(13.dp))
-                                    .border(1.dp, LocalColorTheme.current.blue[100], RoundedCornerShape(13.dp))
+                                    .border(1.dp, colors.blue[100], RoundedCornerShape(13.dp))
                                     .padding(top = 4.dp, start = 15.dp, end = 15.dp, bottom = 4.dp)
                                     .clickable { isTitleEditing = true }
                             } else {
@@ -894,15 +897,15 @@ private fun TopBar(
                         BasicTextField(
                             value = title,
                             onValueChange = { title = it },
-                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = LocalColorTheme.current.white, fontFamily = LocalFontTheme.current.font),
+                            textStyle = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, color = colors.white, fontFamily = font),
                             modifier = Modifier.weight(1f)
                         )
                     } else {
                         Text(
                             text = title,
 //                            overflow = TextOverflow.Ellipsis,  // 말 줄임
-                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
-                            color = LocalColorTheme.current.white,
+                            style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, fontFamily = font),
+                            color = colors.white,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -936,7 +939,7 @@ private fun TopBar(
 //                        Row(
 //                            modifier = Modifier
 //                                .background(
-//                                    LocalColorTheme.current.blue[50],
+//                                    colors.blue[50],
 //                                    RoundedCornerShape(10.dp)
 //                                )
 //                                .padding(horizontal = 10.dp, vertical = 8.5.dp),
@@ -947,7 +950,7 @@ private fun TopBar(
 //                                style = TextStyle(
 //                                    fontSize = 12.sp,
 //                                    fontWeight = FontWeight.Normal,
-//                                    color = LocalColorTheme.current.blue[300]
+//                                    color = colors.blue[300]
 //                                )
 //                            )
 //
@@ -993,7 +996,7 @@ private fun TopBar(
                     tags.forEach { tag ->
                         Row(
                             modifier = Modifier
-                                .background(LocalColorTheme.current.blue[50], RoundedCornerShape(10.dp))
+                                .background(colors.blue[50], RoundedCornerShape(10.dp))
                                 .padding(horizontal = 10.dp, vertical = 8.5.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -1002,8 +1005,8 @@ private fun TopBar(
                                 style = TextStyle(
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.blue[300],
-                                    fontFamily = LocalFontTheme.current.font
+                                    color = colors.blue[300],
+                                    fontFamily = font
                                 )
                             )
                         }
@@ -1025,23 +1028,25 @@ private fun CategoryChipEditable(
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier) {
         Row(
             modifier = Modifier
                 .heightIn(min = 26.dp)
-                .background(LocalColorTheme.current.blue[50], RoundedCornerShape(10.dp))
+                .background(colors.blue[50], RoundedCornerShape(10.dp))
                 .clickable { expanded = true }
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = label,
-                color = LocalColorTheme.current.blue[300],
+                color = colors.blue[300],
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
-                fontFamily = LocalFontTheme.current.font
+                fontFamily = font
             )
             Spacer(Modifier.width(6.dp))
             Image(
@@ -1055,7 +1060,7 @@ private fun CategoryChipEditable(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(18.dp),
-            containerColor = LocalColorTheme.current.white,
+            containerColor = colors.white,
             offset = DpOffset(0.dp, 10.dp),
         ) {
             Column(
@@ -1083,10 +1088,10 @@ private fun CategoryChipEditable(
                         Spacer(Modifier.width(12.dp))
                         Text(
                             text = name,
-                            color = if (selected) LocalColorTheme.current.blue[300] else LocalColorTheme.current.gray[800],
+                            color = if (selected) colors.blue[300] else colors.gray[800],
                             fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
                             fontSize = 14.sp,
-                            fontFamily = LocalFontTheme.current.font
+                            fontFamily = font
                         )
                     }
                 }
@@ -1101,23 +1106,25 @@ private fun EmotionChipEditable(
     onSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
     var expanded by remember { mutableStateOf(false) }
 
     Box(modifier = modifier.wrapContentSize(Alignment.TopCenter)) {
         Row(
             modifier = Modifier
                 .heightIn(min = 26.dp)
-                .background(LocalColorTheme.current.blue[50], RoundedCornerShape(10.dp))
+                .background(colors.blue[50], RoundedCornerShape(10.dp))
                 .clickable { expanded = true }
                 .padding(horizontal = 10.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = label,
-                color = LocalColorTheme.current.blue[300],
+                color = colors.blue[300],
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
-                fontFamily = LocalFontTheme.current.font
+                fontFamily = font
             )
             Spacer(Modifier.width(6.dp))
             Image(
@@ -1131,7 +1138,7 @@ private fun EmotionChipEditable(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(18.dp),
-            containerColor = LocalColorTheme.current.white,
+            containerColor = colors.white,
             offset = DpOffset(0.dp, 10.dp),
         ) {
             Column(
@@ -1158,7 +1165,7 @@ private fun EmotionChipEditable(
                             modifier = Modifier
                                 .size(29.dp)
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(LocalColorTheme.current.gray[100]),
+                                .background(colors.gray[100]),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
@@ -1170,11 +1177,11 @@ private fun EmotionChipEditable(
                         Spacer(Modifier.width(10.dp))
                         Text(
                             text = emo.label,
-                            color = if (selected) LocalColorTheme.current.blue[300]
-                            else LocalColorTheme.current.gray[800],
+                            color = if (selected) colors.blue[300]
+                            else colors.gray[800],
                             fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
                             fontSize = 14.sp,
-                            fontFamily = LocalFontTheme.current.font
+                            fontFamily = font
                         )
                     }
                 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,33 +26,35 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.LocalFontTheme
-import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 
 @Composable
 fun DeleteLinkModal(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val font = MaterialTheme.linkuFont.font
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white),
+            .background(colors.white),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = "해당 링크를 삭제하시겠습니까?",
-            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium), fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.black,
+            style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Medium), fontFamily = font,
+            color = colors.black,
             modifier = Modifier.padding(top = 45.dp)
         )
 
         Text(
             text = "삭제 시 해당 링크가 영구적으로 제거되며\n복구가 불가능합니다.",
-            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
-            color = LocalColorTheme.current.gray[600],
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Normal, lineHeight = 22.sp, textAlign = TextAlign.Center, fontFamily = font),
+            color = colors.gray[600],
             modifier = Modifier.padding(top = 35.dp)
         )
 
@@ -64,8 +67,8 @@ fun DeleteLinkModal(
                     .weight(1f)
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .border(BorderStroke(1.dp, brush = Basic.maincolor), RoundedCornerShape(14.dp))
-                    .background(LocalColorTheme.current.white)
+                    .border(BorderStroke(1.dp, brush = colors.maincolor), RoundedCornerShape(14.dp))
+                    .background(colors.white)
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
@@ -74,8 +77,8 @@ fun DeleteLinkModal(
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        brush = Basic.maincolor,  // 그라데이션 Brush 사용
-                        fontFamily = LocalFontTheme.current.font
+                        brush = colors.maincolor,  // 그라데이션 Brush 사용
+                        fontFamily = font
                     ),
                     modifier = Modifier
                         .graphicsLayer(alpha = 0.99f) // brush 적용 시 필수
@@ -89,14 +92,14 @@ fun DeleteLinkModal(
                     .weight(1f)
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(brush = Basic.maincolor)
+                    .background(brush = colors.maincolor)
                     .clickable { onConfirm() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "삭제하기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.white
+                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = font),
+                    color = colors.white
                 )
             }
         }
@@ -107,7 +110,7 @@ fun DeleteLinkModal(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewDeleteLinkModal() {
+private fun PreviewDeleteLinkModal() {
     DeleteLinkModal(
         onDismiss = {},
         onConfirm = {}

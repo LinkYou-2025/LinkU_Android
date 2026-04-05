@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -58,32 +59,27 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.model.FolderSimpleInfo
+import com.linku.design.modal.ModalWindow
+import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.design.modifier.noRippleClickable
 import com.linku.file.ui.item.BottomFolderItemLayout
 import com.linku.file.ui.item.EmptyFolderItemLayout
 import com.linku.file.ui.item.TopFolderItemLayout
-import com.linku.file.ui.modal.FileModalWindow
-import com.linku.file.ui.theme.Black
-import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray400
-import com.linku.file.ui.theme.Gray600
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.MainColor
-import com.linku.file.ui.theme.White
-import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ShareBottomSheet(
+internal fun ShareBottomSheet(
     userName: String,
     folderStateViewModel: FolderStateViewModel,
     fileViewModel: FileViewModel
 ){
+    val colors = MaterialTheme.linkuColors
+
     // 선택한 폴더들
     var selectedTopFolder by remember { mutableStateOf<FolderSimpleInfo?>(null) }
     var selectedBottomFolder by remember { mutableStateOf<FolderSimpleInfo?>(null) }
@@ -140,8 +136,8 @@ fun ShareBottomSheet(
                     .height(51.dp)
                     .border(
                         1.dp,
-                        if (selectable) MainColor else Brush.horizontalGradient(
-                            listOf(Gray400, Gray400)
+                        if (selectable) colors.maincolor else Brush.horizontalGradient(
+                            listOf(colors.gray[400], colors.gray[400])
                         ),
                         RoundedCornerShape(18.dp)
                     )
@@ -159,9 +155,8 @@ fun ShareBottomSheet(
                     text = text,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    fontFamily = DefaultFont,
                     fontWeight = FontWeight(400),
-                    color = if (selectable) Black else Gray400,
+                    color = if (selectable) colors.black else colors.gray[400],
                 )
 
                 val modifier = if (expanded) Modifier
@@ -171,7 +166,7 @@ fun ShareBottomSheet(
                         onDrawWithContent {
                             drawContent()
                             drawRect(
-                                brush = MainColor,
+                                brush = colors.maincolor,
                                 blendMode = BlendMode.SrcAtop,
                                 alpha = if (selectable) 1f else 0.5f
                             )
@@ -195,7 +190,7 @@ fun ShareBottomSheet(
                     expanded = false
                     menuOpen = false
                 },
-                containerColor = White
+                containerColor = colors.white
             ) {
                 for ((i, folder) in folderList.withIndex()) {
                     val categoryColorStyle =
@@ -224,9 +219,8 @@ fun ShareBottomSheet(
                                 text = folder.folderName,
                                 fontSize = 15.sp,
                                 lineHeight = 22.sp,
-                                fontFamily = DefaultFont,
                                 fontWeight = FontWeight(400),
-                                color = Gray800,
+                                color = colors.gray[800],
                                 maxLines = 1,  // 한 줄만 보여주고
                                 overflow = TextOverflow.Ellipsis  // 넘치면 ...으로 대체
                             )
@@ -334,7 +328,7 @@ fun ShareBottomSheet(
         Spacer(modifier = Modifier.height(bottomSpacerHeight))
     }
 
-    FileModalWindow(
+    ModalWindow(
         visible = modalOpen,
         title = "링크가 복사되었습니다!",
         onOkay = {
@@ -355,14 +349,11 @@ fun ShareBottomSheet(
                         // 폰트 크기 (14sp)
                         fontSize = 14.sp,
 
-                        // 사용할 폰트 (paperlogy 폰트)
-                        fontFamily = DefaultFont,
-
                         // 폰트 굵기 (Bold)
                         fontWeight = FontWeight.Normal,
 
                         // 텍스트 그라데이션 색상(링큐 메인 색상)
-                        brush = MainColor,
+                        brush = colors.maincolor,
                     )
                 ) {
                     // 실제 표시할 텍스트
@@ -379,9 +370,8 @@ fun ShareBottomSheet(
             text = "이 링크를 전송하면, 받은 사용자가 해당 폴더에 있는\n링크를 열람하고 저장할 수 있습니다.\n\n단, 열람자는 링큐 계정으로 로그인되어 있어야 합니다.",
             fontSize = 15.sp,
             lineHeight = 22.sp,
-            fontFamily = DefaultFont,
             fontWeight = FontWeight.Normal,
-            color = Gray600,
+            color = colors.gray[600],
             textAlign = TextAlign.Center,
         )
     }

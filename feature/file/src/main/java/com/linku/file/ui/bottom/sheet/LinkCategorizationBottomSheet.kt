@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -43,15 +44,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.model.LinkItemInfo
+import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.color.Basic
-import com.linku.file.ui.theme.Black
-import com.linku.file.ui.theme.DefaultFont
-import com.linku.file.ui.theme.Gray100
-import com.linku.file.ui.theme.Gray800
-import com.linku.file.ui.theme.Purple200
 import com.linku.file.ui.theme.domainLogoPainterOrNull
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import kotlinx.coroutines.launch
@@ -62,6 +58,8 @@ fun LinkCategorizationBottomSheet(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     //var link by remember { mutableStateOf<LinkItemInfo?>(null) }
@@ -138,8 +136,8 @@ fun LinkCategorizationBottomSheet(
                             }
                         },
                         colors = CheckboxDefaults.colors(
-                            checkedColor = Purple200,
-                            uncheckedColor = Basic.gray[200],
+                            checkedColor = colors.purple[200],
+                            uncheckedColor = colors.gray[200],
                         )
                     )
 
@@ -147,7 +145,7 @@ fun LinkCategorizationBottomSheet(
                         modifier = Modifier
                             //.height(60.dp)
                             .background(
-                                color = Gray100,
+                                color = colors.gray[100],
                                 shape = RoundedCornerShape(18.dp)
                                 )
                             /*.clip(RoundedCornerShape(18.dp))*/,
@@ -173,9 +171,8 @@ fun LinkCategorizationBottomSheet(
                         Text(
                             text = title,
                             fontSize = 15.sp,
-                            fontFamily = DefaultFont,
                             fontWeight = FontWeight(500),
-                            color = Black,
+                            color = colors.black,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -190,7 +187,7 @@ fun LinkCategorizationBottomSheet(
                                 modifier = Modifier
                                     .size(22.dp)
                                     .clip(CircleShape)
-                                    .background(Gray100),
+                                    .background(colors.gray[100]),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Image(
@@ -205,9 +202,8 @@ fun LinkCategorizationBottomSheet(
                             Text(
                                 text = url,
                                 fontSize = 12.sp,
-                                fontFamily = DefaultFont,
                                 fontWeight = FontWeight(400),
-                                color = Gray800,
+                                color = colors.gray[800],
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )

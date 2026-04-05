@@ -3,7 +3,6 @@ package com.linku.core.repository
 import com.linku.core.model.FolderInfo
 import com.linku.core.model.FolderPermission
 import com.linku.core.model.FolderSimpleInfo
-import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
 import com.linku.core.model.FolderPermissionInfo
