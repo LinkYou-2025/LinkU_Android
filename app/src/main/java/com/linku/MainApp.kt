@@ -13,7 +13,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,10 +40,10 @@ import com.linku.home.HomeViewModel
 import com.linku.home.screen.SaveLinkResultScreen
 import com.linku.home.screen.SaveLinkScreen
 
-//import com.example.login.LoginScreen
-import com.example.mypage.MyPageApp
-import com.example.mypage.MyPageViewModel
-//import com.example.mypage.MyPageScreen
+
+import com.linku.mypage.MyPageApp
+import com.linku.mypage.MyPageViewModel
+//import com.linku.mypage.MyPageScreen
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
@@ -59,28 +58,26 @@ import androidx.navigation.navDeepLink
 import com.linku.curation.CurationViewModel
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
+import com.linku.file.ui.theme.Gray600
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.login.viewmodel.LoginViewModel
 
 import dagger.hilt.android.EntryPointAccessors
 import androidx.core.net.toUri
 import com.linku.core.model.auth.LoginState
-import com.linku.core.model.auth.SocialLoginEvent
-import com.linku.design.modal.ModalWindow
-import com.linku.curation.curationGraph
-import com.linku.deeplink.SocialDeepLinkBus
+import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
-import com.linku.design.theme.linkuColors
+import com.linku.design.modal.ModalWindow
+import com.linku.linku_android.curation.curationGraph
 import com.linku.login.navigation.LoginApp
-
+import com.linku.navigation.LinkuNavigationItem
 
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
 
-) {
+    ) {
 
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     LaunchedEffect(Unit) {
@@ -109,33 +106,7 @@ fun MainApp(
     // 마이페이지에서 사용할 뷰모델
     val mypageViewModel: MyPageViewModel = hiltViewModel()
 
-    // TEMP 토큰 임시 보관
-    var pendingSocialToken by remember { mutableStateOf<String?>(null) }
 
-    // SocialDeepLinkBus 구독 - MainActivity에서 emit한 소셜 딥링크 수신
-    LaunchedEffect(Unit) {
-        Log.d("SOCIAL_VM", "Bus 구독 시작")
-        SocialDeepLinkBus.flow.collect { data ->
-            Log.d("SOCIAL_VM", "MainApp Bus 수신: $data")
-            loginViewModel.handleSocialDeepLink(data)
-        }
-    }
-
-
-    val socialLoginEvent by loginViewModel.socialLoginEvent.collectAsStateWithLifecycle()
-4
-    LaunchedEffect(socialLoginEvent) {
-        val event = socialLoginEvent as? SocialLoginEvent.NavigateToSocialEntry ?: return@LaunchedEffect
-        pendingSocialToken = event.socialToken
-        navigator.navigate("login_root") {
-            popUpTo(0) { inclusive = true }
-            launchSingleTop = true
-        }
-        loginViewModel.consumeSocialLoginEvent()
-    }
-
-
-    var currentLinkuNavigationItem by remember { mutableStateOf<LinkuNavigationItem?>(null) }
     var showNavBar by remember { mutableStateOf(false) }
 
     val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
@@ -143,9 +114,8 @@ fun MainApp(
         if (loginState is LoginState.Success) {
             Log.d("SOCIAL_VM", "LoginState.Success 감지 → 홈 이동")
             homeViewModel.refreshAfterLogin()
-            mypageViewModel.refreshUserInfo()
+            //mypageViewModel.refreshUserInfo() //로그인시 세션을 주기에 불필요함.
             showNavBar = true
-            currentLinkuNavigationItem = LinkuNavigationItem.HOME
             navigator.navigate(NavigationRoute.Home.route) {
                 popUpTo(0) { inclusive = true }
                 launchSingleTop = true
@@ -159,6 +129,26 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    //루트 기반 자동 계싼으로 변경함.
+    // 큐레이션으로 시작하는 모든 라우트를 큐레이션으로 인식하기에, 하위 화면에 있어도 바텀 네비게이션에
+    // 큐레이션 탭이 선택된 상태를 유지할 수 있도록 함.
+    // 하위 라우트 추가 시에도 바텀탭 선택 상태 유지를 위해 startsWith로 통일 상태 추가
+    // TODO 지민 : 코드 확인 부탁.
+    fun isTabRoute(current: String?, root: String): Boolean =
+        current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
+
+    val currentLinkuNavigationItem = when {
+        isTabRoute(currentRoute, NavigationRoute.Curation.route) ->
+            LinkuNavigationItem.CURATION
+
+        // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
+        isTabRoute(currentRoute, NavigationRoute.Home.route) ||
+                currentRoute == "savelink" ||
+                currentRoute == "savelinkresult/{linkuId}" -> LinkuNavigationItem.HOME
+        isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
+        isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
+        else -> null
+    }
 
     // 액티비티 참조 + 두번뒤로 시간 기록
     val context = LocalContext.current
@@ -172,7 +162,7 @@ fun MainApp(
         }
     }
 
-    val colors = MaterialTheme.linkuColors
+
 
     ThemeProvider {
         MainScreen(
@@ -180,17 +170,12 @@ fun MainApp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
 //                    if (item != currentLinkuNavigationItem) {
-                        val route = when (item) {
-                            LinkuNavigationItem.HOME -> NavigationRoute.Home.route
-                            LinkuNavigationItem.FILE -> NavigationRoute.File.route
-                            LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
-                            LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
-                        }
-
-
-
-                        // 현재 화면의 route
-                        val currentRoute = navigator.currentBackStackEntry?.destination?.route
+                    val route = when (item) {
+                        LinkuNavigationItem.HOME -> NavigationRoute.Home.route
+                        LinkuNavigationItem.FILE -> NavigationRoute.File.route
+                        LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
+                        LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                    }
 
 
                     if (currentRoute == route) {
@@ -274,15 +259,10 @@ fun MainApp(
                                     navigator.navigate("login_root") {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                     }
-//                                    navigator.navigate("auth_graph") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        launchSingleTop = true
-//                                    }
+
                                     return@Splash
                                 }
 
-                                //수정!
-                                autoLoginTried = true
 
                                 // refresh 있음 → 자동로그인 시도
                                 loginViewModel.tryAutoLogin(
@@ -296,10 +276,7 @@ fun MainApp(
                                         navigator.navigate("login_root") {
                                             popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         }
-//                                        navigator.navigate("auth_graph") {
-//                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                            launchSingleTop = true
-//                                        }
+
                                     }
                                 )
                             }
@@ -312,16 +289,13 @@ fun MainApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
                         showNavBar = { showNavBar = it },
-                        initialSocialToken = pendingSocialToken,
                         onLoginSuccess = {
-                            pendingSocialToken = null
                             // 세선 정보가 저장 후, 홈 화면 데이터 즉시 로드
                             homeViewModel.refreshAfterLogin()
                             // 마이페이지 정보도 미리 로그(자연스럽게?)
-                            mypageViewModel.refreshUserInfo()
+                            // mypageViewModel.refreshUserInfo() //중복 호출 제거함.
 
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.HOME
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
@@ -349,7 +323,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.HOME
+
                         }
 
 
@@ -373,7 +347,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.FILE
+
                         }
 
                         FileApp(
@@ -394,7 +368,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            currentLinkuNavigationItem = LinkuNavigationItem.MY_PAGE
+
                             // 화면 진입 시 최신 정보 로드
                             mypageViewModel.refreshUserInfo()
                             //mypageViewModel.loadUserInfo()
@@ -407,7 +381,7 @@ fun MainApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
                                 showNavBar = false  // 바텀바 끄기
-                                currentLinkuNavigationItem = null
+
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
@@ -584,7 +558,7 @@ fun MainApp(
                                 fontSize = 15.sp,
                                 lineHeight = 22.sp,
                                 fontWeight = FontWeight.Normal,
-                                color = colors.gray[600],
+                                color = Gray600,
                                 textAlign = TextAlign.Center,
                             )
                         }
@@ -635,16 +609,16 @@ fun MainApp(
                     }
 
                     // ❺ 실제 로그인 UI(AnimatedLoginScreen 등) 렌더링
-                   // AnimatedLoginScreen(navigator = navigator)
+                    // AnimatedLoginScreen(navigator = navigator)
                     val skipAnimation =
                         backStackEntry.savedStateHandle
                             .get<Boolean>("skip_login_animation") == true
 
-                    AnimatedLoginScreen(
-                        navigator = navigator,
-                        skipAnimation = skipAnimation,
-                        onSignUpClick = {}
-                    )
+//                    AnimatedLoginScreen( // 이전 딥링크 접속시, 로그인이 안됐을 때 로그인 화면 처리 확인을 몰라 일단 주석처리를 진행함.
+//                        navigator = navigator, //TODO : 추후 수정하기
+//                        skipAnimation = skipAnimation,
+//                        onSignUpClick = {}
+//                    )
                 }
 
 
@@ -801,7 +775,7 @@ fun MainApp(
 // 확장 함수: Context -> Activity
 fun Context.findActivity(): Activity? {
     var ctx = this
-    while (ctx is android.content.ContextWrapper) {
+    while (ctx is ContextWrapper) {
         if (ctx is Activity) return ctx
         ctx = ctx.baseContext
     }

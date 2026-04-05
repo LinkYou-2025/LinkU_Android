@@ -1,9 +1,7 @@
-<<<<<<<< HEAD:feature/home/src/main/java/com/linku/home/component/AIArticleModal.kt
 package com.linku.home.component
-========
-package com.linku.file.ui.link
->>>>>>>> 6cfa3247fa9a751d3cefb7daf59fb3f6f6c8368c:feature/file/src/main/java/com/linku/file/ui/link/AIArticleModal.kt
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -26,14 +24,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-<<<<<<<< HEAD:feature/home/src/main/java/com/linku/home/component/AIArticleModal.kt
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.LocalFontTheme
-import com.linku.design.theme.color.Basic
-========
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
->>>>>>>> 6cfa3247fa9a751d3cefb7daf59fb3f6f6c8368c:feature/file/src/main/java/com/linku/file/ui/link/AIArticleModal.kt
 
 @Composable
 fun AIArticleModal(
@@ -109,9 +101,9 @@ fun AIArticleModal(
 fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.linkuColors
 
-    val animated = androidx.compose.animation.core.animateFloatAsState(
+    val animated = animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
-        animationSpec = androidx.compose.animation.core.tween(durationMillis = 250),
+        animationSpec = tween(durationMillis = 250),
         label = "aiProgress"
     ).value
 
