@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LocalColorTheme
 import com.linku.file.R
-import com.linku.file.ui.theme.DefaultFont
 import com.linku.file.ui.theme.White
 
 
@@ -54,7 +53,6 @@ fun HomeSearchBar() {
                 text = "빠른 링크 검색",
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
-                fontFamily = DefaultFont,
                 fontWeight = FontWeight(500),
                 color = White,
             )
