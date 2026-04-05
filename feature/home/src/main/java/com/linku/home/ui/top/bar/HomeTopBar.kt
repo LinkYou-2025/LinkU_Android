@@ -42,8 +42,8 @@ import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.font.Taebaek
 import com.linku.design.top.bar.AlarmButton
-import com.linku.file.ui.theme.FileTopBarLinkUFont
 import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
 import com.linku.home.screen.Situation
@@ -102,7 +102,7 @@ fun HomeTopBar(
                             fontSize = 24.sp,
 
                             // 사용할 폰트 (태백 폰트)
-                            fontFamily = FileTopBarLinkUFont,
+                            fontFamily = Taebaek.font,
 
                             fontWeight = FontWeight.Normal,
 
