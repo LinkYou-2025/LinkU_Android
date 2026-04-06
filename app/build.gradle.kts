@@ -24,13 +24,13 @@ val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
     ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing or blank in local.properties")
 
 android {
-    namespace = "com.example.linku_android"
+    namespace = "com.linku"
 
     compileSdk = 36
 
 
     defaultConfig {
-        applicationId = "com.example.linku_android"
+        applicationId = "com.linku"
         minSdk = 26
         targetSdk = 35
         versionCode = 1

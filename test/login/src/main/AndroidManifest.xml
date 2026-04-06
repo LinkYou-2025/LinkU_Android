@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
-        android:name="com.example.login.TestApplication"
+        android:name="com.linku.login.TestApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.LinkU">
         <activity
-            android:name="com.example.login.TestActivity"
+            android:name="com.linku.login.TestActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
