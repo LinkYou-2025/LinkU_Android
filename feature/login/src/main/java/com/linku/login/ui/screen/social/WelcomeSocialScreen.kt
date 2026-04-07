@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.system.SystemBarController
@@ -79,10 +80,10 @@ fun WelcomeSocialScreen(
         // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
     }
     //  signUpState 사용
-    val signUpState by signUpViewModel?.signUpState?.collectAsState() ?: remember {
+    val signUpState by signUpViewModel?.signUpState?.collectAsStateWithLifecycle() ?: remember {
         mutableStateOf(SignUpState.Idle)
     }
-    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
+    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsStateWithLifecycle()
     var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
     //화면 진입 시 자동 회원가입 요청

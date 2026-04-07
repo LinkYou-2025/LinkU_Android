@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.theme.font.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
@@ -60,8 +61,8 @@ fun EmailVerificationScreen(
 
 
     // 뷰모델 상태
-    val authState by viewModel.authState.collectAsState()
-    val timer by viewModel.timer.collectAsState()
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
+    val timer by viewModel.timer.collectAsStateWithLifecycle()
 
 
     // 파생 상태로- 중복 제거.

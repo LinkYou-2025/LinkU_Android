@@ -26,7 +26,7 @@ fun SignUpNicknameScreen(
 
     // 뷰모델의 상태 확인.
     val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음. 컴포즈가 이 값을 읽는 순간부터 바로 감시 시작함.
-    val nicknameState by signUpViewModel.nicknameState.collectAsState()
+    val nicknameState by signUpViewModel.nicknameState.collectAsStateWithLifecycle()
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
 
     //  버튼 활성 조건 (EmailVerificationScreen의 isButtonEnabled와 동일한 느낌)

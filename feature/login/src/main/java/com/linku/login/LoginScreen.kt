@@ -47,6 +47,8 @@ import com.kakao.sdk.user.UserApiClient
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 private const val TAG = "LoginScreen"
 
 
@@ -117,7 +119,7 @@ fun LoginScreen(
     val context = LocalContext.current
 
     //카카오 로그인 state 수집
-    val kakaoLoginState by viewModel.kakaoLoginState.collectAsState()
+    val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
 
 
     LaunchedEffect(kakaoLoginState) {

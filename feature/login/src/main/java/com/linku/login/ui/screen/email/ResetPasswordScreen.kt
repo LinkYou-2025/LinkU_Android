@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.theme.font.Paperlogy
@@ -41,7 +42,7 @@ fun ResetPasswordScreen(
 
 
     // 🔑 Preview면 viewModel == null
-    val ui = viewModel?.ui?.collectAsState()?.value
+    val ui = viewModel?.ui?.collectAsStateWithLifecycle()?.value
 
     var email by remember { mutableStateOf("test@email.com") }
 
