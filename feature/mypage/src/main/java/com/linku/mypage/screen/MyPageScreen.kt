@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -50,7 +52,9 @@ fun MyPageScreen(
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LocalColorTheme.current.gray[100])
     ) {
         MypageTopBar(
             isNoticeExist = false, // TODO: 실제 알림 여부 연결
@@ -71,162 +75,168 @@ fun MyPageScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
-            // 서비스 설정
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(LocalColorTheme.current.white)
-                    .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
-            ) {
-                Text(
-                    text = "서비스 설정",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.gray[500]
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = "계정 설정",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { onNavigateAccount() }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "알림 설정",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { onNavigateAlarmSetting() }
-                )
-            }
-
             Spacer(modifier = Modifier.height(15.dp))
 
-            // 고객 센터
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(LocalColorTheme.current.white)
-                    .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
+                    .padding(horizontal = 20.dp)
             ) {
-                Text(
-                    text = "고객 센터",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.gray[500]
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = "FAQ",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { onNavigateFAQ() }
-                )
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(LocalColorTheme.current.white)
+                        .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
+                ) {
+                    Text(
+                        text = "서비스 설정",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.gray[500]
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                Text(
-                    text = "공지사항",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
+                    Text(
+                        text = "계정 설정",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { onNavigateAccount() }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "알림 설정",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { onNavigateAlarmSetting() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { onNavigateNotice() }
-                )
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(LocalColorTheme.current.white)
+                        .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
+                ) {
+                    Text(
+                        text = "고객 센터",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.gray[500]
+                    )
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
-                Text(
-                    text = "서비스 약관",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
+                    Text(
+                        text = "FAQ",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { onNavigateFAQ() }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "공지사항",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { onNavigateNotice() }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "서비스 약관",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { onNavigateTerms() }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(15.dp))
+
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { onNavigateTerms() }
-                )
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(LocalColorTheme.current.white)
+                        .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
+                ) {
+                    Text(
+                        text = "기타",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.gray[500]
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    Text(
+                        text = "회원탈퇴",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { onNavigateQuit() }
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = "로그아웃",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = LocalColorTheme.current.black,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = 6.dp)
+                            .noRippleClickable { showLogoutDialog = true }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(80.dp))
             }
-
-            Spacer(modifier = Modifier.height(15.dp))
-
-            // 기타
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(LocalColorTheme.current.white)
-                    .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
-            ) {
-                Text(
-                    text = "기타",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.gray[500]
-                )
-
-                Spacer(modifier = Modifier.height(14.dp))
-
-                Text(
-                    text = "회원탈퇴",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { onNavigateQuit() }
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Text(
-                    text = "로그아웃",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 6.dp)
-                        .noRippleClickable { showLogoutDialog = true }
-                )
-            }
-
-            Spacer(modifier = Modifier.height(80.dp))
         }
     }
 
