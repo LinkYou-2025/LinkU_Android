@@ -12,9 +12,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -34,38 +38,34 @@ import com.linku.mypage.component.NoticeItem
 fun NoticeScreen(
     navController: NavController
 ) {
+    var expandedNoticeIndex by remember { mutableStateOf<Int?>(null) }
+
     val notices = listOf(
         "개인정보 이용제공·내역 안내" to """
         안녕하세요. 링큐입니다.
         개인정보 이용 및 제공 내역을 앱 내에서 확인하실 수 있습니다.
         자세한 내용은 개인정보 처리방침을 참고해 주세요.
     """.trimIndent(),
-
         "서비스 점검 안내" to """
         보다 안정적인 서비스 제공을 위해 시스템 점검이 예정되어 있습니다.
         점검 시간 동안 일부 기능 이용이 제한될 수 있습니다.
     """.trimIndent(),
-
         "앱 업데이트 안내" to """
         최신 버전 업데이트가 배포되었습니다.
         원활한 이용을 위해 앱을 최신 버전으로 유지해 주세요.
     """.trimIndent(),
-
         "이벤트 참여 안내" to """
         현재 진행 중인 신규 이벤트가 있습니다.
         앱 내 이벤트 페이지에서 자세한 내용을 확인해 주세요.
     """.trimIndent(),
-
         "고객센터 운영시간 변경" to """
         고객센터 운영시간이 일부 변경되었습니다.
         문의 전 운영시간을 확인해 주세요.
     """.trimIndent(),
-
         "이용약관 개정 안내" to """
         더 나은 서비스 제공을 위해 이용약관 일부 내용이 개정되었습니다.
         변경된 내용은 공지사항 및 설정 화면에서 확인 가능합니다.
     """.trimIndent(),
-
         "계정 보안 안내" to """
         안전한 서비스 이용을 위해 비밀번호를 주기적으로 변경해 주세요.
         타인과 계정 정보를 공유하지 않도록 주의해 주세요.
@@ -110,10 +110,15 @@ fun NoticeScreen(
                 .padding(horizontal = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            items(notices) { (title, contents) ->
+            itemsIndexed(notices) { index, (title, contents) ->
                 NoticeItem(
                     title = title,
-                    contents = contents
+                    contents = contents,
+                    expanded = expandedNoticeIndex == index,
+                    onToggle = {
+                        expandedNoticeIndex =
+                            if (expandedNoticeIndex == index) null else index
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))

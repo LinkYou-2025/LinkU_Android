@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,13 +43,24 @@ import com.linku.mypage.R
 @Composable
 fun NoticeItem(
     title: String,
-    contents: String
+    contents: String,
+    expanded: Boolean,
+    onToggle: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var hasBeenExpanded by remember { mutableStateOf(false) }
+    var hasEverExpanded by remember { mutableStateOf(false) }
+    var hasBeenRead by remember { mutableStateOf(false) }
+
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            hasEverExpanded = true
+        } else if (hasEverExpanded) {
+            hasBeenRead = true
+        }
+    }
+
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
-        label = "faq_arrow_rotation"
+        label = "notice_arrow_rotation"
     )
 
     val cardShape = RoundedCornerShape(18.dp)
@@ -67,12 +79,14 @@ fun NoticeItem(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .noRippleClickable { onToggle() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(
-                    if (hasBeenExpanded) R.drawable.ic_notice_gray else R.drawable.ic_notice
+                    if (hasBeenRead) R.drawable.ic_notice_gray else R.drawable.ic_notice
                 ),
                 contentDescription = null,
                 modifier = Modifier
@@ -89,7 +103,7 @@ fun NoticeItem(
                     text = "시스템/공지",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = if (hasBeenExpanded) {
+                    color = if (hasBeenRead) {
                         LocalColorTheme.current.gray[300]
                     } else {
                         LocalColorTheme.current.gray[600]
@@ -102,7 +116,7 @@ fun NoticeItem(
                     text = title,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
-                    color = if (hasBeenExpanded) {
+                    color = if (hasBeenRead) {
                         LocalColorTheme.current.gray[400]
                     } else {
                         LocalColorTheme.current.black
@@ -117,12 +131,6 @@ fun NoticeItem(
                 contentDescription = null,
                 modifier = Modifier
                     .height(6.dp)
-                    .noRippleClickable {
-                        expanded = !expanded
-                        if (expanded) {
-                            hasBeenExpanded = true
-                        }
-                    }
                     .graphicsLayer {
                         rotationZ = rotation
                         transformOrigin = TransformOrigin.Center
@@ -169,14 +177,16 @@ fun PreviewNoticeItem() {
             contents = """
 안녕하세요. 링큐입니다.
 링큐는 개인정보보호법 제20조의 2(개인정보 이용·제공 내역의 통지)에 따라 회원님들께 개인정보 이용·제공 내역을 확인 가능한 방법을 안내드리고 있습니다.
-    
+
 개인정보 이용·제공내역 확인 방법
  • 메인[홈] > 화면 하단 내 [개인정보 처리방침] 클릭 > [개인정보의 처리목적], [개인정보의 제3자 제공] 클릭
-    
+
 앞으로도 회원님들의 개인정보 보호를 위해 최선을 다하겠습니다. 감사합니다.
-    
+
 해당 안내는 링큐 회원님들 대상으로 발송되며, 여러 개의 계정 보유 시 중복으로 발송될 수 있습니다. 문의 사항은 고객행복센터(1670-6250)를 이용해 주시기 바랍니다.
-            """.trimMargin()
+            """.trimIndent(),
+            expanded = true,
+            onToggle = {}
         )
     }
 }
