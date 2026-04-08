@@ -4,8 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.repository.UserRepository
-import com.linku.core.datastore.session.LoginSessionStore
-import com.linku.core.repository.AuthRepository
+import com.linku.core.session.SessionStore
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,17 +14,16 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    private val authRepository: AuthRepository, //레포지토리 분활로 추가함.
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference
 ): ViewModel() {
 
     // 별도 로딩(api 호출 없이) 로컬에 저장된 데이터 바로 보여줌.
-    val sessionState = authRepository.sessionState
+    val sessionState = userRepository.sessionState
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = LoginSessionStore.SessionSnapshot(false, null,
+            initialValue = SessionStore.SessionSnapshot(false, null,
                 null, null, null, null, null, null, null, null,
                     emptyList(), emptyList() )
         )

@@ -1,4 +1,8 @@
+<<<<<<<< HEAD:design/src/main/java/com/linku/design/modal/ModalWindow.kt
 package com.linku.design.modal
+========
+package com.linku.file.ui.modal
+>>>>>>>> fd1304faab6b86e04c17e31a0786ce151290d292:feature/file/src/main/java/com/linku/file/ui/modal/FileModalWindow.kt
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,8 +30,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
+<<<<<<<< HEAD:design/src/main/java/com/linku/design/modal/ModalWindow.kt
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+========
+import com.linku.file.ui.theme.*
+>>>>>>>> fd1304faab6b86e04c17e31a0786ce151290d292:feature/file/src/main/java/com/linku/file/ui/modal/FileModalWindow.kt
 
 /**
  * 사용자에게 중요한 정보를 알리거나 특정 동작에 대한 확인을 받기 위한 모달 다이얼로그 창입니다.
