@@ -124,7 +124,7 @@ fun MarketingAgreeScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         color = LocalColorTheme.current.black
                                     )
                                 ) {
@@ -137,7 +137,7 @@ fun MarketingAgreeScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Normal,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         color = LocalColorTheme.current.black
                                     )
                                 ) {
@@ -147,7 +147,7 @@ fun MarketingAgreeScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         color = LocalColorTheme.current.black
                                     )
                                 ) {
@@ -163,7 +163,7 @@ fun MarketingAgreeScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         color = LocalColorTheme.current.black
                                     )
                                 ) {
@@ -192,7 +192,7 @@ fun MarketingAgreeScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Normal,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         color = LocalColorTheme.current.black
                                     )
                                 ) {
@@ -202,7 +202,7 @@ fun MarketingAgreeScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         color = LocalColorTheme.current.black
                                     )
                                 ) {
