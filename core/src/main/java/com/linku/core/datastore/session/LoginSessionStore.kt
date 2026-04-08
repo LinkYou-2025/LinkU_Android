@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:core/src/main/java/com/linku/core/datastore/session/LoginSessionStore.kt
 package com.linku.core.datastore.session
-========
-package com.linku.core.session
->>>>>>>> fd1304faab6b86e04c17e31a0786ce151290d292:core/src/main/java/com/linku/core/session/SessionStore.kt
 
 
 import android.content.Context
