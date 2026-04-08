@@ -50,6 +50,7 @@ securityCrypto = "1.1.0-alpha06"
 constraintLayout = "1.1.3"
 fragmentKtx = "1.3.6"
 lifecycleViewModel = "2.4.0"
+foundationLayout = "1.10.5"
 
 
 [libraries]
@@ -131,6 +132,7 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 
 
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
+androidx-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 
 
 [plugins]
