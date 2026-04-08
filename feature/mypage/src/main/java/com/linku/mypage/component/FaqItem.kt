@@ -42,9 +42,10 @@ import com.linku.mypage.R
 @Composable
 fun FaqItem(
     question: String,
-    answer: String
+    answer: String,
+    expanded: Boolean,
+    onToggle: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
         label = "faq_arrow_rotation"
@@ -66,7 +67,9 @@ fun FaqItem(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .noRippleClickable { onToggle() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
@@ -94,9 +97,6 @@ fun FaqItem(
                 contentDescription = null,
                 modifier = Modifier
                     .height(6.dp)
-                    .noRippleClickable {
-                        expanded = !expanded
-                    }
                     .graphicsLayer {
                         rotationZ = rotation
                         transformOrigin = TransformOrigin.Center
@@ -140,7 +140,9 @@ fun PreviewFaqItem() {
     ThemeProvider {
         FaqItem(
             question = "링크에 붙은 별 표시는 무엇인가요?",
-            answer = "링크에 마킹된 별표시는 AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다."
+            answer = "링크에 마킹된 별표시는 AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다.",
+            expanded = true,
+            onToggle = { }
         )
     }
 }

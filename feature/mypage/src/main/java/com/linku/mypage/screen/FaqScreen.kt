@@ -60,6 +60,7 @@ fun FaqScreen(
     var keyword by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("전체") }
+    var expandedFaqId by remember { mutableStateOf<Int?>(null) }
 
     val faqList = listOf(
         Faq(
@@ -278,7 +279,11 @@ fun FaqScreen(
             ) { faq ->
                 FaqItem(
                     question = faq.question,
-                    answer = faq.answer
+                    answer = faq.answer,
+                    expanded = expandedFaqId == faq.id,
+                    onToggle = {
+                        expandedFaqId = if (expandedFaqId == faq.id) null else faq.id
+                    }
                 )
             }
         }
