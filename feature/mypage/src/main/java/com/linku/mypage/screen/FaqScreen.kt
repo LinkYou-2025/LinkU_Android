@@ -295,7 +295,7 @@ fun FaqScreen(
                         )
                     )
                 )
-                .padding(top = 30.dp, start = 20.dp, end = 20.dp, bottom = 10.dp),
+                .padding(top = 20.dp, start = 20.dp, end = 20.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -311,7 +311,7 @@ fun FaqScreen(
                 modifier = Modifier
                     .clip(RoundedCornerShape(18.dp))
                     .background(LocalColorTheme.current.maincolor)
-                    .padding(top = 19.dp, start = 23.5.dp, end = 28.5.dp, bottom = 19.dp)
+                    .padding(top = 15.dp, start = 23.5.dp, end = 28.5.dp, bottom = 15.dp)
             ) {
                 Text(
                     text = "피드백 보내기",
