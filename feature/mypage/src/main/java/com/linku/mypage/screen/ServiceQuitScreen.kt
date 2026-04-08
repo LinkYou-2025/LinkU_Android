@@ -266,8 +266,6 @@ fun ServiceQuitScreen(
                     color = LocalColorTheme.current.white
                 )
             }
-
-            Spacer(modifier = Modifier.height(10.dp))
         }
 
     }
