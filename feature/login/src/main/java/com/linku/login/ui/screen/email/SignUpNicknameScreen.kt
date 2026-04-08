@@ -8,6 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.PasswordRuleItem
