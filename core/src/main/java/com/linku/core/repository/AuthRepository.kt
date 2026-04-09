@@ -45,4 +45,14 @@ interface AuthRepository {
     // 카카오로 로그인 하기
     suspend fun loginWithKakao(
         token : String): LoginResult
+
+    // 네이버로 로그인 하기
+    suspend fun loginWithNaver(
+        token : String): LoginResult
+
+    //구글로 로그인 하기
+    suspend fun loginWithGoogle(
+        token : String): LoginResult
+
+
 }

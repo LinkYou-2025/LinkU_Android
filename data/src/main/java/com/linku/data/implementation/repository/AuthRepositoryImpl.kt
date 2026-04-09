@@ -9,8 +9,8 @@ import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.data.api.ApiError
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginResponseDTO
+import com.linku.data.api.dto.auth.login.kakao.SocialLoginRequestDTO
+import com.linku.data.api.dto.auth.login.kakao.SocialLoginResponseDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.withErrorHandling
 import com.linku.data.api.withErrorHandlingRaw
@@ -168,25 +168,20 @@ class AuthRepositoryImpl @Inject constructor(
         return true
     }
 
-    //tag 상수로 통일하기. 지금 serverApi.withErrorHandling  적극적으로 리펙토링하기.
 
     override suspend fun loginWithKakao(token: String): LoginResult {
         Log.d("UserRepositoryImpl", "loginWithKakao token: $token")
-        //Log.d(TAG, "loginWithKakao start")
-        val kakaoResponse: KakaoLoginResponseDTO
+        val kakaoResponse: SocialLoginResponseDTO
 
         try{
             Log.d("UserRepositoryImpl", "loginWithKakao try")
-            // Log.d(TAG, "loginWithKakao try")
             kakaoResponse = serverApi.withErrorHandling {
-                kakaoLogin(KakaoLoginRequestDTO(token = token))
+                kakaoLogin(SocialLoginRequestDTO(token = token))
             }
 
             Log.d("UserRepositoryImpl", "loginWithKakao response: $kakaoResponse")
-            //Log.d(TAG, "loginWithKakao success: userId=${kakaoResponse.userId}, status=${kakaoResponse.status}")
         } catch (e: Exception){
             Log.e("UserRepositoryImpl", "loginWithKakao error: $e")
-            //Log.e(TAG, "loginWithKakao error", e)
             throw e
         }
 
@@ -198,6 +193,65 @@ class AuthRepositoryImpl @Inject constructor(
             refreshToken = kakaoResponse.refreshToken,
             status = kakaoResponse.status ?: "",
             inactiveDate = ""  // 카카오 로그인엔 inactiveDate 없으니까 빈 문자열
+        )
+
+    }
+
+    // 네이버 로그인 api
+    override suspend fun loginWithNaver(token: String): LoginResult {
+        Log.d("UserRepositoryImpl", "loginWithNaver token: $token")
+        val naverResponse: SocialLoginResponseDTO
+
+        try{
+            Log.d("UserRepositoryImpl", "loginWithNaver try")
+            naverResponse = serverApi.withErrorHandling {
+                naverLogin(SocialLoginRequestDTO(token = token))
+            }
+
+            Log.d("UserRepositoryImpl", "loginWithNaver response: $naverResponse")
+        } catch (e: Exception){
+            Log.e("UserRepositoryImpl", "loginWithNaver error: $e")
+            throw e
+        }
+
+        Log.d("UserRepositoryImpl", "loginWithNaver return: $naverResponse")
+
+        return LoginResult( // run을 간결하게 수정함.
+            userId = naverResponse.userId,
+            accessToken = naverResponse.accessToken,
+            refreshToken = naverResponse.refreshToken,
+            status = naverResponse.status ?: "",
+            inactiveDate = ""  // 네이버 로그인엔 inactiveDate 없으니까 빈 문자열
+        )
+
+    }
+
+
+    // 구글로 로그인 api
+    override suspend fun loginWithGoogle(token: String): LoginResult {
+        Log.d("UserRepositoryImpl", "loginWithGoogle token: $token")
+        val googleResponse: SocialLoginResponseDTO
+
+        try{
+            Log.d("UserRepositoryImpl", "loginWithGoogle try")
+            googleResponse = serverApi.withErrorHandling {
+                googleLogin(SocialLoginRequestDTO(token = token))
+            }
+
+            Log.d("UserRepositoryImpl", "loginWithGoogle response: $googleResponse")
+        } catch (e: Exception){
+            Log.e("UserRepositoryImpl", "loginWithGoogle error: $e")
+            throw e
+        }
+
+        Log.d("UserRepositoryImpl", "loginWithGoogle return: $googleResponse")
+
+        return LoginResult( // run을 간결하게 수정함.
+            userId = googleResponse.userId,
+            accessToken = googleResponse.accessToken,
+            refreshToken = googleResponse.refreshToken,
+            status = googleResponse.status ?: "",
+            inactiveDate = ""  // 네이버 로그인엔 inactiveDate 없으니까 빈 문자열
         )
 
     }
