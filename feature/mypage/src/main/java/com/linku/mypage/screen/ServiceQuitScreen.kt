@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
@@ -66,180 +67,176 @@ fun ServiceQuitScreen(
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        LazyColumn {
-            item {
-                Column(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(LocalColorTheme.current.white)
+                .padding(horizontal = 20.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 59.dp)
+                    .height(24.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_back),
+                    contentDescription = null,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .background(LocalColorTheme.current.white)
-                        .padding(horizontal = 20.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 59.dp)
-                            .height(24.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_back),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .align(Alignment.CenterStart)
-                                .width(10.dp)
-                                .clickable { navController.popBackStack() }
-                        )
+                        .align(Alignment.CenterStart)
+                        .width(10.dp)
+                        .clickable { navController.popBackStack() }
+                )
 
-                        Text(
-                            text = "회원 탈퇴",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = LocalColorTheme.current.black,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
+                Text(
+                    text = "회원 탈퇴",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = LocalColorTheme.current.black,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
-                    Spacer(modifier = Modifier.height(28.25.dp))
+            Spacer(modifier = Modifier.height(28.25.dp))
 
-                    Text(
-                        text = "그동안 링큐를 이용해주셔서\n감사합니다.",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = LocalColorTheme.current.black,
-                        modifier = Modifier.padding(horizontal = 4.dp)
+            Text(
+                text = "그동안 링큐를 이용해주셔서\n감사합니다.",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold,
+                color = LocalColorTheme.current.black,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(5.dp))
+
+            Text(
+                text = "링큐를 이용하며 느끼신 불편함을 공유해주시면\n더욱 발전된 서비스를 제공할 수 있도록 노력하겠습니다.",
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Normal,
+                color = LocalColorTheme.current.gray[700],
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp)
+            ) {
+                quitReasons.forEach { reason ->
+                    QuitReasonItem(
+                        text = reason,
+                        selected = selectedReason == reason,
+                        onClick = {
+                            selectedReason = reason
+                            if (reason != "기타") {
+                                reasonText = ""
+                            }
+                        }
                     )
 
-                    Spacer(modifier = Modifier.height(5.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+            }
 
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(LocalColorTheme.current.gray[100])
+                    .padding(horizontal = 22.dp, vertical = 13.dp)
+            ) {
+                if (reasonText.isBlank()) {
                     Text(
-                        text = "링큐를 이용하며 느끼신 불편함을 공유해주시면\n더욱 발전된 서비스를 제공할 수 있도록 노력하겠습니다.",
-                        fontSize = 15.sp,
-                        lineHeight = 22.sp,
+                        text = "탈퇴 사유를 적어주세요.",
+                        color = LocalColorTheme.current.gray[600],
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[700],
-                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+
+                BasicTextField(
+                    value = reasonText,
+                    onValueChange = {
+                        if (isEtcSelected) {
+                            reasonText = it
+                        }
+                    },
+                    textStyle = TextStyle(
+                        color = LocalColorTheme.current.black,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(46.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(LocalColorTheme.current.gray[100])
+                    .padding(horizontal = 21.dp, vertical = 16.dp),
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "탈퇴 안내 및 유의사항",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LocalColorTheme.current.black
                     )
 
-                    Spacer(modifier = Modifier.height(30.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        quitReasons.forEach { reason ->
-                            QuitReasonItem(
-                                text = reason,
-                                selected = selectedReason == reason,
-                                onClick = {
-                                    selectedReason = reason
-                                    if (reason != "기타") {
-                                        reasonText = ""
-                                    }
-                                }
-                            )
-
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(LocalColorTheme.current.gray[100])
-                            .padding(horizontal = 22.dp, vertical = 20.dp)
-                    ) {
-                        if (reasonText.isBlank()) {
-                            Text(
-                                text = "탈퇴 사유를 적어주세요.",
-                                color = LocalColorTheme.current.gray[600],
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal,
-                            )
-                        }
-
-                        BasicTextField(
-                            value = reasonText,
-                            onValueChange = {
-                                if (isEtcSelected) {
-                                    reasonText = it
-                                }
-                            },
-                            textStyle = TextStyle(
-                                color = LocalColorTheme.current.black,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal,
-                            )
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(54.dp))
-
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(15.dp))
-                            .background(LocalColorTheme.current.gray[100])
-                            .padding(horizontal = 21.dp, vertical = 16.dp),
-                    ) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalAlignment = Alignment.Start
-                        ) {
-                            Text(
-                                text = "탈퇴 안내 및 유의사항",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = LocalColorTheme.current.black
-                            )
-
-                            Spacer(modifier = Modifier.height(4.dp))
-
-                            Text(
-                                text = """
+                    Text(
+                        text = """
                                     1. 탈퇴 아이디는 복구와 재사용이 불가합니다.
                                     2. 삭제된 데이터는 복구되지 않습니다.
                                     3. 소셜 로그인 회원의 경우 서비스에서 관리하는 모든 정보가 삭제되며, 같은 소셜 아이디로 재가입시 신규 회원으로 가입됩니다.
                                 """.trimIndent(),
-                                fontSize = 15.sp,
-                                lineHeight = 24.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.gray[800]
-                            )
-                        }
+                        fontSize = 15.sp,
+                        lineHeight = 24.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = LocalColorTheme.current.gray[800]
+                    )
+                }
 
-                        Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                        Row(
-                            modifier = Modifier
-                                .align(Alignment.End)
-                                .clickable { isAgreeChecked = !isAgreeChecked },
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "위 안내 사항을 확인했으며 이에 동의합니다.",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.gray[800]
-                            )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .clickable { isAgreeChecked = !isAgreeChecked },
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "위 안내 사항을 확인했으며 이에 동의합니다.",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = LocalColorTheme.current.gray[800]
+                    )
 
-                            Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
 
-                            Image(
-                                painter = painterResource(
-                                    if (isAgreeChecked) R.drawable.ic_checkbox_checked
-                                    else R.drawable.ic_checkbox_empty
-                                ),
-                                contentDescription = null,
-                                modifier = Modifier.clickable { isAgreeChecked = !isAgreeChecked }
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(68.dp))
+                    Image(
+                        painter = painterResource(
+                            if (isAgreeChecked) R.drawable.ic_checkbox_checked
+                            else R.drawable.ic_checkbox_empty
+                        ),
+                        contentDescription = null,
+                        modifier = Modifier.noRippleClickable { isAgreeChecked = !isAgreeChecked }
+                    )
                 }
             }
+
+            Spacer(modifier = Modifier.height(68.dp))
         }
 
         Column(
@@ -255,7 +252,7 @@ fun ServiceQuitScreen(
                         if (isQuitEnabled) Modifier.background(Basic.maincolor)
                         else Modifier.background(LocalColorTheme.current.gray[300])
                     )
-                    .clickable(enabled = isQuitEnabled) { showDialog = true }
+                    .noRippleClickable(enabled = isQuitEnabled) { showDialog = true }
                     .padding(vertical = 15.dp),
                 contentAlignment = Alignment.Center
             ) {

@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -120,12 +121,13 @@ fun MarketingAgreeScreen(
                         }
 
                         Text(
+                            style = TextStyle(lineHeight = 20.sp),
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black
+                                        color = LocalColorTheme.current.black,
                                     )
                                 ) {
                                     append("""
@@ -159,6 +161,7 @@ fun MarketingAgreeScreen(
                         )
 
                         Text(
+                            style = TextStyle(lineHeight = 20.sp),
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
@@ -255,7 +258,7 @@ fun MarketingAgreeScreen(
             Image(
                 painter = painterResource(
                     if (isChecked) R.drawable.ic_checkbox_checked_purple
-                    else R.drawable.ic_checkbox_empty
+                    else R.drawable.ic_checkbox_empty_white
                 ),
                 contentDescription = null,
                 modifier = Modifier

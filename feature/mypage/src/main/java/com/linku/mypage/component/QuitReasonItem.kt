@@ -1,7 +1,6 @@
 package com.linku.mypage.component
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +16,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 
 @Composable
@@ -26,9 +26,7 @@ fun QuitReasonItem(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -40,6 +38,7 @@ fun QuitReasonItem(
                     shape = CircleShape
                 )
                 .clip(CircleShape)
+                .noRippleClickable { onClick() }
         )
 
         Spacer(modifier = Modifier.width(12.dp))

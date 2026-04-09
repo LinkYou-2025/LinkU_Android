@@ -69,8 +69,6 @@ fun MyPageScreen(
             modifier = Modifier.zIndex(1f)
         )
 
-        Spacer(modifier = Modifier.height(15.dp))
-
         // 설정
         Column(
             modifier = Modifier
@@ -209,7 +207,7 @@ fun MyPageScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "회원탈퇴",
+                        text = "회원 탈퇴",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,

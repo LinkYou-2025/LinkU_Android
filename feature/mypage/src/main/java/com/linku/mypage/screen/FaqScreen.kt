@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -32,6 +33,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -40,9 +43,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.mypage.R
 import com.linku.mypage.component.FaqItem
 
@@ -61,6 +67,10 @@ fun FaqScreen(
     var isFocused by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("전체") }
     var expandedFaqId by remember { mutableStateOf<Int?>(null) }
+
+    var feedbackRowHeightPx by remember { mutableStateOf(0) }
+    val density = LocalDensity.current
+    val feedbackRowHeightDp = with(density) { feedbackRowHeightPx.toDp() }
 
     val faqList = listOf(
         Faq(
@@ -184,7 +194,7 @@ fun FaqScreen(
                         Modifier
                     }
                 )
-                .padding(horizontal = 18.dp, vertical = 15.dp),
+                .padding(horizontal = 18.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
@@ -214,6 +224,7 @@ fun FaqScreen(
                     textStyle = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
+                        fontFamily = MaterialTheme.linkuFont.font,
                         color = LocalColorTheme.current.black,
                     ),
                     maxLines = 1,
@@ -234,15 +245,21 @@ fun FaqScreen(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
-                        .background(
-                            color = if (selectedFilter == filter) {
-                                LocalColorTheme.current.gray[800]
+                        .then(
+                            if (selectedFilter == filter) {
+                                Modifier
+                                    .background(LocalColorTheme.current.gray[800])
+                                    .border(
+                                        1.dp,
+                                        MaterialTheme.linkuColors.gray[200],
+                                        RoundedCornerShape(10.dp)
+                                    )
                             } else {
-                                LocalColorTheme.current.white
+                                Modifier.background(LocalColorTheme.current.white)
                             }
                         )
-                        .clickable { selectedFilter = filter }
-                        .padding(horizontal = 15.dp, vertical = 10.dp),
+                        .noRippleClickable { selectedFilter = filter }
+                        .padding(horizontal = 15.dp, vertical = 8.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -261,69 +278,78 @@ fun FaqScreen(
 
         Spacer(modifier = Modifier.height(15.dp))
 
-        // FAQ 리스트
-        LazyColumn(
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
                 .weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                bottom = 24.dp
-            )
+            contentAlignment = Alignment.BottomCenter
         ) {
-            items(
-                items = filteredFaqList,
-                key = { it.id }
-            ) { faq ->
-                FaqItem(
-                    question = faq.question,
-                    answer = faq.answer,
-                    expanded = expandedFaqId == faq.id,
-                    onToggle = {
-                        expandedFaqId = if (expandedFaqId == faq.id) null else faq.id
-                    }
+            // FAQ 리스트
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    bottom = 24.dp + feedbackRowHeightDp
                 )
+            ) {
+                items(
+                    items = filteredFaqList,
+                    key = { it.id }
+                ) { faq ->
+                    FaqItem(
+                        question = faq.question,
+                        answer = faq.answer,
+                        expanded = expandedFaqId == faq.id,
+                        onToggle = {
+                            expandedFaqId = if (expandedFaqId == faq.id) null else faq.id
+                        }
+                    )
+                }
             }
-        }
 
-        // 하단 피드백 보내기
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color.Transparent,
-                            LocalColorTheme.current.white
+            // 하단 피드백 보내기
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colorStops = arrayOf(
+                                0f to MaterialTheme.linkuColors.white.copy(alpha = 0.1f),
+                                0.3f to MaterialTheme.linkuColors.white,
+                                1f to MaterialTheme.linkuColors.white
+                            )
                         )
                     )
-                )
-                .padding(top = 20.dp, start = 20.dp, end = 20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "찾으시는 질문이 없으신가요?",
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Normal,
-                color = LocalColorTheme.current.gray[700]
-
-            )
-
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(LocalColorTheme.current.maincolor)
-                    .padding(top = 15.dp, start = 23.5.dp, end = 28.5.dp, bottom = 15.dp)
+                    .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                    .onGloballyPositioned { coordinates ->
+                        feedbackRowHeightPx = coordinates.size.height
+                    },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "피드백 보내기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.white
+                    text = "찾으시는 질문이 없으신가요?",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = LocalColorTheme.current.gray[700]
+
                 )
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(LocalColorTheme.current.maincolor)
+                        .padding(top = 13.dp, start = 23.5.dp, end = 28.5.dp, bottom = 13.dp)
+                ) {
+                    Text(
+                        text = "피드백 보내기",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LocalColorTheme.current.white
+                    )
+                }
             }
         }
     }

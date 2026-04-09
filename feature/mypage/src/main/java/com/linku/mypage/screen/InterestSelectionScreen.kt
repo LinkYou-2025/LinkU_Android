@@ -97,10 +97,6 @@ fun InterestSelectionScreen(
                         }
                     )
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
             }
         },
         buttonText = "완료",

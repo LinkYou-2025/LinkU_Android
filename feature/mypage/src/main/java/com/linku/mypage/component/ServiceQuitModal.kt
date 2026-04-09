@@ -48,7 +48,7 @@ fun ServiceQuitModal(
         Column (
             modifier = Modifier
                 .wrapContentSize()
-                .padding(top = 23.dp),
+                .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
@@ -60,28 +60,28 @@ fun ServiceQuitModal(
         }
 
         Text(
-            text = "탈퇴하시겠습니까?",
+            text = "정말 계정을 탈퇴하시겠습니까?",
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.black,
-            modifier = Modifier.padding(top = 22.dp)
+            modifier = Modifier.padding(top = 15.dp)
         )
 
         Text(
             text = "계정을 탈퇴하면 14일 이후\n회원님의 모든 활동 정보가 삭제됩니다.",
             fontSize = 15.sp,
-            lineHeight = 22.sp,
+            lineHeight = 20.sp,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Normal,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.gray[600],
-            modifier = Modifier.padding(top = 15.dp)
+            modifier = Modifier.padding(top = 13.dp)
         )
 
         Row(
             modifier = Modifier
-                .padding(top = 25.dp, start = 27.dp, end = 27.dp)
+                .padding(top = 20.dp, start = 27.dp, end = 27.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -97,7 +97,7 @@ fun ServiceQuitModal(
                     text = "취소하기",
                     style = TextStyle(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         brush = Basic.maincolor,  // 그라데이션 Brush 사용
                         fontFamily = LocalFontTheme.current.font
                     ),
@@ -119,13 +119,17 @@ fun ServiceQuitModal(
             ) {
                 Text(
                     text = "탈퇴하기",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font
+                    ),
                     color = LocalColorTheme.current.white
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(27.92.dp))
+        Spacer(modifier = Modifier.height(23.dp))
     }
 }
 

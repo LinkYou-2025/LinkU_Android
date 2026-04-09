@@ -70,7 +70,7 @@ fun CustomInfoSelectionItem(
         Image(
             painter = painterResource(
                 if (isSelected) R.drawable.ic_checkbox_checked
-                else R.drawable.ic_checkbox_empty
+                else R.drawable.ic_checkbox_empty_white
             ),
             contentDescription = null,
             modifier = Modifier.size(22.dp)

@@ -269,7 +269,7 @@ fun SubNotificationSwitch(
     ) {
         Text(
             text = title,
-            fontSize = 16.sp,
+            fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
             color = LocalColorTheme.current.gray[700],
             fontFamily = LocalFontTheme.current.font,

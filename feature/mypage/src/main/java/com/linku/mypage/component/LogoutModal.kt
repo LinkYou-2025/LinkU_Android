@@ -48,7 +48,7 @@ fun LogoutModal(
         Column (
             modifier = Modifier
                 .wrapContentSize()
-                .padding(top = 23.dp),
+                .padding(top = 20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
@@ -65,7 +65,7 @@ fun LogoutModal(
             fontWeight = FontWeight.Medium,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.black,
-            modifier = Modifier.padding(top = 22.dp)
+            modifier = Modifier.padding(top = 15.dp)
         )
 
         Text(
@@ -76,12 +76,12 @@ fun LogoutModal(
             fontWeight = FontWeight.Normal,
             fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.gray[600],
-            modifier = Modifier.padding(top = 15.dp)
+            modifier = Modifier.padding(top = 13.dp)
         )
 
         Row(
             modifier = Modifier
-                .padding(top = 25.dp, start = 27.dp, end = 27.dp)
+                .padding(top = 20.dp, start = 27.dp, end = 27.dp)
         ) {
             Box(
                 modifier = Modifier
@@ -97,7 +97,7 @@ fun LogoutModal(
                     text = "취소하기",
                     style = TextStyle(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Medium,
                         brush = Basic.maincolor,  // 그라데이션 Brush 사용
                         fontFamily = LocalFontTheme.current.font
                     ),
@@ -119,13 +119,17 @@ fun LogoutModal(
             ) {
                 Text(
                     text = "로그아웃",
-                    style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Bold, fontFamily = LocalFontTheme.current.font),
+                    style = TextStyle(
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        fontFamily = LocalFontTheme.current.font
+                    ),
                     color = LocalColorTheme.current.white
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(27.92.dp))
+        Spacer(modifier = Modifier.height(23.dp))
     }
 }
 

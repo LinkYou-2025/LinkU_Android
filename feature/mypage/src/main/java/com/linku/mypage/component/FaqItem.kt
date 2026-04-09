@@ -57,13 +57,13 @@ fun FaqItem(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
-                shadowElevation = 4.dp.toPx()
+                shadowElevation = 1.dp.toPx()
                 shape = cardShape
                 clip = true
             }
             .clip(RoundedCornerShape(18.dp))
             .background(LocalColorTheme.current.white)
-            .padding(horizontal = 20.dp, vertical = 22.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -85,7 +85,7 @@ fun FaqItem(
             Text(
                 text = question,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.Medium,
                 color = LocalColorTheme.current.black,
                 modifier = Modifier.weight(1f)
             )
@@ -96,7 +96,7 @@ fun FaqItem(
                 painter = painterResource(R.drawable.ic_arrow_down_gray500),
                 contentDescription = null,
                 modifier = Modifier
-                    .height(6.dp)
+                    .height(10.dp)
                     .graphicsLayer {
                         rotationZ = rotation
                         transformOrigin = TransformOrigin.Center
@@ -110,7 +110,7 @@ fun FaqItem(
             exit = shrinkVertically() + fadeOut()
         ) {
             Column {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(13.dp))
 
                 Box(
                     modifier = Modifier
@@ -119,11 +119,11 @@ fun FaqItem(
                         .background(LocalColorTheme.current.gray[200])
                 )
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(15.dp))
 
                 Text(
                     text = answer,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
                     color = LocalColorTheme.current.gray[700],
                     lineHeight = 22.sp,
