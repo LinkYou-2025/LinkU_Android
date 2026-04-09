@@ -106,10 +106,6 @@ fun PurposeSelectionScreen(
                         }
                     )
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
             }
         },
         buttonText = "다음",

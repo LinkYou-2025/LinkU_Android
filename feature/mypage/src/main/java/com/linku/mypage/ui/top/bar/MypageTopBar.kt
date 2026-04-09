@@ -6,8 +6,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -61,14 +63,14 @@ fun MypageTopBar(
         ) {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(start = 10.dp, end = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
                     painter = painterResource(Res.drawable.ic_linkukor),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(48.dp, 24.dp)
+                    modifier = Modifier.size(48.dp, 24.dp)
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -148,14 +150,15 @@ fun MypageTopBar(
             Spacer(modifier = Modifier.height(15.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // 나의 링크
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .height(67.dp)
+                        .fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.gray[100])
                         .border(
@@ -171,7 +174,7 @@ fun MypageTopBar(
                         color = LocalColorTheme.current.gray[700],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 2.dp)
                     )
 
                     Text(
@@ -184,11 +187,10 @@ fun MypageTopBar(
 
                 Spacer(modifier = Modifier.width(9.dp))
 
-                // 나의 폴더
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .height(67.dp)
+                        .fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
                         .background(LocalColorTheme.current.gray[100])
                         .border(
@@ -204,7 +206,7 @@ fun MypageTopBar(
                         color = LocalColorTheme.current.gray[700],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(bottom = 4.dp)
+                        modifier = Modifier.padding(bottom = 2.dp)
                     )
 
                     Text(
@@ -217,7 +219,6 @@ fun MypageTopBar(
 
                 Spacer(modifier = Modifier.width(9.dp))
 
-                // AI 요약 링크
                 Column(
                     modifier = Modifier
                         .weight(1f)

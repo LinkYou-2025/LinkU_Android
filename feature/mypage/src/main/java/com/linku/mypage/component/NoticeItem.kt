@@ -69,13 +69,13 @@ fun NoticeItem(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
-                shadowElevation = 4.dp.toPx()
+                shadowElevation = 1.dp.toPx()
                 shape = cardShape
                 clip = true
             }
             .clip(RoundedCornerShape(18.dp))
             .background(LocalColorTheme.current.white)
-            .padding(horizontal = 20.dp, vertical = 22.dp),
+            .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -102,7 +102,7 @@ fun NoticeItem(
                 Text(
                     text = "시스템/공지",
                     fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.Medium,
                     color = if (hasBeenRead) {
                         LocalColorTheme.current.gray[300]
                     } else {
@@ -110,12 +110,12 @@ fun NoticeItem(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = title,
                     fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal,
+                    fontWeight = FontWeight.Medium,
                     color = if (hasBeenRead) {
                         LocalColorTheme.current.gray[400]
                     } else {
@@ -157,7 +157,7 @@ fun NoticeItem(
 
                 Text(
                     text = contents,
-                    fontSize = 14.sp,
+                    fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
                     color = LocalColorTheme.current.gray[700],
                     lineHeight = 22.sp,

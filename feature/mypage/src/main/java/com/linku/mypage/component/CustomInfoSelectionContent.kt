@@ -107,7 +107,7 @@ fun CustomInfoSelectionContent(
                 .noRippleClickable(enabled = isButtonEnabled) {
                     onButtonClick()
                 }
-                .padding(vertical = 15.dp),
+                .padding(vertical = 13.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
