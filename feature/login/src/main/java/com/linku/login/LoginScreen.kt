@@ -45,10 +45,15 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.remember
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-
+import com.linku.login.auth.GoogleAuthHelper
+import android.app.Activity
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.linku.login.BuildConfig
 private const val TAG = "LoginScreen"
 
 
@@ -117,10 +122,17 @@ fun LoginScreen(
 
     val colorTheme = LocalColorTheme.current
     val context = LocalContext.current
+    val activity = context as Activity
+    val scope = rememberCoroutineScope()
+    val googleAuthHelper = remember {
+        GoogleAuthHelper(webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID)
+    }
 
     //카카오 로그인 state 수집
     val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
 
+    // 구글 로그인 state 수집
+    val googleLoginState by viewModel.googleLoginState.collectAsStateWithLifecycle()
 
     LaunchedEffect(kakaoLoginState) {
         when (kakaoLoginState) {
@@ -141,6 +153,26 @@ fun LoginScreen(
             is SocialAuthViewModel.SocialLoginState.Error -> {
                 // TODO: 에러 메시지 표시
                 viewModel.resetKakaoLoginState()
+            }
+            else -> {}
+        }
+    }
+    // 구글 로그인 상태 처리 추가함.
+    LaunchedEffect(googleLoginState) {
+        when (googleLoginState) {
+            is SocialAuthViewModel.SocialLoginState.Success -> {
+                val result = (googleLoginState as SocialAuthViewModel.SocialLoginState.Success).result
+                when (result.status) {
+                    "ACTIVE" -> onLoginSuccess()
+                    "TEMP" -> {
+                        navigator.navigate("social_login_gate")
+                        navigator.getBackStackEntry("social_auth_graph")
+                            .savedStateHandle["socialToken"] = result.accessToken
+                    }
+                }
+            }
+            is SocialAuthViewModel.SocialLoginState.Error -> {
+                Log.e("GoogleLogin", "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}")
             }
             else -> {}
         }
@@ -274,7 +306,14 @@ fun LoginScreen(
                 text = "구글로 시작하기",
                 textColor = colorTheme.black,
                 onClick = {
-                    // TODO : 연동해주세요.
+                    scope.launch {
+                        try {
+                            val idToken = googleAuthHelper.getGoogleIdToken(activity)
+                            viewModel.loginWithGoogle(idToken)
+                        } catch (e: Exception) {
+                            Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")
+                        }
+                    }
                 }
             )
 

@@ -1,5 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.library)
     //alias(libs.plugins.kotlin.android)
@@ -9,6 +9,14 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
+}
+
+val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
+    ?.trim() ?: ""
+
 
 android {
     namespace = "com.linku.login"
@@ -20,6 +28,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         //consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
     buildTypes {
@@ -38,6 +47,7 @@ android {
 /*    kotlinOptions {
         jvmTarget = "11"
     }*/
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -113,8 +123,10 @@ dependencies {
     implementation(libs.v2.auth)
     implementation(libs.v2.user)
 
-    // 네이버 로그인
-    implementation(libs.naver.oauth)
+    // 구글 로그인(Credential Manager)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.identity.googleid)
 
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.constraintlayout)
