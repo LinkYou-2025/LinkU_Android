@@ -59,9 +59,6 @@ class SocialAuthViewModel @Inject constructor(
     private val _kakaoLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
     val kakaoLoginState: StateFlow<SocialLoginState> = _kakaoLoginState
 
-    // naver 로그인 stateflow
-    private val _naverLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
-    val naverLoginState: StateFlow<SocialLoginState> = _naverLoginState
 
     // 구글 로그인 stateflow
     private val _googleLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
@@ -165,34 +162,6 @@ class SocialAuthViewModel @Inject constructor(
         Log.d("SocialAuthViewModel", "loadWithKakao return")
     }
 
-    // 네이버로 로그인하기
-    fun loginWithNaver(token : String) {
-        Log.d("SocialAuthViewModel", "loadNaverLogin")
-
-        viewModelScope.launch {
-            Log.d("SocialAuthViewModel", "loadWithNaver launch")
-
-            _naverLoginState.value = SocialLoginState.Loading
-
-            try{
-                Log.d("SocialAuthViewModel", "loadWithNaver try")
-                val result = authRepository.loginWithNaver(token)
-                authPreference.saveTokens(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                    userId = result.userId
-                )
-
-                _naverLoginState.value = SocialLoginState.Success(result)
-            }catch (e: Exception){
-                Log.d(TAG, "loadWithNaver catch: ${e.message}")
-                _naverLoginState.value = SocialLoginState.Error(e.message ?: "카카오 로그인 실패")
-            }
-
-            Log.d("SocialAuthViewModel", "loadWithNaver end")
-        }
-        Log.d("SocialAuthViewModel", "loadWithNaver return")
-    }
 
     // 구글로 로그인하기
     fun loginWithGoogle(token : String) {

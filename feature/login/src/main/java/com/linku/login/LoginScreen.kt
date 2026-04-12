@@ -254,7 +254,7 @@ fun LoginScreen(
         ) {
 
             // 카카오
-            SocialLoginButton( //TODO 채윤지 : kakao sns api 로그인 나오면 연동하기
+            SocialLoginButton(
                 backgroundColor = Color(0xFFFEE500), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
                 iconRes = R.drawable.icon_login_kakao,
                 text = "카카오로 시작하기",
@@ -265,16 +265,9 @@ fun LoginScreen(
                 }
             )
 
-            // 네이버
-            SocialLoginButton( //TODO 지현 : naver sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFF03C75A), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
-                iconRes = R.drawable.icon_login_naver,
-                text = "네이버로 시작하기",
-                textColor = colorTheme.white
-            )
 
             // 구글
-            SocialLoginButton( //TODO 지민 : 구글 sns api 로그인 나오면 연동하기
+            SocialLoginButton(
                 backgroundColor = colorTheme.white,
                 borderColor = Color(0xFFE0E0E0),
                 iconRes = R.drawable.icon_login_google,
@@ -285,7 +278,7 @@ fun LoginScreen(
                 }
             )
 
-            // 이메일 기존 그대로 유지. //TODO 채윤지 : 서원에게 변경된 otp api 받으면 재연동하기
+            // 이메일 기존 그대로 유지.
             SocialLoginButton(
                 backgroundColor = Color.Transparent,
                 borderColor = colorTheme.white,

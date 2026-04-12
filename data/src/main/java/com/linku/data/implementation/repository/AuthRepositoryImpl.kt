@@ -197,35 +197,6 @@ class AuthRepositoryImpl @Inject constructor(
 
     }
 
-    // 네이버 로그인 api
-    override suspend fun loginWithNaver(token: String): LoginResult {
-        Log.d("UserRepositoryImpl", "loginWithNaver token: $token")
-        val naverResponse: SocialLoginResponseDTO
-
-        try{
-            Log.d("UserRepositoryImpl", "loginWithNaver try")
-            naverResponse = serverApi.withErrorHandling {
-                naverLogin(SocialLoginRequestDTO(token = token))
-            }
-
-            Log.d("UserRepositoryImpl", "loginWithNaver response: $naverResponse")
-        } catch (e: Exception){
-            Log.e("UserRepositoryImpl", "loginWithNaver error: $e")
-            throw e
-        }
-
-        Log.d("UserRepositoryImpl", "loginWithNaver return: $naverResponse")
-
-        return LoginResult( // run을 간결하게 수정함.
-            userId = naverResponse.userId,
-            accessToken = naverResponse.accessToken,
-            refreshToken = naverResponse.refreshToken,
-            status = naverResponse.status ?: "",
-            inactiveDate = ""  // 네이버 로그인엔 inactiveDate 없으니까 빈 문자열
-        )
-
-    }
-
 
     // 구글로 로그인 api
     override suspend fun loginWithGoogle(token: String): LoginResult {

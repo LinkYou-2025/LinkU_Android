@@ -77,9 +77,4 @@ interface AuthApi {
         @Body request: SocialLoginRequestDTO
     ): BaseResponse<SocialLoginResponseDTO>
 
-    //네이버 로그인 api
-    @POST("auth/mobile/naver")
-    suspend fun naverLogin(
-        @Body request: SocialLoginRequestDTO
-    ): BaseResponse<SocialLoginResponseDTO>
 }
