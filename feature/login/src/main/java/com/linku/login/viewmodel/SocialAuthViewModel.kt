@@ -69,6 +69,12 @@ class SocialAuthViewModel @Inject constructor(
         _kakaoLoginState.value = SocialLoginState.Idle
     }
 
+    fun resetGoogleLoginState() {
+        _googleLoginState.value = SocialLoginState.Idle
+    }
+
+
+
     // 입력 상태
     private val _nickname = MutableStateFlow("")
     val nickname: StateFlow<String> = _nickname
@@ -183,8 +189,8 @@ class SocialAuthViewModel @Inject constructor(
 
                 _googleLoginState.value = SocialLoginState.Success(result)
             }catch (e: Exception){
-                Log.d(TAG, "loadWithNaver catch: ${e.message}")
-                _googleLoginState.value = SocialLoginState.Error(e.message ?: "카카오 로그인 실패")
+                Log.d(TAG, "loadWithGoogle catch: ${e.message}")
+                _googleLoginState.value = SocialLoginState.Error(e.message ?: "구글 로그인 실패")
             }
 
             Log.d("SocialAuthViewModel", "loadWithGoogle end")

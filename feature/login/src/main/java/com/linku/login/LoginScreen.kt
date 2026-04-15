@@ -54,6 +54,8 @@ import android.app.Activity
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.linku.login.BuildConfig
+import com.linku.login.auth.findActivity
+
 private const val TAG = "LoginScreen"
 
 
@@ -122,7 +124,7 @@ fun LoginScreen(
 
     val colorTheme = LocalColorTheme.current
     val context = LocalContext.current
-    val activity = context as Activity
+    val activity = context.findActivity()
     val scope = rememberCoroutineScope()
     val googleAuthHelper = remember {
         GoogleAuthHelper(webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID)
@@ -170,9 +172,11 @@ fun LoginScreen(
                             .savedStateHandle["socialToken"] = result.accessToken
                     }
                 }
+                viewModel.resetGoogleLoginState()
             }
             is SocialAuthViewModel.SocialLoginState.Error -> {
                 Log.e("GoogleLogin", "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}")
+                viewModel.resetGoogleLoginState() // 리셋 추가.
             }
             else -> {}
         }
@@ -306,9 +310,10 @@ fun LoginScreen(
                 text = "구글로 시작하기",
                 textColor = colorTheme.black,
                 onClick = {
+                    val act = activity ?: return@SocialLoginButton
                     scope.launch {
                         try {
-                            val idToken = googleAuthHelper.getGoogleIdToken(activity)
+                            val idToken = googleAuthHelper.getGoogleIdToken(act)
                             viewModel.loginWithGoogle(idToken)
                         } catch (e: Exception) {
                             Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")

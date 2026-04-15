@@ -222,7 +222,7 @@ class AuthRepositoryImpl @Inject constructor(
             accessToken = googleResponse.accessToken,
             refreshToken = googleResponse.refreshToken,
             status = googleResponse.status ?: "",
-            inactiveDate = ""  // 네이버 로그인엔 inactiveDate 없으니까 빈 문자열
+            inactiveDate = ""  // 구글 로그인엔 inactiveDate 없으니까 빈 문자열
         )
 
     }
