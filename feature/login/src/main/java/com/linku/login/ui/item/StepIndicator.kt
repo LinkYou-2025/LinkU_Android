@@ -17,7 +17,9 @@ import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
 import com.linku.design.util.rememberFigmaDimens
-
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.linku.login.R
 /**
  * 직접 ui를 만들어서 추후 4,5,6단계도 손쉽게 확장이 가능함.
  * 추후 기능 확장까지 고려함.
@@ -35,7 +37,6 @@ fun StepIndicator(
     val colorTheme = LocalColorTheme.current
 
     val activeColor = colorTheme.purple[200]
-    val completedColor = colorTheme.purple[100]
     val inactiveColor = colorTheme.gray[300]
     val white = colorTheme.white
 
@@ -58,7 +59,13 @@ fun StepIndicator(
                         .size(if (isStep3Current) 28.dp else 30.dp)
                         .then(
                             when {
-                                isCompleted -> Modifier.background(completedColor, CircleShape)
+                                isCompleted -> Modifier.background(
+                                    when {
+                                        currentStep == 3 && step == 1 -> colorTheme.purple[50]  // 1번째 원
+                                        else -> colorTheme.purple[100]                           // 2번째 원
+                                    },
+                                    CircleShape
+                                )
                                 isCurrent -> Modifier.background(activeColor, CircleShape)
                                 else -> Modifier.border(1.dp, inactiveColor, CircleShape)
                             }
@@ -67,12 +74,12 @@ fun StepIndicator(
                 ) {
                     when {
                         isCompleted -> {
-                            Text(
-                                text = "✓",
-                                fontSize = 16.sp,
-                                fontFamily = Paperlogy.font,
-                                fontWeight = FontWeight.Bold,
-                                color = white
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_login_check),
+                                contentDescription = "completed",
+                                modifier = Modifier
+                                    .width(16.dp) // 피그마 상으로는 14,11인데 저번에 실제 기기로는 조금 더 작아보임. 지난번 비율 생각해서 키움.
+                                    .height(13.dp)
                             )
                         }
 

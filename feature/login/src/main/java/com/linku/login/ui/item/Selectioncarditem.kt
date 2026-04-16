@@ -45,27 +45,21 @@ internal fun SelectionCardItem(
 
     val cardModifier = if (isSelected) {
         modifier
-            .shadow(
-                elevation = 15.dp,
-                shape = RoundedCornerShape(22.dp),
+            .shadow(elevation = 15.dp, shape = RoundedCornerShape(22.dp),
                 spotColor = colorTheme.shadowColor,
-                ambientColor = colorTheme.shadowColor
-            )
-            .border(
-                width = 1.dp,
-                brush = colorTheme.maincolor,
-                shape = RoundedCornerShape(22.dp)
-            )
+                ambientColor = colorTheme.shadowColor)
+            .border(width = 1.dp, brush = colorTheme.maincolor, shape = RoundedCornerShape(22.dp))
     } else {
-        modifier
+        // 비선택시 연한 회색 테두리 항상 표시
+        modifier.border(width = 1.dp, color = colorTheme.gray[200], shape = RoundedCornerShape(22.dp))
     }
 
     Box(
         modifier = cardModifier
-            .width(150.dp)
-            .height(150.dp)
+            .width(140.dp)
+            .height(140.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White)
+            .background(colorTheme.white)
             .clickable { onClick() }
             .padding(start = 20.dp, top = 25.dp, end = 20.dp, bottom = 25.dp)
     ) {
