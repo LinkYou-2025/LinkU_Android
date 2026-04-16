@@ -56,7 +56,7 @@ sealed class ThemeColorScheme(
 
     val accentColor: Color = Color(0xFFC800FF),
     //회원가입 그림자용
-    val shadowColor: Color = Color(0x407C7C7C)
+    val shadowColor: Color = Color(0x1A7C7C7C)
 
 
 )
