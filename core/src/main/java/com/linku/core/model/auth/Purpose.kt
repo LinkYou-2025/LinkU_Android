@@ -1,6 +1,9 @@
 package com.linku.core.model.auth
 
-enum  class Purpose(val displayName: String, val serverKey: String) {
+enum  class Purpose(
+    override val displayName: String,
+    override val serverKey: String
+) : SelectionItem{
     SELF_DEVELOPMENT("자기계발\n& 정보 수집", "SELF_DEVELOPMENT"),
     SIDE_PROJECT("사이드 프로젝트\n& 창업", "SIDE_PROJECT"),
     OTHERS("기타", "OTHERS"),
@@ -10,6 +13,11 @@ enum  class Purpose(val displayName: String, val serverKey: String) {
     INSIGHTS("인사이트\n모으기", "INSIGHTS"),
     WORK("업무자료\n아카이빙", "WORK"),
     STUDY("학업\n& 리포트 정리", "STUDY");
+
+    // drawable 파일명 규칙: ic_purpose_{name.lowercase()}
+    // 예) SELF_DEVELOPMENT → res/drawable/ic_purpose_self_development.xml
+    override val iconName: String
+        get() = "ic_purpose_${name.lowercase()}"
 
     companion object {
         fun fromServerKey(key: String): Purpose? =

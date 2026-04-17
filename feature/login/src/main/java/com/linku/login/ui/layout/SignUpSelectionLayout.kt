@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
+import com.linku.core.model.auth.SelectionItem
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.item.BottomGradientButton
@@ -41,14 +42,11 @@ import com.linku.login.ui.item.StepIndicator
  * 그리드: FlowColumn - 열당 3개 고정, 가로 스크롤
  * 카드 간격: 10dp (가로/세로 동일)
  *
- * TODO: 아이콘 확장 시 작업 목록
- *  1. Purpose / Interest enum에 iconRes: Int? = null 필드 추가 *디자인 다 나오면 null 불가로 변경 예정.
- *  2. SelectionCardItem에 iconRes 파라미터 추가
- *  3. 아이콘 있으면 Image(), 없으면 회색 placeholder Box() 분기 처리 * 디자인 완료시 분기 처리x 변경 예정.
- *  4. 여기서 itemLabel 옆에 itemIcon: (T) -> Int? 람다 추가해서 전달
+ * TODO: 디자이너 아이콘 작업 완료 시
+ *  - SelectionCardItem 내부 placeholder 분기 제거 후 Image()만 남기기
  */
 @Composable
-internal fun <T> SignUpSelectionLayout(
+internal fun <T : SelectionItem> SignUpSelectionLayout(
     // 상단 영역
     currentStep: Int,
     totalSteps: Int,
@@ -59,9 +57,6 @@ internal fun <T> SignUpSelectionLayout(
     // 데이터
     items: List<T>,
     selectedItems: List<T>,
-    itemLabel: (T) -> String,
-    // TODO: 아이콘 확장 시 아래 파라미터 추가
-    // itemIcon: (T) -> Int? = { null },
 
     // 버튼
     buttonText: String,
@@ -155,9 +150,9 @@ internal fun <T> SignUpSelectionLayout(
                 ) {
                     items.forEach { item ->
                         SelectionCardItem(
-                            text = itemLabel(item),
+                            text = item.displayName,
                             isSelected = selectedItems.contains(item),
-                            // TODO: 아이콘 확장 시 iconRes = itemIcon(item) 추가
+                            iconName = item.iconName,
                             onClick = { onToggle(item) }
                         )
                     }
@@ -199,7 +194,6 @@ private fun SignUpSelectionLayoutPreview() {
         },
         items = Purpose.getAllPurposes(),
         selectedItems = selectedItems,
-        itemLabel = { it.displayName },
         buttonText = "다음",
         canProceed = selectedItems.isNotEmpty(),
         onButtonClick = {},
@@ -227,7 +221,6 @@ private fun SignUpSelectionLayoutSelectedPreview() {
         },
         items = Purpose.getAllPurposes(),
         selectedItems = selectedItems,
-        itemLabel = { it.displayName },
         buttonText = "다음",
         canProceed = selectedItems.isNotEmpty(),
         onButtonClick = {},
@@ -252,7 +245,6 @@ private fun SignUpSelectionLayoutInterestPreview() {
         },
         items = Interest.getAllInterests(),
         selectedItems = selectedItems,
-        itemLabel = { it.displayName },
         buttonText = "다음",
         canProceed = selectedItems.isNotEmpty(),
         onButtonClick = {},

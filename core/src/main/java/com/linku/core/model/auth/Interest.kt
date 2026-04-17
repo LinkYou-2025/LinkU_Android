@@ -1,9 +1,9 @@
 package com.linku.core.model.auth
 
 enum class Interest(
-    val displayName: String,
-    val serverKey: String
-) {
+    override val displayName: String,
+    override val serverKey: String
+) : SelectionItem {
     BUSINESS("비즈니스\n& 마케팅", "BUSINESS"),
     STUDY("학습 & 리포트\n참고 자료", "STUDY"),
     CAREER("커리어\n& 채용", "CAREER"),
@@ -16,6 +16,11 @@ enum class Interest(
     COLLECT("그냥\n모아두고 싶은 글", "COLLECT"),
     SOCIETY("사회 & 문화\n& 환경", "SOCIETY"),
     INSIGHTS("책 요약\n& 인사이트", "INSIGHTS");
+
+    // drawable 파일명 규칙: ic_interest_{name.lowercase()}
+    // 예) IT → res/drawable/ic_interest_it.xml
+    override val iconName: String
+        get() = "ic_interest_${name.lowercase()}"
 
     companion object {
         fun fromServerKey(key: String): Interest? =
