@@ -15,6 +15,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -50,9 +51,12 @@ internal fun SelectionCardItem(
     val context = LocalContext.current
 
     // iconName으로 drawable 리소스 조회 (없으면 0 반환) //TODO : 디자이너 작업 완료시 삭제.
-    val iconResId = context.resources.getIdentifier(
-        iconName, "drawable", context.packageName
-    )
+    // 프리뷰 환경에서는 getIdentifier 스킵
+    val iconResId = if (LocalInspectionMode.current) {
+        0  // 프리뷰에서는 무조건 placeholder
+    } else {
+        context.resources.getIdentifier(iconName, "drawable", context.packageName)
+    }
 
     val cardModifier = if (isSelected) {
         modifier
