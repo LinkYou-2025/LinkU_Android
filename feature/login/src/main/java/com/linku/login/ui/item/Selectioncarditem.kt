@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,16 +33,26 @@ import com.linku.login.R
  * - 상단 이미지 자리: 26x26dp 회색 사각형 (추후 png로 교체)
  * - 체크: 선택 시 우상단 26dp 원 - maincolor 그라데이션 배경 + CheckIndicator
  * - padding: start=20, top=25, end=20, bottom=25
+ *
+ *  * TODO: 디자이너 아이콘 작업 완료 시
+ *  *  - resId == 0 분기 제거 후 Image()만 남기기
  */
 @Composable
 internal fun SelectionCardItem(
     text: String,
     isSelected: Boolean,
+    iconName: String,  //"ic_purpose_work", "ic_interest_it" 형태
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     //디자인 모듈.
     val colorTheme = LocalColorTheme.current
+    val context = LocalContext.current
+
+    // iconName으로 drawable 리소스 조회 (없으면 0 반환) //TODO : 디자이너 작업 완료시 삭제.
+    val iconResId = context.resources.getIdentifier(
+        iconName, "drawable", context.packageName
+    )
 
     val cardModifier = if (isSelected) {
         modifier
@@ -67,13 +78,28 @@ internal fun SelectionCardItem(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 상단: 이미지 자리 (추후 png로 교체), 그래서 컬러테마로 구현하지 않음.
-            Box(
-                modifier = Modifier
-                    .width(26.dp)
-                    .height(26.dp)
-                    .background(color = Color(0xFFD9D9D9), shape = RoundedCornerShape(size = 10.dp))
-            )
+            // 상단: 아이콘 (없으면 회색 placeholder)
+            // TODO: 디자이너 작업 완료 시 분기 제거 후 Image()만 남기기
+            if (iconResId != 0) {
+                Image(
+                    painter = painterResource(id = iconResId),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(26.dp)
+                        .height(26.dp)
+                )
+            } else {
+                // 디자이너 완료시 사라질 코드. 굳이 컬러테마로 구현하지 않음.
+                Box(
+                    modifier = Modifier
+                        .width(26.dp)
+                        .height(26.dp)
+                        .background(
+                            color = Color(0xFFD9D9D9),
+                            shape = RoundedCornerShape(size = 10.dp)
+                        )
+                )
+            }
 
             // 하단: 텍스트
             Text(
@@ -117,6 +143,7 @@ fun SelectionCardItemPreview() {
     SelectionCardItem(
         text = "취업\n& 커리어 준비",
         isSelected = false,
+        iconName = "ic_purpose_career",
         onClick = {}
     )
 }
@@ -128,6 +155,7 @@ fun SelectionCardItemSelectedPreview() {
     SelectionCardItem(
         text = "취업\n& 커리어 준비",
         isSelected = true,
+        iconName = "ic_purpose_career",
         onClick = {}
     )
 }
@@ -139,6 +167,7 @@ fun SelectionCardItemLongTextPreview() {
     SelectionCardItem(
         text = "블로그/콘텐츠 작성 참고용",
         isSelected = false,
+        iconName = "ic_purpose_creation_reference",
         onClick = {}
     )
 }
@@ -154,11 +183,13 @@ fun SelectionCardItemComparePreview() {
         SelectionCardItem(
             text = "사이드 프로젝트\n& 창업",
             isSelected = false,
+            iconName = "ic_purpose_side_project",
             onClick = {}
         )
         SelectionCardItem(
             text = "인사이트 모으기",
             isSelected = true,
+            iconName = "ic_purpose_insights",
             onClick = {}
         )
     }
