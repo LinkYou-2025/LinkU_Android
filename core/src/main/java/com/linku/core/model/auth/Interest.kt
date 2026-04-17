@@ -4,18 +4,18 @@ enum class Interest(
     val displayName: String,
     val serverKey: String
 ) {
-    BUSINESS("비즈니스/마케팅", "BUSINESS"),
-    STUDY("학업/리포트 참고", "STUDY"),
-    CAREER("커리어/채용", "CAREER"),
-    PSYCHOLOGY("심리/자기계발", "PSYCHOLOGY"),
-    DESIGN("디자인/크리에이티브", "DESIGN"),
-    IT("IT/개발", "IT"),
-    WRITING("글쓰기/콘텐츠 작성", "WRITING"),
-    CURRENT_EVENTS("시사/트렌드", "CURRENT_EVENTS"),
-    STARTUP("스타트업/창업", "STARTUP"),
-    COLLECT("그냥 모아두고 싶은 글들", "COLLECT"),
-    SOCIETY("사회/문화/환경", "SOCIETY"),
-    INSIGHTS("책/인사이트 요약", "INSIGHTS");
+    BUSINESS("비즈니스\n& 마케팅", "BUSINESS"),
+    STUDY("학습 & 리포트\n참고 자료", "STUDY"),
+    CAREER("커리어\n& 채용", "CAREER"),
+    PSYCHOLOGY("심리\n& 자기계발", "PSYCHOLOGY"),
+    DESIGN("디자인\n& 크리에이티브", "DESIGN"),
+    IT("IT\n& 개발", "IT"),
+    WRITING("글쓰기\n& 콘텐츠 노하우", "WRITING"),
+    CURRENT_EVENTS("시사\n& 트렌드", "CURRENT_EVENTS"),
+    STARTUP("스타트업\n& 창업", "STARTUP"),
+    COLLECT("그냥\n모아두고 싶은 글", "COLLECT"),
+    SOCIETY("사회 & 문화\n& 환경", "SOCIETY"),
+    INSIGHTS("책 요약\n& 인사이트", "INSIGHTS");
 
     companion object {
         fun fromServerKey(key: String): Interest? =
