@@ -61,7 +61,8 @@ fun EmailVerificationScreen(
 
     // 뷰모델 상태
     val authState by viewModel.authState.collectAsState()
-    val timer by viewModel.timer.collectAsState()
+    val isCodeSent by viewModel.isCodeSent.collectAsState()
+
 
 
     // 파생 상태로- 중복 제거.
@@ -69,9 +70,8 @@ fun EmailVerificationScreen(
         Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
 
-    val isCodeSent = timer > 0
+
     val isCodeValid = code.length == 6
-    val timerText = String.format(Locale.getDefault(),"%02d:%02d", timer / 60, timer % 60)
     val isSending = authState is EmailAuthState.Sending // 파생 상태
     val isVerifying = authState is EmailAuthState.Verifying // 파생 상태
 
@@ -129,12 +129,10 @@ fun EmailVerificationScreen(
         onCodeChange = { code = it },
         isSending = isSending,
         isVerifying = isVerifying,
-        timer = timer,
         sendResult = sendResult,
         verifyResult = verifyResult,
         isCodeSent = isCodeSent,
         isCodeValid = isCodeValid,
-        timerText = timerText,
         emailValid = emailValid,
         onSendCode = { viewModel.sendEmailCode(email.trim()) },
         onVerifyCode = { viewModel.verifyEmailCode(email.trim(), code.trim()) }
@@ -155,12 +153,10 @@ fun EmailVerificationScreenContent(
     onCodeChange: (String) -> Unit,
     isSending: Boolean,
     isVerifying: Boolean,
-    timer: Int,
     sendResult: String?,
     verifyResult: String?,
     isCodeSent: Boolean,
     isCodeValid: Boolean,
-    timerText: String,
     emailValid: Boolean,
     onSendCode: () -> Unit,
     onVerifyCode: () -> Unit
@@ -255,25 +251,10 @@ fun EmailVerificationScreenContent(
                     singleLine = true,
                     enabled = !isVerifying,
                     trailingIcon = {
-                        val textModifier = Modifier.padding(end = (12.scaler))
                         if (sendResult == AuthErrorMessages.SERVER_ERROR) {
-                            Text(
-                                text = "잠시 후 다시 시도해주세요.",  //서버 오류인 경우 : 이거 문구 어떻게 하나?
-                                color = colorTheme.negative,
-                                fontSize = 13.sp,
-                                lineHeight = 15.sp,
-                                fontFamily = Paperlogy.font,
-                                modifier = Modifier.padding(end = (22.scaler)),
-                                textAlign = TextAlign.Right
-                            )
+                            Text("잠시 후 다시 시도해주세요.")
                         } else {
-                            Text(
-                                text = timerText,
-                                color = colorTheme.negative,
-                                fontSize = 13.sp,
-                                fontFamily = Paperlogy.font,
-                                modifier = textModifier
-                            )
+                            TimerText()  // 여기만 리컴포지션
                         }
                     },
                     colors = TextFieldDefaults.colors(
@@ -376,12 +357,10 @@ fun EmailVerificationScreenPreview() {
         onCodeChange = {},
         isSending = false,
         isVerifying = false,
-        timer = 180,
         sendResult = null,
         verifyResult = null,
         isCodeSent = false,
         isCodeValid = false,
-        timerText = "03:00",
         emailValid = true,
         onSendCode = {},
         onVerifyCode = {}
@@ -403,14 +382,27 @@ fun EmailVerificationScreen_TimerPreview() {
         onCodeChange = {},
         isSending = false,
         isVerifying = false,
-        timer = 153,
         sendResult = "인증 코드 전송 성공",
         verifyResult = AuthErrorMessages.VERIFY_FAILED,
         isCodeSent = true,
         isCodeValid = true,
-        timerText = "02:33",
         emailValid = true,
         onSendCode = {},
         onVerifyCode = {}
+    )
+}
+
+// 타이머 별도 컴포저블 분리 - 타이머로 인한 과도한 리컴포지션 방지
+@Composable
+private fun TimerText() {
+    val viewModel: EmailAuthViewModel = hiltViewModel()
+    val timer by viewModel.timer.collectAsState()
+    val timerText = String.format(Locale.getDefault(), "%02d:%02d", timer / 60, timer % 60)
+    Text(
+        text = timerText,
+        color = LocalColorTheme.current.negative,
+        fontSize = 13.sp,
+        fontFamily = Paperlogy.font,
+        modifier = Modifier.padding(end = 12.dp)
     )
 }
