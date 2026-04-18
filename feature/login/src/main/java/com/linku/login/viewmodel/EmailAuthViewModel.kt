@@ -15,6 +15,9 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 
 @HiltViewModel
@@ -32,6 +35,14 @@ class EmailAuthViewModel @Inject constructor(
     // 타이머 추가
     private val _timer = MutableStateFlow(0)
     val timer: StateFlow<Int> = _timer
+    // ui에서 타이머 직접 구독하지 않음. isCodeSent는 false→true 딱 한 번만 바뀜.
+    val isCodeSent: StateFlow<Boolean> = _timer
+        .map { it > 0 }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
     private var timerJob: Job? = null
 
