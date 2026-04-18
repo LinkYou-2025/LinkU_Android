@@ -27,7 +27,7 @@ interface AuthRepository {
         interestList: List<Interest>
     ) : SignUpEmailResult
 
-    suspend fun sendEmailCode(email: String, code: String): Boolean
+    suspend fun sendEmailCode(email: String) // 이메일 전송 요청이니 return이 필요 없음.
     suspend fun verifyEmailCode(email: String, code: String): Boolean
 
     suspend fun reissue(refreshToken: String): TokenReissueResult

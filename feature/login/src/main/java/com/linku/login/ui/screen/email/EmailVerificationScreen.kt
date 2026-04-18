@@ -256,9 +256,9 @@ fun EmailVerificationScreenContent(
                     enabled = !isVerifying,
                     trailingIcon = {
                         val textModifier = Modifier.padding(end = (12.scaler))
-                        if (sendResult == "서버 오류") {
+                        if (sendResult == AuthErrorMessages.SERVER_ERROR) {
                             Text(
-                                text = "서버 오류",
+                                text = "잠시 후 다시 시도해주세요.",  //서버 오류인 경우 : 이거 문구 어떻게 하나?
                                 color = colorTheme.negative,
                                 fontSize = 13.sp,
                                 lineHeight = 15.sp,
@@ -285,11 +285,7 @@ fun EmailVerificationScreenContent(
                 )
 
                 val codeErrorText: String? = when {
-                    verifyResult in listOf(
-                        "인증번호가 올바르지 않습니다",
-                        "인증 코드 불일치",
-                        AuthErrorMessages.VERIFY_FAILED
-                    ) -> AuthErrorMessages.INVALID_CODE
+                    verifyResult == AuthErrorMessages.VERIFY_FAILED -> AuthErrorMessages.VERIFY_FAILED
                     else -> null
                 }
 
@@ -409,7 +405,7 @@ fun EmailVerificationScreen_TimerPreview() {
         isVerifying = false,
         timer = 153,
         sendResult = "인증 코드 전송 성공",
-        verifyResult = "인증번호가 올바르지 않습니다",
+        verifyResult = AuthErrorMessages.VERIFY_FAILED,
         isCodeSent = true,
         isCodeValid = true,
         timerText = "02:33",

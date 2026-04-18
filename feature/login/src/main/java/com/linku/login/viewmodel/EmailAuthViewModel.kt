@@ -12,15 +12,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import okhttp3.ResponseBody
-import org.json.JSONObject
 import retrofit2.HttpException
 import javax.inject.Inject
-import kotlin.random.Random
 import kotlinx.coroutines.Job
 
-//여기 api 전면 수정 예정. 실제 api 연동은 1월 말~ 2월 초
-// TODO : 하진 언니에게 otp 번호 생성은 백에서 할 수 있도록 수정 요청하기!
+
 @HiltViewModel
 class EmailAuthViewModel @Inject constructor(
     private val authRepository: AuthRepository
@@ -69,47 +65,21 @@ class EmailAuthViewModel @Inject constructor(
         _authState.value = EmailAuthState.Idle
     }
 
-
-    // 6자리 랜덤 코드 생성 함수
-    private fun generateRandomSixDigitCode(): String {
-        return Random.Default.nextInt(0, 1_000_000)
-            .toString()
-            .padStart(6, '0')
-    }
-
-    // ResponseBody → 서버에서 내려주는 JSON 중 "message" 키값만 안전하게 추출
-    private fun ResponseBody.safeStringMessage(): String? = try {
-        val s = string() // 전체 response body 문자열
-        val msg = JSONObject(s).optString("message", "")
-        if (msg.isBlank()) null else msg  // 빈 문자열이면 null로 처리
-    } catch (_: Throwable) {
-        null
-    }
-
     /** 이메일 인증 코드 전송 */
     fun sendEmailCode(email: String) {
         Log.d("EmailAuthVM", "sendEmailCode() called. email=$email")
         viewModelScope.launch {
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Log.w("EmailAuthVM", "Invalid email format: $email")
                 _authState.value = EmailAuthState.SendError(AuthErrorMessages.INVALID_EMAIL_FORMAT)
                 return@launch
             }
 
             _authState.value = EmailAuthState.Sending
-            val code = generateRandomSixDigitCode()
 
-            Log.d("EmailAuthVM", "Generated code = $code")
             try {
-                val ok = authRepository.sendEmailCode(email, code)
-                Log.d("EmailAuthVM", "Server sendEmailCode result = $ok")
-
-                if (ok) {
-                    _authState.value = EmailAuthState.SendSuccess("인증 코드 전송 성공")
-                    startTimer() // 성공 시 타이머 시작
-                } else {
-                    _authState.value = EmailAuthState.SendError(AuthErrorMessages.SERVER_ERROR)
-                }
+                authRepository.sendEmailCode(email)  // Unit, ok 받지 않음
+                _authState.value = EmailAuthState.SendSuccess("인증 코드 전송 성공")
+                startTimer()
             } catch (e: HttpException) {
                 Log.e("EmailAuthVM", "HttpException in sendEmailCode", e)
                 _authState.value = when (e.code()) {
@@ -117,10 +87,12 @@ class EmailAuthViewModel @Inject constructor(
                     else -> EmailAuthState.SendError(AuthErrorMessages.SERVER_ERROR)
                 }
             } catch (e: Exception) {
+                Log.e("EmailAuthVM", "Exception in sendEmailCode", e)
                 _authState.value = EmailAuthState.SendError(AuthErrorMessages.SERVER_ERROR)
             }
         }
     }
+
 
     // 이메일 인증 코드 전송
     fun verifyEmailCode(email: String, code: String) {
@@ -130,12 +102,13 @@ class EmailAuthViewModel @Inject constructor(
             try {
                 val ok = authRepository.verifyEmailCode(email, code)
                 if (ok) {
-                    stopTimer() // 성공 시 타이머 중지
+                    stopTimer()
                     _authState.value = EmailAuthState.VerifySuccess
                 } else {
                     _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.VERIFY_FAILED)
                 }
             } catch (e: Exception) {
+                Log.e("EmailAuthVM", "Exception in verifyEmailCode", e)
                 _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.NETWORK_ERROR)
             }
         }
