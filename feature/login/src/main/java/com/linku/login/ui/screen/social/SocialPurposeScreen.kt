@@ -16,12 +16,6 @@ fun SocialPurposeScreen(
 ) {
     val savedPurposes by viewModel.purposes.collectAsStateWithLifecycle()
 
-    val selectedPurposes = remember {
-        mutableStateListOf<Purpose>().apply {
-            addAll(savedPurposes)
-        }
-    }
-
     SignUpSelectionLayout(
         currentStep = 3,
         totalSteps = 3,
@@ -31,17 +25,18 @@ fun SocialPurposeScreen(
         },
         subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
         items = Purpose.getAllPurposes(),
-        selectedItems = selectedPurposes,
+        selectedItems = savedPurposes,
         buttonText = "다음",
-        canProceed = selectedPurposes.isNotEmpty(),
+        canProceed = savedPurposes.isNotEmpty(),
         onButtonClick = {
-            if (selectedPurposes.isEmpty()) return@SignUpSelectionLayout
-            viewModel.updatePurposes(selectedPurposes.toList())
+            if (savedPurposes.isEmpty()) return@SignUpSelectionLayout
             navigator.navigate("social_interest")
         },
         onToggle = { purpose ->
-            if (selectedPurposes.contains(purpose)) selectedPurposes.remove(purpose)
-            else selectedPurposes.add(purpose)
+            val nextPurposes =
+                if (savedPurposes.contains(purpose)) savedPurposes - purpose
+                else savedPurposes + purpose
+            viewModel.updatePurposes(nextPurposes)
         }
     )
 }

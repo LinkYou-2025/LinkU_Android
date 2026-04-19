@@ -2,7 +2,8 @@ package com.linku.login.ui.item
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -75,7 +76,11 @@ internal fun SelectionCardItem(
             .height(140.dp)
             .clip(RoundedCornerShape(22.dp))
             .background(colorTheme.white)
-            .clickable { onClick() }
+            .toggleable(
+                value = isSelected,
+                role = Role.Checkbox,
+                onValueChange = { onClick() }
+            )
             .padding(start = 20.dp, top = 25.dp, end = 20.dp, bottom = 25.dp)
     ) {
         Column(
@@ -128,7 +133,7 @@ internal fun SelectionCardItem(
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.ic_login_check),
-                    contentDescription = "checked",
+                    contentDescription = null, //이미지는 장식용
                     modifier = Modifier
                         .width(12.dp)  // 지난 번, 피그마와 크기 차이로 인해 CheckIndicator를 따랐음(실제 10,7)
                         .height(9.dp)
