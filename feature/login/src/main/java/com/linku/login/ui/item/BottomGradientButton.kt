@@ -30,7 +30,7 @@ import com.linku.design.util.scaler
 //GradientButtonCore에서 순수 버튼 ui를 받아온 뒤, 여기서는 회원가입 중
 //바닥에 있는 패딩 위치, 패딩 조절을 담당함.
 @Composable
-fun BottomGradientButton(
+internal fun BottomGradientButton(
     text: String,
     enabled: Boolean,
     activeGradient: Brush,

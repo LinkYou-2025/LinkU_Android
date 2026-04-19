@@ -18,7 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.linku.design.theme.LocalColorTheme
 
 @Composable
-fun WrongIndicator(
+internal fun WrongIndicator(
     modifier: Modifier = Modifier
 ) {
     val colorTheme = LocalColorTheme.current

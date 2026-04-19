@@ -28,7 +28,7 @@ import com.linku.login.R
 
 //회원가입 로직에서 사용하는 체크박스(그 네모 박스에 체크 아이콘 있는거)
 @Composable
-fun PasswordRuleItem(
+internal fun PasswordRuleItem(
     text: String,
     satisfied: Boolean,
     modifier: Modifier = Modifier

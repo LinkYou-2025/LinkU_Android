@@ -29,7 +29,7 @@ import com.linku.design.R as DesignR
 
 //약관 동의 3세트
 @Composable
-fun AgreementItem(
+internal fun AgreementItem(
     title: String,
     suffix: String,
     suffixColor: Color,

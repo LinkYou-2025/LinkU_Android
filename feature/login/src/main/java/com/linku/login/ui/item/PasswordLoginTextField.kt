@@ -42,7 +42,7 @@ import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 
 @Composable
-fun PasswordLoginTextField(
+internal fun PasswordLoginTextField(
     value: String,
     onValueChange: (String) -> Unit,
     hint: String = "비밀번호",

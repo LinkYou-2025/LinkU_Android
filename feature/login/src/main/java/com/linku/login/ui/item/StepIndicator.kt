@@ -26,7 +26,7 @@ import com.linku.login.R
  * */
 
 @Composable
-fun StepIndicator(
+internal fun StepIndicator(
     currentStep: Int,
     totalSteps: Int,
     label: String,

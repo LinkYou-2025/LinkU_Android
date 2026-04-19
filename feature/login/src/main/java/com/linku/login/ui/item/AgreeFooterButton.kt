@@ -15,7 +15,7 @@ import com.linku.design.theme.LocalColorTheme
  * 서비스 내 모든 약관 동의 화면에서 공통으로 사용하는 하단 버튼
  */
 @Composable
-fun AgreeFooterButton(
+internal fun AgreeFooterButton(
     text: String,
     enabled: Boolean,
     onClick: () -> Unit,
