@@ -52,7 +52,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
     totalSteps: Int,
     stepLabel: String,
     titleText: AnnotatedString,
-    subText: String = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요", //목적, 콘텐츠에 맞춰서 수정할 예정.
+    subText: String,
 
     // 데이터
     items: List<T>,
@@ -192,6 +192,7 @@ private fun SignUpSelectionLayoutPreview() {
         titleText = buildAnnotatedString {
             append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
         },
+        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
         items = Purpose.getAllPurposes(),
         selectedItems = selectedItems,
         buttonText = "다음",
@@ -219,6 +220,7 @@ private fun SignUpSelectionLayoutSelectedPreview() {
         titleText = buildAnnotatedString {
             append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
         },
+        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
         items = Purpose.getAllPurposes(),
         selectedItems = selectedItems,
         buttonText = "다음",
@@ -243,6 +245,7 @@ private fun SignUpSelectionLayoutInterestPreview() {
         titleText = buildAnnotatedString {
             append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
         },
+        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
         items = Interest.getAllInterests(),
         selectedItems = selectedItems,
         buttonText = "다음",

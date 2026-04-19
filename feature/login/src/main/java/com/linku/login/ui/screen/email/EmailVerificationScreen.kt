@@ -265,8 +265,9 @@ fun EmailVerificationScreenContent(
                     )
                 )
 
-                val codeErrorText: String? = when {
-                    verifyResult == AuthErrorMessages.VERIFY_FAILED -> AuthErrorMessages.VERIFY_FAILED
+                val codeErrorText: String? = when (verifyResult) {
+                    AuthErrorMessages.VERIFY_FAILED -> AuthErrorMessages.VERIFY_FAILED
+                    AuthErrorMessages.NETWORK_ERROR -> AuthErrorMessages.NETWORK_ERROR
                     else -> null
                 }
 
