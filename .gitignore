@@ -31,3 +31,4 @@ local.properties
 /app/release/
 /.kotlin/
 google-services.json //firebase 설정 파일
+/AGENTS.md
