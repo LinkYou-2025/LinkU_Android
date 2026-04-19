@@ -27,7 +27,7 @@ import com.linku.design.util.scaler
 import com.linku.login.R
 
 @Composable
-fun SocialLoginButton(
+internal fun SocialLoginButton(
     modifier: Modifier = Modifier,
     backgroundColor: Color,
     borderColor: Color? = null,

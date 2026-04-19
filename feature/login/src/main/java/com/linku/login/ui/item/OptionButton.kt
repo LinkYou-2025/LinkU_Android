@@ -31,7 +31,7 @@ import com.linku.design.util.scaler
 
 //젠더, 직업 선택 버튼
 @Composable
-fun OptionButton(
+internal fun OptionButton(
     text: String,
     selected: Boolean,
     onClick: () -> Unit,

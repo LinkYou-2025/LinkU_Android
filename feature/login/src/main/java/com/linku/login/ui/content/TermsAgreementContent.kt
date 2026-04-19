@@ -33,7 +33,7 @@ import com.linku.design.util.scaler
 
 
 @Composable
-fun TermsAgreementContent(
+internal fun TermsAgreementContent(
     agreeTerms: Boolean,
     agreePrivacy: Boolean,
     agreeMarketing: Boolean,

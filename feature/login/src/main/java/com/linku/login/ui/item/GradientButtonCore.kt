@@ -25,7 +25,7 @@ import com.linku.design.util.scaler
 
 //여백 없는 순수 로그인 버튼 코어
 @Composable
-fun GradientButtonCore(
+internal fun GradientButtonCore(
     text: String,
     enabled: Boolean,
     activeGradient: Brush,

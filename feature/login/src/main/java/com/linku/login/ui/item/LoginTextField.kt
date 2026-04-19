@@ -39,7 +39,7 @@ import com.linku.design.util.scaler
 
 //회원가입 중 입력 텍스트 필드
 @Composable
-fun LoginTextField(
+internal fun LoginTextField(
     value: String,
     onValueChange: (String) -> Unit,
     hint: String,

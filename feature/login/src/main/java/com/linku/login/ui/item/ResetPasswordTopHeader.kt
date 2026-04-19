@@ -22,7 +22,7 @@ import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 
 @Composable
-fun ResetPasswordTopHeader(
+internal fun ResetPasswordTopHeader(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {

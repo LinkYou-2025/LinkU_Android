@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.linku.design.theme.LocalColorTheme
 
 @Composable
-fun CheckIndicator(
+internal fun CheckIndicator(
     checked: Boolean,
     modifier: Modifier = Modifier
 ) {
