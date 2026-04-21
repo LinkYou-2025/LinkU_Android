@@ -71,8 +71,8 @@ class FileViewModel @Inject constructor(
     val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
 
     // 내 폴더 트리
-    private val _folderTree = MutableStateFlow<List<FolderTreeResponseDTO>>(emptyList())
-    val folderTree: StateFlow<List<FolderTreeResponseDTO>> = _folderTree.asStateFlow()
+    private val _folderTree = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
+    val folderTree: StateFlow<List<FolderSimpleInfo>> = _folderTree.asStateFlow()
 
     // 상위 폴더 리스트
     private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
@@ -586,6 +586,35 @@ class FileViewModel @Inject constructor(
             }
         }
         Log.d("FileViewModel", "getSharedBottomFolders return")
+    }
+
+    // 폴더 트리 조회
+    fun getFolderTree(){
+        Log.d("FileViewModel", "getFolderTree")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "getFolderTree launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                Log.d("FileViewModel", "getFolderTree try")
+
+                _folderTree.value = folderRepository.getMyFolderTree()
+
+                Log.d("FileViewModel", "getFolderTree try result: ${folderTree.value}")
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "getFolderTree catch: $e.message")
+
+                _errorMessage.value = e.message
+            } finally {
+                Log.d("FileViewModel", "getFolderTree finally")
+
+                stopLoading()
+            }
+        }
+        Log.d("FileViewModel", "getFolderTree return")
     }
     // ---------- get method ----------
 
