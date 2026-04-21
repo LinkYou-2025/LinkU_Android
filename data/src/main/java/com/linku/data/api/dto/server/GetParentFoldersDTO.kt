@@ -2,17 +2,20 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class GetParentFoldersDTO(
 
-    @Json(name = "folderId")
+    @field:Json(name = "folderId")
     val folderId: Long,
 
-    @Json(name = "folderName")
+    @field:Json(name = "folderName")
     val folderName: String,
 
-    @Json(name = "parentFolderId")
+    @field:Json(name = "parentFolderId")
     val parentFolderId: Long?,
 
-    @Json(name = "isBookmarked")
+    @field:Json(name = "isBookmarked")
     val isBookmarked: Boolean,
 )

@@ -3,25 +3,28 @@ package com.linku.data.api.dto.server
 import com.squareup.moshi.Json
 import java.time.OffsetDateTime
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class FolderResponseDTO(
-    @Json(name = "folderId")
+    @field:Json(name = "folderId")
     val folderId: Long,
 
-    @Json(name = "folderName")
+    @field:Json(name = "folderName")
     val folderName: String,
 
-    @Json(name = "categoryId")
+    @field:Json(name = "categoryId")
     val categoryId: Long,
 
-    @Json(name = "categoryName")
+    @field:Json(name = "categoryName")
     val categoryName: String,
 
-    @Json(name = "parentFolderId")
+    @field:Json(name = "parentFolderId")
     val parentFolderId: Long,
 
-    @Json(name = "createdAt")
+    @field:Json(name = "createdAt")
     val createdAt: OffsetDateTime?,
 
-    @Json(name = "updatedAt")
+    @field:Json(name = "updatedAt")
     val updatedAt: OffsetDateTime?
 )

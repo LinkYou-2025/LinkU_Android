@@ -3,18 +3,21 @@ package com.linku.data.api.dto.server
 import com.squareup.moshi.Json
 
 // com.linku.core.model.SharedFolderSimpleInfo -> 구조를 공유
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ShareFolderResponseDTO(
 
-    @Json(name = "folderId")
+    @field:Json(name = "folderId")
     val folderId: Long,
 
-    @Json(name = "userId")
+    @field:Json(name = "userId")
     val userId: Long,
 
-    @Json(name = "permission")
+    @field:Json(name = "permission")
     val permission: String,
 
-    @Json(name = "sharedAt")
+    @field:Json(name = "sharedAt")
     val sharedAt: String
 
 )

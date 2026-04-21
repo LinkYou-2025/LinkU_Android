@@ -3,21 +3,24 @@ package com.linku.data.api.dto.user
 import com.squareup.moshi.Json
 import java.time.OffsetDateTime
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class DeleteUserResponseDTO(
 
-    @Json(name = "userId")
+    @field:Json(name = "userId")
     val userId: Long,
 
-    @Json(name = "nickname")
+    @field:Json(name = "nickname")
     val nickname: String,
 
-    @Json(name = "createdAt")
+    @field:Json(name = "createdAt")
     val createdAt: OffsetDateTime,
 
-    @Json(name = "status")
+    @field:Json(name = "status")
     val status: String,
 
-    @Json(name = "inactiveDate")
+    @field:Json(name = "inactiveDate")
     val inactiveDate: OffsetDateTime
 
 )

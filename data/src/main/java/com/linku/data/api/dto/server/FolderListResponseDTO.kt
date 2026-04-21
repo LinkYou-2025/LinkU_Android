@@ -3,20 +3,23 @@ package com.linku.data.api.dto.server
 import com.squareup.moshi.Json
 
 // com.linku.core.model.FolderSimpleInfo -> 구조를 공유
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class FolderListResponseDTO(
 
-    @Json(name = "folderId")
+    @field:Json(name = "folderId")
     val folderId: Long,
 
-    @Json(name = "folderName")
+    @field:Json(name = "folderName")
     val folderName: String,
 
-    @Json(name = "parentFolderId")
+    @field:Json(name = "parentFolderId")
     val parentFolderId: Long?,
 
-    @Json(name = "isBookmarked")
+    @field:Json(name = "isBookmarked")
     val isBookmarked: Boolean,
 
-    @Json(name = "isSharing")
+    @field:Json(name = "isSharing")
     val isSharing: String? = ""
 )

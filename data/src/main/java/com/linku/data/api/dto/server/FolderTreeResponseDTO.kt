@@ -2,18 +2,23 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class FolderTreeResponseDTO(
 
-    @Json(name = "folderId")
-    val folderId: Long,
+    @field:Json(name = "folderId")
+    val folderId: Int,
 
-    @Json(name = "folderName")
+    @field:Json(name = "folderName")
     val folderName: String,
 
-    @Json(name = "categoryId")
-    val categoryId: Long,
+    @field:Json(name = "categoryId")
+    val categoryId: Int,
 
-    @Json(name = "children")
-    val children: List<FolderTreeResponseDTO> = emptyList()
+    @field:Json(name = "isBookmarked")
+    val isBookmarked: Boolean,
 
+    @field:Json(name = "children")
+    val children: List<FolderTreeResponseDTO>? = null
 )

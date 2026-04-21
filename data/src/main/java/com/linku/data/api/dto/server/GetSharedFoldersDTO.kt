@@ -1,27 +1,29 @@
 package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
 // 폴더 정보 DTO
+@JsonClass(generateAdapter = true)
 data class SharedFolderDTO(
-    @Json(name = "folderId")
+    @field:Json(name = "folderId")
     val folderId: Long,
 
-    @Json(name = "folderName")
+    @field:Json(name = "folderName")
     val folderName: String,
 
-    @Json(name = "categoryId")
+    @field:Json(name = "categoryId")
     val categoryId: Long
 )
 
-// 사용자 + 해당 사용자가 공유한 폴더 목록 DTO
+@JsonClass(generateAdapter = true)
 data class GetSharedFoldersDTO(
-    @Json(name = "userId")
+    @field:Json(name = "userId")
     val userId: Long,
 
-    @Json(name = "nickname")
+    @field:Json(name = "nickname")
     val nickname: String,
 
-    @Json(name = "folders")
+    @field:Json(name = "folders")
     val folders: List<SharedFolderDTO>
 )

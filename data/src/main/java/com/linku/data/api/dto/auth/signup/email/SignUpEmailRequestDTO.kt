@@ -2,27 +2,30 @@ package com.linku.data.api.dto.auth.signup.email
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class SignUpEmailRequestDTO (
 
-    @Json(name = "nickName")
+    @field:Json(name = "nickName")
     val nickName: String,
 
-    @Json(name = "email")
+    @field:Json(name = "email")
     val email: String,
 
-    @Json(name = "password")
+    @field:Json(name = "password")
     val password: String,
 
-    @Json(name = "gender")
+    @field:Json(name = "gender")
     val gender: Int,
 
-    @Json(name = "jobId")
+    @field:Json(name = "jobId")
     val jobId: Int,
 
-    @Json(name = "purposeList")
+    @field:Json(name = "purposeList")
     val purposeList: List<String>,
 
-    @Json(name = "interestList")
+    @field:Json(name = "interestList")
     val interestList: List<String>
 
 )

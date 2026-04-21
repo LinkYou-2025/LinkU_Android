@@ -2,15 +2,18 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ViewerResponseDTO(
 
-    @Json(name = "userId")
+    @field:Json(name = "userId")
     val userId: Long,
 
-    @Json(name = "userName")
+    @field:Json(name = "userName")
     val userName: String,
 
-    @Json(name = "permission")
+    @field:Json(name = "permission")
     val permission: String
 
 )
