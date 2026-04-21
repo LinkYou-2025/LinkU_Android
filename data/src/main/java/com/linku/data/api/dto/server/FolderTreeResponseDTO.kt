@@ -8,13 +8,13 @@ import com.squareup.moshi.JsonClass
 data class FolderTreeResponseDTO(
 
     @field:Json(name = "folderId")
-    val folderId: Int,
+    val folderId: Long,
 
     @field:Json(name = "folderName")
     val folderName: String,
 
     @field:Json(name = "categoryId")
-    val categoryId: Int,
+    val categoryId: Long,
 
     @field:Json(name = "isBookmarked")
     val isBookmarked: Boolean,
