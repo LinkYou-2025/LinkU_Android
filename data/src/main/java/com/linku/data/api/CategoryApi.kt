@@ -1,9 +1,9 @@
 package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.CategoryColorListResponseDTO
-import com.linku.data.api.dto.server.UpdateCategoryColorRequestDTO
-import com.linku.data.api.dto.server.UserCategoryColorResponseDTO
+import com.linku.data.api.dto.folder.CategoryColorListResponseDTO
+import com.linku.data.api.dto.folder.UpdateCategoryColorRequestDTO
+import com.linku.data.api.dto.folder.UserCategoryColorResponseDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PUT

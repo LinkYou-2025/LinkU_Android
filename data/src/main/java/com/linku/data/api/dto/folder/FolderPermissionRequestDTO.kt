@@ -1,4 +1,4 @@
-package com.linku.data.api.dto.server
+package com.linku.data.api.dto.folder
 
 import com.linku.core.model.FolderPermission
 import com.squareup.moshi.Json

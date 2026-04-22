@@ -1,11 +1,12 @@
-package com.linku.data.api.dto.server
+package com.linku.data.api.dto.folder
 
 import com.squareup.moshi.Json
 
+// com.linku.core.model.CategoryColorList -> 구조를 공유
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
-data class UserCategoryColorResponseDTO(
+data class CategoryColorListResponseDTO(
 
     @field:Json(name = "categoryId")
     val categoryId: Long,
@@ -27,4 +28,5 @@ data class UserCategoryColorResponseDTO(
 
     @field:Json(name = "colorCode4")
     val colorCode4: String
+
 )
