@@ -575,4 +575,29 @@ class FolderRepositoryImpl @Inject constructor(
 
         return tree
     }
+
+    override suspend fun makeInvitationLink(folderId: Long): String {
+        Log.d("FolderRepositoryImpl", "makeInvitationLink folderId: $folderId")
+
+        val link: String
+
+        try {
+            Log.d("FolderRepositoryImpl", "makeInvitationLink try")
+
+            link = serverApi.withAuth(authPreference) {
+                Log.d("FolderRepositoryImpl", "makeInvitationLink makeInvitationLinkApi api")
+                makeInvitationLinkApi(folderId)
+            }
+
+            Log.d("FolderRepositoryImpl", "makeInvitationLink response: $link")
+
+        } catch (e: Exception) {
+            Log.e("FolderRepositoryImpl", "makeInvitationLink error: $e")
+            throw e
+        }
+
+        Log.d("FolderRepositoryImpl", "makeInvitationLink return: $link")
+
+        return link
+    }
 }

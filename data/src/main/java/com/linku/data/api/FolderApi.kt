@@ -13,6 +13,7 @@ import com.linku.data.api.dto.folder.ShareFolderResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkResponseDTO
 import com.linku.data.api.dto.folder.ViewerResponseDTO
+import com.linku.data.api.dto.folder.share.InvitationInfoResponseDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -109,5 +110,8 @@ interface FolderApi {
         @Path("folderId") folderId: Long
     ): BaseResponse<ShareFolderResponseDTO>
 
-
+    @POST("folders/share/{folderId}/invitation")
+    suspend fun makeInvitationLinkApi(
+        @Path("folderId") folderId: Long
+    ): BaseResponse<String>
 }

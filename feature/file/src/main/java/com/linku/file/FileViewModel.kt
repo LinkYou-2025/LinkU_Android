@@ -1050,6 +1050,41 @@ class FileViewModel @Inject constructor(
         return "https://linkuserver.store/open?action=share&folderId=$folderId"
     }
 
+    fun makeInvitationLink(folderId: Long): String? {
+        Log.d("FileViewModel", "makeInvitationLink")
+
+        var link: String? = null
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "makeInvitationLink launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+
+                Log.d("FileViewModel", "makeInvitationLink try")
+
+                link = folderRepository.makeInvitationLink(folderId)
+
+                Log.d("FileViewModel", "makeInvitationLink try result: $link")
+
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "makeInvitationLink catch: $e.message")
+                _errorMessage.value = e.message
+                link = null
+
+            } finally {
+                Log.d("FileViewModel", "makeInvitationLink finally")
+                stopLoading()
+            }
+        }
+
+        Log.d("FileViewModel", "makeInvitationLink return")
+
+        return link
+    }
+
     // 폴더 공유 받기
     fun receiveSharedFolder(folderId: Long){
         Log.d("FileViewModel", "receiveSharedFolder")
