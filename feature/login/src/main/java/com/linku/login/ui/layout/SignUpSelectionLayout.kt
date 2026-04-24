@@ -83,7 +83,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(colorTheme.white)
-                    .padding(horizontal = 20.dp)
                     .padding(bottom = 16.dp)
             ) {
                 BottomGradientButton(

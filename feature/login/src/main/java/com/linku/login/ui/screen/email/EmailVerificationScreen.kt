@@ -419,7 +419,7 @@ fun EmailVerificationScreen_TimerPreview() {
     }
 }
 
-// 타이머 별도 컴포저블 분리 - 타이머로 인한 과도한 리컴포지션 방지
+
 @Composable
 private fun TimerText() {
     val viewModel: EmailAuthViewModel = hiltViewModel()

@@ -28,7 +28,7 @@ fun InterestPurposeScreen(
         totalSteps = 3,
         stepLabel = "관심사 설정",
         titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
+            append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
         },
         subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
         items = Purpose.getAllPurposes(),

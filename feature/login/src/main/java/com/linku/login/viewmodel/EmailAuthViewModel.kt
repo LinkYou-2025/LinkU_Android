@@ -36,7 +36,8 @@ class EmailAuthViewModel @Inject constructor(
     private val _timer = MutableStateFlow(0)
     val timer: StateFlow<Int> = _timer
 
-    // ui에서 타이머 직접 구독하지 않음. isCodeSent는 false→true 딱 한 번만 바뀜.
+    // UI는 타이머 값을 직접 구독하지 않고 isCodeSent만 관찰하여 과도한 리컴포지션을 방지.
+    // 단, _timer가 0이 되면(만료/정지) false로 되돌아가는 파생 상태임에 유의.
     val isCodeSent: StateFlow<Boolean> = _timer
         .map { it > 0 }
         .stateIn(
