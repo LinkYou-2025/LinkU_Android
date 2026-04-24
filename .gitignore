@@ -30,5 +30,4 @@ local.properties
 /app/src/main/java/com/example/linku_android/FrontRules.kt
 /app/release/
 /.kotlin/
-google-services.json //firebase 설정 파일
-/AGENTS.md
+google-services.json
