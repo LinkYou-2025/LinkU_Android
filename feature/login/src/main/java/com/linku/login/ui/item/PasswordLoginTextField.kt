@@ -103,7 +103,7 @@ internal fun PasswordLoginTextField(
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colorTheme.gray[400]!!
+                        color = colorTheme.gray[400]
                     )
                 },
 
@@ -197,7 +197,7 @@ private fun PasswordLoginTextFieldHiddenPreview() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .background(MaterialTheme.linkuColors.gray[100])
                 .padding((16.scaler))
         ) {
             PasswordLoginTextField(
@@ -222,7 +222,7 @@ private fun PasswordLoginTextFieldVisiblePreview() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .background(MaterialTheme.linkuColors.gray[100])
                 .padding((16.scaler))
         ) {
             // 강제로 눈 열린 상태 확인용

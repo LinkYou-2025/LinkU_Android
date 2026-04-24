@@ -79,7 +79,7 @@ internal fun LoginTextField(
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Medium,
-                    color = colorTheme.gray[400]!!
+                    color = colorTheme.gray[400]
                 )
             },
 
@@ -110,7 +110,7 @@ internal fun LoginTextField(
 
                 // 비활성 상태의 텍스트/힌트 컬러 보정 (너무 흐려지지 않게)
                 disabledTextColor = colorTheme.black,
-                disabledPlaceholderColor = colorTheme.gray[400]!!,
+                disabledPlaceholderColor = colorTheme.gray[400],
 
                 )
         )
@@ -131,7 +131,7 @@ fun LoginTextFieldPreview() {
     LinkuPreview {
         Column(
             modifier = Modifier
-                .background(colorTheme.gray[100]!!)
+                .background(colorTheme.gray[100])
                 .padding((16.scaler))
         ) {
             // 그라데이션 테두리 ON

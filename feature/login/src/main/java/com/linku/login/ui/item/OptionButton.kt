@@ -46,8 +46,8 @@ internal fun OptionButton(
 
     // 배경용 연한 그라데이션
     val selectedBackground = listOf(
-        colorTheme.blue[200]!!.copy(alpha = 0.18f),
-        colorTheme.purple[200]!!.copy(alpha = 0.16f)
+        colorTheme.blue[200].copy(alpha = 0.18f),
+        colorTheme.purple[200].copy(alpha = 0.16f)
     )
 
     Box(
@@ -81,7 +81,7 @@ internal fun OptionButton(
                 width = 1.dp,
                 // ⭐ 여기서 메인 컬러를 바로 주입!
                 brush = if (selected) colorTheme.maincolor
-                else SolidColor(colorTheme.gray[400]!!),
+                else SolidColor(colorTheme.gray[400]),
                 shape = shape
             )
             .clickable(onClick = onClick)
@@ -98,7 +98,7 @@ internal fun OptionButton(
                 fontSize = 15.sp,
                 lineHeight = 22.sp, // 요구사항 반영
                 fontWeight = FontWeight.Normal,
-                color = if (selected) colorTheme.black else colorTheme.gray[500]!!
+                color = if (selected) colorTheme.black else colorTheme.gray[500]
             )
 
             // 선택된 경우만 체크 표시
@@ -122,7 +122,7 @@ private fun OptionButtonPreview_Unselected() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .background(MaterialTheme.linkuColors.gray[100])
                 .padding((16.scaler))
         ) {
             OptionButton(
@@ -145,7 +145,7 @@ private fun OptionButtonPreview_Selected() {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .background(MaterialTheme.linkuColors.gray[100])
                 .padding((16.scaler))
         ) {
             OptionButton(

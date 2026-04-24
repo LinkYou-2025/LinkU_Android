@@ -80,7 +80,7 @@ fun WelcomeScreen(
         // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
     }
     //  signUpState 사용
-    val signUpState by signUpViewModel?.signUpState?.collectAsState() ?: remember {
+    val signUpState by signUpViewModel.signUpState?.collectAsState() ?: remember {
         mutableStateOf(SignUpState.Idle)
     }
 
@@ -93,12 +93,12 @@ fun WelcomeScreen(
         // TODO : 런칭 전 해당 로그 삭제.
         if (BuildConfig.DEBUG) {
             Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
-            Log.d("WelcomeScreen", "email: ${signUpViewModel?.signUpForm?.email}")
-            Log.d("WelcomeScreen", "nickname: ${signUpViewModel?.signUpForm?.nickname}")
-            Log.d("WelcomeScreen", "gender: ${signUpViewModel?.signUpForm?.gender}")
-            Log.d("WelcomeScreen", "jobId: ${signUpViewModel?.signUpForm?.jobId}")
-            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel?.signUpForm?.purposeList}")
-            Log.d("WelcomeScreen", "interestList: ${signUpViewModel?.signUpForm?.interestList}")
+            Log.d("WelcomeScreen", "email: ${signUpViewModel.signUpForm?.email}")
+            Log.d("WelcomeScreen", "nickname: ${signUpViewModel.signUpForm?.nickname}")
+            Log.d("WelcomeScreen", "gender: ${signUpViewModel.signUpForm?.gender}")
+            Log.d("WelcomeScreen", "jobId: ${signUpViewModel.signUpForm?.jobId}")
+            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel.signUpForm?.purposeList}")
+            Log.d("WelcomeScreen", "interestList: ${signUpViewModel.signUpForm?.interestList}")
             Log.d("WelcomeScreen", "=====================")
         }
         signUpViewModel.signUp()

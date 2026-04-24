@@ -57,11 +57,11 @@ internal fun AgreementItem(
                 .size((22.scaler))
                 .border(
                     width = 1.dp,
-                    color = if (checked) colorTheme.purple[200]!! else colorTheme.gray[300]!!,
+                    color = if (checked) colorTheme.purple[200] else colorTheme.gray[300],
                     shape = RoundedCornerShape((6.scaler))
                 )
                 .background(
-                    color = if (checked) colorTheme.purple[200]!! else colorTheme.white,
+                    color = if (checked) colorTheme.purple[200] else colorTheme.white,
                     shape = RoundedCornerShape((6.scaler))
                 )
                 .clickable { onCheckedChange(!checked) },

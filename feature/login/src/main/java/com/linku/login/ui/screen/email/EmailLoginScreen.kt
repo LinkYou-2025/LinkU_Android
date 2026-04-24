@@ -159,7 +159,7 @@ fun EmailLoginScreen(
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
                     fontWeight = FontWeight(400),
-                    color = colorTheme.gray[600]!!,
+                    color = colorTheme.gray[600],
                     textAlign = TextAlign.Center
                 )
             )

@@ -115,7 +115,7 @@ fun ResetPasswordScreen(
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight(400),
-                color = colorTheme.gray[600]!!
+                color = colorTheme.gray[600]
             )
 
             // 설명-입력창 간격 (45 / 917)
@@ -125,7 +125,7 @@ fun ResetPasswordScreen(
                 value = email,
                 onValueChange = {
                     email = it
-                    if (ui?.error != null) viewModel?.consumeError()
+                    if (ui?.error != null) viewModel.consumeError()
                 },
                 hint = "이메일 주소를 입력해주세요"
             )

@@ -258,7 +258,7 @@ fun EmailVerificationScreenContent(
                             "코드를 입력해주세요",
                             fontSize = 14.sp,
                             fontFamily = Paperlogy.font,
-                            color = colorTheme.gray[400]!!
+                            color = colorTheme.gray[400]
                         )
                     },
                     modifier = Modifier
@@ -336,7 +336,7 @@ fun EmailVerificationScreenContent(
                 fontSize = 12.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight(500),
-                color = colorTheme.gray[400]!!,
+                color = colorTheme.gray[400],
                 textAlign = TextAlign.Center,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier

@@ -82,7 +82,7 @@ fun PasswordResetScreen() {
                 fontSize = 13.sp,
                 fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Normal,
-                color = colorTheme.gray[600]!!,
+                color = colorTheme.gray[600],
                 textAlign = TextAlign.Start
             )
 
@@ -108,7 +108,7 @@ fun PasswordResetScreen() {
                             fontSize = 13.sp,
                             fontFamily = Paperlogy.font,
                             fontWeight = FontWeight.Normal,
-                            color = colorTheme.gray[400]!!
+                            color = colorTheme.gray[400]
                         )
                     },
                     singleLine = true,
