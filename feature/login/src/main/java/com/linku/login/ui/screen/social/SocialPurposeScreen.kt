@@ -1,10 +1,13 @@
 package com.linku.login.ui.screen.social
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Purpose
 import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.layout.SignUpSelectionLayout

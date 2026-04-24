@@ -2,26 +2,24 @@ package com.linku.login.ui.item
 
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
-import com.linku.login.R
-import com.linku.design.modifier.noRippleClickable
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.rememberFigmaDimens
-import com.linku.design.util.scaler
-import androidx.compose.material3.MaterialTheme
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import com.linku.login.R
 
 @Composable
 internal fun ResetPasswordTopHeader(

@@ -1,13 +1,23 @@
 package com.linku.login.ui.content
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -15,21 +25,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.font.Paperlogy
-import com.linku.login.ui.item.AgreementItem
-import com.linku.login.ui.item.GradientButtonCore
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
 import com.linku.design.R
 import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.rememberFigmaDimens
+import com.linku.design.theme.font.Paperlogy
 import com.linku.design.util.scaler
+import com.linku.login.ui.item.AgreementItem
+import com.linku.login.ui.item.GradientButtonCore
 
 
 @Composable
@@ -58,7 +64,11 @@ internal fun TermsAgreementContent(
         //  바텀시트 실제 높이 기준
         val topPadding = maxHeight * (46f / 280f)
 
-        Box(modifier = Modifier.fillMaxWidth() .background(colorTheme.white)) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(colorTheme.white)
+        ) {
 
             Column {
 
@@ -130,14 +140,12 @@ internal fun TermsAgreementContent(
                 }
 
 
-
                 /* ───── Divider (좌우 20) ───── */
                 Divider(
                     color = colorTheme.blue[50],
                     modifier = Modifier
                         .padding(horizontal = (20.scaler), vertical = (16.scaler))
                 )
-
 
 
                 /* ───── 약관 항목들 (좌우 32, 간격 25) ───── */
@@ -192,7 +200,6 @@ internal fun TermsAgreementContent(
         }
     }
 }
-
 
 
 @Preview(showBackground = true)

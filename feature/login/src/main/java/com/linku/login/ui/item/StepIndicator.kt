@@ -1,28 +1,35 @@
 package com.linku.login.ui.item
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.font.Paperlogy
-import com.linku.design.util.rememberFigmaDimens
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import com.linku.login.R
-import androidx.compose.material3.MaterialTheme
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
+import com.linku.login.R
+
 /**
  * 직접 ui를 만들어서 추후 4,5,6단계도 손쉽게 확장이 가능함.
  * 추후 기능 확장까지 고려함.
@@ -35,7 +42,7 @@ internal fun StepIndicator(
     label: String,
     modifier: Modifier = Modifier,
 
-) {
+    ) {
 
     val colorTheme = MaterialTheme.linkuColors
 
@@ -69,6 +76,7 @@ internal fun StepIndicator(
                                     },
                                     CircleShape
                                 )
+
                                 isCurrent -> Modifier.background(activeColor, CircleShape)
                                 else -> Modifier.border(1.dp, inactiveColor, CircleShape)
                             }
@@ -148,6 +156,7 @@ internal fun StepIndicator(
         )
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep1Preview() {

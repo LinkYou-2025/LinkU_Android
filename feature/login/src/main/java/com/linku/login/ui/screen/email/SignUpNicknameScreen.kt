@@ -1,18 +1,25 @@
 package com.linku.login.ui.screen.email
 
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.compose.runtime.*
+import androidx.navigation.NavHostController
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.util.scaler
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.PasswordRuleItem
-import com.linku.design.util.scaler
 import com.linku.login.ui.item.WrongRuleItem
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
@@ -28,7 +35,8 @@ fun SignUpNicknameScreen(
     // 뷰모델의 상태 확인.
     val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음. 컴포즈가 이 값을 읽는 순간부터 바로 감시 시작함.
     val nicknameState by signUpViewModel.nicknameState.collectAsState()
-    val isNicknameValid = nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
+    val isNicknameValid =
+        nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
 
     //  버튼 활성 조건 (EmailVerificationScreen의 isButtonEnabled와 동일한 느낌)
     val isButtonEnabled = isNicknameValid && nicknameState == NicknameCheckState.Available
@@ -59,6 +67,7 @@ fun SignUpNicknameScreen(
                 text = "이미 사용 중인 닉네임입니다.",
                 modifier = Modifier.padding(start = 12.scaler)
             )
+
             else -> PasswordRuleItem(
                 text = "국문/영문 6자 이하",
                 satisfied = isNicknameValid,

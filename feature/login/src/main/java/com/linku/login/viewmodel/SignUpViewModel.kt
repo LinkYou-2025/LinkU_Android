@@ -14,10 +14,13 @@ import com.linku.core.model.auth.SignUpForm
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
 
 
 @HiltViewModel
@@ -151,7 +154,9 @@ class SignUpViewModel @Inject constructor(
             else -> null
         }
     }
+
     private var isSignUpRequested = false //중복 호출 방지.
+
     // 최종 회원가입 로직
     fun signUp() {
         if (isSignUpRequested) return  // 이미 요청했으면 아무것도 안 함.

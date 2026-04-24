@@ -2,8 +2,18 @@ package com.linku.login.ui.layout
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowColumn
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -11,13 +21,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,14 +32,11 @@ import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SelectionItem
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.SelectionCardItem
 import com.linku.login.ui.item.StepIndicator
-import androidx.compose.material3.MaterialTheme
-import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.linkuColors
 
 /**
  * 목적/관심사 선택 공통 레이아웃
@@ -176,7 +180,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
         }
     }
 }
-
 
 
 // 1. 미선택 (Purpose 9개)

@@ -5,10 +5,27 @@ import android.util.Patterns
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -18,24 +35,23 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.linku.design.theme.font.Paperlogy
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
-import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.viewmodel.EmailAuthViewModel
 import com.linku.login.viewmodel.SignUpViewModel
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.scaler
 import java.util.Locale
-import com.linku.design.theme.linkuColors
 
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
@@ -64,7 +80,6 @@ fun EmailVerificationScreen(
     // 뷰모델 상태
     val authState by viewModel.authState.collectAsState()
     val isCodeSent by viewModel.isCodeSent.collectAsState()
-
 
 
     // 파생 상태로- 중복 제거.
@@ -103,9 +118,14 @@ fun EmailVerificationScreen(
             is EmailAuthState.SendSuccess -> {
                 Log.d("EmailVerificationScreen", "인증 코드 전송 성공")
             }
+
             is EmailAuthState.SendError -> {
-                Log.e("EmailVerificationScreen", "전송 실패: ${(authState as EmailAuthState.SendError).message}")
+                Log.e(
+                    "EmailVerificationScreen",
+                    "전송 실패: ${(authState as EmailAuthState.SendError).message}"
+                )
             }
+
             is EmailAuthState.VerifySuccess -> {
                 Log.d("EmailVerificationScreen", "인증 성공")
                 signUpViewModel.updateForm {
@@ -113,13 +133,17 @@ fun EmailVerificationScreen(
                 }
                 navigator.navigate("sign_up_password")
             }
+
             is EmailAuthState.VerifyError -> {
-                Log.e("EmailVerificationScreen", "인증 실패: ${(authState as EmailAuthState.VerifyError).message}")
+                Log.e(
+                    "EmailVerificationScreen",
+                    "인증 실패: ${(authState as EmailAuthState.VerifyError).message}"
+                )
             }
+
             else -> Unit
         }
     }
-
 
 
     // UI만 그리는 프레젠테이션 컴포저블에 상태/이벤트를 위임 -> 렌더 이슈로 부득이하게 프리뷰 구현을 위해 코드 추가.
@@ -195,14 +219,14 @@ fun EmailVerificationScreenContent(
             Spacer(modifier = Modifier.height((32.scaler)))
             // 이메일 입력 필드
 
-                //이메일 입력 필드
-                LoginTextField(
-                    value = email,
-                    onValueChange = onEmailChange,
-                    hint = "이메일 주소를 입력해주세요",
-                    enabled = !isCodeSent, // 인증번호 발송 후엔 수정 불가. //enabled = true
-                    modifier = Modifier.fillMaxWidth(),
-                )
+            //이메일 입력 필드
+            LoginTextField(
+                value = email,
+                onValueChange = onEmailChange,
+                hint = "이메일 주소를 입력해주세요",
+                enabled = !isCodeSent, // 인증번호 발송 후엔 수정 불가. //enabled = true
+                modifier = Modifier.fillMaxWidth(),
+            )
 
             // 에러 문구
             val emailErrorText: String? = when {
@@ -256,7 +280,7 @@ fun EmailVerificationScreenContent(
                                 color = colorTheme.negative,
                                 fontSize = 13.sp,
                                 modifier = Modifier.padding(end = 12.dp)
-                           )
+                            )
                         } else {
                             TimerText()  // 여기만 리컴포지션
                         }
@@ -282,6 +306,7 @@ fun EmailVerificationScreenContent(
                             modifier = Modifier.padding(start = (12.scaler))
                         )
                     }
+
                     else -> Unit
                 }
 

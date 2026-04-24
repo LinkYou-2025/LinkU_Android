@@ -1,17 +1,13 @@
 package com.linku.login.ui.screen.email
 
-import androidx.compose.runtime.*
-import androidx.compose.ui.text.SpanStyle
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Interest
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SignUpViewModel
 

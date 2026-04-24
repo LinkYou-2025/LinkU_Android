@@ -8,16 +8,16 @@ import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
 import com.linku.core.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 
 
 @HiltViewModel
@@ -35,6 +35,7 @@ class EmailAuthViewModel @Inject constructor(
     // 타이머 추가
     private val _timer = MutableStateFlow(0)
     val timer: StateFlow<Int> = _timer
+
     // ui에서 타이머 직접 구독하지 않음. isCodeSent는 false→true 딱 한 번만 바뀜.
     val isCodeSent: StateFlow<Boolean> = _timer
         .map { it > 0 }

@@ -1,47 +1,61 @@
 package com.linku.login.ui.screen.email
 
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import com.linku.login.R
-import com.linku.design.theme.font.Paperlogy
-import com.linku.login.ui.item.LoginTextField
-import androidx.compose.foundation.layout.ime
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.BaselineShift
-import com.linku.login.ui.item.GradientButtonCore
-import com.linku.login.ui.item.PasswordLoginTextField
-import com.linku.design.modifier.noRippleClickable
-import android.util.Patterns
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
-import com.linku.design.theme.LocalColorTheme
-import com.linku.login.viewmodel.LoginViewModel
-import com.linku.design.util.scaler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
 import com.linku.core.system.SystemBarController
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import com.linku.login.R
+import com.linku.login.ui.item.GradientButtonCore
+import com.linku.login.ui.item.LoginTextField
+import com.linku.login.ui.item.PasswordLoginTextField
+import com.linku.login.viewmodel.LoginViewModel
 
 @Composable
 fun EmailLoginScreen(
@@ -67,9 +81,11 @@ fun EmailLoginScreen(
                 focusManager.clearFocus()
                 onLoginSuccess()
             }
+
             is LoginState.Error -> {
                 focusManager.clearFocus()
             }
+
             else -> {}
         }
     }
@@ -106,7 +122,6 @@ fun EmailLoginScreen(
     val imeBottom = if (isInPreview) 0 else WindowInsets.ime.getBottom(density)
     val isKeyboardOpen = imeBottom > 0
     val buttonOffsetY = if (isKeyboardOpen) 0.dp else (-4.scaler)
-
 
 
     // 🔑 피그마 비율 적용
@@ -165,7 +180,8 @@ fun EmailLoginScreen(
                         // 입력 시 에러 초기화.
                         if (loginState is LoginState.Error) {
                             loginViewModel?.clearError()
-                        } },
+                        }
+                    },
                     hint = "이메일",
                     textStyle = TextStyle(
                         fontSize = 14.sp,
@@ -246,9 +262,12 @@ fun EmailLoginScreen(
                     .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
                     .height((30.scaler)), // 클릭 영역 확보를 위한 높이
-                horizontalArrangement = Arrangement.spacedBy(25.dp, alignment = Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(
+                    25.dp,
+                    alignment = Alignment.CenterHorizontally
+                ),
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 Text(
                     text = "비밀번호 재설정",
                     fontSize = 15.sp,
@@ -282,7 +301,6 @@ fun EmailLoginScreen(
         }
     }
 }
-
 
 
 @Preview(

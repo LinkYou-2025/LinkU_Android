@@ -1,32 +1,23 @@
 package com.linku.login.ui.item
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.font.Paperlogy
-import com.linku.design.util.rememberFigmaDimens
-import com.linku.design.util.scaler
-import com.linku.login.R
-import androidx.compose.material3.MaterialTheme
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
 
 //회원가입 로직에서 사용하는 체크박스(그 네모 박스에 체크 아이콘 있는거)
 @Composable

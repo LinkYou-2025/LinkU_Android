@@ -2,28 +2,22 @@ package com.linku.login.ui.item
 
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import com.linku.design.theme.font.Paperlogy
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.rememberFigmaDimens
+import androidx.compose.ui.unit.dp
 import com.linku.design.util.scaler
 
 
@@ -48,9 +42,9 @@ internal fun BottomGradientButton(
 
     val bottomPadding = when {
         imeBottom > 0 -> 20.dp   // 키보드 열림
-        navBottom > 0 -> screenHeight *(16f/917f)  // 네비게이션 바 없는 경우(반응형으로 수정)
-        else -> screenHeight *(24f/917f) //기본 안드로이드 바텀바 있는 경우(반응형으로 수정)
-        }
+        navBottom > 0 -> screenHeight * (16f / 917f)  // 네비게이션 바 없는 경우(반응형으로 수정)
+        else -> screenHeight * (24f / 917f) //기본 안드로이드 바텀바 있는 경우(반응형으로 수정)
+    }
 
     Box(
         modifier = modifier

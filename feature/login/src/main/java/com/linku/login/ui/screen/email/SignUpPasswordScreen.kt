@@ -1,26 +1,32 @@
 package com.linku.login.ui.screen.email
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.font.Paperlogy
-import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.linku.design.theme.LocalColorTheme
+import androidx.navigation.NavHostController
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
-import com.linku.login.ui.item.PasswordRuleItem
 import com.linku.login.ui.item.PasswordLoginTextField
+import com.linku.login.ui.item.PasswordRuleItem
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SignUpViewModel
-import androidx.compose.material3.MaterialTheme
-import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.linkuColors
 
 @Composable
 fun SignUpPasswordScreen(

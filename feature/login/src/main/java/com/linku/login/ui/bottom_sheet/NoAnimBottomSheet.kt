@@ -3,7 +3,16 @@ package com.linku.login.ui.bottom_sheet
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -12,11 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.rememberFigmaDimens
-import com.linku.design.util.scaler
-import androidx.compose.material3.MaterialTheme
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
 
 //약관 보고 다시 바텀 시트 돌아올 때,애니메이션 작동하지 않게 하는...시트
 @Composable
@@ -35,7 +41,7 @@ fun NoAnimBottomSheet(
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.BottomCenter // 중앙 정렬 - 테블릿 가로 모드 대응.
-        ) {
+    ) {
 
         // Scrim(배경 어둡게)
         Box(

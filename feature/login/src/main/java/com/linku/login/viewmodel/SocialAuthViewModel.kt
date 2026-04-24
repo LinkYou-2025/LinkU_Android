@@ -5,23 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LoginResult
 import com.linku.core.model.auth.Gender
-import com.linku.core.model.auth.Job
-import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.NicknameCheckState
+import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.AuthRepository
+import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.linku.core.model.auth.NicknameCheckState
-import com.linku.data.preference.AuthPreference
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 /**
@@ -51,7 +48,9 @@ class SocialAuthViewModel @Inject constructor(
     sealed class KakaoLoginState {
         object Idle : KakaoLoginState() // 아무것도 하지 않는 초기상태.
         object Loading : KakaoLoginState() // 로딩 중
-        data class Success(val result: LoginResult) : KakaoLoginState() //loginResult에서 성공 + 데이터 가져옴.
+        data class Success(val result: LoginResult) :
+            KakaoLoginState() //loginResult에서 성공 + 데이터 가져옴.
+
         data class Error(val message: String) : KakaoLoginState()
     }
 
@@ -107,7 +106,6 @@ class SocialAuthViewModel @Inject constructor(
     val error: StateFlow<Throwable?> = _error
 
 
-
     private fun isValidNickname(input: String): Boolean =
         input.isNotBlank() && input.length in 1..MAX_NICKNAME_LENGTH
 
@@ -129,7 +127,7 @@ class SocialAuthViewModel @Inject constructor(
     }
 
 
-    fun loginWithKakao(token : String) {
+    fun loginWithKakao(token: String) {
         Log.d("SocialAuthViewModel", "loadKakaoLogin")
 
         viewModelScope.launch {
@@ -137,7 +135,7 @@ class SocialAuthViewModel @Inject constructor(
 
             _kakaoLoginState.value = KakaoLoginState.Loading
 
-            try{
+            try {
                 Log.d("SocialAuthViewModel", "loadWithKakao try")
                 val result = authRepository.loginWithKakao(token)
                 authPreference.saveTokens(
@@ -147,7 +145,7 @@ class SocialAuthViewModel @Inject constructor(
                 )
 
                 _kakaoLoginState.value = KakaoLoginState.Success(result)
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d(TAG, "loadWithKakao catch: ${e.message}")
                 _kakaoLoginState.value = KakaoLoginState.Error(e.message ?: "카카오 로그인 실패")
             }
@@ -190,7 +188,7 @@ class SocialAuthViewModel @Inject constructor(
     }
 
 
-     //소셜 프로필 완료 API
+    //소셜 프로필 완료 API
     fun completeSocialProfile(
         socialToken: String,
         onSuccess: () -> Unit

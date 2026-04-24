@@ -21,9 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.font.Paperlogy
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.linkuColors
-import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 
 //여백 없는 순수 로그인 버튼 코어

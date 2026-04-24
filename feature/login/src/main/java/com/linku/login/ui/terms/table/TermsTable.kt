@@ -1,14 +1,22 @@
 package com.linku.login.ui.terms.table
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,7 +41,9 @@ fun TermsTable(
     ) {
         // 1. 헤더 행
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
             TableCell(text = headers.first, weight = 0.3f, isHeader = true)
@@ -45,7 +55,9 @@ fun TermsTable(
         rows.forEach { rowData ->
             HorizontalDivider(color = borderColor, thickness = borderWidth)
             Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TableCell(text = rowData.first, weight = 0.3f)
@@ -103,11 +115,17 @@ fun TermsTable4Col(
     ) {
         // 헤더 행
         Row(
-            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
             verticalAlignment = Alignment.CenterVertically
         ) {
             headers.forEachIndexed { index, header ->
-                TableCell(text = header, weight = weights.getOrElse(index) { 1f / headers.size }, isHeader = true)
+                TableCell(
+                    text = header,
+                    weight = weights.getOrElse(index) { 1f / headers.size },
+                    isHeader = true
+                )
                 if (index < headers.lastIndex) {
                     VerticalDivider(color = borderColor, thickness = borderWidth)
                 }
@@ -118,7 +136,9 @@ fun TermsTable4Col(
         rows.forEach { rowData ->
             HorizontalDivider(color = borderColor, thickness = borderWidth)
             Row(
-                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 rowData.forEachIndexed { index, cell ->

@@ -1,13 +1,20 @@
 package com.linku.login.ui.item
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.semantics.Role
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.Image
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,13 +26,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
 import com.linku.login.R
 
@@ -64,13 +70,19 @@ internal fun SelectionCardItem(
 
     val cardModifier = if (isSelected) {
         modifier
-            .shadow(elevation = 15.dp, shape = RoundedCornerShape(22.dp),
+            .shadow(
+                elevation = 15.dp, shape = RoundedCornerShape(22.dp),
                 spotColor = colorTheme.shadowColor,
-                ambientColor = colorTheme.shadowColor)
+                ambientColor = colorTheme.shadowColor
+            )
             .border(width = 1.dp, brush = colorTheme.maincolor, shape = RoundedCornerShape(22.dp))
     } else {
         // 비선택시 연한 회색 테두리 항상 표시
-        modifier.border(width = 1.dp, color = colorTheme.gray[200], shape = RoundedCornerShape(22.dp))
+        modifier.border(
+            width = 1.dp,
+            color = colorTheme.gray[200],
+            shape = RoundedCornerShape(22.dp)
+        )
     }
 
     Box(
@@ -144,7 +156,6 @@ internal fun SelectionCardItem(
         }
     }
 }
-
 
 
 // 1. 기본 (미선택)
