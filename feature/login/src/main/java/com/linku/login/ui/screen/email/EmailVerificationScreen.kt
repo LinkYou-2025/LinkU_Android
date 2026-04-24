@@ -251,7 +251,12 @@ fun EmailVerificationScreenContent(
                     enabled = !isVerifying,
                     trailingIcon = {
                         if (sendResult == AuthErrorMessages.SERVER_ERROR) {
-                            Text("잠시 후 다시 시도해주세요.")
+                            Text(
+                                text = "잠시 후 다시 시도해주세요.",
+                                color = colorTheme.negative,
+                                fontSize = 13.sp,
+                                modifier = Modifier.padding(end = 12.dp)
+                           )
                         } else {
                             TimerText()  // 여기만 리컴포지션
                         }
@@ -264,24 +269,20 @@ fun EmailVerificationScreenContent(
                     )
                 )
 
-                val codeErrorText: String? = when (verifyResult) {
-                    AuthErrorMessages.VERIFY_FAILED -> AuthErrorMessages.VERIFY_FAILED
-                    AuthErrorMessages.NETWORK_ERROR -> AuthErrorMessages.NETWORK_ERROR
-                    else -> null
-                }
-
-                codeErrorText?.let {
-                    Spacer(modifier = Modifier.height((12.scaler)))
-                    Text(
-                        text = it,
-                        color = colorTheme.negative,
-                        fontSize = 13.sp,
-                        lineHeight = 15.sp,
-                        fontWeight = FontWeight(400),
-                        modifier = Modifier.padding(
-                            start = (12.scaler)
+                when (verifyResult) {
+                    AuthErrorMessages.VERIFY_FAILED,
+                    AuthErrorMessages.NETWORK_ERROR -> {
+                        Spacer(modifier = Modifier.height((12.scaler)))
+                        Text(
+                            text = verifyResult,
+                            color = colorTheme.negative,
+                            fontSize = 13.sp,
+                            lineHeight = 15.sp,
+                            fontWeight = FontWeight(400),
+                            modifier = Modifier.padding(start = (12.scaler))
                         )
-                    )
+                    }
+                    else -> Unit
                 }
 
             } else if (sendResult == AuthErrorMessages.SERVER_ERROR) {
@@ -290,7 +291,6 @@ fun EmailVerificationScreenContent(
                     text = "서버 오류: 잠시 후 다시 시도해주세요",
                     color = colorTheme.negative,
                     fontSize = 13.sp,
-                    fontFamily = Paperlogy.font,
                     modifier = Modifier.padding((8.scaler))
                 )
             }
