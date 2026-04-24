@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,8 +19,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 
@@ -33,8 +36,7 @@ internal fun GradientButtonCore(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 2. 디자인 모듈의 폰트 패밀리 가져오기
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     Box(
         modifier = modifier
@@ -69,24 +71,26 @@ internal fun GradientButtonCore(
 private fun GradientButtonCoreEnabledPreview() {
     // 실제 앱에서는 LocalColorTheme이 주입되지만,
     // 프리뷰에서는 수동으로 Brush를 생성하거나 테마로 감싸서 확인합니다.
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White) //프리뷰니까 그냥 절대 컬러로 놓겠습니당
-            .padding(20.dp)
-    ) {
-        GradientButtonCore(
-            text = "로그인하기",
-            enabled = true,
-            // List<Color> 대신 Brush를 직접 생성하여 전달
-            activeGradient = Brush.horizontalGradient(
-                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-            ),
-            inactiveGradient = Brush.horizontalGradient(
-                listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
-            ),
-            onClick = {}
-        )
+    LinkuPreview {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White) //프리뷰니까 그냥 절대 컬러로 놓겠습니당
+                .padding(20.dp)
+        ) {
+            GradientButtonCore(
+                text = "로그인하기",
+                enabled = true,
+                // List<Color> 대신 Brush를 직접 생성하여 전달
+                activeGradient = Brush.horizontalGradient(
+                    listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                ),
+                inactiveGradient = Brush.horizontalGradient(
+                    listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
+                ),
+                onClick = {}
+            )
+        }
     }
 }
 
@@ -96,23 +100,24 @@ private fun GradientButtonCoreEnabledPreview() {
 )
 @Composable
 private fun GradientButtonCoreDisabledPreview() {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color.White)
-            .padding(20.dp)
-    ) {
-        GradientButtonCore(
-            text = "로그인하기",
-            enabled = false,
-            //  List<Color> 대신 Brush를 직접 생성하여 전달
-            activeGradient = Brush.horizontalGradient(
-                listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
-            ),
-            inactiveGradient = Brush.horizontalGradient(
-                listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
-            ),
-            onClick = {}
-        )
+    LinkuPreview {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(20.dp)
+        ) {
+            GradientButtonCore(
+                text = "로그인하기",
+                enabled = false,
+                activeGradient = Brush.horizontalGradient(
+                    listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
+                ),
+                inactiveGradient = Brush.horizontalGradient(
+                    listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
+                ),
+                onClick = {}
+            )
+        }
     }
 }

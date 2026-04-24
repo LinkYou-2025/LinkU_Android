@@ -8,6 +8,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Job
+import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.item.OptionButton
 import com.linku.design.util.scaler
 import com.linku.login.ui.layout.SignUpStepLayout
@@ -57,26 +58,28 @@ fun SignUpJobScreenPreview() {
     var selectedJobId by remember { mutableStateOf(3) }
     val jobs = Job.getAllJobs()
 
-    SignUpStepLayoutPreview(
-        currentStep = 2,
-        totalSteps = 3,
-        label = "프로필 설정",
-        title = "현재 하고 계신 일이나\n활동을 알려주세요",
-        buttonEnabled = selectedJobId > 0,
-        onNextClick = {}
-    ) {
-        Spacer(Modifier.height(4.scaler))
+    LinkuPreview {
+        SignUpStepLayoutPreview(
+            currentStep = 2,
+            totalSteps = 3,
+            label = "프로필 설정",
+            title = "현재 하고 계신 일이나\n활동을 알려주세요",
+            buttonEnabled = selectedJobId > 0,
+            onNextClick = {}
+        ) {
+            Spacer(Modifier.height(4.scaler))
 
-        jobs.forEach { job ->
-            OptionButton(
-                text = job.displayName,
-                selected = selectedJobId == job.id,
-                onClick = { selectedJobId = job.id },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(12.scaler))
+            jobs.forEach { job ->
+                OptionButton(
+                    text = job.displayName,
+                    selected = selectedJobId == job.id,
+                    onClick = { selectedJobId = job.id },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(12.scaler))
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
         }
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }

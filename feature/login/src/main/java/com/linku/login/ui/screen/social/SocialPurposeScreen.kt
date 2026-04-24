@@ -6,6 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Purpose
+import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SocialAuthViewModel
 
@@ -47,24 +48,26 @@ fun SocialPurposeScreen(
 private fun SocialPurposeScreenPreview() {
     val selectedPurposes = remember { mutableStateListOf<Purpose>() }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = selectedPurposes,
-        buttonText = "다음",
-        canProceed = selectedPurposes.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = { purpose ->
-            if (selectedPurposes.contains(purpose)) selectedPurposes.remove(purpose)
-            else selectedPurposes.add(purpose)
-        }
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Purpose.getAllPurposes(),
+            selectedItems = selectedPurposes,
+            buttonText = "다음",
+            canProceed = selectedPurposes.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = { purpose ->
+                if (selectedPurposes.contains(purpose)) selectedPurposes.remove(purpose)
+                else selectedPurposes.add(purpose)
+            }
+        )
+    }
 }
 
 // 2. 선택됨
@@ -75,19 +78,21 @@ private fun SocialPurposeScreenSelectedPreview() {
         mutableStateListOf(Purpose.CAREER, Purpose.SIDE_PROJECT, Purpose.STUDY)
     }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = selectedPurposes,
-        buttonText = "다음",
-        canProceed = selectedPurposes.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = {}
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Purpose.getAllPurposes(),
+            selectedItems = selectedPurposes,
+            buttonText = "다음",
+            canProceed = selectedPurposes.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = {}
+        )
+    }
 }

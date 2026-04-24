@@ -40,7 +40,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
 import com.linku.core.system.SystemBarController
-
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 @Composable
 fun EmailLoginScreen(
@@ -54,7 +55,7 @@ fun EmailLoginScreen(
     val focusManager = LocalFocusManager.current
 
     // 2. 디자인 모듈의 폰트 패밀리 가져오기
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     // LoginState 관찰 추가
     val loginState by loginViewModel?.loginState?.collectAsStateWithLifecycle()
@@ -142,7 +143,6 @@ fun EmailLoginScreen(
                 style = TextStyle(
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(400),
                     color = colorTheme.gray[600]!!,
                     textAlign = TextAlign.Center
@@ -170,7 +170,6 @@ fun EmailLoginScreen(
                     textStyle = TextStyle(
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = colorTheme.black
                     )
@@ -201,7 +200,6 @@ fun EmailLoginScreen(
                             style = TextStyle(
                                 fontSize = 13.sp,
                                 lineHeight = 15.sp,
-                                fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight(400),
                                 color = colorTheme.negative
                             ),
@@ -254,7 +252,6 @@ fun EmailLoginScreen(
                 Text(
                     text = "비밀번호 재설정",
                     fontSize = 15.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
@@ -266,7 +263,6 @@ fun EmailLoginScreen(
                 Text(
                     text = "|",
                     fontSize = 14.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[600],
                     style = TextStyle(
                         baselineShift = BaselineShift(0.3f)  // 약간 위로 올림
@@ -275,7 +271,6 @@ fun EmailLoginScreen(
                 Text(
                     text = "회원가입",
                     fontSize = 15.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
@@ -296,13 +291,15 @@ fun EmailLoginScreen(
 )
 @Composable
 fun EmailLoginPreview() {
-    EmailLoginScreen(
-        navigator = rememberNavController(),
-        loginViewModel = null,
-        onSignUpClick = {},
-        onLoginSuccess = {}
+    LinkuPreview {
+        EmailLoginScreen(
+            navigator = rememberNavController(),
+            loginViewModel = null,
+            onSignUpClick = {},
+            onLoginSuccess = {}
 
-    )
+        )
+    }
 }
 
 

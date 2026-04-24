@@ -19,12 +19,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.login.R
 import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.item.AgreeFooterButton
 import com.linku.login.ui.terms.data.ServiceTermsData
-
+import com.linku.design.theme.linkuColors
 
 private val EXTRA_GAP = 20.dp
 private val FOOTER_HEIGHT = 50.dp  // 본문의 마지막 내용이 하단 버튼
@@ -38,7 +39,7 @@ fun ServiceTermsScreen(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
     val isAtBottom by remember {
         derivedStateOf {
@@ -81,7 +82,6 @@ fun ServiceTermsScreen(
                     fontSize = 16.sp,
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = Paperlogy.font,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 62.dp)
@@ -95,7 +95,7 @@ fun ServiceTermsScreen(
                 onClick = onAgreeClicked
             )
         },
-        containerColor = Color.White,
+        containerColor = colorTheme.white,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -118,7 +118,6 @@ fun ServiceTermsScreen(
                         text = ServiceTermsData.MAIN_TITLE,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        fontFamily = Paperlogy.font,
                         color = colorTheme.black
                     )
 
@@ -129,7 +128,6 @@ fun ServiceTermsScreen(
                         text = ServiceTermsData.INTRODUCTION,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy.font,
                         color = colorTheme.black
                     )
 
@@ -159,8 +157,6 @@ fun ServiceTermsScreen(
                 }
             }
             Spacer(Modifier.height(EXTRA_GAP))
-            // 하단 버튼과 겹치지 않게 여백 추가
-            //Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
         }
     }
 }
@@ -168,7 +164,7 @@ fun ServiceTermsScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ServiceTermsScreenPreview() {
-    MaterialTheme {
+    LinkuPreview {
         ServiceTermsScreen(
             onAgreeClicked = {},
             onBackClicked = {}

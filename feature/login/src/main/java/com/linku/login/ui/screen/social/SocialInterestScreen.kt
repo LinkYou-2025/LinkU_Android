@@ -6,6 +6,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Interest
+import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SocialAuthViewModel
 
@@ -53,24 +54,26 @@ fun SocialInterestScreen(
 private fun SocialInterestScreenPreview() {
     val selectedInterests = remember { mutableStateListOf<Interest>() }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
-        },
-        subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
-        items = Interest.getAllInterests(),
-        selectedItems = selectedInterests,
-        buttonText = "완료",
-        canProceed = selectedInterests.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = { interest ->
-            if (selectedInterests.contains(interest)) selectedInterests.remove(interest)
-            else selectedInterests.add(interest)
-        }
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
+            },
+            subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
+            items = Interest.getAllInterests(),
+            selectedItems = selectedInterests,
+            buttonText = "완료",
+            canProceed = selectedInterests.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = { interest ->
+                if (selectedInterests.contains(interest)) selectedInterests.remove(interest)
+                else selectedInterests.add(interest)
+            }
+        )
+    }
 }
 
 // 2. 선택됨
@@ -81,19 +84,21 @@ private fun SocialInterestScreenSelectedPreview() {
         mutableStateListOf(Interest.IT, Interest.DESIGN, Interest.STARTUP)
     }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
-        },
-        subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
-        items = Interest.getAllInterests(),
-        selectedItems = selectedInterests,
-        buttonText = "완료",
-        canProceed = selectedInterests.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = {}
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
+            },
+            subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
+            items = Interest.getAllInterests(),
+            selectedItems = selectedInterests,
+            buttonText = "완료",
+            canProceed = selectedInterests.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = {}
+        )
+    }
 }

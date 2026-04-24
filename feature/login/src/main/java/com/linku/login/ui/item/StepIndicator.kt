@@ -20,6 +20,9 @@ import com.linku.design.util.rememberFigmaDimens
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import com.linku.login.R
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 /**
  * 직접 ui를 만들어서 추후 4,5,6단계도 손쉽게 확장이 가능함.
  * 추후 기능 확장까지 고려함.
@@ -34,7 +37,7 @@ internal fun StepIndicator(
 
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     val activeColor = colorTheme.purple[200]
     val inactiveColor = colorTheme.gray[300]
@@ -148,47 +151,53 @@ internal fun StepIndicator(
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep1Preview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        StepIndicator(
-            currentStep = 1,
-            totalSteps = 3,
-            label = "계정 정보"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            StepIndicator(
+                currentStep = 1,
+                totalSteps = 3,
+                label = "계정 정보"
+            )
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep2Preview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        StepIndicator(
-            currentStep = 2,
-            totalSteps = 3,
-            label = "프로필 설정"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep3Preview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        StepIndicator(
-            currentStep = 3,
-            totalSteps = 3,
-            label = "관심사 설정"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            StepIndicator(
+                currentStep = 3,
+                totalSteps = 3,
+                label = "관심사 설정"
+            )
+        }
     }
 }

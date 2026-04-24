@@ -48,14 +48,16 @@ import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.system.SystemBarController
 import com.linku.login.BuildConfig
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.linkuColors
 
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel //null 불가.
 ) {
-    //디자인 모듈 가져오기.
-    val colorTheme = LocalColorTheme.current
+
+    val colorTheme = MaterialTheme.linkuColors
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
 
@@ -177,7 +179,6 @@ fun WelcomeScreen(
                     color = colorTheme.white,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = Paperlogy.font,
                     textAlign = TextAlign.Center // 피그마와 동일하게 중앙 정렬
                 )
 
@@ -187,7 +188,6 @@ fun WelcomeScreen(
                     text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
                     color = colorTheme.white,
                     fontSize = 16.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
@@ -208,7 +208,6 @@ fun WelcomeScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     style = TextStyle(brush = colorTheme.maincolor),
-                    fontFamily = Paperlogy.font
                 )
             }
         }

@@ -14,6 +14,7 @@ import com.linku.login.ui.item.PasswordRuleItem
 import com.linku.login.ui.item.WrongRuleItem
 import com.linku.login.viewmodel.SocialAuthViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
 
@@ -78,30 +79,32 @@ fun SocialNicknameScreen(
 fun SocialNicknameScreenDuplicatedPreview() {
     val nickname = "LinkU"
 
-    SignUpStepLayoutPreview(
-        currentStep = 2,
-        totalSteps = 3,
-        label = "프로필 설정",
-        title = "사용하실 닉네임을\n입력해주세요",
-        buttonEnabled = false,
-        onNextClick = {}
-    ) {
-        Spacer(Modifier.height(8.scaler))
+    LinkuPreview {
+        SignUpStepLayoutPreview(
+            currentStep = 2,
+            totalSteps = 3,
+            label = "프로필 설정",
+            title = "사용하실 닉네임을\n입력해주세요",
+            buttonEnabled = false,
+            onNextClick = {}
+        ) {
+            Spacer(Modifier.height(8.scaler))
 
-        LoginTextField(
-            value = nickname,
-            onValueChange = {},
-            hint = "닉네임을 입력해주세요.",
-            modifier = Modifier.fillMaxWidth()
-        )
+            LoginTextField(
+                value = nickname,
+                onValueChange = {},
+                hint = "닉네임을 입력해주세요.",
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Spacer(Modifier.height(10.scaler))
+            Spacer(Modifier.height(10.scaler))
 
-        WrongRuleItem(
-            text = "이미 사용 중인 닉네임입니다.",
-            modifier = Modifier.padding(start = 12.scaler)
-        )
+            WrongRuleItem(
+                text = "이미 사용 중인 닉네임입니다.",
+                modifier = Modifier.padding(start = 12.scaler)
+            )
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
+        }
     }
 }

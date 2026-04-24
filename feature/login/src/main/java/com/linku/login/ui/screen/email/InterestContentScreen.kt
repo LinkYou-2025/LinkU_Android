@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Interest
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SignUpViewModel
@@ -19,7 +20,6 @@ fun InterestContentScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel
 ) {
-    val paperlogyFamily = Paperlogy.font
 
     val selectedInterests = remember {
         mutableStateListOf<Interest>().apply {
@@ -56,26 +56,27 @@ fun InterestContentScreen(
 @Composable
 private fun InterestContentScreenPreview() {
     val selectedInterests = remember { mutableStateListOf<Interest>() }
-    val paperlogyFamily = Paperlogy.font
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
-        },
-        subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
-        items = Interest.getAllInterests(),
-        selectedItems = selectedInterests,
-        buttonText = "다음",
-        canProceed = selectedInterests.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = { interest ->
-            if (selectedInterests.contains(interest)) selectedInterests.remove(interest)
-            else selectedInterests.add(interest)
-        }
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
+            },
+            subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
+            items = Interest.getAllInterests(),
+            selectedItems = selectedInterests,
+            buttonText = "다음",
+            canProceed = selectedInterests.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = { interest ->
+                if (selectedInterests.contains(interest)) selectedInterests.remove(interest)
+                else selectedInterests.add(interest)
+            }
+        )
+    }
 }
 
 // 2. 선택됨
@@ -85,22 +86,23 @@ private fun InterestContentScreenSelectedPreview() {
     val selectedInterests = remember {
         mutableStateListOf(Interest.IT, Interest.DESIGN, Interest.STARTUP)
     }
-    val paperlogyFamily = Paperlogy.font
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
-        },
-        subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
-        items = Interest.getAllInterests(),
-        selectedItems = selectedInterests,
-        buttonText = "다음",
-        canProceed = selectedInterests.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = {}
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
+            },
+            subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
+            items = Interest.getAllInterests(),
+            selectedItems = selectedInterests,
+            buttonText = "다음",
+            canProceed = selectedInterests.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = {}
+        )
+    }
 }
 

@@ -1,9 +1,11 @@
 package com.linku.design.theme.color
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
+@Stable
 sealed class ThemeColorScheme(
 //    val isDark: Boolean,
 

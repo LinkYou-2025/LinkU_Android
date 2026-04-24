@@ -10,6 +10,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Purpose
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SignUpViewModel
@@ -19,7 +20,6 @@ fun InterestPurposeScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel
 ) {
-    val paperlogyFamily = Paperlogy.font
 
     val selectedPurposes = remember {
         mutableStateListOf<Purpose>().apply {
@@ -56,27 +56,28 @@ fun InterestPurposeScreen(
 @Composable
 private fun InterestPurposeScreenPreview() {
     val selectedPurposes = remember { mutableStateListOf<Purpose>() }
-    val paperlogyFamily = Paperlogy.font
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
 
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = selectedPurposes,
-        buttonText = "다음",
-        canProceed = selectedPurposes.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = { purpose ->
-            if (selectedPurposes.contains(purpose)) selectedPurposes.remove(purpose)
-            else selectedPurposes.add(purpose)
-        }
-    )
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Purpose.getAllPurposes(),
+            selectedItems = selectedPurposes,
+            buttonText = "다음",
+            canProceed = selectedPurposes.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = { purpose ->
+                if (selectedPurposes.contains(purpose)) selectedPurposes.remove(purpose)
+                else selectedPurposes.add(purpose)
+            }
+        )
+    }
 }
 
 // 2. 선택됨
@@ -86,23 +87,24 @@ private fun InterestPurposeScreenSelectedPreview() {
     val selectedPurposes = remember {
         mutableStateListOf(Purpose.CAREER, Purpose.SIDE_PROJECT, Purpose.STUDY)
     }
-    val paperlogyFamily = Paperlogy.font
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = selectedPurposes,
-        buttonText = "다음",
-        canProceed = selectedPurposes.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = {}
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Purpose.getAllPurposes(),
+            selectedItems = selectedPurposes,
+            buttonText = "다음",
+            canProceed = selectedPurposes.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = {}
+        )
+    }
 }
 
 

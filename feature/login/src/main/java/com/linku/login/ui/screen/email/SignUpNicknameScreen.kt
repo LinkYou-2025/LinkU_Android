@@ -9,6 +9,7 @@ import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.*
 import com.linku.core.model.auth.NicknameCheckState
+import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.PasswordRuleItem
 import com.linku.design.util.scaler
@@ -75,31 +76,33 @@ fun SignUpNicknameScreenPreview() {
     var nickname by remember { mutableStateOf("LinkU") }
     val isNicknameValid = nickname.isNotBlank() && nickname.length <= 6
 
-    SignUpStepLayoutPreview(
-        currentStep = 2,
-        totalSteps = 3,
-        label = "프로필 설정",
-        title = "사용하실 닉네임을\n입력해주세요",
-        buttonEnabled = isNicknameValid,
-        onNextClick = {}
-    ) {
-        Spacer(Modifier.height(8.scaler))
+    LinkuPreview {
+        SignUpStepLayoutPreview(
+            currentStep = 2,
+            totalSteps = 3,
+            label = "프로필 설정",
+            title = "사용하실 닉네임을\n입력해주세요",
+            buttonEnabled = isNicknameValid,
+            onNextClick = {}
+        ) {
+            Spacer(Modifier.height(8.scaler))
 
-        LoginTextField(
-            value = nickname,
-            onValueChange = { nickname = it },
-            hint = "닉네임을 입력해주세요.",
-            modifier = Modifier.fillMaxWidth()
-        )
+            LoginTextField(
+                value = nickname,
+                onValueChange = { nickname = it },
+                hint = "닉네임을 입력해주세요.",
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Spacer(Modifier.height(10.scaler))
+            Spacer(Modifier.height(10.scaler))
 
-        PasswordRuleItem(
-            text = "국문/영문 6자 이하",
-            satisfied = isNicknameValid,
-            modifier = Modifier.padding(start = 12.scaler)
-        )
+            PasswordRuleItem(
+                text = "국문/영문 6자 이하",
+                satisfied = isNicknameValid,
+                modifier = Modifier.padding(start = 12.scaler)
+            )
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
+        }
     }
 }

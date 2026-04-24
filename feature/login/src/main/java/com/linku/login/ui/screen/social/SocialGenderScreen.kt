@@ -11,6 +11,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Gender
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.OptionButton
 import com.linku.login.ui.layout.SignUpStepLayout
@@ -63,30 +64,32 @@ fun SocialGenderScreenPreview() {
     var selectedGender by remember { mutableStateOf(Gender.FEMALE) }
     val isButtonEnabled = selectedGender != Gender.NONE
 
-    SignUpStepLayoutPreview(
-        currentStep = 2,
-        totalSteps = 3,
-        label = "프로필 설정",
-        title = "성별을\n선택해주세요",
-        buttonEnabled = isButtonEnabled,
-        onNextClick = {}
-    ) {
-        Spacer(Modifier.height(4.scaler))
+    LinkuPreview {
+        SignUpStepLayoutPreview(
+            currentStep = 2,
+            totalSteps = 3,
+            label = "프로필 설정",
+            title = "성별을\n선택해주세요",
+            buttonEnabled = isButtonEnabled,
+            onNextClick = {}
+        ) {
+            Spacer(Modifier.height(4.scaler))
 
-        OptionButton(
-            text = "남성",
-            selected = selectedGender == Gender.MALE,
-            onClick = { selectedGender = Gender.MALE }
-        )
+            OptionButton(
+                text = "남성",
+                selected = selectedGender == Gender.MALE,
+                onClick = { selectedGender = Gender.MALE }
+            )
 
-        Spacer(Modifier.height(10.scaler))
+            Spacer(Modifier.height(10.scaler))
 
-        OptionButton(
-            text = "여성",
-            selected = selectedGender == Gender.FEMALE,
-            onClick = { selectedGender = Gender.FEMALE }
-        )
+            OptionButton(
+                text = "여성",
+                selected = selectedGender == Gender.FEMALE,
+                onClick = { selectedGender = Gender.FEMALE }
+            )
 
-        Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
+        }
     }
 }

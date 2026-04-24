@@ -25,6 +25,9 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 import com.linku.login.R
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 @Composable
 internal fun SocialLoginButton(
@@ -36,8 +39,6 @@ internal fun SocialLoginButton(
     textColor: Color,
     onClick: () -> Unit = {}
 ) {
-
-
 
     Surface(
         modifier = modifier
@@ -74,7 +75,6 @@ internal fun SocialLoginButton(
 
             Text(
                 text = text,
-                fontFamily = Paperlogy.font,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Bold,
@@ -87,55 +87,59 @@ internal fun SocialLoginButton(
 @Preview(showBackground = true)
 @Composable
 fun SocialLoginButtonPreview() {
-    val colorTheme = LocalColorTheme.current
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            //  프리뷰용 배경 (피그마 그라데이션)
-            .background(brush = colorTheme.maincolor),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
+
+    val colorTheme = MaterialTheme.linkuColors
+
+    LinkuPreview {
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = (20.scaler)), // 좌우 여백 20
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy((10.scaler)) //반응형으로 변경.ㄴ
+                .fillMaxSize()
+                //  프리뷰용 배경 (피그마 그라데이션)
+                .background(brush = colorTheme.maincolor),
+            contentAlignment = Alignment.Center
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = (20.scaler)), // 좌우 여백 20
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy((10.scaler)) //반응형으로 변경.ㄴ
+            ) {
 
-            // 카카오
-            SocialLoginButton(
-                backgroundColor = Color(0xFFFEE500),
-                iconRes = R.drawable.icon_login_kakao,
-                text = "카카오로 시작하기",
-                textColor = colorTheme.black
-            )
+                // 카카오
+                SocialLoginButton(
+                    backgroundColor = Color(0xFFFEE500),
+                    iconRes = R.drawable.icon_login_kakao,
+                    text = "카카오로 시작하기",
+                    textColor = colorTheme.black
+                )
 
-            //  네이버
-            SocialLoginButton(
-                backgroundColor = Color(0xFF03C75A),
-                iconRes = R.drawable.icon_login_naver,
-                text = "네이버로 시작하기",
-                textColor = colorTheme.white
-            )
+                //  네이버
+                SocialLoginButton(
+                    backgroundColor = Color(0xFF03C75A),
+                    iconRes = R.drawable.icon_login_naver,
+                    text = "네이버로 시작하기",
+                    textColor = colorTheme.white
+                )
 
-            // 구글
-            SocialLoginButton(
-                backgroundColor = colorTheme.white,
-                borderColor = Color(0xFFE0E0E0),
-                iconRes = R.drawable.icon_login_google,
-                text = "구글로 시작하기",
-                textColor = colorTheme.black
-            )
+                // 구글
+                SocialLoginButton(
+                    backgroundColor = colorTheme.white,
+                    borderColor = Color(0xFFE0E0E0),
+                    iconRes = R.drawable.icon_login_google,
+                    text = "구글로 시작하기",
+                    textColor = colorTheme.black
+                )
 
-            // 이메일
-            SocialLoginButton(
-                backgroundColor = Color.Transparent,
-                borderColor = Color.White,
-                iconRes = null,
-                text = "이메일로 시작하기",
-                textColor = Color.White
-            )
+                // 이메일
+                SocialLoginButton(
+                    backgroundColor = Color.Transparent,
+                    borderColor = Color.White,
+                    iconRes = null,
+                    text = "이메일로 시작하기",
+                    textColor = Color.White
+                )
+            }
         }
     }
 }

@@ -26,6 +26,7 @@ import androidx.navigation.NavBackStackEntry
 import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.ui.item.BottomGradientButton
@@ -34,6 +35,7 @@ import com.linku.login.viewmodel.SignUpViewModel
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.scaler
 import java.util.Locale
+import com.linku.design.theme.linkuColors
 
 /**
  * 이메일 인증 화면의 UI와 로직을 담당하는 화면임.
@@ -162,8 +164,7 @@ fun EmailVerificationScreenContent(
     onVerifyCode: () -> Unit
 ) {
 
-    //디자인 모듈 불러오기
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -189,7 +190,6 @@ fun EmailVerificationScreenContent(
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy.font,
                 color = colorTheme.black
             )
             Spacer(modifier = Modifier.height((32.scaler)))
@@ -216,7 +216,6 @@ fun EmailVerificationScreenContent(
                     text = it,
                     color = colorTheme.negative,
                     fontSize = 13.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.offset(
                         x = (4.scaler)
@@ -278,7 +277,6 @@ fun EmailVerificationScreenContent(
                         color = colorTheme.negative,
                         fontSize = 13.sp,
                         lineHeight = 15.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(400),
                         modifier = Modifier.padding(
                             start = (12.scaler)
@@ -312,7 +310,6 @@ fun EmailVerificationScreenContent(
                 text = "인증번호가 오지 않는다면?",
                 fontSize = 12.sp,
                 lineHeight = 20.sp,
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight(500),
                 color = colorTheme.gray[400]!!,
                 textAlign = TextAlign.Center,
@@ -350,22 +347,24 @@ fun EmailVerificationScreenContent(
 @Composable
 fun EmailVerificationScreenPreview() {
     val fakeNavigator = rememberNavController()
-    EmailVerificationScreenContent(
-        navigator = fakeNavigator,
-        email = "",
-        onEmailChange = {},
-        code = "",
-        onCodeChange = {},
-        isSending = false,
-        isVerifying = false,
-        sendResult = null,
-        verifyResult = null,
-        isCodeSent = false,
-        isCodeValid = false,
-        emailValid = true,
-        onSendCode = {},
-        onVerifyCode = {}
-    )
+    LinkuPreview {
+        EmailVerificationScreenContent(
+            navigator = fakeNavigator,
+            email = "",
+            onEmailChange = {},
+            code = "",
+            onCodeChange = {},
+            isSending = false,
+            isVerifying = false,
+            sendResult = null,
+            verifyResult = null,
+            isCodeSent = false,
+            isCodeValid = false,
+            emailValid = true,
+            onSendCode = {},
+            onVerifyCode = {}
+        )
+    }
 }
 
 
@@ -375,22 +374,24 @@ fun EmailVerificationScreenPreview() {
 fun EmailVerificationScreen_TimerPreview() {
     val fakeNavigator = rememberNavController()
 
-    EmailVerificationScreenContent(
-        navigator = fakeNavigator,
-        email = "test@email.com",
-        onEmailChange = {},
-        code = "123456",
-        onCodeChange = {},
-        isSending = false,
-        isVerifying = false,
-        sendResult = "인증 코드 전송 성공",
-        verifyResult = AuthErrorMessages.VERIFY_FAILED,
-        isCodeSent = true,
-        isCodeValid = true,
-        emailValid = true,
-        onSendCode = {},
-        onVerifyCode = {}
-    )
+    LinkuPreview {
+        EmailVerificationScreenContent(
+            navigator = fakeNavigator,
+            email = "test@email.com",
+            onEmailChange = {},
+            code = "123456",
+            onCodeChange = {},
+            isSending = false,
+            isVerifying = false,
+            sendResult = "인증 코드 전송 성공",
+            verifyResult = AuthErrorMessages.VERIFY_FAILED,
+            isCodeSent = true,
+            isCodeValid = true,
+            emailValid = true,
+            onSendCode = {},
+            onVerifyCode = {}
+        )
+    }
 }
 
 // 타이머 별도 컴포저블 분리 - 타이머로 인한 과도한 리컴포지션 방지
@@ -401,9 +402,8 @@ private fun TimerText() {
     val timerText = String.format(Locale.getDefault(), "%02d:%02d", timer / 60, timer % 60)
     Text(
         text = timerText,
-        color = LocalColorTheme.current.negative,
+        color = MaterialTheme.linkuColors.negative,
         fontSize = 13.sp,
-        fontFamily = Paperlogy.font,
         modifier = Modifier.padding(end = 12.dp)
     )
 }

@@ -28,12 +28,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PaintingStyle.Companion.Stroke
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 
@@ -48,9 +51,7 @@ internal fun LoginTextField(
     modifier: Modifier = Modifier
 ) {
 
-    // 디자인 모듈
-    val colorTheme = LocalColorTheme.current
-
+    val colorTheme = MaterialTheme.linkuColors
     val shape = RoundedCornerShape(16.dp)
     val strokeWidth = 1.dp
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
@@ -86,14 +87,12 @@ internal fun LoginTextField(
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[400]!!
                 )
             },
 
             textStyle = textStyle ?: TextStyle(
                 fontSize = 14.sp,
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.black
             ),
@@ -138,25 +137,27 @@ fun LoginTextFieldPreview() {
     val colorTheme = LocalColorTheme.current
     val text = remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .background(colorTheme.gray[100]!!)
-            .padding((16.scaler))
-    ) {
-        // 그라데이션 테두리 ON
-        LoginTextField(
-            value = text.value,
-            onValueChange = { text.value = it },
-            hint = "이메일을 입력해주세요"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .background(colorTheme.gray[100]!!)
+                .padding((16.scaler))
+        ) {
+            // 그라데이션 테두리 ON
+            LoginTextField(
+                value = text.value,
+                onValueChange = { text.value = it },
+                hint = "이메일을 입력해주세요"
+            )
 
-        Spacer(modifier = Modifier.height((16.scaler)))
+            Spacer(modifier = Modifier.height((16.scaler)))
 
-        // 그라데이션 테두리 OFF
-        LoginTextField(
-            value = text.value,
-            onValueChange = { text.value = it },
-            hint = "비밀번호를 입력해주세요"
-        )
+            // 그라데이션 테두리 OFF
+            LoginTextField(
+                value = text.value,
+                onValueChange = { text.value = it },
+                hint = "비밀번호를 입력해주세요"
+            )
+        }
     }
 }

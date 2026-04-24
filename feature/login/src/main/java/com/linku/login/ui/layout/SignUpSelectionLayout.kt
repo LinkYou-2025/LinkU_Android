@@ -30,6 +30,10 @@ import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.SelectionCardItem
 import com.linku.login.ui.item.StepIndicator
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+
 /**
  * 목적/관심사 선택 공통 레이아웃
  *
@@ -66,8 +70,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
     // 카드 클릭
     onToggle: (T) -> Unit,
 ) {
-    val colorTheme = LocalColorTheme.current
-    val paperlogyFamily = Paperlogy.font // 프리뷰 확인을 위해 추가함.
+    val colorTheme = MaterialTheme.linkuColors
 
     Scaffold(
         containerColor = colorTheme.white,
@@ -113,7 +116,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 text = titleText,
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
-                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
@@ -126,7 +128,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 text = subText,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
-                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.gray[600],
                 modifier = Modifier.padding(horizontal = 20.dp)
@@ -161,7 +162,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                     text = "복수 선택 시, 더 정확한 맞춤 콘텐츠를 제공해요!",
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
-                    fontFamily = paperlogyFamily,
                     fontWeight = FontWeight.Normal,
                     color = colorTheme.gray[500],
                     textAlign = TextAlign.Center,
@@ -185,24 +185,26 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
 private fun SignUpSelectionLayoutPreview() {
     val selectedItems = remember { mutableStateListOf<Purpose>() }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = selectedItems,
-        buttonText = "다음",
-        canProceed = selectedItems.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = { purpose ->
-            if (selectedItems.contains(purpose)) selectedItems.remove(purpose)
-            else selectedItems.add(purpose)
-        }
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Purpose.getAllPurposes(),
+            selectedItems = selectedItems,
+            buttonText = "다음",
+            canProceed = selectedItems.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = { purpose ->
+                if (selectedItems.contains(purpose)) selectedItems.remove(purpose)
+                else selectedItems.add(purpose)
+            }
+        )
+    }
 }
 
 // 2. 선택됨 (Purpose 3개 선택)
@@ -213,21 +215,23 @@ private fun SignUpSelectionLayoutSelectedPreview() {
         mutableStateListOf(Purpose.CAREER, Purpose.SIDE_PROJECT, Purpose.INSIGHTS)
     }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = selectedItems,
-        buttonText = "다음",
-        canProceed = selectedItems.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = {}
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Purpose.getAllPurposes(),
+            selectedItems = selectedItems,
+            buttonText = "다음",
+            canProceed = selectedItems.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = {}
+        )
+    }
 }
 
 // 3. 관심사 12개 (4열 구성 확인)
@@ -238,19 +242,21 @@ private fun SignUpSelectionLayoutInterestPreview() {
         mutableStateListOf(Interest.IT, Interest.DESIGN, Interest.STARTUP)
     }
 
-    SignUpSelectionLayout(
-        currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
-        titleText = buildAnnotatedString {
-            append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
-        },
-        subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Interest.getAllInterests(),
-        selectedItems = selectedItems,
-        buttonText = "다음",
-        canProceed = selectedItems.isNotEmpty(),
-        onButtonClick = {},
-        onToggle = {}
-    )
+    LinkuPreview {
+        SignUpSelectionLayout(
+            currentStep = 3,
+            totalSteps = 3,
+            stepLabel = "관심사 설정",
+            titleText = buildAnnotatedString {
+                append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
+            },
+            subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
+            items = Interest.getAllInterests(),
+            selectedItems = selectedItems,
+            buttonText = "다음",
+            canProceed = selectedItems.isNotEmpty(),
+            onButtonClick = {},
+            onToggle = {}
+        )
+    }
 }

@@ -18,7 +18,9 @@ import com.linku.login.ui.item.PasswordLoginTextField
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SignUpViewModel
-
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 @Composable
 fun SignUpPasswordScreen(
@@ -26,7 +28,7 @@ fun SignUpPasswordScreen(
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     BackHandler { navigator.popBackStack() }
 
     //뷰 모델에서 password 가져오기
@@ -97,7 +99,6 @@ fun SignUpPasswordScreen(
                 Text(
                     text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
                     fontSize = 13.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.negative,
                     modifier = Modifier.padding(start = 8.scaler, top = 4.scaler)
                 )
@@ -112,37 +113,43 @@ fun SignUpPasswordScreen(
 @Preview(showBackground = true)
 @Composable
 fun SignUpPasswordScreenPreview() {
-    SignUpStepLayoutPreview(
-        currentStep = 1,
-        totalSteps = 3,
-        label = "계정 정보",
-        title = "사용하실 비밀번호를\n입력해주세요",
-        buttonEnabled = true,
-    ) {
-        PasswordLoginTextField(
-            value = "Test@1234",
-            onValueChange = {},
-            hint = "비밀번호를 입력해주세요."
-        )
-
-        Spacer(Modifier.height(10.scaler))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.scaler)
+    LinkuPreview {
+        SignUpStepLayoutPreview(
+            currentStep = 1,
+            totalSteps = 3,
+            label = "계정 정보",
+            title = "사용하실 비밀번호를\n입력해주세요",
+            buttonEnabled = true,
         ) {
-            PasswordRuleItem(text = "영문, 숫자, 특수기호 조합", satisfied = true, modifier = Modifier.weight(1f))
-            PasswordRuleItem(text = "8~20자", satisfied = true, modifier = Modifier.weight(1f))
+            PasswordLoginTextField(
+                value = "Test@1234",
+                onValueChange = {},
+                hint = "비밀번호를 입력해주세요."
+            )
+
+            Spacer(Modifier.height(10.scaler))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.scaler)
+            ) {
+                PasswordRuleItem(
+                    text = "영문, 숫자, 특수기호 조합",
+                    satisfied = true,
+                    modifier = Modifier.weight(1f)
+                )
+                PasswordRuleItem(text = "8~20자", satisfied = true, modifier = Modifier.weight(1f))
+            }
+
+            Spacer(Modifier.height(20.scaler))
+
+            PasswordLoginTextField(
+                value = "Test@1234",
+                onValueChange = {},
+                hint = "비밀번호를 확인해주세요."
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
         }
-
-        Spacer(Modifier.height(20.scaler))
-
-        PasswordLoginTextField(
-            value = "Test@1234",
-            onValueChange = {},
-            hint = "비밀번호를 확인해주세요."
-        )
-
-        Spacer(modifier = Modifier.weight(1f))
     }
 }

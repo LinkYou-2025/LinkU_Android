@@ -16,15 +16,17 @@ import com.linku.login.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 
 @Composable
 internal fun CheckIndicator(
     checked: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     Box(
         modifier = modifier

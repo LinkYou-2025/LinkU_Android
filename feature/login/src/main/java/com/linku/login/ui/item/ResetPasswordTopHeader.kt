@@ -20,15 +20,15 @@ import androidx.compose.ui.graphics.Color
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.linkuColors
 
 @Composable
 internal fun ResetPasswordTopHeader(
     onBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-
-    // 1. 테마 및 반응형 유틸리티 가져오기
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
 
     // 피그마 기준 해상도(412x917) 대비 반응형 좌표 계산

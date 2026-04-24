@@ -24,7 +24,9 @@ import com.linku.design.theme.font.Paperlogy
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 import com.linku.login.R
-
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 //회원가입 로직에서 사용하는 체크박스(그 네모 박스에 체크 아이콘 있는거)
 @Composable
@@ -34,7 +36,7 @@ internal fun WrongRuleItem(
     modifier: Modifier = Modifier
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     Row(
         modifier = modifier,
@@ -63,14 +65,15 @@ internal fun WrongRuleItem(
 @Composable
 private fun WrongRuleItemPreview() {
 
+    LinkuPreview {
+        Column(
+            modifier = Modifier.padding((16.scaler)),
+            verticalArrangement = Arrangement.spacedBy((8.scaler))
+        ) {
+            WrongRuleItem(
+                text = "이미 사용 중인 닉네임입니다.",
 
-    Column(
-        modifier = Modifier.padding((16.scaler)),
-        verticalArrangement = Arrangement.spacedBy((8.scaler))
-    ) {
-        WrongRuleItem(
-            text = "이미 사용 중인 닉네임입니다.",
-
-        )
+                )
+        }
     }
 }

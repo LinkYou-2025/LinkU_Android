@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +24,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 
@@ -39,7 +42,7 @@ internal fun OptionButton(
     height: Dp = 54.dp
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val shape = RoundedCornerShape(18.dp)
 
     // 배경용 연한 그라데이션
@@ -95,7 +98,6 @@ internal fun OptionButton(
                 text = text,
                 fontSize = 15.sp,
                 lineHeight = 22.sp, // 요구사항 반영
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Normal,
                 color = if (selected) colorTheme.black else colorTheme.gray[500]!!
             )
@@ -117,20 +119,19 @@ internal fun OptionButton(
 )
 @Composable
 private fun OptionButtonPreview_Unselected() {
-    val colorTheme = LocalColorTheme.current
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colorTheme.gray[100]!!)
-            .padding((16.scaler)) // 프리뷰 패딩 반응형 적용
-    ) {
-        OptionButton(
-            text = "남성",
-            selected = false,
-            onClick = {}
-        )
+    LinkuPreview {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .padding((16.scaler))
+        ) {
+            OptionButton(
+                text = "남성",
+                selected = false,
+                onClick = {}
+            )
+        }
     }
 }
 
@@ -140,19 +141,20 @@ private fun OptionButtonPreview_Unselected() {
 )
 @Composable
 private fun OptionButtonPreview_Selected() {
-    val colorTheme = LocalColorTheme.current
 
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colorTheme.gray[100]!!)
-            .padding((16.scaler)) // 프리뷰 패딩 반응형 적용
-    ) {
-        OptionButton(
-            text = "여성",
-            selected = true,
-            onClick = {}
-        )
+    LinkuPreview {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .padding((16.scaler))
+        ) {
+            OptionButton(
+                text = "여성",
+                selected = true,
+                onClick = {}
+            )
+        }
     }
 }
 

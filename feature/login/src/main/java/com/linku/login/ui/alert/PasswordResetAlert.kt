@@ -21,6 +21,9 @@ import androidx.compose.ui.window.Dialog
 import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.LocalColorTheme
 import com.linku.login.R
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 @Composable
 fun PasswordResetAlert(
@@ -28,9 +31,7 @@ fun PasswordResetAlert(
     onConfirmClick: () -> Unit = {}
 ) {
     // 현재 디자인 테마의 컬러 스킴 가져오기
-    val colorTheme = LocalColorTheme.current
-    val paperlogyFamily = Paperlogy.font
-
+    val colorTheme = MaterialTheme.linkuColors
 
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
@@ -67,7 +68,6 @@ fun PasswordResetAlert(
                 style = TextStyle(
                     fontSize = 18.sp,
                     lineHeight = 22.sp,
-                    fontFamily = paperlogyFamily, // 수정됨
                     fontWeight = FontWeight.Medium, // 500은 Medium입니다.
                     color = colorTheme.black,
                     textAlign = TextAlign.Center
@@ -82,7 +82,6 @@ fun PasswordResetAlert(
                 style = TextStyle(
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    fontFamily = paperlogyFamily, // 수정됨
                     fontWeight = FontWeight.Normal, // 400은 Normal입니다.
                     color = colorTheme.gray[600],
                     textAlign = TextAlign.Center
@@ -108,7 +107,6 @@ fun PasswordResetAlert(
                     style = TextStyle(
                         fontSize = 16.sp,
                         lineHeight = 20.sp,
-                        fontFamily = paperlogyFamily, // 수정됨
                         fontWeight = FontWeight.Bold, // 700은 Bold입니다.
                         color = colorTheme.white,
                         textAlign = TextAlign.Center
@@ -127,5 +125,7 @@ fun PasswordResetAlert(
 )
 @Composable
 private fun PasswordResetAlertPreview() {
-    PasswordResetAlert()
+    LinkuPreview {
+        PasswordResetAlert()
+    }
 }

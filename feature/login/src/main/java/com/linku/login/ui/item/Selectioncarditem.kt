@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,8 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.linkuColors
 import com.linku.login.R
 
 /**
@@ -48,7 +51,7 @@ internal fun SelectionCardItem(
     modifier: Modifier = Modifier
 ) {
     //디자인 모듈.
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val context = LocalContext.current
 
     // iconName으로 drawable 리소스 조회 (없으면 0 반환) //TODO : 디자이너 작업 완료시 삭제.
@@ -115,7 +118,6 @@ internal fun SelectionCardItem(
                 text = text,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
-                fontFamily = Paperlogy.font, // 프리뷰 확인을 위해 넣음.
                 fontWeight = FontWeight.SemiBold,
                 color = colorTheme.black
             )
@@ -149,57 +151,65 @@ internal fun SelectionCardItem(
 @Preview(showBackground = true, name = "카드 - 미선택")
 @Composable
 fun SelectionCardItemPreview() {
-    SelectionCardItem(
-        text = "취업\n& 커리어 준비",
-        isSelected = false,
-        iconName = "ic_purpose_career",
-        onClick = {}
-    )
+    LinkuPreview {
+        SelectionCardItem(
+            text = "취업\n& 커리어 준비",
+            isSelected = false,
+            iconName = "ic_purpose_career",
+            onClick = {}
+        )
+    }
 }
 
 // 2. 선택됨
 @Preview(showBackground = true, name = "카드 - 선택됨")
 @Composable
 fun SelectionCardItemSelectedPreview() {
-    SelectionCardItem(
-        text = "취업\n& 커리어 준비",
-        isSelected = true,
-        iconName = "ic_purpose_career",
-        onClick = {}
-    )
+    LinkuPreview {
+        SelectionCardItem(
+            text = "취업\n& 커리어 준비",
+            isSelected = true,
+            iconName = "ic_purpose_career",
+            onClick = {}
+        )
+    }
 }
 
 // 3. 긴 텍스트
 @Preview(showBackground = true, name = "카드 - 긴 텍스트")
 @Composable
 fun SelectionCardItemLongTextPreview() {
-    SelectionCardItem(
-        text = "블로그/콘텐츠 작성 참고용",
-        isSelected = false,
-        iconName = "ic_purpose_creation_reference",
-        onClick = {}
-    )
+    LinkuPreview {
+        SelectionCardItem(
+            text = "블로그/콘텐츠 작성 참고용",
+            isSelected = false,
+            iconName = "ic_purpose_creation_reference",
+            onClick = {}
+        )
+    }
 }
 
 // 4. 두 카드 나란히 (미선택 vs 선택)
 @Preview(showBackground = true, name = "카드 - 나란히 비교")
 @Composable
 fun SelectionCardItemComparePreview() {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = Modifier.padding(16.dp)
-    ) {
-        SelectionCardItem(
-            text = "사이드 프로젝트\n& 창업",
-            isSelected = false,
-            iconName = "ic_purpose_side_project",
-            onClick = {}
-        )
-        SelectionCardItem(
-            text = "인사이트 모으기",
-            isSelected = true,
-            iconName = "ic_purpose_insights",
-            onClick = {}
-        )
+    LinkuPreview {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            SelectionCardItem(
+                text = "사이드 프로젝트\n& 창업",
+                isSelected = false,
+                iconName = "ic_purpose_side_project",
+                onClick = {}
+            )
+            SelectionCardItem(
+                text = "인사이트 모으기",
+                isSelected = true,
+                iconName = "ic_purpose_insights",
+                onClick = {}
+            )
+        }
     }
 }

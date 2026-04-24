@@ -21,8 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.font.Paperlogy
 import androidx.compose.foundation.Image
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.res.painterResource
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 import com.linku.design.R as DesignR
@@ -39,8 +41,8 @@ internal fun AgreementItem(
 ) {
 
     // 1. 테마 및 반응형 유틸리티 가져오기
-    val colorTheme = LocalColorTheme.current
-    val paperlogyFamily = Paperlogy.font
+    val colorTheme = MaterialTheme.linkuColors
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -86,7 +88,6 @@ internal fun AgreementItem(
                 text = title,
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.black
             )
@@ -97,7 +98,6 @@ internal fun AgreementItem(
                 text = suffix,
                 fontSize = 12.sp,
                 lineHeight = 14.sp,
-                fontFamily = paperlogyFamily,
                 fontWeight = FontWeight(400),
                 color = suffixColor
             )

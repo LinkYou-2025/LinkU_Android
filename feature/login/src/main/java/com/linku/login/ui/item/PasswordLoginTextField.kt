@@ -40,6 +40,9 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 @Composable
 internal fun PasswordLoginTextField(
@@ -49,9 +52,7 @@ internal fun PasswordLoginTextField(
     enabled: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    //디자인 모듈.
-    val colorTheme = LocalColorTheme.current
-
+    val colorTheme = MaterialTheme.linkuColors
     val shape = RoundedCornerShape(16.dp)
     val strokeWidth = 1.dp   // LoginTextField와 동일
     val strokeWidthPx = with(LocalDensity.current) { strokeWidth.toPx() }
@@ -101,7 +102,6 @@ internal fun PasswordLoginTextField(
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy.font,
                         color = colorTheme.gray[400]!!
                     )
                 },
@@ -111,7 +111,6 @@ internal fun PasswordLoginTextField(
                         TextStyle(
                             fontSize = 14.sp,
                             lineHeight = 16.sp,
-                            fontFamily = Paperlogy.font,
                             fontWeight = FontWeight(500),
                             color = colorTheme.black,
                             letterSpacing = 0.sp
@@ -119,7 +118,6 @@ internal fun PasswordLoginTextField(
                     } else {
                         TextStyle(
                             fontSize = 14.sp,
-                            fontFamily = Paperlogy.font,
                             fontWeight = FontWeight.Bold,
                             letterSpacing = 2.sp,
                             color = colorTheme.black
@@ -193,22 +191,23 @@ class DotPasswordVisualTransformation : VisualTransformation {
 )
 @Composable
 private fun PasswordLoginTextFieldHiddenPreview() {
-    val colorTheme = LocalColorTheme.current
+
     var password by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colorTheme.gray[100]!!)
-            .padding((16.scaler))
-    ) {
-        PasswordLoginTextField(
-            value = password,
-            onValueChange = { password = it }
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .padding((16.scaler))
+        ) {
+            PasswordLoginTextField(
+                value = password,
+                onValueChange = { password = it }
+            )
+        }
     }
-}
 
+}
 @Preview(
     name = "PasswordLoginTextField - Visible",
     showBackground = true,
@@ -216,21 +215,22 @@ private fun PasswordLoginTextFieldHiddenPreview() {
 )
 @Composable
 private fun PasswordLoginTextFieldVisiblePreview() {
-    val colorTheme = LocalColorTheme.current
     var password by remember { mutableStateOf("password123") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(colorTheme.gray[100]!!)
-            .padding((16.scaler))
-    ) {
-        // 강제로 눈 열린 상태 확인용
-        ThemeProvider {
-            PasswordLoginTextField(
-                value = password,
-                onValueChange = { password = it }
-            )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.linkuColors.gray[100]!!)
+                .padding((16.scaler))
+        ) {
+            // 강제로 눈 열린 상태 확인용
+            ThemeProvider {
+                PasswordLoginTextField(
+                    value = password,
+                    onValueChange = { password = it }
+                )
+            }
         }
     }
 }

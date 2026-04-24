@@ -27,18 +27,16 @@ import com.linku.login.ui.item.ResetPasswordTopHeader
 import com.linku.login.viewmodel.ResetPasswordViewModel
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.scaler
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
-// =======================
-// 실제 Screen (ViewModel 사용)
-// =======================
 @Composable
 fun ResetPasswordScreen(
     navigator: NavHostController,
     viewModel: ResetPasswordViewModel? = hiltViewModel()
 ) {
-    //디자인 모듈 불러오기.
-    val colorTheme = LocalColorTheme.current
-
+    val colorTheme = MaterialTheme.linkuColors
 
     // 🔑 Preview면 viewModel == null
     val ui = viewModel?.ui?.collectAsState()?.value
@@ -94,7 +92,6 @@ fun ResetPasswordScreen(
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy.font,
                 color = colorTheme.black
             )
 
@@ -105,7 +102,6 @@ fun ResetPasswordScreen(
                 text = "링큐에 가입했던 이메일을 입력해주세요. \n비밀번호를 다시 설정할 수 있는 메일을 보내드릴게요.",
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight(400),
                 color = colorTheme.gray[600]!!
             )
@@ -128,7 +124,6 @@ fun ResetPasswordScreen(
                     text = ui.error,
                     color = colorTheme.negative,
                     fontSize = 12.sp,
-                    fontFamily = Paperlogy.font,
                     modifier = Modifier.padding(
                         start = (8.scaler)
                     )
@@ -154,16 +149,16 @@ fun ResetPasswordScreen(
     }
 }
 
-// =======================
-// Preview (UI 확인 전용)
-// =======================
+
 @Preview(showBackground = true, name = "ResetPassword UI Preview")
 @Composable
 fun ResetPasswordScreenPreview() {
-    ResetPasswordScreen(
-        navigator = rememberNavController(),
-        viewModel = null
-    )
+    LinkuPreview {
+        ResetPasswordScreen(
+            navigator = rememberNavController(),
+            viewModel = null
+        )
+    }
 }
 
 

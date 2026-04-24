@@ -16,12 +16,14 @@ import androidx.compose.ui.unit.dp
 import com.linku.login.R
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.design.theme.LocalColorTheme
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.linkuColors
 
 @Composable
 internal fun WrongIndicator(
     modifier: Modifier = Modifier
 ) {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     Box(
         modifier = modifier

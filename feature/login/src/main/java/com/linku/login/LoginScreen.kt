@@ -47,6 +47,11 @@ import com.kakao.sdk.user.UserApiClient
 import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+
+
 private const val TAG = "LoginScreen"
 
 
@@ -113,7 +118,7 @@ fun LoginScreen(
     
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val context = LocalContext.current
 
     //카카오 로그인 state 수집
@@ -203,7 +208,6 @@ fun LoginScreen(
                         text = "Link U, Think You",
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = colorTheme.white,
                         textAlign = TextAlign.Center
@@ -216,7 +220,6 @@ fun LoginScreen(
                         text = "링큐에 오신 것을 \n환영해요",
                         fontSize = 22.sp,
                         lineHeight = 30.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(700),
                         color = colorTheme.white,
                         textAlign = TextAlign.Center
@@ -304,7 +307,8 @@ fun LoginScreen(
 // 소셜 로그인 전용 배경 just 배경용.(기능 없음)
 @Composable
 fun LoginBackground() {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
+
     DesignSystemBars(
         statusBarColor = Color.Transparent,
         navigationBarColor = Color.Transparent,
@@ -344,7 +348,6 @@ fun LoginBackground() {
                     text = "Link U, Think You",
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(500),
                     color = colorTheme.white,
                     textAlign = TextAlign.Center
@@ -356,7 +359,6 @@ fun LoginBackground() {
                     text = "링큐에 오신 것을 \n환영해요",
                     fontSize = 22.sp,
                     lineHeight = 30.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(700),
                     color = colorTheme.white,
                     textAlign = TextAlign.Center
@@ -370,8 +372,11 @@ fun LoginBackground() {
 @Composable
 fun LoginScreenPreview() {
     val navController = rememberNavController()
-    LoginScreen(
-        navigator = navController,
-        viewModel = viewModel() // 프리뷰용
-    )
+
+    LinkuPreview {
+        LoginScreen(
+            navigator = navController,
+            viewModel = viewModel() // 프리뷰용
+        )
+    }
 }

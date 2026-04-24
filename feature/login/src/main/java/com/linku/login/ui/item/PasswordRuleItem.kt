@@ -33,8 +33,7 @@ internal fun PasswordRuleItem(
     satisfied: Boolean,
     modifier: Modifier = Modifier
 ) {
-    //디자인 모듈.
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -47,7 +46,6 @@ internal fun PasswordRuleItem(
             text = text,
             fontSize = 12.sp,
             fontWeight = FontWeight(400),
-            fontFamily = Paperlogy.font,
             color = colorTheme.gray[600]
         )
     }

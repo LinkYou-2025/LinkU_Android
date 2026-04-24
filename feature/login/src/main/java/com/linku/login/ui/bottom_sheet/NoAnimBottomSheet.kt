@@ -15,7 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
-
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.linkuColors
 
 //약관 보고 다시 바텀 시트 돌아올 때,애니메이션 작동하지 않게 하는...시트
 @Composable
@@ -24,15 +25,12 @@ fun NoAnimBottomSheet(
     onDismissRequest: () -> Unit,
     scrimColor: Color = Color.Black.copy(alpha = 0.12f),
     shape: Shape,
-    containerColor: Color = Color.White, //null 대신 white로 재변경.
     content: @Composable ColumnScope.() -> Unit
 ) {
     if (!visible) return
 
-
-
-    // 파라미터로 받은 컬러가 없으면 테마의 white 사용
-    val finalContainerColor = containerColor
+    val colorTheme = MaterialTheme.linkuColors
+    val containerColor = colorTheme.white
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -60,7 +58,7 @@ fun NoAnimBottomSheet(
                 .wrapContentHeight()
                 .imePadding(),
             shape = shape,
-            color = finalContainerColor,
+            color = containerColor,
             shadowElevation = 12.dp
         ) {
             Column(

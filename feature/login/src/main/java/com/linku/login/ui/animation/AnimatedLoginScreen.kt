@@ -27,6 +27,8 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.rememberFigmaDimens
 import com.linku.design.util.scaler
 import com.linku.login.viewmodel.SocialAuthViewModel
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.linkuColors
 
 @Composable
 fun AnimatedLoginScreen(
@@ -37,10 +39,7 @@ fun AnimatedLoginScreen(
     onLoginSuccess: () -> Unit = {}
 ) {
 
-    // 1. 디자인 모듈 컬러 테마 가져오기
-    val colorTheme = LocalColorTheme.current
-
-
+    val colorTheme = MaterialTheme.linkuColors
     //로그인 진입 애니메이션도 바텀바 보이니 않도록 설정함.
     DesignSystemBars(
         statusBarColor = colorTheme.white, // 디자인 모듈의 white 사용
