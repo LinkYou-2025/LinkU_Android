@@ -48,7 +48,9 @@ class SocialAuthViewModel @Inject constructor(
     sealed class SocialLoginState {
         object Idle : SocialLoginState() // 아무것도 하지 않는 초기상태.
         object Loading : SocialLoginState() // 로딩 중
-        data class Success(val result: LoginResult) : SocialLoginState() //loginResult에서 성공 + 데이터 가져옴.
+        data class Success(val result: LoginResult) :
+            SocialLoginState() //loginResult에서 성공 + 데이터 가져옴.
+
         data class Error(val message: String) : SocialLoginState()
     }
 
@@ -69,7 +71,6 @@ class SocialAuthViewModel @Inject constructor(
     fun resetGoogleLoginState() {
         _googleLoginState.value = SocialLoginState.Idle
     }
-
 
 
     // 입력 상태
@@ -136,7 +137,7 @@ class SocialAuthViewModel @Inject constructor(
     }
 
     // 카카오로 로그인하기
-    fun loginWithKakao(token : String) {
+    fun loginWithKakao(token: String) {
         Log.d("SocialAuthViewModel", "loadKakaoLogin")
 
         viewModelScope.launch {
@@ -144,7 +145,7 @@ class SocialAuthViewModel @Inject constructor(
 
             _kakaoLoginState.value = SocialLoginState.Loading
 
-            try{
+            try {
                 Log.d("SocialAuthViewModel", "loadWithKakao try")
                 val result = authRepository.loginWithKakao(token)
                 authPreference.saveTokens(
@@ -154,7 +155,7 @@ class SocialAuthViewModel @Inject constructor(
                 )
 
                 _kakaoLoginState.value = SocialLoginState.Success(result)
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d(TAG, "loadWithKakao catch: ${e.message}")
                 _kakaoLoginState.value = SocialLoginState.Error(e.message ?: "카카오 로그인 실패")
             }
@@ -166,7 +167,7 @@ class SocialAuthViewModel @Inject constructor(
 
 
     // 구글로 로그인하기
-    fun loginWithGoogle(token : String) {
+    fun loginWithGoogle(token: String) {
         Log.d("SocialAuthViewModel", "loadGoogleLogin")
 
         viewModelScope.launch {
@@ -174,7 +175,7 @@ class SocialAuthViewModel @Inject constructor(
 
             _googleLoginState.value = SocialLoginState.Loading
 
-            try{
+            try {
                 Log.d("SocialAuthViewModel", "loadWithGoogle try")
                 val result = authRepository.loginWithGoogle(token)
                 authPreference.saveTokens(
@@ -184,7 +185,7 @@ class SocialAuthViewModel @Inject constructor(
                 )
 
                 _googleLoginState.value = SocialLoginState.Success(result)
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.d(TAG, "loadWithGoogle catch: ${e.message}")
                 _googleLoginState.value = SocialLoginState.Error(e.message ?: "구글 로그인 실패")
             }

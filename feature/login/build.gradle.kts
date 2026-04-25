@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.library)
     //alias(libs.plugins.kotlin.android)
@@ -44,9 +45,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-/*    kotlinOptions {
-        jvmTarget = "11"
-    }*/
+    /*    kotlinOptions {
+            jvmTarget = "11"
+        }*/
 
     buildFeatures {
         compose = true
@@ -55,9 +56,9 @@ android {
 }
 
 kotlin {
-  compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_11)
-  }
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 dependencies {
@@ -75,6 +76,7 @@ dependencies {
     implementation(libs.androidx.tools.core)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     androidTestImplementation(libs.androidx.ui.test.android)
     androidTestImplementation(libs.androidx.compose.testing)
     testImplementation(libs.junit)
@@ -86,7 +88,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.accompanist.navigation.animation)
-    implementation (libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
 
     // 의존성 정의
     implementation(project(":core"))

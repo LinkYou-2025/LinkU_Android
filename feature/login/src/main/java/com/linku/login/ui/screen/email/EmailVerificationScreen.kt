@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import com.linku.design.theme.linkuColors
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -44,6 +43,8 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.LoginTextField
@@ -156,7 +157,6 @@ fun EmailVerificationScreen(
         isVerifying = isVerifying,
         sendResult = sendResult,
         verifyResult = verifyResult,
-        isCodeSent = isCodeSent,
         isCodeValid = isCodeValid,
         emailValid = emailValid,
         onSendCode = { viewModel.sendEmailCode(email.trim()) },
@@ -256,7 +256,6 @@ fun EmailVerificationScreenContent(
                         Text(
                             "코드를 입력해주세요",
                             fontSize = 14.sp,
-                            fontFamily = Paperlogy.font,
                             color = colorTheme.gray[400]
                         )
                     },

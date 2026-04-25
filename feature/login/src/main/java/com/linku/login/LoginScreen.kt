@@ -21,12 +21,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import com.linku.design.theme.linkuColors
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -48,23 +49,15 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
-import androidx.compose.foundation.Image
-import androidx.compose.runtime.remember
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.linku.login.auth.GoogleAuthHelper
-import android.app.Activity
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
-import com.linku.login.BuildConfig
-import com.linku.login.auth.findActivity
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
 import com.linku.design.util.scaler
+import com.linku.login.auth.GoogleAuthHelper
+import com.linku.login.auth.findActivity
 import com.linku.login.ui.item.SocialLoginButton
 import com.linku.login.viewmodel.SocialAuthViewModel
+import kotlinx.coroutines.launch
 
 
 private const val TAG = "LoginScreen"
@@ -150,7 +143,8 @@ fun LoginScreen(
     LaunchedEffect(kakaoLoginState) {
         when (kakaoLoginState) {
             is SocialAuthViewModel.SocialLoginState.Success -> {
-                val result = (kakaoLoginState as SocialAuthViewModel.SocialLoginState.Success).result
+                val result =
+                    (kakaoLoginState as SocialAuthViewModel.SocialLoginState.Success).result
 
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
@@ -163,6 +157,7 @@ fun LoginScreen(
                 }
                 viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
             }
+
             is SocialAuthViewModel.SocialLoginState.Error -> {
                 // TODO: 에러 메시지 표시
                 viewModel.resetKakaoLoginState()
@@ -175,7 +170,8 @@ fun LoginScreen(
     LaunchedEffect(googleLoginState) {
         when (googleLoginState) {
             is SocialAuthViewModel.SocialLoginState.Success -> {
-                val result = (googleLoginState as SocialAuthViewModel.SocialLoginState.Success).result
+                val result =
+                    (googleLoginState as SocialAuthViewModel.SocialLoginState.Success).result
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()
                     "TEMP" -> {
@@ -186,10 +182,15 @@ fun LoginScreen(
                 }
                 viewModel.resetGoogleLoginState()
             }
+
             is SocialAuthViewModel.SocialLoginState.Error -> {
-                Log.e("GoogleLogin", "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}")
+                Log.e(
+                    "GoogleLogin",
+                    "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}"
+                )
                 viewModel.resetGoogleLoginState() // 리셋 추가.
             }
+
             else -> {}
         }
     }
