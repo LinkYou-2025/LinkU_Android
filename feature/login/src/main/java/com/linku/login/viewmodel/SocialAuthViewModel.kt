@@ -5,23 +5,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LoginResult
 import com.linku.core.model.auth.Gender
-import com.linku.core.model.auth.Job
-import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.NicknameCheckState
+import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.AuthRepository
+import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.linku.core.model.auth.NicknameCheckState
-import com.linku.data.preference.AuthPreference
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 
 /**
@@ -116,7 +113,6 @@ class SocialAuthViewModel @Inject constructor(
 
     private val _error = MutableStateFlow<Throwable?>(null)
     val error: StateFlow<Throwable?> = _error
-
 
 
     private fun isValidNickname(input: String): Boolean =
@@ -231,7 +227,7 @@ class SocialAuthViewModel @Inject constructor(
     }
 
 
-     //소셜 프로필 완료 API
+    //소셜 프로필 완료 API
     fun completeSocialProfile(
         socialToken: String,
         onSuccess: () -> Unit

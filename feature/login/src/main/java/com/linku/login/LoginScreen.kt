@@ -4,42 +4,46 @@ package com.linku.login
 
 
 import android.content.Context
-import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.ui.draw.alpha
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import com.linku.design.theme.linkuColors
 import androidx.compose.material3.Text
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.DesignSystemBars
-import com.linku.login.ui.item.SocialLoginButton
-import com.linku.design.theme.font.Paperlogy
-import com.linku.design.util.scaler
-import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.linku.login.viewmodel.SocialAuthViewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
@@ -55,6 +59,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.linku.login.BuildConfig
 import com.linku.login.auth.findActivity
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.DesignSystemBars
+import com.linku.design.util.scaler
+import com.linku.login.ui.item.SocialLoginButton
+import com.linku.login.viewmodel.SocialAuthViewModel
+
 
 private const val TAG = "LoginScreen"
 
@@ -119,10 +130,10 @@ fun LoginScreen(
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
     showLogo: Boolean = true, //로고 숨김(애니메이션 동안)
     buttonsEnabled: Boolean = true, // 중복 로그인 방지.
-    
+
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val context = LocalContext.current
     val activity = context.findActivity()
     val scope = rememberCoroutineScope()
@@ -156,6 +167,7 @@ fun LoginScreen(
                 // TODO: 에러 메시지 표시
                 viewModel.resetKakaoLoginState()
             }
+
             else -> {}
         }
     }
@@ -241,7 +253,6 @@ fun LoginScreen(
                         text = "Link U, Think You",
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = colorTheme.white,
                         textAlign = TextAlign.Center
@@ -254,7 +265,6 @@ fun LoginScreen(
                         text = "링큐에 오신 것을 \n환영해요",
                         fontSize = 22.sp,
                         lineHeight = 30.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(700),
                         color = colorTheme.white,
                         textAlign = TextAlign.Center
@@ -343,7 +353,8 @@ fun LoginScreen(
 // 소셜 로그인 전용 배경 just 배경용.(기능 없음)
 @Composable
 fun LoginBackground() {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
+
     DesignSystemBars(
         statusBarColor = Color.Transparent,
         navigationBarColor = Color.Transparent,
@@ -383,7 +394,6 @@ fun LoginBackground() {
                     text = "Link U, Think You",
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(500),
                     color = colorTheme.white,
                     textAlign = TextAlign.Center
@@ -395,7 +405,6 @@ fun LoginBackground() {
                     text = "링큐에 오신 것을 \n환영해요",
                     fontSize = 22.sp,
                     lineHeight = 30.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(700),
                     color = colorTheme.white,
                     textAlign = TextAlign.Center
@@ -409,8 +418,11 @@ fun LoginBackground() {
 @Composable
 fun LoginScreenPreview() {
     val navController = rememberNavController()
-    LoginScreen(
-        navigator = navController,
-        viewModel = viewModel() // 프리뷰용
-    )
+
+    LinkuPreview {
+        LoginScreen(
+            navigator = navController,
+            viewModel = viewModel() // 프리뷰용
+        )
+    }
 }

@@ -4,21 +4,39 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -48,15 +66,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.system.SystemBarController
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
 import com.linku.login.BuildConfig
+import com.linku.login.R
+import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
 fun WelcomeScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel //null 불가.
 ) {
-    //디자인 모듈 가져오기.
-    val colorTheme = LocalColorTheme.current
+
+    val colorTheme = MaterialTheme.linkuColors
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
 
@@ -94,12 +116,12 @@ fun WelcomeScreen(
         // TODO : 런칭 전 해당 로그 삭제.
         if (BuildConfig.DEBUG) {
             Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
-            Log.d("WelcomeScreen", "email: ${signUpViewModel?.signUpForm?.email}")
-            Log.d("WelcomeScreen", "nickname: ${signUpViewModel?.signUpForm?.nickname}")
-            Log.d("WelcomeScreen", "gender: ${signUpViewModel?.signUpForm?.gender}")
-            Log.d("WelcomeScreen", "jobId: ${signUpViewModel?.signUpForm?.jobId}")
-            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel?.signUpForm?.purposeList}")
-            Log.d("WelcomeScreen", "interestList: ${signUpViewModel?.signUpForm?.interestList}")
+            Log.d("WelcomeScreen", "email: ${signUpViewModel.signUpForm?.email}")
+            Log.d("WelcomeScreen", "nickname: ${signUpViewModel.signUpForm?.nickname}")
+            Log.d("WelcomeScreen", "gender: ${signUpViewModel.signUpForm?.gender}")
+            Log.d("WelcomeScreen", "jobId: ${signUpViewModel.signUpForm?.jobId}")
+            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel.signUpForm?.purposeList}")
+            Log.d("WelcomeScreen", "interestList: ${signUpViewModel.signUpForm?.interestList}")
             Log.d("WelcomeScreen", "=====================")
         }
         signUpViewModel.signUp()
@@ -115,15 +137,18 @@ fun WelcomeScreen(
                 }
 
             }
+
             is SignUpState.Error -> {
                 val message = (signUpState as SignUpState.Error).message
                 Log.e("WelcomeScreen", "회원가입 실패: $message")
                 // 에러 시 이전 단계로 돌아감.
                 navigator.popBackStack()
             }
+
             is SignUpState.Loading -> {
                 Log.d("WelcomeScreen", "회원가입 진행 중...")
             }
+
             is SignUpState.Idle -> {
                 // 초기 상태
             }
@@ -178,7 +203,6 @@ fun WelcomeScreen(
                     color = colorTheme.white,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = Paperlogy.font,
                     textAlign = TextAlign.Center // 피그마와 동일하게 중앙 정렬
                 )
 
@@ -188,7 +212,6 @@ fun WelcomeScreen(
                     text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
                     color = colorTheme.white,
                     fontSize = 16.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
@@ -209,12 +232,9 @@ fun WelcomeScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     style = TextStyle(brush = colorTheme.maincolor),
-                    fontFamily = Paperlogy.font
                 )
             }
         }
-
-
 
 
     }

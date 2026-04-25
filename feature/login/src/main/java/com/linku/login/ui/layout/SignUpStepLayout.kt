@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,9 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.ThemeProvider
-import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.StepIndicator
@@ -51,7 +51,7 @@ internal fun SignUpStepLayout(
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null, // EmailVerification 예외 대응
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     val bgColor = if (backgroundColor == Color.Unspecified) {
         colorTheme.white
@@ -83,7 +83,6 @@ internal fun SignUpStepLayout(
                 text = title,
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black // 다크모드 시 ThemeColorScheme에 darkText 추가하면 됨
             )
@@ -122,7 +121,7 @@ fun SignUpStepLayoutPreview(
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    ThemeProvider {  // 폰트/컬러 CompositionLocal 주입 : 이거 없으면 프리뷰시 글자 폰트 깨짐.
+    LinkuPreview {
         SignUpStepLayout(
             currentStep = currentStep,
             totalSteps = totalSteps,
