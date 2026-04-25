@@ -1,22 +1,34 @@
 package com.linku.login.ui.item
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.font.Paperlogy
-import com.linku.design.util.rememberFigmaDimens
+import com.linku.design.theme.linkuColors
+import com.linku.login.R
 
 /**
  * 직접 ui를 만들어서 추후 4,5,6단계도 손쉽게 확장이 가능함.
@@ -24,18 +36,17 @@ import com.linku.design.util.rememberFigmaDimens
  * */
 
 @Composable
-fun StepIndicator(
+internal fun StepIndicator(
     currentStep: Int,
     totalSteps: Int,
     label: String,
     modifier: Modifier = Modifier,
 
-) {
+    ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     val activeColor = colorTheme.purple[200]
-    val completedColor = colorTheme.purple[100]
     val inactiveColor = colorTheme.gray[300]
     val white = colorTheme.white
 
@@ -58,7 +69,14 @@ fun StepIndicator(
                         .size(if (isStep3Current) 28.dp else 30.dp)
                         .then(
                             when {
-                                isCompleted -> Modifier.background(completedColor, CircleShape)
+                                isCompleted -> Modifier.background(
+                                    when {
+                                        currentStep == 3 && step == 1 -> colorTheme.purple[50]  // 1번째 원
+                                        else -> colorTheme.purple[100]                           // 2번째 원
+                                    },
+                                    CircleShape
+                                )
+
                                 isCurrent -> Modifier.background(activeColor, CircleShape)
                                 else -> Modifier.border(1.dp, inactiveColor, CircleShape)
                             }
@@ -67,12 +85,12 @@ fun StepIndicator(
                 ) {
                     when {
                         isCompleted -> {
-                            Text(
-                                text = "✓",
-                                fontSize = 16.sp,
-                                fontFamily = Paperlogy.font,
-                                fontWeight = FontWeight.Bold,
-                                color = white
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_login_check),
+                                contentDescription = "completed",
+                                modifier = Modifier
+                                    .width(16.dp) // 피그마 상으로는 14,11인데 저번에 실제 기기로는 조금 더 작아보임. 지난번 비율 생각해서 키움.
+                                    .height(13.dp)
                             )
                         }
 
@@ -138,50 +156,57 @@ fun StepIndicator(
         )
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep1Preview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        StepIndicator(
-            currentStep = 1,
-            totalSteps = 3,
-            label = "계정 정보"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            StepIndicator(
+                currentStep = 1,
+                totalSteps = 3,
+                label = "계정 정보"
+            )
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep2Preview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        StepIndicator(
-            currentStep = 2,
-            totalSteps = 3,
-            label = "프로필 설정"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            StepIndicator(
+                currentStep = 2,
+                totalSteps = 3,
+                label = "프로필 설정"
+            )
+        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun StepIndicatorStep3Preview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-    ) {
-        StepIndicator(
-            currentStep = 3,
-            totalSteps = 3,
-            label = "관심사 설정"
-        )
+    LinkuPreview {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            StepIndicator(
+                currentStep = 3,
+                totalSteps = 3,
+                label = "관심사 설정"
+            )
+        }
     }
 }

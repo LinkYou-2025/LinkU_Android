@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import com.linku.login.R
 
 @Composable
-fun BackIconButton(
+internal fun BackIconButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {

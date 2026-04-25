@@ -1,7 +1,9 @@
 package com.linku.design.theme.color
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.Color
 
+@Stable
 class ColorMap {
     private val map: Map<Int, Color>
 

@@ -3,12 +3,23 @@ package com.linku.login.ui.screen.email
 import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -19,26 +30,21 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
 import com.linku.login.R
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.ResetPasswordTopHeader
 import com.linku.login.viewmodel.ResetPasswordViewModel
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.scaler
 
-// =======================
-// 실제 Screen (ViewModel 사용)
-// =======================
 @Composable
 fun ResetPasswordScreen(
     navigator: NavHostController,
     viewModel: ResetPasswordViewModel? = hiltViewModel()
 ) {
-    //디자인 모듈 불러오기.
-    val colorTheme = LocalColorTheme.current
-
+    val colorTheme = MaterialTheme.linkuColors
 
     // 🔑 Preview면 viewModel == null
     val ui = viewModel?.ui?.collectAsState()?.value
@@ -52,7 +58,11 @@ fun ResetPasswordScreen(
     val focusManager = LocalFocusManager.current
 
 
-    Box(modifier = Modifier.fillMaxSize().background(colorTheme.white)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(colorTheme.white)
+    ) {
         ResetPasswordTopHeader(
             onBack = {
                 if (viewModel != null) {
@@ -94,7 +104,6 @@ fun ResetPasswordScreen(
                 fontSize = 22.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = Paperlogy.font,
                 color = colorTheme.black
             )
 
@@ -105,9 +114,8 @@ fun ResetPasswordScreen(
                 text = "링큐에 가입했던 이메일을 입력해주세요. \n비밀번호를 다시 설정할 수 있는 메일을 보내드릴게요.",
                 fontSize = 16.sp,
                 lineHeight = 22.sp,
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight(400),
-                color = colorTheme.gray[600]!!
+                color = colorTheme.gray[600]
             )
 
             // 설명-입력창 간격 (45 / 917)
@@ -117,7 +125,7 @@ fun ResetPasswordScreen(
                 value = email,
                 onValueChange = {
                     email = it
-                    if (ui?.error != null) viewModel?.consumeError()
+                    if (ui?.error != null) viewModel.consumeError()
                 },
                 hint = "이메일 주소를 입력해주세요"
             )
@@ -128,7 +136,6 @@ fun ResetPasswordScreen(
                     text = ui.error,
                     color = colorTheme.negative,
                     fontSize = 12.sp,
-                    fontFamily = Paperlogy.font,
                     modifier = Modifier.padding(
                         start = (8.scaler)
                     )
@@ -154,16 +161,16 @@ fun ResetPasswordScreen(
     }
 }
 
-// =======================
-// Preview (UI 확인 전용)
-// =======================
+
 @Preview(showBackground = true, name = "ResetPassword UI Preview")
 @Composable
 fun ResetPasswordScreenPreview() {
-    ResetPasswordScreen(
-        navigator = rememberNavController(),
-        viewModel = null
-    )
+    LinkuPreview {
+        ResetPasswordScreen(
+            navigator = rememberNavController(),
+            viewModel = null
+        )
+    }
 }
 
 

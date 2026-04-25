@@ -3,12 +3,10 @@ package com.linku.login.viewmodel
 //유저 비밀번호 재설정 기능 수정으로 리펙X
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.linku.core.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
