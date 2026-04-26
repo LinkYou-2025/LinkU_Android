@@ -137,11 +137,45 @@ private const val SHEET_SELECT_SCREEN_HEIGHT_RATIO = SHEET_Select_SCREEN_HEIGHT 
 
 
 
-private sealed interface SelectDepth 
 
-object None : SelectDepth
-data class Category(val category: FolderSimpleInfo) : SelectDepth
-data class Folder(val category: FolderSimpleInfo, val folder: FolderSimpleInfo) : SelectDepth
+/**
+ * 공유할 대상의 탐색 깊이와 선택된 폴더 정보를 관리하는 실드 인터페이스(Sealed Interface).
+ *
+ * 바텀 시트 내에서 사용자가 어느 단계까지 폴더를 탐색했는지, 그리고 어떤 폴더가 최종적으로 선택되었는지를
+ * 상태로 나타내기 위해 사용됩니다.
+ *
+ * - [None]: 아무것도 선택되지 않은 초기 상태.
+ * - [Category]: 상위 카테고리만 선택되어 하위 폴더 목록을 탐색 중인 상태.
+ * - [Folder]: 상위 카테고리와 그 내부의 특정 폴더까지 모두 선택 완료된 상태.
+ */
+private sealed interface SelectDepth
+
+/**
+ * 선택된 폴더가 없음을 나타내는 기본 상태 객체입니다.
+ * [SelectDepth] 인터페이스를 구현하며, 폴더 공유 프로세스에서 초기 선택 상태를 정의할 때 사용됩니다.
+ */
+private object None : SelectDepth
+
+/**
+ * 선택된 공유 대상의 깊이가 '카테고리' 수준임을 나타내는 데이터 클래스입니다.
+ *
+ * 사용자가 특정 카테고리를 선택했지만, 그 하위의 구체적인 폴더는 아직 선택하지 않았거나
+ * 해당 카테고리 자체를 컨텍스트로 가질 때 사용됩니다.
+ *
+ * @property category 선택된 카테고리에 대한 간략한 정보 ([FolderSimpleInfo]).
+ */
+private data class Category(val category: FolderSimpleInfo) : SelectDepth
+
+/**
+ * 사용자가 선택한 폴더의 계층 구조 정보를 나타내는 데이터 클래스입니다.
+ * [SelectDepth] 인터페이스의 구현체로, 상위 카테고리와 그 하위의 구체적인 폴더가 모두 선택된 상태를 의미합니다.
+ *
+ * @property category 선택된 폴더가 속한 상위 카테고리 정보.
+ * @property folder 실제 공유 대상으로 선택된 하위 폴더 정보.
+ */
+private data class Folder(val category: FolderSimpleInfo, val folder: FolderSimpleInfo) : SelectDepth
+
+
 
 
 /**
@@ -162,6 +196,9 @@ private enum class ScreenState {
      */
     Select
 }
+
+
+
 
 /**
  * 공유 링크 생성 프로세스의 현재 상태를 나타내는 열거형 클래스.
@@ -200,6 +237,9 @@ private enum class LinkGenerateState {
      */
     Error
 }
+
+
+
 
 @Composable
 internal fun _ShareBottomSheet(
@@ -297,6 +337,10 @@ internal fun ShareBottomSheetLayout(
     }
 }
 
+
+
+
+/*----------------폴더 공유 바텀 시트 메인 스크린----------------*/
 /**
  * 폴더 공유 바텀 시트의 메인 화면을 구성하는 Composable 함수입니다.
  *
@@ -315,7 +359,7 @@ internal fun ShareBottomSheetLayout(
  * @see ShareFolderMenu
  * @see ShareLink
  * @see LinkGenerationButton
- *//*----------------폴더 공유 바텀 시트 메인 스크린----------------*/
+ */
 @Composable
 private fun ShareBottomSheetMainScreen(
     modifier: Modifier,
