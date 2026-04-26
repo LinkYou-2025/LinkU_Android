@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
@@ -27,6 +28,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,6 +64,8 @@ import com.linku.file.ui.bottom.sheet.LinkGenerateState.Before
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Done
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Error
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Loading
+import com.linku.file.ui.bottom.sheet.ScreenState.Main
+import com.linku.file.ui.bottom.sheet.ScreenState.Select
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 // 전체 화면 높이
@@ -232,15 +236,27 @@ internal fun ShareBottomSheetLayout(
     /** 선택된 폴더의 깊이 ([None], [Category], [Folder])*/
     var selectDepth: SelectDepth by remember { mutableStateOf(None) }
 
-    /** 바텀 시트의 화면 상태 ([ScreenState.Main], [ScreenState.Select])*/
-    var screenState: ScreenState by remember { mutableStateOf(ScreenState.Main) }
+    /** 바텀 시트의 화면 상태 ([Main], [Select])*/
+    var screenState: ScreenState by remember { mutableStateOf(Main) }
+
+    // 바텀 시트 오픈마다 한 번 초기화
+    LaunchedEffect(Unit) {
+        selectDepth = None
+        screenState = Main
+    }
 
     /** 바텀 시트 상태 인스턴스*/
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true    // 항상 활짝 펴진 상태로 설정
     )
 
-    // 바텀 시트 컨테이너 설정
+    /**
+     * **내부 컨텐츠 구조 (content)**
+     *
+     * `when(screenState)` 조건문에 따라 두 가지 화면 중 하나를 렌더링:
+     * - [Main]: 메인 공유 설정 화면 (폴더 미리보기, 링크 생성 등).
+     * -Select]: 공유할 폴더를 선택하기 위한 탐색 화면.
+     */
     ModalBottomSheet(
         modifier = modifier
             .fillMaxWidth(),
@@ -256,21 +272,26 @@ internal fun ShareBottomSheetLayout(
     ) {
         // ScreenState에 따른 컨텐츠
         when (screenState) {
-            ScreenState.Main -> ShareBottomSheetMainScreen(
+
+            // 폴더 공유 바텀 시트의 메인 화면
+            Main -> ShareBottomSheetMainScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(SHEET_MAIN_SCREEN_HEIGHT_RATIO),
                 colors = colors,
                 selectDepth = selectDepth,
-                onMenuClick = { screenState = ScreenState.Select },
+                onMenuClick = { screenState = Select },
                 onLinkGenerate = onLinkGenerate
             )
 
-            ScreenState.Select -> SelectFolderToShareScreen(
+            // 공유할 폴더 선택 화면
+           Select -> SelectFolderToShareScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(SHEET_SELECT_SCREEN_HEIGHT_RATIO),
-                colors = colors
+                colors = colors,
+                preSelectDepth = selectDepth,
+                folderTree = folderTree,
             )
         }
     }
@@ -285,7 +306,7 @@ internal fun ShareBottomSheetLayout(
  * @param modifier 이 컴포저블의 레이아웃, 크기, 클릭 이벤트 등을 정의하기 위한 [Modifier].
  * @param colors 앱의 디자인 시스템에 정의된 테마 색상 구성 객체 ([ThemeColorScheme]).
  * @param selectDepth 현재 사용자가 선택한 폴더의 계층 구조 정보를 담고 있는 상태 ([SelectDepth]).
- * @param onMenuClick 폴더 선택 메뉴(경로 표시 바)를 클릭했을 때 호출되는 콜백. 주로 [ScreenState.Select] 화면으로 전환하는 로직이 들어갑니다.
+ * @param onMenuClick 폴더 선택 메뉴(경로 표시 바)를 클릭했을 때 호출되는 콜백. 주로 [Select] 화면으로 전환하는 로직이 들어갑니다.
  * @param onLinkGenerate 특정 폴더 ID를 기반으로 공유 링크 생성을 요청하는 람다 함수.
  *                       성공 시 생성된 링크 URL을, 실패 시 null을 반환해야 합니다.
  *
