@@ -1,4 +1,4 @@
-package com.linku.data.api.dto.auth.login.kakao
+package com.linku.data.api.dto.auth.login.social
 
 
 

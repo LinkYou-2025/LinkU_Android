@@ -91,7 +91,7 @@ fun EmailVerificationScreen(
     val isCodeValid = code.length == 6
     val isSending = authState is EmailAuthState.Sending // 파생 상태
     val isVerifying = authState is EmailAuthState.Verifying // 파생 상태
-
+    val isCodeSent = authState is EmailAuthState.SendSuccess
 
     // 상태에 따라 파생 값 계산
     val sendResult: String? = when (val state = authState) {
@@ -157,6 +157,7 @@ fun EmailVerificationScreen(
         isVerifying = isVerifying,
         sendResult = sendResult,
         verifyResult = verifyResult,
+        isCodeSent = isCodeSent,
         isCodeValid = isCodeValid,
         emailValid = emailValid,
         onSendCode = { viewModel.sendEmailCode(email.trim()) },

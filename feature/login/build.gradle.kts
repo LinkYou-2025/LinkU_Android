@@ -12,11 +12,18 @@ plugins {
 }
 val localProperties = Properties().apply {
     val file = rootProject.file("local.properties")
-    if (file.exists()) load(file.inputStream())
+    if (file.exists()) {
+        file.inputStream().use { inputStream ->
+            load(inputStream)
+        }
+    }
+
 }
 
 val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
-    ?.trim() ?: ""
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
 
 
 android {

@@ -3,8 +3,8 @@ package com.linku.data.api
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
 import com.linku.data.api.dto.auth.login.email.LoginResponseDTO
-import com.linku.data.api.dto.auth.login.kakao.SocialLoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.SocialLoginResponseDTO
+import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
+import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
 import com.linku.data.api.dto.auth.signup.email.EmailVerificationResponseDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO

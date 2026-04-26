@@ -1,19 +1,22 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
+import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.model.LoginResult
 import com.linku.core.model.TokenReissueResult
-import com.linku.core.model.auth.*
+import com.linku.core.model.auth.Gender
+import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.Purpose
+import com.linku.core.model.auth.SignUpEmailResult
 import com.linku.core.repository.AuthRepository
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.data.api.ApiError
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.SocialLoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.SocialLoginResponseDTO
+import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
+import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.withErrorHandling
-import com.linku.data.api.withErrorHandlingRaw
 import com.linku.data.mapper.SocialProfileMapper
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.flow.Flow

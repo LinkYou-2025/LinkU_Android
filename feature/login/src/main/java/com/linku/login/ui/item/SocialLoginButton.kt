@@ -121,14 +121,6 @@ fun SocialLoginButtonPreview() {
                     textColor = colorTheme.black
                 )
 
-//            //  네이버
-//            SocialLoginButton(
-//                backgroundColor = Color(0xFF03C75A),
-//                iconRes = R.drawable.icon_login_naver,
-//                text = "네이버로 시작하기",
-//                textColor = colorTheme.white
-//            )
-
                 // 구글
                 SocialLoginButton(
                     backgroundColor = colorTheme.white,

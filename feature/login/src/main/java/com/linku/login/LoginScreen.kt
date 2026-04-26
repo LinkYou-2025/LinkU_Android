@@ -321,10 +321,11 @@ fun LoginScreen(
                 text = "구글로 시작하기",
                 textColor = colorTheme.black,
                 onClick = {
-                    val act = activity ?: return@SocialLoginButton
+                    if (!buttonsEnabled) return@SocialLoginButton
+                    if (activity == null) return@SocialLoginButton
                     scope.launch {
                         try {
-                            val idToken = googleAuthHelper.getGoogleIdToken(act)
+                            val idToken = googleAuthHelper.getGoogleIdToken(activity)
                             viewModel.loginWithGoogle(idToken)
                         } catch (e: Exception) {
                             Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")
