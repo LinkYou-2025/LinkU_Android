@@ -3,20 +3,20 @@ package com.linku.login.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.repository.UserRepository
 import com.linku.core.datastore.session.LoginSessionStore
+import com.linku.core.model.auth.AutoLoginState
+import com.linku.core.model.auth.LoginErrorType
+import com.linku.core.model.auth.LoginState
+import com.linku.core.repository.AuthRepository
+import com.linku.core.repository.UserRepository
 import com.linku.data.api.ApiError
+import com.linku.data.api.toLoginErrorType
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import com.linku.core.model.auth.AutoLoginState
-import com.linku.core.model.auth.LoginErrorType
-import com.linku.core.model.auth.LoginState
-import com.linku.core.repository.AuthRepository
-import com.linku.data.api.toLoginErrorType
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -33,8 +33,6 @@ import kotlin.coroutines.cancellation.CancellationException
  * */
 
 
-
-
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -45,7 +43,8 @@ open class LoginViewModel @Inject constructor(
 
     // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
     private suspend fun fetchAndSaveUserSession(userId: Long) {
-        val userInfo = userRepository.getUserInfo(userId) // 사용자 정보 조회 api GET /api/users/{userId} 이용.
+        val userInfo =
+            userRepository.getUserInfo(userId) // 사용자 정보 조회 api GET /api/users/{userId} 이용.
 
         loginSessionStore.saveLogin( // SessionStore에 세션 생성.
             userId = userId,
@@ -119,7 +118,7 @@ open class LoginViewModel @Inject constructor(
                 _loginState.value = LoginState.Success(loginResult)
 
             } catch (exception: CancellationException) {
-                 throw exception
+                throw exception
             } catch (exception: Exception) {
                 Log.e(TAG, "로그인 실패", exception)
                 _loginState.value = LoginState.Error(exception.toLoginErrorType())

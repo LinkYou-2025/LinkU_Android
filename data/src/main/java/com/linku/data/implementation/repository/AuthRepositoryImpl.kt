@@ -93,28 +93,19 @@ class AuthRepositoryImpl @Inject constructor(
 
     }
 
-    // ApiResponseString 반환 → withErrorHandlingRaw
-    override suspend fun sendEmailCode(email: String, code: String): Boolean {
-        return try {
-            val response = serverApi.withErrorHandlingRaw {
-                sendVerificationEmail(email, code)
-            }
-            response.isSuccess == true
-        } catch (e: ApiError) {
-            Log.e(TAG, "[이메일 코드 전송 실패] ${e.message}")
-            false
-        }
+
+    override suspend fun sendEmailCode(email: String) {
+        Log.d(TAG, "[이메일 코드 전송 시도] email=$email")
+        serverApi.withErrorHandling { sendVerificationEmail(email) }
+        Log.d(TAG, "[이메일 코드 전송 성공]")
     }
 
-    // BaseResponse<EmailVerificationResponse> 반환 → withErrorHandling
+
     override suspend fun verifyEmailCode(email: String, code: String): Boolean {
-        return try {
-            serverApi.withErrorHandling { checkVerificationEmail(email, code) }
-            true
-        } catch (e: ApiError) {
-            Log.e(TAG, "[이메일 코드 검증 실패] ${e.message}")
-            false
-        }
+        Log.d(TAG, "[이메일 코드 검증 시도] email=$email")
+        val response = serverApi.withErrorHandling { checkVerificationEmail(email, code) }
+        Log.d(TAG, "[이메일 코드 검증 결과] success=${response.success}")
+        return response.success
     }
 
     // BaseResponse<TokenPair> 반환 → withErrorHandling

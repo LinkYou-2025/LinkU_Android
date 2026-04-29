@@ -1,9 +1,11 @@
 package com.linku.design.theme.color
 
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
+@Stable
 sealed class ThemeColorScheme(
 //    val isDark: Boolean,
 
@@ -54,7 +56,9 @@ sealed class ThemeColorScheme(
     val positive: Color = Color(0xFF35DF79),
     val negative: Color = Color(0xFFFF5E5E),
 
-    val accentColor: Color = Color(0xFFC800FF)
+    val accentColor: Color = Color(0xFFC800FF),
+    //회원가입 그림자용
+    val shadowColor: Color = Color(0x1A7C7C7C)
 
 
 )

@@ -1,45 +1,61 @@
 package com.linku.login.ui.screen.email
 
+import android.util.Patterns
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
-import com.linku.login.R
-import com.linku.design.theme.font.Paperlogy
-import com.linku.login.ui.item.LoginTextField
-import androidx.compose.foundation.layout.ime
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.BaselineShift
-import com.linku.login.ui.item.GradientButtonCore
-import com.linku.login.ui.item.PasswordLoginTextField
-import com.linku.design.modifier.noRippleClickable
-import android.util.Patterns
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.rememberNavController
-import com.linku.design.theme.LocalColorTheme
-import com.linku.login.viewmodel.LoginViewModel
-import com.linku.design.util.scaler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
 import com.linku.core.system.SystemBarController
-
+import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import com.linku.login.R
+import com.linku.login.ui.item.GradientButtonCore
+import com.linku.login.ui.item.LoginTextField
+import com.linku.login.ui.item.PasswordLoginTextField
+import com.linku.login.viewmodel.LoginViewModel
 
 @Composable
 fun EmailLoginScreen(
@@ -53,7 +69,7 @@ fun EmailLoginScreen(
     val focusManager = LocalFocusManager.current
 
     // 2. 디자인 모듈의 폰트 패밀리 가져오기
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     // LoginState 관찰 추가
     val loginState by loginViewModel?.loginState?.collectAsStateWithLifecycle()
@@ -65,9 +81,11 @@ fun EmailLoginScreen(
                 focusManager.clearFocus()
                 onLoginSuccess()
             }
+
             is LoginState.Error -> {
                 focusManager.clearFocus()
             }
+
             else -> {}
         }
     }
@@ -106,7 +124,6 @@ fun EmailLoginScreen(
     val buttonOffsetY = if (isKeyboardOpen) 0.dp else (-4.scaler)
 
 
-
     // 🔑 피그마 비율 적용
     val logoRatio = if (isKeyboardOpen) 102f / 917f else 262f / 917f //키보드 활성화 전, 후
     val logoTopPadding = screenHeight * logoRatio
@@ -141,9 +158,8 @@ fun EmailLoginScreen(
                 style = TextStyle(
                     fontSize = 13.sp,
                     lineHeight = 15.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight(400),
-                    color = colorTheme.gray[600]!!,
+                    color = colorTheme.gray[600],
                     textAlign = TextAlign.Center
                 )
             )
@@ -164,12 +180,12 @@ fun EmailLoginScreen(
                         // 입력 시 에러 초기화.
                         if (loginState is LoginState.Error) {
                             loginViewModel?.clearError()
-                        } },
+                        }
+                    },
                     hint = "이메일",
                     textStyle = TextStyle(
                         fontSize = 14.sp,
                         lineHeight = 16.sp,
-                        fontFamily = Paperlogy.font,
                         fontWeight = FontWeight(500),
                         color = colorTheme.black
                     )
@@ -200,7 +216,6 @@ fun EmailLoginScreen(
                             style = TextStyle(
                                 fontSize = 13.sp,
                                 lineHeight = 15.sp,
-                                fontFamily = Paperlogy.font,
                                 fontWeight = FontWeight(400),
                                 color = colorTheme.negative
                             ),
@@ -247,13 +262,15 @@ fun EmailLoginScreen(
                     .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
                     .height((30.scaler)), // 클릭 영역 확보를 위한 높이
-                horizontalArrangement = Arrangement.spacedBy(25.dp, alignment = Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(
+                    25.dp,
+                    alignment = Alignment.CenterHorizontally
+                ),
                 verticalAlignment = Alignment.CenterVertically
-            ){
+            ) {
                 Text(
                     text = "비밀번호 재설정",
                     fontSize = 15.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
@@ -265,7 +282,6 @@ fun EmailLoginScreen(
                 Text(
                     text = "|",
                     fontSize = 14.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[600],
                     style = TextStyle(
                         baselineShift = BaselineShift(0.3f)  // 약간 위로 올림
@@ -274,7 +290,6 @@ fun EmailLoginScreen(
                 Text(
                     text = "회원가입",
                     fontSize = 15.sp,
-                    fontFamily = Paperlogy.font,
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
@@ -288,20 +303,21 @@ fun EmailLoginScreen(
 }
 
 
-
 @Preview(
     name = "Email Login – Keyboard OFF",
     showBackground = true
 )
 @Composable
 fun EmailLoginPreview() {
-    EmailLoginScreen(
-        navigator = rememberNavController(),
-        loginViewModel = null,
-        onSignUpClick = {},
-        onLoginSuccess = {}
+    LinkuPreview {
+        EmailLoginScreen(
+            navigator = rememberNavController(),
+            loginViewModel = null,
+            onSignUpClick = {},
+            onLoginSuccess = {}
 
-    )
+        )
+    }
 }
 
 

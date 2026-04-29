@@ -4,16 +4,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 
 /**
  * 서비스 내 모든 약관 동의 화면에서 공통으로 사용하는 하단 버튼
  */
 @Composable
-fun AgreeFooterButton(
+internal fun AgreeFooterButton(
     text: String,
     enabled: Boolean,
     onClick: () -> Unit,
@@ -21,7 +22,7 @@ fun AgreeFooterButton(
     applyNavPadding: Boolean = true
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
 
     GradientButtonCore(
         text = text,
