@@ -14,6 +14,7 @@ import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -56,12 +57,12 @@ class SocialAuthViewModel @Inject constructor(
 
     // kakao 로그인 stateflow
     private val _kakaoLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
-    val kakaoLoginState: StateFlow<SocialLoginState> = _kakaoLoginState
+    val kakaoLoginState: StateFlow<SocialLoginState> = _kakaoLoginState.asStateFlow()
 
 
     // 구글 로그인 stateflow
     private val _googleLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
-    val googleLoginState: StateFlow<SocialLoginState> = _googleLoginState
+    val googleLoginState: StateFlow<SocialLoginState> = _googleLoginState.asStateFlow()
 
     //reset 함수 추가
     fun resetKakaoLoginState() {
