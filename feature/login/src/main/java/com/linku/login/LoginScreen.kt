@@ -5,6 +5,7 @@ package com.linku.login
 
 import android.content.Context
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -128,7 +129,6 @@ fun LoginScreen(
 
     val colorTheme = MaterialTheme.linkuColors
     val context = LocalContext.current
-    val activity = context.findActivity()
     val scope = rememberCoroutineScope()
     val googleAuthHelper = remember {
         GoogleAuthHelper(webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID)
@@ -322,7 +322,10 @@ fun LoginScreen(
                 textColor = colorTheme.black,
                 onClick = {
                     if (!buttonsEnabled) return@SocialLoginButton
-                    if (activity == null) return@SocialLoginButton
+                    val activity = context.findActivity() ?: run {
+                        Toast.makeText(context, "간편 로그인 실패. 다시 시도해주세요!", Toast.LENGTH_SHORT).show()
+                        return@SocialLoginButton
+                    }
                     scope.launch {
                         try {
                             val idToken = googleAuthHelper.getGoogleIdToken(activity)
