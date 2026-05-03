@@ -46,6 +46,7 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
+import com.linku.core.model.auth.LoginType
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
@@ -284,10 +285,7 @@ fun LoginScreen(
 
             // 카카오
             SocialLoginButton(
-                backgroundColor = Color(0xFFFEE500), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
-                iconRes = R.drawable.icon_login_kakao,
-                text = "카카오로 시작하기",
-                textColor = colorTheme.black,
+                type = LoginType.KAKAO,
                 onClick = {
                     if (buttonsEnabled) handleKakaoLogin(context, viewModel)
                     //약관 화면에서 중복 로그인 방지.
@@ -297,11 +295,7 @@ fun LoginScreen(
 
             // 구글
             SocialLoginButton(
-                backgroundColor = colorTheme.white,
-                borderColor = Color(0xFFE0E0E0),
-                iconRes = R.drawable.icon_login_google,
-                text = "구글로 시작하기",
-                textColor = colorTheme.black,
+                type = LoginType.GOOGLE,
                 onClick = {
                     if (!buttonsEnabled) return@SocialLoginButton
                     val activity = context.findActivity() ?: run {
@@ -321,11 +315,7 @@ fun LoginScreen(
 
             // 이메일 기존 그대로 유지.
             SocialLoginButton(
-                backgroundColor = Color.Transparent,
-                borderColor = colorTheme.white,
-                iconRes = null,
-                text = "이메일로 시작하기",
-                textColor = colorTheme.white,
+                type = LoginType.EMAIL,
                 onClick = {
                     //navigator.navigate("email_login")
                     if (buttonsEnabled) {
