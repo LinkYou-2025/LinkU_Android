@@ -63,8 +63,8 @@ internal fun SocialLoginButton(
     }
     val borderColor = when (type) {
         LoginType.KAKAO -> null
-        LoginType.GOOGLE -> Color(0xFFE0E0E0)
-        LoginType.EMAIL -> Color.White
+        LoginType.GOOGLE -> colorTheme.googleLoginBorderColor
+        LoginType.EMAIL -> colorTheme.white
     }
     val iconRes = when (type) {
         LoginType.KAKAO -> R.drawable.icon_login_kakao

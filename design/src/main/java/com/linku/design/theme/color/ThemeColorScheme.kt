@@ -61,6 +61,8 @@ sealed class ThemeColorScheme(
     val shadowColor: Color = Color(0x1A7C7C7C),
 
     //구글 로그인 버튼 컬러용
-    val googleLoginColor: Color = Color(0xFF1F1F1F)
+    val googleLoginColor: Color = Color(0xFF1F1F1F),
+    //구글 로그인 보더 컬러용
+    val googleLoginBorderColor: Color = Color(0xFF747775)
 
 )
