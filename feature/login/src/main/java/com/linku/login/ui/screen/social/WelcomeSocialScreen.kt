@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,6 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.SystemBarMode
@@ -88,10 +88,10 @@ fun WelcomeSocialScreen(
         // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
     }
     //  signUpState 사용
-    val signUpState by signUpViewModel?.signUpState?.collectAsState() ?: remember {
+    val signUpState by signUpViewModel?.signUpState?.collectAsStateWithLifecycle() ?: remember {
         mutableStateOf(SignUpState.Idle)
     }
-    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsState()
+    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsStateWithLifecycle()
     var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
 
     //화면 진입 시 자동 회원가입 요청

@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
@@ -9,6 +10,21 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { inputStream ->
+            load(inputStream)
+        }
+    }
+
+}
+
+val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
+
 
 android {
     namespace = "com.linku.login"
@@ -20,6 +36,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         //consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
     buildTypes {
@@ -38,6 +55,7 @@ android {
     /*    kotlinOptions {
             jvmTarget = "11"
         }*/
+
     buildFeatures {
         compose = true
         buildConfig = true
@@ -65,6 +83,7 @@ dependencies {
     implementation(libs.androidx.tools.core)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     androidTestImplementation(libs.androidx.ui.test.android)
     androidTestImplementation(libs.androidx.compose.testing)
     testImplementation(libs.junit)
@@ -113,8 +132,10 @@ dependencies {
     implementation(libs.v2.auth)
     implementation(libs.v2.user)
 
-    // 네이버 로그인
-    implementation(libs.naver.oauth)
+    // 구글 로그인(Credential Manager)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.google.identity.googleid)
 
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.constraintlayout)

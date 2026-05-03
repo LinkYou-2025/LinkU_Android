@@ -1,8 +1,6 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
-import com.linku.core.model.LoginResult
-import com.linku.core.model.TokenReissueResult
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
@@ -10,21 +8,12 @@ import com.linku.core.repository.UserRepository
 import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.data.api.ApiError
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
-import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
 import com.linku.data.preference.AuthPreference
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.withAuth
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.withAuthRaw
-import com.linku.data.api.withErrorHandling
-import com.linku.data.api.withErrorHandlingRaw
 import javax.inject.Inject
-import com.linku.data.mapper.SocialProfileMapper
-import com.linku.core.model.auth.*
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginResponseDTO
-import kotlinx.coroutines.flow.Flow
 
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,

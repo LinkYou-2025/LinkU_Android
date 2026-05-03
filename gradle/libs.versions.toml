@@ -50,6 +50,9 @@ securityCrypto = "1.1.0-alpha06"
 constraintLayout = "1.1.3"
 fragmentKtx = "1.3.6"
 lifecycleViewModel = "2.4.0"
+credentials = "1.3.0"
+googleid = "1.1.1"
+lifecycleRuntimeCompose = "2.10.0"
 
 
 [libraries]
@@ -131,7 +134,10 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 
 
 lottie = { module = "com.airbnb.android:lottie", version.ref = "lottie" }
-
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
+google-identity-googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

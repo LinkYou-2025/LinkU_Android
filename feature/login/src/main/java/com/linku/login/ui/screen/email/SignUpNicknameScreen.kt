@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.theme.LinkuPreview
@@ -34,7 +34,7 @@ fun SignUpNicknameScreen(
 
     // 뷰모델의 상태 확인.
     val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음. 컴포즈가 이 값을 읽는 순간부터 바로 감시 시작함.
-    val nicknameState by signUpViewModel.nicknameState.collectAsState()
+    val nicknameState by signUpViewModel.nicknameState.collectAsStateWithLifecycle()
     val isNicknameValid =
         nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
 
