@@ -6,7 +6,6 @@ package com.linku.login
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,10 +30,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -122,7 +118,6 @@ fun LoginScreen(
     logoOffsetY: Float = 0f,
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
-    showLogo: Boolean = true, //로고 숨김(애니메이션 동안)
     buttonsEnabled: Boolean = true, // 중복 로그인 방지.
 
 ) {
@@ -228,16 +223,6 @@ fun LoginScreen(
 
                 // 애니메이션 이후 로고가 들어올 자리
                 logoSlot()
-//                if (showLogo) {
-//                    Image(
-//                        painter = painterResource(id = R.drawable.img_login_logo),
-//                        contentDescription = "LinkU Logo",
-//                        modifier = Modifier
-//                            .width(150.dp)
-//                            .height(106.dp),
-//                        contentScale = ContentScale.Fit
-//                    )
-//                }
 
                 // 로고 아래 30dp 간격
                 Spacer(modifier = Modifier.height(30.scaler))
@@ -348,70 +333,6 @@ fun LoginScreen(
                     }
                 }
             )
-        }
-    }
-}
-
-// 소셜 로그인 전용 배경 just 배경용.(기능 없음)
-@Composable
-fun LoginBackground() {
-    val colorTheme = MaterialTheme.linkuColors
-
-    DesignSystemBars(
-        statusBarColor = Color.Transparent,
-        navigationBarColor = Color.Transparent,
-        darkIcons = false,
-        immersive = true
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = colorTheme.linearMainColor)
-            .navigationBarsPadding()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.scaler)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.fillMaxHeight(228f / 917f))
-
-                // 로고 이미지
-                Image(
-                    painter = painterResource(id = R.drawable.img_login_logo),
-                    contentDescription = "LinkU Logo",
-                    modifier = Modifier
-                        .width(150.dp)
-                        .height(106.dp),
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(modifier = Modifier.height(30.scaler))
-
-                Text(
-                    text = "Link U, Think You",
-                    fontSize = 14.sp,
-                    lineHeight = 16.sp,
-                    fontWeight = FontWeight(500),
-                    color = colorTheme.white,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(25.scaler))
-
-                Text(
-                    text = "링큐에 오신 것을 \n환영해요",
-                    fontSize = 22.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight(700),
-                    color = colorTheme.white,
-                    textAlign = TextAlign.Center
-                )
-            }
         }
     }
 }
