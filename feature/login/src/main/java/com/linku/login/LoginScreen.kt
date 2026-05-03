@@ -141,11 +141,9 @@ fun LoginScreen(
     val googleLoginState by viewModel.googleLoginState.collectAsStateWithLifecycle()
 
     LaunchedEffect(kakaoLoginState) {
-        when (kakaoLoginState) {
+        when (val state = kakaoLoginState) {
             is SocialAuthViewModel.SocialLoginState.Success -> {
-                val result =
-                    (kakaoLoginState as SocialAuthViewModel.SocialLoginState.Success).result
-
+                val result = state.result
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
                     "TEMP" -> {
@@ -168,10 +166,9 @@ fun LoginScreen(
     }
     // 구글 로그인 상태 처리 추가함.
     LaunchedEffect(googleLoginState) {
-        when (googleLoginState) {
+        when (val state = googleLoginState) {
             is SocialAuthViewModel.SocialLoginState.Success -> {
-                val result =
-                    (googleLoginState as SocialAuthViewModel.SocialLoginState.Success).result
+                val result = state.result
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()
                     "TEMP" -> {
