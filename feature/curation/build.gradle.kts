@@ -13,11 +13,11 @@ plugins {
 android {
     namespace = "com.linku.curation"
 
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        minSdk = libs.versions.minSdk.get().toInt()
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
     }
 
     buildTypes {

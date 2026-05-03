@@ -26,11 +26,11 @@ val serverBaseUrl = "$serverDomain/$apiVersion/"
 
 android {
     namespace = "com.linku.data"
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.minSdk.get().toInt()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
     }
