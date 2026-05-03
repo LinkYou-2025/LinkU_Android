@@ -16,11 +16,12 @@
 
 ### 🙌 팀원 소개
 
-|유지민|채윤지|홍지현|
-|:---:|:---:|:---:|
-|<img src="https://github.com/user-attachments/assets/e0c0e19f-3d1a-4ce5-a023-ffe73ec5c963"  width="300" height="230">|<img src="https://github.com/KateteDeveloper.png"  width="300" height="230">|<img src="https://github.com/Hongji03.png"  width="300" height="230">|
-|[@ugmin1030](https://github.com/ugmin1030)|[@KateteDeveloper](https://github.com/KateteDeveloper)|[@Hongji03](https://github.com/Hongji03)|
+|유지민|채윤지|홍지현|문현우|
+|:---:|:---:|:---:|:---:|
+|<img src="https://github.com/user-attachments/assets/6ff7f9f5-5e8c-40e9-b9c2-8ca96a1d06e2"  width="250" height="210">|<img src="https://github.com/user-attachments/assets/54e0f671-5e36-4aac-b547-7ec0e37811e7"  width="250" height="210">|<img src="https://github.com/Hongji03.png"  width="250" height="210">|<img src="https://github.com/codebidoof.png"  width="250" height="210">|
+|[@ugmin1030](https://github.com/ugmin1030)|[@KateteDeveloper](https://github.com/KateteDeveloper)|[@Hongji03](https://github.com/Hongji03)|[@Bidoof](https://github.com/codebidoof)|
 <br/>
+
 
 # Tech Stack
 

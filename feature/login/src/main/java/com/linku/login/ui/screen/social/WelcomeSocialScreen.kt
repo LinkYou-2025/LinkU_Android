@@ -5,15 +5,38 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -23,29 +46,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.linku.login.R
-import com.linku.design.theme.font.Paperlogy
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.scaler
-import com.linku.login.viewmodel.SignUpViewModel
-import android.app.Activity
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.system.SystemBarController
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import com.linku.login.R
+import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
 fun WelcomeSocialScreen(
@@ -54,7 +63,7 @@ fun WelcomeSocialScreen(
     onLoginSuccess: () -> Unit = {}
 ) {
     //디자인 모듈 가져오기.
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
 
@@ -111,9 +120,11 @@ fun WelcomeSocialScreen(
                 Log.e("WelcomeScreen", "회원가입 실패: $message")
                 isSignUpRequested = false
             }
+
             is SignUpState.Loading -> {
                 Log.d("WelcomeScreen", "회원가입 진행 중...")
             }
+
             is SignUpState.Idle -> {
                 // 초기 상태
             }
@@ -168,7 +179,6 @@ fun WelcomeSocialScreen(
                     color = colorTheme.white,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = Paperlogy.font,
                     textAlign = TextAlign.Center // 피그마와 동일하게 중앙 정렬
                 )
 
@@ -178,7 +188,6 @@ fun WelcomeSocialScreen(
                     text = "당신을 위한 링크, 링큐가 기억하고 연결해줄게요!",
                     color = colorTheme.white,
                     fontSize = 16.sp,
-                    fontFamily = Paperlogy.font,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center
                 )
@@ -241,6 +250,8 @@ fun WelcomeSocialScreen(
 @Composable
 fun WelcomeScreenPreview() {
     val fakeNavController = rememberNavController()
-    WelcomeSocialScreen(navigator = fakeNavController)
+    LinkuPreview {
+        WelcomeSocialScreen(navigator = fakeNavController)
+    }
 }
 

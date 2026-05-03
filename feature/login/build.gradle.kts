@@ -35,9 +35,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-/*    kotlinOptions {
-        jvmTarget = "11"
-    }*/
+    /*    kotlinOptions {
+            jvmTarget = "11"
+        }*/
     buildFeatures {
         compose = true
         buildConfig = true
@@ -45,9 +45,9 @@ android {
 }
 
 kotlin {
-  compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_11)
-  }
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 dependencies {
@@ -76,7 +76,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation(libs.accompanist.navigation.animation)
-    implementation (libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation.compose)
 
     // 의존성 정의
     implementation(project(":core"))

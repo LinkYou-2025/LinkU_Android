@@ -1,28 +1,38 @@
 package com.linku.login.ui.terms
 
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.login.R
-import com.linku.design.theme.font.Paperlogy
-import androidx.compose.ui.draw.clip
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import com.linku.design.theme.LocalColorTheme
 import com.linku.login.ui.item.AgreeFooterButton
 import com.linku.login.ui.terms.data.PrivacyTermsData
 import com.linku.login.ui.terms.table.TermsTable
@@ -39,7 +49,7 @@ fun PrivacyTermsScreen(
     onBackClicked: () -> Unit
 ) {
 
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
     val isAtBottom by remember {
         derivedStateOf {
@@ -81,7 +91,6 @@ fun PrivacyTermsScreen(
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,
                     color = colorTheme.black,
-                    fontFamily = Paperlogy.font,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 62.dp)
@@ -109,7 +118,8 @@ fun PrivacyTermsScreen(
                     .fillMaxWidth()
                     .background(
                         color = colorTheme.gray[100],
-                        shape = RoundedCornerShape(18.dp)) //배경 + 둥근
+                        shape = RoundedCornerShape(18.dp)
+                    ) //배경 + 둥근
                     .padding(24.dp)
             ) {
                 Column {
@@ -117,7 +127,6 @@ fun PrivacyTermsScreen(
                         text = PrivacyTermsData.MAIN_TITLE,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
-                        fontFamily = Paperlogy.font,
                         color = colorTheme.black
                     )
 
@@ -127,7 +136,6 @@ fun PrivacyTermsScreen(
                         text = PrivacyTermsData.INTRODUCTION,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy.font,
                         color = colorTheme.black
                     )
 
@@ -138,7 +146,6 @@ fun PrivacyTermsScreen(
                             text = title,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            fontFamily = Paperlogy.font,
                             color = colorTheme.black
                         )
 
@@ -146,8 +153,12 @@ fun PrivacyTermsScreen(
 
                         when {
                             title.contains("제 4 조") -> {
-                                Text(text = body, fontSize = 14.sp, lineHeight = 22.sp,
-                                    fontFamily = Paperlogy.font, color = Color(0xFF424242))
+                                Text(
+                                    text = body,
+                                    fontSize = 14.sp,
+                                    lineHeight = 22.sp,
+                                    color = colorTheme.black
+                                )
                                 Spacer(Modifier.height(15.dp))
                                 TermsTable(
                                     headers = PrivacyTermsData.TableData.retentionPeriod.first,
@@ -158,8 +169,12 @@ fun PrivacyTermsScreen(
                             title.contains("제 6 조") -> {
                                 val splitPoint = "위탁할 수 있습니다."
                                 val parts = body.split(splitPoint)
-                                Text(text = parts[0] + splitPoint, fontSize = 14.sp, lineHeight = 22.sp,
-                                    fontFamily = Paperlogy.font, color = Color(0xFF424242))
+                                Text(
+                                    text = parts[0] + splitPoint,
+                                    fontSize = 14.sp,
+                                    lineHeight = 22.sp,
+                                    color = colorTheme.black
+                                )
                                 Spacer(Modifier.height(15.dp))
                                 TermsTable(
                                     headers = PrivacyTermsData.TableData.consignment.first,
@@ -167,16 +182,21 @@ fun PrivacyTermsScreen(
                                 )
                                 if (parts.size > 1 && parts[1].trim().isNotEmpty()) {
                                     Spacer(Modifier.height(10.dp))
-                                    Text(text = parts[1].trim(), fontSize = 14.sp, lineHeight = 22.sp,
-                                        fontFamily = Paperlogy.font, color = Color(0xFF424242))
+                                    Text(
+                                        text = parts[1].trim(),
+                                        fontSize = 14.sp,
+                                        lineHeight = 22.sp,
+                                        color = colorTheme.black
+                                    )
                                 }
                             }
 
                             title.contains("제 7 조") -> {
                                 Text(
                                     text = body,
-                                    fontSize = 14.sp, lineHeight = 22.sp,
-                                    fontFamily = Paperlogy.font, color = colorTheme.black
+                                    fontSize = 14.sp,
+                                    lineHeight = 22.sp,
+                                    color = colorTheme.black
                                 )
                                 Spacer(Modifier.height(15.dp))
                                 TermsTable4Col(
@@ -185,26 +205,29 @@ fun PrivacyTermsScreen(
                                 )
                             }
 
-                            else -> Text(text = body, fontSize = 14.sp, lineHeight = 22.sp,
-                                fontFamily = Paperlogy.font, color = colorTheme.black)
+                            else -> Text(
+                                text = body,
+                                fontSize = 14.sp,
+                                lineHeight = 22.sp,
+                                color = colorTheme.black
+                            )
                         }
                     }
                 }
             }
             Spacer(Modifier.height(EXTRA_GAP))
-            //Spacer(Modifier.height(FOOTER_HEIGHT + EXTRA_GAP))
 
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun PrivacyTermsScreenPreview() {
-    MaterialTheme {
+    LinkuPreview {
         PrivacyTermsScreen(onAgreeClicked = {}, onBackClicked = {})
     }
 }
-
 
 
 @Composable

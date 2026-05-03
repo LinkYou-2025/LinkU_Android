@@ -1,37 +1,42 @@
 package com.linku.login.ui.terms
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.login.R
-import com.linku.design.theme.font.Paperlogy
 import com.linku.login.ui.item.AgreeFooterButton
 import com.linku.login.ui.terms.data.MarketingTermsData
 
-
 private val EXTRA_GAP = 20.dp
 private val FOOTER_HEIGHT = 50.dp  // 본문의 마지막 내용이 하단 버튼
-
-
 
 
 // 마케팅 수신 동의
@@ -41,7 +46,7 @@ fun MarketingTermsScreenComposable(
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
-    val colorTheme = LocalColorTheme.current
+    val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
     val isAtBottom by remember {
         derivedStateOf {
@@ -83,7 +88,6 @@ fun MarketingTermsScreenComposable(
                     fontSize = 16.sp,
                     lineHeight = 22.sp,
                     fontWeight = FontWeight.Medium,
-                    fontFamily = Paperlogy.font,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
                         .padding(top = 62.dp)
@@ -113,7 +117,8 @@ fun MarketingTermsScreenComposable(
                     .fillMaxWidth()
                     .background(
                         color = colorTheme.gray[100],
-                        shape = RoundedCornerShape(18.dp))
+                        shape = RoundedCornerShape(18.dp)
+                    )
                     .padding(24.dp)
             ) {
                 Column {
@@ -121,7 +126,6 @@ fun MarketingTermsScreenComposable(
                         text = MarketingTermsData.MAIN_TITLE,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        fontFamily = Paperlogy.font,
                         color = colorTheme.black
                     )
 
@@ -131,7 +135,6 @@ fun MarketingTermsScreenComposable(
                         text = MarketingTermsData.INTRODUCTION,
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
-                        fontFamily = Paperlogy.font
                     )
 
                     MarketingTermsData.sections.forEach { (title, body) ->
@@ -141,7 +144,6 @@ fun MarketingTermsScreenComposable(
                             text = title,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
-                            fontFamily = Paperlogy.font,
                             color = colorTheme.black
                         )
 
@@ -151,7 +153,6 @@ fun MarketingTermsScreenComposable(
                             text = body,
                             fontSize = 14.sp,
                             lineHeight = 22.sp,
-                            fontFamily = Paperlogy.font,
                             color = colorTheme.black
                         )
                     }
@@ -164,10 +165,11 @@ fun MarketingTermsScreenComposable(
         }
     }
 }
+
 @Preview(showBackground = true)
 @Composable
 fun MarketingTermsPreview() {
-    MaterialTheme {
+    LinkuPreview {
         MarketingTermsScreenComposable(onAgreeClicked = {}, onBackClicked = {})
     }
 }

@@ -47,8 +47,7 @@ interface AuthApi {
     // 이메일 인증 코드 전송
     @POST("auth/email/code")
     suspend fun sendVerificationEmail(
-        @Query("email") email: String,
-        @Query("code") code: String
+        @Query("email") email: String
     ): BaseResponse<String> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
     // 이메일 인증 코드 검증
