@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +32,7 @@ enum class AlarmFilterTab(val label: String) {
     LINK("링크"),
     FOLDER("폴더"),
     CURATION("큐레이션"),
-    SYSTEM("공지")
+    SYSTEM("시스템/공지")
 }
 
 @Composable
@@ -39,12 +41,12 @@ fun AlarmFilterTabs(
     onSelectedChange: (AlarmFilterTab) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AlarmFilterTab.entries.forEach { tab ->
+        items(AlarmFilterTab.entries) { tab ->
             AlarmFilterChip(
                 text = tab.label,
                 selected = (tab == selected),

@@ -100,4 +100,9 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.logging.interceptor)
     implementation(libs.moshi.kotlin)
+
+    // paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
 }

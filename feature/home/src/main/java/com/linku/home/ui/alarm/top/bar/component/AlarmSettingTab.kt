@@ -18,14 +18,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.transition.Visibility
 import com.linku.design.theme.LocalColorTheme
 import com.linku.home.R
 import com.linku.design.R as Res
 
 @Composable
 fun AlarmSettingTab(
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isVisible: Boolean = true
 ) {
+    if (!isVisible) return
     Row(
         modifier = Modifier
             .fillMaxWidth()
