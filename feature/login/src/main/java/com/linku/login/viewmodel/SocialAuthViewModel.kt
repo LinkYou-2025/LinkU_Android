@@ -14,6 +14,7 @@ import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -45,23 +46,33 @@ class SocialAuthViewModel @Inject constructor(
         private const val MAX_NICKNAME_LENGTH = 6
     }
 
-    sealed class KakaoLoginState {
-        object Idle : KakaoLoginState() // 아무것도 하지 않는 초기상태.
-        object Loading : KakaoLoginState() // 로딩 중
+    sealed class SocialLoginState {
+        object Idle : SocialLoginState() // 아무것도 하지 않는 초기상태.
+        object Loading : SocialLoginState() // 로딩 중
         data class Success(val result: LoginResult) :
-            KakaoLoginState() //loginResult에서 성공 + 데이터 가져옴.
+            SocialLoginState() //loginResult에서 성공 + 데이터 가져옴.
 
-        data class Error(val message: String) : KakaoLoginState()
+        data class Error(val message: String) : SocialLoginState()
     }
 
-    //kakao 로그인 stateflow
-    private val _kakaoLoginState = MutableStateFlow<KakaoLoginState>(KakaoLoginState.Idle)
-    val kakaoLoginState: StateFlow<KakaoLoginState> = _kakaoLoginState
+    // kakao 로그인 stateflow
+    private val _kakaoLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
+    val kakaoLoginState: StateFlow<SocialLoginState> = _kakaoLoginState.asStateFlow()
+
+
+    // 구글 로그인 stateflow
+    private val _googleLoginState = MutableStateFlow<SocialLoginState>(SocialLoginState.Idle)
+    val googleLoginState: StateFlow<SocialLoginState> = _googleLoginState.asStateFlow()
 
     //reset 함수 추가
     fun resetKakaoLoginState() {
-        _kakaoLoginState.value = KakaoLoginState.Idle
+        _kakaoLoginState.value = SocialLoginState.Idle
     }
+
+    fun resetGoogleLoginState() {
+        _googleLoginState.value = SocialLoginState.Idle
+    }
+
 
     // 입력 상태
     private val _nickname = MutableStateFlow("")
@@ -126,14 +137,14 @@ class SocialAuthViewModel @Inject constructor(
         }
     }
 
-
+    // 카카오로 로그인하기
     fun loginWithKakao(token: String) {
         Log.d("SocialAuthViewModel", "loadKakaoLogin")
 
         viewModelScope.launch {
             Log.d("SocialAuthViewModel", "loadWithKakao launch")
 
-            _kakaoLoginState.value = KakaoLoginState.Loading
+            _kakaoLoginState.value = SocialLoginState.Loading
 
             try {
                 Log.d("SocialAuthViewModel", "loadWithKakao try")
@@ -144,15 +155,45 @@ class SocialAuthViewModel @Inject constructor(
                     userId = result.userId
                 )
 
-                _kakaoLoginState.value = KakaoLoginState.Success(result)
+                _kakaoLoginState.value = SocialLoginState.Success(result)
             } catch (e: Exception) {
                 Log.d(TAG, "loadWithKakao catch: ${e.message}")
-                _kakaoLoginState.value = KakaoLoginState.Error(e.message ?: "카카오 로그인 실패")
+                _kakaoLoginState.value = SocialLoginState.Error(e.message ?: "카카오 로그인 실패")
             }
 
             Log.d("SocialAuthViewModel", "loadWithKakao end")
         }
         Log.d("SocialAuthViewModel", "loadWithKakao return")
+    }
+
+
+    // 구글로 로그인하기
+    fun loginWithGoogle(token: String) {
+        Log.d("SocialAuthViewModel", "loadGoogleLogin")
+
+        viewModelScope.launch {
+            Log.d("SocialAuthViewModel", "loadWithGoogle launch")
+
+            _googleLoginState.value = SocialLoginState.Loading
+
+            try {
+                Log.d("SocialAuthViewModel", "loadWithGoogle try")
+                val result = authRepository.loginWithGoogle(token)
+                authPreference.saveTokens(
+                    accessToken = result.accessToken,
+                    refreshToken = result.refreshToken,
+                    userId = result.userId
+                )
+
+                _googleLoginState.value = SocialLoginState.Success(result)
+            } catch (e: Exception) {
+                Log.d(TAG, "loadWithGoogle catch: ${e.message}")
+                _googleLoginState.value = SocialLoginState.Error(e.message ?: "구글 로그인 실패")
+            }
+
+            Log.d("SocialAuthViewModel", "loadWithGoogle end")
+        }
+        Log.d("SocialAuthViewModel", "loadWithGoogle return")
     }
 
 

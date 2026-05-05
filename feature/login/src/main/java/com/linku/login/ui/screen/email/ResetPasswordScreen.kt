@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.theme.LinkuPreview
@@ -47,7 +47,7 @@ fun ResetPasswordScreen(
     val colorTheme = MaterialTheme.linkuColors
 
     // 🔑 Preview면 viewModel == null
-    val ui = viewModel?.ui?.collectAsState()?.value
+    val ui = viewModel?.ui?.collectAsStateWithLifecycle()?.value
 
     var email by remember { mutableStateOf("test@email.com") }
 

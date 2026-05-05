@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.SignUpState
@@ -80,7 +80,7 @@ fun WelcomeScreen(
         // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
     }
     //  signUpState 사용
-    val signUpState by signUpViewModel.signUpState?.collectAsState() ?: remember {
+    val signUpState by signUpViewModel?.signUpState?.collectAsStateWithLifecycle() ?: remember {
         mutableStateOf(SignUpState.Idle)
     }
 

@@ -3,8 +3,8 @@ package com.linku.data.api
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
 import com.linku.data.api.dto.auth.login.email.LoginResponseDTO
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginResponseDTO
+import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
+import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
 import com.linku.data.api.dto.auth.signup.email.EmailVerificationResponseDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
@@ -67,6 +67,13 @@ interface AuthApi {
     //카카오톡 로그인 api
     @POST("auth/mobile/kakao")
     suspend fun kakaoLogin(
-        @Body request: KakaoLoginRequestDTO
-    ): BaseResponse<KakaoLoginResponseDTO>
+        @Body request: SocialLoginRequestDTO
+    ): BaseResponse<SocialLoginResponseDTO>
+
+    //구글 로그인 api
+    @POST("auth/mobile/google")
+    suspend fun googleLogin(
+        @Body request: SocialLoginRequestDTO
+    ): BaseResponse<SocialLoginResponseDTO>
+
 }
