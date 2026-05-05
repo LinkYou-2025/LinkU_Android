@@ -27,22 +27,24 @@ import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
-import com.linku.home.ui.alarm.model.Alarm
-import com.linku.home.ui.alarm.model.AlarmType
+import com.linku.core.model.alarm.AlarmSummary
+import com.linku.core.model.alarm.AlarmType
+import com.linku.home.ui.util.iconRes
 
 @Composable
 fun AlarmItem(
-    alarm: Alarm,
+    alarm: AlarmSummary,
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth(),
         shape = RoundedCornerShape(18.dp)
     ) {
         Column(
             modifier = Modifier
                 .background(LocalColorTheme.current.white)
-                .padding(top = 23.dp, bottom = 32.dp, start = 19.dp, end = 26.dp)
+                .padding(top = 23.dp, bottom = 26.dp, start = 19.dp, end = 26.dp)
         ) {
             // 아이콘, 카테고리, 시간, 빨간 점
             Row(
@@ -61,7 +63,7 @@ fun AlarmItem(
                     )
                     Spacer(modifier = Modifier.width(14.dp))
                     Text(
-                        text = alarm.alarmType.label,
+                        text = alarm.alarmType.displayName,
                         fontSize = 13.sp,
                         fontFamily = Paperlogy.font,
                         color = LocalColorTheme.current.gray[600]
@@ -93,7 +95,7 @@ fun AlarmItem(
 
             // 본문
             Text(
-                text = alarm.alarmContent,
+                text = alarm.message,
                 fontSize = 15.sp,
                 fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
@@ -109,10 +111,11 @@ fun AlarmItem(
 private fun AlarmItemPreview() {
     LinkuPreview {
         AlarmItem(
-            alarm = Alarm(
+            alarm = AlarmSummary(
+                id = 1,
                 alarmType = AlarmType.CURATION,
                 whenSubmitted = "10분 전",
-                alarmContent = "1월 세나님을 위한 링큐레이션이 도착했어요!",
+                message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
                 isRead = false
             ),
             modifier = Modifier.padding(16.dp)

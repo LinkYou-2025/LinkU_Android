@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,13 +18,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.transition.Visibility
 import com.linku.design.theme.LocalColorTheme
 import com.linku.home.R
-import com.linku.design.R as Res
 
 @Composable
-fun AlarmSettingTab(
+fun AlarmNothingTab(
     onClick: () -> Unit,
     isVisible: Boolean = true
 ) {
@@ -52,7 +49,7 @@ fun AlarmSettingTab(
             )
 
             Text(
-                text = "알림 받기를 설정하고 유용한 알림들을\n받아보세요.",
+                text = "조용하네요👀\n새로운 알림이 오면 여기에 알려드릴게요",
                 color = LocalColorTheme.current.gray[600],
                 modifier = Modifier
                     .padding(start = 12.dp),
@@ -60,20 +57,11 @@ fun AlarmSettingTab(
             )
         }
 
-        Box(
-            modifier = Modifier.size(14.dp)
-        ) {
-            Image(
-                painter = painterResource(Res.drawable.ic_right),
-                contentDescription = null,
-                modifier = Modifier.size(14.dp)
-            )
-        }
     }
 }
 
 @Preview
 @Composable
-fun PreviewAlarmSettingTab() {
-    AlarmSettingTab(onClick = {})
+fun PreviewAlarmNothingTab() {
+    AlarmNothingTab(onClick = {})
 }

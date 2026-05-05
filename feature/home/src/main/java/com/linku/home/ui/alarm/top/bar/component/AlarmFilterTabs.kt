@@ -24,31 +24,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 
-enum class AlarmFilterTab(val label: String) {
-    ALL("전체"),
-    LINK("링크"),
-    FOLDER("폴더"),
-    CURATION("큐레이션"),
-    SYSTEM("시스템/공지")
-}
+//enum class AlarmFilterTab(val label: String) {
+//    ALL("전체"),
+//    LINK("링크"),
+//    FOLDER("폴더"),
+//    CURATION("큐레이션"),
+//    NOTICE("공지")
+//}
 
 @Composable
 fun AlarmFilterTabs(
-    selected: AlarmFilterTab,
-    onSelectedChange: (AlarmFilterTab) -> Unit,
+    selected: AlarmType,
+    onSelectedChange: (AlarmType) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val tabs = listOf(
+        AlarmType.ALL,
+        AlarmType.LINK,
+        AlarmType.FOLDER,
+        AlarmType.CURATION,
+        AlarmType.NOTICE
+    )
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        items(AlarmFilterTab.entries) { tab ->
+        items(tabs) { tab ->
             AlarmFilterChip(
-                text = tab.label,
+                text = tab.displayName,
                 selected = (tab == selected),
                 onClick = { onSelectedChange(tab) }
             )
@@ -85,11 +93,10 @@ private fun AlarmFilterChip(
 @Preview
 @Composable
 fun PreviewAlarmFilterTabs() {
-    var selected by remember { mutableStateOf(AlarmFilterTab.ALL) }
+    var selected by remember { mutableStateOf(AlarmType.ALL) }
 
     AlarmFilterTabs(
         selected = selected,
-        onSelectedChange = { selected = it },
-        modifier = Modifier
+        onSelectedChange = { selected = it }
     )
 }
