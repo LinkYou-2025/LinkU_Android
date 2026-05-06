@@ -161,7 +161,7 @@ fun FaqScreen(
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .width(10.dp)
+                    .width(11.dp)
                     .clickable { navController.popBackStack() }
             )
 

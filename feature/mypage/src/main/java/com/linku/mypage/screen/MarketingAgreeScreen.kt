@@ -69,7 +69,7 @@ fun MarketingAgreeScreen(
                     contentDescription = null,
                     modifier = Modifier
                         .align(Alignment.CenterStart)
-                        .width(10.dp)
+                        .width(11.dp)
                         .noRippleClickable { navController.popBackStack() }
                 )
 

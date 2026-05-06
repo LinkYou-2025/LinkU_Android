@@ -77,7 +77,7 @@ fun EditProfileScreen(
     val socialLoginGuideText = when (userSocialLoginType) {
         "KAKAO" -> "카카오로 가입한 계정이에요."
         "GOOGLE" -> "구글로 가입한 계정이에요."
-        "NAVER" -> "네이버로 가입한 계정이에요."
+//        "NAVER" -> "네이버로 가입한 계정이에요."
         else -> null
     }
 
@@ -145,7 +145,7 @@ fun EditProfileScreen(
                 contentDescription = null,
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .width(10.dp)
+                    .width(11.dp)
                     .clickable { navController.popBackStack() }
             )
 
