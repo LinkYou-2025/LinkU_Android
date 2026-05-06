@@ -147,14 +147,24 @@ private const val SHEET_SELECT_SCREEN_HEIGHT_RATIO = SHEET_Select_SCREEN_HEIGHT 
  * - [None]: 아무것도 선택되지 않은 초기 상태.
  * - [Category]: 상위 카테고리만 선택되어 하위 폴더 목록을 탐색 중인 상태.
  * - [Folder]: 상위 카테고리와 그 내부의 특정 폴더까지 모두 선택 완료된 상태.
+ *
+ * @property depthOrder 계층 간의 비교를 위한 깊이 순서값.
+ * [None] < [Category] < [Folder] 순서.
  */
-private sealed interface SelectDepth
+private sealed interface SelectDepth: Comparable<SelectDepth> {
+    val depthOrder: Int
+
+    override fun compareTo(other: SelectDepth): Int =
+        depthOrder.compareTo(other.depthOrder)
+}
 
 /**
  * 선택된 폴더가 없음을 나타내는 기본 상태 객체입니다.
  * [SelectDepth] 인터페이스를 구현하며, 폴더 공유 프로세스에서 초기 선택 상태를 정의할 때 사용됩니다.
  */
-private object None : SelectDepth
+private object None : SelectDepth{
+    override val depthOrder = 0
+}
 
 /**
  * 선택된 공유 대상의 깊이가 '카테고리' 수준임을 나타내는 데이터 클래스입니다.
@@ -164,7 +174,9 @@ private object None : SelectDepth
  *
  * @property category 선택된 카테고리에 대한 간략한 정보 ([FolderSimpleInfo]).
  */
-private data class Category(val category: FolderSimpleInfo) : SelectDepth
+private open class Category(open val category: FolderSimpleInfo) : SelectDepth{
+    override val depthOrder = 1
+}
 
 /**
  * 사용자가 선택한 폴더의 계층 구조 정보를 나타내는 데이터 클래스입니다.
@@ -173,7 +185,9 @@ private data class Category(val category: FolderSimpleInfo) : SelectDepth
  * @property category 선택된 폴더가 속한 상위 카테고리 정보.
  * @property folder 실제 공유 대상으로 선택된 하위 폴더 정보.
  */
-private data class Folder(val category: FolderSimpleInfo, val folder: FolderSimpleInfo) : SelectDepth
+private class Folder(override val category: FolderSimpleInfo, val folder: FolderSimpleInfo) : Category(category) {
+    override val depthOrder = 2
+}
 
 
 
