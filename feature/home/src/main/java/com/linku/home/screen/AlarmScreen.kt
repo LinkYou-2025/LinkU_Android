@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,10 +27,10 @@ import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
-import com.linku.home.ui.alarm.column.AlarmItem
-import com.linku.home.ui.alarm.top.bar.AlarmTopBar
-import com.linku.home.ui.alarm.top.bar.component.AlarmFilterTabs
-import com.linku.home.ui.alarm.top.bar.component.AlarmSettingTab
+import com.linku.home.ui.alarm.component.AlarmItem
+import com.linku.home.ui.alarm.component.AlarmTopBar
+import com.linku.home.ui.alarm.component.AlarmFilterTabs
+import com.linku.home.ui.alarm.component.AlarmSettingTab
 import com.linku.home.viewmodel.AlarmViewModel
 import kotlinx.coroutines.flow.flowOf
 
@@ -40,10 +41,10 @@ fun AlarmScreen(
     onNavigateToHome: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
-    var selectedTab by remember { mutableStateOf(AlarmType.ALL) }
+    var selectedTab by rememberSaveable { mutableStateOf(AlarmType.ALL) }
 
     val alarms = remember(selectedTab) {
-        viewModel.getAlarms(selectedTab.value)
+        viewModel.getAlarms(selectedTab)
     }.collectAsLazyPagingItems()
 
     AlarmScreenContent(

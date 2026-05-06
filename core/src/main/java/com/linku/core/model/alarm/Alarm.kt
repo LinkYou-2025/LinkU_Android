@@ -16,10 +16,10 @@ enum class AlarmType(
     val displayName: String,
 ){
     ALL("ALL", "전체"), //요청 시에만 사용. 응답으론 오지 않음.
-    CURATION("CURATION", "큐레이션"),
+    LINK("LINK", "링크"),
     FOLDER("FOLDER", "폴더"),
-    NOTICE("NOTICE", "시스템/공지"),
-    LINK("LINK", "링크");
+    CURATION("CURATION", "큐레이션"),
+    NOTICE("NOTICE", "시스템/공지");
 
     companion object {
         fun from(value: String): AlarmType =

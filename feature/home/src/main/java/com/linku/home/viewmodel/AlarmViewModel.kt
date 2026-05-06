@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.implementation.repository.AlarmPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,7 @@ class AlarmViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository
 ): ViewModel(){
 
-    fun getAlarms(type: String) =
+    fun getAlarms(type: AlarmType) =
         Pager(
             config = PagingConfig(
                 pageSize = 20,

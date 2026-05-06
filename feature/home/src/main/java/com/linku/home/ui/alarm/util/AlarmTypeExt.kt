@@ -1,4 +1,4 @@
-package com.linku.home.ui.util
+package com.linku.home.ui.alarm.util
 
 import com.linku.core.model.alarm.AlarmType
 import com.linku.home.R
@@ -10,7 +10,7 @@ import com.linku.home.R
  */
 val AlarmType.iconRes: Int
     get() = when(this) {
-        AlarmType.CURATION -> R.drawable.ic_quration
+        AlarmType.CURATION -> R.drawable.ic_curation_alarm
         AlarmType.FOLDER -> R.drawable.ic_folder
         AlarmType.NOTICE -> R.drawable.ic_notice
         AlarmType.LINK -> R.drawable.ic_link

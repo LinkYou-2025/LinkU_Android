@@ -1,4 +1,4 @@
-package com.linku.home.ui.top.bar
+package com.linku.home.ui.home.bar
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -47,10 +47,10 @@ import com.linku.design.top.bar.AlarmButton
 import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
 import com.linku.home.screen.Situation
-import com.linku.home.ui.top.bar.component.EmotionSelector
-import com.linku.home.ui.top.bar.component.HomeSearchBar
-import com.linku.home.ui.top.bar.component.SelectedSummaryRow
-import com.linku.home.ui.top.bar.component.TaskSelector
+import com.linku.home.ui.home.bar.component.EmotionSelector
+import com.linku.home.ui.home.bar.component.HomeSearchBar
+import com.linku.home.ui.home.bar.component.SelectedSummaryRow
+import com.linku.home.ui.home.bar.component.TaskSelector
 
 @Composable
 fun HomeTopBar(

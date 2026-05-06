@@ -17,7 +17,7 @@ class FakeAlarmRepositoryImpl @Inject constructor(
 ) : AlarmRepository {
 
     override suspend fun fetchAlarms(
-        type: String,
+        type: AlarmType,
         cursor: Long?,
         size: Int
     ): Result<AlarmList> {
@@ -25,25 +25,18 @@ class FakeAlarmRepositoryImpl @Inject constructor(
         return runCatching {
 
             val start = cursor ?: 0L
-
-            val alarmType = runCatching {
-                AlarmType.from(type)
-            }.getOrNull() ?: AlarmType.CURATION
-
             val linkMessage = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요."
 
             val alarms = List(size) { index ->
                 val id = start + index
 
-                val finalType = when (alarmType) {
-
+                val finalType = when (type) {
                     AlarmType.ALL -> {
                         AlarmType.entries[
                             (id % (AlarmType.entries.size - 1)).toInt() + 1
                         ]
                     }
-
-                    else -> alarmType
+                    else -> type
                 }
 
                 val isLinkDummy = finalType == AlarmType.LINK && id % 3L == 0L

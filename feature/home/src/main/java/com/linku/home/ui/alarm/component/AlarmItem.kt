@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.column
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -29,7 +29,7 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
-import com.linku.home.ui.util.iconRes
+import com.linku.home.ui.alarm.util.iconRes
 
 @Composable
 fun AlarmItem(

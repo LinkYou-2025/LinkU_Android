@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.top.bar.component
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,7 +19,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.transition.Visibility
 import com.linku.design.theme.LocalColorTheme
 import com.linku.home.R
 import com.linku.design.R as Res

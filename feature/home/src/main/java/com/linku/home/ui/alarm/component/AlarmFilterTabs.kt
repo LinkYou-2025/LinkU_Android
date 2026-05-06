@@ -1,11 +1,10 @@
-package com.linku.home.ui.alarm.top.bar.component
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
@@ -42,13 +41,8 @@ fun AlarmFilterTabs(
     onSelectedChange: (AlarmType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val tabs = listOf(
-        AlarmType.ALL,
-        AlarmType.LINK,
-        AlarmType.FOLDER,
-        AlarmType.CURATION,
-        AlarmType.NOTICE
-    )
+    val tabs = AlarmType.entries
+
     LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),

@@ -3,12 +3,13 @@ package com.linku.data.implementation.repository
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.linku.core.model.alarm.AlarmSummary
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import javax.inject.Inject
 
 class AlarmPagingSource @Inject constructor(
     private val alarmRepository: AlarmRepository,
-    private val type: String
+    private val type: AlarmType
 ): PagingSource<Long, AlarmSummary>() {
 
     override suspend fun load(
@@ -37,14 +38,5 @@ class AlarmPagingSource @Inject constructor(
 
     }
 
-    /**
-     * 화면 회전 등으로 리프레시가 발생했을 때 다시 로드할 키를 찾는 메서드
-     *
-     */
-    override fun getRefreshKey(state: PagingState<Long, AlarmSummary>): Long? {
-        return state.anchorPosition?.let { position ->
-            state.closestPageToPosition(position)?.nextKey
-        }
-    }
-
+    override fun getRefreshKey(state: PagingState<Long, AlarmSummary>): Long? = null
 }
