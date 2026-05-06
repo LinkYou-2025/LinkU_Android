@@ -2,11 +2,14 @@ package com.linku.data.api.dto.auth.signup.social
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class SocialProfileRequestDTO(
-    @Json(name = "nickName") val nickName: String,
-    @Json(name = "gender") val gender: Int,
-    @Json(name = "jobId") val jobId: Int,
-    @Json(name = "purposeList") val purposeList: List<String>,
-    @Json(name = "interestList") val interestList: List<String>
+    @field:Json(name = "nickName") val nickName: String,
+    @field:Json(name = "gender") val gender: Int,
+    @field:Json(name = "jobId") val jobId: Int,
+    @field:Json(name = "purposeList") val purposeList: List<String>,
+    @field:Json(name = "interestList") val interestList: List<String>
 )
 

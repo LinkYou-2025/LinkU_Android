@@ -2,18 +2,21 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ApiResponseQuickSearchResult (
 
-    @Json(name = "isSuccess")
+    @field:Json(name = "isSuccess")
     val isSuccess: Boolean? = null,
 
-    @Json(name = "code")
+    @field:Json(name = "code")
     val code: String? = null,
 
-    @Json(name = "message")
+    @field:Json(name = "message")
     val message: String? = null,
 
-    @Json(name = "result")
+    @field:Json(name = "result")
     val result: QuickSearchResult?
 
 )

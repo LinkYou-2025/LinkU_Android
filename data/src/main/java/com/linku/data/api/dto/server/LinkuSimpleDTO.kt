@@ -2,32 +2,35 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class LinkuSimpleDTO(
 
-    @Json(name = "linkuId")
+    @field:Json(name = "linkuId")
     val linkuId: Long,
 
-    @Json(name = "categoryId")
+    @field:Json(name = "categoryId")
     val categoryId: Long,
 
-    @Json(name = "memo")
+    @field:Json(name = "memo")
     val memo: String?,
 
-    @Json(name = "emotionId")
+    @field:Json(name = "emotionId")
     val emotionId: Long,
 
-    @Json(name = "title")
+    @field:Json(name = "title")
     val title: String,
 
-    @Json(name = "domain")
+    @field:Json(name = "domain")
     val domain: String?,
 
-    @Json(name = "domainImageUrl")
+    @field:Json(name = "domainImageUrl")
     val domainImageUrl: String?,
 
-    @Json(name = "linkuImageUrl")
+    @field:Json(name = "linkuImageUrl")
     val linkuImageUrl: String?,
 
-    @Json(name = "aiArticleExists")
+    @field:Json(name = "aiArticleExists")
     val aiArticleExists: Boolean
 )

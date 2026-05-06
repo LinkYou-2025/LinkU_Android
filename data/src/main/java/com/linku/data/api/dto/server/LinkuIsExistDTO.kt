@@ -3,30 +3,33 @@ package com.linku.data.api.dto.server
 import com.squareup.moshi.Json
 import java.time.OffsetDateTime
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class LinkuIsExistDTO(
 
-    @Json(name = "userId")
+    @field:Json(name = "userId")
     val userId: Long,
 
-    @Json(name = "linkuId")
+    @field:Json(name = "linkuId")
     val linkuId: Long,
 
-    @Json(name = "title")
+    @field:Json(name = "title")
     val title: String,
 
-    @Json(name = "memo")
+    @field:Json(name = "memo")
     val memo: String,
 
-    @Json(name = "emotionId")
+    @field:Json(name = "emotionId")
     val emotionId: Long,
 
-    @Json(name = "createdAt")
+    @field:Json(name = "createdAt")
     val createdAt: OffsetDateTime,
 
-    @Json(name = "updatedAt")
+    @field:Json(name = "updatedAt")
     val updatedAt: OffsetDateTime,
 
-    @Json(name = "exist")
+    @field:Json(name = "exist")
     val exist: Boolean
 
 )

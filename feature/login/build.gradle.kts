@@ -29,12 +29,12 @@ val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
 android {
     namespace = "com.linku.login"
 
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 26
+        minSdk = libs.versions.minSdk.get().toInt()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         //consumerProguardFiles("consumer-rules.pro")
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }

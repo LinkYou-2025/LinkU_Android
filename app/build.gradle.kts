@@ -32,17 +32,17 @@ val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
 android {
     namespace = "com.linku"
 
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
 
     defaultConfig {
         applicationId = "com.linku"
-        minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.appVersionCode.get().toInt()
+        versionName = libs.versions.appVersionName.get()
         vectorDrawables.useSupportLibrary = true
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         buildConfigField(
             "String",
             "KAKAO_NATIVE_APP_KEY",

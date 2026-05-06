@@ -3,54 +3,57 @@ package com.linku.data.api.dto.server
 import com.squareup.moshi.Json
 import java.time.OffsetDateTime
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class LinkuResultDTO(
 
-    @Json(name = "userId")
+    @field:Json(name = "userId")
     val userId: Long,
 
-    @Json(name = "linkuId")
+    @field:Json(name = "linkuId")
     val linkuId: Long,
 
-    @Json(name = "linkuFolderId")
+    @field:Json(name = "linkuFolderId")
     val linkuFolderId: Long?,
 
-    @Json(name = "categoryId")
+    @field:Json(name = "categoryId")
     val categoryId: Long,
 
-    @Json(name = "linku")
+    @field:Json(name = "linku")
     val linku: String,
 
-    @Json(name = "memo")
+    @field:Json(name = "memo")
     val memo: String?,
 
-    @Json(name = "emotionId")
+    @field:Json(name = "emotionId")
     val emotionId: Long?,
 
-    @Json(name = "domain")
+    @field:Json(name = "domain")
     val domain: String?,
 
-    @Json(name = "title")
+    @field:Json(name = "title")
     val title: String,
 
-    @Json(name = "domainImageUrl")
+    @field:Json(name = "domainImageUrl")
     val domainImageUrl: String?,
 
-    @Json(name = "linkuImageUrl")
+    @field:Json(name = "linkuImageUrl")
     val linkuImageUrl: String?,
 
-    @Json(name = "aiArticleExists")
+    @field:Json(name = "aiArticleExists")
     val aiArticleExists: Boolean,
 
-    @Json(name = "keyword")
+    @field:Json(name = "keyword")
     val keyword: String?,
 
-    @Json(name = "summary")
+    @field:Json(name = "summary")
     val summary: String?,
 
-    @Json(name = "createdAt")
+    @field:Json(name = "createdAt")
     val createdAt: OffsetDateTime,
 
-    @Json(name = "updatedAt")
+    @field:Json(name = "updatedAt")
     val updatedAt: OffsetDateTime
 
 )

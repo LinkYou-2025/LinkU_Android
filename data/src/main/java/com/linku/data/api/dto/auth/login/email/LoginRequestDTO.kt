@@ -2,12 +2,15 @@ package com.linku.data.api.dto.auth.login.email
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class LoginRequestDTO (
 
-    @Json(name = "email")
+    @field:Json(name = "email")
     val email: String,
 
-    @Json(name = "password")
+    @field:Json(name = "password")
     val password: String
 
 )

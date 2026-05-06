@@ -2,21 +2,24 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class LinkDetailDTO(
 
-    @Json(name = "title")
+    @field:Json(name = "title")
     val title: String,
 
-    @Json(name = "summary")
+    @field:Json(name = "summary")
     val summary: String,
 
-    @Json(name = "source")
+    @field:Json(name = "source")
     val source: String,
 
-    @Json(name = "url")
+    @field:Json(name = "url")
     val url: String,
 
-    @Json(name = "favicon")
+    @field:Json(name = "favicon")
     val favicon: String
 
 )

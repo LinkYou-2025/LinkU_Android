@@ -82,4 +82,10 @@ interface FolderRepository {
     suspend fun deleteLink(
         linkuId: Long
     )
+
+    // 폴더 트리 조회
+    suspend fun getMyFolderTree(): List<FolderSimpleInfo>
+
+    // 공유 링크 생성
+    suspend fun makeInvitationLink(folderId: Long): String
 }

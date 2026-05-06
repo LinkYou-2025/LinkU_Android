@@ -2,18 +2,21 @@ package com.linku.data.api.dto.user
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class UpdateUserProfileRequestDTO(
 
-    @Json(name = "nickname")
+    @field:Json(name = "nickname")
     val nickname: String,
 
-    @Json(name = "jobId")
+    @field:Json(name = "jobId")
     val jobId: Long,
 
-    @Json(name = "purposes")
+    @field:Json(name = "purposes")
     val purposes: List<String>,
 
-    @Json(name = "interests")
+    @field:Json(name = "interests")
     val interests: List<String>
 
 )

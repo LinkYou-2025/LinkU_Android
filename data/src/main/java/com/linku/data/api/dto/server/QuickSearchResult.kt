@@ -2,18 +2,21 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class QuickSearchResult(
 
-    @Json(name = "linkuId")
+    @field:Json(name = "linkuId")
     val linkuId: Long,
 
-    @Json(name = "title")
+    @field:Json(name = "title")
     val title: String,
 
-    @Json(name = "domainImageUrl")
+    @field:Json(name = "domainImageUrl")
     val domainImageUrl: String,
 
-    @Json(name = "linkUrl")
+    @field:Json(name = "linkUrl")
     val linkUrl: String
 
 )

@@ -2,18 +2,21 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class ApiResponseListLinkuSimpleDTO(
 
-    @Json(name = "isSuccess")
+    @field:Json(name = "isSuccess")
     val isSuccess: Boolean,
 
-    @Json(name = "code")
+    @field:Json(name = "code")
     val code: String,
 
-    @Json(name = "message")
+    @field:Json(name = "message")
     val message: String,
 
-    @Json(name = "result")
+    @field:Json(name = "result")
     val result: List<LinkuSimpleDTO>
 
 )

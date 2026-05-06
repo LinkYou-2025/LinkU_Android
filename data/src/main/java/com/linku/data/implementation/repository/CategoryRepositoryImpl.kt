@@ -4,7 +4,7 @@ import android.util.Log
 import com.linku.core.model.CategoryColorList
 import com.linku.core.repository.CategoryRepository
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.server.UpdateCategoryColorRequestDTO
+import com.linku.data.api.dto.folder.UpdateCategoryColorRequestDTO
 import com.linku.data.api.withAuth
 import com.linku.data.preference.AuthPreference
 import javax.inject.Inject
