@@ -2,7 +2,6 @@ package com.linku.mypage.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.mypage.R
@@ -64,7 +64,7 @@ fun AlarmSettingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(
@@ -237,7 +237,7 @@ fun CustomSwitch(
             }
             .clip(RoundedCornerShape(12.dp))
             .background(if (checked) LocalColorTheme.current.blue[200] else LocalColorTheme.current.gray[200])
-            .clickable { onCheckedChange(!checked) }
+            .noRippleClickable { onCheckedChange(!checked) }
             .padding(horizontal = 2.dp),
         contentAlignment = Alignment.CenterStart
     ) {
