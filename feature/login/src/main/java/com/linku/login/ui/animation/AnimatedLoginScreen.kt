@@ -5,9 +5,18 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -17,16 +26,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.DesignSystemBars
+import com.linku.design.util.scaler
+import com.linku.login.LoginScreen
 import com.linku.login.R
+import com.linku.login.viewmodel.SocialAuthViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.linku.design.util.DesignSystemBars
-import androidx.compose.ui.graphics.Color
-import com.linku.login.LoginScreen
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.util.rememberFigmaDimens
-import com.linku.design.util.scaler
-import com.linku.login.viewmodel.SocialAuthViewModel
 
 @Composable
 fun AnimatedLoginScreen(
@@ -37,10 +44,7 @@ fun AnimatedLoginScreen(
     onLoginSuccess: () -> Unit = {}
 ) {
 
-    // 1. 디자인 모듈 컬러 테마 가져오기
-    val colorTheme = LocalColorTheme.current
-
-
+    val colorTheme = MaterialTheme.linkuColors
     //로그인 진입 애니메이션도 바텀바 보이니 않도록 설정함.
     DesignSystemBars(
         statusBarColor = colorTheme.white, // 디자인 모듈의 white 사용

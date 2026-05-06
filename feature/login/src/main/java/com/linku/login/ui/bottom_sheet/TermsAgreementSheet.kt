@@ -1,18 +1,25 @@
 package com.linku.login.ui.bottom_sheet
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.linku.login.viewmodel.SignUpViewModel
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.login.ui.content.TermsAgreementContent
-
+import com.linku.login.viewmodel.SignUpViewModel
 
 /**
  * 약관 동의 BottomSheet (애니메이션 없음)
@@ -35,12 +42,14 @@ fun TermsAgreementSheet(
 ) {
     if (!visible) return
 
+    val colorTheme = MaterialTheme.linkuColors
+
     //바텀시트 떠 있을 때, 백버튼 = 시트 닫기
 
     NoAnimBottomSheet(
         visible = visible,
         onDismissRequest = onClose,
-        scrimColor = Color.Black.copy(alpha = 0.4f),
+        scrimColor = colorTheme.black.copy(alpha = 0.4f),
         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
     ) {
         // signUpForm에서 직접 약관 동의 상태 가져오기
@@ -88,34 +97,36 @@ fun TermsAgreementSheetPreview() {
     var agreePrivacy by remember { mutableStateOf(false) }
     var agreeMarketing by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    LinkuPreview {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-        // 🔹 뒤에 깔린 실제 화면 느낌
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFFF5F6F9))
-        )
-
-        // 🔹 ViewModel 없이 Content만으로 프리뷰
-        NoAnimBottomSheet(
-            visible = visible,
-            onDismissRequest = { visible = false },
-            scrimColor = Color.Black.copy(alpha = 0.12f),
-            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
-        ) {
-            TermsAgreementContent(
-                agreeTerms = agreeTerms,
-                agreePrivacy = agreePrivacy,
-                agreeMarketing = agreeMarketing,
-                onAgreeTermsChange = { agreeTerms = it },
-                onAgreePrivacyChange = { agreePrivacy = it },
-                onAgreeMarketingChange = { agreeMarketing = it },
-                onClickTerms = {},
-                onClickPrivacy = {},
-                onClickMarketing = {},
-                onNextClicked = { _, _, _ -> }
+            // 🔹 뒤에 깔린 실제 화면 느낌
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0xFFF5F6F9))
             )
+
+            // 🔹 ViewModel 없이 Content만으로 프리뷰
+            NoAnimBottomSheet(
+                visible = visible,
+                onDismissRequest = { visible = false },
+                scrimColor = Color.Black.copy(alpha = 0.12f),
+                shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)
+            ) {
+                TermsAgreementContent(
+                    agreeTerms = agreeTerms,
+                    agreePrivacy = agreePrivacy,
+                    agreeMarketing = agreeMarketing,
+                    onAgreeTermsChange = { agreeTerms = it },
+                    onAgreePrivacyChange = { agreePrivacy = it },
+                    onAgreeMarketingChange = { agreeMarketing = it },
+                    onClickTerms = {},
+                    onClickPrivacy = {},
+                    onClickMarketing = {},
+                    onNextClicked = { _, _, _ -> }
+                )
+            }
         }
     }
 }

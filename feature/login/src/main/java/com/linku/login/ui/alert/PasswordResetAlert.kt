@@ -3,8 +3,14 @@ package com.linku.login.ui.alert
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,8 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.linku.design.theme.font.Paperlogy
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.login.R
 
 @Composable
@@ -28,9 +34,7 @@ fun PasswordResetAlert(
     onConfirmClick: () -> Unit = {}
 ) {
     // 현재 디자인 테마의 컬러 스킴 가져오기
-    val colorTheme = LocalColorTheme.current
-    val paperlogyFamily = Paperlogy.font
-
+    val colorTheme = MaterialTheme.linkuColors
 
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
@@ -67,7 +71,6 @@ fun PasswordResetAlert(
                 style = TextStyle(
                     fontSize = 18.sp,
                     lineHeight = 22.sp,
-                    fontFamily = paperlogyFamily, // 수정됨
                     fontWeight = FontWeight.Medium, // 500은 Medium입니다.
                     color = colorTheme.black,
                     textAlign = TextAlign.Center
@@ -82,7 +85,6 @@ fun PasswordResetAlert(
                 style = TextStyle(
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
-                    fontFamily = paperlogyFamily, // 수정됨
                     fontWeight = FontWeight.Normal, // 400은 Normal입니다.
                     color = colorTheme.gray[600],
                     textAlign = TextAlign.Center
@@ -108,7 +110,6 @@ fun PasswordResetAlert(
                     style = TextStyle(
                         fontSize = 16.sp,
                         lineHeight = 20.sp,
-                        fontFamily = paperlogyFamily, // 수정됨
                         fontWeight = FontWeight.Bold, // 700은 Bold입니다.
                         color = colorTheme.white,
                         textAlign = TextAlign.Center
@@ -127,5 +128,7 @@ fun PasswordResetAlert(
 )
 @Composable
 private fun PasswordResetAlertPreview() {
-    PasswordResetAlert()
+    LinkuPreview {
+        PasswordResetAlert()
+    }
 }
