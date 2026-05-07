@@ -86,7 +86,10 @@ fun ServiceAgreeScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 5.dp),
+                    .padding(end = 5.dp)
+                    .noRippleClickable() {
+                        uriHandler.openUri("https://linkuterms.site/terms.html")
+                    },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -100,18 +103,17 @@ fun ServiceAgreeScreen(
                 Image(
                     painter = painterResource(Res.drawable.ic_detail),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(8.dp, 14.dp)
-                        .noRippleClickable() {
-                            uriHandler.openUri("https://linkuterms.site/marketing.html")
-                        }
+                    modifier = Modifier.size(8.dp, 14.dp)
                 )
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 5.dp),
+                    .padding(end = 5.dp)
+                    .noRippleClickable() {
+                        uriHandler.openUri("https://linkuterms.site/privacy.html")
+                    },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -125,18 +127,17 @@ fun ServiceAgreeScreen(
                 Image(
                     painter = painterResource(Res.drawable.ic_detail),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(8.dp, 14.dp)
-                        .noRippleClickable() {
-                            uriHandler.openUri("https://linkuterms.site/privacy.html")
-                        }
+                    modifier = Modifier.size(8.dp, 14.dp)
                 )
             }
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(end = 5.dp),
+                    .padding(end = 5.dp)
+                    .noRippleClickable() {
+                        onMarketingAgreeClick()
+                    },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -150,11 +151,7 @@ fun ServiceAgreeScreen(
                 Image(
                     painter = painterResource(Res.drawable.ic_detail),
                     contentDescription = null,
-                    modifier = Modifier
-                        .size(8.dp, 14.dp)
-                        .noRippleClickable() {
-                            onMarketingAgreeClick()
-                        }
+                    modifier = Modifier.size(8.dp, 14.dp)
                 )
             }
         }
