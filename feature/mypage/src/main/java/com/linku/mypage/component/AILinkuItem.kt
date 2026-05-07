@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,6 +32,7 @@ import androidx.compose.ui.zIndex
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 import com.linku.design.R as Res
 
@@ -50,19 +52,14 @@ fun AILinkuItem(
             .clip(RoundedCornerShape(18.dp))
             .background(LocalColorTheme.current.white)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .size(30.dp)
-                .padding(start = 18.dp)
-                .zIndex(1f)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_ai_bookmark),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp, 26.dp)
-            )
-        }
+//        Box(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .size(30.dp)
+//                .zIndex(1f)
+//        ) {
+//
+//        }
 
         Row(
             modifier = Modifier
@@ -88,7 +85,7 @@ fun AILinkuItem(
                     text = linkTitle,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.black,
+                    color = MaterialTheme.linkuColors.black,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
@@ -157,6 +154,14 @@ fun AILinkuItem(
                 )
             }
         }
+
+        Image(
+            painter = painterResource(R.drawable.ic_ai_bookmark),
+            contentDescription = null,
+            modifier = Modifier
+                .padding(start = 18.dp)
+                .size(20.dp, 26.dp)
+        )
 
         if (isMenuVisible) {
             Box(
