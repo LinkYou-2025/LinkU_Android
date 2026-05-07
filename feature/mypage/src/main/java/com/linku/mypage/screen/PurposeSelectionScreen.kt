@@ -27,23 +27,23 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.mypage.component.CustomInfoSelectionItem
 
+private val purposeItems = listOf(
+    "취업·커리어 준비",
+    "사이드 프로젝트/창업 준비",
+    "자기계발/정보 수집",
+    "인사이트 모으기",
+    "업무자료 아카이빙",
+    "학업/리포트 정리",
+    "블로그/콘텐츠 작성 참고용",
+    "그냥 나중에 읽고 싶은 글 저장",
+    "기타"
+)
+
 @Composable
 fun PurposeSelectionScreen(
     navController: NavController,
     onNextClick: () -> Unit  // TODO: 목적 저장 API 연결
 ) {
-    val purposeItems = listOf(
-        "취업·커리어 준비",
-        "사이드 프로젝트/창업 준비",
-        "자기계발/정보 수집",
-        "인사이트 모으기",
-        "업무자료 아카이빙",
-        "학업/리포트 정리",
-        "블로그/콘텐츠 작성 참고용",
-        "그냥 나중에 읽고 싶은 글 저장",
-        "기타"
-    )
-
     val selectedItems = remember { mutableStateListOf<String>() }
 
     CustomInfoSelectionContent(
