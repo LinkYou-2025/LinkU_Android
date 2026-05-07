@@ -83,13 +83,13 @@ fun AlarmSettingScreen(
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white)
             .graphicsLayer {
                 shadowElevation = 12.dp.toPx()
                 ambientShadowColor = Color.Black.copy(alpha = 0.02f)
                 spotShadowColor = Color.Black.copy(alpha = 0.02f)
             }
+            .clip(RoundedCornerShape(22.dp))
+            .background(LocalColorTheme.current.white)
             .padding(horizontal = 20.dp, vertical = 18.dp)
 
         ) {
