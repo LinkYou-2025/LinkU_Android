@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,12 +43,6 @@ fun AILinkuItem(
     onClickDelete: () -> Unit = {}
 ) {
     var isMenuVisible by remember { mutableStateOf(false) }
-
-    val displayTitle = if (linkTitle.length >= 17) {
-        "${linkTitle.take(16)}..."
-    } else {
-        linkTitle
-    }
 
     Box(
         modifier = Modifier
@@ -90,10 +85,12 @@ fun AILinkuItem(
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = displayTitle,
+                    text = linkTitle,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = LocalColorTheme.current.black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 13.dp)
