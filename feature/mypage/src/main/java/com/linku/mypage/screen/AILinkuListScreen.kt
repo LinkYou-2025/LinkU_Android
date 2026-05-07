@@ -212,28 +212,28 @@ fun AILinkuListScreen(
                 }
             }
         }
-    }
 
-    if (deleteTarget != null) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0x66000000))
-                .zIndex(1f)
-                .noRippleClickable(enabled = true) {},
-            contentAlignment = Alignment.Center
-        ) {
+        if (deleteTarget != null) {
             Box(
-                modifier = Modifier.padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(1f)
+                    .noRippleClickable(enabled = true) {},
                 contentAlignment = Alignment.Center
             ) {
-                DeleteLinkuModal(
-                    onDismiss = { deleteTarget = null },
-                    onConfirm = {
-                        currentLinks.remove(deleteTarget)  // TODO: 추후 실제 삭제 API 연동
-                        deleteTarget = null
-                    }
-                )
+                Box(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    DeleteLinkuModal(
+                        onDismiss = { deleteTarget = null },
+                        onConfirm = {
+                            currentLinks.remove(deleteTarget)  // TODO: 추후 실제 삭제 API 연동
+                            deleteTarget = null
+                        }
+                    )
+                }
             }
         }
     }
