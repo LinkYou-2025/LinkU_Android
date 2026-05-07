@@ -3,9 +3,7 @@ package com.linku.mypage.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -27,23 +25,23 @@ import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.design.theme.ThemeProvider
 import com.linku.mypage.component.CustomInfoSelectionItem
 
+private val interestItems = listOf(
+    "비즈니스/마케팅",
+    "디자인/크리에이티브",
+    "IT/개발",
+    "학업/리포트 참고",
+    "스타트업/창업",
+    "글쓰기/콘텐츠 작성",
+    "그냥 모아두고 싶은 글들",
+    "커리어/채용",
+    "책/인사이트 요약"
+)
+
 @Composable
 fun InterestSelectionScreen(
     navController: NavController,
     onFinishClick: () -> Unit
 ) {
-    val interestItems = listOf(
-        "비즈니스/마케팅",
-        "디자인/크리에이티브",
-        "IT/개발",
-        "학업/리포트 참고",
-        "스타트업/창업",
-        "글쓰기/콘텐츠 작성",
-        "그냥 모아두고 싶은 글들",
-        "커리어/채용",
-        "책/인사이트 요약"
-    )
-
     val selectedItems = remember { mutableStateListOf<String>() }
 
     CustomInfoSelectionContent(
