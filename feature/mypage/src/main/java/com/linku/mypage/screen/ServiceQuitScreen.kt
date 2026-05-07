@@ -43,6 +43,14 @@ import com.linku.mypage.R
 import com.linku.mypage.component.QuitReasonItem
 import com.linku.mypage.component.ServiceQuitModal
 
+private val quitReasons = listOf(
+    "다른 유사 서비스를 이용해요.",
+    "사용을 잘 안하게 돼요.",
+    "잦은 오류와 장애가 발생해요.",
+    "새 계정을 만들고 싶어요.",
+    "기타"
+)
+
 @Composable
 fun ServiceQuitScreen(
     navController: NavController,
@@ -52,14 +60,6 @@ fun ServiceQuitScreen(
     var showDialog by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
     var isAgreeChecked by remember { mutableStateOf(false) }
-
-    val quitReasons = listOf(
-        "다른 유사 서비스를 이용해요.",
-        "사용을 잘 안하게 돼요.",
-        "잦은 오류와 장애가 발생해요.",
-        "새 계정을 만들고 싶어요.",
-        "기타"
-    )
 
     val isEtcSelected = selectedReason == "기타"
     val isQuitEnabled = selectedReason != null && isAgreeChecked
