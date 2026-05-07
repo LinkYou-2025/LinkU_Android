@@ -96,7 +96,10 @@ fun AccountSettingScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(end = 5.dp),
+                        .padding(end = 5.dp)
+                        .noRippleClickable() {
+                            onEditProfileClick()
+                        },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -110,11 +113,7 @@ fun AccountSettingScreen(
                     Image(
                         painter = painterResource(Res.drawable.ic_detail),
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(8.dp, 14.dp)
-                            .noRippleClickable() {
-                                onEditProfileClick()
-                            }
+                        modifier = Modifier.size(8.dp, 14.dp)
                     )
                 }
 
