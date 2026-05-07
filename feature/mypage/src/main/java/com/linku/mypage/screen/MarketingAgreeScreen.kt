@@ -234,13 +234,13 @@ fun MarketingAgreeScreen(
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp, vertical = 11.dp)
-                .clip(RoundedCornerShape(22.dp))
-                .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(22.dp))
                 .graphicsLayer {
                     shadowElevation = 4.dp.toPx()
                     shape = cardShape
                     clip = true
                 }
+                .clip(RoundedCornerShape(22.dp))
+                .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(22.dp))
                 .background(LocalColorTheme.current.white)
                 .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
