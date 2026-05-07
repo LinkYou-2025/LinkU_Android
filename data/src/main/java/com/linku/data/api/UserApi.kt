@@ -1,17 +1,7 @@
 package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginRequestDTO
-import com.linku.data.api.dto.auth.login.kakao.KakaoLoginResponseDTO
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
-import com.linku.data.api.dto.auth.signup.email.EmailVerificationResponseDTO
-import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
-import com.linku.data.api.dto.auth.signup.email.SignUpEmailResponseDTO
-import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
-import com.linku.data.api.dto.auth.login.email.LoginResponseDTO
-import com.linku.data.api.dto.auth.signup.social.SocialProfileResponseDTO
-import com.linku.data.api.dto.auth.signup.social.SocialProfileRequestDTO
-import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.dto.user.UserInfoResponseDTO
 import com.linku.data.api.dto.user.DeleteUserResponseDTO
@@ -19,8 +9,6 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
-import retrofit2.http.Query
-import retrofit2.http.Header
 
 interface UserApi {
 

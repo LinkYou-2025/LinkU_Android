@@ -5,7 +5,7 @@ package com.linku.login
 
 import android.content.Context
 import android.util.Log
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,27 +19,26 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -47,12 +46,16 @@ import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
+import com.linku.core.model.auth.LoginType
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
 import com.linku.design.util.scaler
+import com.linku.login.auth.GoogleAuthHelper
+import com.linku.login.auth.findActivity
 import com.linku.login.ui.item.SocialLoginButton
 import com.linku.login.viewmodel.SocialAuthViewModel
+import kotlinx.coroutines.launch
 
 
 private const val TAG = "LoginScreen"
@@ -116,23 +119,27 @@ fun LoginScreen(
     logoOffsetY: Float = 0f,
     contentAlpha: Float = 1f,
     logoSlot: @Composable () -> Unit = {}, //로고가 들어갈 자리
-    showLogo: Boolean = true, //로고 숨김(애니메이션 동안)
     buttonsEnabled: Boolean = true, // 중복 로그인 방지.
 
 ) {
 
     val colorTheme = MaterialTheme.linkuColors
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val googleAuthHelper = remember {
+        GoogleAuthHelper(webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID)
+    }
 
     //카카오 로그인 state 수집
-    val kakaoLoginState by viewModel.kakaoLoginState.collectAsState()
+    val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
 
+    // 구글 로그인 state 수집
+    val googleLoginState by viewModel.googleLoginState.collectAsStateWithLifecycle()
 
     LaunchedEffect(kakaoLoginState) {
-        when (kakaoLoginState) {
-            is SocialAuthViewModel.KakaoLoginState.Success -> {
-                val result = (kakaoLoginState as SocialAuthViewModel.KakaoLoginState.Success).result
-
+        when (val state = kakaoLoginState) {
+            is SocialAuthViewModel.SocialLoginState.Success -> {
+                val result = state.result
                 when (result.status) {
                     "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
                     "TEMP" -> {
@@ -145,9 +152,36 @@ fun LoginScreen(
                 viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
             }
 
-            is SocialAuthViewModel.KakaoLoginState.Error -> {
+            is SocialAuthViewModel.SocialLoginState.Error -> {
                 // TODO: 에러 메시지 표시
                 viewModel.resetKakaoLoginState()
+            }
+
+            else -> {}
+        }
+    }
+    // 구글 로그인 상태 처리 추가함.
+    LaunchedEffect(googleLoginState) {
+        when (val state = googleLoginState) {
+            is SocialAuthViewModel.SocialLoginState.Success -> {
+                val result = state.result
+                when (result.status) {
+                    "ACTIVE" -> onLoginSuccess()
+                    "TEMP" -> {
+                        navigator.navigate("social_login_gate")
+                        navigator.getBackStackEntry("social_auth_graph")
+                            .savedStateHandle["socialToken"] = result.accessToken
+                    }
+                }
+                viewModel.resetGoogleLoginState()
+            }
+
+            is SocialAuthViewModel.SocialLoginState.Error -> {
+                Log.e(
+                    "GoogleLogin",
+                    "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}"
+                )
+                viewModel.resetGoogleLoginState() // 리셋 추가.
             }
 
             else -> {}
@@ -190,16 +224,6 @@ fun LoginScreen(
 
                 // 애니메이션 이후 로고가 들어올 자리
                 logoSlot()
-//                if (showLogo) {
-//                    Image(
-//                        painter = painterResource(id = R.drawable.img_login_logo),
-//                        contentDescription = "LinkU Logo",
-//                        modifier = Modifier
-//                            .width(150.dp)
-//                            .height(106.dp),
-//                        contentScale = ContentScale.Fit
-//                    )
-//                }
 
                 // 로고 아래 30dp 간격
                 Spacer(modifier = Modifier.height(30.scaler))
@@ -260,44 +284,38 @@ fun LoginScreen(
         ) {
 
             // 카카오
-            SocialLoginButton( //TODO 채윤지 : kakao sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFFFEE500), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
-                iconRes = R.drawable.icon_login_kakao,
-                text = "카카오로 시작하기",
-                textColor = colorTheme.black,
+            SocialLoginButton(
+                type = LoginType.KAKAO,
                 onClick = {
                     if (buttonsEnabled) handleKakaoLogin(context, viewModel)
                     //약관 화면에서 중복 로그인 방지.
                 }
             )
 
-            // 네이버
-            SocialLoginButton( //TODO 지현 : naver sns api 로그인 나오면 연동하기
-                backgroundColor = Color(0xFF03C75A), // 다크모드여도 그대로 유지되어야 하니 하드 코딩 유지
-                iconRes = R.drawable.icon_login_naver,
-                text = "네이버로 시작하기",
-                textColor = colorTheme.white
-            )
 
             // 구글
-            SocialLoginButton( //TODO 지민 : 구글 sns api 로그인 나오면 연동하기
-                backgroundColor = colorTheme.white,
-                borderColor = Color(0xFFE0E0E0),
-                iconRes = R.drawable.icon_login_google,
-                text = "구글로 시작하기",
-                textColor = colorTheme.black,
+            SocialLoginButton(
+                type = LoginType.GOOGLE,
                 onClick = {
-                    // TODO : 연동해주세요.
+                    if (!buttonsEnabled) return@SocialLoginButton
+                    val activity = context.findActivity() ?: run {
+                        Toast.makeText(context, "간편 로그인 실패. 다시 시도해주세요!", Toast.LENGTH_SHORT).show()
+                        return@SocialLoginButton
+                    }
+                    scope.launch {
+                        try {
+                            val idToken = googleAuthHelper.getGoogleIdToken(activity)
+                            viewModel.loginWithGoogle(idToken)
+                        } catch (e: Exception) {
+                            Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")
+                        }
+                    }
                 }
             )
 
-            // 이메일 기존 그대로 유지. //TODO 채윤지 : 서원에게 변경된 otp api 받으면 재연동하기
+            // 이메일 기존 그대로 유지.
             SocialLoginButton(
-                backgroundColor = Color.Transparent,
-                borderColor = colorTheme.white,
-                iconRes = null,
-                text = "이메일로 시작하기",
-                textColor = colorTheme.white,
+                type = LoginType.EMAIL,
                 onClick = {
                     //navigator.navigate("email_login")
                     if (buttonsEnabled) {
@@ -305,70 +323,6 @@ fun LoginScreen(
                     }
                 }
             )
-        }
-    }
-}
-
-// 소셜 로그인 전용 배경 just 배경용.(기능 없음)
-@Composable
-fun LoginBackground() {
-    val colorTheme = MaterialTheme.linkuColors
-
-    DesignSystemBars(
-        statusBarColor = Color.Transparent,
-        navigationBarColor = Color.Transparent,
-        darkIcons = false,
-        immersive = true
-    )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = colorTheme.linearMainColor)
-            .navigationBarsPadding()
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 32.scaler)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Spacer(modifier = Modifier.fillMaxHeight(228f / 917f))
-
-                // 로고 이미지
-                Image(
-                    painter = painterResource(id = R.drawable.img_login_logo),
-                    contentDescription = "LinkU Logo",
-                    modifier = Modifier
-                        .width(150.dp)
-                        .height(106.dp),
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(modifier = Modifier.height(30.scaler))
-
-                Text(
-                    text = "Link U, Think You",
-                    fontSize = 14.sp,
-                    lineHeight = 16.sp,
-                    fontWeight = FontWeight(500),
-                    color = colorTheme.white,
-                    textAlign = TextAlign.Center
-                )
-
-                Spacer(modifier = Modifier.height(25.scaler))
-
-                Text(
-                    text = "링큐에 오신 것을 \n환영해요",
-                    fontSize = 22.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight(700),
-                    color = colorTheme.white,
-                    textAlign = TextAlign.Center
-                )
-            }
         }
     }
 }

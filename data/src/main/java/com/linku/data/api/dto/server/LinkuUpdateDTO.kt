@@ -2,27 +2,30 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class LinkuUpdateDTO(
 
-    @Json(name = "folderId")
+    @field:Json(name = "folderId")
     val folderId: Long? = null,
 
-    @Json(name = "categoryId")
+    @field:Json(name = "categoryId")
     val categoryId: Long,
 
-    @Json(name = "linku")
+    @field:Json(name = "linku")
     val linku: String,
 
-    @Json(name = "memo")
+    @field:Json(name = "memo")
     val memo: String,
 
-    @Json(name = "emotionId")
+    @field:Json(name = "emotionId")
     val emotionId: Long,
 
-    @Json(name = "domainId")
+    @field:Json(name = "domainId")
     val domainId: Long,
 
-    @Json(name = "title")
+    @field:Json(name = "title")
     val title: String
 
 )

@@ -2,21 +2,24 @@ package com.linku.data.api.dto.server
 
 import com.squareup.moshi.Json
 
+import com.squareup.moshi.JsonClass
+
+@JsonClass(generateAdapter = true)
 data class CurationDetailResponse(
 
-    @Json(name = "curationId")
+    @field:Json(name = "curationId")
     val curationId: Long,
 
-    @Json(name = "month")
+    @field:Json(name = "month")
     val month: String,
 
-    @Json(name = "topTags")
+    @field:Json(name = "topTags")
     val topTags: List<String>,
 
-    @Json(name = "headerMent")
+    @field:Json(name = "headerMent")
     val headerMent: String,
 
-    @Json(name = "footerMent")
+    @field:Json(name = "footerMent")
     val footerMent: String
 
 )

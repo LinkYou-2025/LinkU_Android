@@ -10,11 +10,12 @@ import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
 import com.linku.core.repository.FolderRepository
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.server.FolderCreateRequestDTO
-import com.linku.data.api.dto.server.FolderUpdateRequestDTO
-import com.linku.data.api.dto.server.LinksFoldersResponseDTO
-import com.linku.data.api.dto.server.UpdateBookmarkRequestDTO
-import com.linku.data.api.dto.server.UpdateLinkFolderDTO
+import com.linku.data.api.dto.folder.FolderCreateRequestDTO
+import com.linku.data.api.dto.folder.FolderTreeResponseDTO
+import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
+import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
+import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
+import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
 import com.linku.data.api.withAuth
 import com.linku.data.api.withAuthResp204Raw
 import com.linku.data.preference.AuthPreference
@@ -532,5 +533,71 @@ class FolderRepositoryImpl @Inject constructor(
         }
 
         Log.d("FolderRepositoryImpl", "deleteLink return")
+    }
+
+    private fun folderTreeConverter(
+        response: List<FolderTreeResponseDTO>?
+    ): List<FolderSimpleInfo> = if(response.isNullOrEmpty()) emptyList() else response.map {
+        FolderSimpleInfo(
+            folderId = it.folderId,
+            folderName = it.folderName,
+            parentFolderId = it.categoryId,
+            isBookmarked = it.isBookmarked,
+            children = folderTreeConverter(it.children)
+        )
+    }
+
+    // 폴더 트리 조회
+    override suspend fun getMyFolderTree(): List<FolderSimpleInfo> {
+        Log.d("FolderRepositoryImpl", "getMyFolderTree")
+
+        val tree: List<FolderSimpleInfo>
+
+        try {
+            Log.d("FolderRepositoryImpl", "getMyFolderTree try")
+
+            tree = folderTreeConverter(
+                response = serverApi.withAuth(authPreference) {
+                    Log.d("FolderRepositoryImpl", "getMyFolderTree getMyFolders api")
+                    getMyFolders()
+                }
+            )
+
+            Log.d("FolderRepositoryImpl", "getMyFolderTree response: $tree")
+
+
+        } catch (e: Exception) {
+            Log.d("FolderRepositoryImpl", "getMyFolderTree error: $e")
+            throw e
+        }
+
+        Log.d("FolderRepositoryImpl", "getMyFolderTree return: $tree")
+
+        return tree
+    }
+
+    override suspend fun makeInvitationLink(folderId: Long): String {
+        Log.d("FolderRepositoryImpl", "makeInvitationLink folderId: $folderId")
+
+        val link: String
+
+        try {
+            Log.d("FolderRepositoryImpl", "makeInvitationLink try")
+
+            link = serverApi.withAuth(authPreference) {
+                Log.d("FolderRepositoryImpl", "makeInvitationLink makeInvitationLinkApi api")
+                makeInvitationLinkApi(folderId)
+            }
+
+            Log.d("FolderRepositoryImpl", "makeInvitationLink response: $link")
+
+        } catch (e: Exception) {
+            Log.e("FolderRepositoryImpl", "makeInvitationLink error: $e")
+            throw e
+        }
+
+        Log.d("FolderRepositoryImpl", "makeInvitationLink return: $link")
+
+        return link
     }
 }

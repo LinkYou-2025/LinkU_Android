@@ -27,10 +27,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.auth.LoginType
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -39,13 +41,41 @@ import com.linku.login.R
 @Composable
 internal fun SocialLoginButton(
     modifier: Modifier = Modifier,
-    backgroundColor: Color,
-    borderColor: Color? = null,
-    iconRes: Int? = null, //이메일로 시작하기는 아이콘이 없기에.
-    text: String,
-    textColor: Color,
+    type: LoginType,
     onClick: () -> Unit = {}
 ) {
+    val colorTheme = MaterialTheme.linkuColors
+
+    val backgroundColor = when (type) {
+        LoginType.KAKAO -> Color(0xFFFEE500)
+        LoginType.GOOGLE -> colorTheme.white
+        LoginType.EMAIL -> Color.Transparent
+    }
+    val text = when (type) {
+        LoginType.KAKAO -> "카카오로 시작하기"
+        LoginType.GOOGLE -> "Google로 시작하기"
+        LoginType.EMAIL -> "이메일로 시작하기"
+    }
+    val textColor = when (type) {
+        LoginType.KAKAO -> colorTheme.black
+        LoginType.GOOGLE -> colorTheme.googleLoginColor
+        LoginType.EMAIL -> colorTheme.white
+    }
+    val borderColor = when (type) {
+        LoginType.KAKAO -> null
+        LoginType.GOOGLE -> colorTheme.googleLoginBorderColor
+        LoginType.EMAIL -> colorTheme.white
+    }
+    val iconRes = when (type) {
+        LoginType.KAKAO -> R.drawable.icon_login_kakao
+        LoginType.GOOGLE -> R.drawable.icon_login_google
+        LoginType.EMAIL -> null
+    }
+    val iconSize = when (type) {
+        LoginType.KAKAO -> Modifier.size(width = 22.scaler, height = 20.scaler)
+        LoginType.GOOGLE -> Modifier.size(20.scaler)
+        LoginType.EMAIL -> Modifier  // null이라 어차피 안 쓰임
+    }
 
     Surface(
         modifier = modifier
@@ -74,7 +104,7 @@ internal fun SocialLoginButton(
                 Image(
                     painter = painterResource(iconRes),
                     contentDescription = null,
-                    modifier = Modifier.size((22.scaler))
+                    modifier = iconSize
                 )
 
                 Spacer(modifier = Modifier.width((8.scaler)))
@@ -84,8 +114,9 @@ internal fun SocialLoginButton(
                 text = text,
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = textColor
+                fontWeight = FontWeight.Medium,
+                color = textColor,
+                fontFamily = FontFamily.Default // 안드로이드 기본 폰트 roboto 사용함.
             )
         }
     }
@@ -115,36 +146,17 @@ fun SocialLoginButtonPreview() {
 
                 // 카카오
                 SocialLoginButton(
-                    backgroundColor = Color(0xFFFEE500),
-                    iconRes = R.drawable.icon_login_kakao,
-                    text = "카카오로 시작하기",
-                    textColor = colorTheme.black
-                )
-
-                //  네이버
-                SocialLoginButton(
-                    backgroundColor = Color(0xFF03C75A),
-                    iconRes = R.drawable.icon_login_naver,
-                    text = "네이버로 시작하기",
-                    textColor = colorTheme.white
+                    type = LoginType.KAKAO
                 )
 
                 // 구글
                 SocialLoginButton(
-                    backgroundColor = colorTheme.white,
-                    borderColor = Color(0xFFE0E0E0),
-                    iconRes = R.drawable.icon_login_google,
-                    text = "구글로 시작하기",
-                    textColor = colorTheme.black
+                    type = LoginType.GOOGLE
                 )
 
                 // 이메일
                 SocialLoginButton(
-                    backgroundColor = Color.Transparent,
-                    borderColor = Color.White,
-                    iconRes = null,
-                    text = "이메일로 시작하기",
-                    textColor = Color.White
+                    type = LoginType.EMAIL
                 )
             }
         }

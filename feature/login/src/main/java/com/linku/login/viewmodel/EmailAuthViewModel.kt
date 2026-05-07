@@ -13,6 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class EmailAuthViewModel @Inject constructor(
     }
 
     private val _authState = MutableStateFlow<EmailAuthState>(EmailAuthState.Idle)
-    val authState: StateFlow<EmailAuthState> = _authState
+    val authState: StateFlow<EmailAuthState> = _authState.asStateFlow()
 
     // 타이머 추가
     private val _timer = MutableStateFlow(0)

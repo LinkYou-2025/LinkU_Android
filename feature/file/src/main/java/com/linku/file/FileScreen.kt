@@ -37,7 +37,6 @@ import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
-import com.linku.file.ui.bottom.sheet._ShareBottomSheet
 import com.linku.file.ui.content.BottomFolderGrid
 import com.linku.file.ui.content.LinksGrid
 import com.linku.file.ui.content.SharedBottomFolderGrid
@@ -67,6 +66,14 @@ fun FileScreen(
         fileViewModel.getCategoryColor()
         Log.d("FileScreen", "LaunchedEffect end")
     }
+
+    // TODO: 로컬에서 변경 시에만 구조에 따라 api 호출되도록 하기
+    // 카테고리 -> 폴더 -> 링크
+    /*val folderTree by fileViewModel.folderTree.collectAsState()
+
+    // 폴더 트리 변경 시 실행
+    LaunchedEffect(folderTree) {
+    }*/
 
     Log.d("FileScreen", "FileScreen")
 
@@ -262,7 +269,7 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    _ShareBottomSheet(){}
+    //ShareBottomSheetLayout(){}
     /*ShareBottomSheet(
         userName = fileViewModel.nickname.collectAsState().value?:"",
         folderStateViewModel = folderStateViewModel,

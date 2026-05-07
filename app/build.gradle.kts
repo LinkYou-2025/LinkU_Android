@@ -23,25 +23,32 @@ val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing or blank in local.properties")
 
+// 구글 소셜 로그인 로컬 프로퍼티
+val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
+
 android {
     namespace = "com.linku"
 
-    compileSdk = 36
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
 
     defaultConfig {
         applicationId = "com.linku"
-        minSdk = 26
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.appVersionCode.get().toInt()
+        versionName = libs.versions.appVersionName.get()
         vectorDrawables.useSupportLibrary = true
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         buildConfigField(
             "String",
             "KAKAO_NATIVE_APP_KEY",
             "\"$kakaoNativeAppKey\""
         )
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
         // 로컬 프로퍼티에 각자 디버그 키(개발 테스트) 꼭 넣어서 주세요. 안 그러면 실행 안됩니다.
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
     }
@@ -143,9 +150,6 @@ dependencies {
 
     // 카카오 로그인
     implementation(libs.v2.user)
-
-    // 네이버 로그인
-    implementation(libs.naver.oauth)
 
     implementation(libs.androidx.security.crypto)
     implementation(libs.androidx.constraintlayout)

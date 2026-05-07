@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -43,7 +44,6 @@ import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.BottomGradientButton
@@ -78,8 +78,8 @@ fun EmailVerificationScreen(
 
 
     // 뷰모델 상태
-    val authState by viewModel.authState.collectAsState()
-    val isCodeSent by viewModel.isCodeSent.collectAsState()
+    val authState by viewModel.authState.collectAsStateWithLifecycle()
+    val timer by viewModel.timer.collectAsStateWithLifecycle()
 
 
     // 파생 상태로- 중복 제거.
@@ -91,7 +91,7 @@ fun EmailVerificationScreen(
     val isCodeValid = code.length == 6
     val isSending = authState is EmailAuthState.Sending // 파생 상태
     val isVerifying = authState is EmailAuthState.Verifying // 파생 상태
-
+    val isCodeSent = authState is EmailAuthState.SendSuccess
 
     // 상태에 따라 파생 값 계산
     val sendResult: String? = when (val state = authState) {
@@ -257,7 +257,6 @@ fun EmailVerificationScreenContent(
                         Text(
                             "코드를 입력해주세요",
                             fontSize = 14.sp,
-                            fontFamily = Paperlogy.font,
                             color = colorTheme.gray[400]
                         )
                     },

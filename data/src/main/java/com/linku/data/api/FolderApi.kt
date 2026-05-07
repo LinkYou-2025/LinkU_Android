@@ -1,18 +1,19 @@
 package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.FolderCreateRequestDTO
-import com.linku.data.api.dto.server.FolderListResponseDTO
-import com.linku.data.api.dto.server.FolderResponseDTO
-import com.linku.data.api.dto.server.FolderTreeResponseDTO
-import com.linku.data.api.dto.server.FolderUpdateRequestDTO
-import com.linku.data.api.dto.server.GetParentFoldersDTO
-import com.linku.data.api.dto.server.GetSharedFoldersDTO
-import com.linku.data.api.dto.server.LinksFoldersResponseDTO
-import com.linku.data.api.dto.server.ShareFolderResponseDTO
-import com.linku.data.api.dto.server.UpdateBookmarkRequestDTO
-import com.linku.data.api.dto.server.UpdateBookmarkResponseDTO
-import com.linku.data.api.dto.server.ViewerResponseDTO
+import com.linku.data.api.dto.folder.FolderCreateRequestDTO
+import com.linku.data.api.dto.folder.FolderListResponseDTO
+import com.linku.data.api.dto.folder.FolderResponseDTO
+import com.linku.data.api.dto.folder.FolderTreeResponseDTO
+import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
+import com.linku.data.api.dto.folder.GetParentFoldersDTO
+import com.linku.data.api.dto.folder.GetSharedFoldersDTO
+import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
+import com.linku.data.api.dto.folder.ShareFolderResponseDTO
+import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
+import com.linku.data.api.dto.folder.UpdateBookmarkResponseDTO
+import com.linku.data.api.dto.folder.ViewerResponseDTO
+import com.linku.data.api.dto.folder.share.InvitationInfoResponseDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -109,4 +110,8 @@ interface FolderApi {
         @Path("folderId") folderId: Long
     ): BaseResponse<ShareFolderResponseDTO>
 
+    @POST("folders/share/{folderId}/invitation")
+    suspend fun makeInvitationLinkApi(
+        @Path("folderId") folderId: Long
+    ): BaseResponse<String>
 }
