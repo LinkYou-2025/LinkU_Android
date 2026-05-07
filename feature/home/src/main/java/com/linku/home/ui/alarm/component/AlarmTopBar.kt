@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.top.bar
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -52,13 +52,6 @@ fun AlarmTopBar(
 
             Spacer(modifier = Modifier.width(23.dp))
 
-            Image(
-                painter = painterResource(R.drawable.ic_home),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(22.dp)
-                    .clickable { onHomeClick() }
-            )
         }
     }
 }

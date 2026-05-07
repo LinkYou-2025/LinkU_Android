@@ -338,7 +338,8 @@ fun MainApp(
                                     launchSingleTop = true
                                     restoreState = true
                                 }
-                            }
+                            },
+                            onShowNavBar = { showNavBar = it }
                         )
                     }
                 }

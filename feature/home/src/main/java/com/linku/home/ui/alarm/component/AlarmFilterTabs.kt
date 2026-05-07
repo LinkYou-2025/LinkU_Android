@@ -1,13 +1,14 @@
-package com.linku.home.ui.alarm.top.bar.component
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,31 +23,34 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 
-enum class AlarmFilterTab(val label: String) {
-    ALL("전체"),
-    LINK("링크"),
-    FOLDER("폴더"),
-    CURATION("큐레이션"),
-    SYSTEM("공지")
-}
+//enum class AlarmFilterTab(val label: String) {
+//    ALL("전체"),
+//    LINK("링크"),
+//    FOLDER("폴더"),
+//    CURATION("큐레이션"),
+//    NOTICE("공지")
+//}
 
 @Composable
 fun AlarmFilterTabs(
-    selected: AlarmFilterTab,
-    onSelectedChange: (AlarmFilterTab) -> Unit,
+    selected: AlarmType,
+    onSelectedChange: (AlarmType) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    val tabs = AlarmType.entries
+
+    LazyRow(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        AlarmFilterTab.entries.forEach { tab ->
+        items(tabs) { tab ->
             AlarmFilterChip(
-                text = tab.label,
+                text = tab.displayName,
                 selected = (tab == selected),
                 onClick = { onSelectedChange(tab) }
             )
@@ -83,11 +87,10 @@ private fun AlarmFilterChip(
 @Preview
 @Composable
 fun PreviewAlarmFilterTabs() {
-    var selected by remember { mutableStateOf(AlarmFilterTab.ALL) }
+    var selected by remember { mutableStateOf(AlarmType.ALL) }
 
     AlarmFilterTabs(
         selected = selected,
-        onSelectedChange = { selected = it },
-        modifier = Modifier
+        onSelectedChange = { selected = it }
     )
 }
