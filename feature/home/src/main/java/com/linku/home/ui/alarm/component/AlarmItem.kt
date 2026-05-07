@@ -19,8 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,7 +57,7 @@ fun AlarmItem(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(
-                        painter = painterResource(alarm.alarmType.iconRes),
+                        painter = alarm.alarmType.iconRes,
                         contentDescription = null,
                         tint = Color.Unspecified
                     )
@@ -65,7 +65,6 @@ fun AlarmItem(
                     Text(
                         text = alarm.alarmType.displayName,
                         fontSize = 13.sp,
-                        fontFamily = Paperlogy.font,
                         color = LocalColorTheme.current.gray[600]
                     )
                 }
@@ -75,7 +74,6 @@ fun AlarmItem(
                     Text(
                         text = alarm.whenSubmitted,
                         fontSize = 13.sp,
-                        fontFamily = Paperlogy.font,
                         color = LocalColorTheme.current.gray[400],
                     )
                     if (!alarm.isRead) {
@@ -97,10 +95,13 @@ fun AlarmItem(
             Text(
                 text = alarm.message,
                 fontSize = 15.sp,
-                fontFamily = Paperlogy.font,
                 fontWeight = FontWeight.Bold,
                 color = LocalColorTheme.current.black,
-                modifier = Modifier.padding(start = 33.dp)
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .padding(start = 33.dp)
+                    .fillMaxWidth(),
             )
         }
     }

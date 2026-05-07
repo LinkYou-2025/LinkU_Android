@@ -52,13 +52,6 @@ fun AlarmTopBar(
 
             Spacer(modifier = Modifier.width(23.dp))
 
-            Image(
-                painter = painterResource(R.drawable.ic_home),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(22.dp)
-                    .clickable { onHomeClick() }
-            )
         }
     }
 }

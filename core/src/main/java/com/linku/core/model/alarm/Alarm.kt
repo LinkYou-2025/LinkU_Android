@@ -12,22 +12,25 @@ data class AlarmSummary(
 )
 
 enum class AlarmType(
-    val value: String,
     val displayName: String,
 ){
-    ALL("ALL", "전체"), //요청 시에만 사용. 응답으론 오지 않음.
-    LINK("LINK", "링크"),
-    FOLDER("FOLDER", "폴더"),
-    CURATION("CURATION", "큐레이션"),
-    NOTICE("NOTICE", "시스템/공지");
+    ALL("전체"), //요청 시에만 사용. 응답으론 오지 않음.
+    LINK( "링크"),
+    FOLDER( "폴더"),
+    CURATION( "큐레이션"),
+    NOTICE( "시스템/공지");
 
     companion object {
-        fun from(value: String): AlarmType =
-            entries.find {it.value == value}
-                ?:throw IllegalArgumentException("Unknown AlarmType value: $value")
 
-        fun fromDisplayName(displayName: String): AlarmType =
-            entries.find { it.displayName == displayName }
-                ?: throw IllegalArgumentException("Unknown AlarmType displayName: $displayName")
+        // api로 오는 문자열에 따라 해당하는 enum으로 매핑하는 함수
+        fun from(apiValue: String): AlarmType = when (apiValue) {
+            "ALL" -> ALL
+            "LINK" -> LINK
+            "FOLDER" -> FOLDER
+            "CURATION" -> CURATION
+            "NOTICE" -> NOTICE
+            else -> ALL
+        }
+
     }
 }

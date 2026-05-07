@@ -25,7 +25,7 @@ class FakeAlarmRepositoryImpl @Inject constructor(
         return runCatching {
 
             val start = cursor ?: 0L
-            val linkMessage = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요."
+            val linkMessage = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요.'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요.'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요."
 
             val alarms = List(size) { index ->
                 val id = start + index
