@@ -330,8 +330,6 @@ internal fun ShareBottomSheetLayout(
                     .fillMaxWidth()
                     .fillMaxHeight(SHEET_SELECT_SCREEN_HEIGHT_RATIO),
                 colors = colors,
-                preSelectDepth = selectDepth,
-                folderTree = folderTree,
             )
         }
     }
