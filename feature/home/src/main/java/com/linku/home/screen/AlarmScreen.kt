@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,8 +42,13 @@ fun AlarmScreen(
     onNavigateToHome: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
+    //탭 선택 상태
     var selectedTab by rememberSaveable { mutableStateOf(AlarmType.ALL) }
 
+    // 탭별 목록의 스크롤 상태를 저장하는 Map
+    val listStates = remember { AlarmType.entries.associateWith { LazyListState() } }
+
+    // 화면에 표시될 페이징될 알람들 데이터
     val alarms = remember(selectedTab) {
         viewModel.getAlarms(selectedTab)
     }.collectAsLazyPagingItems()
@@ -51,6 +57,7 @@ fun AlarmScreen(
         selectedTab = selectedTab,
         onSelectedChange = { selectedTab = it },
         alarms = alarms,
+        listState = listStates.getValue(selectedTab),
         onBack = onBack,
         onNavigateToMyPage = onNavigateToMyPage,
         onNavigateToHome = onNavigateToHome
@@ -62,6 +69,7 @@ private fun AlarmScreenContent(
     selectedTab: AlarmType,
     onSelectedChange: (AlarmType) -> Unit,
     alarms: LazyPagingItems<AlarmSummary>,
+    listState: LazyListState,
     onBack: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToHome: () -> Unit,
@@ -92,6 +100,7 @@ private fun AlarmScreenContent(
         )
 
         LazyColumn(
+            state = listState,
             verticalArrangement = Arrangement.spacedBy(12.dp),
             contentPadding = PaddingValues(top = 12.dp)
         ) {
@@ -148,14 +157,14 @@ private fun AlarmScreenPreview() {
 
     val alarms = flowOf(PagingData.from(fakeAlarms)).collectAsLazyPagingItems()
 
-    LinkuPreview {
-        AlarmScreenContent(
-            selectedTab = AlarmType.ALL,
-            onSelectedChange = {},
-            alarms = alarms,
-            onBack = {},
-            onNavigateToMyPage = {},
-            onNavigateToHome = {}
-        )
-    }
+//    LinkuPreview {
+//        AlarmScreenContent(
+//            selectedTab = AlarmType.ALL,
+//            onSelectedChange = {},
+//            alarms = alarms,
+//            onBack = {},
+//            onNavigateToMyPage = {},
+//            onNavigateToHome = {}
+//        )
+//    }
 }

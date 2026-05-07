@@ -16,7 +16,13 @@ class AlarmViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository
 ): ViewModel(){
 
-    fun getAlarms(type: AlarmType) =
+    /**
+     *[AlarmType]별로 구성된 페이징된 알람 Flow
+     *[AlarmType]을 키로 Map으로 변환 후에
+     *[viewModelScope]에서 캐싱하여 화면 회전 등의 상황에서도 데이터를 재사용한다.
+     *
+     */
+    private val alarmFlows = AlarmType.entries.associateWith { type ->
         Pager(
             config = PagingConfig(
                 pageSize = 20,
@@ -29,4 +35,10 @@ class AlarmViewModel @Inject constructor(
                 )
             }
         ).flow.cachedIn(viewModelScope)
+    }
+
+    /**
+     * 페이징된 알람 데이터의 타입별 게터 함수
+     */
+    fun getAlarms(type: AlarmType) = alarmFlows.getValue(type)
 }
