@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.rememberUpdatedState
@@ -26,6 +27,7 @@ import java.io.InputStream
 fun HomeApp(
     viewModel: HomeViewModel,
     onNavigateToMyPage: () -> Unit,
+    onShowNavBar: (Boolean) -> Unit = {},
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -231,6 +233,11 @@ fun HomeApp(
         }
 
         composable("alarm") {
+            DisposableEffect(Unit) {
+                onShowNavBar(false)
+                onDispose { onShowNavBar(true) }
+            }
+
             AlarmScreen(
                 onNavigateToMyPage = onNavigateToMyPage,
                 onBack = { navController.popBackStack() },
