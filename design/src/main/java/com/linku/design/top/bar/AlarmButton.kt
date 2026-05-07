@@ -29,8 +29,8 @@ fun AlarmButton(
         var ps = PixelScaler(
             maxWidth = this.maxWidth,
             maxHeight = this.maxHeight,
-            baseWidth = 24.06.dp, // 피그마에서 보이는 너비
-            baseHeight = 28.56.dp // 피그마에서 보이는 높이
+            baseWidth = 22.93.dp, // 피그마에서 보이는 너비
+            baseHeight = 28.73.dp // 피그마에서 보이는 높이
         )
 
         Box(modifier = modifier) {

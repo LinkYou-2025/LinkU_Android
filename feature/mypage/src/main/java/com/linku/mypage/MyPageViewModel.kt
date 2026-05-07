@@ -27,7 +27,7 @@ class MyPageViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = LoginSessionStore.SessionSnapshot(false, null,
                 null, null, null, null, null, null, null, null,
-                    emptyList(), emptyList() )
+                emptyList(), emptyList() )
         )
 
 //    data class UiState(

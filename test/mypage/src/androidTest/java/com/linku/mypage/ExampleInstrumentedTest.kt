@@ -1,8 +1,8 @@
-<<<<<<<< HEAD:test/mypage/src/androidTest/java/com/linku/mypage/ExampleInstrumentedTest.kt
-package com.linku.mypage
+<<<<<<<< HEAD:feature/file/src/androidTest/java/com/linku/file/ExampleInstrumentedTest.kt
+package com.linku.file
 ========
-package com.linku.design
->>>>>>>> 6cfa3247fa9a751d3cefb7daf59fb3f6f6c8368c:design/src/androidTest/java/com/linku/design/ExampleInstrumentedTest.kt
+package com.linku.mypage
+>>>>>>>> fd1304faab6b86e04c17e31a0786ce151290d292:test/mypage/src/androidTest/java/com/linku/mypage/ExampleInstrumentedTest.kt
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -23,10 +23,10 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-<<<<<<<< HEAD:test/mypage/src/androidTest/java/com/linku/mypage/ExampleInstrumentedTest.kt
-        assertEquals("com.linku.mypage.test", appContext.packageName)
+<<<<<<<< HEAD:feature/file/src/androidTest/java/com/linku/file/ExampleInstrumentedTest.kt
+        assertEquals("com.linku.file.test", appContext.packageName)
 ========
-        assertEquals("com.linku.design.test", appContext.packageName)
->>>>>>>> 6cfa3247fa9a751d3cefb7daf59fb3f6f6c8368c:design/src/androidTest/java/com/linku/design/ExampleInstrumentedTest.kt
+        assertEquals("com.linku.mypage.test", appContext.packageName)
+>>>>>>>> fd1304faab6b86e04c17e31a0786ce151290d292:test/mypage/src/androidTest/java/com/linku/mypage/ExampleInstrumentedTest.kt
     }
 }
