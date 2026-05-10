@@ -119,6 +119,7 @@ fun HomeApp(
             SaveLinkScreen(
                 image = viewModel.image,
                 url = viewModel.url,
+//                title = viewModel.title,
                 memo = viewModel.memo,
                 selectedEmotionId = viewModel.selectedEmotionId,
                 onPickImage = { imagePicker.launch("image/*") },
