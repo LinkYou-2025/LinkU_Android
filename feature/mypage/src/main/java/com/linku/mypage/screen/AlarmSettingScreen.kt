@@ -32,13 +32,16 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
+import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.R
-import com.linku.mypage.component.alarm.NotificationSwitch
-import com.linku.mypage.component.alarm.SubNotificationSwitch
+import com.linku.mypage.component.notification.NotificationSwitch
+import com.linku.mypage.component.notification.SubNotificationSwitch
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun AlarmSettingScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: NotificationViewModel = hiltViewModel()
 ) {
     var isAlarmEnabled by remember { mutableStateOf(false) }
     var isLinkActivityEnabled by remember { mutableStateOf(false) }

@@ -1,4 +1,4 @@
-package com.linku.mypage.component.alarm
+package com.linku.mypage.component.notification
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
