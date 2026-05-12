@@ -52,8 +52,6 @@ fun EmailInputScreen(
 
     SignUpStepLayout(
         currentStep = 1,
-        totalSteps = 3,
-        label = "계정 정보",
         title = "이메일 주소를 입력해주세요",
         buttonEnabled = emailValid,
         onNextClick = {
@@ -95,8 +93,6 @@ fun EmailInputScreen(
 fun EmailInputScreenPreview_Empty() {
     SignUpStepLayoutPreview(
         currentStep = 1,
-        totalSteps = 3,
-        label = "계정 정보",
         title = "이메일 주소를 입력해주세요",
         buttonEnabled = false
     ) {
@@ -122,8 +118,6 @@ fun EmailInputScreenPreview_Empty() {
 fun EmailInputScreenPreview_Invalid() {
     SignUpStepLayoutPreview(
         currentStep = 1,
-        totalSteps = 3,
-        label = "계정 정보",
         title = "이메일 주소를 입력해주세요",
         buttonEnabled = false
     ) {
@@ -154,8 +148,6 @@ fun EmailInputScreenPreview_Invalid() {
 fun EmailInputScreenPreview_Valid() {
     SignUpStepLayoutPreview(
         currentStep = 1,
-        totalSteps = 3,
-        label = "계정 정보",
         title = "이메일 주소를 입력해주세요",
         buttonEnabled = true
     ) {

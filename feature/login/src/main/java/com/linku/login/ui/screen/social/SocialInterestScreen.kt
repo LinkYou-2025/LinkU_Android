@@ -29,8 +29,6 @@ fun SocialInterestScreen(
 
     SignUpSelectionLayout(
         currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
         titleText = buildAnnotatedString {
             append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
         },
@@ -60,8 +58,6 @@ private fun SocialInterestScreenPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
             },
@@ -90,8 +86,6 @@ private fun SocialInterestScreenSelectedPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
             },

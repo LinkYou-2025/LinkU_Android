@@ -41,8 +41,6 @@ fun SocialNicknameScreen(
 
     SignUpStepLayout(
         currentStep = 2,
-        totalSteps = 3,
-        label = "프로필 설정",
         title = "사용하실 닉네임을\n입력해주세요",
         buttonEnabled = isButtonEnabled,
         onNextClick = {
@@ -86,8 +84,6 @@ fun SocialNicknameScreenDuplicatedPreview() {
     LinkuPreview {
         SignUpStepLayoutPreview(
             currentStep = 2,
-            totalSteps = 3,
-            label = "프로필 설정",
             title = "사용하실 닉네임을\n입력해주세요",
             buttonEnabled = false,
             onNextClick = {}

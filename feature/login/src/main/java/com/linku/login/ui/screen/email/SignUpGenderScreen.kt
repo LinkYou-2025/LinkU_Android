@@ -33,8 +33,6 @@ fun SignUpGenderScreen(
 
     SignUpStepLayout(
         currentStep = 2,
-        totalSteps = 3,
-        label = "프로필 설정",
         title = "성별을\n선택해주세요",
         buttonEnabled = isButtonEnabled,
         onNextClick = {
@@ -70,8 +68,6 @@ fun SignUpGenderScreenPreview() {
     LinkuPreview {
         SignUpStepLayoutPreview(
             currentStep = 2,
-            totalSteps = 3,
-            label = "프로필 설정",
             title = "성별을\n선택해주세요",
             buttonEnabled = isButtonEnabled,
             onNextClick = {}

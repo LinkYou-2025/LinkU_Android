@@ -79,7 +79,6 @@ fun EmailVerificationScreen(
 
     // 뷰모델 상태
     val authState by viewModel.authState.collectAsStateWithLifecycle()
-    val timer by viewModel.timer.collectAsStateWithLifecycle()
 
 
     // 파생 상태로- 중복 제거.
@@ -204,9 +203,7 @@ fun EmailVerificationScreenContent(
         ) {
             //1단계
             StepIndicator(
-                currentStep = 1,
-                totalSteps = 3,
-                label = "계정 정보"
+                currentStep = 1
             )
             Spacer(modifier = Modifier.height((36.scaler)))
             Text(
