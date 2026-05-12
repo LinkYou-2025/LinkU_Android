@@ -72,6 +72,10 @@ import com.linku.linku_android.curation.curationGraph
 import com.linku.login.navigation.LoginApp
 import com.linku.navigation.LinkuNavigationItem
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 
 @Composable
 fun MainApp(
@@ -123,7 +127,6 @@ fun MainApp(
         }
     }
 
-
     var saveLinkEntryTriggered by remember { mutableStateOf(false) }
 
     // 현재 라우트 관찰
@@ -162,7 +165,29 @@ fun MainApp(
         }
     }
 
+    // 알람 권한 요청 트리거 플래그
+    var requestNotificationPermission by remember { mutableStateOf(false) }
 
+    // 권한 요청 런쳐
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted -> // 시스템 권한 요청 결과를 로컬에 저장
+        viewModel.setNotificationEnabled(isGranted)
+        Log.d("MainApp", "알림 권한 요청 결과: $isGranted")
+        Log.d("MainApp", "시스템 권한 상태: ${ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED}")
+    }
+
+    // 플래그 감지 시 권한 요청 런쳐 실행
+    LaunchedEffect(requestNotificationPermission) {
+        if (requestNotificationPermission) {
+
+            // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            requestNotificationPermission = false // 한 번만 요청하도록 처리
+        }
+    }
 
     ThemeProvider {
         MainScreen(
@@ -267,6 +292,10 @@ fun MainApp(
                                 // refresh 있음 → 자동로그인 시도
                                 loginViewModel.tryAutoLogin(
                                     onSuccess = {
+
+                                        // 로그인 성공 후 알림 권한 요청 트리거
+                                        requestNotificationPermission = true
+
                                         navigator.navigate(NavigationRoute.Home.route) {
                                             popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                             launchSingleTop = true
@@ -296,6 +325,9 @@ fun MainApp(
                             // mypageViewModel.refreshUserInfo() //중복 호출 제거함.
 
                             showNavBar = true
+
+                            // 로그인 성공 후 알림 권한 요청 트리거
+                            requestNotificationPermission = true
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
