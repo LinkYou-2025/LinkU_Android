@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.compose.NavHost
@@ -24,6 +24,8 @@ import com.linku.login.LoginScreen
 import com.linku.login.R
 import com.linku.login.ui.animation.AnimatedLoginScreen
 import com.linku.login.ui.bottom_sheet.TermsAgreementSheet
+import com.linku.login.ui.model.TermsAgreementEvent
+import com.linku.login.ui.model.TermsAgreementState
 import com.linku.login.ui.screen.email.EmailLoginScreen
 import com.linku.login.ui.screen.email.EmailVerificationScreen
 import com.linku.login.ui.screen.email.InterestContentScreen
@@ -133,22 +135,35 @@ fun LoginApp(
                 )
 
                 TermsAgreementSheet(
-                    navController = navController,
-                    vm = signUpVm,
                     visible = showTermsSheet,
-                    onClose = { parentEntry.savedStateHandle["show_terms_sheet"] = false },
-                    onClickTerms = {
-                        parentEntry.savedStateHandle["show_terms_sheet"] = false
-                        navController.navigate("terms/service")
-                    },
-                    onClickPrivacy = {
-                        parentEntry.savedStateHandle["show_terms_sheet"] = false
-                        navController.navigate("terms/privacy")
-                    },
-                    onClickMarketing = {
-                        parentEntry.savedStateHandle["show_terms_sheet"] = false
-                        navController.navigate("terms/marketing")
-                    }
+                    state = TermsAgreementState(
+                        agreeTerms = signUpVm.signUpForm.agreeTerms,
+                        agreePrivacy = signUpVm.signUpForm.agreePrivacy,
+                        agreeMarketing = signUpVm.signUpForm.agreeMarketing,
+                    ),
+                    event = TermsAgreementEvent(
+                        onClose = { parentEntry.savedStateHandle["show_terms_sheet"] = false },
+                        onAgreeTermsChange = signUpVm::setAgreeTerms,
+                        onAgreePrivacyChange = signUpVm::setAgreePrivacy,
+                        onAgreeMarketingChange = signUpVm::setAgreeMarketing,
+                        onClickTerms = {
+                            parentEntry.savedStateHandle["show_terms_sheet"] = false
+                            navController.navigate("terms/service")
+                        },
+                        onClickPrivacy = {
+                            parentEntry.savedStateHandle["show_terms_sheet"] = false
+                            navController.navigate("terms/privacy")
+                        },
+                        onClickMarketing = {
+                            parentEntry.savedStateHandle["show_terms_sheet"] = false
+                            navController.navigate("terms/marketing")
+                        },
+                        onNext = {
+                            navController.navigate("email_verification") {
+                                launchSingleTop = true
+                            }
+                        },
+                    )
                 )
             }
 
@@ -171,17 +186,20 @@ fun LoginApp(
 
                     when (route) {
                         "terms/service" -> ServiceTermsScreen(
+                            alreadyAgreed = vm.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             // agreeAction(vm) 뒤에 세미콜론 제거 → 람다 마지막 식이 Unit이어야 함
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "terms/privacy" -> PrivacyTermsScreenFixed(
+                            alreadyAgreed = vm.signUpForm.agreePrivacy,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "terms/marketing" -> MarketingTermsScreenComposable(
+                            alreadyAgreed = vm.signUpForm.agreeMarketing,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
@@ -305,27 +323,35 @@ fun LoginApp(
 
 
                 TermsAgreementSheet(
-                    navController = navController,
-                    vm = signUpVm,
                     visible = showTermsSheet,
-                    onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
-                    onNext = {
-                        navController.navigate("social_nickname") {  // 소셜 로그인시에는 닉네임으로!
-                            launchSingleTop = true
-                        }
-                    },
-                    onClickTerms = {
-                        entry.savedStateHandle["show_terms_sheet"] = false
-                        navController.navigate("social_terms/service")
-                    },
-                    onClickPrivacy = {
-                        entry.savedStateHandle["show_terms_sheet"] = false
-                        navController.navigate("social_terms/privacy")
-                    },
-                    onClickMarketing = {
-                        entry.savedStateHandle["show_terms_sheet"] = false
-                        navController.navigate("social_terms/marketing")
-                    }
+                    state = TermsAgreementState(
+                        agreeTerms = signUpVm.signUpForm.agreeTerms,
+                        agreePrivacy = signUpVm.signUpForm.agreePrivacy,
+                        agreeMarketing = signUpVm.signUpForm.agreeMarketing,
+                    ),
+                    event = TermsAgreementEvent(
+                        onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
+                        onAgreeTermsChange = signUpVm::setAgreeTerms,
+                        onAgreePrivacyChange = signUpVm::setAgreePrivacy,
+                        onAgreeMarketingChange = signUpVm::setAgreeMarketing,
+                        onClickTerms = {
+                            entry.savedStateHandle["show_terms_sheet"] = false
+                            navController.navigate("social_terms/service")
+                        },
+                        onClickPrivacy = {
+                            entry.savedStateHandle["show_terms_sheet"] = false
+                            navController.navigate("social_terms/privacy")
+                        },
+                        onClickMarketing = {
+                            entry.savedStateHandle["show_terms_sheet"] = false
+                            navController.navigate("social_terms/marketing")
+                        },
+                        onNext = {
+                            navController.navigate("social_nickname") {
+                                launchSingleTop = true
+                            }
+                        },
+                    )
                 )
             }
 
@@ -350,16 +376,19 @@ fun LoginApp(
 
                     when (route) {
                         "social_terms/service" -> ServiceTermsScreen(
+                            alreadyAgreed = vm.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/privacy" -> PrivacyTermsScreenFixed(
+                            alreadyAgreed = vm.signUpForm.agreePrivacy,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/marketing" -> MarketingTermsScreenComposable(
+                            alreadyAgreed = vm.signUpForm.agreeMarketing,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )

@@ -183,13 +183,8 @@ fun EmailLoginScreen(
                         }
                     },
                     hint = "이메일",
-                    textStyle = TextStyle(
-                        fontSize = 14.sp,
-                        lineHeight = 16.sp,
-                        fontWeight = FontWeight(500),
-                        color = colorTheme.black
+
                     )
-                )
 
                 Spacer(Modifier.height((10.scaler)))
 

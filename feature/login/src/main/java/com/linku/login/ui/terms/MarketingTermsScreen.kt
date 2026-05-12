@@ -43,13 +43,15 @@ private val FOOTER_HEIGHT = 50.dp  // 본문의 마지막 내용이 하단 버�
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarketingTermsScreenComposable(
+    alreadyAgreed: Boolean = false,
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
-    val isAtBottom by remember {
+    val isAtBottom by remember(alreadyAgreed) {
         derivedStateOf {
+            if (alreadyAgreed) return@derivedStateOf true
             if (scrollState.maxValue > 0) {
                 scrollState.value >= (scrollState.maxValue - 2) // 2px 정도 여유
             } else {
