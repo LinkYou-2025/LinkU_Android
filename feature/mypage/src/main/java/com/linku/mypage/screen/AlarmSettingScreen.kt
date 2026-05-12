@@ -4,15 +4,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +33,8 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.mypage.R
+import com.linku.mypage.component.alarm.NotificationSwitch
+import com.linku.mypage.component.alarm.SubNotificationSwitch
 
 @Composable
 fun AlarmSettingScreen(
@@ -186,105 +185,6 @@ fun AlarmSettingScreen(
                 )
             }
         }
-    }
-}
-
-// TODO: 컴포넌트로 빼기
-@Composable
-fun NotificationSwitch(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onSwitchOn: (() -> Unit)? = null,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal,
-            color = LocalColorTheme.current.black,
-            fontFamily = LocalFontTheme.current.font,
-            modifier = Modifier.weight(1f)
-        )
-
-        CustomSwitch(
-            checked = checked,
-            onCheckedChange = {
-                onCheckedChange(it)
-                if (it) onSwitchOn?.invoke()
-            }
-        )
-    }
-}
-
-@Composable
-fun CustomSwitch(
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier
-            .width(46.dp)
-            .height(26.dp)
-            .graphicsLayer {
-                shadowElevation = 2.dp.toPx()
-                shape = RoundedCornerShape(12.dp)
-                clip = false
-            }
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (checked) LocalColorTheme.current.blue[200] else LocalColorTheme.current.gray[200])
-            .noRippleClickable { onCheckedChange(!checked) }
-            .padding(horizontal = 2.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        Box(
-            modifier = Modifier
-                .size(21.9.dp)
-                .align(if (checked) Alignment.CenterEnd else Alignment.CenterStart)
-                .graphicsLayer {
-                    shadowElevation = 2.dp.toPx()
-                    shape = CircleShape
-                    clip = false
-                }
-                .clip(CircleShape)
-                .background(Color(0xFFF5F5F5))
-        )
-    }
-}
-
-@Composable
-fun SubNotificationSwitch(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    onSwitchOn: (() -> Unit)? = null,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(
-            text = title,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Normal,
-            color = LocalColorTheme.current.gray[700],
-            fontFamily = LocalFontTheme.current.font,
-            modifier = Modifier
-                .padding(start = 13.dp)
-                .weight(1f)
-        )
-
-        CustomSwitch(
-            checked = checked,
-            onCheckedChange = {
-                onCheckedChange(it)
-                if (it) onSwitchOn?.invoke()
-            }
-        )
     }
 }
 
