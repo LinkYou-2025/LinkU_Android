@@ -3,19 +3,27 @@ package com.linku
 import android.app.Application
 import android.util.Log
 import com.kakao.sdk.common.KakaoSdk
-import com.kakao.sdk.common.util.Utility
+import com.linku.data.network.NetworkReceiver
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 @HiltAndroidApp
 class MainApplication: Application() {
+
+    @Inject
+    lateinit var networkReceiver: NetworkReceiver
+
     override fun onCreate() {
         super.onCreate()
         Log.d("DEBUG", "✅ MainApplication 실행됨")
         KakaoSdk.init(this, BuildConfig.KAKAO_NATIVE_APP_KEY)
 
-        // 키 해시 확인용 - 등록 후 삭제할 것
-        // TODO : 지우기
-        val keyHash = Utility.getKeyHash(this)
-        Log.d("KeyHash", "키 해시: $keyHash")
+        networkReceiver.register() // 네트워크 감지 시작
+
+    }
+
+    override fun onTerminate() {
+        super.onTerminate()
+        networkReceiver.unregister() // 앱 종료 시 해제
     }
 }

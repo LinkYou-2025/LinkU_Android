@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name="com.linku.MainApplication"
@@ -76,6 +77,11 @@
             </intent-filter>
 
         </activity>
+
+        <!-- 네트워크 상태 감지 -->
+        <receiver
+            android:name="com.linku.data.network.NetworkReceiver"
+            android:exported="false" />
     </application>
 </manifest>
 
