@@ -9,6 +9,7 @@ const MEMBERS = {
   ugmin1030: { name: "지민", style: "t" },
   Hongji03: { name: "지현", style: "f" },
   KateteDeveloper: { name: "윤지", style: "t2" },
+  codebidoof: { name: "현우", style: "t3" },
 };
 
 function githubGet(path) {
@@ -43,11 +44,10 @@ function getKSTRange(daysAgo = 0) {
   return { since, until, dateStr };
 }
 
-// 이번 주 월요일 00:00 ~ 일요일 23:59 (KST) 반환
 function getThisWeekKSTRange() {
   const now = new Date();
   const kst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  const day = kst.getUTCDay(); // 0=일, 1=월 ... 6=토
+  const day = kst.getUTCDay();
   const diffToMonday = day === 0 ? 6 : day - 1;
   const monday = new Date(kst);
   monday.setUTCDate(kst.getUTCDate() - diffToMonday);
@@ -62,32 +62,37 @@ function getThisWeekKSTRange() {
   };
 }
 
+// ✅ 수정: PR 없이 원격 push된 커밋도 모두 집계 (모든 브랜치 대상, SHA 중복 제거)
 async function getCommitCount(login, since, until) {
   try {
     const branches = await githubGet(`/repos/${ORG}/${REPO}/branches?per_page=100`);
     if (!Array.isArray(branches)) return 0;
+
     const seenSHAs = new Set();
     let count = 0;
 
-    // 브랜치별 병렬 처리
     const results = await Promise.all(
-      branches.map(branch =>
-        githubGet(`/repos/${ORG}/${REPO}/commits?author=${login}&since=${since}&until=${until}&sha=${branch.name}&per_page=100`)
-          .catch(() => [])
+      branches.map((branch) =>
+        githubGet(
+          `/repos/${ORG}/${REPO}/commits?author=${login}&since=${since}&until=${until}&sha=${encodeURIComponent(branch.name)}&per_page=100`
+        ).catch(() => [])
       )
     );
 
     for (const commits of results) {
       if (!Array.isArray(commits)) continue;
       for (const c of commits) {
-        if (seenSHAs.has(c.sha)) continue;
-        if (c.parents && c.parents.length >= 2) continue;
+        if (!c.sha) continue;
+        if (seenSHAs.has(c.sha)) continue;          // 브랜치 간 중복 제거
+        if (c.parents && c.parents.length >= 2) continue; // 머지 커밋 제외
         seenSHAs.add(c.sha);
         count++;
       }
     }
     return count;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 async function getAllPages(path) {
@@ -108,36 +113,61 @@ async function getPRCount(login, since, until) {
     const prs = await getAllPages(`/repos/${ORG}/${REPO}/pulls?state=all`);
     return prs.filter((pr) => {
       const created = new Date(pr.created_at);
-      return pr.user.login === login && created >= new Date(since) && created <= new Date(until);
+      return (
+        pr.user.login === login &&
+        created >= new Date(since) &&
+        created <= new Date(until)
+      );
     }).length;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 async function getReviewCount(login, since, until) {
   try {
     const prs = await getAllPages(`/repos/${ORG}/${REPO}/pulls?state=all`);
     let count = 0;
-    await Promise.all(prs.map(async (pr) => {
-      const reviews = await githubGet(`/repos/${ORG}/${REPO}/pulls/${pr.number}/reviews`).catch(() => []);
-      if (!Array.isArray(reviews)) return;
-      count += reviews.filter((r) => {
-        const submitted = new Date(r.submitted_at);
-        return r.user.login === login && submitted >= new Date(since) && submitted <= new Date(until);
-      }).length;
-    }));
+    await Promise.all(
+      prs.map(async (pr) => {
+        const reviews = await githubGet(
+          `/repos/${ORG}/${REPO}/pulls/${pr.number}/reviews`
+        ).catch(() => []);
+        if (!Array.isArray(reviews)) return;
+        count += reviews.filter((r) => {
+          const submitted = new Date(r.submitted_at);
+          return (
+            r.user.login === login &&
+            submitted >= new Date(since) &&
+            submitted <= new Date(until)
+          );
+        }).length;
+      })
+    );
     return count;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 async function getIssueCount(login, since, until) {
   try {
-    const issues = await githubGet(`/repos/${ORG}/${REPO}/issues?state=all&since=${since}&per_page=100`);
+    const issues = await githubGet(
+      `/repos/${ORG}/${REPO}/issues?state=all&since=${since}&per_page=100`
+    );
     if (!Array.isArray(issues)) return 0;
     return issues.filter((i) => {
       const created = new Date(i.created_at);
-      return i.user.login === login && !i.pull_request && created >= new Date(since) && created <= new Date(until);
+      return (
+        i.user.login === login &&
+        !i.pull_request &&
+        created >= new Date(since) &&
+        created <= new Date(until)
+      );
     }).length;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 async function hasNoCommitFor3Days(login) {
@@ -173,6 +203,12 @@ function getPraiseMessage(login, stats) {
       if (score >= 5)  return `💻 윤지 오늘 점수 ${score}점. 커밋 ${stats.commits}개, 대충 짠 코드 없는 거 알고 있음. 오늘도 링큐 지탱해줘서 고마워.`;
       return `🌱 윤지 오늘 커밋 ${stats.commits}개. 오늘은 조용했네. 생각하면서 코딩하는 스타일인 거 알아서 믿고 있음. 내일 보여줘.`;
 
+    // ✅ 신규: 현우 스타일
+    case "t3":
+      if (score >= 15) return `⚡ 현우 오늘 커밋 ${stats.commits}개. 새로 합류했는데 이 정도면 진짜 레전드.. PR ${stats.prs}개까지, 총점 ${score}점. 링큐가 든든해졌다!`;
+      if (score >= 5)  return `🛠 현우 오늘 점수 ${score}점. 커밋 ${stats.commits}개, 적응하면서도 꾸준히 해줘서 고마워. 팀이 너 믿고 있어!`;
+      return `🌀 현우 오늘 커밋 ${stats.commits}개. 새로운 환경 파악 중인 거 알아. 천천히 페이스 올려줘, 기다리고 있을게!`;
+
     default:
       return `오늘도 수고했어요!`;
   }
@@ -184,6 +220,7 @@ function getScoldMessage(login) {
     case "f":  return `😢 ${name}아... 3일째 커밋이 없어ㅠㅠ 혹시 많이 힘들어? 그래도 링큐는 너를 기다리고 있어.. 제발 돌아와줘🙏`;
     case "t":  return `🚨 ${name} 3일 연속 커밋이 없습니다.... 팀장님 조금만 더 힘내주세요...`;
     case "t2": return `📵 윤지 3일 연속 커밋 0건. 분석하느라 바쁜 거 알겠는데.. 커밋 한 개만이라도 부탁해요🥺`;
+    case "t3": return `🆕 현우 3일 연속 커밋 0건. 적응 중인 거 이해하지만.. 슬슬 링큐 코드 파헤쳐봐요!`;
     default:   return `${name} 3일째 커밋 없음. 확인 바람.`;
   }
 }
@@ -196,16 +233,21 @@ function sendDiscord(content) {
       hostname: url.hostname,
       path: url.pathname + url.search,
       method: "POST",
-      headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) },
+      headers: {
+        "Content-Type": "application/json",
+        "Content-Length": Buffer.byteLength(body),
+      },
     };
-    const req = https.request(options, (res) => { res.on("data", () => {}); res.on("end", resolve); });
+    const req = https.request(options, (res) => {
+      res.on("data", () => {});
+      res.on("end", resolve);
+    });
     req.on("error", reject);
     req.write(body);
     req.end();
   });
 }
 
-// 주간: 이번 주 월~일 한 번에 집계 (rate limit 절약)
 async function getWeeklyStats(login) {
   const { since, until } = getThisWeekKSTRange();
   const [commits, prs, reviews, issues] = await Promise.all([
@@ -233,13 +275,14 @@ async function main() {
           getReviewCount(login, since, until),
           getIssueCount(login, since, until),
         ]).then(([commits, prs, reviews, issues]) => ({ commits, prs, reviews, issues }));
+
     const score = calcScore(stats);
     const noCommit3Days = !isWeekly && (await hasNoCommitFor3Days(login));
     results.push({ login, stats, score, noCommit3Days });
   }
 
   results.sort((a, b) => b.score - a.score);
-  const medals = ["👑", "🥈", "🥉"];
+  const medals = ["👑", "🥈", "🥉", "🎖"];
 
   let msg = isWeekly
     ? `📅 **${weekLabel} 링큐 Android 주간 랭킹!**\n\n`
