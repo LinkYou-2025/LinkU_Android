@@ -292,10 +292,6 @@ fun MainApp(
                                 // refresh 있음 → 자동로그인 시도
                                 loginViewModel.tryAutoLogin(
                                     onSuccess = {
-
-                                        // 로그인 성공 후 알림 권한 요청 트리거
-                                        requestNotificationPermission = true
-
                                         navigator.navigate(NavigationRoute.Home.route) {
                                             popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                             launchSingleTop = true
