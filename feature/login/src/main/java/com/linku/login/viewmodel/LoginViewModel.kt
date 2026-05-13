@@ -40,6 +40,12 @@ open class LoginViewModel @Inject constructor(
         )
     }
 
+    // 기기 구분
+    private fun getDeviceType(): String {
+        val config = getApplication<Application>().resources.configuration
+        return if (config.smallestScreenWidthDp >= 600) "TABLET" else "PHONE"
+    }
+
     // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
     private suspend fun fetchAndSaveUserSession(userId: Long) {
         val userInfo =
@@ -94,8 +100,8 @@ open class LoginViewModel @Inject constructor(
                 val loginResult = authRepository.login(
                     email = email.trim(),
                     password = password.trim(),
-                    deviceId = deviceId,       // 추가
-                    deviceType = "PHONE"       // 추가
+                    deviceId = deviceId,
+                    deviceType = getDeviceType()
                 )
 
                 // 토큰 + userId 저장
