@@ -10,18 +10,18 @@ import com.squareup.moshi.JsonClass
 data class LoginResponseDTO (
 
     @field:Json(name = "userId")
-    val userId: Long, // 항상 있어야 함
+    val userId: Long,
 
     @field:Json(name = "accessToken")
-    val accessToken: String, // 항상 있어야 함. -> 기본 값 제거
+    val accessToken: String,
 
     @field:Json(name = "refreshToken")
-    val refreshToken: String,  // 항상 있어야 함. -> 기본 값 제거
+    val refreshToken: String,
 
     @field:Json(name = "status")
-    val status: String = "", // 없을 수도 있음 → 기본값 유지
+    val status: String = "",
 
     @field:Json(name = "inactiveDate")
-    val inactiveDate: String? = null  // 이건 nullable로 수정함. 서버에서 null로 옴....
+    val inactiveDate: String? = null
 
 )

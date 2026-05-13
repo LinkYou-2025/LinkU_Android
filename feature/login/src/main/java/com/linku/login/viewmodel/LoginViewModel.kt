@@ -1,7 +1,10 @@
 package com.linku.login.viewmodel
 
+import android.annotation.SuppressLint
+import android.app.Application
+import android.provider.Settings
 import android.util.Log
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.model.auth.AutoLoginState
@@ -19,27 +22,23 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
-/**
- * 세션 정리
- * 1. 로그인 -> 2. 로그인 api 호출 -> 3. 토큰 저장(authPreference)
- * 4. 사용자 정보 전체 조회 (GET /api/users/{userId}) -> 5. 세션 풀세팅
- * 6. 로그인 성공(Main 진입하면서 ui는 이미 완성된 세션을 구독함.)
- * 
- * 
- * 자동 로그인
- * 1. 앱 시작 -> 2. authPreference.isLoggedIn == true로 자동 로그인 판단.
- * 3. fetchAndSaveUserSession(userId)- 서버로부터 사용자 정보 받아서 앱 세션 저장소에 만들어 놓음.
- * 4. 세션 스토어 풀 세팅함.(api 호출 줄임) -> 5. AutoLoginState.Success한 뒤, 6. 메인 진입.
- * */
-
-
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
+    application: Application,
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository, //getUserInfo 사용함.
     private val loginSessionStore: LoginSessionStore,
     private val authPreference: AuthPreference,
-) : ViewModel() {
+) : AndroidViewModel(application) {
+
+    // deviceId 앱 시작 시 한 번만 읽음
+    private val deviceId: String by lazy {
+        @SuppressLint("HardwareIds")
+        "android-" + Settings.Secure.getString(
+            getApplication<Application>().contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+    }
 
     // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
     private suspend fun fetchAndSaveUserSession(userId: Long) {
@@ -93,16 +92,11 @@ open class LoginViewModel @Inject constructor(
 
                 // API 호출
                 val loginResult = authRepository.login(
-                    email = email.trim(), // 공백 제거
-                    password = password.trim() // 공백 제거
+                    email = email.trim(),
+                    password = password.trim(),
+                    deviceId = deviceId,       // 추가
+                    deviceType = "PHONE"       // 추가
                 )
-
-                // TODO: INACTIVE 처리 — 다인 언니/서원이 확인 후 추가
-                // if (loginResult.status == "INACTIVE") {
-                //     _loginState.value = LoginState.Error(LoginErrorType.INACTIVE_User_Error)
-                //     return@launch
-                // }
-
 
                 // 토큰 + userId 저장
                 authPreference.saveTokens(
