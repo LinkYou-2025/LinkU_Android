@@ -107,7 +107,7 @@ fun EmailVerificationScreen(
 
     // 화면 진입 시 리셋
     LaunchedEffect(Unit) {
-        viewModel.resetAll()
+        viewModel.reset()  // 타이머 건드리지 않고 상태만 Idle로
     }
 
 

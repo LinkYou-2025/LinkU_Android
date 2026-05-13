@@ -15,6 +15,8 @@ import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
+import com.linku.data.api.dto.auth.signup.email.EmailCodeRequestDTO
+import com.linku.data.api.dto.auth.signup.email.EmailVerifyRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.withErrorHandling
 import com.linku.data.mapper.SocialProfileMapper
@@ -111,14 +113,21 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun sendEmailCode(email: String) {
         Log.d(TAG, "[이메일 코드 전송 시도] email=$email")
-        serverApi.withErrorHandling { sendVerificationEmail(email) }
+        serverApi.withErrorHandling { sendVerificationEmail(EmailCodeRequestDTO(email = email)) }
         Log.d(TAG, "[이메일 코드 전송 성공]")
     }
 
 
     override suspend fun verifyEmailCode(email: String, code: String): Boolean {
         Log.d(TAG, "[이메일 코드 검증 시도] email=$email")
-        val response = serverApi.withErrorHandling { checkVerificationEmail(email, code) }
+        val response = serverApi.withErrorHandling {
+            checkVerificationEmail(
+                EmailVerifyRequestDTO(
+                    email = email,
+                    code = code
+                )
+            )
+        }
         Log.d(TAG, "[이메일 코드 검증 결과] success=${response.success}")
         return response.success
     }

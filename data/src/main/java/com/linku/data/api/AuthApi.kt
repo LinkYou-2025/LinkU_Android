@@ -6,7 +6,9 @@ import com.linku.data.api.dto.auth.login.email.LoginResponseDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
+import com.linku.data.api.dto.auth.signup.email.EmailCodeRequestDTO
 import com.linku.data.api.dto.auth.signup.email.EmailVerificationResponseDTO
+import com.linku.data.api.dto.auth.signup.email.EmailVerifyRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailResponseDTO
 import com.linku.data.api.dto.auth.signup.social.SocialProfileRequestDTO
@@ -47,14 +49,13 @@ interface AuthApi {
     // 이메일 인증 코드 전송
     @POST("auth/email/code")
     suspend fun sendVerificationEmail(
-        @Query("email") email: String
+        @Body body: EmailCodeRequestDTO
     ): BaseResponse<String> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
     // 이메일 인증 코드 검증
-    @GET("auth/email/verify")
+    @POST("auth/email/verify")
     suspend fun checkVerificationEmail(
-        @Query("email") email: String,
-        @Query("code") code: String
+        @Body body: EmailVerifyRequestDTO
     ): BaseResponse<EmailVerificationResponseDTO>
 
     //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
