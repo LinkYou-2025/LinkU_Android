@@ -22,8 +22,6 @@ class NotificationPreferenceImpl(
         // SharedPreferences 파일 이름
         private const val PREF_NAME = "notification"
 
-        // 전체 알림 키
-        private const val KEY_NOTIFICATION_ENABLED = "key_notification_enabled"
         // 링크 활동 알림 키
         private const val KEY_NOTIFICATION_LINK_ACTIVITY = "key_notification_link_activity"
         // 공유 폴더 알림 키
@@ -46,7 +44,7 @@ class NotificationPreferenceImpl(
      * 전체 알림이 비활성화된 경우 세부 설정과 관계없이 항상 false를 반환합니다.
      */
     private fun isEnabledWith(key: String): Boolean =
-        isNotificationEnabled() && pref.getBoolean(key, true)
+        pref.getBoolean(key, true)
 
     /**
      * 주어진 키에 해당하는 알림 설정값을 저장합니다.
@@ -54,13 +52,6 @@ class NotificationPreferenceImpl(
     private fun setEnabled(key: String, enabled: Boolean) {
         pref.edit { putBoolean(key, enabled) }
     }
-
-    // 전체 알람
-    override fun isNotificationEnabled() =
-        pref.getBoolean(KEY_NOTIFICATION_ENABLED, true)
-
-    override fun setNotificationEnabled(enabled: Boolean) =
-        setEnabled(KEY_NOTIFICATION_ENABLED, enabled)
 
 
     // 링크

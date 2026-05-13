@@ -14,10 +14,6 @@ package com.linku.data.preference
  */
 interface NotificationPreference {
 
-    // 전체 알림 ON/OFF
-    fun isNotificationEnabled(): Boolean
-    fun setNotificationEnabled(enabled: Boolean)
-
     // 링크 활동 알림
     fun isLinkActivityEnabled(): Boolean
     fun setLinkActivityEnabled(enabled: Boolean)
