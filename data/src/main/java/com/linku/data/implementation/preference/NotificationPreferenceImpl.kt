@@ -30,6 +30,8 @@ class NotificationPreferenceImpl(
         private const val KEY_NOTIFICATION_AI_CURATION = "key_notification_ai_curation"
         // 시스템/공지 알림 키
         private const val KEY_NOTIFICATION_SYSTEM_NOTICE = "key_notification_system_notice"
+        // 마스터 알림 키 (독립 저장)
+        private const val KEY_NOTIFICATION_MASTER = "key_notification_master"
 
 
         // 디버깅용 태그 상수
@@ -53,12 +55,28 @@ class NotificationPreferenceImpl(
         pref.edit { putBoolean(key, enabled) }
     }
 
-    // 서브 알림 전체
-    override fun isSubNotificationsEnabled(): Boolean  {
+
+    // 마스터 알림
+    override fun isMasterNotificationEnabled(): Boolean =
+        pref.getBoolean(KEY_NOTIFICATION_MASTER, true)
+
+    override fun setMasterNotificationEnabled(enabled: Boolean) =
+        setEnabled(KEY_NOTIFICATION_MASTER, enabled)
+
+
+    // 서브 알림 전체 일괄
+    override fun areAllSubNotificationsEnabled(): Boolean {
         return isLinkActivityEnabled() &&
                 isSharedFolderEnabled() &&
                 isAiCurationEnabled() &&
                 isSystemNoticeEnabled()
+    }
+
+    override fun areAllSubNotificationsDisabled(): Boolean {
+        return !isLinkActivityEnabled() &&
+                !isSharedFolderEnabled() &&
+                !isAiCurationEnabled() &&
+                !isSystemNoticeEnabled()
     }
 
     override fun setSubNotificationsEnabled(enabled: Boolean) {
@@ -68,6 +86,8 @@ class NotificationPreferenceImpl(
         setSystemNoticeEnabled(enabled)
     }
 
+
+    // ========= 각 서브 알림 상태 관리 ===========
     // 링크
     override fun isLinkActivityEnabled() =
         isEnabledWith(KEY_NOTIFICATION_LINK_ACTIVITY)

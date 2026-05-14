@@ -23,12 +23,12 @@ class NotificationController @Inject constructor(
 
     // ===== 알람 상태 조회 =====
 
-    // 세부 알림 항목 4개가 모두 활성화되어 있는지 확인하는 내부 헬퍼 함수
-    // 모든 세부알림이 켜져 있으면 전체알람도 켜진 것으로 간주.
+    // 마스터 알림
     private fun isAllNotificationEnabled(): Boolean {
-        return preference.isSubNotificationsEnabled()
+        return preference.isMasterNotificationEnabled()
     }
 
+    // 세부 알람
     fun isLinkActivityEnabled(): Boolean =
         preference.isLinkActivityEnabled()
 
@@ -44,25 +44,42 @@ class NotificationController @Inject constructor(
 
     // ===== 알람 설정 변경 =====
 
-    // 전체 알림 설정 변경 시 세부 알림 항목을 함께 변경
+    // 전체 알림 설정 변경 시 마스터 키 저장 + 세부 알림 항목도 함께 변경
     fun setNotificationEnabled(enabled: Boolean) {
+        preference.setMasterNotificationEnabled(enabled)
         preference.setSubNotificationsEnabled(enabled)
     }
 
     fun setLinkActivityEnabled(enabled: Boolean) {
         preference.setLinkActivityEnabled(enabled)
+        syncMasterWithSubState()
     }
 
     fun setSharedFolderEnabled(enabled: Boolean) {
         preference.setSharedFolderEnabled(enabled)
+        syncMasterWithSubState()
     }
 
     fun setAiCurationEnabled(enabled: Boolean) {
         preference.setAiCurationEnabled(enabled)
+        syncMasterWithSubState()
     }
 
     fun setSystemNoticeEnabled(enabled: Boolean) {
         preference.setSystemNoticeEnabled(enabled)
+        syncMasterWithSubState()
+    }
+
+    // 세부 알림 상태에 따라 마스터 알람 상태 자동 동기화
+    // 전부 ON → 마스터 ON / 전부 OFF → 마스터 OFF / 일부 혼합 → 마스터 유지
+    private fun syncMasterWithSubState() {
+        when {
+            preference.areAllSubNotificationsEnabled() ->
+                preference.setMasterNotificationEnabled(true)
+
+            preference.areAllSubNotificationsDisabled() ->
+                preference.setMasterNotificationEnabled(false)
+        }
     }
 
     // 현재 저장된 모든 알림 설정 값을 하나의 상태 객체로 묶어 반환하는 메서드.
