@@ -1,5 +1,9 @@
 package com.linku.mypage.screen
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,10 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
@@ -36,18 +40,28 @@ import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.R
 import com.linku.mypage.component.notification.NotificationSwitch
 import com.linku.mypage.component.notification.SubNotificationSwitch
-import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 fun AlarmSettingScreen(
     navController: NavController,
     viewModel: NotificationViewModel = hiltViewModel()
 ) {
-    var isAlarmEnabled by remember { mutableStateOf(false) }
-    var isLinkActivityEnabled by remember { mutableStateOf(false) }
-    var isFolderShareEnabled by remember { mutableStateOf(false) }
-    var isAICurationEnabled by remember { mutableStateOf(false) }
-    var isNoticeServiceEnabled by remember { mutableStateOf(false) }
+    val state by viewModel.notificationState.collectAsStateWithLifecycle()
+
+    //권한 요청 런쳐
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) viewModel.toggleNotification(true)
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.permissionEvent.collect {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -82,118 +96,59 @@ fun AlarmSettingScreen(
         Spacer(modifier = Modifier.height(40.75.dp))
 
         // 알림 수신 설정 토글
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .graphicsLayer {
-                shadowElevation = 12.dp.toPx()
-                ambientShadowColor = Color.Black.copy(alpha = 0.02f)
-                spotShadowColor = Color.Black.copy(alpha = 0.02f)
-            }
-            .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white)
-            .padding(horizontal = 20.dp, vertical = 18.dp)
-
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .graphicsLayer {
+                    shadowElevation = 12.dp.toPx()
+                    ambientShadowColor = Color.Black.copy(alpha = 0.02f)
+                    spotShadowColor = Color.Black.copy(alpha = 0.02f)
+                }
+                .clip(RoundedCornerShape(22.dp))
+                .background(LocalColorTheme.current.white)
+                .padding(horizontal = 20.dp, vertical = 18.dp)
         ) {
             NotificationSwitch(
                 title = "알림 수신 설정",
-                checked = isAlarmEnabled,
-                onCheckedChange = { isChecked ->
-                    isAlarmEnabled = isChecked
-                    if (isChecked) {
-                        isLinkActivityEnabled = true
-                        isFolderShareEnabled = true
-                        isAICurationEnabled = true
-                        isNoticeServiceEnabled = true
-                    } else {
-                        isLinkActivityEnabled = false
-                        isFolderShareEnabled = false
-                        isAICurationEnabled = false
-                        isNoticeServiceEnabled = false
-                    }
-                }
+                checked = state.notificationEnabled,
+                onCheckedChange = { viewModel.toggleNotification(it) }
             )
 
-            if (isAlarmEnabled) {
+            if (state.notificationEnabled) {
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
                     title = "링크 활동 알림",
-                    checked = isLinkActivityEnabled,
-                    onCheckedChange = { checked ->
-                        isLinkActivityEnabled = checked
-                        if (
-                            !checked &&
-                            !isFolderShareEnabled &&
-                            !isAICurationEnabled &&
-                            !isNoticeServiceEnabled
-                        ) {
-                            isAlarmEnabled = false
-                        }
-                    }
+                    checked = state.linkActivityEnabled,
+                    onCheckedChange = { viewModel.toggleLinkActivity(it) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
                     title = "폴더 공유 및 권한 알림",
-                    checked = isFolderShareEnabled,
-                    onCheckedChange = { checked ->
-                        isFolderShareEnabled = checked
-                        if (
-                            !checked &&
-                            !isLinkActivityEnabled &&
-                            !isAICurationEnabled &&
-                            !isNoticeServiceEnabled
-                        ) {
-                            isAlarmEnabled = false
-                        }
-                    }
+                    checked = state.sharedFolderEnabled,
+                    onCheckedChange = { viewModel.toggleSharedFolder(it) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
                     title = "AI 큐레이션 알림",
-                    checked = isAICurationEnabled,
-                    onCheckedChange = { checked ->
-                        isAICurationEnabled = checked
-                        if (
-                            !checked &&
-                            !isLinkActivityEnabled &&
-                            !isFolderShareEnabled &&
-                            !isNoticeServiceEnabled
-                        ) {
-                            isAlarmEnabled = false
-                        }
-                    }
+                    checked = state.aiCurationEnabled,
+                    onCheckedChange = { viewModel.toggleAiCuration(it) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
                     title = "공지 및 서비스 알림",
-                    checked = isNoticeServiceEnabled,
-                    onCheckedChange = { checked ->
-                        isNoticeServiceEnabled = checked
-                        if (
-                            !checked &&
-                            !isLinkActivityEnabled &&
-                            !isFolderShareEnabled &&
-                            !isAICurationEnabled
-                        ) {
-                            isAlarmEnabled = false
-                        }
-                    }
+                    checked = state.systemNoticeEnabled,
+                    onCheckedChange = { viewModel.toggleSystemNotice(it) }
                 )
             }
         }
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewAlarmSettingScreen() {
-    val navController = rememberNavController()
-    AlarmSettingScreen(navController = navController)
-}
