@@ -37,12 +37,24 @@ class AuthRepositoryImpl @Inject constructor(
         // 성공이면 반환, 실패 -> ApiError throw
     }
 
-    override suspend fun login(email: String, password: String): LoginResult {
+    override suspend fun login(
+        email: String,
+        password: String,
+        deviceId: String,
+        deviceType: String
+    ): LoginResult {
         Log.d(TAG, "[로그인 시도]")
 
         // API 호출 및 결과 수신
         val emailSignUpResponse = serverApi.withErrorHandling {
-            signIn(LoginRequestDTO(email, password))
+            signIn(
+                LoginRequestDTO(
+                    email = email,
+                    password = password,
+                    deviceId = "android-$deviceId",   // android- 접두사 붙이기
+                    deviceType = "PHONE"
+                )
+            )
         }
 
         Log.d(TAG, "[로그인 성공]")

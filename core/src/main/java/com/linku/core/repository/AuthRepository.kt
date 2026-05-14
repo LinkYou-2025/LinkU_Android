@@ -16,7 +16,12 @@ interface AuthRepository {
 
     suspend fun checkNickname(nickname: String): Unit
 
-    suspend fun login(email: String, password: String): LoginResult
+    suspend fun login(
+        email: String,
+        password: String,
+        deviceId: String,
+        deviceType: String
+    ): LoginResult
     suspend fun signUpWithEmail(
         nickname: String,
         email: String,
