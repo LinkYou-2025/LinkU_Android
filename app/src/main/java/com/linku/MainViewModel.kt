@@ -8,13 +8,14 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.data.preference.NotificationPreference
+import com.linku.mypage.util.NotificationController
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val recentRepository: RecentSearchRepository,
     val loginSessionStore: LoginSessionStore,
-    private val notificationPreference: NotificationPreference
+    private val notificationController: NotificationController
 ): ViewModel() {
 
     // 최근 검색 기록 전체 삭제
@@ -42,7 +43,7 @@ class MainViewModel @Inject constructor(
     // 알림 허용 여부 저장
     // 로그인 성공 후 시스템 권한 요청 결과를 로컬에 반영
     fun setNotificationEnabled(enabled: Boolean) {
-        notificationPreference.setNotificationEnabled(enabled)
+        notificationController.setNotificationEnabled(enabled)
     }
 
 }

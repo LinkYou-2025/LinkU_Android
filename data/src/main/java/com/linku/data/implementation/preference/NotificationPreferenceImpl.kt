@@ -53,6 +53,20 @@ class NotificationPreferenceImpl(
         pref.edit { putBoolean(key, enabled) }
     }
 
+    // 서브 알림 전체
+    override fun isSubNotificationsEnabled(): Boolean  {
+        return isLinkActivityEnabled() &&
+                isSharedFolderEnabled() &&
+                isAiCurationEnabled() &&
+                isSystemNoticeEnabled()
+    }
+
+    override fun setSubNotificationsEnabled(enabled: Boolean) {
+        setLinkActivityEnabled(enabled)
+        setSharedFolderEnabled(enabled)
+        setAiCurationEnabled(enabled)
+        setSystemNoticeEnabled(enabled)
+    }
 
     // 링크
     override fun isLinkActivityEnabled() =

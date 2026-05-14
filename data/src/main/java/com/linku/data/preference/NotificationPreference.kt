@@ -14,6 +14,10 @@ package com.linku.data.preference
  */
 interface NotificationPreference {
 
+    // 서브 알람 전체
+    fun isSubNotificationsEnabled(): Boolean
+    fun setSubNotificationsEnabled(enabled: Boolean)
+
     // 링크 활동 알림
     fun isLinkActivityEnabled(): Boolean
     fun setLinkActivityEnabled(enabled: Boolean)

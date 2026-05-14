@@ -19,15 +19,15 @@ import javax.inject.Inject
  */
 class NotificationController @Inject constructor(
     private val preference: NotificationPreference,
-    private val checker: PermissionChecker
 ) {
 
-    // 시스템 알람 권한 여부 조회
-    fun isSystemNotificationEnabled(): Boolean {
-        return checker.isNotificationEnabled()
-    }
+    // ===== 알람 상태 조회 =====
 
-    // ===== 세부 알람 조회 =====
+    // 세부 알림 항목 4개가 모두 활성화되어 있는지 확인하는 내부 헬퍼 함수
+    // 모든 세부알림이 켜져 있으면 전체알람도 켜진 것으로 간주.
+    private fun isAllNotificationEnabled(): Boolean {
+        return preference.isSubNotificationsEnabled()
+    }
 
     fun isLinkActivityEnabled(): Boolean =
         preference.isLinkActivityEnabled()
@@ -44,12 +44,9 @@ class NotificationController @Inject constructor(
 
     // ===== 알람 설정 변경 =====
 
-    // 전체 알림 토글을 누를 때 세부 항목 전체를 한꺼번에 ON/OFF
+    // 전체 알림 설정 변경 시 세부 알림 항목을 함께 변경
     fun setNotificationEnabled(enabled: Boolean) {
-        preference.setLinkActivityEnabled(enabled)
-        preference.setSharedFolderEnabled(enabled)
-        preference.setAiCurationEnabled(enabled)
-        preference.setSystemNoticeEnabled(enabled)
+        preference.setSubNotificationsEnabled(enabled)
     }
 
     fun setLinkActivityEnabled(enabled: Boolean) {
@@ -68,23 +65,10 @@ class NotificationController @Inject constructor(
         preference.setSystemNoticeEnabled(enabled)
     }
 
-    // 세부 알림 항목 4개가 모두 활성화되어 있는지 확인하는 내부 헬퍼 함수
-    // 모든 세부알림이 켜져 있으면 전체알람도 켜진 것으로 간주하기 위함.
-    private fun isAllSubItemsEnabled(): Boolean {
-        return preference.isLinkActivityEnabled() &&
-                preference.isSharedFolderEnabled() &&
-                preference.isAiCurationEnabled() &&
-                preference.isSystemNoticeEnabled()
-    }
-
-
     // 현재 저장된 모든 알림 설정 값을 하나의 상태 객체로 묶어 반환하는 메서드.
     fun getState(): NotificationState =
         NotificationState(
-
-            // 시스템 알람이 켜져 있고, 모든 서브알람들이 켜져 있어야 true 반환. 아니면 false
-            notificationEnabled = isSystemNotificationEnabled() && isAllSubItemsEnabled(),
-
+            notificationEnabled = isAllNotificationEnabled(),
             aiCurationEnabled = isAiCurationEnabled(),
             linkActivityEnabled = isLinkActivityEnabled(),
             sharedFolderEnabled = isSharedFolderEnabled(),
