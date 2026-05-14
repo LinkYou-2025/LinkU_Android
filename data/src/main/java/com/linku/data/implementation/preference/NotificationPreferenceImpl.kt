@@ -2,7 +2,7 @@ package com.linku.data.implementation.preference
 
 import android.content.Context
 import androidx.core.content.edit
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.repository.NotificationPreference
 
 
 /**

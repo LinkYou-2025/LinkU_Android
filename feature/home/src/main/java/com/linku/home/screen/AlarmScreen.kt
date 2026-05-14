@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -42,6 +43,8 @@ fun AlarmScreen(
     onNavigateToHome: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
+    val alarmState by viewModel.alarmState.collectAsStateWithLifecycle()
+
     //탭 선택 상태
     var selectedTab by rememberSaveable { mutableStateOf(AlarmType.ALL) }
 
@@ -54,6 +57,7 @@ fun AlarmScreen(
     }.collectAsLazyPagingItems()
 
     AlarmScreenContent(
+        isAlarmAllowed = alarmState,
         selectedTab = selectedTab,
         onSelectedChange = { selectedTab = it },
         alarms = alarms,
@@ -66,6 +70,7 @@ fun AlarmScreen(
 
 @Composable
 private fun AlarmScreenContent(
+    isAlarmAllowed: Boolean = true,
     selectedTab: AlarmType,
     onSelectedChange: (AlarmType) -> Unit,
     alarms: LazyPagingItems<AlarmSummary>,
@@ -96,18 +101,21 @@ private fun AlarmScreenContent(
         Spacer(modifier = Modifier.height(15.dp))
 
         AlarmSettingTab(
+            isVisible = !isAlarmAllowed,
             onClick = onNavigateToMyPage
         )
 
         LazyColumn(
             state = listState,
             verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(top = 12.dp)
+            contentPadding = PaddingValues(top = 12.dp),
         ) {
-            items(alarms.itemCount) { index ->
-                val item = alarms[index]
-                if (item != null) {
-                    AlarmItem(alarm = item)
+            if (isAlarmAllowed) {
+                items(alarms.itemCount) { index ->
+                    val item = alarms[index]
+                    if (item != null) {
+                        AlarmItem(alarm = item)
+                    }
                 }
             }
         }

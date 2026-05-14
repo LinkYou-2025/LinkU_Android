@@ -1,13 +1,13 @@
-package com.linku.mypage.util
+package com.linku.core.system
 
-import com.linku.core.system.PermissionChecker
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.repository.NotificationPreference
+import com.linku.core.util.NotificationState
 import javax.inject.Inject
 
 /**
  * 알림 로직 및 설정을 관리하는 컨트롤러입니다.
  *
- * 이 클래스는 [NotificationPreference]와 상호작용하는 유틸리티 역할을 하며,
+ * 이 클래스는 [com.linku.data.preference.NotificationPreference]와 상호작용하는 유틸리티 역할을 하며,
  * 사용자가 정의한 알림 설정을 조회하거나 업데이트할 수 있는 인터페이스를 제공합니다.
  *
  * 제작 이유: "전체 알림 OFF 시 세부 항목도 함께 OFF, 전체 알림 ON시 세부 알림도 다 ON,
@@ -24,7 +24,7 @@ class NotificationController @Inject constructor(
     // ===== 알람 상태 조회 =====
 
     // 마스터 알림
-    private fun isAllNotificationEnabled(): Boolean {
+    fun isAllNotificationEnabled(): Boolean {
         return preference.isMasterNotificationEnabled()
     }
 

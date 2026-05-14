@@ -3,7 +3,7 @@ package com.linku.mypage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.system.PermissionChecker
-import com.linku.mypage.util.NotificationController
+import com.linku.core.system.NotificationController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

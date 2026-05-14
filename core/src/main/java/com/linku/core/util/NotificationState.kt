@@ -1,4 +1,4 @@
-package com.linku.mypage.util
+package com.linku.core.util
 
 /**
  * 애플리케이션 내 다양한 알림 카테고리에 대한 설정 상태를 나타냅니다.

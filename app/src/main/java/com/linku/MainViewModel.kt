@@ -7,8 +7,7 @@ import com.linku.core.datastore.session.LoginSessionStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.linku.core.repository.RecentSearchRepository
-import com.linku.data.preference.NotificationPreference
-import com.linku.mypage.util.NotificationController
+import com.linku.core.system.NotificationController
 import kotlinx.coroutines.launch
 
 @HiltViewModel
