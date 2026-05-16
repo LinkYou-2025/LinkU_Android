@@ -1,5 +1,11 @@
 package com.linku
 
+
+//import com.linku.mypage.MyPageScreen
+
+
+// 링크 공유 앱링크
+
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
@@ -28,56 +34,58 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.linku.design.theme.ThemeProvider
-import com.linku.home.HomeViewModel
-import com.linku.home.screen.SaveLinkResultScreen
-import com.linku.home.screen.SaveLinkScreen
-
-
-import com.linku.mypage.MyPageApp
-import com.linku.mypage.MyPageViewModel
-//import com.linku.mypage.MyPageScreen
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
-
-
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.linku.home.HomeApp
-import java.io.File
-import java.io.FileOutputStream
-
-// 링크 공유 앱링크
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.linku.core.model.auth.LoginState
 import com.linku.curation.CurationViewModel
+import com.linku.deeplink.DeepLinkHandlerViewModel
+import com.linku.deeplink.appLinkRoute
+import com.linku.design.modal.ModalWindow
+import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
 import com.linku.file.ui.theme.Gray600
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import com.linku.login.viewmodel.LoginViewModel
-
-import dagger.hilt.android.EntryPointAccessors
-import androidx.core.net.toUri
-import com.linku.core.model.auth.LoginState
-import com.linku.deeplink.DeepLinkHandlerViewModel
-import com.linku.deeplink.appLinkRoute
-import com.linku.design.modal.ModalWindow
+import com.linku.home.HomeApp
+import com.linku.home.HomeViewModel
+import com.linku.home.screen.SaveLinkResultScreen
+import com.linku.home.screen.SaveLinkScreen
 import com.linku.linku_android.curation.curationGraph
 import com.linku.login.navigation.LoginApp
+import com.linku.login.viewmodel.LoginViewModel
+import com.linku.mypage.MyPageApp
+import com.linku.mypage.MyPageViewModel
 import com.linku.navigation.LinkuNavigationItem
+import dagger.hilt.android.EntryPointAccessors
+import java.io.File
+import java.io.FileOutputStream
 
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
-
     ) {
+
+    val context = LocalContext.current
+
+    // 네트워크 감지 추가
+    val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
+    LaunchedEffect(isConnected) {
+        if (!isConnected) {
+            Toast.makeText(context, "네트워크 연결을 확인해주세요.", Toast.LENGTH_SHORT).show()
+            // TODO: 딤처리 (PM 확정 후 - 문구)
+        }
+    }
 
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     LaunchedEffect(Unit) {
@@ -151,7 +159,7 @@ fun MainApp(
     }
 
     // 액티비티 참조 + 두번뒤로 시간 기록
-    val context = LocalContext.current
+
     val activity = remember(context) { context.findActivity() }
     var lastBackPressed by remember { mutableLongStateOf(0L) }
 
