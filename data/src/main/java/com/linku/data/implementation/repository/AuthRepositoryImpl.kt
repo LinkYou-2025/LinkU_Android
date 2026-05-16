@@ -2,6 +2,7 @@ package com.linku.data.implementation.repository
 
 import android.util.Log
 import com.linku.core.datastore.session.LoginSessionStore
+import com.linku.core.error.ApiError
 import com.linku.core.model.LoginResult
 import com.linku.core.model.TokenReissueResult
 import com.linku.core.model.auth.Gender
@@ -10,35 +11,37 @@ import com.linku.core.model.auth.Job
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpEmailResult
 import com.linku.core.repository.AuthRepository
-import com.linku.data.api.ApiError
-import com.linku.data.api.ServerApi
+import com.linku.data.api.AuthApi
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
-import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
+import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.api.dto.auth.signup.email.EmailCodeRequestDTO
 import com.linku.data.api.dto.auth.signup.email.EmailVerifyRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
-import com.linku.data.api.withErrorHandling
+import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.SocialProfileMapper
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
+
 class AuthRepositoryImpl @Inject constructor(
-    private val serverApi: ServerApi,
+    private val authApi: AuthApi,
     private val authPreference: AuthPreference,
     private val loginSessionStore: LoginSessionStore
 ) : AuthRepository {
     override val sessionState: Flow<LoginSessionStore.SessionSnapshot>
-        get() = loginSessionStore.session //레포지토리가 세션 Flow를 책임질 수 있도록 수정함.
+        get() = loginSessionStore.session
 
-    // checkNickname - ApiResponseString 반환하므로 withErrorHandlingRaw 사용
-    override suspend fun checkNickname(nickname: String){
-        Log.d(TAG, "[API 호출] checkNickname nickname=$nickname")
-        serverApi.withErrorHandling { checkNickname(nickname) }
-        // 성공이면 반환, 실패 -> ApiError throw
+    /** 닉네임 중복 확인 */
+    override suspend fun checkNickname(nickname: String) {
+        Log.d(TAG, "[닉네임 중복 확인] nickname=$nickname")
+        safeApiCallUnit { authApi.checkNickname(nickname) }
     }
 
+    /** 이메일 로그인 */
     override suspend fun login(
         email: String,
         password: String,
@@ -48,8 +51,8 @@ class AuthRepositoryImpl @Inject constructor(
         Log.d(TAG, "[로그인 시도]")
 
         // API 호출 및 결과 수신
-        val emailSignUpResponse = serverApi.withErrorHandling {
-            signIn(
+        val emailSignUpResponse = safeApiCall {
+            authApi.signIn(
                 LoginRequestDTO(
                     email = email,
                     password = password,
@@ -61,29 +64,33 @@ class AuthRepositoryImpl @Inject constructor(
 
         Log.d(TAG, "[로그인 성공]")
 
-        // INACTIVE인데 inactiveDate가 null이면 서버 오류 -> 백엔드 서원이의 요청임.
+        // INACTIVE인데 inactiveDate가 null이면 서버 오류
         if (emailSignUpResponse.status == "INACTIVE" && emailSignUpResponse.inactiveDate == null) {
-            throw ApiError.BusinessError(null, "INACTIVE 상태인데 inactiveDate가 없습니다")
+            throw ApiError.User.Inactive(
+                code = "USERS4042",
+                message = "INACTIVE 상태인데 inactiveDate가 없습니다."
+            )
         }
 
         return LoginResult(
             userId = emailSignUpResponse.userId,
             accessToken = emailSignUpResponse.accessToken,
             refreshToken = emailSignUpResponse.refreshToken,
-            status = emailSignUpResponse.status.ifBlank { "ACTIVE" }, // 빈 문자열이면 ACTIVE
-            inactiveDate = emailSignUpResponse.inactiveDate  // String? 그대로
+            status = emailSignUpResponse.status.ifBlank { "ACTIVE" },
+            inactiveDate = emailSignUpResponse.inactiveDate
         )
-    } //TODO :뷰모델에서 어떤 에러인지 판단하도록 수정하기.
-    //여기서부터 낼 리펙토링하기!
+    }
+
+    /** 이메일 회원가입 */
     override suspend fun signUpWithEmail(
         nickname: String,
         email: String,
         password: String,
         gender: Int,
         jobId: Int,
-        purposeList: List<Purpose>, // 뷰모델이 enum으로 넘김.
-        interestList: List<Interest> // 뷰모델이 enum으로 넘김.
-    ) : SignUpEmailResult {
+        purposeList: List<Purpose>,
+        interestList: List<Interest>
+    ): SignUpEmailResult {
         Log.d(TAG, "[회원가입 시도]")
 
         require(purposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
@@ -99,54 +106,72 @@ class AuthRepositoryImpl @Inject constructor(
             interestList = interestList.map { it.serverKey }  // enum → serverKey
         )
 
-        val response = serverApi.withErrorHandling { signUpWithEmail(signUpEmailRequest) }
-        // ↑ SignUpEmailResponseDTO 타입으로 자동 추론됨
+        val signUpEmailResponse = safeApiCall {
+            authApi.signUpWithEmail(
+                SignUpEmailRequestDTO(
+                    nickName = nickname,
+                    email = email,
+                    password = password,
+                    gender = gender,
+                    jobId = jobId,
+                    purposeList = purposeList.map { it.serverKey },
+                    interestList = interestList.map { it.serverKey }
+                )
+            )
+        }
+
         Log.d(TAG, "[회원가입 성공]")
 
         return SignUpEmailResult(
-            userId = response.userId,
-            createdAt = response.createdAt
+            userId = signUpEmailResponse.userId,
+            createdAt = signUpEmailResponse.createdAt
         )
 
     }
 
-
+    /* 이메일 인증 코드 전송 */
     override suspend fun sendEmailCode(email: String) {
         Log.d(TAG, "[이메일 코드 전송 시도] email=$email")
-        serverApi.withErrorHandling { sendVerificationEmail(EmailCodeRequestDTO(email = email)) }
+        safeApiCallUnit {
+            authApi.sendVerificationEmail(EmailCodeRequestDTO(email = email))
+        }
         Log.d(TAG, "[이메일 코드 전송 성공]")
     }
 
-
+    /* 이메일 인증 코드 검증  */
     override suspend fun verifyEmailCode(email: String, code: String): Boolean {
         Log.d(TAG, "[이메일 코드 검증 시도] email=$email")
-        val response = serverApi.withErrorHandling {
-            checkVerificationEmail(
-                EmailVerifyRequestDTO(
-                    email = email,
-                    code = code
-                )
-            )
+        safeApiCallUnit {
+            authApi.checkVerificationEmail(EmailVerifyRequestDTO(email = email, code = code))
         }
-        Log.d(TAG, "[이메일 코드 검증 결과] success=${response.success}")
-        return response.success
+        Log.d(TAG, "[이메일 코드 검증 성공]")
+        return true  // 예외 안 터지면 성공
     }
 
-    // BaseResponse<TokenPair> 반환 → withErrorHandling
+    /* 토큰 재발급 */
     override suspend fun reissue(refreshToken: String): TokenReissueResult {
         Log.d(TAG, "[토큰 재발급 시도]")
 
-        val response = serverApi.withErrorHandling {
-            reissue(refreshToken)
+        val deviceId = loginSessionStore.deviceId.first()
+            ?: throw ApiError.Auth.TokenExpired(
+                code = "AUTH_DEVICE_NOT_FOUND",
+                message = "기기 정보가 없습니다. 다시 로그인해주세요."
+            )
+
+        val response = safeApiCall {
+            authApi.reissue(
+                ReissueRequestDTO(
+                    refreshToken = refreshToken,
+                    deviceId = deviceId
+                )
+            )
         }
 
         Log.d(TAG, "[토큰 재발급 성공]")
 
         return TokenReissueResult(
-            accessToken = response.accessToken
-                ?: throw ApiError.BusinessError(null, "accessToken이 없습니다"),
+            accessToken = response.accessToken,
             refreshToken = response.refreshToken
-                ?: throw ApiError.BusinessError(null, "refreshToken이 없습니다")
         )
     }
 
@@ -154,7 +179,7 @@ class AuthRepositoryImpl @Inject constructor(
         private const val TAG = "UserRepository"
     }
 
-    // 소셜로 회원가입 이후 프로필 정보 입력 받는 api
+    /* 소셜 로그인 후 프로필 완성 */
     override suspend fun completeSocialProfile(
         socialToken: String,
         nickName: String,
@@ -164,81 +189,99 @@ class AuthRepositoryImpl @Inject constructor(
         interests: List<Interest>
     ): Boolean {
 
-        val request = SocialProfileMapper.toRequest(
-            nickName = nickName,
-            gender = gender,
-            job = job,
-            purposes = purposes,
-            interests = interests
-        )
+        Log.d(TAG, "[소셜 프로필 완성 시도]")
 
-        serverApi.withErrorHandling {
-            completeSocialProfile(
+        safeApiCall {
+            authApi.completeSocialProfile(
                 authorization = "Bearer $socialToken",
-                body = request
+                body = SocialProfileMapper.toRequest(
+                    nickName = nickName,
+                    gender = gender,
+                    job = job,
+                    purposes = purposes,
+                    interests = interests
+                )
             )
         }
 
-        Log.d(TAG, "[소셜 프로필 완료] 성공")
+        Log.d(TAG, "[소셜 프로필 완성 성공]")
         return true
+
     }
 
-
+    /* 카카오 소셜 로그인 */
     override suspend fun loginWithKakao(token: String): LoginResult {
-        Log.d("UserRepositoryImpl", "loginWithKakao token: $token")
-        val kakaoResponse: SocialLoginResponseDTO
+        Log.d(TAG, "[카카오 로그인 시도]")
 
-        try{
-            Log.d("UserRepositoryImpl", "loginWithKakao try")
-            kakaoResponse = serverApi.withErrorHandling {
-                kakaoLogin(SocialLoginRequestDTO(token = token))
-            }
-
-            Log.d("UserRepositoryImpl", "loginWithKakao response: $kakaoResponse")
-        } catch (e: Exception){
-            Log.e("UserRepositoryImpl", "loginWithKakao error: $e")
-            throw e
+        val response = safeApiCall {
+            authApi.kakaoLogin(SocialLoginRequestDTO(token = token))
         }
 
-        Log.d("UserRepositoryImpl", "loginWithKakao return: $kakaoResponse")
+        Log.d(TAG, "[카카오 로그인 성공]")
 
-        return LoginResult( // run을 간결하게 수정함.
-            userId = kakaoResponse.userId,
-            accessToken = kakaoResponse.accessToken,
-            refreshToken = kakaoResponse.refreshToken,
-            status = kakaoResponse.status ?: "",
-            inactiveDate = ""  // 카카오 로그인엔 inactiveDate 없으니까 빈 문자열
+        return LoginResult(
+            userId = response.userId,
+            accessToken = response.accessToken,
+            refreshToken = response.refreshToken,
+            status = response.status ?: "",
+            inactiveDate = ""
         )
 
     }
-
 
     // 구글로 로그인 api
-    override suspend fun loginWithGoogle(token: String): LoginResult {
-        Log.d("UserRepositoryImpl", "loginWithGoogle token: $token")
-        val googleResponse: SocialLoginResponseDTO
+    override suspend fun loginWithGoogle(token: String): Result<LoginResult> {
+        Log.d(TAG, "[구글 로그인 시도]")
 
-        try{
-            Log.d("UserRepositoryImpl", "loginWithGoogle try")
-            googleResponse = serverApi.withErrorHandling {
-                googleLogin(SocialLoginRequestDTO(token = token))
+        return try {
+            val response = safeApiCall {
+                authApi.googleLogin(SocialLoginRequestDTO(token = token))
             }
-
-            Log.d("UserRepositoryImpl", "loginWithGoogle response: $googleResponse")
-        } catch (e: Exception){
-            Log.e("UserRepositoryImpl", "loginWithGoogle error: $e")
-            throw e
+            Log.d(TAG, "[구글 로그인 성공]")
+            Result.success(
+                LoginResult(
+                    userId = response.userId,
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    status = response.status ?: "",
+                    inactiveDate = ""
+                )
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "[구글 로그인 실패] ${e.message}")
+            Result.failure(e)
         }
-
-        Log.d("UserRepositoryImpl", "loginWithGoogle return: $googleResponse")
-
-        return LoginResult( // run을 간결하게 수정함.
-            userId = googleResponse.userId,
-            accessToken = googleResponse.accessToken,
-            refreshToken = googleResponse.refreshToken,
-            status = googleResponse.status ?: "",
-            inactiveDate = ""  // 구글 로그인엔 inactiveDate 없으니까 빈 문자열
-        )
-
     }
+
+
+//    // 구글로 로그인 api
+//    override suspend fun loginWithGoogle(token: String): Result<LoginResult> {
+//        Log.d("UserRepositoryImpl", "loginWithGoogle token: $token")
+//        val googleResponse: SocialLoginResponseDTO
+//
+//        try {
+//            Log.d("UserRepositoryImpl", "loginWithGoogle try")
+//            googleResponse = serverApi.withErrorHandling {
+//                googleLogin(SocialLoginRequestDTO(token = token))
+//            }
+//            Result.success(
+//                LoginResult(
+//                    userId = googleResponse.userId,
+//                    accessToken = googleResponse.accessToken,
+//                    refreshToken = googleResponse.refreshToken,
+//                    status = googleResponse.status ?: "",
+//                    inactiveDate = ""
+//                )
+//            )
+//
+//            Log.d("UserRepositoryImpl", "loginWithGoogle response: $googleResponse")
+//        } catch (e: Exception) {
+//            Log.e("UserRepositoryImpl", "loginWithGoogle error: $e")
+//            throw e
+//        }
+//
+//        Log.d("UserRepositoryImpl", "loginWithGoogle return: $googleResponse")
+//
+//    }
+
 }

@@ -6,8 +6,8 @@ import com.linku.data.api.dto.auth.login.email.LoginResponseDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginRequestDTO
 import com.linku.data.api.dto.auth.login.social.SocialLoginResponseDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
+import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.api.dto.auth.signup.email.EmailCodeRequestDTO
-import com.linku.data.api.dto.auth.signup.email.EmailVerificationResponseDTO
 import com.linku.data.api.dto.auth.signup.email.EmailVerifyRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailResponseDTO
@@ -26,7 +26,7 @@ interface AuthApi {
     //자동 로그인을 위한 토큰 재발급 API
     @POST("auth/token/reissue")
     suspend fun reissue(
-        @Header("Refresh-Token") refreshToken: String //헤더로 받음. DTO 불필요
+        @Body body: ReissueRequestDTO
     ): BaseResponse<RefreshTokenResponseDTO>
 
     @POST("auth/signup/email")
@@ -37,8 +37,8 @@ interface AuthApi {
 
     @GET("auth/check-nickname")
     suspend fun checkNickname(
-        @Query("nickname") nickname: String //@ Query로 닉네임을 전달. DTO 불필요
-    ): BaseResponse<String> //BaseResponse 형태임. 별도 클래스 생성 없음.
+        @Query("nickname") nickname: String
+    ): BaseResponse<Any> // result {}
 
     // 로그인
     @POST("auth/login")
@@ -50,16 +50,16 @@ interface AuthApi {
     @POST("auth/email/code")
     suspend fun sendVerificationEmail(
         @Body body: EmailCodeRequestDTO
-    ): BaseResponse<String> // BaseResponse 형태임. 별도 클래스 생성 없음.
+    ): BaseResponse<Any> // result {}
 
     // 이메일 인증 코드 검증
     @POST("auth/email/verify")
     suspend fun checkVerificationEmail(
         @Body body: EmailVerifyRequestDTO
-    ): BaseResponse<EmailVerificationResponseDTO>
+    ): BaseResponse<Any> // result {}
 
     //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
-    @PATCH("auth/signup/social/profile")
+    @PATCH("auth/signup/social/complete")
     suspend fun completeSocialProfile(
         @Header("Authorization") authorization: String,
         @Body body: SocialProfileRequestDTO

@@ -54,7 +54,8 @@ interface AuthRepository {
 
     //구글로 로그인 하기
     suspend fun loginWithGoogle(
-        token : String): LoginResult
+        token: String
+    ): Result<LoginResult>
 
 
 }
