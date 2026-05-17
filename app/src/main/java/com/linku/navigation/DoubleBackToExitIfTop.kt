@@ -32,7 +32,8 @@ fun DoubleBackToExitIfTop(
     val currentBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    val enabled = currentRoute in topLevelRoutes
+    val enabled = currentRoute in topLevelRoutes &&
+            navigator.previousBackStackEntry?.destination?.route !in topLevelRoutes
 
     BackHandler(enabled = enabled) {
         val now = System.currentTimeMillis()
