@@ -15,6 +15,8 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "COMMON429" -> ApiError.Common.TooManyRequests(code, message)
     "COMMON500" -> ApiError.Common.InternalServer(code, message)
 
+    "TERMS4001" -> ApiError.Terms.InvalidTermsType(code, message)
+
     // =========================================================
     // 인증/OAuth 에러 (OAUTH)
     // =========================================================
@@ -93,6 +95,34 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "FOLDER_CREATOR403" -> ApiError.Folder.InvitationCreatorCannotAccept(code, message)
     "PERMISSION400" -> ApiError.Folder.InvalidPermissionType(code, message)
     "FOLDER_BOOKMARK404" -> ApiError.Folder.BookmarkNotFound(code, message)
+
+    // =========================================================
+    // AI Article 에러 (AIARTICLE)
+    // =========================================================
+    "AIARTICLE4041" -> ApiError.AiArticle.NotFound(code, message)
+    "AIARTICLE4091" -> ApiError.AiArticle.Duplicate(code, message)
+    "AIARTICLE500" -> ApiError.AiArticle.InternalServerError(code, message)
+
+    // =========================================================
+    // OpenAI 에러 (OPENAI)
+    // =========================================================
+    "OPENAI5001" -> ApiError.OpenAi.ParseError(code, message)
+    "OPENAI5002" -> ApiError.OpenAi.InvalidResponse(code, message)
+
+    // =========================================================
+    // 크롤러 에러 (CRAWLER)
+    // =========================================================
+    "CRAWLER5001" -> ApiError.Crawler.ContentExtractionFailed(code, message)
+    "CRAWLER5002" -> ApiError.Crawler.ContentExtractionProhibited(code, message)
+
+    // =========================================================
+    // Gemini 에러 (GEMINI) - GEMINI5021 중복 코드로 인해 제외
+    // =========================================================
+    "GEMINI4291" -> ApiError.Gemini.TooManyRequests(code, message)
+    "GEMINI5001" -> ApiError.Gemini.UnknownError(code, message)
+    "GEMINI5002" -> ApiError.Gemini.ResponseFormatError(code, message)
+    "GEMINI5022" -> ApiError.Gemini.ParseError(code, message)
+    "GEMINI5041" -> ApiError.Gemini.Timeout(code, message)
 
     // =========================================================
     // 알림 에러 (ALARM)

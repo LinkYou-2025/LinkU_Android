@@ -59,6 +59,17 @@ sealed class ApiError : Exception() {
         ) : Network()
     }
 
+    /**
+     * 약관 관련 에러.
+     */
+    sealed class Terms : ApiError() {
+        /** TERMS4001 - 유효하지 않은 약관 타입 */
+        class InvalidTermsType(
+            override val code: String,
+            override val message: String
+        ) : Terms()
+    }
+
 
     /**
      * 인증/OAuth 관련 에러.
@@ -439,6 +450,111 @@ sealed class ApiError : Exception() {
             override val code: String,
             override val message: String
         ) : Folder()
+    }
+
+
+    /**
+     * AI Article 관련 에러.
+     */
+    sealed class AiArticle : ApiError() {
+        /** AIARTICLE4041 - 해당하는 AI Article을 찾을 수 없음 */
+        class NotFound(
+            override val code: String,
+            override val message: String
+        ) : AiArticle()
+
+        /** AIARTICLE4091 - 이미 해당 링크로 생성된 AI Article이 존재 */
+        class Duplicate(
+            override val code: String,
+            override val message: String
+        ) : AiArticle()
+
+        /** AIARTICLE500 - AI 요약 처리 중 오류 */
+        class InternalServerError(
+            override val code: String,
+            override val message: String
+        ) : AiArticle()
+    }
+
+    /**
+     * OpenAI 관련 에러.
+     */
+    sealed class OpenAi : ApiError() {
+        /** OPENAI5001 - AI 응답 파싱 실패 */
+        class ParseError(
+            override val code: String,
+            override val message: String
+        ) : OpenAi()
+
+        /** OPENAI5002 - AI 응답이 예상한 형식이 아님 */
+        class InvalidResponse(
+            override val code: String,
+            override val message: String
+        ) : OpenAi()
+    }
+
+    /**
+     * 크롤러 관련 에러.
+     */
+    sealed class Crawler : ApiError() {
+        /** CRAWLER5001 - 웹페이지 본문 추출 실패 */
+        class ContentExtractionFailed(
+            override val code: String,
+            override val message: String
+        ) : Crawler()
+
+        /** CRAWLER5002 - 크롤링이 금지된 웹사이트 */
+        class ContentExtractionProhibited(
+            override val code: String,
+            override val message: String
+        ) : Crawler()
+    }
+
+    /**
+     * AI Article / Gemini 에러
+     */
+    sealed class Gemini : ApiError() {
+        /** GEMINI4291 - AI 요청이 너무 많음 */
+        class TooManyRequests(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
+
+        /** GEMINI5001 - AI 처리 중 알 수 없는 오류 */
+        class UnknownError(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
+
+        /** GEMINI5002 - AI 응답 형식이 올바르지 않음 */
+        class ResponseFormatError(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
+
+        /** GEMINI5021 - 잘못된 AI 요청 */
+        class BadRequest(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
+
+        /** GEMINI5021 - Gemini API 호출 중 오류 */
+        class ApiError(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
+
+        /** GEMINI5022 - AI 응답 JSON 파싱 실패 */
+        class ParseError(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
+
+        /** GEMINI5041 - Gemini 응답 시간 초과 */
+        class Timeout(
+            override val code: String,
+            override val message: String
+        ) : Gemini()
     }
 
 
