@@ -62,13 +62,16 @@ object ServerApiModule {
         .client(
             OkHttpClient.Builder()
                 .authenticator(tokenAuthenticator)
-                .addNetworkInterceptor { chain ->
+                .addInterceptor { chain ->
+                    if (chain.request().header("Authorization") != null) {
+                        return@addInterceptor chain.proceed(chain.request())
+                    }
                     val token = authPreference.accessToken
-                    val request = if (token.isNotBlank())
+                    val request = if (token.isNotBlank()) {
                         chain.request().newBuilder()
-                            .addHeader("Authorization", "Bearer $token")
+                            .header("Authorization", "Bearer $token")  // addHeader → header
                             .build()
-                    else chain.request()
+                    } else chain.request()
                     chain.proceed(request)
                 }
                 .addInterceptor(loggingInterceptor)
