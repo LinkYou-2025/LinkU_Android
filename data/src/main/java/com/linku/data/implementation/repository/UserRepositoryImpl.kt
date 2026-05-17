@@ -1,23 +1,26 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
+import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.UserRepository
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.data.api.ApiError
 import com.linku.data.api.ServerApi
-import com.linku.data.preference.AuthPreference
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
-import com.linku.data.api.withAuth
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
+import com.linku.data.api.safeApiCall
+import com.linku.data.api.withAuth
 import com.linku.data.api.withAuthRaw
+import com.linku.data.preference.AuthPreference
 import javax.inject.Inject
 
+
+/* 지현이와 개발 범위 조절해야할 것 같아서. 일단 패스 */
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
+    private val authPreference: AuthPreference, // logout을 위해 유지
     private val loginSessionStore: LoginSessionStore
 ) : UserRepository {
 
@@ -25,9 +28,7 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun getUserInfo(userId: Long): UserInfo {
 
-        val dto = serverApi.withAuth(authPreference) {
-            getUserInfo(/*userId*/)
-        }
+        val dto = safeApiCall { serverApi.getUserInfo() }
 
         // 📍 서버 원본 데이터 확인
         Log.d(TAG, "📍 [서버 원본] purposes: ${dto.purposes}")
@@ -184,3 +185,5 @@ class UserRepositoryImpl @Inject constructor(
 
 
 }
+
+// 여기 언제 리펙함...

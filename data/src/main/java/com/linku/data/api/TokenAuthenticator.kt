@@ -39,16 +39,27 @@ class TokenAuthenticator @Inject constructor(
         return runBlocking {
             refreshMutex.withLock {
                 try {
+                    val currentToken = authPreference.accessToken
+
+                    if (currentToken.isNotBlank() &&
+                        response.request.header("Authorization") != "Bearer $currentToken"
+                    ) {
+                        Log.d(TAG, "[토큰 이미 갱신됨] 새 토큰으로 재시도")
+                        return@withLock response.request.newBuilder()
+                            .header("Authorization", "Bearer $currentToken")
+                            .build()
+                    }
+
                     val refreshToken = authPreference.refreshToken
                         ?: run {
                             Log.e(TAG, "[토큰 재발급 실패] refreshToken 없음")
-                            return@runBlocking null
+                            return@withLock null
                         }
 
                     val deviceId = loginSessionStore.deviceId.first()
                         ?: run {
                             Log.e(TAG, "[토큰 재발급 실패] deviceId 없음")
-                            return@runBlocking null
+                            return@withLock null
                         }
 
                     val reissueResponse = authApi.reissue(
@@ -61,7 +72,7 @@ class TokenAuthenticator @Inject constructor(
                     if (!reissueResponse.isSuccess) {
                         Log.e(TAG, "[토큰 재발급 실패] 서버 응답 실패")
                         authPreference.clear()
-                        return@runBlocking null
+                        return@withLock null
                     }
 
                     val newAccessToken = reissueResponse.result.accessToken
