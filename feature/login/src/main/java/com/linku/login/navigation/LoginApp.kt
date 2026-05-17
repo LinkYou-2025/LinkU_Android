@@ -53,8 +53,7 @@ import com.linku.login.viewmodel.SocialAuthViewModel
 @Composable
 fun LoginApp(
     onLoginSuccess: () -> Unit,
-    loginViewModel: LoginViewModel,
-    showNavBar: (Boolean) -> Unit,
+    loginViewModel: LoginViewModel
 ) {
     val navController = rememberNavController()
 
@@ -117,7 +116,7 @@ fun LoginApp(
             // 2. 이메일 로그인 + 약관 바텀시트
             authComposable("email_login") { parentEntry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
-                LaunchedEffect(Unit) { showNavBar(false) }
+
 
                 val showTermsSheet by parentEntry.savedStateHandle
                     .getStateFlow("show_terms_sheet", false)
