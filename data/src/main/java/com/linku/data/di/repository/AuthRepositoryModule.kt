@@ -1,7 +1,7 @@
 package com.linku.data.di.repository
 
-import com.linku.core.repository.AIArticleRepository
-import com.linku.data.implementation.repository.AIArticleRepositoryImpl
+import com.linku.core.repository.AuthRepository
+import com.linku.data.implementation.repository.AuthRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -10,12 +10,12 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class AIArticleRepositoryModule {
+abstract class AuthRepositoryModule {
 
     @Binds
     @Singleton
     @Suppress("unused")
-    abstract fun provideLinkuRepository(
-        impl: AIArticleRepositoryImpl
-    ): AIArticleRepository
+    abstract fun bindAuthRepository(
+        impl: AuthRepositoryImpl
+    ): AuthRepository
 }
