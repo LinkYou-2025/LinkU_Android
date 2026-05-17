@@ -120,7 +120,7 @@ internal fun StepIndicator(
                             1, 2 -> if (step < 2) {
                                 Image(
                                     painterResource(R.drawable.ic_login_check),
-                                    "completed",
+                                    contentDescription = null,
                                     modifier = Modifier
                                         .width(16.dp)
                                         .height(13.dp)
