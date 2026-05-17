@@ -3,8 +3,12 @@ package com.linku.navigation
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -28,9 +32,7 @@ fun DoubleBackToExitIfTop(
     val currentBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
-    // 스택을 더 pop 할 수 있으면(=이전 화면 있으면) 종료 핸들러 비활성화
-    val canPop = navigator.previousBackStackEntry != null
-    val enabled = !canPop && currentRoute in topLevelRoutes
+    val enabled = currentRoute in topLevelRoutes
 
     BackHandler(enabled = enabled) {
         val now = System.currentTimeMillis()
