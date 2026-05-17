@@ -5,13 +5,11 @@ import com.linku.core.model.CategoryColorList
 import com.linku.core.repository.CategoryRepository
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.folder.UpdateCategoryColorRequestDTO
-import com.linku.data.api.withAuth
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
 import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
-    private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
+    private val serverApi: ServerApi
 ) : CategoryRepository {
 
     // 카테고리 색깔 조회
@@ -24,8 +22,8 @@ class CategoryRepositoryImpl @Inject constructor(
         try{
             Log.d("CategoryRepositoryImpl", "try")
 
-            categoryColorList = serverApi.withAuth(authPreference){
-                getCategoryColor()
+            categoryColorList = safeApiCall {
+                serverApi.getCategoryColor()
             }.map{
                 CategoryColorList(
                     categoryId = it.categoryId,
@@ -60,8 +58,8 @@ class CategoryRepositoryImpl @Inject constructor(
         try {
             Log.d("CategoryRepositoryImpl", "try")
 
-            val result = serverApi.withAuth(authPreference) {
-                updateCategoryColor(categoryId, UpdateCategoryColorRequestDTO(body))
+            val result = safeApiCall {
+                serverApi.updateCategoryColor(categoryId, UpdateCategoryColorRequestDTO(body))
             }
 
             Log.d("CategoryRepositoryImpl", "try well done: $result")

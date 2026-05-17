@@ -7,11 +7,9 @@ import com.linku.core.model.search.FastSearchLinkInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.LinkuUpdateDTO
-import com.linku.data.api.withAuth
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -27,7 +25,6 @@ import javax.inject.Inject
 
 class LinkuRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
 ): LinkuRepository {
     // 빈 문자열(또는 공백) -> null 정리용
     private fun String?.nullIfBlank(): String? =
@@ -66,12 +63,8 @@ class LinkuRepositoryImpl @Inject constructor(
         // --- API 호출 ---
         // addLink 의 반환 타입이 BaseResponse<LinkuSimpleDTO> 인 경우와
         // LinkuSimpleDTO 자체를 반환하는 경우 둘 다 대응할 수 있게 주석 남깁니다.
-        val dto = serverApi.withAuth(authPreference) {
-            // 반환이 BaseResponse<LinkuSimpleDTO> 인 경우:
-            // addLink(imagePart, linkuBody, memoBody, emotionBody).result
-
-            // 반환이 LinkuSimpleDTO 인 경우:
-            addLink(
+        val dto = safeApiCall {
+            serverApi.addLink(
                 image = imagePart,
                 linku = linkuBody,
                 memo = memoBody,
@@ -98,9 +91,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 링크 유효성 검사
     override suspend fun checkLink(url: String): Boolean {
-        val res = serverApi.withAuth(authPreference) {
-            checkLink(url = url)
-        }
+        val res = safeApiCall { serverApi.checkLink(url = url) }
 
         return res.exist == true
     }
@@ -112,8 +103,8 @@ class LinkuRepositoryImpl @Inject constructor(
         page: Int,
         size: Int
     ): List<LinkSimpleInfo> {
-        val list = serverApi.withAuth(authPreference) {
-            recommendLink(
+        val list = safeApiCall {
+            serverApi.recommendLink(
                 situationId = situationId,
                 emotionId = emotionId,
                 page = page,
@@ -143,7 +134,7 @@ class LinkuRepositoryImpl @Inject constructor(
 //            recentLinks(limit = limit)   // BaseResponse<List<LinkuSimpleDTO>>
 //        }
         //홈에서 가장 먼저 호출하는 api 여기서 withAuth 처음 진입함.
-        val raw = serverApi.withAuth(authPreference) { recentLinks(limit = limit) }
+        val raw = safeApiCall { serverApi.recentLinks(limit = limit) }
 
         // BaseResponse<T> / T(List) 둘 다 커버
         val list: List<LinkuSimpleDTO> = when (raw) {
@@ -173,9 +164,7 @@ class LinkuRepositoryImpl @Inject constructor(
     // * 수정 전 *
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
         // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
-        val dto = serverApi.withAuth(authPreference) {
-            viewDetailLink(linkuid = linkuId)
-        }
+        val dto = safeApiCall { serverApi.viewDetailLink(linkuid = linkuId) }
         requireNotNull(dto) { "Link detail result was null" }
 
         return LinkResultInfo(
@@ -204,8 +193,10 @@ class LinkuRepositoryImpl @Inject constructor(
         linkuId: Long
     ): LinkResultInfo {
         // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
-        val dto = serverApi.withAuth(authPreference) {
-            viewDetailLink(userId = userId,linkuid = linkuId)
+        val dto = safeApiCall {
+            serverApi.viewDetailLink(
+                userId = userId, linkuid = linkuId
+            )
         }
         requireNotNull(dto) { "Link detail result was null" }
 
@@ -236,8 +227,8 @@ class LinkuRepositoryImpl @Inject constructor(
         try{
             Log.d("fastSearch", "try")
 
-            response = serverApi.withAuth(authPreference) {
-                quickSearch(keyword = keyword)
+            response = safeApiCall {
+                serverApi.quickSearch(keyword = keyword)
             }.map{
                 FastSearchLinkInfo(
                     linkuId = it.linkuId,
@@ -278,8 +269,8 @@ class LinkuRepositoryImpl @Inject constructor(
             title = title
         )
 
-        val dto = serverApi.withAuth(authPreference) {
-            updateLink(linkuId = linkuId, body = body)
+        val dto = safeApiCall {
+            serverApi.updateLink(linkuId = linkuId, body = body)
         }
         requireNotNull(dto) { "updateLink() result was null" }
 

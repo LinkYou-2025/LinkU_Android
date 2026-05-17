@@ -3,20 +3,16 @@ package com.linku.data.implementation.repository
 import com.linku.core.model.AiArticle
 import com.linku.core.repository.AIArticleRepository
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.server.*
-import com.linku.data.api.withAuth
-import com.linku.data.api.withCheck
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
 import javax.inject.Inject
 
 class AIArticleRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
 ): AIArticleRepository {
 
     override suspend fun getAiArticle(linkuId: Long): AiArticle {
-        val dto = serverApi.withAuth(authPreference) {
-            getAiarticle(linkuid = linkuId)
+        val dto = safeApiCall {
+            serverApi.getAiarticle(linkuid = linkuId)
         }
         requireNotNull(dto) { "AI Article result was null" }
 

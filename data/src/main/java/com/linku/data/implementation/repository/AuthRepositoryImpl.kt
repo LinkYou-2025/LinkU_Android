@@ -21,7 +21,6 @@ import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.SocialProfileMapper
-import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -29,7 +28,6 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
-    private val authPreference: AuthPreference,
     private val loginSessionStore: LoginSessionStore
 ) : AuthRepository {
     override val sessionState: Flow<LoginSessionStore.SessionSnapshot>
@@ -95,16 +93,6 @@ class AuthRepositoryImpl @Inject constructor(
 
         require(purposeList.isNotEmpty()) { "purposeList는 비어 있을 수 없습니다." }
         require(interestList.isNotEmpty()) { "interestList는 비어 있을 수 없습니다." }
-
-        val signUpEmailRequest = SignUpEmailRequestDTO(
-            nickName = nickname,
-            email = email,
-            password = password,
-            gender = gender,
-            jobId = jobId,
-            purposeList = purposeList.map { it.serverKey },   // enum → serverKey(it은 Purpose.NETWORKING -> serverKey = "NETWORKING")으로 작동.
-            interestList = interestList.map { it.serverKey }  // enum → serverKey
-        )
 
         val signUpEmailResponse = safeApiCall {
             authApi.signUpWithEmail(

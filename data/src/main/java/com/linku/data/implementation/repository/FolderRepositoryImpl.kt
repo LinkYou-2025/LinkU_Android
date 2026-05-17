@@ -16,14 +16,12 @@ import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
 import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
-import com.linku.data.api.withAuth
-import com.linku.data.api.withAuthResp204Raw
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCall204
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
 ) : FolderRepository {
 
     // 폴더 북마크 등록/해제
@@ -38,8 +36,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "updateBookmark try")
 
-            folderResponse = serverApi.withAuth(authPreference){
-                updateBookmark(
+            folderResponse = safeApiCall {
+                serverApi.updateBookmark(
                     folderId,
                     UpdateBookmarkRequestDTO(isBookmarked)
                 )
@@ -65,8 +63,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getParentfolders try")
 
-            folderList = serverApi.withAuth(authPreference) {
-                getParentfolders()
+            folderList = safeApiCall {
+                serverApi.getParentfolders()
             }.map {
                 FolderSimpleInfo(
                     folderId = it.folderId,
@@ -97,8 +95,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getSubfolders try")
 
-            folderList = serverApi.withAuth(authPreference){
-                getLinksFolders(parentFolderId)
+            folderList = safeApiCall {
+                serverApi.getLinksFolders(parentFolderId)
             }.folders.map {
                 FolderSimpleInfo(
                     folderId = it.folderId,
@@ -135,8 +133,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getLinksFolders try")
 
-            response = serverApi.withAuth(authPreference) {
-                getLinksFolders(parentFolderId, limit, cursor)
+            response = safeApiCall {
+                serverApi.getLinksFolders(parentFolderId, limit, cursor)
             }
 
             Log.d("FolderRepositoryImpl", "getLinksFolders response: $response")
@@ -192,8 +190,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "createSubfolder try")
 
-            response = serverApi.withAuth(authPreference){
-                createSubfolder(
+            response = safeApiCall {
+                serverApi.createSubfolder(
                     parentFolderId,
                     FolderCreateRequestDTO(folderName)
                 )
@@ -232,8 +230,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "updateSubfolder try")
 
-            response = serverApi.withAuth(authPreference){
-                updateSubfolder(folderId, FolderUpdateRequestDTO(folderName))
+            response = safeApiCall {
+                serverApi.updateSubfolder(folderId, FolderUpdateRequestDTO(folderName))
             }.run {
                 FolderInfo(
                     folderId = this.folderId,
@@ -264,9 +262,7 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "deleteSubfolder try")
 
-            serverApi.withAuthResp204Raw(authPreference){
-                deleteSubfolder(folderId)
-            }
+            safeApiCall204 { serverApi.deleteSubfolder(folderId) }
 
             Log.d("FolderRepositoryImpl", "deleteSubfolder well done")
         }catch (e: Exception){
@@ -286,8 +282,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getSharedFolders try")
 
-            folderList = serverApi.withAuth(authPreference) {
-                getSharedFolders()
+            folderList = safeApiCall {
+                serverApi.getSharedFolders()
             }.map {
                 SharedFolderInfo(
                     userId = it.userId,
@@ -321,9 +317,7 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "deleteSharedFolder try")
 
-            serverApi.withAuthResp204Raw(authPreference){
-                deleteSharedFolder(folderId)
-            }
+            safeApiCall204 { serverApi.deleteSharedFolder(folderId) }
 
             Log.d("FolderRepositoryImpl", "deleteSharedFolder well done")
 
@@ -344,8 +338,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "setFolderViewerPermission try")
 
-            response = serverApi.withAuth(authPreference){
-                setFolderViewerPermission(folderId)
+            response = safeApiCall {
+                serverApi.setFolderViewerPermission(folderId)
             }.run {
                 SharedFolderSimpleInfo(
                     folderId = this.folderId,
@@ -380,8 +374,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "setFolderPrivatePermission try")
 
-            response = serverApi.withAuth(authPreference){
-                setFolderPrivate(folderId)
+            response = safeApiCall {
+                serverApi.setFolderPrivate(folderId)
             }.run {
                 SharedFolderSimpleInfo(
                     folderId = this.folderId,
@@ -416,8 +410,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getFolderViewers try")
 
-            response = serverApi.withAuth(authPreference) {
-                getFolderViewers(folderId)
+            response = safeApiCall {
+                serverApi.getFolderViewers(folderId)
             }.map {
                 FolderPermissionInfo(
                     userId = it.userId,
@@ -452,8 +446,8 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "updateViewerPermission try")
 
-            serverApi.withAuth(authPreference) {
-                updateViewerPermission(
+            safeApiCall {
+                serverApi.updateViewerPermission(
                     folderId, userFolderId,
                     when (body) {
                         FolderPermission.VIEWER -> "viewer"
@@ -463,6 +457,11 @@ class FolderRepositoryImpl @Inject constructor(
                     }
                 )
             }
+
+            /**
+            safeApiCall204 { serverApi.deleteSharedFolder(folderId) }
+             */
+
 
             Log.d("FolderRepositoryImpl", "updateViewerPermission well done")
         }catch (e: Exception){
@@ -483,8 +482,8 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "updateLinkFolder try")
 
-            val result = serverApi.withAuth(authPreference) {
-                updateLinkFolder(
+            val result = safeApiCall {
+                serverApi.updateLinkFolder(
                     linku.linkuId,
                     UpdateLinkFolderDTO(folderId)
                 )
@@ -517,15 +516,13 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "deleteLink try")
 
-            val userLinkuId = serverApi.withAuth(authPreference) {
-                getDetailLink(linkuId)
+            val userLinkuId = safeApiCall {
+                serverApi.getDetailLink(linkuId)
             }.userLinkuId
 
             Log.d("FolderRepositoryImpl", "deleteLink userLinkuId: $userLinkuId")
 
-            serverApi.withAuthResp204Raw(authPreference) {
-                deleteLink(userLinkuId)
-            }
+            safeApiCall204 { serverApi.deleteLink(userLinkuId) }
 
             Log.d("FolderRepositoryImpl", "deleteLink well done")
         } catch (e: Exception) {
@@ -557,9 +554,9 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getMyFolderTree try")
 
             tree = folderTreeConverter(
-                response = serverApi.withAuth(authPreference) {
+                response = safeApiCall {
                     Log.d("FolderRepositoryImpl", "getMyFolderTree getMyFolders api")
-                    getMyFolders()
+                    serverApi.getMyFolders()
                 }
             )
 
@@ -584,9 +581,9 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "makeInvitationLink try")
 
-            link = serverApi.withAuth(authPreference) {
+            link = safeApiCall {
                 Log.d("FolderRepositoryImpl", "makeInvitationLink makeInvitationLinkApi api")
-                makeInvitationLinkApi(folderId)
+                serverApi.makeInvitationLinkApi(folderId)
             }
 
             Log.d("FolderRepositoryImpl", "makeInvitationLink response: $link")
