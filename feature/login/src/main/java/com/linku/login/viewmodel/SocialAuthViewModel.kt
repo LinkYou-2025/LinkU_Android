@@ -151,6 +151,7 @@ class SocialAuthViewModel @Inject constructor(
 
                 if (result.refreshToken == null) {
                     // TEMP 유저 → 토큰 저장 없이 소셜 토큰만 임시 보관
+                    authPreference.clear()
                     authPreference.socialToken = result.accessToken
                     _kakaoLoginState.value = SocialLoginState.Success(result)
                 } else {
@@ -192,6 +193,7 @@ class SocialAuthViewModel @Inject constructor(
                 updateState: (SocialLoginState) -> Unit
             ) {
                 if (result.refreshToken == null) {
+                    authPreference.clear()
                     authPreference.socialToken = result.accessToken
                 } else {
                     authPreference.saveTokens(
@@ -220,15 +222,26 @@ class SocialAuthViewModel @Inject constructor(
     suspend fun loginWithGoogle(token: String) {
         _googleLoginState.value = SocialLoginState.Loading
 
-        authRepository.loginWithGoogle(token).fold(
-            onSuccess = {
-                GoogleLoginStatus.Success(it).work(authPreference) { _googleLoginState.value = it }
-            },
-            onFailure = {
-                GoogleLoginStatus.Error(it.message ?: "구글 로그인 실패")
-                    .work(authPreference) { _googleLoginState.value = it }
-            }
-        )
+        try {
+            authRepository.loginWithGoogle(token).fold(
+                onSuccess = {
+                    GoogleLoginStatus.Success(it).work(authPreference) { state ->
+                        _googleLoginState.value = state
+                    }
+                },
+                onFailure = {
+                    GoogleLoginStatus.Error(it.message ?: "구글 로그인 실패")
+                        .work(authPreference) { state ->
+                            _googleLoginState.value = state
+                        }
+                }
+            )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "loginWithGoogle 예외 발생", e)
+            _googleLoginState.value = SocialLoginState.Error(e.message ?: "구글 로그인 실패")
+        }
     }
     /*fun loginWithGoogle(token: String) : GoogleLoginStatus{
         Log.d("SocialAuthViewModel", "loadGoogleLogin")
