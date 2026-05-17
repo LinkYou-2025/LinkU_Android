@@ -39,7 +39,7 @@ class MainViewModel @Inject constructor(
             }
 
             override fun onLost(network: Network) {
-                trySend(false)
+                trySend(isNetworkAvailable())
             }
 
             override fun onCapabilitiesChanged(
