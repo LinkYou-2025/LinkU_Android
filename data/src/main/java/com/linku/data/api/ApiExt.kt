@@ -4,6 +4,7 @@ import com.linku.core.error.ApiError
 import com.linku.data.api.dto.BaseResponse
 import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -76,6 +77,39 @@ suspend fun safeApiCallUnit(
                 code = response.code,
                 message = response.message
             )
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: ApiError) {
+        throw e
+    } catch (e: HttpException) {
+        throw mapHttpError(e)
+    } catch (e: UnknownHostException) {
+        throw ApiError.Network.NoConnection()
+    } catch (e: SocketTimeoutException) {
+        throw ApiError.Network.Timeout()
+    } catch (e: IOException) {
+        throw ApiError.Network.NoConnection()
+    } catch (e: Exception) {
+        throw ApiError.Unknown(
+            code = "UNKNOWN",
+            message = e.message ?: "알 수 없는 오류가 발생했습니다."
+        )
+    }
+}
+
+/**
+ * 204 No Content 응답 API 호출 래퍼.
+ * Response<Unit>을 반환하는 API (삭제 등)에 사용한다.
+ */
+suspend fun safeApiCall204(
+    block: suspend () -> Response<Unit>
+) {
+    try {
+        val response = block()
+        when {
+            response.isSuccessful -> return
+            else -> throw mapHttpError(HttpException(response))
         }
     } catch (e: CancellationException) {
         throw e
