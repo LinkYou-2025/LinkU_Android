@@ -71,6 +71,13 @@ sealed class ApiError : Exception() {
             override val message: String
         ) : Auth()
 
+        /** 기기 정보 없음 - 재로그인 필요 */
+        class DeviceNotFound(
+            override val code: String,
+            override val message: String
+        ) : Auth()
+
+
         /** OAUTH4003 - 소셜 로그인 이메일 필요 */
         class SocialEmailRequired(
             override val code: String,

@@ -141,7 +141,7 @@ class AuthRepositoryImpl @Inject constructor(
         Log.d(TAG, "[토큰 재발급 시도]")
 
         val deviceId = loginSessionStore.deviceId.first()
-            ?: throw ApiError.Auth.TokenExpired(
+            ?: throw ApiError.Common.Unauthorized(
                 code = "AUTH_DEVICE_NOT_FOUND",
                 message = "기기 정보가 없습니다. 다시 로그인해주세요."
             )
