@@ -10,13 +10,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.repository.RecentSearchRepository
+import com.linku.core.system.NotificationController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
-import com.linku.core.system.NotificationController
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +25,7 @@ class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
     val loginSessionStore: LoginSessionStore,
+    private val notificationController: NotificationController
 ) : AndroidViewModel(application) {
 
     private val connectivityManager =
@@ -72,10 +73,6 @@ class MainViewModel @Inject constructor(
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
-
-    val loginSessionStore: LoginSessionStore,
-    private val notificationController: NotificationController
-): ViewModel() {
 
     // 최근 검색 기록 전체 삭제
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
