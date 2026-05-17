@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
+import com.linku.core.system.NotificationController
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -72,6 +73,10 @@ class MainViewModel @Inject constructor(
     }
 
 
+    val loginSessionStore: LoginSessionStore,
+    private val notificationController: NotificationController
+): ViewModel() {
+
     // 최근 검색 기록 전체 삭제
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     fun clearRecentQuery() {
@@ -93,4 +98,11 @@ class MainViewModel @Inject constructor(
         }
         Log.d("MainViewModel", "clearRecentQuery return")
     }
+
+    // 알림 허용 여부 저장
+    // 로그인 성공 후 시스템 권한 요청 결과를 로컬에 반영
+    fun setNotificationEnabled(enabled: Boolean) {
+        notificationController.setNotificationEnabled(enabled)
+    }
+
 }
