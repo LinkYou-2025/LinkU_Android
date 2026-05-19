@@ -13,7 +13,7 @@ class AIArticleRepositoryImpl @Inject constructor(
     override suspend fun getAiArticle(linkuId: Long): AiArticle {
         val dto = safeApiCall {
             serverApi.getAiarticle(linkuid = linkuId)
-        }
+        }.getOrThrow()
         requireNotNull(dto) { "AI Article result was null" }
 
         return AiArticle(

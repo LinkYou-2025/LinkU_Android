@@ -70,7 +70,7 @@ class LinkuRepositoryImpl @Inject constructor(
                 memo = memoBody,
                 emotionId = emotionBody
             )
-        }
+        }.getOrThrow()
 
         // dto 가 null 가능할 수 있으므로 안전 매핑
         // (withAuth 블록에서 .result 를 꺼냈다면 dto 가 nullable 일 수 있음)
@@ -91,7 +91,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 링크 유효성 검사
     override suspend fun checkLink(url: String): Boolean {
-        val res = safeApiCall { serverApi.checkLink(url = url) }
+        val res = safeApiCall { serverApi.checkLink(url = url) }.getOrThrow()
 
         return res.exist == true
     }
@@ -112,7 +112,7 @@ class LinkuRepositoryImpl @Inject constructor(
             )
         }
 
-        return list.map { dto ->
+        return list.getOrThrow().map { dto ->
             LinkSimpleInfo(
                 linkuId = dto.linkuId ?: 0L,
                 categoryId = dto.categoryId,
@@ -164,7 +164,7 @@ class LinkuRepositoryImpl @Inject constructor(
     // * 수정 전 *
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
         // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
-        val dto = safeApiCall { serverApi.viewDetailLink(linkuid = linkuId) }
+        val dto = safeApiCall { serverApi.viewDetailLink(linkuid = linkuId) }.getOrThrow()
         requireNotNull(dto) { "Link detail result was null" }
 
         return LinkResultInfo(
@@ -197,7 +197,7 @@ class LinkuRepositoryImpl @Inject constructor(
             serverApi.viewDetailLink(
                 userId = userId, linkuid = linkuId
             )
-        }
+        }.getOrThrow()
         requireNotNull(dto) { "Link detail result was null" }
 
         return LinkResultInfo(
@@ -229,7 +229,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
             response = safeApiCall {
                 serverApi.quickSearch(keyword = keyword)
-            }.map{
+            }.getOrThrow().map {
                 FastSearchLinkInfo(
                     linkuId = it.linkuId,
                     title = it.title,
@@ -271,7 +271,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
         val dto = safeApiCall {
             serverApi.updateLink(linkuId = linkuId, body = body)
-        }
+        }.getOrThrow()
         requireNotNull(dto) { "updateLink() result was null" }
 
         return LinkResultInfo(

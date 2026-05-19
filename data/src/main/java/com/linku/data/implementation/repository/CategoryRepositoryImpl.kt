@@ -24,7 +24,7 @@ class CategoryRepositoryImpl @Inject constructor(
 
             categoryColorList = safeApiCall {
                 serverApi.getCategoryColor()
-            }.map{
+            }.getOrThrow().map {
                 CategoryColorList(
                     categoryId = it.categoryId,
                     categoryName = it.categoryName,
