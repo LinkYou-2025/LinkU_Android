@@ -147,7 +147,7 @@ class SocialAuthViewModel @Inject constructor(
             _kakaoLoginState.value = SocialLoginState.Loading
 
             try {
-                val result = authRepository.loginWithKakao(token)
+                val result = authRepository.loginWithKakao(token).getOrThrow()
 
                 if (result.refreshToken == null) {
                     // TEMP 유저 → 토큰 저장 없이 소셜 토큰만 임시 보관
@@ -341,7 +341,7 @@ class SocialAuthViewModel @Inject constructor(
                     job = _job.value,
                     purposes = _purposes.value,
                     interests = _interests.value
-                )
+                ).getOrThrow()
 
                 if (success) {
                     Log.d(TAG, "소셜 프로필 완료 성공")

@@ -35,8 +35,9 @@ open class LoginViewModel @Inject constructor(
     // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
     private suspend fun fetchAndSaveUserSession(userId: Long) {
         val userInfo =
-            userRepository.getUserInfo(userId) // 사용자 정보 조회 api GET /api/users/{userId} 이용.
-
+            userRepository.getUserInfo(userId)
+                .getOrThrow() // 사용자 정보 조회 api GET /api/users/{userId} 이용.
+        // .getOrThrow() 그대로 놓을까 fold()로 ? 일단 .getOrThrow()로 제어함.
         loginSessionStore.saveLogin( // SessionStore에 세션 생성.
             userId = userId,
             nickname = userInfo.nickname,
@@ -97,14 +98,7 @@ open class LoginViewModel @Inject constructor(
                     password = password.trim(),
                     deviceId = deviceId,
                     deviceType = deviceType
-                )
-
-                // 토큰 + userId 저장
-                authPreference.saveTokens(
-                    accessToken = loginResult.accessToken,
-                    refreshToken = loginResult.refreshToken,
-                    userId = loginResult.userId
-                )
+                ).getOrThrow()
 
                 // 마이페이지 조회 → 세션 풀 세팅
                 fetchAndSaveUserSession(loginResult.userId)
