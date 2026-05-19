@@ -6,8 +6,7 @@ import android.util.Log
 import com.linku.data.preference.AuthPreference
 
 /*
-* 로그인/자동 로그인에 필요한 토큰 정보를 실제  SharedPreferences 저장.
-* 모든 토큰을 저장하는 위치임.
+* 아 수정해야함...
 * */
 class AuthPreferenceImpl(context: Context) : AuthPreference {
     companion object {
@@ -17,7 +16,6 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
         private const val REFRESH_TOKEN_KEY = "refresh_token"
         //EncryptedSharedPreferences을 적용을 고민했으나, coderabbitai에 피드백이 있어서 주석 남깁니다.
         // 암호화로 나중에 오류 발생시 찾기 어려워 보이는데,어떻게 할지?
-        //TODO : 팀장에게 결정 부탁하기.
         private const val USER_ID_KEY = "user_id"
 
         private const val SOCIAL_TOKEN_KEY = "social_token"
@@ -39,7 +37,8 @@ class AuthPreferenceImpl(context: Context) : AuthPreference {
     // 엑세스 토큰은 수명이 짧음. 재발급에 사용함. 스플래쉬에서 자동 로그인 가능 여부 판단의 기준임.
     // 여기 값이 있음 -> 로그인 상태임 , 값이 없으면 로그인 화면임.
     override var refreshToken: String?
-        get() = pref.getString(REFRESH_TOKEN_KEY, "") ?: ""
+        get() = pref.getString(REFRESH_TOKEN_KEY, null)
+            ?.takeIf { it.isNotBlank() }
         set(value) {
             pref.edit().apply {
                 //로그아웃 시 리프래쉬 토큰 제거함. -> 자동 로그인 깨짐.
