@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,6 +31,7 @@ fun HomeApp(
     onNavigateToMyPage: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
+    val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val navController = rememberNavController()
 
@@ -81,7 +84,7 @@ fun HomeApp(
                 userName = viewModel.userName.orEmpty().ifBlank { "링큐" },
                 showRecommendations = viewModel.showRecommendations,
                 recommendedLinks = viewModel.recommendedLinks,
-                recentLinks = viewModel.recentLinks,
+                recentLinks = recentLinks,
                 isRecommending = viewModel.isRecommending,
                 onRecommendRequest = { emotionId, situationId, size ->
                     viewModel.fetchRecommendations(

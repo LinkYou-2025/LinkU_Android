@@ -1,10 +1,13 @@
 package com.linku
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +25,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -56,11 +60,6 @@ import com.linku.navigation.LinkuNavigationItem
 import dagger.hilt.android.EntryPointAccessors
 import java.io.File
 import java.io.FileOutputStream
-
-import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.core.content.ContextCompat
 
 @Composable
 fun MainApp(
@@ -173,7 +172,7 @@ fun MainApp(
         Log.d("MainApp", "시스템 권한 상태: ${ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED}")
     }
 
-    // NOTE : 이게 App에 있어야 할까..? MainActivity에 있는게 맞을 것 같은데, 리펙 가능한 부분인가..? 고민이 듬
+
     // 플래그 감지 시 권한 요청 런쳐 실행
     LaunchedEffect(requestNotificationPermission) {
         if (requestNotificationPermission) {
@@ -185,7 +184,7 @@ fun MainApp(
             requestNotificationPermission = false // 한 번만 요청하도록 처리
         }
     }
-
+    // NOTE : 이게 App에 있어야 할까..? MainActivity에 있는게 맞을 것 같은데, 리펙 가능한 부분인가..? 고민이 듬
     ThemeProvider {
         DoubleBackToExitIfTop(navigator = navigator)
         MainScreen(
@@ -293,6 +292,7 @@ fun MainApp(
                                 // refresh 있음 → 자동로그인 시도
                                 loginViewModel.tryAutoLogin(
                                     onSuccess = {
+                                        homeViewModel.refreshAfterLogin()
                                         navigator.navigate(NavigationRoute.Home.route) {
                                             popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                             launchSingleTop = true
