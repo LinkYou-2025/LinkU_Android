@@ -113,18 +113,20 @@ class EmailAuthViewModel @Inject constructor(
         Log.d("EmailAuthVM", "verifyEmailCode() called. email=$email, code=$code")
         viewModelScope.launch {
             _authState.value = EmailAuthState.Verifying
-            try {
-                val ok = authRepository.verifyEmailCode(email, code)
-                if (ok) {
-                    stopTimer()
-                    _authState.value = EmailAuthState.VerifySuccess
-                } else {
-                    _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.VERIFY_FAILED)
+            authRepository.verifyEmailCode(email, code)
+                .onSuccess { isSuccess ->
+                    if (isSuccess) {
+                        stopTimer()
+                        _authState.value = EmailAuthState.VerifySuccess
+                    } else {
+                        _authState.value =
+                            EmailAuthState.VerifyError(AuthErrorMessages.VERIFY_FAILED)
+                    }
                 }
-            } catch (e: Exception) {
-                Log.e("EmailAuthVM", "Exception in verifyEmailCode", e)
-                _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.NETWORK_ERROR)
-            }
+                .onFailure { exception ->
+                    Log.e("EmailAuthVM", "Exception in verifyEmailCode", exception)
+                    _authState.value = EmailAuthState.VerifyError(AuthErrorMessages.NETWORK_ERROR)
+                }
         }
     }
 
