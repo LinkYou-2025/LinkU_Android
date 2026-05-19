@@ -9,124 +9,64 @@ import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
-
 /**
- * result가 포함된 API 호출을 안전하게 실행하고 결과를 반환하는 래퍼 함수.
- *
- * 서버 응답의 [BaseResponse.isSuccess]를 확인하여 성공 시 [BaseResponse.result]를 반환하고,
- * 실패 시 또는 네트워크 오류 발생 시 적절한 [ApiError]로 변환하여 throw한다.
- *
- * @param T 반환될 데이터의 타입
- * @param block 실행할 API 호출 람다
- * @return 서버로부터 받은 결과 데이터 ([BaseResponse.result])
- * @throws ApiError 서버 에러, 데이터 부재(null), 또는 네트워크 관련 에러
- * @throws CancellationException 코루틴 취소 시 발생 (재throw)
+ * 모든 API 안전 호출의 에러 핸들링을 담당하는 공통 인라인 함수
  */
+private inline fun <T> handleApiExceptions(block: () -> Result<T>): Result<T> {
+    return try {
+        block()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: ApiError) {
+        Result.failure(e)
+    } catch (e: HttpException) {
+        Result.failure(mapHttpError(e))
+    } catch (e: UnknownHostException) {
+        Result.failure(ApiError.Network.NoConnection())
+    } catch (e: SocketTimeoutException) {
+        Result.failure(ApiError.Network.Timeout())
+    } catch (e: IOException) {
+        Result.failure(ApiError.Network.NoConnection())
+    } catch (e: Exception) {
+        Result.failure(
+            ApiError.Unknown(
+                code = "UNKNOWN",
+                message = e.message ?: "알 수 없는 오류가 발생했습니다."
+            )
+        )
+    }
+}
+
 suspend fun <T> safeApiCall(
     block: suspend () -> BaseResponse<T>
-): T {
-    return try {
-        val response = block()
-        if (!response.isSuccess) {
-            throw mapToApiError(
-                code = response.code,
-                message = response.message
-            )
-        }
-        response.result ?: throw ApiError.Common.InternalServer(
-            code = "COMMON500",
-            message = "결과값이 없습니다."
-        )
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: ApiError) {
-        throw e
-    } catch (e: HttpException) {
-        throw mapHttpError(e)
-    } catch (e: UnknownHostException) {
-        throw ApiError.Network.NoConnection()
-    } catch (e: SocketTimeoutException) {
-        throw ApiError.Network.Timeout()
-    } catch (e: IOException) {
-        throw ApiError.Network.NoConnection()
-    } catch (e: Exception) {
-        throw ApiError.Unknown(
-            code = "UNKNOWN",
-            message = e.message ?: "알 수 없는 오류가 발생했습니다."
-        )
+): Result<T> = handleApiExceptions {
+    val response = block()
+    if (!response.isSuccess) {
+        return@handleApiExceptions Result.failure(mapToApiError(response.code, response.message))
     }
+    val result = response.result ?: return@handleApiExceptions Result.failure(
+        ApiError.Common.InternalServer(code = "COMMON500", message = "결과값이 없습니다.")
+    )
+    Result.success(result)
 }
 
-/**
- * result 없는 API 호출 래퍼. (result: {})
- *
- * 서버 응답의 [BaseResponse.isSuccess]만 확인하고,
- * 실패 시 [ApiErrorMapper]를 통해 [ApiError]로 변환해 throw한다.
- *
- * @param block 실행할 API 호출 람다
- * @throws ApiError 서버 에러 또는 네트워크 에러
- * @throws CancellationException 코루틴 취소 시 (재throw)
- */
 suspend fun safeApiCallUnit(
-    block: suspend () -> BaseResponse<Any>
-) {
-    try {
-        val response = block()
-        if (!response.isSuccess) {
-            throw mapToApiError(
-                code = response.code,
-                message = response.message
-            )
-        }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: ApiError) {
-        throw e
-    } catch (e: HttpException) {
-        throw mapHttpError(e)
-    } catch (e: UnknownHostException) {
-        throw ApiError.Network.NoConnection()
-    } catch (e: SocketTimeoutException) {
-        throw ApiError.Network.Timeout()
-    } catch (e: IOException) {
-        throw ApiError.Network.NoConnection()
-    } catch (e: Exception) {
-        throw ApiError.Unknown(
-            code = "UNKNOWN",
-            message = e.message ?: "알 수 없는 오류가 발생했습니다."
-        )
+    block: suspend () -> BaseResponse<*>
+): Result<Unit> = handleApiExceptions {
+    val response = block()
+    if (!response.isSuccess) {
+        return@handleApiExceptions Result.failure(mapToApiError(response.code, response.message))
     }
+    Result.success(Unit)
 }
 
-/**
- * 204 No Content 응답 API 호출 래퍼.
- * Response<Unit>을 반환하는 API (삭제 등)에 사용한다.
- */
 suspend fun safeApiCall204(
     block: suspend () -> Response<Unit>
-) {
-    try {
-        val response = block()
-        when {
-            response.isSuccessful -> return
-            else -> throw mapHttpError(HttpException(response))
-        }
-    } catch (e: CancellationException) {
-        throw e
-    } catch (e: ApiError) {
-        throw e
-    } catch (e: HttpException) {
-        throw mapHttpError(e)
-    } catch (e: UnknownHostException) {
-        throw ApiError.Network.NoConnection()
-    } catch (e: SocketTimeoutException) {
-        throw ApiError.Network.Timeout()
-    } catch (e: IOException) {
-        throw ApiError.Network.NoConnection()
-    } catch (e: Exception) {
-        throw ApiError.Unknown(
-            code = "UNKNOWN",
-            message = e.message ?: "알 수 없는 오류가 발생했습니다."
-        )
+): Result<Unit> = handleApiExceptions {
+    val response = block()
+    if (response.isSuccessful) {
+        Result.success(Unit)
+    } else {
+        Result.failure(mapHttpError(HttpException(response)))
     }
 }
