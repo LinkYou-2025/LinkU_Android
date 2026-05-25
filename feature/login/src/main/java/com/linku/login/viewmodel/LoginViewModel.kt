@@ -1,8 +1,6 @@
 package com.linku.login.viewmodel
 
-import android.annotation.SuppressLint
 import android.app.Application
-import android.provider.Settings
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +16,9 @@ import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -31,26 +31,13 @@ open class LoginViewModel @Inject constructor(
     private val authPreference: AuthPreference,
 ) : AndroidViewModel(application) {
 
-    // deviceId 앱 시작 시 한 번만 읽음
-    private val deviceId: String by lazy {
-        @SuppressLint("HardwareIds")
-        "android-" + Settings.Secure.getString(
-            getApplication<Application>().contentResolver,
-            Settings.Secure.ANDROID_ID
-        )
-    }
-
-    // 기기 구분
-    private fun getDeviceType(): String {
-        val config = getApplication<Application>().resources.configuration
-        return if (config.smallestScreenWidthDp >= 600) "TABLET" else "PHONE"
-    }
 
     // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
     private suspend fun fetchAndSaveUserSession(userId: Long) {
         val userInfo =
-            userRepository.getUserInfo(userId) // 사용자 정보 조회 api GET /api/users/{userId} 이용.
-
+            userRepository.getUserInfo(userId)
+                .getOrThrow() // 사용자 정보 조회 api GET /api/users/{userId} 이용.
+        // .getOrThrow() 그대로 놓을까 fold()로 ? 일단 .getOrThrow()로 제어함.
         loginSessionStore.saveLogin( // SessionStore에 세션 생성.
             userId = userId,
             nickname = userInfo.nickname,
@@ -81,12 +68,9 @@ open class LoginViewModel @Inject constructor(
     }
 
     fun login(email: String, password: String) {
-        // 이메일이나 비밀번호가 비어있는 경우
+
         if (email.isBlank() || password.isBlank()) {
-            //error로 처리함. 이메일 주소 혹은 비밀번호 다시 확인하세요. 메시지를 담아서 전달함.
-            // TODO : 어 그냥 이메일 입력해주세요, 비밀번호 입력해주세요 넣으면 되는거 아닌가?
             _loginState.value = LoginState.Error(LoginErrorType.INVALID_CREDENTIALS)
-            // 서버 호출할 필요 없음. 바로 종료
             return
         }
 
@@ -96,20 +80,25 @@ open class LoginViewModel @Inject constructor(
                 _loginState.value = LoginState.Loading
                 Log.d(TAG, "로그인 시도")
 
+                val deviceId = loginSessionStore.deviceId.first() ?: run {
+                    val newDeviceId = "android-" + UUID.randomUUID().toString()
+                    val newDeviceType = if (getApplication<Application>()
+                            .resources.configuration.smallestScreenWidthDp >= 600
+                    )
+                        "TABLET" else "PHONE"
+                    loginSessionStore.saveDeviceInfoIfAbsent(newDeviceId, newDeviceType)
+                    newDeviceId
+                }
+
+                val deviceType = loginSessionStore.deviceType.first() ?: "PHONE"
+
                 // API 호출
                 val loginResult = authRepository.login(
                     email = email.trim(),
                     password = password.trim(),
                     deviceId = deviceId,
-                    deviceType = getDeviceType()
-                )
-
-                // 토큰 + userId 저장
-                authPreference.saveTokens(
-                    accessToken = loginResult.accessToken,
-                    refreshToken = loginResult.refreshToken,
-                    userId = loginResult.userId
-                )
+                    deviceType = deviceType
+                ).getOrThrow()
 
                 // 마이페이지 조회 → 세션 풀 세팅
                 fetchAndSaveUserSession(loginResult.userId)

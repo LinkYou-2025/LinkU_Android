@@ -1,15 +1,6 @@
 package com.linku.core.repository
 
-import com.linku.core.model.LoginResult
-import com.linku.core.model.TokenReissueResult
 import com.linku.core.model.UserInfo
-import com.linku.core.model.auth.Gender
-import com.linku.core.model.auth.Interest
-import com.linku.core.model.auth.Job
-import com.linku.core.model.auth.Purpose
-import com.linku.core.datastore.session.LoginSessionStore
-import com.linku.core.model.auth.SignUpEmailResult
-import kotlinx.coroutines.flow.Flow
 
 
 interface UserRepository {
@@ -21,7 +12,7 @@ interface UserRepository {
 
 
     // 마이페이지 조회
-    suspend fun getUserInfo(userId: Long): UserInfo
+    suspend fun getUserInfo(userId: Long): Result<UserInfo>
 
     suspend fun refreshUserInfo(userId: Long)
     // 마이페이지 계정 수정

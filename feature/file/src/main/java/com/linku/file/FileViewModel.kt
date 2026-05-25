@@ -21,17 +21,22 @@ import com.linku.core.repository.FolderRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
-import com.linku.data.api.dto.server.*
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.DomainIdMapper
-import com.linku.design.top.search.FastSearchItem
-import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.data.util.toCategoryColorStyleMap
+import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.async
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -336,8 +341,9 @@ class FileViewModel @Inject constructor(
             try{
                 val userId = authPreference.userId!!
 
-                val userInfo = userRepository.getUserInfo(userId)
+                val userInfo = userRepository.getUserInfo(userId).getOrThrow()
                 _nickname.value = userInfo.nickname
+                //지민아 너가 판단해서 fold 패턴이 맞다고 생각하면 그거로 변경하는 것도 좋을듯?
             }catch (e: Exception){
                 Log.d("FileViewModel", "loadNickname catch: $e.message")
 

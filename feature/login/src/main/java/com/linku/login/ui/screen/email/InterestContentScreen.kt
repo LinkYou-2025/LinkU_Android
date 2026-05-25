@@ -25,8 +25,6 @@ fun InterestContentScreen(
 
     SignUpSelectionLayout(
         currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
         titleText = buildAnnotatedString {
             append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
         },
@@ -56,8 +54,6 @@ private fun InterestContentScreenPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
             },
@@ -86,8 +82,6 @@ private fun InterestContentScreenSelectedPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 분야의 콘텐츠를\n관심 있으신가요? ")
             },

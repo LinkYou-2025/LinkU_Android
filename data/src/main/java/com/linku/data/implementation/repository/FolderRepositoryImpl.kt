@@ -16,14 +16,12 @@ import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
 import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
-import com.linku.data.api.withAuth
-import com.linku.data.api.withAuthResp204Raw
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCall204
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
 ) : FolderRepository {
 
     // 폴더 북마크 등록/해제
@@ -38,12 +36,15 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "updateBookmark try")
 
-            folderResponse = serverApi.withAuth(authPreference){
-                updateBookmark(
-                    folderId,
-                    UpdateBookmarkRequestDTO(isBookmarked)
-                )
-            }.isBookmarked
+            folderResponse = safeApiCall(
+                apiCall = {
+                    serverApi.updateBookmark(
+                        folderId,
+                        UpdateBookmarkRequestDTO(isBookmarked)
+                    )
+                },
+                transform = { dto -> dto.isBookmarked }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "updateBookmark response: $folderResponse")
         }catch (e: Exception){
@@ -64,17 +65,20 @@ class FolderRepositoryImpl @Inject constructor(
 
         try{
             Log.d("FolderRepositoryImpl", "getParentfolders try")
-
-            folderList = serverApi.withAuth(authPreference) {
-                getParentfolders()
-            }.map {
-                FolderSimpleInfo(
-                    folderId = it.folderId,
-                    folderName = it.folderName,
-                    parentFolderId = 0,
-                    isBookmarked = it.isBookmarked
-                )
-            }
+            //safeApiCall 구조 변경이 있어서, 부득이하게 수정이 들어갔는데... 또 it을 중첩으로 쓰기 애매해서 dtoList(아무 의미 없음)으로 적었습니당. 편하게 지우고 수정해주세용
+            folderList = safeApiCall(
+                apiCall = { serverApi.getParentfolders() },
+                transform = { dtoList ->
+                    dtoList.map {
+                        FolderSimpleInfo(
+                            folderId = it.folderId,
+                            folderName = it.folderName,
+                            parentFolderId = 0,
+                            isBookmarked = it.isBookmarked
+                        )
+                    }
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "getParentfolders response: $folderList")
         }catch (e: Exception){
@@ -97,17 +101,21 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getSubfolders try")
 
-            folderList = serverApi.withAuth(authPreference){
-                getLinksFolders(parentFolderId)
-            }.folders.map {
-                FolderSimpleInfo(
-                    folderId = it.folderId,
-                    folderName = it.folderName,
-                    parentFolderId = parentFolderId,
-                    isBookmarked = false,
-                    isSharing = it.isSharing
-                )
-            }
+            //safeApiCall 구조 변경이 있어서, 부득이하게 수정이 들어갔는데... 또 it을 중첩으로 쓰기 애매해서 res(아무 의미 없음)으로 적었습니당. 편하게 지우고 수정해주세용
+            folderList = safeApiCall(
+                apiCall = { serverApi.getLinksFolders(parentFolderId) },
+                transform = { res ->
+                    res.folders.map {
+                        FolderSimpleInfo(
+                            folderId = it.folderId,
+                            folderName = it.folderName,
+                            parentFolderId = parentFolderId,
+                            isBookmarked = false,
+                            isSharing = it.isSharing
+                        )
+                    }
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "getSubfolders response: $folderList")
         }catch (e: Exception){
@@ -135,9 +143,10 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getLinksFolders try")
 
-            response = serverApi.withAuth(authPreference) {
-                getLinksFolders(parentFolderId, limit, cursor)
-            }
+            response = safeApiCall(
+                apiCall = { serverApi.getLinksFolders(parentFolderId, limit, cursor) },
+                transform = { it }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "getLinksFolders response: $response")
 
@@ -191,23 +200,26 @@ class FolderRepositoryImpl @Inject constructor(
 
         try{
             Log.d("FolderRepositoryImpl", "createSubfolder try")
-
-            response = serverApi.withAuth(authPreference){
-                createSubfolder(
-                    parentFolderId,
-                    FolderCreateRequestDTO(folderName)
-                )
-            }.run {
-                FolderInfo(
-                    folderId = this.folderId,
-                    folderName = this.folderName,
-                    categoryId = this.categoryId,
-                    categoryName = this.categoryName,
-                    parentFolderId = this.parentFolderId,
-                    createdAt = this.createdAt,
-                    updatedAt = this.updatedAt,
-                )
-            }
+            // 간단하게 서둘러 수정하려고 it 썼는데 this가 더 적절하다고 판단되면 편하게 제 코드를 막 지워주세용
+            response = safeApiCall(
+                apiCall = {
+                    serverApi.createSubfolder(
+                        parentFolderId,
+                        FolderCreateRequestDTO(folderName)
+                    )
+                },
+                transform = {
+                    FolderInfo(
+                        folderId = it.folderId,
+                        folderName = it.folderName,
+                        categoryId = it.categoryId,
+                        categoryName = it.categoryName,
+                        parentFolderId = it.parentFolderId,
+                        createdAt = it.createdAt,
+                        updatedAt = it.updatedAt,
+                    )
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "createSubfolder response: $response")
         }catch (e: Exception){
@@ -232,19 +244,25 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "updateSubfolder try")
 
-            response = serverApi.withAuth(authPreference){
-                updateSubfolder(folderId, FolderUpdateRequestDTO(folderName))
-            }.run {
-                FolderInfo(
-                    folderId = this.folderId,
-                    folderName = this.folderName,
-                    categoryId = this.categoryId,
-                    categoryName = this.categoryName,
-                    parentFolderId = this.parentFolderId,
-                    createdAt = this.createdAt,
-                    updatedAt = this.updatedAt,
-                )
-            }
+            response = safeApiCall(
+                apiCall = {
+                    serverApi.updateSubfolder(
+                        folderId,
+                        FolderUpdateRequestDTO(folderName)
+                    )
+                },
+                transform = {
+                    FolderInfo(
+                        folderId = it.folderId,
+                        folderName = it.folderName,
+                        categoryId = it.categoryId,
+                        categoryName = it.categoryName,
+                        parentFolderId = it.parentFolderId,
+                        createdAt = it.createdAt,
+                        updatedAt = it.updatedAt,
+                    )
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "updateSubfolder response: $response")
         }catch (e: Exception){
@@ -264,9 +282,7 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "deleteSubfolder try")
 
-            serverApi.withAuthResp204Raw(authPreference){
-                deleteSubfolder(folderId)
-            }
+            safeApiCall204 { serverApi.deleteSubfolder(folderId) }.getOrThrow()
 
             Log.d("FolderRepositoryImpl", "deleteSubfolder well done")
         }catch (e: Exception){
@@ -286,22 +302,26 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getSharedFolders try")
 
-            folderList = serverApi.withAuth(authPreference) {
-                getSharedFolders()
-            }.map {
-                SharedFolderInfo(
-                    userId = it.userId,
-                    nickname = it.nickname,
-                    folders = it.folders.map {
-                        FolderSimpleInfo(
-                            folderId = it.folderId,
-                            folderName = it.folderName,
-                            parentFolderId = it.categoryId,
-                            isBookmarked = false
+            //safeApiCall 구조 변경이 있어서, 부득이하게 수정이 들어갔는데... 또 it을 중첩으로 쓰기 애매해서 dtoList로 적었습니당. 편하게 지우고 수정해주세용
+            folderList = safeApiCall(
+                apiCall = { serverApi.getSharedFolders() },
+                transform = { dtoList ->
+                    dtoList.map { res ->
+                        SharedFolderInfo(
+                            userId = res.userId,
+                            nickname = res.nickname,
+                            folders = res.folders.map {
+                                FolderSimpleInfo(
+                                    folderId = it.folderId,
+                                    folderName = it.folderName,
+                                    parentFolderId = it.categoryId,
+                                    isBookmarked = false
+                                )
+                            }
                         )
                     }
-                )
-            }
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "getSharedFolders response: $folderList")
         } catch (e: Exception){
@@ -321,9 +341,7 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "deleteSharedFolder try")
 
-            serverApi.withAuthResp204Raw(authPreference){
-                deleteSharedFolder(folderId)
-            }
+            safeApiCall204 { serverApi.deleteSharedFolder(folderId) }.getOrThrow()
 
             Log.d("FolderRepositoryImpl", "deleteSharedFolder well done")
 
@@ -344,22 +362,23 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "setFolderViewerPermission try")
 
-            response = serverApi.withAuth(authPreference){
-                setFolderViewerPermission(folderId)
-            }.run {
-                SharedFolderSimpleInfo(
-                    folderId = this.folderId,
-                    userId = this.userId,
-                    permission = when (this.permission) {
-                        "viewer" -> FolderPermission.VIEWER
-                        "writer" -> FolderPermission.WRITER
-                        "owner" -> FolderPermission.OWNER
-                        "none" -> FolderPermission.NONE
-                        else -> FolderPermission.NONE
-                    },
-                    sharedAt = this.sharedAt
-                )
-            }
+            response = safeApiCall(
+                apiCall = { serverApi.setFolderViewerPermission(folderId) },
+                transform = {
+                    SharedFolderSimpleInfo(
+                        folderId = it.folderId,
+                        userId = it.userId,
+                        permission = when (it.permission) {
+                            "viewer" -> FolderPermission.VIEWER
+                            "writer" -> FolderPermission.WRITER
+                            "owner" -> FolderPermission.OWNER
+                            "none" -> FolderPermission.NONE
+                            else -> FolderPermission.NONE
+                        },
+                        sharedAt = it.sharedAt
+                    )
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "setFolderViewerPermission response: $response")
         }catch (e: Exception){
@@ -380,22 +399,23 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "setFolderPrivatePermission try")
 
-            response = serverApi.withAuth(authPreference){
-                setFolderPrivate(folderId)
-            }.run {
-                SharedFolderSimpleInfo(
-                    folderId = this.folderId,
-                    userId = this.userId,
-                    permission = when (this.permission) {
-                        "viewer" -> FolderPermission.VIEWER
-                        "writer" -> FolderPermission.WRITER
-                        "owner" -> FolderPermission.OWNER
-                        "none" -> FolderPermission.NONE
-                        else -> FolderPermission.NONE
-                    },
-                    sharedAt = this.sharedAt
-                )
-            }
+            response = safeApiCall(
+                apiCall = { serverApi.setFolderPrivate(folderId) },
+                transform = {
+                    SharedFolderSimpleInfo(
+                        folderId = it.folderId,
+                        userId = it.userId,
+                        permission = when (it.permission) {
+                            "viewer" -> FolderPermission.VIEWER
+                            "writer" -> FolderPermission.WRITER
+                            "owner" -> FolderPermission.OWNER
+                            "none" -> FolderPermission.NONE
+                            else -> FolderPermission.NONE
+                        },
+                        sharedAt = it.sharedAt
+                    )
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "setFolderPrivatePermission response: $response")
         }catch (e: Exception){
@@ -416,20 +436,24 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "getFolderViewers try")
 
-            response = serverApi.withAuth(authPreference) {
-                getFolderViewers(folderId)
-            }.map {
-                FolderPermissionInfo(
-                    userId = it.userId,
-                    userName = it.userName,
-                    permission = when (it.permission) {
-                        "viewer" -> FolderPermission.VIEWER
-                        "writer" -> FolderPermission.WRITER
-                        "owner" -> FolderPermission.OWNER
-                        else -> FolderPermission.NONE
+            //safeApiCall 구조 변경이 있어서, 부득이하게 수정이 들어갔는데... 또 it을 중첩으로 쓰기 애매해서 dtoList로 적었습니당. 편하게 지우고 수정해주세용
+            response = safeApiCall(
+                apiCall = { serverApi.getFolderViewers(folderId) },
+                transform = { dtoList ->
+                    dtoList.map {
+                        FolderPermissionInfo(
+                            userId = it.userId,
+                            userName = it.userName,
+                            permission = when (it.permission) {
+                                "viewer" -> FolderPermission.VIEWER
+                                "writer" -> FolderPermission.WRITER
+                                "owner" -> FolderPermission.OWNER
+                                else -> FolderPermission.NONE
+                            }
+                        )
                     }
-                )
-            }
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "getFolderViewers response: $response")
         }catch (e: Exception){
@@ -452,17 +476,25 @@ class FolderRepositoryImpl @Inject constructor(
         try{
             Log.d("FolderRepositoryImpl", "updateViewerPermission try")
 
-            serverApi.withAuth(authPreference) {
-                updateViewerPermission(
-                    folderId, userFolderId,
-                    when (body) {
-                        FolderPermission.VIEWER -> "viewer"
-                        FolderPermission.WRITER -> "writer"
-                        FolderPermission.OWNER -> "owner"
-                        FolderPermission.NONE -> "none"
-                    }
-                )
-            }
+            safeApiCall(
+                apiCall = {
+                    serverApi.updateViewerPermission(
+                        folderId, userFolderId,
+                        when (body) {
+                            FolderPermission.VIEWER -> "viewer"
+                            FolderPermission.WRITER -> "writer"
+                            FolderPermission.OWNER -> "owner"
+                            FolderPermission.NONE -> "none"
+                        }
+                    )
+                },
+                transform = { it }
+            ).getOrThrow()
+
+            /**
+            safeApiCall204 { serverApi.deleteSharedFolder(folderId) }
+             */
+
 
             Log.d("FolderRepositoryImpl", "updateViewerPermission well done")
         }catch (e: Exception){
@@ -483,22 +515,25 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "updateLinkFolder try")
 
-            val result = serverApi.withAuth(authPreference) {
-                updateLinkFolder(
-                    linku.linkuId,
-                    UpdateLinkFolderDTO(folderId)
-                )
-            }.run{
-                LinkItemInfo(
-                    linkuId = this.linkuId,
-                    parentFolderId = folderId,
-                    title = this.title,
-                    tags = emptyList(),
-                    url = this.domain?:"",
-                    linkuImageUrl = this.linkuImageUrl,
-                    createdAt = this.createdAt,
-                )
-            }
+            val result = safeApiCall(
+                apiCall = {
+                    serverApi.updateLinkFolder(
+                        linku.linkuId,
+                        UpdateLinkFolderDTO(folderId)
+                    )
+                },
+                transform = {
+                    LinkItemInfo(
+                        linkuId = it.linkuId,
+                        parentFolderId = folderId,
+                        title = it.title,
+                        tags = emptyList(),
+                        url = it.domain ?: "",
+                        linkuImageUrl = it.linkuImageUrl,
+                        createdAt = it.createdAt,
+                    )
+                }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "updateLinkFolder response: $result")
         } catch (e: Exception) {
@@ -507,7 +542,7 @@ class FolderRepositoryImpl @Inject constructor(
         }
 
         Log.d("FolderRepositoryImpl", "updateLinkFolder return: $linku")
-        return linku
+        return linku //TODO: 지민님께 왜 result를 안 던지고 이걸 던진 이유 물어보기!
     }
 
     // 링크 삭제
@@ -517,15 +552,14 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "deleteLink try")
 
-            val userLinkuId = serverApi.withAuth(authPreference) {
-                getDetailLink(linkuId)
-            }.userLinkuId
+            val userLinkuId = safeApiCall(
+                apiCall = { serverApi.getDetailLink(linkuId) },
+                transform = { it.userLinkuId }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "deleteLink userLinkuId: $userLinkuId")
 
-            serverApi.withAuthResp204Raw(authPreference) {
-                deleteLink(userLinkuId)
-            }
+            safeApiCall204 { serverApi.deleteLink(userLinkuId) }.getOrThrow()
 
             Log.d("FolderRepositoryImpl", "deleteLink well done")
         } catch (e: Exception) {
@@ -557,10 +591,13 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getMyFolderTree try")
 
             tree = folderTreeConverter(
-                response = serverApi.withAuth(authPreference) {
-                    Log.d("FolderRepositoryImpl", "getMyFolderTree getMyFolders api")
-                    getMyFolders()
-                }
+                response = safeApiCall(
+                    apiCall = {
+                        Log.d("FolderRepositoryImpl", "getMyFolderTree getMyFolders api")
+                        serverApi.getMyFolders()
+                    },
+                    transform = { it }
+                ).getOrThrow()
             )
 
             Log.d("FolderRepositoryImpl", "getMyFolderTree response: $tree")
@@ -584,10 +621,13 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "makeInvitationLink try")
 
-            link = serverApi.withAuth(authPreference) {
-                Log.d("FolderRepositoryImpl", "makeInvitationLink makeInvitationLinkApi api")
-                makeInvitationLinkApi(folderId)
-            }
+            link = safeApiCall(
+                apiCall = {
+                    Log.d("FolderRepositoryImpl", "makeInvitationLink makeInvitationLinkApi api")
+                    serverApi.makeInvitationLinkApi(folderId)
+                },
+                transform = { it }
+            ).getOrThrow()
 
             Log.d("FolderRepositoryImpl", "makeInvitationLink response: $link")
 

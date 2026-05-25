@@ -25,8 +25,6 @@ fun InterestPurposeScreen(
 
     SignUpSelectionLayout(
         currentStep = 3,
-        totalSteps = 3,
-        stepLabel = "관심사 설정",
         titleText = buildAnnotatedString {
             append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
         },
@@ -56,8 +54,6 @@ private fun InterestPurposeScreenPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
 
@@ -87,8 +83,6 @@ private fun InterestPurposeScreenSelectedPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요? ")
             },

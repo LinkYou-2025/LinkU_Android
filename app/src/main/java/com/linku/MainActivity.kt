@@ -41,6 +41,10 @@ class MainActivity : ComponentActivity(), SystemBarController {
 
     }
 
+    override fun onResume() {
+        super.onResume()
+        // TODO: BaseViewModel 리팩토링 후 세션 갱신 로직 추가
+    }
 
 
     /**

@@ -15,6 +15,7 @@ abstract class AlarmRepositoryModule {
     // 페이크 레포지토리
     @Binds
     @Singleton
+    @Suppress("unused")
     abstract fun provideAlarmRepository(
         impl: FakeAlarmRepositoryImpl
     ): AlarmRepository
