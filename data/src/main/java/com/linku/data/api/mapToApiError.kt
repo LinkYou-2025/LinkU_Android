@@ -118,9 +118,6 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     // =========================================================
     // Gemini 에러 (GEMINI) - GEMINI5021 중복 코드로 인해 제외
     // =========================================================
-    "GEMINI4291" -> ApiError.Gemini.TooManyRequests(code, message)
-    "GEMINI5001" -> ApiError.Gemini.UnknownError(code, message)
-    "GEMINI5002" -> ApiError.Gemini.ResponseFormatError(code, message)
     "GEMINI5022" -> ApiError.Gemini.ParseError(code, message)
     "GEMINI5041" -> ApiError.Gemini.Timeout(code, message)
 
