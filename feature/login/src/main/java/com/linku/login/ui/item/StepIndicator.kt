@@ -62,10 +62,15 @@ internal fun StepIndicator(
                 val isCurrent = step == currentStep
 
                 Box(
-                    modifier = Modifier.size(30.dp).run {
-                        if (isCurrent || isCompleted) background(backgrounds[step - 1], CircleShape)
-                        else border(1.dp, inactiveColor, CircleShape)
-                    },
+                    modifier = Modifier
+                        .size(30.dp)
+                        .then(
+                            if (isCurrent || isCompleted) Modifier.background(
+                                backgrounds[step - 1],
+                                CircleShape
+                            )
+                            else Modifier.border(1.dp, inactiveColor, CircleShape)
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isCompleted) {
