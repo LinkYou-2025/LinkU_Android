@@ -38,7 +38,7 @@ interface AuthApi {
     @GET("auth/check-nickname")
     suspend fun checkNickname(
         @Query("nickname") nickname: String
-    ): BaseResponse<Any> // result {}
+    ): BaseResponse<Unit> // result {}
 
     // 로그인
     @POST("auth/login")
@@ -50,13 +50,13 @@ interface AuthApi {
     @POST("auth/email/code")
     suspend fun sendVerificationEmail(
         @Body body: EmailCodeRequestDTO
-    ): BaseResponse<Any> // result {}
+    ): BaseResponse<Unit> // result {}
 
     // 이메일 인증 코드 검증
     @POST("auth/email/verify")
     suspend fun checkVerificationEmail(
         @Body body: EmailVerifyRequestDTO
-    ): BaseResponse<Any> // result {}
+    ): BaseResponse<Unit> // result {}
 
     //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
     @PATCH("auth/signup/social/complete")

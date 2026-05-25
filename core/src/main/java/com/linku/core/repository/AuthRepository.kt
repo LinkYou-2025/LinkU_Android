@@ -33,7 +33,7 @@ interface AuthRepository {
     ): Result<SignUpEmailResult>
 
     suspend fun sendEmailCode(email: String): Result<Unit>
-    suspend fun verifyEmailCode(email: String, code: String): Result<Boolean>
+    suspend fun verifyEmailCode(email: String, code: String): Result<Unit>
 
     suspend fun reissue(refreshToken: String): Result<TokenReissueResult>
 
