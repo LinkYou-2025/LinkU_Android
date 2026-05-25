@@ -58,7 +58,7 @@ class AuthRepositoryImpl @Inject constructor(
                         email = email,
                         password = password,
                         deviceId = "android-$deviceId",
-                        deviceType = "PHONE"
+                        deviceType = deviceType
                     )
                 )
             },
