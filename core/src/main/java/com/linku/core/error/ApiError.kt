@@ -4,9 +4,10 @@ package com.linku.core.error
  * 앱 내 모든 도메인/비즈니스 에러의 최상위 규격입니다.
  * UI 레이어에서 일관되게 에러 메시지를 노출할 수 있도록 도와줍니다.
  */
-sealed interface AppError {
-    val displayMessage: String
-}
+sealed class AppError(
+    override val code: String,
+    open val displayMessage: String
+) : BaseError(code, displayMessage)
 
 /**
  * 네트워크 에러.
@@ -14,7 +15,7 @@ sealed interface AppError {
  */
 sealed class NetworkError(
     override val displayMessage: String
-) : Exception(displayMessage), AppError {
+) : AppError(code = "NETWORK_ERROR", displayMessage = displayMessage) {
 
     class NoConnection : NetworkError("네트워크 연결을 확인해주세요.")
     class Timeout : NetworkError("연결 시간이 초과되었습니다.")
@@ -48,7 +49,7 @@ sealed class NetworkError(
 sealed class ApiError(
     override val code: String,
     val serverMessage: String
-) : BaseError(code, serverMessage), AppError {
+) : AppError(code, serverMessage) {
 
     override val displayMessage: String = serverMessage
 
