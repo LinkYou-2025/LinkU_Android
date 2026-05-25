@@ -41,12 +41,10 @@ suspend fun <DTO, Domain> safeApiCall(
 }.apiExceptions()
 
 /**
- * HTTP 응답 본문이 완전히 비어있는 `204 No Content` 계열의 API를 안전하게 실행하는 공용 함수입니다.
+ * 반환할 데이터 알맹이가 없는 빈 객체(`{}`) 응답 API를 안전하게 실행하는 공용 함수입니다.
+ * * 백엔드 성공 응답 시 별도의 데이터 필드 없이 상태 코드와 성공 여부만 확인하여 [Result<Unit>]을 반환합니다.
  *
- * [BaseResponse] 껍데기조차 없이 Retrofit 고유의 [Response<Unit>] 형태로 내려오는 완전 비어있는 응답을 처리하며,
- * HTTP 상태 코드가 성공(`2xx`)이 아닐 경우 [HttpException]으로 변환하여 예외 체인을 가동합니다.
- *
- * @param apiCall 본문이 비어있는 Retrofit 고유의 [Response<Unit>] 서스펜드 람다 블록
+ * @param apiCall 성공 유무만 확인하는 와일드카드(`*`) 기반의 [BaseResponse] 서스펜드 람다 블록
  * @return 성공 신호만 캡슐화된 [Result<Unit>] 구조체
  */
 suspend fun safeApiCallUnit(
@@ -59,6 +57,16 @@ suspend fun safeApiCallUnit(
     Unit
 }.apiExceptions()
 
+
+/**
+ * HTTP 응답 본문이 완전히 비어있는 `204 No Content` 계열의 API를 안전하게 실행하는 공용 함수입니다.
+ *
+ * [BaseResponse] 껍데기조차 없이 Retrofit 고유의 [Response<Unit>] 형태로 내려오는 완전 비어있는 응답을 처리하며,
+ * HTTP 상태 코드가 성공(`2xx`)이 아닐 경우 [HttpException]으로 변환하여 예외 체인을 가동합니다.
+ *
+ * @param apiCall 본문이 비어있는 Retrofit 고유의 [Response<Unit>] 서스펜드 람다 블록
+ * @return 성공 신호만 캡슐화된 [Result<Unit>] 구조체
+ */
 suspend fun safeApiCall204(
     apiCall: suspend () -> Response<Unit>
 ): Result<Unit> = runCatching {
