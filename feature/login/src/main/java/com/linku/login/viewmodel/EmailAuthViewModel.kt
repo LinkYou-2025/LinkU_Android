@@ -114,14 +114,9 @@ class EmailAuthViewModel @Inject constructor(
         viewModelScope.launch {
             _authState.value = EmailAuthState.Verifying
             authRepository.verifyEmailCode(email, code)
-                .onSuccess { isSuccess ->
-                    if (isSuccess) {
-                        stopTimer()
-                        _authState.value = EmailAuthState.VerifySuccess
-                    } else {
-                        _authState.value =
-                            EmailAuthState.VerifyError(AuthErrorMessages.VERIFY_FAILED)
-                    }
+                .onSuccess {
+                    stopTimer()
+                    _authState.value = EmailAuthState.VerifySuccess
                 }
                 .onFailure { exception ->
                     Log.e("EmailAuthVM", "Exception in verifyEmailCode", exception)
