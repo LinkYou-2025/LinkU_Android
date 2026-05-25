@@ -117,7 +117,6 @@ fun LoginApp(
             authComposable("email_login") { parentEntry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-
                 val showTermsSheet by parentEntry.savedStateHandle
                     .getStateFlow("show_terms_sheet", false)
                     .collectAsStateWithLifecycle()
@@ -142,9 +141,6 @@ fun LoginApp(
                     ),
                     event = TermsAgreementEvent(
                         onClose = { parentEntry.savedStateHandle["show_terms_sheet"] = false },
-                        onAgreeTermsChange = signUpVm::setAgreeTerms,
-                        onAgreePrivacyChange = signUpVm::setAgreePrivacy,
-                        onAgreeMarketingChange = signUpVm::setAgreeMarketing,
                         onClickTerms = {
                             parentEntry.savedStateHandle["show_terms_sheet"] = false
                             navController.navigate("terms/service")
@@ -330,9 +326,6 @@ fun LoginApp(
                     ),
                     event = TermsAgreementEvent(
                         onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
-                        onAgreeTermsChange = signUpVm::setAgreeTerms,
-                        onAgreePrivacyChange = signUpVm::setAgreePrivacy,
-                        onAgreeMarketingChange = signUpVm::setAgreeMarketing,
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
                             navController.navigate("social_terms/service")

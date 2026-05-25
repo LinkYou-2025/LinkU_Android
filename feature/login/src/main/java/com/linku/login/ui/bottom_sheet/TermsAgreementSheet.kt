@@ -63,14 +63,9 @@ fun TermsAgreementSheetPreview() {
                         agreeMarketing = agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
-                        onClose = { },
                         onAgreeTermsChange = { agreeTerms = it },
                         onAgreePrivacyChange = { agreePrivacy = it },
-                        onAgreeMarketingChange = { agreeMarketing = it },
-                        onClickTerms = { },
-                        onClickPrivacy = { },
-                        onClickMarketing = { },
-                        onNext = { },
+                        onAgreeMarketingChange = { agreeMarketing = it }
                     ),
                 )
             }
