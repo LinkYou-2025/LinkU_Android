@@ -28,41 +28,40 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun getUserInfo(userId: Long): Result<UserInfo> {
         Log.d(TAG, "[유저 정보 가져오기 시도] userId=$userId")
 
-        return safeApiCall {
-            serverApi.getUserInfo()
-        }.map { dto ->
+        return safeApiCall(
+            apiCall = { serverApi.getUserInfo() },
+            transform = { dto ->
+                Log.d(TAG, " [서버 원본] purposes: ${dto.purposes}")
+                Log.d(TAG, " [서버 원본] interests: ${dto.interests}")
 
-            Log.d(TAG, " [서버 원본] purposes: ${dto.purposes}")
-            Log.d(TAG, " [서버 원본] interests: ${dto.interests}")
-
-            val displayPurposes = dto.purposes.mapNotNull { serverKey ->
-                Purpose.fromServerKey(serverKey)?.displayName ?: serverKey.also {
-                    Log.w(TAG, "알 수 없는 Purpose serverKey: $serverKey")
+                val displayPurposes = dto.purposes.mapNotNull { serverKey ->
+                    Purpose.fromServerKey(serverKey)?.displayName ?: serverKey.also {
+                        Log.w(TAG, "알 수 없는 Purpose serverKey: $serverKey")
+                    }
                 }
-            }
-            val displayInterests = dto.interests.mapNotNull { serverKey ->
-                Interest.fromServerKey(serverKey)?.displayName ?: serverKey.also {
-                    Log.w(TAG, "알 수 없는 Interest serverKey: $serverKey")
+                val displayInterests = dto.interests.mapNotNull { serverKey ->
+                    Interest.fromServerKey(serverKey)?.displayName ?: serverKey.also {
+                        Log.w(TAG, "알 수 없는 Interest serverKey: $serverKey")
+                    }
                 }
+
+                Log.d(TAG, "[변환 후] purposes: $displayPurposes")
+                Log.d(TAG, "[변환 후] interests: $displayInterests")
+
+                UserInfo(
+                    nickname = dto.nickName.orEmpty(),
+                    email = dto.email,
+                    gender = dto.gender.value,
+                    jobId = dto.job.id,
+                    jobName = dto.job.name,
+                    myLinku = dto.myLinku,
+                    myFolder = dto.myFolder,
+                    myAiLinku = dto.myAiLinku,
+                    purposes = displayPurposes,
+                    interests = displayInterests
+                )
             }
-
-            Log.d(TAG, "[변환 후] purposes: $displayPurposes")
-            Log.d(TAG, "[변환 후] interests: $displayInterests")
-
-
-            UserInfo(
-                nickname = dto.nickName.orEmpty(),
-                email = dto.email,
-                gender = dto.gender.value,
-                jobId = dto.job.id,
-                jobName = dto.job.name,
-                myLinku = dto.myLinku,
-                myFolder = dto.myFolder,
-                myAiLinku = dto.myAiLinku,
-                purposes = displayPurposes,
-                interests = displayInterests
-            )
-        }.onSuccess { userInfo ->
+        ).onSuccess { userInfo ->
 
             Log.d(TAG, "[세션 저장] purposes: ${userInfo.purposes}")
             Log.d(TAG, " [세션 저장] interests: ${userInfo.interests}")
