@@ -1,20 +1,77 @@
 package com.linku.core.error
 
+/**
+ * 앱 내 모든 도메인/비즈니스 에러의 최상위 규격입니다.
+ * UI 레이어에서 일관되게 에러 메시지를 노출할 수 있도록 도와줍니다.
+ */
+sealed interface AppError {
+    val displayMessage: String
+}
+
+/**
+ * 네트워크 에러.
+ * 서버 응답 없이 클라이언트에서 직접 생성되므로 기본 코드와 메시지를 사용한다.
+ */
+sealed class NetworkError(
+    override val displayMessage: String
+) : Exception(displayMessage), AppError {
+
+    class NoConnection : NetworkError("네트워크 연결을 확인해주세요.")
+    class Timeout : NetworkError("연결 시간이 초과되었습니다.")
+}
+
+/**
+ * API 요청 및 처리 과정에서 발생하는 에러를 정의하는 봉인 클래스입니다.
+ *
+ * [BaseError]와 [AppError]를 상속받으며, 서버로부터 전달받은 구체적인 에러 응답 상황을 분류하여 제공합니다.
+ * 기본적으로는 서버가 전달한 [serverMessage]를 화면 문구로 사용하며, 필요 시 하위 클래스에서 커스텀 문구로 재정의합니다.
+ *
+ * 이 클래스는 하위에 다음과 같은 도메인별 에러를 포함합니다:
+ * - [Common]: HTTP 상태 코드와 매핑되는 일반적인 서버 에러
+ * - [Terms]: 약관 처리 관련 에러
+ * - [Auth]: 인증, 토큰, 소셜 로그인 관련 에러
+ * - [User]: 사용자 계정, 프로필, 중복 확인 관련 에러
+ * - [S3]: 파일 업로드 및 스토리지 서비스 관련 에러
+ * - [Linku]: 링크 저장 및 추천 로직 관련 에러
+ * - [Resource]: 카테고리, 폴더 등 공통 리소스 조회 에러
+ * - [Folder]: 폴더 생성, 수정, 권한 및 공유 관련 에러
+ * - [AiArticle], [OpenAi], [Gemini]: AI 요약 및 처리 관련 에러
+ * - [Crawler]: 웹 크롤링 관련 에러
+ * - [Alarm]: 알림 및 푸시 서비스 관련 에러
+ * - [Unknown]: 정의되지 않은 기타 에러
+ *
+ * @param code 에러를 식별하기 위한 고유 코드
+ * @param serverMessage 사용자에게 표시할 에러 메시지
+ * @see BaseError
+ * @see Exception
+ */
 sealed class ApiError(
-    val code: String,       // abstract 제거, 생성자로!
-    message: String         // Exception으로 전달
-) : Exception(message) {
+    override val code: String,
+    val serverMessage: String
+) : BaseError(code, serverMessage), AppError {
+
+    override val displayMessage: String = serverMessage
 
     /**
      * 공통 에러.
-     * HTTP 상태코드 기반으로 매핑되며 서버 메시지를 그대로 사용한다.
+     * HTTP 상태 코드(400, 401, 403, 429, 500 등)를 기반으로 매핑되며,
+     * 서버에서 전달하는 에러 메시지를 우선적으로 사용합니다.
+     *
+     * @property BadRequest COMMON400 - 잘못된 요청
+     * @property Unauthorized COMMON401 - 인증 필요
+     * @property Forbidden COMMON403 - 접근 금지
+     * @property TooManyRequests COMMON429 - 요청 과다
+     * @property InternalServer COMMON500 - 서버 내부 오류
      */
     sealed class Common(code: String, message: String) : ApiError(code, message) {
         /** COMMON400 - 잘못된 요청 */
         class BadRequest(code: String, message: String) : Common(code, message)
 
         /** COMMON401 - 인증 필요 */
-        class Unauthorized(code: String, message: String) : Common(code, message)
+        class Unauthorized(code: String, message: String) : Common(code, message) {
+            /* 프론트 자체적으로 관리 필요한 문구 지정 예시 입니당 */
+            override val displayMessage = "로그인 세션이 만료되었습니다. 다시 로그인해주세요."
+        }
 
         /** COMMON403 - 접근 금지 */
         class Forbidden(code: String, message: String) : Common(code, message)
@@ -26,23 +83,7 @@ sealed class ApiError(
         class InternalServer(code: String, message: String) : Common(code, message)
     }
 
-    /**
-     * 네트워크 에러.
-     * 서버 응답 없이 클라이언트에서 직접 생성되므로 기본 코드와 메시지를 사용한다.
-     */
-    sealed class Network(code: String, message: String) : ApiError(code, message) {
-        /** 인터넷 연결 없음 (UnknownHostException, IOException) */
-        class NoConnection : Network(
-            code = "NETWORK_NO_CONNECTION",
-            message = "네트워크 연결을 확인해주세요."
-        )
 
-        /** 연결 시간 초과 (SocketTimeoutException) */
-        class Timeout : Network(
-            code = "NETWORK_TIMEOUT",
-            message = "연결 시간이 초과되었습니다."
-        )
-    }
 
     /**
      * 약관 관련 에러.
@@ -299,17 +340,7 @@ sealed class ApiError(
      * AI Article / Gemini 에러
      */
     sealed class Gemini(code: String, message: String) : ApiError(code, message) {
-        /** GEMINI4291 - AI 요청이 너무 많음 */
-        class TooManyRequests(code: String, message: String) : Gemini(code, message)
 
-        /** GEMINI5001 - AI 처리 중 알 수 없는 오류 */
-        class UnknownError(code: String, message: String) : Gemini(code, message)
-
-        /** GEMINI5002 - AI 응답 형식이 올바르지 않음 */
-        class ResponseFormatError(code: String, message: String) : Gemini(code, message)
-
-        /** GEMINI5021 - 잘못된 AI 요청 */
-        class BadRequest(code: String, message: String) : Gemini(code, message)
 
         /** GEMINI5021 - Gemini API 호출 중 오류 */
         class GeminiApiError(code: String, message: String) : Gemini(code, message)
