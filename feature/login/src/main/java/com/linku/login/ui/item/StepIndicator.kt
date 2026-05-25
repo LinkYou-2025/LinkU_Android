@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,6 +35,7 @@ private fun stepLabel(step: Int) = when (step) {
     3 -> "관심사 설정"
     else -> ""
 }
+
 @Composable
 internal fun StepIndicator(
     currentStep: Int
@@ -44,7 +44,13 @@ internal fun StepIndicator(
     val colorTheme = MaterialTheme.linkuColors
     val activeColor = colorTheme.purple[200]
     val inactiveColor = colorTheme.gray[300]
-    val white = colorTheme.white
+
+    val backgrounds = when (currentStep) {
+        1 -> listOf(activeColor, colorTheme.white, colorTheme.white)
+        2 -> listOf(colorTheme.purple[100], activeColor, colorTheme.white)
+        3 -> listOf(colorTheme.purple[50], colorTheme.purple[100], activeColor)
+        else -> listOf(colorTheme.white, colorTheme.white, colorTheme.white)
+    }
 
     Column(horizontalAlignment = Alignment.Start) {
         Row(
@@ -52,132 +58,41 @@ internal fun StepIndicator(
             modifier = Modifier.offset(x = 18.dp)
         ) {
             for (step in 1..3) {
-                // step 원 UI
+                val isCompleted = step < currentStep
+                val isCurrent = step == currentStep
+
                 Box(
-                    modifier = when (currentStep) {
-                        1 -> when (step) {
-                            1 -> Modifier
-                                .size(30.dp)
-                                .background(activeColor, CircleShape)
-                            else -> Modifier
-                                .size(30.dp)
-                                .border(1.dp, inactiveColor, CircleShape)
-                        }
-
-                        2 -> when (step) {
-                            1 -> Modifier
-                                .size(30.dp)
-                                .background(colorTheme.purple[100], CircleShape)
-
-                            2 -> Modifier
-                                .size(30.dp)
-                                .background(activeColor, CircleShape)
-                            else -> Modifier
-                                .size(30.dp)
-                                .border(1.dp, inactiveColor, CircleShape)
-                        }
-
-                        3 -> when (step) {
-                            1 -> Modifier
-                                .size(30.dp)
-                                .background(colorTheme.purple[50], CircleShape)
-                            2 -> Modifier
-                                .size(30.dp)
-                                .background(colorTheme.purple[100], CircleShape)
-
-                            3 -> Modifier
-                                .size(28.dp)
-                                .background(activeColor, CircleShape) // 3단계 3번 원은 28dp!
-                            else -> Modifier
-                                .size(30.dp)
-                                .border(1.dp, inactiveColor, CircleShape)
-                        }
-
-                        else -> Modifier
-                            .size(30.dp)
-                            .border(1.dp, inactiveColor, CircleShape)
+                    modifier = Modifier.size(30.dp).run {
+                        if (isCurrent || isCompleted) background(backgrounds[step - 1], CircleShape)
+                        else border(1.dp, inactiveColor, CircleShape)
                     },
                     contentAlignment = Alignment.Center
                 ) {
-                    when (currentStep) {
-                        1 -> when (step) {
-                            1 -> Text(
-                                "1",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = white
-                            )
-
-                            else -> Text(
-                                step.toString(),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = inactiveColor
-                            )
-                        }
-
-                        2 -> when (step) {
-                            1, 2 -> if (step < 2) {
-                                Image(
-                                    painterResource(R.drawable.ic_login_check),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .width(16.dp)
-                                        .height(13.dp)
-                                )
-                            } else {
-                                Text(
-                                    "2",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = white
-                                )
-                            }
-
-                            else -> Text(
-                                step.toString(),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = inactiveColor
-                            )
-                        }
-
-                        3 -> when (step) {
-                            3 -> Text(
-                                "3",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = white
-                            )
-
-                            else -> Image(
-                                painterResource(R.drawable.ic_login_check),
-                                "completed",
-                                modifier = Modifier
-                                    .width(16.dp)
-                                    .height(13.dp)
-                            )
-                        }
-
-                        else -> Text(
-                            step.toString(),
-                            fontSize = 16.sp,
+                    if (isCompleted) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_login_check),
+                            contentDescription = "completed",
+                            modifier = Modifier.size(width = 16.dp, height = 13.dp)
+                        )
+                    } else {
+                        Text(
+                            text = step.toString(),
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = inactiveColor
+                            color = if (isCurrent) colorTheme.white else inactiveColor
                         )
                     }
                 }
 
-                // 점선
-                if (step != 3) {
+                if (step < 3) {
                     Spacer(modifier = Modifier.width(6.dp))
                     repeat(3) {
                         Box(
                             modifier = Modifier
                                 .size(4.2.dp)
                                 .background(
-                                    if (currentStep == 3) activeColor else inactiveColor,
-                                    CircleShape
+                                    color = if (isCompleted) activeColor else inactiveColor,
+                                    shape = CircleShape
                                 )
                         )
                         Spacer(modifier = Modifier.width(3.dp))
@@ -187,17 +102,16 @@ internal fun StepIndicator(
             }
         }
 
+        val labelStartPadding = when (currentStep) {
+            1 -> 6.dp
+            2 -> 68.dp
+            3 -> 132.dp
+            else -> 2.dp
+        }
+
         Text(
             text = stepLabel(currentStep),
-            modifier = Modifier.padding(
-                start = when (currentStep) {
-                    1 -> 6.dp
-                    2 -> 68.dp
-                    3 -> 122.dp
-                    else -> 2.dp
-                },
-                top = 6.dp
-            ),
+            modifier = Modifier.padding(start = labelStartPadding, top = 6.dp),
             fontSize = 13.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight.Light,
@@ -206,6 +120,7 @@ internal fun StepIndicator(
         )
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
