@@ -140,6 +140,9 @@ fun LoginApp(
                         agreeMarketing = signUpVm.signUpForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
+                        onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
+                        onAgreePrivacyChange = { signUpVm.setAgreePrivacy(it) },
+                        onAgreeMarketingChange = { signUpVm.setAgreeMarketing(it) },
                         onClose = { parentEntry.savedStateHandle["show_terms_sheet"] = false },
                         onClickTerms = {
                             parentEntry.savedStateHandle["show_terms_sheet"] = false
@@ -325,6 +328,9 @@ fun LoginApp(
                         agreeMarketing = signUpVm.signUpForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
+                        onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
+                        onAgreePrivacyChange = { signUpVm.setAgreePrivacy(it) },
+                        onAgreeMarketingChange = { signUpVm.setAgreeMarketing(it) },
                         onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
