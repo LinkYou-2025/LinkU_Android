@@ -162,8 +162,6 @@ internal fun TermsAgreementContent(
 }
 
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun TermsAgreementContentPreview() {
