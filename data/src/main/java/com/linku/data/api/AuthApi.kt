@@ -50,13 +50,13 @@ interface AuthApi {
     @POST("auth/email/code")
     suspend fun sendVerificationEmail(
         @Body body: EmailCodeRequestDTO
-    ): BaseResponse<Unit> // result {}
+    ): BaseResponse<*> // result {}
 
     // 이메일 인증 코드 검증
     @POST("auth/email/verify")
     suspend fun checkVerificationEmail(
         @Body body: EmailVerifyRequestDTO
-    ): BaseResponse<Unit> // result {}
+    ): BaseResponse<*> // result {}
 
     //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
     @PATCH("auth/signup/social/complete")

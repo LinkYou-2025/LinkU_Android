@@ -210,14 +210,16 @@ fun LoginApp(
                 val emailVm: EmailAuthViewModel = hiltViewModel(parentEntry)
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-                BackHandler {
-                    parentEntry.savedStateHandle["skip_login_animation"] = true
-                    navController.popBackStack()
-                }
-
                 EmailVerificationScreen(
-                    navigator = navController,
-                    parentEntry = parentEntry,
+                    onBackClick = {
+                        parentEntry.savedStateHandle["skip_login_animation"] = true
+                        navController.popBackStack()
+                    },
+                    onNavigateToPassword = {
+                        navController.navigate("sign_up_password") {
+                            launchSingleTop = true
+                        }
+                    },
                     viewModel = emailVm,
                     signUpViewModel = signUpVm
                 )
