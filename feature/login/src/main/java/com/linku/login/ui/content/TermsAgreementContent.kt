@@ -1,9 +1,7 @@
 package com.linku.login.ui.content
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,15 +19,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.R
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.AgreementItem
+import com.linku.login.ui.item.CheckIndicator
 import com.linku.login.ui.item.GradientButtonCore
 import com.linku.login.ui.model.TermsAgreementEvent
 import com.linku.login.ui.model.TermsAgreementState
@@ -55,42 +53,34 @@ internal fun TermsAgreementContent(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .noRippleClickable {
+                        val checked = !agreeAll
+                        event.onAgreeTermsChange(checked)
+                        event.onAgreePrivacyChange(checked)
+                        event.onAgreeMarketingChange(checked)
+                    }
                     .padding(
                         start = (32.scaler),
                         end = (32.scaler),
                         top = (36.scaler)
                     )
             ) {
-
-                Box(
-                    modifier = Modifier
-                        .size(22.scaler)
-                        .border(
-                            width = 1.dp,
-                            color = if (agreeAll) colorTheme.purple[200] else colorTheme.gray[300],
-                            shape = RoundedCornerShape(6.scaler)
-                        )
-                        .background(
-                            color = if (agreeAll) colorTheme.purple[200] else colorTheme.white,
-                            shape = RoundedCornerShape(6.scaler)
-                        )
-                        .clickable {
-                            val checked = !agreeAll
-                            event.onAgreeTermsChange(checked)
-                            event.onAgreePrivacyChange(checked)
-                            event.onAgreeMarketingChange(checked)
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (agreeAll) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_checkbox_checked),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .width(11.scaler)
-                                .height(8.scaler)
-                        )
-                    }
+                if (agreeAll) {
+                    CheckIndicator(checked = true)
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(18.dp)
+                            .border(
+                                width = 1.dp,
+                                color = colorTheme.gray[300],
+                                shape = RoundedCornerShape(5.dp)
+                            )
+                            .background(
+                                color = colorTheme.white,
+                                shape = RoundedCornerShape(5.dp)
+                            )
+                    )
                 }
 
                 Spacer(Modifier.width(15.scaler))
@@ -115,7 +105,7 @@ internal fun TermsAgreementContent(
             }
 
             HorizontalDivider(
-                color = colorTheme.blue[50],
+                color = colorTheme.gray[300],
                 modifier = Modifier
                     .padding(horizontal = (20.scaler), vertical = (16.scaler))
             )
