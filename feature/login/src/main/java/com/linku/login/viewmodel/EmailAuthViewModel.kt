@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.AppError
 import com.linku.core.repository.AuthRepository
+import com.linku.login.viewmodel.state.EmailUiEvent
+import com.linku.login.viewmodel.state.EmailUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -18,31 +20,9 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class EmailAuthViewModel @Inject constructor(
+internal class EmailAuthViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
-
-    data class EmailUiState(
-        val email: String = "",
-        val code: String = "",
-        val isCodeSent: Boolean = false,
-        val timer: Int = 0,
-        val isLoading: Boolean = false,
-        val emailError: String? = null,
-        val codeError: String? = null,
-        val isVerifySuccess: Boolean = false,
-        val failureToastMessage: String? = null,
-        val verificationFailCount: Int = 0
-    )
-
-    sealed interface EmailUiEvent {
-        data class EmailChanged(val email: String) : EmailUiEvent
-        data class CodeChanged(val code: String) : EmailUiEvent
-        object SendCodeClicked : EmailUiEvent
-        object VerifyCodeClicked : EmailUiEvent
-        object ClearStatus : EmailUiEvent
-        object ToastShown : EmailUiEvent
-    }
 
     private val _emailUiState = MutableStateFlow(EmailUiState())
     val emailUiState: StateFlow<EmailUiState> = _emailUiState.asStateFlow()
@@ -96,7 +76,7 @@ class EmailAuthViewModel @Inject constructor(
         _emailUiState.update { it.copy(timer = 0) }
     }
 
-    /** 이메일 인증 코드 전송 */
+    /** 이메일 인증 코드 전송 및 재발송 */
     private fun sendEmailCode() {
         val email = _emailUiState.value.email.trim()
         Log.d("EmailAuthVM", "sendEmailCode() called. email=$email")
@@ -112,7 +92,15 @@ class EmailAuthViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _emailUiState.update { it.copy(isLoading = true, emailError = null) }
+            _emailUiState.update {
+                it.copy(
+                    isLoading = true,
+                    emailError = null,
+                    code = "",
+                    codeError = null,
+                    verificationFailCount = 0
+                )
+            }
 
             authRepository.sendEmailCode(email)
                 .fold(

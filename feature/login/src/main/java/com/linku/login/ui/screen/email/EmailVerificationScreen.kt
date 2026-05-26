@@ -43,9 +43,9 @@ import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.viewmodel.EmailAuthViewModel
-import com.linku.login.viewmodel.EmailAuthViewModel.EmailUiEvent
-import com.linku.login.viewmodel.EmailAuthViewModel.EmailUiState
 import com.linku.login.viewmodel.SignUpViewModel
+import com.linku.login.viewmodel.state.EmailUiEvent
+import com.linku.login.viewmodel.state.EmailUiState
 import java.util.Locale
 
 
@@ -216,7 +216,11 @@ internal fun EmailVerificationScreenContent(
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
                     .padding(bottom = 21.scaler)
-                    .noRippleClickable { /* 추가 문의 혹은 가이드 팝업 등 */ }
+                    .noRippleClickable {
+                        if (!emailUiState.isLoading) {
+                            onEmailEvent(EmailUiEvent.SendCodeClicked)
+                        }
+                    }
             )
 
             BottomGradientButton(
