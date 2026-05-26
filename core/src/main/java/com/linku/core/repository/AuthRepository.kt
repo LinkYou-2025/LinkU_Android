@@ -29,7 +29,8 @@ interface AuthRepository {
         gender: Int,
         jobId: Int,
         purposeList: List<Purpose>,
-        interestList: List<Interest>
+        interestList: List<Interest>,
+        termsMap: Map<String, Boolean>
     ): Result<SignUpEmailResult>
 
     suspend fun sendEmailCode(email: String): Result<Unit>

@@ -99,7 +99,8 @@ class AuthRepositoryImpl @Inject constructor(
         gender: Int,
         jobId: Int,
         purposeList: List<Purpose>,
-        interestList: List<Interest>
+        interestList: List<Interest>,
+        termsMap: Map<String, Boolean>
     ): Result<SignUpEmailResult> {
         Log.d(TAG, "[회원가입 시도]")
 
@@ -116,7 +117,8 @@ class AuthRepositoryImpl @Inject constructor(
                         gender = gender,
                         jobId = jobId,
                         purposeList = purposeList.map { it.serverKey },
-                        interestList = interestList.map { it.serverKey }
+                        interestList = interestList.map { it.serverKey },
+                        termsMap = termsMap
                     )
                 )
             },
