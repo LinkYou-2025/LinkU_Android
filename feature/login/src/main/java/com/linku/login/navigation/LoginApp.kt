@@ -116,7 +116,7 @@ fun LoginApp(
             // 2. 이메일 로그인 + 약관 바텀시트
             authComposable("email_login") { parentEntry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
-
+                val signUpUiState by signUpVm.uiState.collectAsStateWithLifecycle()
                 val showTermsSheet by parentEntry.savedStateHandle
                     .getStateFlow("show_terms_sheet", false)
                     .collectAsStateWithLifecycle()
@@ -135,9 +135,9 @@ fun LoginApp(
                 TermsAgreementSheet(
                     visible = showTermsSheet,
                     state = TermsAgreementState(
-                        agreeTerms = signUpVm.signUpForm.agreeTerms,
-                        agreePrivacy = signUpVm.signUpForm.agreePrivacy,
-                        agreeMarketing = signUpVm.signUpForm.agreeMarketing,
+                        agreeTerms = signUpUiState.signUpForm.agreeTerms,
+                        agreePrivacy = signUpUiState.signUpForm.agreePrivacy,
+                        agreeMarketing = signUpUiState.signUpForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
                         onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
@@ -176,6 +176,8 @@ fun LoginApp(
                 authComposable(route) { parentEntry ->
                     val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
+                    val signUpUiState by vm.uiState.collectAsStateWithLifecycle()
+
                     val onBack: () -> Unit = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                         navController.popBackStack()
@@ -184,20 +186,20 @@ fun LoginApp(
 
                     when (route) {
                         "terms/service" -> ServiceTermsScreen(
-                            alreadyAgreed = vm.signUpForm.agreeTerms,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             // agreeAction(vm) 뒤에 세미콜론 제거 → 람다 마지막 식이 Unit이어야 함
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "terms/privacy" -> PrivacyTermsScreenFixed(
-                            alreadyAgreed = vm.signUpForm.agreePrivacy,
+                            alreadyAgreed = signUpUiState.signUpForm.agreePrivacy,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "terms/marketing" -> MarketingTermsScreenComposable(
-                            alreadyAgreed = vm.signUpForm.agreeMarketing,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeMarketing,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
@@ -227,7 +229,17 @@ fun LoginApp(
 
             // 5. 회원가입 단계
             authComposable("sign_up_password") { parentEntry ->
-                SignUpPasswordScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                SignUpPasswordScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToNickname = {
+                        navController.navigate("sign_up_nickname") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
             authComposable("sign_up_nickname") { parentEntry ->
                 SignUpNicknameScreen(navController, hiltViewModel(parentEntry))
@@ -295,7 +307,7 @@ fun LoginApp(
             socialComposable("social_login_gate") { parentEntry, entry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
                 val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
-
+                val signUpUiState by signUpVm.uiState.collectAsStateWithLifecycle()
                 val showTermsSheet by entry.savedStateHandle
                     .getStateFlow("show_terms_sheet", true)
                     .collectAsStateWithLifecycle()
@@ -325,9 +337,9 @@ fun LoginApp(
                 TermsAgreementSheet(
                     visible = showTermsSheet,
                     state = TermsAgreementState(
-                        agreeTerms = signUpVm.signUpForm.agreeTerms,
-                        agreePrivacy = signUpVm.signUpForm.agreePrivacy,
-                        agreeMarketing = signUpVm.signUpForm.agreeMarketing,
+                        agreeTerms = signUpUiState.signUpForm.agreeTerms,
+                        agreePrivacy = signUpUiState.signUpForm.agreePrivacy,
+                        agreeMarketing = signUpUiState.signUpForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
                         onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
@@ -365,7 +377,7 @@ fun LoginApp(
             socialTermsSteps.forEach { (route, agreeAction) ->
                 socialComposable(route) { parentEntry, _ ->
                     val vm: SignUpViewModel = hiltViewModel(parentEntry)
-
+                    val signUpUiState by vm.uiState.collectAsStateWithLifecycle()
                     val onBack: () -> Unit = {
                         navController.popBackStack()
                         navController.currentBackStackEntry
@@ -376,19 +388,19 @@ fun LoginApp(
 
                     when (route) {
                         "social_terms/service" -> ServiceTermsScreen(
-                            alreadyAgreed = vm.signUpForm.agreeTerms,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/privacy" -> PrivacyTermsScreenFixed(
-                            alreadyAgreed = vm.signUpForm.agreePrivacy,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/marketing" -> MarketingTermsScreenComposable(
-                            alreadyAgreed = vm.signUpForm.agreeMarketing,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )

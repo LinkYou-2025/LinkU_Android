@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,8 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -29,39 +30,43 @@ import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
-fun SignUpPasswordScreen(
-    navigator: NavHostController,
+internal fun SignUpPasswordScreen(
+    onBackClick: () -> Unit,
+    onNavigateToNickname: () -> Unit,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
+    BackHandler { onBackClick() }
 
     val colorTheme = MaterialTheme.linkuColors
-    BackHandler { navigator.popBackStack() }
 
-    //뷰 모델에서 password 가져오기
-    val password = signUpViewModel.signUpForm.password
+    val passwordUiState by signUpViewModel.uiState.collectAsStateWithLifecycle()
+    val passwordState = passwordUiState.passwordStep
+
     var confirmPassword by remember { mutableStateOf("") }
 
-    val isPasswordLengthValid = password.length in 8..20
-    val isPasswordComplex =
-        password.any { it.isDigit() } &&
-                password.any { it.isLetter() } &&
-                password.any { !it.isLetterOrDigit() }
+    // 화면 재진입시 리셋.
+    LaunchedEffect(Unit) {
+        confirmPassword = ""
+        signUpViewModel.onPasswordChanged(password = "", confirmPassword = "")
+    }
 
-    val isPasswordValid = isPasswordLengthValid && isPasswordComplex
-    val doPasswordsMatch = password == confirmPassword
-    val showConfirmField = isPasswordValid
-    val canProceed = isPasswordValid && doPasswordsMatch
+    LaunchedEffect(passwordState.isNavigateTrigger) {
+        if (passwordState.isNavigateTrigger) {
+            onNavigateToNickname()
+            signUpViewModel.clearPasswordNavigationTrigger()
+        }
+    }
 
     SignUpStepLayout(
         currentStep = 1,
         title = "사용하실 비밀번호를\n입력해주세요",
-        buttonEnabled = canProceed,
+        buttonEnabled = passwordState.canProceed,
         onNextClick = {
-            navigator.navigate("sign_up_nickname") { launchSingleTop = true }
+            signUpViewModel.onPasswordNextClicked()
         }
     ) {
         PasswordLoginTextField(
-            value = password,
+            value = passwordUiState.signUpForm.password,
             onValueChange = { newPassword ->
                 signUpViewModel.updateForm { form ->
                     form.copy(password = newPassword)
@@ -80,17 +85,17 @@ fun SignUpPasswordScreen(
         ) {
             PasswordRuleItem(
                 text = "영문, 숫자, 특수기호 조합",
-                satisfied = isPasswordComplex,
+                satisfied = passwordState.isComplex,
                 modifier = Modifier.weight(1f)
             )
             PasswordRuleItem(
                 text = "8~20자",
-                satisfied = isPasswordLengthValid,
+                satisfied = passwordState.isLengthValid,
                 modifier = Modifier.weight(1f)
             )
         }
 
-        if (isPasswordValid) {
+        if (passwordState.isPasswordValid) {
             Spacer(Modifier.height(20.scaler))
 
             PasswordLoginTextField(
@@ -99,7 +104,7 @@ fun SignUpPasswordScreen(
                 hint = "비밀번호를 확인해주세요."
             )
 
-            if (confirmPassword.isNotEmpty() && !doPasswordsMatch) {
+            if (confirmPassword.isNotEmpty() && !passwordState.doPasswordsMatch) {
                 Text(
                     text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
                     fontSize = 13.sp,

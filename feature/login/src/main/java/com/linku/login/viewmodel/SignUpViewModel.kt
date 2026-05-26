@@ -1,9 +1,6 @@
 package com.linku.login.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.auth.Gender
@@ -13,18 +10,21 @@ import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpForm
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.repository.AuthRepository
+import com.linku.login.viewmodel.state.SignUpUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
-class SignUpViewModel @Inject constructor(
+internal class SignUpViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -34,9 +34,10 @@ class SignUpViewModel @Inject constructor(
         private const val MAX_NICKNAME_LENGTH = 6 //닉네임은 6글자 이하
     }
 
-    // 회원가입 전체 입력 폼 컴포즈가 해당 변수 감지하여 값이 바뀌면 ui에 알림
-    var signUpForm by mutableStateOf(SignUpForm())
-        private set
+    private val _uiState = MutableStateFlow(SignUpUiState())
+    val uiState: StateFlow<SignUpUiState> = _uiState.asStateFlow()
+//    var signUpForm by mutableStateOf(SignUpForm())
+//        private set
 
     // 닉네임 중복 체크 상태.
     private val _nicknameState = MutableStateFlow<NicknameCheckState>(NicknameCheckState.Idle)
@@ -63,7 +64,11 @@ class SignUpViewModel @Inject constructor(
 
     // 공통 데이터
     fun updateForm(update: (SignUpForm) -> SignUpForm) {
-        signUpForm = update(signUpForm) // signUpForm을 넣으면 새 SignUpForm 나옴
+        _uiState.update { currentState ->
+            currentState.copy(
+                signUpForm = update(currentState.signUpForm)
+            )
+        }
     }
 
     // 약관 동의 관련 로직
@@ -83,16 +88,60 @@ class SignUpViewModel @Inject constructor(
         updateForm { it.copy(agreeMarketing = agree) }
     }
 
+    // 비밀번호 확인 + 폼 전달
+    fun onPasswordChanged(password: String, confirmPassword: String) {
+        _uiState.update { currentState ->
+
+            val updatedForm = currentState.signUpForm.copy(password = password)
+
+            val isLengthValid = password.length in 8..20
+            val isComplex = password.any { it.isDigit() } &&
+                    password.any { it.isLetter() } &&
+                    password.any { !it.isLetterOrDigit() }
+            val isPassValid = isLengthValid && isComplex
+            val match = password == confirmPassword
+
+
+            currentState.copy(
+                signUpForm = updatedForm,
+                passwordStep = currentState.passwordStep.copy(
+                    isLengthValid = isLengthValid,
+                    isComplex = isComplex,
+                    doPasswordsMatch = match,
+                    isPasswordValid = isPassValid,
+                    canProceed = isPassValid && match
+                )
+            )
+        }
+    }
+
+    fun onPasswordNextClicked() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                passwordStep = currentState.passwordStep.copy(isNavigateTrigger = true)
+            )
+        }
+    }
+
+    fun clearPasswordNavigationTrigger() {
+        _uiState.update { currentState ->
+            currentState.copy(
+                passwordStep = currentState.passwordStep.copy(isNavigateTrigger = false)
+            )
+        }
+    }
+
     // 닉네임 유효성 검사
     private fun isValidNickname(input: String): Boolean {
         return input.isNotBlank() && input.length in 1..MAX_NICKNAME_LENGTH
     }
 
+
     // 닉네임 관련 로직
     fun onNicknameChanged(nickname: String) {
         // 입력이 기존 닉네임과 같으면 아무것도 안 함 (불필요한 중복 체크 방지)
         // 현재 signUpForm.nickname = "링큐"이고 input도 "링큐"이면 똑같음 아무것도 안하는 return
-        if (nickname == signUpForm.nickname) return
+        if (nickname == _uiState.value.signUpForm.nickname) return
 
         // 폼에 새로운 닉네임 저장 -> ui 화면에 반영함.
         updateForm { it.copy(nickname = nickname) } // ui 표시용(폼에 저장)
@@ -141,16 +190,19 @@ class SignUpViewModel @Inject constructor(
 
     // 회원가입 폼 유효성 검사
     private fun validateSignUpForm(): String? {
+
+        val form = _uiState.value.signUpForm
+
         return when {
-            signUpForm.email.isBlank() -> "이메일을 입력해주세요."
-            signUpForm.password.isBlank() -> "비밀번호를 입력해주세요."
-            signUpForm.nickname.isBlank() -> "닉네임을 입력해주세요."
+            form.email.isBlank() -> "이메일을 입력해주세요."
+            form.password.isBlank() -> "비밀번호를 입력해주세요."
+            form.nickname.isBlank() -> "닉네임을 입력해주세요."
             _nicknameState.value != NicknameCheckState.Available -> "닉네임 중복 확인이 필요합니다."
-            signUpForm.gender == Gender.NONE -> "성별을 선택해주세요."
-            signUpForm.jobId == 0 -> "직업을 선택해주세요."
-            signUpForm.purposeList.isEmpty() -> "목적을 선택해주세요."
-            signUpForm.interestList.isEmpty() -> "관심사를 선택해주세요."
-            !signUpForm.agreeTerms || !signUpForm.agreePrivacy -> "필수 약관에 동의해주세요."
+            form.gender == Gender.NONE -> "성별을 선택해주세요."
+            form.jobId == 0 -> "직업을 선택해주세요."
+            form.purposeList.isEmpty() -> "목적을 선택해주세요."
+            form.interestList.isEmpty() -> "관심사를 선택해주세요."
+            !form.agreeTerms || !form.agreePrivacy -> "필수 약관에 동의해주세요."
             else -> null
         }
     }
@@ -172,16 +224,24 @@ class SignUpViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _signUpState.value = SignUpState.Loading
-                Log.d("SignUpViewModel", "[회원가입 요청] $signUpForm")
+                val form = _uiState.value.signUpForm
+                Log.d("SignUpViewModel", "[회원가입 요청] $form")
 
-                val result = authRepository.signUpWithEmail(  // Boolean → SignUpEmailResult
-                    nickname = signUpForm.nickname,
-                    email = signUpForm.email,
-                    password = signUpForm.password,
-                    gender = signUpForm.gender.value,
-                    jobId = signUpForm.jobId,
-                    purposeList = signUpForm.purposeList,
-                    interestList = signUpForm.interestList
+                val termsMap = mapOf(
+                    "TERMS_OF_USE" to form.agreeTerms,
+                    "PRIVACY_POLICY" to form.agreePrivacy,
+                    "MARKETING" to form.agreeMarketing
+                )
+
+                val result = authRepository.signUpWithEmail(
+                    nickname = form.nickname,
+                    email = form.email,
+                    password = form.password,
+                    gender = form.gender.value,
+                    jobId = form.jobId,
+                    purposeList = form.purposeList,
+                    interestList = form.interestList,
+                    termsMap = termsMap
                 ).getOrThrow()
 
                 // 성공 → result 반환됨 (실패면 예외 throw되어 catch로 감)
