@@ -84,82 +84,6 @@ sealed class ApiError(
         class InternalServer(code: String, message: String) : Common(code, message)
     }
 
-
-
-    /**
-     * 약관 관련 에러.
-     */
-    sealed class Terms(code: String, message: String) : ApiError(code, message) {
-        /** TERMS4001 - 유효하지 않은 약관 타입 */
-        class InvalidTermsType(code: String, message: String) : Terms(code, message)
-    }
-
-    /**
-     * 인증/OAuth 관련 에러.
-     * 소셜 로그인 및 토큰 관련 에러를 포함한다.
-     */
-    sealed class Auth(code: String, message: String) : ApiError(code, message) {
-        /** 토큰 만료 - 재로그인 필요 */
-        class TokenExpired(code: String, message: String) : Auth(code, message)
-
-        /** 기기 정보 없음 - 재로그인 필요 */
-        class DeviceNotFound(code: String, message: String) : Auth(code, message)
-
-        /** OAUTH4003 - 소셜 로그인 이메일 필요 */
-        class SocialEmailRequired(code: String, message: String) : Auth(code, message)
-
-        /** OAUTH4004 - 지원하지 않는 소셜 제공자 */
-        class SocialUnsupportedProvider(code: String, message: String) : Auth(code, message)
-
-        /** OAUTH4008 - 유효하지 않거나 만료된 ID 토큰 */
-        class InvalidIdToken(code: String, message: String) : Auth(code, message)
-
-        /** OAUTH4009 - 소셜 계정 ID 필요 */
-        class SocialExternalIdRequired(code: String, message: String) : Auth(code, message)
-
-        /** OAUTH4010 - 올바르지 않은 이메일 형식 */
-        class InvalidEmailFormat(code: String, message: String) : Auth(code, message)
-
-        /** OAUTH5001 - 소셜 계정 연결 실패 */
-        class AuthAccountSaveFailed(code: String, message: String) : Auth(code, message)
-    }
-
-    /**
-     * 사용자 관련 에러.
-     * 회원가입, 로그인, 이메일 인증 등 사용자 관련 에러를 포함한다.
-     */
-    sealed class User(code: String, message: String) : ApiError(code, message) {
-        /** USERS4001 - 이미 존재하는 이메일 */
-        class AlreadyActiveUser(code: String, message: String) : User(code, message)
-
-        /** USERS4002 - 올바르지 않은 성별 값 */
-        class InvalidGender(code: String, message: String) : User(code, message)
-
-        /** USERS4011 - 인증 코드 검증 실패 */
-        class VerificationFailed(code: String, message: String) : User(code, message)
-
-        /** USERS4012 - 이메일/비밀번호 불일치 */
-        class LoginFailed(code: String, message: String) : User(code, message)
-
-        /** USERS4014 - 소셜 전용 계정 */
-        class SocialAccountOnly(code: String, message: String) : User(code, message)
-
-        /** USERS4041 - 사용자를 찾을 수 없음 */
-        class NotFound(code: String, message: String) : User(code, message)
-
-        /** USERS4042 - INACTIVE 상태의 사용자 */
-        class Inactive(code: String, message: String) : User(code, message)
-
-        /** USERS4091 - 중복된 닉네임 */
-        class DuplicateNickname(code: String, message: String) : User(code, message)
-
-        /** USERS4092 - 중복된 이메일 */
-        class DuplicateEmail(code: String, message: String) : User(code, message)
-
-        /** USERS5001 - 인증 코드 전송 실패 */
-        class SendMailFailed(code: String, message: String) : User(code, message)
-    }
-
     /**
      * S3 파일 관련 에러.
      * 파일 업로드/다운로드/삭제 관련 에러를 포함한다.
@@ -188,6 +112,93 @@ sealed class ApiError(
 
         /** S35002 - S3 파일 삭제 실패 */
         class DeleteFailed(code: String, message: String) : S3(code, message)
+    }
+
+
+    /**
+     * 인증/OAuth 관련 에러.
+     * 소셜 로그인 및 토큰 관련 에러를 포함한다.
+     */
+    sealed class Auth(code: String, message: String) : ApiError(code, message) {
+        /** AUTH4001 - 인증이 필요합니다. */
+        class Unauthorized(code: String, message: String) : Auth(code, message)
+
+        /** AUTH4011 - 잘못된 토큰입니다. */
+        class InvalidToken(code: String, message: String) : Auth(code, message)
+
+        /** AUTH4002 - 만료된 토큰입니다. */
+        class TokenExpired(code: String, message: String) : Auth(code, message)
+
+        /** AUTH4003 - 권한이 없습니다. */
+        class PermissionDenied(code: String, message: String) : Auth(code, message)
+
+        /** OAUTH4003 - 소셜 로그인에 이메일이 필요합니다. */
+        class SocialEmailRequired(code: String, message: String) : Auth(code, message)
+
+        /** OAUTH4004 - 지원하지 않는 소셜 제공자입니다. */
+        class SocialUnsupportedProvider(code: String, message: String) : Auth(code, message)
+
+        /** OAUTH4008 - 유효하지 않거나 만료된 ID 토큰 */
+        class InvalidIdToken(code: String, message: String) : Auth(code, message)
+
+        /** OAUTH4009 - 소셜 계정 ID가 필요합니다. */
+        class SocialExternalIdRequired(code: String, message: String) : Auth(code, message)
+
+        /** OAUTH4010 - 올바른 이메일 형식이 아닙니다. */
+        class InvalidEmailFormat(code: String, message: String) : Auth(code, message)
+
+        /** OAUTH5001 - 소셜 계정 연결에 실패했습니다. */
+        class AuthAccountSaveFailed(code: String, message: String) : Auth(code, message)
+    }
+
+    /**
+     * 사용자 관련 에러.
+     * 회원가입, 로그인, 이메일 인증 등 사용자 관련 에러를 포함한다.
+     */
+    sealed class User(code: String, message: String) : ApiError(code, message) {
+        /** USERS4001 - 이미 존재하는 이메일 */
+        class AlreadyActiveUser(code: String, message: String) : User(code, message)
+
+        /** USERS4002 - 올바르지 않은 성별 값 */
+        class InvalidGender(code: String, message: String) : User(code, message)
+
+        /** USERS4004 - 인증 코드가 만료되었습니다. */
+        class ExpiredVerificationCode(code: String, message: String) : User(code, message)
+
+        /** USERS4005 - 잘못된 비밀번호입니다. */
+        class InvalidPassword(code: String, message: String) : User(code, message)
+
+        /** USERS4006 - 비밀번호와 비밀번호 확인이 일치하지 않습니다. */
+        class PasswordMismatch(code: String, message: String) : User(code, message)
+
+        /** USERS4011 - 인증 코드 검증 실패 */
+        class VerificationFailed(code: String, message: String) : User(code, message)
+
+        /** USERS4012 - 이메일 주소 또는 비밀번호 불일치 */
+        class LoginFailed(code: String, message: String) : User(code, message)
+
+        /** USERS4014 - 소셜 전용 계정 */
+        class SocialAccountOnly(code: String, message: String) : User(code, message)
+
+        /** USERS4041 - 사용자를 찾을 수 없음 */
+        class NotFound(code: String, message: String) : User(code, message)
+
+        /** USERS4042 - 임시 회원탈퇴 상태 */
+        class Inactive(code: String, message: String) : User(code, message)
+
+        /** USERS4091 - 중복된 닉네임 */
+        class DuplicateNickname(code: String, message: String) : User(code, message)
+
+        /** USERS4092 - 중복된 이메일 */
+        class DuplicateEmail(code: String, message: String) : User(code, message)
+
+        /** USERS5001 - 인증 코드 전송 실패 */
+        class SendMailFailed(code: String, message: String) : User(code, message)
+    }
+
+    sealed class Terms(code: String, message: String) : ApiError(code, message) {
+        /** TERMS4001 - 유효하지 않은 약관 타입 */
+        class InvalidTermsType(code: String, message: String) : Terms(code, message)
     }
 
     /**
@@ -243,61 +254,61 @@ sealed class ApiError(
      * 폴더 생성/수정/삭제/공유 관련 에러를 포함한다.
      */
     sealed class Folder(code: String, message: String) : ApiError(code, message) {
-        /** FOLDER404 - 폴더를 찾을 수 없음 */
+        /** FOLDER404 - 해당하는 폴더를 찾을 수 없습니다. */
         class NotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_PARENT404 - 부모 폴더 없음 */
+        /** FOLDER_PARENT404 - 폴더의 부모 폴더가 없습니다. */
         class ParentNotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_CATEGORY404 - 폴더 카테고리 없음 */
+        /** FOLDER_CATEGORY404 - 폴더의 카테고리가 없습니다. */
         class CategoryNotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_CREATE403 - 폴더 생성 권한 없음 */
+        /** FOLDER_CREATE403 - 해당하는 폴더를 생성할 권한이 없습니다. */
         class CreateForbidden(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_UPDATE403 - 폴더 수정 권한 없음 */
+        /** FOLDER_UPDATE403 - 해당하는 폴더의 수정 권한이 없습니다. */
         class UpdateForbidden(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_DELETE403 - 폴더 삭제 권한 없음 */
+        /** FOLDER_DELETE403 - 해당하는 폴더의 삭제 권한이 없습니다. */
         class DeleteForbidden(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_ACCESS403 - 폴더 접근 권한 없음 */
+        /** FOLDER_ACCESS403 - 해당 폴더에 접근 권한이 없습니다. */
         class AccessForbidden(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_NAME409 - 카테고리명과 동일한 폴더명 */
+        /** FOLDER_NAME409 - 카테고리명과 동일한 폴더명은 사용할 수 없습니다. */
         class NameConflict(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_CURSOR400 - 유효하지 않은 커서 값 */
+        /** FOLDER_CURSOR400 - 유효하지 않은 커서 값입니다. */
         class InvalidCursor(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_OWNER500 - 폴더 소유자 정보 없음 */
+        /** FOLDER_OWNER500 - 폴더의 소유자 정보를 찾을 수 없습니다. */
         class OwnerNotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_PERMISSION404 - 폴더 권한 정보 없음 */
+        /** FOLDER_PERMISSION404 - 해당 유저의 폴더 권한 정보를 찾을 수 없습니다. */
         class PermissionNotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_TOKEN404 - 공유 폴더 토큰 없음 */
+        /** FOLDER_TOKEN404 - 공유 폴더 토큰을 찾을 수 없습니다. */
         class InvitationNotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_TOKEN_INVALID404 - 공유 폴더 토큰 만료 */
+        /** FOLDER_TOKEN_INVALID404 - 공유 폴더 토큰이 유효하지 않습니다. */
         class InvitationExpired(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_LINK_INVALID404 - 공유 폴더 링크 유효하지 않음 */
+        /** FOLDER_LINK_INVALID404 - 공유 폴더 링크가 유효하지 않습니다. */
         class InvitationLinkNotFound(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_OWNER_403 - 폴더 수정 권한 없음 */
+        /** FOLDER_OWNER_403 - 폴더 수정 권한을 가지고 있지 않습니다. */
         class PermissionNotAllowed(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_OWNER_403 - 폴더 주인 권한 수정 불가 */
+        /** FOLDER_OWNER_403 - 폴더 주인의 권한은 수정할 수 없습니다. */
         class OwnerUpdateNotAllowed(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_CREATOR403 - 초대 생성자 자신의 링크로 참여 불가 */
+        /** FOLDER_CREATOR403 - 초대 생성자는 자신의 링크로 참여할 수 없습니다. */
         class InvitationCreatorCannotAccept(code: String, message: String) : Folder(code, message)
 
-        /** PERMISSION400 - 유효하지 않은 권한 타입 */
+        /** PERMISSION400 - 유효하지 않은 권한 타입입니다. */
         class InvalidPermissionType(code: String, message: String) : Folder(code, message)
 
-        /** FOLDER_BOOKMARK404 - 북마크 정보 없음 */
+        /** FOLDER_BOOKMARK404 - 해당 유저의 북마크 정보가 존재하지 않습니다. */
         class BookmarkNotFound(code: String, message: String) : Folder(code, message)
     }
 
@@ -307,9 +318,6 @@ sealed class ApiError(
     sealed class AiArticle(code: String, message: String) : ApiError(code, message) {
         /** AIARTICLE4041 - 해당하는 AI Article을 찾을 수 없음 */
         class NotFound(code: String, message: String) : AiArticle(code, message)
-
-        /** AIARTICLE4091 - 이미 해당 링크로 생성된 AI Article이 존재 */
-        class Duplicate(code: String, message: String) : AiArticle(code, message)
 
         /** AIARTICLE500 - AI 요약 처리 중 오류 */
         class InternalServerError(code: String, message: String) : AiArticle(code, message)
@@ -342,7 +350,6 @@ sealed class ApiError(
      */
     sealed class Gemini(code: String, message: String) : ApiError(code, message) {
 
-
         /** GEMINI5021 - Gemini API 호출 중 오류 */
         class GeminiApiError(code: String, message: String) : Gemini(code, message)
 
@@ -369,6 +376,26 @@ sealed class ApiError(
 
         /** ALARM5002 - 알림 전송 실패 */
         class SendFailed(code: String, message: String) : Alarm(code, message)
+    }
+
+    /**
+     *  큐레이션 관련 에러
+     */
+    sealed class Curation(code: String, message: String) : ApiError(code, message) {
+        /** * CURATION4001 - 2025년부터 조회 가능합니다.
+         * (year 파라미터가 2025 미만인 경우 발생)
+         */
+        class InvalidYear(code: String, message: String) : Curation(code, message)
+
+        /** * CURATION4031 - 해당 큐레이션에 접근할 권한이 없습니다.
+         * (본인의 큐레이션이 아닌 경우 발생)
+         */
+        class AccessForbidden(code: String, message: String) : Curation(code, message)
+
+        /** * CURATION4041 - 해당 큐레이션을 찾을 수 없습니다.
+         * (존재하지 않는 큐레이션 ID 조회 시 발생)
+         */
+        class NotFound(code: String, message: String) : Curation(code, message)
     }
 
     /**
