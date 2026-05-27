@@ -27,13 +27,14 @@ import com.linku.login.viewmodel.SignUpViewModel
 
 
 @Composable
-fun SignUpNicknameScreen(
+internal fun SignUpNicknameScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
 
     // 뷰모델의 상태 확인.
-    val nickname = signUpViewModel.signUpForm.nickname //form 상태를 읽음. 컴포즈가 이 값을 읽는 순간부터 바로 감시 시작함.
+    val nickname =
+        signUpViewModel.uiState.value.signUpForm.nickname //form 상태를 읽음. 컴포즈가 이 값을 읽는 순간부터 바로 감시 시작함.
     val nicknameState by signUpViewModel.nicknameState.collectAsStateWithLifecycle()
     val isNicknameValid =
         nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용

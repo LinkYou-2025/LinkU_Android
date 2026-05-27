@@ -22,12 +22,12 @@ import com.linku.login.viewmodel.SignUpViewModel
 
 
 @Composable
-fun SignUpGenderScreen(
+internal fun SignUpGenderScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
     // 뷰모델 상태 직접 가져오기.
-    val selectedGender = signUpViewModel.signUpForm.gender
+    val selectedGender = signUpViewModel.uiState.value.signUpForm.gender
     val isButtonEnabled = selectedGender != Gender.NONE
 
 

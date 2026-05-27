@@ -21,13 +21,13 @@ import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
-fun SignUpJobScreen(
+internal fun SignUpJobScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel = hiltViewModel()
 ) {
 
     // 뷰모델 상태 확인.
-    val selectedJobId = signUpViewModel.signUpForm.jobId
+    val selectedJobId = signUpViewModel.uiState.value.signUpForm.jobId
     val jobs = Job.getAllJobs()
     val isButtonEnabled = selectedJobId > 0
 

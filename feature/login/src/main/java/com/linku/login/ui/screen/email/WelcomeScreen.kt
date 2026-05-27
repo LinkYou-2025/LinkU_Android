@@ -50,7 +50,7 @@ import com.linku.login.R
 import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
-fun WelcomeScreen(
+internal fun WelcomeScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel //null 불가.
 ) {
@@ -93,12 +93,21 @@ fun WelcomeScreen(
         // TODO : 런칭 전 해당 로그 삭제.
         if (BuildConfig.DEBUG) {
             Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
-            Log.d("WelcomeScreen", "email: ${signUpViewModel.signUpForm?.email}")
-            Log.d("WelcomeScreen", "nickname: ${signUpViewModel.signUpForm?.nickname}")
-            Log.d("WelcomeScreen", "gender: ${signUpViewModel.signUpForm?.gender}")
-            Log.d("WelcomeScreen", "jobId: ${signUpViewModel.signUpForm?.jobId}")
-            Log.d("WelcomeScreen", "purposeList: ${signUpViewModel.signUpForm?.purposeList}")
-            Log.d("WelcomeScreen", "interestList: ${signUpViewModel.signUpForm?.interestList}")
+            Log.d("WelcomeScreen", "email: ${signUpViewModel.uiState.value.signUpForm?.email}")
+            Log.d(
+                "WelcomeScreen",
+                "nickname: ${signUpViewModel.uiState.value.signUpForm?.nickname}"
+            )
+            Log.d("WelcomeScreen", "gender: ${signUpViewModel.uiState.value.signUpForm?.gender}")
+            Log.d("WelcomeScreen", "jobId: ${signUpViewModel.uiState.value.signUpForm?.jobId}")
+            Log.d(
+                "WelcomeScreen",
+                "purposeList: ${signUpViewModel.uiState.value.signUpForm?.purposeList}"
+            )
+            Log.d(
+                "WelcomeScreen",
+                "interestList: ${signUpViewModel.uiState.value.signUpForm?.interestList}"
+            )
             Log.d("WelcomeScreen", "=====================")
         }
         signUpViewModel.signUp()

@@ -57,7 +57,7 @@ import com.linku.login.R
 import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
-fun WelcomeSocialScreen(
+internal fun WelcomeSocialScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel? = null,
     onLoginSuccess: () -> Unit = {}

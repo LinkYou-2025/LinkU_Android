@@ -34,7 +34,7 @@ import com.linku.login.viewmodel.SignUpViewModel
  * 사용하지 않는 ui이지만, 혹시나 이메일 받아야 하는 순간(?)이 있을까봐 그대로 둠.
  */
 @Composable
-fun EmailInputScreen(
+internal fun EmailInputScreen(
     navigator: NavHostController,
     parentEntry: NavBackStackEntry,
     signUpViewModel: SignUpViewModel = hiltViewModel()

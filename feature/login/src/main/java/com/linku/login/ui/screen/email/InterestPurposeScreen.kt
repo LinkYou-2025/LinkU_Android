@@ -12,14 +12,14 @@ import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
-fun InterestPurposeScreen(
+internal fun InterestPurposeScreen(
     navigator: NavHostController,
     signUpViewModel: SignUpViewModel
 ) {
 
     val selectedPurposes = remember {
         mutableStateListOf<Purpose>().apply {
-            addAll(signUpViewModel.signUpForm.purposeList)
+            addAll(signUpViewModel.uiState.value.signUpForm.purposeList)
         }
     }
 
