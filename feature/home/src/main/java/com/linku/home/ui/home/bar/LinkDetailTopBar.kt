@@ -1,4 +1,4 @@
-package com.linku.home.ui.top.bar
+package com.linku.home.ui.home.bar
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -6,21 +6,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,12 +35,9 @@ fun LinkDetailTopBar(
     category: String,
     emotion: String,
     onBack: () -> Unit,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    onShareClick: () -> Unit,
+    onMoreClick: () -> Unit,
     onLinkGoClick: () -> Unit,
 ) {
-    var isMenuExpanded by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -91,6 +82,9 @@ fun LinkDetailTopBar(
                     modifier = Modifier
                         .size(18.dp)
                         .align(Alignment.CenterEnd)
+                        .noRippleClickable {
+                            onMoreClick()
+                        }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.ic_more),
@@ -98,53 +92,7 @@ fun LinkDetailTopBar(
                         modifier = Modifier
                             .height(18.dp)
                             .align(AbsoluteAlignment.TopRight)
-                            .noRippleClickable {
-                                isMenuExpanded = true
-                            }
                     )
-
-                    DropdownMenu(
-                        expanded = isMenuExpanded,
-                        onDismissRequest = {
-                            isMenuExpanded = false
-                        }
-                    ) {
-                        LinkDetailDropdownItem(
-                            iconRes = R.drawable.ic_link_edit,
-                            text = "링크 수정하기",
-                            onClick = {
-                                isMenuExpanded = false
-                                onEditClick()
-                            }
-                        )
-
-                        LinkDetailDropdownItem(
-                            iconRes = R.drawable.ic_link_delete,
-                            text = "링크 삭제하기",
-                            onClick = {
-                                isMenuExpanded = false
-                                onDeleteClick()
-                            }
-                        )
-
-                        LinkDetailDropdownItem(
-                            iconRes = R.drawable.ic_link_share,
-                            text = "링크 공유하기",
-                            onClick = {
-                                isMenuExpanded = false
-                                onShareClick()
-                            }
-                        )
-
-                        LinkDetailDropdownItem(
-                            iconRes = R.drawable.ic_link_go_gray,
-                            text = "링크 보러가기",
-                            onClick = {
-                                isMenuExpanded = false
-                                onLinkGoClick()
-                            }
-                        )
-                    }
                 }
             }
 
@@ -257,9 +205,7 @@ fun PreviewLinkDetailTopBar() {
             category = "어학",
             emotion = "평온",
             onBack = { },
-            onEditClick = { },
-            onDeleteClick = { },
-            onShareClick = { },
+            onMoreClick = { },
             onLinkGoClick = { },
         )
     }
