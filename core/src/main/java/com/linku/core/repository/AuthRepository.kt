@@ -14,9 +14,14 @@ interface AuthRepository {
     val sessionState: Flow<LoginSessionStore.SessionSnapshot>
     //레포지토리가 세션 상태 플로우 제공하도록 수정함.
 
-    suspend fun checkNickname(nickname: String): Unit
+    suspend fun checkNickname(nickname: String): Result<Unit>
 
-    suspend fun login(email: String, password: String): LoginResult
+    suspend fun login(
+        email: String,
+        password: String,
+        deviceId: String,
+        deviceType: String
+    ): Result<LoginResult>
     suspend fun signUpWithEmail(
         nickname: String,
         email: String,
@@ -25,12 +30,12 @@ interface AuthRepository {
         jobId: Int,
         purposeList: List<Purpose>,
         interestList: List<Interest>
-    ) : SignUpEmailResult
+    ): Result<SignUpEmailResult>
 
-    suspend fun sendEmailCode(email: String) // 이메일 전송 요청이니 return이 필요 없음.
-    suspend fun verifyEmailCode(email: String, code: String): Boolean
+    suspend fun sendEmailCode(email: String): Result<Unit>
+    suspend fun verifyEmailCode(email: String, code: String): Result<Unit>
 
-    suspend fun reissue(refreshToken: String): TokenReissueResult
+    suspend fun reissue(refreshToken: String): Result<TokenReissueResult>
 
     //소셜 로그인 이후 사용자 정보 받음
     suspend fun completeSocialProfile(
@@ -40,16 +45,18 @@ interface AuthRepository {
         job: Job,
         purposes: List<Purpose>,
         interests: List<Interest>
-    ): Boolean
+    ): Result<Boolean>
 
     // 카카오로 로그인 하기
     suspend fun loginWithKakao(
-        token : String): LoginResult
+        token: String
+    ): Result<LoginResult>
 
 
     //구글로 로그인 하기
     suspend fun loginWithGoogle(
-        token : String): LoginResult
+        token: String
+    ): Result<LoginResult>
 
 
 }

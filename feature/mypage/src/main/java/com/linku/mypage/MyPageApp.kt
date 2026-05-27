@@ -11,7 +11,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
+import com.linku.mypage.screen.ChangePasswordScreen
+import com.linku.mypage.screen.FaqScreen
+import com.linku.mypage.screen.InterestSelectionScreen
+import com.linku.mypage.screen.MarketingAgreeScreen
 import com.linku.mypage.screen.MyPageScreen
+import com.linku.mypage.screen.NoticeScreen
+import com.linku.mypage.screen.PurposeSelectionScreen
+import com.linku.mypage.screen.ServiceAgreeScreen
 import com.linku.mypage.screen.ServiceQuitScreen
 
 @Composable
@@ -44,17 +51,19 @@ fun MyPageApp(
         composable("mypage") {
             // 3. sessionSnapshot 데이터를 직접 넘겨줌
             MyPageScreen(
-                navController = navController,
                 nickname = session.nickname ?: "",
                 email = session.email ?: "",
-                gender = session.gender ?: "",
-                jobName = session.jobName ?: "",
                 myLinku = session.myLinku ?: 0L,
                 myFolder = session.myFolder ?: 0L,
                 myAiLinku = session.myAiLinku ?: 0L,
                 onNavigateAccount = { navController.navigate("account") },
                 onNavigateAlarm = { navController.navigate("alarm") },
+                onNavigateAlarmSetting = { navController.navigate("alarmSetting") },
                 onNavigateQuit = { navController.navigate("quit") },
+                onNavigateFAQ = { navController.navigate("faq") },
+                onNavigateNotice = { navController.navigate("notice") },
+                onNavigateTerms = { navController.navigate("terms") },
+                onNavigateAISummary = { navController.navigate("aisummary") },
                 onRequestLogout = {
                     viewModel.logout(
                         onSuccess = {
@@ -110,31 +119,37 @@ fun MyPageApp(
             if (session.nickname != null) {
                 AccountSettingScreen(
                     navController = navController,
-                    nicknamePlaceholder = session.nickname ?: "",
-                    jobPlaceholder = session.jobName ?: "",
-                    initialPurposeTags = session.purposes.toSet(),
-                    initialContentTags = session.interests.toSet(),
-                    onSubmit = { nickname, jobId, jobName, purposes, interests ->
-                        viewModel.updateUserInfo(
-                            nickname = nickname,
-                            jobId = jobId,
-                            jobName = jobName,
-                            purposes = purposes,
-                            interests = interests,
-                            onSuccess = {
-                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack("mypage", inclusive = false)
-                            },
-                            onError = { msg ->
-                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    }
+                    isSocialLogin = session.loggedIn,  // TODO: 세션에서 소셜 로그인 여부 가져오기(일단 지금은 로그인 여부로 대체)
+                    onEditProfileClick = { navController.navigate("editProfile") },
+                    onChangePasswordClick = { navController.navigate("changePassword") },
+                    onCustomInfoSettingClick = { navController.navigate("customInfoSetting") }
                 )
             } else {
                 // 로딩 중일 때 보여줄 화면 (잠시 빈 화면 혹은 프로그레스바)
                 // 아무것도 안 써두면 데이터가 올 때까지 잠깐 멈춰있다가 나타납니다.
             }
+
+//            nicknamePlaceholder = session.nickname ?: "",
+//            jobPlaceholder = session.jobName ?: "",
+//            initialPurposeTags = session.purposes.toSet(),
+//            initialContentTags = session.interests.toSet(),
+//            onSubmit = { nickname, jobId, jobName, purposes, interests ->
+//                viewModel.updateUserInfo(
+//                    nickname = nickname,
+//                    jobId = jobId,
+//                    jobName = jobName,
+//                    purposes = purposes,
+//                    interests = interests,
+//                    onSuccess = {
+//                        Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
+//                        navController.popBackStack("mypage", inclusive = false)
+//                    },
+//                    onError = { msg ->
+//                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//                    }
+//                )
+//            }
+//
 //            AccountSettingScreen(
 //                navController = navController,
 //                nicknamePlaceholder = session.nickname ?: "",
@@ -211,7 +226,104 @@ fun MyPageApp(
 //                )
 //            }
 //        }
-        composable("alarm") { AlarmSettingScreen(navController = navController) }
+
+        // 소셜 로그인 파라미터 때문에 주석처리
+//        composable("editProfile") {
+//            if (session.nickname != null && session.email != null) {
+//                EditProfileScreen(
+//                    navController = navController,
+//                    onPickProfileImage = {
+//                        // TODO: 이미지 picker 연결
+//                    },
+//                    onChangeProfileImage = {
+//                        // TODO: 프로필 이미지 변경 API 연결
+//                    },
+//                    onChangeNickname = { newNickname ->
+//                        viewModel.updateUserInfo(
+//                            nickname = newNickname,
+//                            jobId = session.jobId ?: 0L,
+//                            jobName = session.jobName ?: "",
+//                            purposes = session.purposes ?: emptyList(),
+//                            interests = session.interests ?: emptyList(),
+//                            onSuccess = {
+//                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
+//                                navController.popBackStack()
+//                            },
+//                            onError = { msg ->
+//                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//                            }
+//                        )
+//                    },
+//                    onChangeGender = { newGender ->
+//                        // TODO: 성별 변경 API 또는 updateUserInfo에 gender 포함해서 연결
+//                    },
+//                    onChangeJob = { newJob ->
+//                        viewModel.updateUserInfo(
+//                            nickname = session.nickname ?: "",
+//                            jobId = session.jobId ?: 0L,
+//                            jobName = newJob,
+//                            purposes = session.purposes ?: emptyList(),
+//                            interests = session.interests ?: emptyList(),
+//                            onSuccess = {
+//                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
+//                                navController.popBackStack()
+//                            },
+//                            onError = { msg ->
+//                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+//                            }
+//                        )
+//                    },
+//                    userNickname = session.nickname ?: "",
+//                    userJob = session.jobName ?: "",
+//                    userEmail = session.email ?: "",
+//                    userGender = session.gender ?: "",
+//                    userSocialLoginType = session.socialLoginType ?: ""
+//                )
+//            }
+
+        composable("changePassword") {
+            if (session.email != null) {
+                ChangePasswordScreen(
+                    navController = navController,
+                    userEmail = session.email ?: "",
+                    onClickFinish = { newPassword ->
+                        // TODO: 새로운 비밀번호 변경 API 연결
+                        Toast.makeText(context, "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT).show()
+                        navController.popBackStack()
+                    }
+                )
+            }
+        }
+
+        composable("customInfoSetting") {
+            PurposeSelectionScreen(
+                navController = navController,
+                onNextClick = {
+                    // TODO: 목적 저장 API 연결
+                    navController.navigate("customInfoInterest")
+                }
+            )
+        }
+
+        composable("customInfoInterest") {
+            InterestSelectionScreen(
+                navController = navController,
+                onFinishClick = {
+                    // TODO: 목적/관심사 저장 API 연결
+                    Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                    navController.popBackStack("customInfoSetting", inclusive = true)
+                }
+            )
+        }
+
+        composable("alarm") {
+            // TODO: 알림 화면 연결
+        }
+
+        composable("alarmSetting") {
+            AlarmSettingScreen(navController = navController)
+        }
+
         composable("quit") {
             ServiceQuitScreen(
                 navController = navController,
@@ -244,5 +356,36 @@ fun MyPageApp(
                 }
             )
         }
+
+        composable("faq") {
+            FaqScreen(navController = navController)
+        }
+
+        composable("notice") {
+            NoticeScreen(navController = navController)
+        }
+
+        composable("terms") {
+            ServiceAgreeScreen(
+                navController = navController,
+                onMarketingAgreeClick = {
+                    navController.navigate("marketingAgree")
+                }
+            )
+        }
+
+        composable("marketingAgree") {
+            MarketingAgreeScreen(
+                navController = navController
+            )
+        }
+
+        // AI 링크 요약 화면은 세션 정보에 링크 리스트가 나오기 전까지 보류
+//        composable ("aisummary") {
+//            AILinkuListScreen(
+//                navController = navController,
+//                initialLinks =
+//            )
+//        }
     }
 }

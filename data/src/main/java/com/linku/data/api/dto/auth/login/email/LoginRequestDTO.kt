@@ -11,6 +11,12 @@ data class LoginRequestDTO (
     val email: String,
 
     @field:Json(name = "password")
-    val password: String
+    val password: String,
+
+    @field:Json(name = "deviceId")
+    val deviceId: String,
+
+    @field:Json(name = "deviceType")
+    val deviceType: String
 
 )

@@ -1,20 +1,18 @@
 package com.linku.data.di.repository
 
-import android.content.Context
 import com.linku.core.repository.CurationRepository
+import com.linku.data.api.CurationApi
 import com.linku.data.api.ServerApi
-import com.linku.data.implementation.preference.AuthPreferenceImpl
 import com.linku.data.implementation.repository.CurationRepositoryImpl
 import com.linku.data.preference.AuthPreference
-import dagger.Module
-import com.linku.data.api.CurationApi
 import com.squareup.moshi.Moshi
+import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
+/* 미래의 제가 수정할겁니다. */
 @Module
 @InstallIn(SingletonComponent::class)
 object CurationRepositoryModule {
@@ -42,8 +40,7 @@ fun provideCurationRepository(                // 함수명도 의미 맞게 변�
     return CurationRepositoryImpl(
         serverApi = serverApi,
         curationApi = curationApi,
-        authPreference = authPreference,
-        moshi = moshi                  // ✅ 전달
+        moshi = moshi
     )
 }
 }

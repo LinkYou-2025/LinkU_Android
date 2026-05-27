@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.linku.core.repository.RecentSearchRepository
+import com.linku.data.di.qualifier.RecentSearchDataStore
 import com.linku.data.implementation.repository.RecentSearchRepositoryImpl
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -22,6 +23,7 @@ object RecentSearchRepositoryModule {
 
     @Provides
     @Singleton
+    @RecentSearchDataStore
     fun provideRecentSearchDataStore(
         @ApplicationContext context: Context
     ): DataStore<Preferences> = context.recentDataStore
@@ -29,7 +31,7 @@ object RecentSearchRepositoryModule {
     @Provides
     @Singleton
     fun provideRecentSearchRepository(
-        dataStore: DataStore<Preferences>,
+        @RecentSearchDataStore dataStore: DataStore<Preferences>,
         moshi: Moshi
     ): RecentSearchRepository {
         return RecentSearchRepositoryImpl(

@@ -93,6 +93,7 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.androidx.hilt.compiler)
     implementation(libs.androidx.hilt.navigation)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // Retrofit2
     implementation(libs.retrofit2)
@@ -100,4 +101,10 @@ dependencies {
     implementation(libs.converter.moshi)
     implementation(libs.logging.interceptor)
     implementation(libs.moshi.kotlin)
+
+    // paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
+
+
 }

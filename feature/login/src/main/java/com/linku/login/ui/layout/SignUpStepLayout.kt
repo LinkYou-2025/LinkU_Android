@@ -41,8 +41,6 @@ import com.linku.login.ui.item.StepIndicator
 @Composable
 internal fun SignUpStepLayout(
     currentStep: Int,
-    totalSteps: Int,
-    label: String,
     title: String,
     buttonText: String = "다음",
     buttonEnabled: Boolean,
@@ -75,7 +73,7 @@ internal fun SignUpStepLayout(
                 ),
             horizontalAlignment = Alignment.Start
         ) {
-            StepIndicator(currentStep, totalSteps, label)
+            StepIndicator(currentStep)
 
             Spacer(Modifier.height(32.scaler))
 
@@ -112,8 +110,6 @@ internal fun SignUpStepLayout(
 @Composable
 fun SignUpStepLayoutPreview(
     currentStep: Int,
-    totalSteps: Int,
-    label: String,
     title: String,
     buttonText: String = "다음",
     buttonEnabled: Boolean,
@@ -124,8 +120,6 @@ fun SignUpStepLayoutPreview(
     LinkuPreview {
         SignUpStepLayout(
             currentStep = currentStep,
-            totalSteps = totalSteps,
-            label = label,
             title = title,
             buttonText = buttonText,
             buttonEnabled = buttonEnabled,

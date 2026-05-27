@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -19,35 +20,30 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
-//약관 보고 다시 바텀 시트 돌아올 때,애니메이션 작동하지 않게 하는...시트
+
 @Composable
 fun NoAnimBottomSheet(
-    visible: Boolean,
     onDismissRequest: () -> Unit,
-    scrimColor: Color = Color.Black.copy(alpha = 0.12f),
-    shape: Shape,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    if (!visible) return
 
     val colorTheme = MaterialTheme.linkuColors
     val containerColor = colorTheme.white
 
     Box(
         modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.BottomCenter // 중앙 정렬 - 테블릿 가로 모드 대응.
+        contentAlignment = Alignment.BottomCenter
     ) {
 
         // Scrim(배경 어둡게)
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(scrimColor)
+                .background(Color.Black.copy(alpha = 0.5f))
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
@@ -63,7 +59,7 @@ fun NoAnimBottomSheet(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .imePadding(),
-            shape = shape,
+            shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
             color = containerColor,
             shadowElevation = 12.dp
         ) {

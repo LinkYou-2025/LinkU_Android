@@ -38,20 +38,21 @@ import com.linku.login.ui.item.AgreeFooterButton
 import com.linku.login.ui.terms.data.ServiceTermsData
 
 private val EXTRA_GAP = 20.dp
-private val FOOTER_HEIGHT = 50.dp  // 본문의 마지막 내용이 하단 버튼
 
 
 // 서비스 이용 약관
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServiceTermsScreen(
+    alreadyAgreed: Boolean = false,
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
-    val isAtBottom by remember {
+    val isAtBottom by remember(alreadyAgreed) {
         derivedStateOf {
+            if (alreadyAgreed) return@derivedStateOf true
             if (scrollState.maxValue > 0) {
                 scrollState.value >= (scrollState.maxValue - 2) // 2px 정도 여유
             } else {
@@ -181,4 +182,3 @@ private fun ServiceTermsScreenPreview() {
         )
     }
 }
-

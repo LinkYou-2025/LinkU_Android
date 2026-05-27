@@ -147,15 +147,22 @@ class SocialAuthViewModel @Inject constructor(
             _kakaoLoginState.value = SocialLoginState.Loading
 
             try {
-                Log.d("SocialAuthViewModel", "loadWithKakao try")
-                val result = authRepository.loginWithKakao(token)
-                authPreference.saveTokens(
-                    accessToken = result.accessToken,
-                    refreshToken = result.refreshToken,
-                    userId = result.userId
-                )
+                val result = authRepository.loginWithKakao(token).getOrThrow()
 
-                _kakaoLoginState.value = SocialLoginState.Success(result)
+                if (result.refreshToken == null) {
+                    // TEMP 유저 → 토큰 저장 없이 소셜 토큰만 임시 보관
+                    authPreference.clear()
+                    authPreference.socialToken = result.accessToken
+                    _kakaoLoginState.value = SocialLoginState.Success(result)
+                } else {
+                    // 정상 로그인 → 토큰 저장
+                    authPreference.saveTokens(
+                        accessToken = result.accessToken,
+                        refreshToken = result.refreshToken,
+                        userId = result.userId
+                    )
+                    _kakaoLoginState.value = SocialLoginState.Success(result)
+                }
             } catch (e: Exception) {
                 Log.d(TAG, "loadWithKakao catch: ${e.message}")
                 _kakaoLoginState.value = SocialLoginState.Error(e.message ?: "카카오 로그인 실패")
@@ -166,19 +173,97 @@ class SocialAuthViewModel @Inject constructor(
         Log.d("SocialAuthViewModel", "loadWithKakao return")
     }
 
+    // TODO : 이 양식에 맞춰서 로그인, 회원가입 api 변경된 부분 에러처리 수정해야함.
+    sealed interface GoogleLoginStatus {
+        fun work(
+            authPreference: AuthPreference,
+            updateState: (SocialLoginState) -> Unit
+        )
+
+        data object Idle : GoogleLoginStatus {
+            override fun work(
+                authPreference: AuthPreference,
+                updateState: (SocialLoginState) -> Unit
+            ) = Unit
+        }
+
+        data class Success(val result: LoginResult) : GoogleLoginStatus {
+            override fun work(
+                authPreference: AuthPreference,
+                updateState: (SocialLoginState) -> Unit
+            ) {
+                if (result.refreshToken == null) {
+                    authPreference.clear()
+                    authPreference.socialToken = result.accessToken
+                } else {
+                    authPreference.saveTokens(
+                        accessToken = result.accessToken,
+                        refreshToken = result.refreshToken,
+                        userId = result.userId
+                    )
+                }
+                updateState(SocialLoginState.Success(result))
+            }
+        }
+
+        data class Error(val message: String) : GoogleLoginStatus {
+            override fun work(
+                authPreference: AuthPreference,
+                updateState: (SocialLoginState) -> Unit
+            ) {
+                updateState(SocialLoginState.Error(message))
+            }
+        }
+    }
+
+    val googleLoginStatus = MutableStateFlow<GoogleLoginStatus>(GoogleLoginStatus.Idle)
 
     // 구글로 로그인하기
-    fun loginWithGoogle(token: String) {
+    suspend fun loginWithGoogle(token: String) {
+        _googleLoginState.value = SocialLoginState.Loading
+
+        try {
+            authRepository.loginWithGoogle(token).fold(
+                onSuccess = {
+                    GoogleLoginStatus.Success(it).work(authPreference) { state ->
+                        _googleLoginState.value = state
+                    }
+                },
+                onFailure = {
+                    GoogleLoginStatus.Error(it.message ?: "구글 로그인 실패")
+                        .work(authPreference) { state ->
+                            _googleLoginState.value = state
+                        }
+                }
+            )
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "loginWithGoogle 예외 발생", e)
+            _googleLoginState.value = SocialLoginState.Error(e.message ?: "구글 로그인 실패")
+        }
+    }
+    /*fun loginWithGoogle(token: String) : GoogleLoginStatus{
         Log.d("SocialAuthViewModel", "loadGoogleLogin")
+
+        googleLoginStatus.value = GoogleLoginStatus.Idle
 
         viewModelScope.launch {
             Log.d("SocialAuthViewModel", "loadWithGoogle launch")
 
             _googleLoginState.value = SocialLoginState.Loading
 
-            try {
+            val result = authRepository.loginWithGoogle(token).fold(
+                onSuccess = { googleLoginStatus.value = GoogleLoginStatus.Success },
+                onFailure = { googleLoginStatus.value = GoogleLoginStatus.Error }
+            )
+
+            /*try {
                 Log.d("SocialAuthViewModel", "loadWithGoogle try")
-                val result = authRepository.loginWithGoogle(token)
+                val result = authRepository.loginWithGoogle(token).fold(
+                    onSuccess = { googleLoginStatus.value = GoogleLoginStatus.Success },
+                    onFailure = { googleLoginStatus.value = GoogleLoginStatus.Error }
+                )
                 authPreference.saveTokens(
                     accessToken = result.accessToken,
                     refreshToken = result.refreshToken,
@@ -189,12 +274,14 @@ class SocialAuthViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.d(TAG, "loadWithGoogle catch: ${e.message}")
                 _googleLoginState.value = SocialLoginState.Error(e.message ?: "구글 로그인 실패")
-            }
+            }*/
 
             Log.d("SocialAuthViewModel", "loadWithGoogle end")
         }
         Log.d("SocialAuthViewModel", "loadWithGoogle return")
-    }
+
+        return googleLoginStatus.value
+    }*/
 
 
     fun updateNickname(input: String) {
@@ -254,7 +341,7 @@ class SocialAuthViewModel @Inject constructor(
                     job = _job.value,
                     purposes = _purposes.value,
                     interests = _interests.value
-                )
+                ).getOrThrow()
 
                 if (success) {
                     Log.d(TAG, "소셜 프로필 완료 성공")

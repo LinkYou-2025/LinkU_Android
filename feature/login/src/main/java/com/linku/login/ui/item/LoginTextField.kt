@@ -37,10 +37,9 @@ import com.linku.design.util.scaler
 internal fun LoginTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     hint: String,
     enabled: Boolean = true,
-    textStyle: TextStyle? = null,
-    modifier: Modifier = Modifier
 ) {
 
     val colorTheme = MaterialTheme.linkuColors
@@ -83,7 +82,7 @@ internal fun LoginTextField(
                 )
             },
 
-            textStyle = textStyle ?: TextStyle(
+            textStyle = TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.black

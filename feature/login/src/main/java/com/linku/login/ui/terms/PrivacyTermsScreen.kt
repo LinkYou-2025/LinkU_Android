@@ -45,14 +45,16 @@ private val EXTRA_GAP = 20.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PrivacyTermsScreen(
+    alreadyAgreed: Boolean = false,
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
 
     val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
-    val isAtBottom by remember {
+    val isAtBottom by remember(alreadyAgreed) {
         derivedStateOf {
+            if (alreadyAgreed) return@derivedStateOf true
             if (scrollState.maxValue > 0) {
                 scrollState.value >= (scrollState.maxValue - 2) // 2px 정도 여유
             } else {
@@ -232,10 +234,12 @@ fun PrivacyTermsScreenPreview() {
 
 @Composable
 fun PrivacyTermsScreenFixed(
+    alreadyAgreed: Boolean = false,
     onAgreeClicked: () -> Unit,
     onBackClicked: () -> Unit
 ) {
     PrivacyTermsScreen(
+        alreadyAgreed = alreadyAgreed,
         onAgreeClicked = onAgreeClicked,
         onBackClicked = onBackClicked
     )

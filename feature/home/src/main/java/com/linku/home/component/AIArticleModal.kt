@@ -22,8 +22,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 
@@ -124,8 +126,13 @@ fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewAIArticleModal() {
-//    AIArticleModal()
-//}
+@Preview(showBackground = true)
+@Composable
+private fun PreviewAIArticleModal() {
+    LinkuPreview {
+        AIArticleModal(
+            progress = 0.5f,
+            onCancel = {}
+        )
+    }
+}

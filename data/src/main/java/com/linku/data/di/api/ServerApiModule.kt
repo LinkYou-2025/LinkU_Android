@@ -1,8 +1,13 @@
 package com.linku.data.di.api
 
-import com.squareup.moshi.Moshi
+import com.linku.data.BuildConfig
+import com.linku.data.api.AuthApi
+import com.linku.data.api.AuthClient
+import com.linku.data.api.PublicClient
 import com.linku.data.api.ServerApi
+import com.linku.data.api.TokenAuthenticator
 import com.linku.data.preference.AuthPreference
+import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,104 +17,77 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
-import com.linku.data.BuildConfig
-import com.linku.data.api.UserApi
-import okhttp3.Interceptor
 
-
-/*
-* 토큰을 읽는 첫 번째 지점임.
-* AuthPreferenceImpl에 저장된 토큰 꺼내서 사용하는 곳.
-* */
 @Module
-@InstallIn(SingletonComponent::class) //앱이 꺼질 때까지 하나만 만들어서 어디서든 돌려쓸 예쩡임.
+@InstallIn(SingletonComponent::class)
 object ServerApiModule {
 
-    // 요청/응답 로그 출력
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor {
-        return HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BODY
-            } else {
-                HttpLoggingInterceptor.Level.NONE
-            }
+    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+            else HttpLoggingInterceptor.Level.NONE
         }
-    }
 
-    // 인증 인터센터임. 토큰에 헤더를 자동 추가함.
+    /* 토큰 불필요 Retrofit → AuthApi용 (로그인, 회원가입, 토큰 재발급) */
     @Provides
     @Singleton
-    fun provideAuthInterceptor(authPreference: AuthPreference): Interceptor {
-        return Interceptor { chain ->
-            val originalRequest = chain.request()
-            val path = originalRequest.url.encodedPath
-
-            // UserApi 정의서에 기반한 토큰 미필요 경로 리스트 (정확한 경로 명시)
-            val skipAuthPaths = setOf(
-                "/api/users/reissue",
-                "/api/users/login",
-                "/api/users/join",
-                "/api/users/check-nickname",
-                "/api/users/emails/code",
-                "/api/users/emails/verify",
-                "/api/users/password/temp"
-            )
-
-            // path가 "/api/users/login"일 때만 true가 됨
-            val isSkipPath = skipAuthPaths.contains(path)
-
-            val newRequest = if (isSkipPath) {
-                originalRequest
-            } else {
-                originalRequest.newBuilder().apply {
-                    authPreference.accessToken?.let { token ->
-                        addHeader("Authorization", "Bearer $token")
-                    }
-                }.build()
-            }
-            chain.proceed(newRequest)
-        }
-    }
-    
-    //OkHttpClient : 네트워크 전송
-    @Provides
-    @Singleton
-    fun provideOkHttpClient(
-        authInterceptor: Interceptor,
-        loggingInterceptor: HttpLoggingInterceptor
-    ): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addNetworkInterceptor(authInterceptor)  // 토큰 붙이기
-            .addInterceptor(loggingInterceptor)       // 로그 출력
-            .build()
-    }
-
-    // retrofit : 한개 생성해서 공유함.
-    @Provides
-    @Singleton
-    fun provideRetrofit(
-        client: OkHttpClient,
+    @PublicClient
+    fun providePublicRetrofit(
+        loggingInterceptor: HttpLoggingInterceptor,
         moshi: Moshi
-    ): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(BuildConfig.SERVER_BASE_URL)
-            .addConverterFactory(MoshiConverterFactory.create(moshi))
-            .client(client)
-            .build()
-    }
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl(BuildConfig.SERVER_BASE_URL)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(
+            OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
+                .build()
+        )
+        .build()
 
+    /* 토큰 필요 Retrofit → ServerApi, UserApi용*/
     @Provides
     @Singleton
-    fun provideServerApi(retrofit: Retrofit): ServerApi {
-        return retrofit.create(ServerApi::class.java)
-    }
+    @AuthClient
+    fun provideAuthRetrofit(
+        loggingInterceptor: HttpLoggingInterceptor,
+        authPreference: AuthPreference,
+        tokenAuthenticator: TokenAuthenticator,
+        moshi: Moshi
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl(BuildConfig.SERVER_BASE_URL)
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(
+            OkHttpClient.Builder()
+                .authenticator(tokenAuthenticator)
+                .addInterceptor { chain ->
+                    if (chain.request().header("Authorization") != null) {
+                        return@addInterceptor chain.proceed(chain.request())
+                    }
+                    val token = authPreference.accessToken
+                    val request = if (token.isNotBlank()) {
+                        chain.request().newBuilder()
+                            .header("Authorization", "Bearer $token")  // addHeader → header
+                            .build()
+                    } else chain.request()
+                    chain.proceed(request)
+                }
+                .addInterceptor(loggingInterceptor)
+                .build()
+        )
+        .build()
 
+    /* AuthApi → 토큰 불필요 (로그인, 회원가입, reissue 등) */
     @Provides
     @Singleton
-    fun provideUserApi(retrofit: Retrofit): UserApi {
-        return retrofit.create(UserApi::class.java)
-    }
+    fun provideAuthApi(@PublicClient retrofit: Retrofit): AuthApi =
+        retrofit.create(AuthApi::class.java)
 
+    /* ServerApi → 토큰 필요 */
+    @Provides
+    @Singleton
+    fun provideServerApi(@AuthClient retrofit: Retrofit): ServerApi =
+        retrofit.create(ServerApi::class.java)
 }

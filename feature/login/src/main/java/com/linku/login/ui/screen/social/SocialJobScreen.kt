@@ -34,8 +34,6 @@ fun SocialJobScreen(
 
     SignUpStepLayout(
         currentStep = 3,
-        totalSteps = 3,
-        label = "프로필 설정",
         title = "현재 하고 계신 일이나\n활동을 알려주세요",
         buttonEnabled = isButtonEnabled,
         onNextClick = {
@@ -67,8 +65,6 @@ fun SocialJobScreenPreview() {
     LinkuPreview {
         SignUpStepLayoutPreview(
             currentStep = 3,
-            totalSteps = 3,
-            label = "프로필 설정",
             title = "현재 하고 계신 일이나\n활동을 알려주세요",
             buttonEnabled = selectedJob != Job.NONE,
             onNextClick = {}
