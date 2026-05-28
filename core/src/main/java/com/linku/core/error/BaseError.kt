@@ -11,6 +11,5 @@ package com.linku.core.error
  * @see Exception
  */
 sealed class BaseError(
-    open val code: String,
     serverMessage: String
 ) : Exception(serverMessage)
