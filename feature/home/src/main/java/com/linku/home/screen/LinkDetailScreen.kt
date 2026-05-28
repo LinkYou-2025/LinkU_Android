@@ -20,7 +20,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +41,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.home.R
+import com.linku.home.component.LinkDetailCustomDropdown
 import com.linku.home.ui.home.bar.LinkDetailTopBar
 import kotlinx.coroutines.launch
 
@@ -54,6 +59,8 @@ fun LinkDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
 
+    var isDropdownVisible by remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -62,19 +69,23 @@ fun LinkDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
         ) {
             LinkDetailTopBar(
                 linkTitle = linkTitle,
                 category = category,
                 emotion = emotion,
                 onBack = { onBack() },
-                onMoreClick = { },
+                onMoreClick = {
+                    isDropdownVisible = !isDropdownVisible
+                },
                 onLinkGoClick = { uriHandler.openUri(linkUrl) },
             )
 
             Column(
-                modifier = Modifier.padding(top = 25.dp, start = 20.dp, end = 20.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(top = 25.dp, start = 20.dp, end = 20.dp)
             ) {
                 Image(
                     painter = painterResource(R.drawable.img_default),
@@ -168,23 +179,53 @@ fun LinkDetailScreen(
             }
         }
 
+        if (isDropdownVisible) {
+            LinkDetailCustomDropdown(
+                onEditClick = {
+                    isDropdownVisible = false
+                    // 수정 화면 이동 로직 추가 예정
+                },
+                onDeleteClick = {
+                    isDropdownVisible = false
+                    // 삭제 로직 추가 예정
+                },
+                onShareClick = {
+                    isDropdownVisible = false
+                    // 공유 로직 추가 예정
+                },
+                onGoClick = {
+                    isDropdownVisible = false
+                    // 링크 Open 로직 추가 예정
+                },
+                onDismiss = {
+                    isDropdownVisible = false
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 100.dp, end = 20.dp),
+            )
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(horizontal = 20.dp)
                 .align(Alignment.BottomCenter)
                 .clip(RoundedCornerShape(18.dp))
                 .background(LocalColorTheme.current.maincolor)
                 .padding(vertical = 15.dp)
                 .noRippleClickable {  },
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.Center
         ) {
             Image(
                 painter = painterResource(R.drawable.ic_sparkles),
                 contentDescription = null,
                 modifier = Modifier.height(17.51.dp)
             )
-            
+
+            Spacer(modifier = Modifier.width(10.dp))
+
             Text(
                 text = "AI 요약",
                 fontSize = 16.sp,
