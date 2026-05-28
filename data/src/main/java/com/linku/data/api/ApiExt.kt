@@ -34,7 +34,6 @@ suspend fun <DTO, Domain> safeApiCall(
     }
 
     val result = response.result ?: throw ApiError.Common.InternalServer(
-        code = "COMMON500",
         message = "결과값이 없습니다."
     )
     transform(result)
@@ -96,7 +95,6 @@ private fun <Data> Result<Data>.apiExceptions(): Result<Data> {
                 is HttpException -> mapHttpError(exception)
                 is UnknownHostException, is IOException -> NetworkError.NoConnection()
                 else -> ApiError.Unknown(
-                    code = "UNKNOWN",
                     message = exception.message ?: "알 수 없는 오류가 발생했습니다."
                 )
             }
