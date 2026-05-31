@@ -1,15 +1,9 @@
 package com.linku.data.api
 
 import com.linku.core.error.ApiError
-import com.linku.core.error.AppError
-import com.linku.core.error.NetworkError
 import com.linku.data.api.dto.BaseResponse
-import kotlinx.coroutines.CancellationException
 import retrofit2.HttpException
 import retrofit2.Response
-import java.io.IOException
-import java.net.SocketTimeoutException
-import java.net.UnknownHostException
 
 /**
  * 서버 API 호출을 안전하게 실행하고, 응답 상태 제어, 널 안전성(Null-Safety) 및 도메인 모델 매핑을 처리하는 공용 함수입니다.
@@ -23,6 +17,7 @@ import java.net.UnknownHostException
  * @param transform 성공적으로 파싱된 DTO 알맹이를 도메인 모델로 번역해주는 매퍼 람다 블록
  * @return 가공이 완료된 도메인 객체가 캡슐화된 [Result<Domain>] 구조체
  */
+@Deprecated("safeApiCall(transform파라미터 없는 것)으로 교체 예정")
 suspend fun <DTO, Domain> safeApiCall(
     apiCall: suspend () -> BaseResponse<DTO>,
     transform: (DTO) -> Domain
@@ -37,7 +32,22 @@ suspend fun <DTO, Domain> safeApiCall(
         message = "결과값이 없습니다."
     )
     transform(result)
-}.apiExceptions()
+}
+
+// TODO : 이거로 변경하기
+suspend fun <DTO> safeApiCall(
+    apiCall: suspend () -> BaseResponse<DTO>
+): DTO {
+    val response = apiCall()
+
+    if (!response.isSuccess) {
+        throw mapToApiError(response.code, response.message)
+    }
+
+    response.result ?: throw ApiError.Common.InternalServer("결과값이 없습니다.")
+
+    return response.result
+}
 
 /**
  * 반환할 데이터 알맹이가 없는 빈 객체(`{}`) 응답 API를 안전하게 실행하는 공용 함수입니다.
@@ -53,8 +63,7 @@ suspend fun safeApiCallUnit(
     if (!response.isSuccess) {
         throw mapToApiError(response.code, response.message)
     }
-    Unit
-}.apiExceptions()
+}
 
 
 /**
@@ -71,34 +80,7 @@ suspend fun safeApiCall204(
 ): Result<Unit> = runCatching {
     val response = apiCall()
     if (!response.isSuccessful) {
-        throw mapHttpError(HttpException(response))
+        // FIXME : Response -> BaseResponse 하기
+        throw Exception(response.message())
     }
-    Unit
-}.apiExceptions()
-
-/**
- * 공용 runCatching 내부에서 발생한 수많은 시스템/네트워크 예외들을 링클 아키텍처 전용 [AppError] 계열로 정밀 맵핑하는 헬퍼 확장 함수입니다.
- *
- * 코루틴의 생명 주기를 제어하는 [CancellationException]은 가로채지 않고 상위 스코프로 즉시 재전파(re-throw)하며,
- * 타임아웃, 커넥션 끊김, HTTP 에러 코드를 분석하여 안전하게 [Result.failure] 주머니로 변환해 줍니다.
- */
-private fun <Data> Result<Data>.apiExceptions(): Result<Data> {
-    return fold(
-        onSuccess = { result ->
-            Result.success(result)
-        },
-        onFailure = { exception ->
-            val mappedException = when (exception) {
-                is CancellationException -> throw exception
-                is AppError -> exception
-                is SocketTimeoutException -> NetworkError.Timeout()
-                is HttpException -> mapHttpError(exception)
-                is UnknownHostException, is IOException -> NetworkError.NoConnection()
-                else -> ApiError.Unknown(
-                    message = exception.message ?: "알 수 없는 오류가 발생했습니다."
-                )
-            }
-            Result.failure(mappedException)
-        }
-    )
 }
