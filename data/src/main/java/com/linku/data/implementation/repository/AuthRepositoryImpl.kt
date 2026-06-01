@@ -68,7 +68,6 @@ class AuthRepositoryImpl @Inject constructor(
                 // 계정 비활성화 데이터 무결성 검증 규칙 유지
                 if (response.status == "INACTIVE" && response.inactiveDate == null) {
                     throw ApiError.User.Inactive(
-                        code = "USERS4042",
                         message = "INACTIVE 상태인데 inactiveDate가 없습니다."
                     )
                 }
@@ -157,7 +156,6 @@ class AuthRepositoryImpl @Inject constructor(
             loginSessionStore.deviceId.first()
                 ?: return Result.failure(
                     ApiError.Common.Unauthorized(
-                        code = "AUTH_DEVICE_NOT_FOUND",
                         message = "기기 정보가 없습니다. 다시 로그인해주세요."
                     )
                 )
