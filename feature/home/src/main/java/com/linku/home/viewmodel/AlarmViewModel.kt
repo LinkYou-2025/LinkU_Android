@@ -33,7 +33,6 @@ class AlarmViewModel @Inject constructor(
     private val alarmFlows = AlarmType.entries.associateWith { type ->
         alarmRepository
             .getAlarms(type)
-            .flow
             .cachedIn(viewModelScope)
     }
 
