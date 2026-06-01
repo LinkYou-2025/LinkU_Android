@@ -18,34 +18,30 @@ class CategoryRepositoryImpl @Inject constructor(
     ): List<CategoryColorList> {
         Log.d("CategoryRepositoryImpl", "getCategoryList")
 
-        val categoryColorList: List<CategoryColorList>
+        var categoryColorList: List<CategoryColorList> = emptyList()
 
-        try{
+        try {
             Log.d("CategoryRepositoryImpl", "try")
 
-            categoryColorList = safeApiCall(
-                apiCall = {
-                    serverApi.getCategoryColor()
-                },
-                transform = {
-                    // 지민씨 코드는 아예 최최소한 수정할 수 있게...
-                    it.map { dto ->
-                        CategoryColorList(
-                            categoryId = dto.categoryId,
-                            categoryName = dto.categoryName,
-                            colorName = dto.colorName,
-                            colorCode1 = dto.colorCode1,
-                            colorCode2 = dto.colorCode2,
-                            colorCode3 = dto.colorCode3,
-                            colorCode4 = dto.colorCode4
-                        )
-                    }
+            safeApiCall(
+                apiCall = { serverApi.getCategoryColor() }
+            ).onSuccess { dtoList ->
+                categoryColorList = dtoList.map { dto ->
+                    CategoryColorList(
+                        categoryId = dto.categoryId,
+                        categoryName = dto.categoryName,
+                        colorName = dto.colorName,
+                        colorCode1 = dto.colorCode1,
+                        colorCode2 = dto.colorCode2,
+                        colorCode3 = dto.colorCode3,
+                        colorCode4 = dto.colorCode4
+                    )
                 }
-            ).getOrThrow()
-
-            Log.d("CategoryRepositoryImpl", "try result: $categoryColorList")
-
-        }catch(e: Exception) {
+                Log.d("CategoryRepositoryImpl", "try result: $categoryColorList")
+            }.onFailure {
+                throw it
+            }
+        } catch (e: Exception) {
             Log.d("CategoryRepositoryImpl", "error: $e")
             return emptyList()
         }
@@ -70,7 +66,7 @@ class CategoryRepositoryImpl @Inject constructor(
             }
 
             Log.d("CategoryRepositoryImpl", "try well done: $result")
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.d("CategoryRepositoryImpl", "error: $e")
         }
 

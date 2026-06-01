@@ -18,27 +18,36 @@ import java.net.UnknownHostException
  * 아키텍처 전용 비즈니스 예외를 발생시켜 [onFailure] 영역으로 안전하게 포장하여 전달합니다.
  *
  * @param DTO 서버가 반환하는 원본 데이터 모델 타입 (Data Transfer Object)
- * @param Domain 클라이언트의 비즈니스 및 UI 레이어가 소비하는 무결성 도메인 모델 타입
  * @param apiCall [BaseResponse]를 반환하는 네트워크 통신 서스펜드 람다 블록
- * @param transform 성공적으로 파싱된 DTO 알맹이를 도메인 모델로 번역해주는 매퍼 람다 블록
  * @return 가공이 완료된 도메인 객체가 캡슐화된 [Result<Domain>] 구조체
  */
-suspend fun <DTO, Domain> safeApiCall(
-    apiCall: suspend () -> BaseResponse<DTO>,
-    transform: (DTO) -> Domain
-): Result<Domain> = runCatching {
-    val response = apiCall()
+suspend fun <DTO> safeApiCall(
+    apiCall: suspend () -> BaseResponse<DTO>
+): Result<DTO> {
 
-    if (!response.isSuccess) {
-        throw mapToApiError(response.code, response.message)
+    //요청 - 네트워크/HTTP 예외는 Result.failure 로 포장 후 apiExceptions() 에서 도메인 에러로 변환
+    val response = try {
+        apiCall()
+    } catch (e: Exception) {
+        return Result.failure<DTO>(e).apiExceptions()  // 기존 매핑 로직 재사용
     }
 
-    val result = response.result ?: throw ApiError.Common.InternalServer(
-        message = "결과값이 없습니다."
-    )
-    transform(result)
-}.apiExceptions()
+    //에러 처리
+    if (!response.isSuccess) {
+        return Result.failure<DTO>(
+            mapToApiError(response.code, response.message
+            )
+        ).apiExceptions()
+    }
 
+    // 결과값이 없는 경우 처리
+    val result = response.result ?: return Result.failure(
+        ApiError.Common.InternalServer(message = "결과값이 없습니다.")
+    )
+
+    //성공 반환
+    return Result.success(result)
+}
 /**
  * 반환할 데이터 알맹이가 없는 빈 객체(`{}`) 응답 API를 안전하게 실행하는 공용 함수입니다.
  * * 백엔드 성공 응답 시 별도의 데이터 필드 없이 상태 코드와 성공 여부만 확인하여 [Result<Unit>]을 반환합니다.
@@ -48,13 +57,26 @@ suspend fun <DTO, Domain> safeApiCall(
  */
 suspend fun safeApiCallUnit(
     apiCall: suspend () -> BaseResponse<*>
-): Result<Unit> = runCatching {
-    val response = apiCall()
-    if (!response.isSuccess) {
-        throw mapToApiError(response.code, response.message)
+): Result<Unit> {
+
+    //요청 - 네트워크/HTTP 예외는 Result.failure 로 포장 후 apiExceptions() 에서 도메인 에러로 변환
+    val response = try {
+        apiCall()
+    } catch (e: Exception) {
+        return Result.failure<Unit>(e).apiExceptions()
     }
-    Unit
-}.apiExceptions()
+
+    if (!response.isSuccess) {
+        return Result.failure<Unit>(
+            mapToApiError(
+                response.code,
+                response.message
+            )
+        ).apiExceptions()
+    }
+
+    return Result.success(Unit)
+}
 
 
 /**
@@ -68,13 +90,20 @@ suspend fun safeApiCallUnit(
  */
 suspend fun safeApiCall204(
     apiCall: suspend () -> Response<Unit>
-): Result<Unit> = runCatching {
+): Result<Unit> {
+
     val response = apiCall()
+
     if (!response.isSuccessful) {
-        throw mapHttpError(HttpException(response))
+        return Result.failure<Unit>(
+            mapHttpError(
+                HttpException(response)
+            )
+        ).apiExceptions()
     }
-    Unit
-}.apiExceptions()
+
+    return Result.success(Unit)
+}
 
 /**
  * 공용 runCatching 내부에서 발생한 수많은 시스템/네트워크 예외들을 링클 아키텍처 전용 [AppError] 계열로 정밀 맵핑하는 헬퍼 확장 함수입니다.
