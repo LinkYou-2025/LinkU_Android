@@ -90,4 +90,6 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    //Paging3
+    implementation(libs.paging.runtime)
 }

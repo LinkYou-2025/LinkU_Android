@@ -1,7 +1,7 @@
 package com.linku.data.di.repository
 
 import com.linku.core.repository.AlarmRepository
-import com.linku.data.implementation.repository.FakeAlarmRepositoryImpl
+import com.linku.data.implementation.repository.AlarmRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -17,6 +17,6 @@ abstract class AlarmRepositoryModule {
     @Singleton
     @Suppress("unused")
     abstract fun provideAlarmRepository(
-        impl: FakeAlarmRepositoryImpl
+        impl: AlarmRepositoryImpl
     ): AlarmRepository
 }

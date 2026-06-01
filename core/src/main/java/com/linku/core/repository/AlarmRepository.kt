@@ -1,13 +1,10 @@
 package com.linku.core.repository
 
+import androidx.paging.Pager
 import com.linku.core.model.alarm.AlarmList
+import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 
 interface AlarmRepository {
-
-    suspend fun fetchAlarms(
-        type: AlarmType,
-        cursor: Long?,
-        size: Int
-    ): Result<AlarmList>
+    fun getAlarms(type: AlarmType): Pager<Long, AlarmSummary>
 }

@@ -8,6 +8,7 @@ import androidx.paging.cachedIn
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.NotificationController
+import com.linku.data.api.alarm.FakeAlarmApi
 import com.linku.data.implementation.repository.AlarmPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +19,7 @@ import javax.inject.Inject
 class AlarmViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository,
     private val notificationController: NotificationController
-): ViewModel(){
+) : ViewModel() {
 
     private val _alarmState = MutableStateFlow(notificationController.isAllNotificationEnabled())
     val alarmState = _alarmState.asStateFlow()
@@ -30,18 +31,10 @@ class AlarmViewModel @Inject constructor(
      *
      */
     private val alarmFlows = AlarmType.entries.associateWith { type ->
-        Pager(
-            config = PagingConfig(
-                pageSize = 20,
-                enablePlaceholders = false
-            ),
-            pagingSourceFactory = {
-                AlarmPagingSource(
-                    alarmRepository = alarmRepository,
-                    type = type
-                )
-            }
-        ).flow.cachedIn(viewModelScope)
+        alarmRepository
+            .getAlarms(type)
+            .flow
+            .cachedIn(viewModelScope)
     }
 
     /**

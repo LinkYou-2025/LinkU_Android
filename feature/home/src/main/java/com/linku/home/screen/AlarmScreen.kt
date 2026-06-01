@@ -122,57 +122,57 @@ private fun AlarmScreenContent(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-private fun AlarmScreenPreview() {
-    val fakeAlarms = listOf(
-        AlarmSummary(
-            id = 0,
-            alarmType = AlarmType.LINK,
-            whenSubmitted = "0분 전",
-            message = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요.",
-            isRead = false
-        ),
-        AlarmSummary(
-            id = 1,
-            alarmType = AlarmType.CURATION,
-            whenSubmitted = "1분 전",
-            message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
-            isRead = true
-        ),
-        AlarmSummary(
-            id = 2,
-            alarmType = AlarmType.FOLDER,
-            whenSubmitted = "2분 전",
-            message = "더미 알림 2",
-            isRead = false
-        ),
-        AlarmSummary(
-            id = 3,
-            alarmType = AlarmType.LINK,
-            whenSubmitted = "3분 전",
-            message = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요.",
-            isRead = true
-        ),
-        AlarmSummary(
-            id = 4,
-            alarmType = AlarmType.NOTICE,
-            whenSubmitted = "4분 전",
-            message = "더미 알림 4",
-            isRead = false
-        ),
-    )
-
-    val alarms = flowOf(PagingData.from(fakeAlarms)).collectAsLazyPagingItems()
-
-//    LinkuPreview {
-//        AlarmScreenContent(
-//            selectedTab = AlarmType.ALL,
-//            onSelectedChange = {},
-//            alarms = alarms,
-//            onBack = {},
-//            onNavigateToMyPage = {},
-//            onNavigateToHome = {}
-//        )
-//    }
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//private fun AlarmScreenPreview() {
+//    val fakeAlarms = listOf(
+//        AlarmSummary(
+//            id = 0,
+//            alarmType = AlarmType.LINK,
+//            whenSubmitted = "0분 전",
+//            message = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요.",
+//            isRead = false
+//        ),
+//        AlarmSummary(
+//            id = 1,
+//            alarmType = AlarmType.CURATION,
+//            whenSubmitted = "1분 전",
+//            message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
+//            isRead = true
+//        ),
+//        AlarmSummary(
+//            id = 2,
+//            alarmType = AlarmType.FOLDER,
+//            whenSubmitted = "2분 전",
+//            message = "더미 알림 2",
+//            isRead = false
+//        ),
+//        AlarmSummary(
+//            id = 3,
+//            alarmType = AlarmType.LINK,
+//            whenSubmitted = "3분 전",
+//            message = "'요즘 대학생들이 진짜 쓰는 앱 TOP 10' 링크에 대한 AI 요약이 완료되었어요.",
+//            isRead = true
+//        ),
+//        AlarmSummary(
+//            id = 4,
+//            alarmType = AlarmType.NOTICE,
+//            whenSubmitted = "4분 전",
+//            message = "더미 알림 4",
+//            isRead = false
+//        ),
+//    )
+//
+//    val alarms = flowOf(PagingData.from(fakeAlarms)).collectAsLazyPagingItems()
+//
+////    LinkuPreview {
+////        AlarmScreenContent(
+////            selectedTab = AlarmType.ALL,
+////            onSelectedChange = {},
+////            alarms = alarms,
+////            onBack = {},
+////            onNavigateToMyPage = {},
+////            onNavigateToHome = {}
+////        )
+////    }
+//}

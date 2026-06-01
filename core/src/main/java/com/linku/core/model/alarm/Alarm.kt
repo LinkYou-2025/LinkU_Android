@@ -8,6 +8,7 @@ data class AlarmSummary(
     val alarmType: AlarmType,
     val whenSubmitted: String,
     val message: String,
+    val targetId: Long,
     val isRead: Boolean
 )
 
