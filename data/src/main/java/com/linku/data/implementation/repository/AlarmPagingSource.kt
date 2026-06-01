@@ -28,9 +28,9 @@ import javax.inject.Inject
  * @property alarmApi 알람 데이터를 요청하기 위한 API 인터페이스
  * @property type 조회하고자 하는 알람의 종류
  */
-class AlarmPagingSource @Inject constructor(
-    private val alarmApi: AlarmApi,
-    private val type: AlarmType
+class AlarmPagingSource(
+    val alarmApi: AlarmApi,
+    val type: AlarmType
 ) : PagingSource<Long, AlarmSummary>() {
 
     override suspend fun load(params: LoadParams<Long>): LoadResult<Long, AlarmSummary> {
@@ -56,7 +56,7 @@ class AlarmPagingSource @Inject constructor(
                 return LoadResult.Error(mapToApiError(response.code, response.message))
             }
 
-            // 응답을 도메인 변환 후 LoadResult.Page에 캡슐화해 반환
+            // 성공 시 응답을 도메인 변환 후 LoadResult.Page에 캡슐화해 반환
             val alarmList = response.result.toDomain()
             LoadResult.Page(
                 data = alarmList.alarms,
