@@ -25,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LinkuPreview
@@ -52,9 +53,8 @@ fun AlarmScreen(
     val listStates = remember { AlarmType.entries.associateWith { LazyListState() } }
 
     // 화면에 표시될 페이징될 알람들 데이터
-    val alarms = remember(selectedTab) {
-        viewModel.getAlarms(selectedTab)
-    }.collectAsLazyPagingItems()
+    val alarms = viewModel.getAlarms(selectedTab)
+        .collectAsLazyPagingItems()
 
     AlarmScreenContent(
         isAlarmAllowed = alarmState,
@@ -111,10 +111,12 @@ private fun AlarmScreenContent(
             contentPadding = PaddingValues(top = 12.dp),
         ) {
             if (isAlarmAllowed) {
-                items(alarms.itemCount) { index ->
-                    val item = alarms[index]
-                    if (item != null) {
-                        AlarmItem(alarm = item)
+                items(
+                    count = alarms.itemCount,
+                    key = alarms.itemKey { it.id }
+                ) { index ->
+                    alarms[index]?.let { alarm ->
+                        AlarmItem(alarm = alarm)
                     }
                 }
             }

@@ -21,6 +21,7 @@ class AlarmViewModel @Inject constructor(
     private val notificationController: NotificationController
 ) : ViewModel() {
 
+    //알람 설정 상태
     private val _alarmState = MutableStateFlow(notificationController.isAllNotificationEnabled())
     val alarmState = _alarmState.asStateFlow()
 
@@ -36,8 +37,9 @@ class AlarmViewModel @Inject constructor(
             .cachedIn(viewModelScope)
     }
 
+
     /**
-     * 페이징된 알람 데이터의 타입별 게터 함수
+     * 지정된 [AlarmType]에 해당하는 페이징된 알람 데이터 Flow를 반환합니다.
      */
     fun getAlarms(type: AlarmType) = alarmFlows.getValue(type)
 }
