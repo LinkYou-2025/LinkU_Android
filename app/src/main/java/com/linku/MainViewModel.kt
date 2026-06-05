@@ -101,7 +101,11 @@ class MainViewModel @Inject constructor(
     fun setNotificationEnabled(isGranted: Boolean) {
         if (!isGranted) return
         viewModelScope.launch {
-            alarmRepository.updateAlarmSetting(AlarmType.ALL)
+            Log.d("FCM", "registerFCMToken 호출")
+            alarmRepository.registerFCMToken()
+                .onFailure { e ->
+                    Log.e("FCM", "registerFCMToken 실패: ${e.message}", e)
+                }
         }
     }
 }

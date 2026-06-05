@@ -179,6 +179,8 @@ fun MainApp(
             // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.setNotificationEnabled(true)
             }
             requestNotificationPermission = false // 한 번만 요청하도록 처리
         }

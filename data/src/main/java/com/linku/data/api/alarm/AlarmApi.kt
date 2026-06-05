@@ -32,6 +32,6 @@ interface AlarmApi {
     @POST("alarm/fcmtoken")
     suspend fun registerFcmToken(
         @Body body: FcmTokenRequest
-    ): BaseResponse<Unit>
+    ): BaseResponse<Any?>
 
 }

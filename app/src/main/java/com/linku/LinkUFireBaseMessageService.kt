@@ -2,14 +2,24 @@ package com.linku
 
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-
+import com.linku.core.repository.AlarmRepository
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+@AndroidEntryPoint
 class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
-    
+    @Inject
+    lateinit var alarmRepository: AlarmRepository
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // TODO: 서버에 FCM 토큰 전송
+
+        CoroutineScope(Dispatchers.IO).launch {
+            alarmRepository.registerFCMToken()
+        }
     }
 
     override fun onMessageReceived(message: RemoteMessage) {

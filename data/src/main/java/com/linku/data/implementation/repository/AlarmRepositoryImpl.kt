@@ -1,5 +1,6 @@
 package com.linku.data.implementation.repository
 
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -66,12 +67,17 @@ class AlarmRepositoryImpl @Inject constructor(
         notificationPreference.isMasterNotificationEnabled()
 
     override suspend fun registerFCMToken(): Result<Unit> {
+        Log.d("FCM", "registerFCMToken 진입")
         return safeApiCallUnit {
             alarmApi.registerFcmToken(
                 FcmTokenRequest(
                     fcmTokenController.getToken()
                 )
             )
+        }.onSuccess {
+            Log.d("FCM", "fcm 토큰 서버 전송 완료")
+        }.onFailure { e ->
+            Log.e("FCM", "fcm 토큰 서버 전송 실패: ${e::class.simpleName} - ${e.message}")
         }
     }
 
