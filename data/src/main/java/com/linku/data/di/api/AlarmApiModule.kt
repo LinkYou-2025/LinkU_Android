@@ -1,5 +1,6 @@
 package com.linku.data.di.api
 
+import com.linku.data.api.AuthClient
 import com.linku.data.api.alarm.AlarmApi
 import com.linku.data.api.alarm.FakeAlarmApi
 import dagger.Module
@@ -13,10 +14,11 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AlarmApiModule {
 
-    // 더미데이터 삽입용. 추후 수정 예정
     @Provides
     @Singleton
-    fun provideAlarmApi(): AlarmApi {
-        return FakeAlarmApi()
-    }
+    fun provideAlarmApi(
+        @AuthClient retrofit: Retrofit
+    ): AlarmApi =
+        retrofit.create(AlarmApi::class.java)
+
 }

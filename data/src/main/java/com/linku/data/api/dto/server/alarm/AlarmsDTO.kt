@@ -1,27 +1,30 @@
 package com.linku.data.api.dto.server.alarm
 
-import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class AlarmsDTO(
-    @SerializedName("items")
+    @field:Json(name = "items")
     val alarmList: List<AlarmSummaryDTO>,
-    @SerializedName("nextCursor")
+    @field:Json(name = "nextCursor")
     val nextCursor: Long?,
-    @SerializedName("hasNext")
+    @field:Json(name = "hasNext")
     val hasNext: Boolean
 )
 
+@JsonClass(generateAdapter = true)
 data class AlarmSummaryDTO(
-    @SerializedName("alarmId")
+    @field:Json(name = "alarmId")
     val alarmId: Long,
-    @SerializedName("alarmType")
+    @field:Json(name = "alarmType")
     val alarmType: String,
-    @SerializedName("message")
+    @field:Json(name = "message")
     val message: String,
-    @SerializedName("createdAt")
+    @field:Json(name = "createdAt")
     val createAt: String,
-    @SerializedName("targetId")
+    @field:Json(name = "targetId")
     val targetId: Long,
-    @SerializedName("isRead")
+    @field:Json(name = "isRead")
     val isRead: Boolean
 )

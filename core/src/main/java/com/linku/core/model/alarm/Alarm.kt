@@ -1,8 +1,11 @@
 package com.linku.core.model.alarm
 
-/**
- * 시스템 내 알람 정보를 요약하여 나타내는 데이터 클래스입니다.
- */
+data class AlarmList(
+    val alarms: List<AlarmSummary>,
+    val nextCursor: Long?,
+    val hasNext: Boolean
+)
+
 data class AlarmSummary(
     val id: Long,
     val alarmType: AlarmType,

@@ -2,6 +2,7 @@ package com.linku.data.api.alarm
 
 import com.linku.core.model.alarm.AlarmType
 import com.linku.data.api.dto.BaseResponse
+import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
 import com.linku.data.api.dto.server.alarm.AlarmSummaryDTO
 import com.linku.data.api.dto.server.alarm.AlarmsDTO
 
@@ -56,5 +57,9 @@ class FakeAlarmApi : AlarmApi {
                 hasNext = nextCursor != null
             )
         )
+    }
+
+    override suspend fun updateAlarmSetting(body: AlarmSettingRequest): BaseResponse<Boolean> {
+        TODO("Not yet implemented")
     }
 }
