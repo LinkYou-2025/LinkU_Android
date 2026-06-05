@@ -2,6 +2,7 @@ package com.linku.data.preference
 
 import android.content.Context
 import androidx.core.content.edit
+import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
 
@@ -38,14 +39,15 @@ class NotificationPreference(
     fun setMasterNotificationEnabled(enabled: Boolean) =
         setEnabled(KEY_NOTIFICATION_MASTER, enabled)
 
-    /* -------------------- Sub Notifications -------------------- */
-
-    // 모든 서브 알림이 활성화 상태인지 조회
-    fun areAllSubNotificationsEnabled(): Boolean =
-        isLinkActivityEnabled() &&
-                isSharedFolderEnabled() &&
-                isAiCurationEnabled() &&
-                isSystemNoticeEnabled()
+    fun getAlarmSetting(): AlarmSetting {
+        return AlarmSetting(
+            isAllEnabled = isMasterNotificationEnabled(),
+            isLinkEnabled = isLinkActivityEnabled(),
+            isFolderEnabled = isSharedFolderEnabled(),
+            isCurationEnabled = isAiCurationEnabled(),
+            isNoticeEnabled = isSystemNoticeEnabled()
+        )
+    }
 
     // 모든 서브 알림이 비활성화 상태인지 조회
     fun areAllSubNotificationsDisabled(): Boolean =

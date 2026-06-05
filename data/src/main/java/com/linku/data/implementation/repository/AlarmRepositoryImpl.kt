@@ -47,11 +47,17 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override suspend fun updateAlarmSetting(
         type: AlarmType
-    ): Result<Boolean> {
+    ): Result<AlarmSetting> {
         return safeApiCall {
-            alarmApi.updateAlarmSetting(AlarmSettingRequest(type.name))
-        }.onSuccess { dto ->
-            notificationPreference.syncAlarmSetting(type, dto)
+            alarmApi.updateAlarmSetting(
+                AlarmSettingRequest(type.name)
+            )
+        }.map { isEnabled ->
+
+            //동기화 후 리턴
+            notificationPreference.syncAlarmSetting(type, isEnabled).run {
+                notificationPreference.getAlarmSetting()
+            }
         }
     }
 

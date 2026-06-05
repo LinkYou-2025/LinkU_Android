@@ -14,4 +14,9 @@ data class AlarmToggleUiState(
     val isFolderEnabled: Boolean = false,
     val isCurationEnabled: Boolean = false,
     val isNoticeEnabled: Boolean = false
-)
+) {
+    fun areAllSubDisabled() =
+        !isLinkEnabled && !isFolderEnabled && !isCurationEnabled && !isNoticeEnabled
+
+
+}

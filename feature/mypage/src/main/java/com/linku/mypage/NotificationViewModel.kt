@@ -2,11 +2,12 @@ package com.linku.mypage
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.error.ApiError
+import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
 import com.linku.mypage.state.AlarmSettingUiState
+import com.linku.mypage.state.AlarmToggleUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,15 +32,52 @@ class NotificationViewModel @Inject constructor(
     private val _permissionEvent = MutableSharedFlow<Unit>()
     val permissionEvent = _permissionEvent.asSharedFlow()
 
+    init {
+        loadAlarmSetting()
+    }
+
+    private fun loadAlarmSetting() {
+        viewModelScope.launch {
+            _notificationState.update { it.copy(isLoading = true) }
+            alarmRepository.getAlarmSetting()
+                .onSuccess { setting ->
+                    _notificationState.update {
+                        it.copy(
+                            isLoading = false,
+                            alarmToggleUiState = setting.toUiState()
+                        )
+                    }
+                }
+                .onFailure {
+                    _notificationState.update { it.copy(isLoading = false) }
+                }
+        }
+    }
+
+    private fun AlarmSetting.toUiState() = AlarmToggleUiState(
+        isAllEnabled = isAllEnabled,
+        isLinkEnabled = isLinkEnabled,
+        isFolderEnabled = isFolderEnabled,
+        isCurationEnabled = isCurationEnabled,
+        isNoticeEnabled = isNoticeEnabled
+    )
+
     // 알림 설정 변경을 낙관적으로 반영하고,
     // 에러 발생 시 이전 상태로 롤백
     private fun updateAlarm(
         type: AlarmType,
-        reducer: (AlarmSettingUiState) -> AlarmSettingUiState
+        reducer: (AlarmToggleUiState) -> AlarmToggleUiState
     ) {
         val previous = _notificationState.value
 
-        _notificationState.update(reducer)
+        _notificationState.update { state ->
+            val updated = reducer(state.alarmToggleUiState)
+            state.copy(
+                alarmToggleUiState = updated.copy(
+                    isAllEnabled = if (updated.areAllSubDisabled()) false else updated.isAllEnabled
+                )
+            )
+        }
 
         viewModelScope.launch {
             alarmRepository.updateAlarmSetting(type)
@@ -49,56 +87,32 @@ class NotificationViewModel @Inject constructor(
         }
     }
 
-
-    // ================ 알림 설정 토글 처리 ================
     fun toggleNotification(enabled: Boolean) {
         updateAlarm(AlarmType.ALL) {
             it.copy(
-                alarmToggleUiState = it.alarmToggleUiState.copy(
-                    isAllEnabled = enabled
-                )
+                isAllEnabled = enabled,
+                isLinkEnabled = if (enabled) true else it.isLinkEnabled,
+                isFolderEnabled = if (enabled) true else it.isFolderEnabled,
+                isCurationEnabled = if (enabled) true else it.isCurationEnabled,
+                isNoticeEnabled = if (enabled) true else it.isNoticeEnabled
             )
         }
     }
 
     fun toggleAiCuration(enabled: Boolean) {
-        updateAlarm(AlarmType.CURATION) {
-            it.copy(
-                alarmToggleUiState = it.alarmToggleUiState.copy(
-                    isCurationEnabled = enabled
-                )
-            )
-        }
+        updateAlarm(AlarmType.CURATION) { it.copy(isCurationEnabled = enabled) }
     }
 
     fun toggleLinkActivity(enabled: Boolean) {
-        updateAlarm(AlarmType.LINK) {
-            it.copy(
-                alarmToggleUiState = it.alarmToggleUiState.copy(
-                    isLinkEnabled = enabled
-                )
-            )
-        }
+        updateAlarm(AlarmType.LINK) { it.copy(isLinkEnabled = enabled) }
     }
 
     fun toggleSharedFolder(enabled: Boolean) {
-        updateAlarm(AlarmType.FOLDER) {
-            it.copy(
-                alarmToggleUiState = it.alarmToggleUiState.copy(
-                    isFolderEnabled = enabled
-                )
-            )
-        }
+        updateAlarm(AlarmType.FOLDER) { it.copy(isFolderEnabled = enabled) }
     }
 
     fun toggleSystemNotice(enabled: Boolean) {
-        updateAlarm(AlarmType.NOTICE) {
-            it.copy(
-                alarmToggleUiState = it.alarmToggleUiState.copy(
-                    isNoticeEnabled = enabled
-                )
-            )
-        }
+        updateAlarm(AlarmType.NOTICE) { it.copy(isNoticeEnabled = enabled) }
     }
 }
 
