@@ -9,7 +9,6 @@ import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
 import com.linku.data.api.alarm.AlarmApi
-import com.linku.data.api.alarm.FakeAlarmApi
 import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
 import com.linku.data.api.safeApiCall
 import com.linku.data.mapper.AlarmMapper.toDomain
@@ -59,7 +58,7 @@ class AlarmRepositoryImpl @Inject constructor(
         }.map { it.toDomain() }
     }
 
-    override suspend fun isPushAlarmEnabled(): Boolean =
+    override fun isPushAlarmEnabled(): Boolean =
         notificationPreference.isMasterNotificationEnabled()
 
 }

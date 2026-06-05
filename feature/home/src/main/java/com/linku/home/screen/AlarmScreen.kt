@@ -44,7 +44,7 @@ fun AlarmScreen(
     onNavigateToHome: () -> Unit,
     viewModel: AlarmViewModel = hiltViewModel()
 ) {
-    val alarmState by viewModel.alarmState.collectAsStateWithLifecycle()
+    val pushAlarmEnabled by viewModel.pushAlarmEnabled.collectAsStateWithLifecycle()
 
     //탭 선택 상태
     var selectedTab by rememberSaveable { mutableStateOf(AlarmType.ALL) }
@@ -57,7 +57,7 @@ fun AlarmScreen(
         .collectAsLazyPagingItems()
 
     AlarmScreenContent(
-        isAlarmAllowed = alarmState,
+        isAlarmAllowed = pushAlarmEnabled,
         selectedTab = selectedTab,
         onSelectedChange = { selectedTab = it },
         alarms = alarms,

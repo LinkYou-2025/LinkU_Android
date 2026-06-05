@@ -109,16 +109,16 @@ fun AlarmSettingScreen(
         ) {
             NotificationSwitch(
                 title = "알림 수신 설정",
-                checked = state.notificationEnabled,
+                checked = state.alarmToggleUiState.isAllEnabled,
                 onCheckedChange = { viewModel.toggleNotification(it) }
             )
 
-            if (state.notificationEnabled) {
+            if (state.alarmToggleUiState.isAllEnabled) {
                 Spacer(modifier = Modifier.height(15.dp))
 
                 SubNotificationSwitch(
                     title = "링크 활동 알림",
-                    checked = state.linkActivityEnabled,
+                    checked = state.alarmToggleUiState.isLinkEnabled,
                     onCheckedChange = { viewModel.toggleLinkActivity(it) }
                 )
 
@@ -126,7 +126,7 @@ fun AlarmSettingScreen(
 
                 SubNotificationSwitch(
                     title = "폴더 공유 및 권한 알림",
-                    checked = state.sharedFolderEnabled,
+                    checked = state.alarmToggleUiState.isFolderEnabled,
                     onCheckedChange = { viewModel.toggleSharedFolder(it) }
                 )
 
@@ -134,7 +134,7 @@ fun AlarmSettingScreen(
 
                 SubNotificationSwitch(
                     title = "AI 큐레이션 알림",
-                    checked = state.aiCurationEnabled,
+                    checked = state.alarmToggleUiState.isCurationEnabled,
                     onCheckedChange = { viewModel.toggleAiCuration(it) }
                 )
 
@@ -142,7 +142,7 @@ fun AlarmSettingScreen(
 
                 SubNotificationSwitch(
                     title = "공지 및 서비스 알림",
-                    checked = state.systemNoticeEnabled,
+                    checked = state.alarmToggleUiState.isNoticeEnabled,
                     onCheckedChange = { viewModel.toggleSystemNotice(it) }
                 )
             }

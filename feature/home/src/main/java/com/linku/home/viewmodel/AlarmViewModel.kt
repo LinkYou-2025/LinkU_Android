@@ -7,7 +7,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
-import com.linku.data.api.alarm.FakeAlarmApi
 import com.linku.data.implementation.repository.AlarmPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +19,8 @@ class AlarmViewModel @Inject constructor(
 ) : ViewModel() {
 
     //전체 알람 활성화 여부
-    private val _alarmState = MutableStateFlow()
-    val alarmState = _alarmState.asStateFlow()
-
-    //
+    private val _pushAlarmEnabled = MutableStateFlow(alarmRepository.isPushAlarmEnabled())
+    val pushAlarmEnabled = _pushAlarmEnabled.asStateFlow()
 
     /**
      *[AlarmType]별로 구성된 페이징된 알람 Flow

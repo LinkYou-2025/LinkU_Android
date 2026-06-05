@@ -8,7 +8,6 @@ import com.linku.core.error.ApiError
 import com.linku.core.error.AppError
 import com.linku.core.error.NetworkError
 import com.linku.data.api.alarm.AlarmApi
-import com.linku.data.api.alarm.FakeAlarmApi
 import com.linku.data.api.mapHttpError
 import com.linku.data.api.mapToApiError
 import com.linku.data.mapper.AlarmMapper.toDomain

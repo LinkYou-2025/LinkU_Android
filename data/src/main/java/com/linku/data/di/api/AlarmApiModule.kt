@@ -2,7 +2,6 @@ package com.linku.data.di.api
 
 import com.linku.data.api.AuthClient
 import com.linku.data.api.alarm.AlarmApi
-import com.linku.data.api.alarm.FakeAlarmApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
