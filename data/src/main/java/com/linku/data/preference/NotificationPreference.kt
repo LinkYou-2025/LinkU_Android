@@ -1,8 +1,9 @@
-package com.linku.core.repository
+package com.linku.data.preference
 
 import android.content.Context
 import androidx.core.content.edit
 import com.linku.core.model.alarm.AlarmType
+import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
 
 class NotificationPreference(
     context: Context
@@ -95,6 +96,7 @@ class NotificationPreference(
 
     /* -------------------- Sync  -------------------- */
 
+    // 단일 알람 설정 동기화
     fun syncAlarmSetting(
         type: AlarmType,
         isEnabled: Boolean
@@ -120,5 +122,14 @@ class NotificationPreference(
         if (areAllSubNotificationsDisabled()) {
             setMasterNotificationEnabled(false)
         }
+    }
+
+    //알람 전체 설정 동기화
+    fun syncAlarmSettings(dto: AlarmSettingDTO) {
+        setMasterNotificationEnabled(dto.isAllEnabled)
+        setLinkActivityEnabled(dto.isLinkEnabled)
+        setSharedFolderEnabled(dto.isFolderEnabled)
+        setAiCurationEnabled(dto.isCurationEnabled)
+        setSystemNoticeEnabled(dto.isNoticeEnabled)
     }
 }

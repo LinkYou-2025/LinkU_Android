@@ -1,6 +1,7 @@
 package com.linku.data.api.alarm
 
 import com.linku.data.api.dto.BaseResponse
+import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
 import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
 import com.linku.data.api.dto.server.alarm.AlarmsDTO
 import retrofit2.http.Body
@@ -22,5 +23,9 @@ interface AlarmApi {
     suspend fun updateAlarmSetting(
         @Body body: AlarmSettingRequest
     ): BaseResponse<Boolean>
+
+    @GET("alarm/settings")
+    suspend fun getAlarmSetting(): BaseResponse<AlarmSettingDTO>
+
 
 }

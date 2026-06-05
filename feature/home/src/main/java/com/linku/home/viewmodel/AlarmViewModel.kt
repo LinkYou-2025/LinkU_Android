@@ -7,7 +7,6 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
-import com.linku.core.system.NotificationController
 import com.linku.data.api.alarm.FakeAlarmApi
 import com.linku.data.implementation.repository.AlarmPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,12 +17,13 @@ import javax.inject.Inject
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository,
-    private val notificationController: NotificationController
 ) : ViewModel() {
 
-    //알람 설정 상태
-    private val _alarmState = MutableStateFlow(notificationController.isAllNotificationEnabled())
+    //전체 알람 활성화 여부
+    private val _alarmState = MutableStateFlow()
     val alarmState = _alarmState.asStateFlow()
+
+    //
 
     /**
      *[AlarmType]별로 구성된 페이징된 알람 Flow

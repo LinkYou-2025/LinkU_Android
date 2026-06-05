@@ -166,10 +166,9 @@ fun MainApp(
     // 권한 요청 런쳐
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted -> // 시스템 권한 요청 결과를 로컬에 저장
+    ) { isGranted ->
         viewModel.setNotificationEnabled(isGranted)
         Log.d("MainApp", "알림 권한 요청 결과: $isGranted")
-        Log.d("MainApp", "시스템 권한 상태: ${ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED}")
     }
 
 

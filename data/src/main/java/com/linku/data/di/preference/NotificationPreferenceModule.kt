@@ -1,7 +1,7 @@
 package com.linku.data.di.preference
 
 import android.content.Context
-import com.linku.core.repository.NotificationPreference
+import com.linku.data.preference.NotificationPreference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

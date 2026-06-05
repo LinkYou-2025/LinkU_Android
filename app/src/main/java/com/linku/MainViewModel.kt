@@ -9,8 +9,9 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.datastore.session.LoginSessionStore
+import com.linku.core.model.alarm.AlarmType
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
-import com.linku.core.system.NotificationController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
@@ -25,7 +26,7 @@ class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
     val loginSessionStore: LoginSessionStore,
-    private val notificationController: NotificationController
+    private val alarmRepository: AlarmRepository
 ) : AndroidViewModel(application) {
 
     private val connectivityManager =
@@ -96,10 +97,11 @@ class MainViewModel @Inject constructor(
         Log.d("MainViewModel", "clearRecentQuery return")
     }
 
-    // 알림 허용 여부 저장
-    // 로그인 성공 후 시스템 권한 요청 결과를 로컬에 반영
-    fun setNotificationEnabled(enabled: Boolean) {
-        notificationController.setNotificationEnabled(enabled)
+    // 시스템 알람 허용 여부에 따른 초기 푸시알람설정 초기화
+    fun setNotificationEnabled(isGranted: Boolean) {
+        if (!isGranted) return
+        viewModelScope.launch {
+            alarmRepository.updateAlarmSetting(AlarmType.ALL)
+        }
     }
-
 }
