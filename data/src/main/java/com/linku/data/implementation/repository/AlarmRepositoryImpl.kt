@@ -7,10 +7,13 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
+import com.linku.core.system.FcmTokenController
 import com.linku.data.preference.NotificationPreference
 import com.linku.data.api.alarm.AlarmApi
 import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
+import com.linku.data.api.dto.server.alarm.FcmTokenRequest
 import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.AlarmMapper.toDomain
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -18,7 +21,8 @@ import javax.inject.Inject
 
 class AlarmRepositoryImpl @Inject constructor(
     private val alarmApi: AlarmApi,
-    private val notificationPreference: NotificationPreference
+    private val notificationPreference: NotificationPreference,
+    private val fcmTokenController: FcmTokenController
 ) : AlarmRepository {
 
     // 알람 타입에 따라 페이징 처리된 알람 목록을 반환
@@ -60,6 +64,16 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override fun isPushAlarmEnabled(): Boolean =
         notificationPreference.isMasterNotificationEnabled()
+
+    override suspend fun registerFCMToken(): Result<Unit> {
+        return safeApiCallUnit {
+            alarmApi.registerFcmToken(
+                FcmTokenRequest(
+                    fcmTokenController.getToken()
+                )
+            )
+        }
+    }
 
 }
 

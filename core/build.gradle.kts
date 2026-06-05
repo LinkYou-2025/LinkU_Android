@@ -92,4 +92,8 @@ dependencies {
 
     //Paging3
     implementation(libs.paging.runtime)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging.ktx)
 }

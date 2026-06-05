@@ -5,6 +5,8 @@ import com.google.firebase.messaging.RemoteMessage
 
 class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
+    
+
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         // TODO: 서버에 FCM 토큰 전송
