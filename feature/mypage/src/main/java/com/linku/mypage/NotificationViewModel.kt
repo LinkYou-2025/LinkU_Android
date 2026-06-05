@@ -74,6 +74,7 @@ class NotificationViewModel @Inject constructor(
             val updated = reducer(state.alarmToggleUiState)
             state.copy(
                 alarmToggleUiState = updated.copy(
+                    //TODO: 알람 설정 조회 api 응답값 수정 후 삭제 예정
                     isAllEnabled = if (updated.areAllSubDisabled()) false else updated.isAllEnabled
                 )
             )
@@ -89,6 +90,7 @@ class NotificationViewModel @Inject constructor(
 
     fun toggleNotification(enabled: Boolean) {
         updateAlarm(AlarmType.ALL) {
+            //TODO: 알람 설정 조회 api 응답값 수정 후 간소화 예정
             it.copy(
                 isAllEnabled = enabled,
                 isLinkEnabled = if (enabled) true else it.isLinkEnabled,

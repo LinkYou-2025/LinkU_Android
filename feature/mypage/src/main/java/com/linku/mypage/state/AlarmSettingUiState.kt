@@ -15,8 +15,9 @@ data class AlarmToggleUiState(
     val isCurationEnabled: Boolean = false,
     val isNoticeEnabled: Boolean = false
 ) {
+
+    //TODO: 알람 설정 조회 api 응답값 수정 후 삭제 예정
     fun areAllSubDisabled() =
         !isLinkEnabled && !isFolderEnabled && !isCurationEnabled && !isNoticeEnabled
-
 
 }

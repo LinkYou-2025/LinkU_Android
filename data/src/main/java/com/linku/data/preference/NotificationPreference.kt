@@ -6,6 +6,7 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
 
+// TODO: 알람 설정 조회 api 응답값 수정 후 전면 리팩토링 예정
 class NotificationPreference(
     context: Context
 ) {
@@ -39,6 +40,7 @@ class NotificationPreference(
     fun setMasterNotificationEnabled(enabled: Boolean) =
         setEnabled(KEY_NOTIFICATION_MASTER, enabled)
 
+    //TODO: 알람 설정 조회 api 응답값 수정 후 리팩토링 예정
     fun getAlarmSetting(): AlarmSetting {
         return AlarmSetting(
             isAllEnabled = isMasterNotificationEnabled(),
@@ -50,6 +52,7 @@ class NotificationPreference(
     }
 
     // 모든 서브 알림이 비활성화 상태인지 조회
+    // TODO: 알람 설정 조회 api 응답값 수정 후 삭제 예정
     fun areAllSubNotificationsDisabled(): Boolean =
         !isLinkActivityEnabled() &&
                 !isSharedFolderEnabled() &&
@@ -99,6 +102,7 @@ class NotificationPreference(
     /* -------------------- Sync  -------------------- */
 
     // 단일 알람 설정 동기화
+    // TODO: 알람 설정 조회 api 응답값 수정 후 삭제 예정
     fun syncAlarmSetting(
         type: AlarmType,
         isEnabled: Boolean
