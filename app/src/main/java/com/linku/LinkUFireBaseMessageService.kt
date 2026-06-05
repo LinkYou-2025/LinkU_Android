@@ -3,6 +3,7 @@ package com.linku
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.linku.core.repository.AlarmRepository
+import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,12 +14,17 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
     @Inject
     lateinit var alarmRepository: AlarmRepository
+    @Inject
+    lateinit var notificationPreference: NotificationPreference
+
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
 
+        notificationPreference.setFcmToken(token)
+
         CoroutineScope(Dispatchers.IO).launch {
-            alarmRepository.registerFCMToken()
+            alarmRepository.registerFCMToken(token)
         }
     }
 

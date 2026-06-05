@@ -12,6 +12,7 @@ import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
+import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
@@ -26,6 +27,7 @@ class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
     val loginSessionStore: LoginSessionStore,
+    private val notificationPreference: NotificationPreference,
     private val alarmRepository: AlarmRepository
 ) : AndroidViewModel(application) {
 
@@ -100,12 +102,26 @@ class MainViewModel @Inject constructor(
     // 시스템 알람 허용 여부에 따른 초기 푸시알람설정 초기화
     fun setNotificationEnabled(isGranted: Boolean) {
         if (!isGranted) return
+
         viewModelScope.launch {
-            Log.d("FCM", "registerFCMToken 호출")
-            alarmRepository.registerFCMToken()
-                .onFailure { e ->
-                    Log.e("FCM", "registerFCMToken 실패: ${e.message}", e)
-                }
+            val token = notificationPreference.getFcmToken()
+
+            if (token == null) {
+                Log.d("FCM", "token 없음 → skip")
+                return@launch
+            }
+
+            // 토큰 등록이 성공했으면 전체 푸시알림 활성화
+            val registerResult = alarmRepository.registerFCMToken(token)
+
+            if (registerResult.isSuccess) {
+                alarmRepository.updateAlarmSetting(AlarmType.ALL)
+                    .onFailure { e ->
+                        Log.e("FCM", "알람 설정 실패: ${e.message}", e)
+                    }
+            } else {
+                Log.e("FCM", "register 실패: ${registerResult.exceptionOrNull()?.message}")
+            }
         }
     }
 }

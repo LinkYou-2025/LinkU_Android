@@ -21,5 +21,5 @@ interface AlarmRepository {
     // 로컬에 캐싱된 값을 사용해 알람함 화면에서 api가 2번 호출되어야 하는 상황을 방지한다.
     fun isPushAlarmEnabled(): Boolean
 
-    suspend fun registerFCMToken(): Result<Unit>
+    suspend fun registerFCMToken(token: String): Result<Unit>
 }

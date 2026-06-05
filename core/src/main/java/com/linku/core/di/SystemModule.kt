@@ -1,7 +1,6 @@
 package com.linku.core.di
 
 import android.content.Context
-import com.linku.core.system.FcmTokenController
 import com.linku.core.system.PermissionChecker
 import dagger.Module
 import dagger.Provides
@@ -22,9 +21,4 @@ object SystemModule {
         return PermissionChecker(context)
     }
 
-    @Provides
-    @Singleton
-    fun provideFcmTokenController(): FcmTokenController {
-        return FcmTokenController()
-    }
 }
