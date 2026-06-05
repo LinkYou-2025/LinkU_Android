@@ -11,9 +11,12 @@ package com.linku.core.model.alarm
  * @property isNoticeEnabled 시스템/공지 알람의 활성화 여부입니다.
  */
 data class AlarmSetting(
-    val isAllEnabled: Boolean,
-    val isLinkEnabled: Boolean,
-    val isFolderEnabled: Boolean,
-    val isCurationEnabled: Boolean,
-    val isNoticeEnabled: Boolean
-)
+    val isAllEnabled: Boolean = false,
+    val isLinkEnabled: Boolean = false,
+    val isFolderEnabled: Boolean = false,
+    val isCurationEnabled: Boolean = false,
+    val isNoticeEnabled: Boolean = false
+) {
+    fun areAllSubDisabled() =
+        !isLinkEnabled && !isFolderEnabled && !isCurationEnabled && !isNoticeEnabled
+}

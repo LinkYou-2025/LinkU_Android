@@ -13,7 +13,7 @@ interface AlarmRepository {
 
     suspend fun updateAlarmSetting(
         type: AlarmType
-    ): Result<AlarmSetting>
+    ): Result<Boolean>
 
     suspend fun getAlarmSetting(): Result<AlarmSetting>
 

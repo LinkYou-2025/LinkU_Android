@@ -7,7 +7,6 @@ import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
 import com.linku.mypage.state.AlarmSettingUiState
-import com.linku.mypage.state.AlarmToggleUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,14 +20,11 @@ import javax.inject.Inject
 class NotificationViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository,
     private val checker: PermissionChecker
-): ViewModel() {
-    // 뷰모델 내부의 상태 변수.
-    private val _notificationState = MutableStateFlow(AlarmSettingUiState())
+) : ViewModel() {
 
-    // ui에 노출시킬 변수
+    private val _notificationState = MutableStateFlow(AlarmSettingUiState())
     val notificationState = _notificationState.asStateFlow()
 
-    // 시스템 알림 권한 요청이 필요할 때 UI에 전달하는 이벤트
     private val _permissionEvent = MutableSharedFlow<Unit>()
     val permissionEvent = _permissionEvent.asSharedFlow()
 
@@ -42,10 +38,7 @@ class NotificationViewModel @Inject constructor(
             alarmRepository.getAlarmSetting()
                 .onSuccess { setting ->
                     _notificationState.update {
-                        it.copy(
-                            isLoading = false,
-                            alarmToggleUiState = setting.toUiState()
-                        )
+                        it.copy(isLoading = false, alarmToggleUiState = setting)
                     }
                 }
                 .onFailure {
@@ -54,55 +47,42 @@ class NotificationViewModel @Inject constructor(
         }
     }
 
-    private fun AlarmSetting.toUiState() = AlarmToggleUiState(
-        isAllEnabled = isAllEnabled,
-        isLinkEnabled = isLinkEnabled,
-        isFolderEnabled = isFolderEnabled,
-        isCurationEnabled = isCurationEnabled,
-        isNoticeEnabled = isNoticeEnabled
-    )
-
-    // 알림 설정 변경을 낙관적으로 반영하고,
-    // 에러 발생 시 이전 상태로 롤백
+    // 낙관적 업데이트: reducer로 UI 즉시 반영 후 API 실패 시 롤백
+    // 서브 알람이 모두 꺼지면 전체 알람도 자동으로 꺼짐
     private fun updateAlarm(
         type: AlarmType,
-        reducer: (AlarmToggleUiState) -> AlarmToggleUiState
+        reducer: (AlarmSetting) -> AlarmSetting
     ) {
         val previous = _notificationState.value
 
         _notificationState.update { state ->
             val updated = reducer(state.alarmToggleUiState)
             state.copy(
-                alarmToggleUiState = updated.copy(
-                    //TODO: 알람 설정 조회 api 응답값 수정 후 삭제 예정
-                    isAllEnabled = if (updated.areAllSubDisabled()) false else updated.isAllEnabled
-                )
+                alarmToggleUiState = if (updated.areAllSubDisabled()) {
+                    updated.copy(isAllEnabled = false)
+                } else {
+                    updated
+                }
             )
         }
 
         viewModelScope.launch {
             alarmRepository.updateAlarmSetting(type)
-                .onFailure {
-                    _notificationState.value = previous
-                }
+                .onFailure { _notificationState.value = previous }
         }
     }
 
+    // 전체 ON/OFF → 모든 서브도 동일하게 ON/OFF
     fun toggleNotification(enabled: Boolean) {
-        updateAlarm(AlarmType.ALL) {
-            //TODO: 알람 설정 조회 api 응답값 수정 후 간소화 예정
-            it.copy(
+        updateAlarm(AlarmType.ALL) { state ->
+            state.copy(
                 isAllEnabled = enabled,
-                isLinkEnabled = if (enabled) true else it.isLinkEnabled,
-                isFolderEnabled = if (enabled) true else it.isFolderEnabled,
-                isCurationEnabled = if (enabled) true else it.isCurationEnabled,
-                isNoticeEnabled = if (enabled) true else it.isNoticeEnabled
+                isLinkEnabled = enabled,
+                isFolderEnabled = enabled,
+                isCurationEnabled = enabled,
+                isNoticeEnabled = enabled
             )
         }
-    }
-
-    fun toggleAiCuration(enabled: Boolean) {
-        updateAlarm(AlarmType.CURATION) { it.copy(isCurationEnabled = enabled) }
     }
 
     fun toggleLinkActivity(enabled: Boolean) {
@@ -113,8 +93,11 @@ class NotificationViewModel @Inject constructor(
         updateAlarm(AlarmType.FOLDER) { it.copy(isFolderEnabled = enabled) }
     }
 
+    fun toggleAiCuration(enabled: Boolean) {
+        updateAlarm(AlarmType.CURATION) { it.copy(isCurationEnabled = enabled) }
+    }
+
     fun toggleSystemNotice(enabled: Boolean) {
         updateAlarm(AlarmType.NOTICE) { it.copy(isNoticeEnabled = enabled) }
     }
 }
-

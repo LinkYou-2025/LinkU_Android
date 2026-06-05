@@ -36,7 +36,7 @@ class AlarmRepositoryImpl @Inject constructor(
                 initialLoadSize = 20,
                 enablePlaceholders = false
             ),
-                pagingSourceFactory = {
+            pagingSourceFactory = {
                 AlarmPagingSource(
                     alarmApi = alarmApi,
                     type = type
@@ -47,16 +47,14 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override suspend fun updateAlarmSetting(
         type: AlarmType
-    ): Result<AlarmSetting> {
+    ): Result<Boolean> {
         return safeApiCall {
-            alarmApi.updateAlarmSetting(
-                AlarmSettingRequest(type.name)
-            )
-        }.map { isEnabled ->
+            alarmApi.updateAlarmSetting(AlarmSettingRequest(type.name))
+        }.onSuccess { isEnabled ->
 
-            //동기화 후 리턴
-            notificationPreference.syncAlarmSetting(type, isEnabled).run {
-                notificationPreference.getAlarmSetting()
+            // ALL일 경우에는 캐싱
+            if (type == AlarmType.ALL) {
+                notificationPreference.setMasterNotificationEnabled(isEnabled)
             }
         }
     }
@@ -64,8 +62,6 @@ class AlarmRepositoryImpl @Inject constructor(
     override suspend fun getAlarmSetting(): Result<AlarmSetting> {
         return safeApiCall {
             alarmApi.getAlarmSetting()
-        }.onSuccess { dto ->
-            notificationPreference.syncAlarmSettings(dto)
         }.map { it.toDomain() }
     }
 
