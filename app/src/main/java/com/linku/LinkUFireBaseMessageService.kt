@@ -23,6 +23,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
     @Inject
     lateinit var notificationPreference: NotificationPreference
 
+    //FireBase에서 새 토큰이 발급되었을 때 호출되는 콜백
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         Log.d("FCM Token", token)
@@ -34,12 +35,17 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
         }
     }
 
+    // FireBase로부터 메세지를 받았을 때 호출되는 콜백
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
         // 푸시알람 활성화 안되어있으면 종료
         if (!notificationPreference.isMasterNotificationEnabled()) return
 
+        // FCM 메시지 타입에 따라 title/body 추출
+        // Notification Message: message.notification에서 추출
+        // Data Message: message.data에서 추출
+        // 둘 다 없으면 처리 불필요로 판단하여 종료
         val title = message.notification?.title ?: message.data["title"] ?: return
         val body = message.notification?.body ?: message.data["message"] ?: return
 
@@ -54,6 +60,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        // 알람 제작
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_logo)
             .setContentTitle(title)
