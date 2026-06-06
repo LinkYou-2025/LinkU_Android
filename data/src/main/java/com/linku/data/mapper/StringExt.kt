@@ -19,11 +19,14 @@ import java.time.temporal.ChronoUnit
  * @return 상대 시간 문자열
  */
 fun String.toRelativeTime(): String {
+
+    // 파싱
     val parsed = runCatching { Instant.parse(this) }
         .getOrElse { return "알 수 없음" }
 
+    // 현재 시간과 차이 계산
     val diff = maxOf(
-        0L,
+        0L, // clock skew를 대비하기 위함
         ChronoUnit.MINUTES.between(
             parsed,
             Instant.now()

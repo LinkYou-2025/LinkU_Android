@@ -3,7 +3,7 @@ package com.linku.mypage
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.error.ApiError
+import com.linku.core.error.AppError
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
@@ -27,27 +27,41 @@ class NotificationViewModel @Inject constructor(
     private val _notificationState = MutableStateFlow(AlarmSettingUiState())
     val notificationState = _notificationState.asStateFlow()
 
+    private val _toastEvent = MutableSharedFlow<String>()
+    val toastEvent = _toastEvent.asSharedFlow()
+
     init {
         Log.d("NotificationViewModel", "ViewModel created")
         loadAlarmSetting()
     }
 
+    // 알람 설정 상태를 load
     private fun loadAlarmSetting() {
         viewModelScope.launch {
             _notificationState.update {
                 it.copy(
                     isLoading = true,
                     isSystemAlarmAllowed = checker.isNotificationEnabled()
-                ) }
+                )
+            }
+
             alarmRepository.getAlarmSetting()
                 .fold(
                     onSuccess = { setting ->
                         _notificationState.update {
-                            it.copy(isLoading = false, alarmToggleUiState = setting)
+                            it.copy(
+                                isLoading = false,
+                                alarmToggleUiState = setting
+                            )
                         }
                     },
-                    onFailure = {
-                        _notificationState.update { it.copy(isLoading = false) }
+                    onFailure = { throwable ->
+                        _notificationState.update {
+                            it.copy(isLoading = false)
+                        }
+
+                        val message = (throwable as AppError).displayMessage
+                        _toastEvent.emit(message)
                     }
                 )
         }
@@ -82,7 +96,12 @@ class NotificationViewModel @Inject constructor(
 
         viewModelScope.launch {
             alarmRepository.updateAlarmSetting(type)
-                .onFailure { _notificationState.value = previous }
+                .onFailure { throwable ->
+                    _notificationState.value = previous
+
+                    val message = (throwable as AppError).displayMessage
+                    _toastEvent.emit(message)
+                }
         }
     }
 
@@ -120,5 +139,4 @@ data class AlarmSettingUiState(
     val isLoading: Boolean = false,
     val isSystemAlarmAllowed: Boolean = false,
     val alarmToggleUiState: AlarmSetting = AlarmSetting(),
-    val errorMessage: String = ""
 )

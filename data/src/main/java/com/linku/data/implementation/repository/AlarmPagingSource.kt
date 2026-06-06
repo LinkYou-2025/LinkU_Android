@@ -36,7 +36,7 @@ class AlarmPagingSource(
 
         // safeApiCall을 사용하지 않은 이유:
         // PagingSource는 Result 기반의 공통 API 래퍼(safeApiCall) 대신,
-        // Paging3가 요구하는 LoadResult(코틀린 Result와 유사하나 Paging3 라이브러리에서 쓰는 타입입니다.)
+        // Paging3가 요구하는 LoadResult(코틀린 Result와 유사하나 Paging3 라이브러리에서 쓰는 타입입니다)
         // 로 직접 변환하는 책임을 가집니다.
         // 따라서 Result → LoadResult로 이중 래핑하는 구조를 피하고,
         // 여기서 바로 Paging 전용 에러/성공 처리로 통합합니다.

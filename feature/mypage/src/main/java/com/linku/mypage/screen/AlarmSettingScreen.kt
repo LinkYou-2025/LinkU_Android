@@ -2,6 +2,7 @@ package com.linku.mypage.screen
 
 import android.content.Intent
 import android.provider.Settings
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -54,7 +55,19 @@ fun AlarmSettingScreen(
     viewModel: NotificationViewModel = hiltViewModel(),
 ) {
     val state by viewModel.notificationState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    // 에러 발생시 Toast를 띄우는 Side Effect
+    LaunchedEffect(Unit) {
+        viewModel.toastEvent.collect { message ->
+            Toast.makeText(
+                context,
+                message,
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
 
     // 액티비티가 ON_RESUME될 때마다
     // 시스템 알림 설정 상태를 최신 값으로 갱신
