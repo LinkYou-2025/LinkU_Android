@@ -18,7 +18,7 @@ class AlarmViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository,
 ) : ViewModel() {
 
-    //전체 알람 활성화 여부
+    // 알람 활성화 여부
     private val _pushAlarmEnabled = MutableStateFlow(alarmRepository.isPushAlarmEnabled())
     val pushAlarmEnabled = _pushAlarmEnabled.asStateFlow()
 
