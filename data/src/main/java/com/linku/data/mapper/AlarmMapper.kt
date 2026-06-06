@@ -1,6 +1,5 @@
 package com.linku.data.mapper
 
-import com.linku.core.error.ApiError
 import com.linku.core.model.alarm.AlarmList
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
@@ -24,7 +23,7 @@ object AlarmMapper {
     private fun AlarmSummaryDTO.toDomain(): AlarmSummary = AlarmSummary(
         id = alarmId,
         alarmType = AlarmType.from(alarmType),
-        whenSubmitted = createAt,
+        whenSubmitted = createAt.toRelativeTime(),
         message = message,
         targetId = targetId,
         isRead = isRead
