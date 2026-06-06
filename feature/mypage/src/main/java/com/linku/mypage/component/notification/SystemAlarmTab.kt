@@ -70,7 +70,7 @@ fun SystemAlarmTab(
                         color = LocalColorTheme.current.black
                     )
                 ) {
-                    append(if (isSystemAlarmAllowed) "알림이 허용되어 있어요." else "알람이 허용되지 않았어요.")
+                    append(if (isSystemAlarmAllowed) "알림이 허용되어 있어요." else "알림이 허용되지 않았어요.")
                 }
                 append(if (isSystemAlarmAllowed) "\n기기 설정에서 알림을 변경할 수 있어요." else "\n기기 설정에서 알림을 허용해주세요.")
             }

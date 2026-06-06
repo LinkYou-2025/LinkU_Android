@@ -59,6 +59,8 @@ class AlarmRepositoryImpl @Inject constructor(
     override suspend fun getAlarmSetting(): Result<AlarmSetting> {
         return safeApiCall {
             alarmApi.getAlarmSetting()
+        }.onSuccess { dto ->
+            notificationPreference.setMasterNotificationEnabled(dto.isAllEnabled)
         }.map { it.toDomain() }
     }
 

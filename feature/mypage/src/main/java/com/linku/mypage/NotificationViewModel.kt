@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 
 @HiltViewModel
@@ -22,6 +24,9 @@ class NotificationViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository,
     private val checker: PermissionChecker
 ) : ViewModel() {
+
+    // 낙관적 업데이트 시 race condition 방지용 Mutex
+    private val alarmUpdateMutex = Mutex()
 
     //알람 활성화 상태
     private val _notificationState = MutableStateFlow(AlarmSettingUiState())
@@ -81,24 +86,26 @@ class NotificationViewModel @Inject constructor(
         type: AlarmType,
         reducer: (AlarmSetting) -> AlarmSetting
     ) {
-        val previous = _notificationState.value
-
-        //낙관적 업데이트
-        _notificationState.update { state ->
-            val updated = reducer(state.alarmToggleUiState)
-            state.copy(
-                alarmToggleUiState = if (updated.areAllSubDisabled()) {
-                    updated.copy(isAllEnabled = false)
-                } else {
-                    updated
-                }
-            )
-        }
-
-        // api호출
         viewModelScope.launch {
-            alarmRepository.updateAlarmSetting(type)
-                .fold(
+            alarmUpdateMutex.withLock {
+
+                // 이전 상태 저장 (롤백용)
+                val previous = _notificationState.value
+
+                // 낙관적 업데이트
+                _notificationState.update { state ->
+                    val updated = reducer(state.alarmToggleUiState)
+                    state.copy(
+                        alarmToggleUiState = if (updated.areAllSubDisabled()) {
+                            updated.copy(isAllEnabled = false)
+                        } else {
+                            updated
+                        }
+                    )
+                }
+
+                // API 호출 + 결과 처리
+                alarmRepository.updateAlarmSetting(type).fold(
                     onSuccess = { setting ->
                         _notificationState.update { state ->
                             state.copy(
@@ -106,14 +113,13 @@ class NotificationViewModel @Inject constructor(
                             )
                         }
                     },
-                    //실패 시 롤백
                     onFailure = { throwable ->
                         _notificationState.value = previous
-
                         val message = (throwable as AppError).displayMessage
                         _toastEvent.emit(message)
                     }
                 )
+            }
         }
     }
 

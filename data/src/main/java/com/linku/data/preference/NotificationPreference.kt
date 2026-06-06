@@ -2,9 +2,6 @@ package com.linku.data.preference
 
 import android.content.Context
 import androidx.core.content.edit
-import com.linku.core.model.alarm.AlarmSetting
-import com.linku.core.model.alarm.AlarmType
-import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
 
 class NotificationPreference(
     context: Context
