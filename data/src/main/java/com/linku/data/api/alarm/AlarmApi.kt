@@ -24,7 +24,7 @@ interface AlarmApi {
     @PATCH("alarm/settings")
     suspend fun updateAlarmSetting(
         @Body body: AlarmSettingRequest
-    ): BaseResponse<Boolean>
+    ): BaseResponse<AlarmSettingDTO>
 
     @GET("alarm/settings")
     suspend fun getAlarmSetting(): BaseResponse<AlarmSettingDTO>

@@ -45,15 +45,14 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override suspend fun updateAlarmSetting(
         type: AlarmType
-    ): Result<Boolean> {
+    ): Result<AlarmSetting> {
         return safeApiCall {
             alarmApi.updateAlarmSetting(AlarmSettingRequest(type.name))
-        }.onSuccess { isEnabled ->
-
-            // ALL일 경우에는 캐싱
-            if (type == AlarmType.ALL) {
-                notificationPreference.setMasterNotificationEnabled(isEnabled)
-            }
+        }.onSuccess { dto ->
+            // isAllEnabled만 캐싱
+            notificationPreference.setMasterNotificationEnabled(dto.isAllEnabled)
+        }.map {
+            it.toDomain()
         }
     }
 

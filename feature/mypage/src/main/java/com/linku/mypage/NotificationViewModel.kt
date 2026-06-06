@@ -83,6 +83,7 @@ class NotificationViewModel @Inject constructor(
     ) {
         val previous = _notificationState.value
 
+        //낙관적 업데이트
         _notificationState.update { state ->
             val updated = reducer(state.alarmToggleUiState)
             state.copy(
@@ -94,14 +95,25 @@ class NotificationViewModel @Inject constructor(
             )
         }
 
+        // api호출
         viewModelScope.launch {
             alarmRepository.updateAlarmSetting(type)
-                .onFailure { throwable ->
-                    _notificationState.value = previous
+                .fold(
+                    onSuccess = { setting ->
+                        _notificationState.update { state ->
+                            state.copy(
+                                alarmToggleUiState = setting
+                            )
+                        }
+                    },
+                    //실패 시 롤백
+                    onFailure = { throwable ->
+                        _notificationState.value = previous
 
-                    val message = (throwable as AppError).displayMessage
-                    _toastEvent.emit(message)
-                }
+                        val message = (throwable as AppError).displayMessage
+                        _toastEvent.emit(message)
+                    }
+                )
         }
     }
 
