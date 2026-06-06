@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.component
+package com.linku.home.ui.alarm.component.listcontent
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,6 +15,7 @@ import androidx.paging.compose.itemKey
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LinkuPreview
+import com.linku.home.ui.alarm.component.AlarmItem
 import kotlinx.coroutines.flow.flowOf
 
 /**

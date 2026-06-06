@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.component
+package com.linku.home.ui.alarm.component.listcontent
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
