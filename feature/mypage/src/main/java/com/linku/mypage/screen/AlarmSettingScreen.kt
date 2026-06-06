@@ -1,9 +1,7 @@
 package com.linku.mypage.screen
 
-import android.Manifest
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,10 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -34,33 +34,60 @@ import androidx.navigation.NavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.linku.core.model.alarm.AlarmSetting
+import com.linku.design.theme.ThemeProvider
+import com.linku.mypage.AlarmSettingUiState
 import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.R
 import com.linku.mypage.component.notification.NotificationSwitch
 import com.linku.mypage.component.notification.SubNotificationSwitch
+import com.linku.mypage.component.notification.SystemAlarmTab
 
 @Composable
 fun AlarmSettingScreen(
     navController: NavController,
-    viewModel: NotificationViewModel = hiltViewModel()
+    viewModel: NotificationViewModel = hiltViewModel(),
 ) {
     val state by viewModel.notificationState.collectAsStateWithLifecycle()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    //권한 요청 런쳐
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) viewModel.toggleNotification(true)
-    }
-
-    LaunchedEffect(Unit) {
-        viewModel.permissionEvent.collect {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshSystemAlarmState()
             }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
 
+    AlarmSettingScreenContent(
+        state = state,
+        onBackClick = { navController.popBackStack() },
+        onToggleNotification = { viewModel.toggleNotification(it) },
+        onToggleLinkActivity = { viewModel.toggleLinkActivity(it) },
+        onToggleSharedFolder = { viewModel.toggleSharedFolder(it) },
+        onToggleAiCuration = { viewModel.toggleAiCuration(it) },
+        onToggleSystemNotice = { viewModel.toggleSystemNotice(it) }
+    )
+}
+
+@Composable
+private fun AlarmSettingScreenContent(
+    state: AlarmSettingUiState,
+    onBackClick: () -> Unit,
+    onToggleNotification: (Boolean) -> Unit,
+    onToggleLinkActivity: (Boolean) -> Unit,
+    onToggleSharedFolder: (Boolean) -> Unit,
+    onToggleAiCuration: (Boolean) -> Unit,
+    onToggleSystemNotice: (Boolean) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -78,7 +105,7 @@ fun AlarmSettingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -92,6 +119,23 @@ fun AlarmSettingScreen(
         }
 
         Spacer(modifier = Modifier.height(40.75.dp))
+
+        val context = LocalContext.current
+        SystemAlarmTab(
+            onClick = {
+                // 기기 알람 설정 화면으로 이동
+                val intent = Intent(
+                    Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                ).apply {
+                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                }
+                context.startActivity(intent)
+            },
+            isSystemAlarmAllowed = state.isSystemAlarmAllowed,
+            modifier = Modifier.padding(horizontal = 20.dp)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
 
         // 알림 수신 설정 토글
         Column(
@@ -108,9 +152,9 @@ fun AlarmSettingScreen(
                 .padding(horizontal = 20.dp, vertical = 18.dp)
         ) {
             NotificationSwitch(
-                title = "알림 수신 설정",
+                title = "모든 푸시 알림",
                 checked = state.alarmToggleUiState.isAllEnabled,
-                onCheckedChange = { viewModel.toggleNotification(it) }
+                onCheckedChange = onToggleNotification
             )
 
             if (state.alarmToggleUiState.isAllEnabled) {
@@ -119,7 +163,7 @@ fun AlarmSettingScreen(
                 SubNotificationSwitch(
                     title = "링크 활동 알림",
                     checked = state.alarmToggleUiState.isLinkEnabled,
-                    onCheckedChange = { viewModel.toggleLinkActivity(it) }
+                    onCheckedChange = onToggleLinkActivity
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -127,7 +171,7 @@ fun AlarmSettingScreen(
                 SubNotificationSwitch(
                     title = "폴더 공유 및 권한 알림",
                     checked = state.alarmToggleUiState.isFolderEnabled,
-                    onCheckedChange = { viewModel.toggleSharedFolder(it) }
+                    onCheckedChange = onToggleSharedFolder
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -135,7 +179,7 @@ fun AlarmSettingScreen(
                 SubNotificationSwitch(
                     title = "AI 큐레이션 알림",
                     checked = state.alarmToggleUiState.isCurationEnabled,
-                    onCheckedChange = { viewModel.toggleAiCuration(it) }
+                    onCheckedChange = onToggleAiCuration
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -143,10 +187,35 @@ fun AlarmSettingScreen(
                 SubNotificationSwitch(
                     title = "공지 및 서비스 알림",
                     checked = state.alarmToggleUiState.isNoticeEnabled,
-                    onCheckedChange = { viewModel.toggleSystemNotice(it) }
+                    onCheckedChange = onToggleSystemNotice
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AlarmSettingScreenPreview() {
+    ThemeProvider {
+        AlarmSettingScreenContent(
+            state = AlarmSettingUiState(
+                isSystemAlarmAllowed = true,
+                alarmToggleUiState = AlarmSetting(
+                    isAllEnabled = true,
+                    isLinkEnabled = true,
+                    isFolderEnabled = true,
+                    isCurationEnabled = true,
+                    isNoticeEnabled = true
+                )
+            ),
+            onBackClick = {},
+            onToggleNotification = {},
+            onToggleLinkActivity = {},
+            onToggleSharedFolder = {},
+            onToggleAiCuration = {},
+            onToggleSystemNotice = {}
+        )
     }
 }
 

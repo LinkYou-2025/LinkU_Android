@@ -1,12 +1,13 @@
 package com.linku.mypage
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.ApiError
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
-import com.linku.mypage.state.AlarmSettingUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,19 +23,22 @@ class NotificationViewModel @Inject constructor(
     private val checker: PermissionChecker
 ) : ViewModel() {
 
+    //알람 활성화 상태
     private val _notificationState = MutableStateFlow(AlarmSettingUiState())
     val notificationState = _notificationState.asStateFlow()
 
-    private val _permissionEvent = MutableSharedFlow<Unit>()
-    val permissionEvent = _permissionEvent.asSharedFlow()
-
     init {
+        Log.d("NotificationViewModel", "ViewModel created")
         loadAlarmSetting()
     }
 
     private fun loadAlarmSetting() {
         viewModelScope.launch {
-            _notificationState.update { it.copy(isLoading = true) }
+            _notificationState.update {
+                it.copy(
+                    isLoading = true,
+                    isSystemAlarmAllowed = checker.isNotificationEnabled()
+                ) }
             alarmRepository.getAlarmSetting()
                 .onSuccess { setting ->
                     _notificationState.update {
@@ -44,6 +48,12 @@ class NotificationViewModel @Inject constructor(
                 .onFailure {
                     _notificationState.update { it.copy(isLoading = false) }
                 }
+        }
+    }
+
+    fun refreshSystemAlarmState() {
+        _notificationState.update {
+            it.copy(isSystemAlarmAllowed = checker.isNotificationEnabled())
         }
     }
 
@@ -101,3 +111,10 @@ class NotificationViewModel @Inject constructor(
         updateAlarm(AlarmType.NOTICE) { it.copy(isNoticeEnabled = enabled) }
     }
 }
+
+data class AlarmSettingUiState(
+    val isLoading: Boolean = false,
+    val isSystemAlarmAllowed: Boolean = false,
+    val alarmToggleUiState: AlarmSetting = AlarmSetting(),
+    val errorMessage: String = ""
+)
