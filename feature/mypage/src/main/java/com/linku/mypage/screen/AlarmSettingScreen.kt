@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.modifier.skeleton
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +56,9 @@ fun AlarmSettingScreen(
     val state by viewModel.notificationState.collectAsStateWithLifecycle()
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    // 액티비티가 ON_RESUME될 때마다
+    // 시스템 알림 설정 상태를 최신 값으로 갱신
+    // 사용자가 시스템 알람 화면에서 알람 설정을 바꾸고 앱으로 돌아오는 상황에 대응
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -150,6 +154,7 @@ private fun AlarmSettingScreenContent(
                 .clip(RoundedCornerShape(22.dp))
                 .background(LocalColorTheme.current.white)
                 .padding(horizontal = 20.dp, vertical = 18.dp)
+                .skeleton(isLoading = state.isLoading)
         ) {
             NotificationSwitch(
                 title = "모든 푸시 알림",

@@ -40,20 +40,24 @@ class NotificationViewModel @Inject constructor(
                     isSystemAlarmAllowed = checker.isNotificationEnabled()
                 ) }
             alarmRepository.getAlarmSetting()
-                .onSuccess { setting ->
-                    _notificationState.update {
-                        it.copy(isLoading = false, alarmToggleUiState = setting)
+                .fold(
+                    onSuccess = { setting ->
+                        _notificationState.update {
+                            it.copy(isLoading = false, alarmToggleUiState = setting)
+                        }
+                    },
+                    onFailure = {
+                        _notificationState.update { it.copy(isLoading = false) }
                     }
-                }
-                .onFailure {
-                    _notificationState.update { it.copy(isLoading = false) }
-                }
+                )
         }
     }
 
+    // 사용자가 시스템 설정으로 이동해 시스템 알람 상태를 바꾸었을 상황에 대응
     fun refreshSystemAlarmState() {
-        _notificationState.update {
-            it.copy(isSystemAlarmAllowed = checker.isNotificationEnabled())
+        val isAllowed = checker.isNotificationEnabled()
+        _notificationState.update { state ->
+            state.copy(isSystemAlarmAllowed = isAllowed)
         }
     }
 
