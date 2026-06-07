@@ -159,7 +159,9 @@ class NotificationViewModel @Inject constructor(
                 _notificationState.update { it.copy(alarmToggleUiState = setting) }
             },
             onFailure = { throwable ->
-                _notificationState.value = previous
+                _notificationState.update { currentState ->
+                    currentState.copy(alarmToggleUiState = previous.alarmToggleUiState)
+                }
 
                 // 토스트 메세지 발행
                 val message = (throwable as AppError).displayMessage
