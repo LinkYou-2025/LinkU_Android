@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.component.listcontent
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box

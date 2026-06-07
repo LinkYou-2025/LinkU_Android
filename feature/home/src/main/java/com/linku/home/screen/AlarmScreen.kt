@@ -1,11 +1,15 @@
 package com.linku.home.screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -20,17 +24,23 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.home.ui.alarm.component.AlarmTopBar
 import com.linku.home.ui.alarm.component.AlarmFilterTabs
-import com.linku.home.ui.alarm.component.listcontent.AlarmListContent
+import com.linku.home.ui.alarm.component.AlarmItem
+import com.linku.home.ui.alarm.component.AlarmNothingTab
 import com.linku.home.ui.alarm.component.AlarmSettingTab
+import com.linku.home.ui.alarm.component.AlarmAppendStateFooter
+import com.linku.home.ui.alarm.component.AlarmErrorContent
+import com.linku.home.ui.alarm.component.AlarmLoadingContent
 import com.linku.home.viewmodel.AlarmViewModel
 import kotlinx.coroutines.flow.flowOf
 
@@ -50,14 +60,16 @@ fun AlarmScreen(
     val listStates = remember { AlarmType.entries.associateWith { LazyListState() } }
 
     // 화면에 표시될 페이징될 알람들 데이터
-    val alarms = viewModel.getAlarms(selectedTab)
+    // Paging3에서 LazyPagingItems는
+    // PagingData와 LoadState(로딩/에러 상태)를 함께 관리한다
+    val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
 
     AlarmScreenContent(
         isAlarmAllowed = pushAlarmEnabled,
         selectedTab = selectedTab,
         onSelectedChange = { selectedTab = it },
-        alarms = alarms,
+        alarmPagingItems = alarmPagingItems,
         listState = listStates.getValue(selectedTab),
         onBack = onBack,
         onNavigateToMyPage = onNavigateToMyPage,
@@ -70,7 +82,7 @@ private fun AlarmScreenContent(
     isAlarmAllowed: Boolean = true,
     selectedTab: AlarmType,
     onSelectedChange: (AlarmType) -> Unit,
-    alarms: LazyPagingItems<AlarmSummary>,
+    alarmPagingItems: LazyPagingItems<AlarmSummary>,
     listState: LazyListState,
     onBack: () -> Unit,
     onNavigateToMyPage: () -> Unit,
@@ -102,12 +114,42 @@ private fun AlarmScreenContent(
             onClick = onNavigateToMyPage
         )
 
-        // 허용이 되어있는 경우
+        /**
+         * 허용이 되어있는 경우. Paging3의 loadState를 사용하여 분기처리
+         * 디벨로퍼 문서의 코드 스니펫을 참고해서 구현하였음
+         *
+         * - loadState.refresh: 목록 전체를 새로 불러올 때의 상태
+         * - loadState.append: 스크롤로 다음 페이지를 불러올 때의 상태. [AlarmAppendStateFooter]에서 사용
+         */
         if (isAlarmAllowed) {
-            AlarmListContent(
-                alarms = alarms,
-                listState = listState
-            )
+            Box {
+                when (val refreshState = alarmPagingItems.loadState.refresh) {
+                    is LoadState.Error -> AlarmErrorContent(alarmPagingItems, refreshState)
+                    is LoadState.Loading -> AlarmLoadingContent()
+
+                    // 최초 로딩 성공 시 처리
+                    else -> {
+                        if (alarmPagingItems.itemCount == 0) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            AlarmNothingTab(isVisible = true)
+                        } else {
+                            LazyColumn(
+                                state = listState,
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(top = 12.dp)
+                            ) {
+                                items(
+                                    count = alarmPagingItems.itemCount,
+                                    key = alarmPagingItems.itemKey { it.id }
+                                ) { index ->
+                                    alarmPagingItems[index]?.let { AlarmItem(alarm = it) }
+                                }
+                                item { AlarmAppendStateFooter(alarmPagingItems) }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -140,7 +182,7 @@ private fun AlarmScreenContentPreview() {
             isAlarmAllowed = true,
             selectedTab = AlarmType.ALL,
             onSelectedChange = {},
-            alarms = alarms,
+            alarmPagingItems = alarms,
             listState = rememberLazyListState(),
             onBack = {},
             onNavigateToMyPage = {},

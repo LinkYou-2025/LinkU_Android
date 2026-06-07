@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.component.listcontent
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,20 +19,20 @@ import com.linku.design.theme.LinkuPreview
 /**
  * 알람 목록 하단에 추가 로딩 상태를 표시하는 푸터 컴포저블입니다.
  *
- * [alarms]의 append [LoadState]를 감지하여 로딩 중이면 [CircularProgressIndicator],
+ * [alarmPagingItems]의 append [LoadState]를 감지하여 로딩 중이면 [CircularProgressIndicator],
  * 에러 시 재시도 버튼을 표시합니다.
  *
- * @param alarms append 상태를 제공하는 페이징 데이터
+ * @param alarmPagingItems append 상태를 제공하는 페이징 데이터
  *
  * 일단 임시구현해두었습니다~~
  */
 @Composable
 fun AlarmAppendStateFooter(
-    alarms: LazyPagingItems<AlarmSummary>
+    alarmPagingItems: LazyPagingItems<AlarmSummary>
 ) {
     AlarmAppendStateFooterContent(
-        appendState = alarms.loadState.append,
-        onRetry = { alarms.retry() }
+        appendState = alarmPagingItems.loadState.append,
+        onRetry = { alarmPagingItems.retry() }
     )
 }
 
@@ -91,7 +91,7 @@ private fun AlarmAppendStateFooterLoadingPreview() {
 private fun AlarmAppendStateFooterErrorPreview() {
     LinkuPreview {
         AlarmAppendStateFooterContent(
-            appendState = LoadState.Error(Exception()),
+            appendState = LoadState.Error(Exception("preview error")),
             onRetry = {}
         )
     }

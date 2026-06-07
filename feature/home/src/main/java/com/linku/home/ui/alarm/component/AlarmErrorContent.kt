@@ -1,4 +1,4 @@
-package com.linku.home.ui.alarm.component.listcontent
+package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,23 +22,23 @@ import com.linku.design.theme.LocalColorTheme
 /**
  * 알람 페이징 새로고침 에러를 처리하는 컴포저블입니다.
  *
- * [alarms]의 refresh 상태에서 [AppError]를 추출하여
+ * [alarmPagingItems]의 refresh 상태에서 [AppError]를 추출하여
  * 에러 메시지와 재시도 버튼을 표시합니다.
  *
- * @param alarms 에러가 발생한 페이징 데이터
+ * @param alarmPagingItems 에러가 발생한 페이징 데이터
  *
  * 일단 임시구현해두었습니다 ~~
  */
 @Composable
 fun AlarmErrorContent(
-    alarms: LazyPagingItems<AlarmSummary>,
+    alarmPagingItems: LazyPagingItems<AlarmSummary>,
     errorState: LoadState.Error
 ) {
-    val error = errorState.error as AppError
+    val message = (errorState.error as AppError).displayMessage
 
     AlarmErrorContent(
-        message = error.displayMessage,
-        onRetry = { alarms.retry() }
+        message = message,
+        onRetry = { alarmPagingItems.retry() }
     )
 }
 
