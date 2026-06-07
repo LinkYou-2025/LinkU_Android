@@ -45,6 +45,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.design.theme.ThemeProvider
 import com.linku.mypage.AlarmSettingUiState
+import com.linku.mypage.NotificationEffect
+import com.linku.mypage.NotificationIntent
 import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.R
 import com.linku.mypage.component.notification.NotificationSwitch
@@ -62,12 +64,11 @@ fun AlarmSettingScreen(
 
     // 에러 발생시 Toast를 띄우는 Side Effect
     LaunchedEffect(Unit) {
-        viewModel.toastEvent.collect { message ->
-            Toast.makeText(
-                context,
-                message,
-                Toast.LENGTH_SHORT
-            ).show()
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is NotificationEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -77,23 +78,17 @@ fun AlarmSettingScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refreshSystemAlarmState()
+                viewModel.sendIntent(NotificationIntent.RefreshSystemAlarm)
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     AlarmSettingScreenContent(
         state = state,
         onBackClick = { navController.popBackStack() },
-        onToggleNotification = { viewModel.toggleNotification(it) },
-        onToggleLinkActivity = { viewModel.toggleLinkActivity(it) },
-        onToggleSharedFolder = { viewModel.toggleSharedFolder(it) },
-        onToggleAiCuration = { viewModel.toggleAiCuration(it) },
-        onToggleSystemNotice = { viewModel.toggleSystemNotice(it) }
+        onIntent = viewModel::sendIntent // Intent가 발생하면
     )
 }
 
@@ -101,11 +96,7 @@ fun AlarmSettingScreen(
 private fun AlarmSettingScreenContent(
     state: AlarmSettingUiState,
     onBackClick: () -> Unit,
-    onToggleNotification: (Boolean) -> Unit,
-    onToggleLinkActivity: (Boolean) -> Unit,
-    onToggleSharedFolder: (Boolean) -> Unit,
-    onToggleAiCuration: (Boolean) -> Unit,
-    onToggleSystemNotice: (Boolean) -> Unit
+    onIntent: (NotificationIntent) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -175,7 +166,7 @@ private fun AlarmSettingScreenContent(
             NotificationSwitch(
                 title = "모든 푸시 알림",
                 checked = state.alarmToggleUiState.isAllEnabled,
-                onCheckedChange = onToggleNotification
+                onCheckedChange = { onIntent(NotificationIntent.ToggleAll(it)) }
             )
 
             if (state.alarmToggleUiState.isAllEnabled) {
@@ -184,7 +175,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "링크 활동 알림",
                     checked = state.alarmToggleUiState.isLinkEnabled,
-                    onCheckedChange = onToggleLinkActivity
+                    onCheckedChange = { onIntent(NotificationIntent.ToggleLink(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -192,7 +183,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "폴더 공유 및 권한 알림",
                     checked = state.alarmToggleUiState.isFolderEnabled,
-                    onCheckedChange = onToggleSharedFolder
+                    onCheckedChange = { onIntent(NotificationIntent.ToggleFolder(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -200,7 +191,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "AI 큐레이션 알림",
                     checked = state.alarmToggleUiState.isCurationEnabled,
-                    onCheckedChange = onToggleAiCuration
+                    onCheckedChange = { onIntent(NotificationIntent.ToggleCuration(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -208,7 +199,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "공지 및 서비스 알림",
                     checked = state.alarmToggleUiState.isNoticeEnabled,
-                    onCheckedChange = onToggleSystemNotice
+                    onCheckedChange = { onIntent(NotificationIntent.ToggleNotice(it)) }
                 )
             }
         }
@@ -231,12 +222,7 @@ private fun AlarmSettingScreenPreview() {
                 )
             ),
             onBackClick = {},
-            onToggleNotification = {},
-            onToggleLinkActivity = {},
-            onToggleSharedFolder = {},
-            onToggleAiCuration = {},
-            onToggleSystemNotice = {}
+            onIntent = {}
         )
     }
 }
-
