@@ -64,7 +64,7 @@ fun AlarmSettingScreen(
 
     // 에러 발생시 Toast를 띄우는 Side Effect
     LaunchedEffect(Unit) {
-        viewModel.effect.collect { effect ->
+        viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is NotificationEffect.ShowToast ->
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
@@ -88,7 +88,9 @@ fun AlarmSettingScreen(
     AlarmSettingScreenContent(
         state = state,
         onBackClick = { navController.popBackStack() },
-        onIntent = viewModel::sendIntent // Intent가 발생하면
+        onIntent = { intent ->
+            viewModel.sendIntent(intent)
+        } // Intent가 발생하면 ViewModel의 Channel로 전달
     )
 }
 

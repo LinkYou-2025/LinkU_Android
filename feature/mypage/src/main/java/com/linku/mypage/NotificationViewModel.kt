@@ -9,11 +9,10 @@ import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,14 +23,17 @@ class NotificationViewModel @Inject constructor(
     private val checker: PermissionChecker
 ) : ViewModel() {
 
+    // UI 이벤트(Intent) 입력 큐로서의 채널
+    // ViewModel 내부에서만 consumeAsFlow로 처리되는 내부 전용 구조
     private val intentChannel = Channel<NotificationIntent>(Channel.UNLIMITED)
 
     //알람 활성화 상태
     private val _notificationState = MutableStateFlow(AlarmSettingUiState())
     val notificationState = _notificationState.asStateFlow()
 
-    private val _effect = MutableSharedFlow<NotificationEffect>()
-    val effect = _effect.asSharedFlow()
+    // 1회성 UI 이벤트 전달용 채널
+    private val _sideEffect = Channel<NotificationEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
 
     init {
         loadAlarmSetting()
@@ -66,7 +68,8 @@ class NotificationViewModel @Inject constructor(
      */
     private fun processIntents() {
         viewModelScope.launch {
-            intentChannel.consumeAsFlow().collect { reduce(it) }
+            intentChannel.consumeAsFlow()
+                .collect { reduce(it) }
         }
     }
 
@@ -131,11 +134,18 @@ class NotificationViewModel @Inject constructor(
         type: AlarmType,
         reducer: (AlarmSetting) -> AlarmSetting
     ) {
+        // 이전 상태 저장
         val previous = _notificationState.value
 
         _notificationState.update { state ->
+
+            // API 응답 전 UI에 먼저 반영할 임시 상태
             val updated = reducer(state.alarmToggleUiState)
+
             state.copy(
+
+                // 모든 서브알림이 비활성화 -> 전체 알림도 자동으로 OFF 처리
+                // 그 외의 경우에는 reducer가 계산한 상태를 그대로 반영
                 alarmToggleUiState = if (updated.areAllSubDisabled()) {
                     updated.copy(isAllEnabled = false)
                 } else updated
@@ -148,8 +158,10 @@ class NotificationViewModel @Inject constructor(
             },
             onFailure = { throwable ->
                 _notificationState.value = previous
+
+                // 토스트 메세지 발행
                 val message = (throwable as AppError).displayMessage
-                _effect.emit(NotificationEffect.ShowToast(message))
+                _sideEffect.send(NotificationEffect.ShowToast(message))
             }
         )
     }
@@ -172,8 +184,10 @@ class NotificationViewModel @Inject constructor(
                     },
                     onFailure = { throwable ->
                         _notificationState.update { it.copy(isLoading = false) }
+
+                        // 토스트 메세지 발행
                         val message = (throwable as AppError).displayMessage
-                        _effect.emit(NotificationEffect.ShowToast(message))
+                        _sideEffect.send(NotificationEffect.ShowToast(message))
                     }
                 )
         }
