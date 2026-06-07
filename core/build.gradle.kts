@@ -94,6 +94,5 @@ dependencies {
     implementation(libs.paging.runtime)
 
     // Firebase
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.messaging.ktx)
+    implementation(libs.bundles.firebase)
 }

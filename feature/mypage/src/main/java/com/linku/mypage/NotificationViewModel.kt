@@ -7,6 +7,7 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
+import com.linku.mypage.intent.NotificationIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -196,15 +197,6 @@ class NotificationViewModel @Inject constructor(
 
 }
 
-// Intent
-sealed interface NotificationIntent {
-    data class ToggleAll(val enabled: Boolean) : NotificationIntent
-    data class ToggleLink(val enabled: Boolean) : NotificationIntent
-    data class ToggleFolder(val enabled: Boolean) : NotificationIntent
-    data class ToggleCuration(val enabled: Boolean) : NotificationIntent
-    data class ToggleNotice(val enabled: Boolean) : NotificationIntent
-    data object RefreshSystemAlarm : NotificationIntent
-}
 
 // 1회성 사이드 이펙트
 sealed interface NotificationEffect {

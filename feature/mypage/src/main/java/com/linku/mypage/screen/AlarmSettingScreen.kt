@@ -18,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -39,19 +38,18 @@ import com.linku.design.modifier.skeleton
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.util.OnResumeEffect
 import com.linku.mypage.AlarmSettingUiState
 import com.linku.mypage.NotificationEffect
-import com.linku.mypage.NotificationIntent
 import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.R
 import com.linku.mypage.component.notification.NotificationSwitch
 import com.linku.mypage.component.notification.SubNotificationSwitch
 import com.linku.mypage.component.notification.SystemAlarmTab
+import com.linku.mypage.intent.NotificationIntent
 
 @Composable
 fun AlarmSettingScreen(
@@ -72,17 +70,12 @@ fun AlarmSettingScreen(
         }
     }
 
+
     // 액티비티가 ON_RESUME될 때마다
     // 시스템 알림 설정 상태를 최신 값으로 갱신
     // 사용자가 시스템 알람 화면에서 알람 설정을 바꾸고 앱으로 돌아오는 상황에 대응
-    DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.sendIntent(NotificationIntent.RefreshSystemAlarm)
-            }
-        }
-        lifecycleOwner.lifecycle.addObserver(observer)
-        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    OnResumeEffect {
+        viewModel.sendIntent(NotificationIntent.RefreshSystemAlarm)
     }
 
     AlarmSettingScreenContent(
