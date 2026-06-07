@@ -92,6 +92,7 @@ class NotificationViewModel @Inject constructor(
             _notificationState.update {
                 it.copy(isSystemAlarmAllowed = checker.isNotificationEnabled()) }
 
+        // All 토글의 상태가 바뀌면 서브 토글들도 All을 따라간다.
         is NotificationIntent.ToggleAll ->
             optimisticUpdate(AlarmType.ALL) { setting ->
                 setting.copy(
