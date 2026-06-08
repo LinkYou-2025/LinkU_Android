@@ -2,9 +2,11 @@ package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -23,17 +25,17 @@ import com.linku.design.theme.LinkuPreview
  */
 @Composable
 fun AlarmLoadingContent() {
-    LazyColumn(
+    Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(top = 12.dp)
+        modifier = Modifier.padding(top = 12.dp)
     ) {
-        items(5) {
+        repeat(5) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(100.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .skeleton(isLoading = true) // 누가 만들었는진 모르겠지만 잘 씁니다 ~~
+                    .skeleton(isLoading = true)
             )
         }
     }

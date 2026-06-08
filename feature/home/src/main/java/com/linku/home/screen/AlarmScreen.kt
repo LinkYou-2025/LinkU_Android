@@ -2,17 +2,20 @@ package com.linku.home.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -59,11 +62,29 @@ fun AlarmScreen(
     // 탭별 목록의 스크롤 상태를 저장하는 Map
     val listStates = remember { AlarmType.entries.associateWith { LazyListState() } }
 
+    // 사용자가 직접 스와이프 새로고침을 트리거했을 때 활성화되는 state
+    var isUserRefreshing by remember { mutableStateOf(false) }
+
+    // 컨테이너와 표시기가 당겨진 거리를 추적하는 state. PullToRefreshBox를 쓰려면 필수
+    val pullToRefreshState = rememberPullToRefreshState()
+
     // 화면에 표시될 페이징될 알람들 데이터
     // Paging3에서 LazyPagingItems는
     // PagingData와 LoadState(로딩/에러 상태)를 함께 관리한다
     val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
+
+    // 탭을 바꿀 때 목록 갱신 -> 인디케이터 없이 조용히 새로고침
+    LaunchedEffect(selectedTab) {
+        alarmPagingItems.refresh()
+    }
+
+    // 새로고침이 완료되면 인디케이터 해제
+    LaunchedEffect(alarmPagingItems.loadState.refresh) {
+        if (alarmPagingItems.loadState.refresh is LoadState.NotLoading) {
+            isUserRefreshing = false
+        }
+    }
 
     AlarmScreenContent(
         isAlarmAllowed = pushAlarmEnabled,
@@ -71,6 +92,12 @@ fun AlarmScreen(
         onSelectedChange = { selectedTab = it },
         alarmPagingItems = alarmPagingItems,
         listState = listStates.getValue(selectedTab),
+        isUserRefreshing = isUserRefreshing,
+        onRefresh = {
+            isUserRefreshing = true
+            alarmPagingItems.refresh()
+        },
+        pullToRefreshState = pullToRefreshState,
         onBack = onBack,
         onNavigateToMyPage = onNavigateToMyPage,
         onNavigateToHome = onNavigateToHome
@@ -84,13 +111,16 @@ private fun AlarmScreenContent(
     onSelectedChange: (AlarmType) -> Unit,
     alarmPagingItems: LazyPagingItems<AlarmSummary>,
     listState: LazyListState,
+    isUserRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    pullToRefreshState: PullToRefreshState,
     onBack: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToHome: () -> Unit,
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxSize()
             .background(LocalColorTheme.current.gray[100])
             .padding(start = 20.dp, end = 20.dp, top = 56.dp, bottom = 15.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -114,37 +144,61 @@ private fun AlarmScreenContent(
             onClick = onNavigateToMyPage
         )
 
-        /**
-         * 허용이 되어있는 경우. Paging3의 loadState를 사용하여 분기처리
-         * 디벨로퍼 문서의 코드 스니펫을 참고해서 구현하였음
-         *
-         * - loadState.refresh: 목록 전체를 새로 불러올 때의 상태
-         * - loadState.append: 스크롤로 다음 페이지를 불러올 때의 상태. [AlarmAppendStateFooter]에서 사용
-         */
         if (isAlarmAllowed) {
-            Box {
-                when (val refreshState = alarmPagingItems.loadState.refresh) {
-                    is LoadState.Error -> AlarmErrorContent(alarmPagingItems, refreshState)
-                    is LoadState.Loading -> AlarmLoadingContent()
+            PullToRefreshBox( //스와이프 새로고침 기능을 내장하는 컴포저블
+                modifier = Modifier.weight(1f),
+                isRefreshing = isUserRefreshing,
+                onRefresh = onRefresh,
+                state = pullToRefreshState,
+                indicator = {
+                    Indicator( //인디케이터는 임시 구현~~
+                        modifier = Modifier.align(Alignment.TopCenter),
+                        isRefreshing = isUserRefreshing,
+                        containerColor = LocalColorTheme.current.gray[200],
+                        color = LocalColorTheme.current.black,
+                        state = pullToRefreshState
+                    )
+                }
+            ) {
+                /**
+                 * 허용이 되어있는 경우. Paging3의 loadState를 사용하여 분기처리
+                 * 디벨로퍼 문서의 코드 스니펫을 참고해서 구현하였음
+                 *
+                 * - loadState.refresh: 목록 전체를 새로 불러올 때의 상태
+                 * - loadState.append: 스크롤로 다음 페이지를 불러올 때의 상태. [AlarmAppendStateFooter]에서 사용
+                 */
+                LazyColumn(
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(top = 12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when (val refreshState = alarmPagingItems.loadState.refresh) {
 
-                    // 최초 로딩 성공 시 처리
-                    else -> {
-                        if (alarmPagingItems.itemCount == 0) {
-                            Spacer(modifier = Modifier.height(12.dp))
-                            AlarmNothingTab(isVisible = true)
-                        } else {
-                            LazyColumn(
-                                state = listState,
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                contentPadding = PaddingValues(top = 12.dp)
-                            ) {
+                        is LoadState.Loading -> {
+                            item { AlarmLoadingContent() }
+                        }
+
+                        is LoadState.Error -> {
+                            item { AlarmErrorContent(alarmPagingItems, refreshState) }
+                        }
+
+                        else -> {
+                            if (alarmPagingItems.itemCount == 0) {
+                                item {
+                                    AlarmNothingTab(isVisible = true)
+                                }
+                            } else {
                                 items(
                                     count = alarmPagingItems.itemCount,
                                     key = alarmPagingItems.itemKey { it.id }
                                 ) { index ->
-                                    alarmPagingItems[index]?.let { AlarmItem(alarm = it) }
+                                    alarmPagingItems[index]?.let { AlarmItem(it) }
                                 }
-                                item { AlarmAppendStateFooter(alarmPagingItems) }
+
+                                item {
+                                    AlarmAppendStateFooter(alarmPagingItems)
+                                }
                             }
                         }
                     }
@@ -177,18 +231,19 @@ private fun AlarmScreenContentPreview() {
     )
     val alarms = flowOf(PagingData.from(sampleAlarms)).collectAsLazyPagingItems()
 
-    LinkuPreview {
-        AlarmScreenContent(
-            isAlarmAllowed = true,
-            selectedTab = AlarmType.ALL,
-            onSelectedChange = {},
-            alarmPagingItems = alarms,
-            listState = rememberLazyListState(),
-            onBack = {},
-            onNavigateToMyPage = {},
-            onNavigateToHome = {}
-        )
-    }
+//    LinkuPreview {
+//        AlarmScreenContent(
+//            selectedTab = AlarmType.ALL,
+//            onSelectedChange = {},
+//            alarmPagingItems = alarms,
+//            listState = rememberLazyListState(),
+//            onBack = {},
+//            onNavigateToMyPage = {},
+//            onNavigateToHome = {},
+//            isUserRefreshing = false,
+//            onRefresh = {},
+//        )
+//    }
 }
 
 
