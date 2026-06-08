@@ -1,6 +1,8 @@
 package com.linku.data.api
 
 import com.linku.core.error.ApiError
+import retrofit2.HttpException
+
 
 internal fun mapToApiError(code: String, message: String): ApiError = when (code) {
 
@@ -152,4 +154,18 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     // 알 수 없는 에러
     // =========================================================
     else -> ApiError.Unknown(message)
+}
+
+
+internal fun mapHttpError(e: HttpException): ApiError {
+    val code = e.code().toString()
+    val message = e.message() ?: "알 수 없는 오류가 발생했습니다."
+    return when (e.code()) {
+        400 -> ApiError.Common.BadRequest(message)
+        401 -> ApiError.Common.Unauthorized(message)
+        403 -> ApiError.Common.Forbidden(message)
+        429 -> ApiError.Common.TooManyRequests(message)
+        in 500..599 -> ApiError.Common.InternalServer(message)
+        else -> ApiError.Unknown(message)
+    }
 }
