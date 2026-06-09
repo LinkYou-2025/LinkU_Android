@@ -9,6 +9,7 @@ import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
 import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.api.dto.auth.signup.email.EmailCodeRequestDTO
 import com.linku.data.api.dto.auth.signup.email.EmailVerifyRequestDTO
+import com.linku.data.api.dto.auth.signup.email.PasswordResetRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.dto.auth.signup.email.SignUpEmailResponseDTO
 import com.linku.data.api.dto.auth.signup.social.SocialProfileRequestDTO
@@ -29,7 +30,7 @@ interface AuthApi {
         @Body body: ReissueRequestDTO
     ): BaseResponse<RefreshTokenResponseDTO>
 
-    @POST("auth/signup/email")
+    @POST("auth/signup")
     suspend fun signUpWithEmail(
         @Body signUpEmailRequestDTO: SignUpEmailRequestDTO
     ): BaseResponse<SignUpEmailResponseDTO>
@@ -76,5 +77,11 @@ interface AuthApi {
     suspend fun googleLogin(
         @Body request: SocialLoginRequestDTO
     ): BaseResponse<SocialLoginResponseDTO>
+
+    // 비밀번호 재설정 링크 전송
+    @POST("auth/password/reset/send")
+    suspend fun sendPasswordResetEmail(
+        @Body body: PasswordResetRequestDTO
+    ): BaseResponse<*> // result {}
 
 }
