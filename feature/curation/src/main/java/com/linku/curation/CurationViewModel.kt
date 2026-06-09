@@ -1,38 +1,35 @@
 package com.linku.curation
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-
-import com.linku.core.model.CurationItem
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.linku.core.repository.CurationRepository
-import com.linku.core.repository.UserRepository
-import com.linku.data.preference.AuthPreference
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.linku.core.model.CurationItem
 import com.linku.core.model.search.RecentQuery
+import com.linku.core.repository.CurationRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.RecentSearchRepository
-import com.linku.core.datastore.session.LoginSessionStore
+import com.linku.core.repository.UserRepository
+import com.linku.data.preference.AuthPreference
 import com.linku.design.top.search.FastSearchItem
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+// 이거 싹 다 밀어 버릴 예정..
 
 @HiltViewModel
 class CurationViewModel @Inject constructor(
     private val repository: CurationRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
-    private val loginSessionStore: LoginSessionStore,
     private val recentRepository: RecentSearchRepository,
     private val linkuRepository: LinkuRepository,
 ) : ViewModel() {
@@ -45,16 +42,18 @@ class CurationViewModel @Inject constructor(
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage
 
-    val session = loginSessionStore.session //닉네임, 직업 정보
+    val session = authPreference.sessionState
 
-    // 닉네임, 직업 session에서 직접
-    val nickname = loginSessionStore.session
-        .map { it.nickname ?: "세나" }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "세나")
-
-    val jobName = loginSessionStore.session
-        .map { it.jobName ?: "직장인" }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, "직장인")
+    // TODO: 추후 UserRepository 단일 진실 공급원(SSOT) 캐싱 구조로 프로필 리팩토링 예정
+    /**
+     * UserRepository가 캐싱 흐름을 관리:
+     * 뷰모델들이 각각 API를 치는 게 아니라, UserRepository.userInfoState: StateFlow<UserInfo?> 같은 공용 스트림을 열어둡니다.
+     *
+     * 뷰모델들은 그 스트림을 구독만 하고, 최초 진입점(예: MainApp 부팅 시점)이나 새로고침이 필요할 때 딱 한 번만 userRepository.fetchUserInfo()를 호출해 칠판을 업데이트하는 구조가 가장 이상적입니다.
+     *
+     * */
+    val nickname: StateFlow<String> = MutableStateFlow("세나").asStateFlow()
+    val jobName: StateFlow<String> = MutableStateFlow("직장인").asStateFlow()
 
     private val _recentCuration = MutableStateFlow<CurationItem?>(null)
     val recentCuration: StateFlow<CurationItem?> = _recentCuration
@@ -69,8 +68,9 @@ class CurationViewModel @Inject constructor(
     val likeBusy: StateFlow<Boolean> = _likeBusy
 
     // --- 공통 uid 가드
-    private fun requireUserId(): Long {
-        val uid = authPreference.userId ?: -1L
+    // 아예 싹 수정될 코드로 임시로 에러 방지 위해서만 수정했습니다....
+    private suspend fun requireUserId(): Long {
+        val uid = authPreference.getUserId() ?: -1L
         return uid
     }
 
@@ -83,71 +83,7 @@ class CurationViewModel @Inject constructor(
         }.getOrDefault(-1)
     }
 
-    // hasPrefetched == true  ➜ "빈 상태를 확정했고, 재호출 막기" 의미로만 사용
-    fun loadMonthlyCuration(forceReload: Boolean = false) {
-        viewModelScope.launch {
-            // 1) 동시 중복 방지(여전히 유지)
-            if (_isGenerating.value) return@launch
-            // 2) 빈 상태로 잠가둔 경우만 막는다 (강제 새로고침은 예외)
-            if (hasPrefetched && !forceReload) return@launch
 
-            _isGenerating.value = true
-            _errorMessage.value = null
-
-            val uid = requireUserId()
-            Log.d("CurationVM", "큐레이션 불러오기 시작 - userId: $uid")
-
-            // 로그인 안됨 → 빈 상태 확정하고 재호출 막기
-            if (uid <= 0L) {
-                setEmptyCurationState(markPrefetched = true) // ⬅ empty lock ON
-                _isGenerating.value = false
-                return@launch
-            }
-            try {
-                val item = repository.getMyRecentCuration(uid)
-
-                // (방어) "result"가 null이거나 id가 잘못된 값 → 빈 상태 확정(+재호출 막기)
-                if (item == null || item.id <= 0L) {
-                    setEmptyCurationState(markPrefetched = true) // ⬅ empty lock ON
-                    _isGenerating.value = false   // 무한로딩 강제종료
-                    return@launch
-                }
-
-                // ✅ 정상 데이터: 상태 갱신
-                _recentCuration.value = item
-                _currentCurationId.value = item.id
-
-
-                Log.d("CurationVM", "큐레이션 불러오기 성공: $item")
-
-                // ✅ 데이터가 있으므로 이후에도 재호출 허용
-                hasPrefetched = false // ⬅ empty lock OFF
-            } catch (e: Exception) {
-                val code = httpStatusCodeOrMinus1(e)
-
-                // “진짜로 최신 없음/권한 없음”은 빈 상태 확정하고 재호출 막기
-                if (e is NoSuchElementException || code == 403 || code == 404) {
-                    val tag = if (e is NoSuchElementException) "NoSuchElement" else "HTTP $code"
-                    Log.i("CurationVM", "최신 큐레이션 없음/권한없음($tag) → 빈 상태 확정")
-                    setEmptyCurationState(markPrefetched = true)  // ⬅ empty lock ON
-                    return@launch
-                }
-
-                // 그 외 에러는 사용자 노출 + 재시도 허용 (데이터가 있을 수 있으니 막지 않음)
-                val msg = e.message.orEmpty()
-                _errorMessage.value =
-                    if (msg.contains("Token", true) && msg.contains("expired", true))
-                        "세션이 만료됐어요. 다시 로그인해 주세요."
-                    else
-                        "큐레이션 조회에 실패했어요. 잠시 후 다시 시도해 주세요."
-
-                Log.e("CurationVM", "큐레이션 불러오기 실패(code=$code)", e)
-                hasPrefetched = false // ⬅ empty lock OFF (재시도 허용)
-            } finally {
-                _isGenerating.value = false
-            }
-        }
-    }
 
     fun setCurrentCurationId(id: Long) { _currentCurationId.value = id }
 

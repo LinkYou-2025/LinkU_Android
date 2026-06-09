@@ -1,14 +1,13 @@
 package com.linku.core.repository
 
-import com.linku.core.model.CurationItem
-import com.linku.core.model.RecommendedLink
 import com.linku.core.model.CurationDetail
+import com.linku.core.model.RecommendedLink
 
 
 interface CurationRepository {
     //좋아요 기능 자체 삭제.
      // 최근 큐레이션 불러오기
-     suspend fun getMyRecentCuration(userId: Long): CurationItem
+//     suspend fun getMyRecentCuration(userId: Long): CurationItem
 
      //추천(큐레이션 디테일)
      suspend fun getRecommendedLinks(userId: Long, curationId: Long): List<RecommendedLink>
