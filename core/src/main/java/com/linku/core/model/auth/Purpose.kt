@@ -1,5 +1,6 @@
 package com.linku.core.model.auth
 
+
 enum  class Purpose(
     override val displayName: String,
     override val serverKey: String
@@ -20,20 +21,11 @@ enum  class Purpose(
 
     OTHERS("기타", "OTHERS");
 
-
-
-    // drawable 파일명 규칙: ic_purpose_{name.lowercase()}
-    // 예) SELF_DEVELOPMENT → res/drawable/ic_purpose_self_development.xml
-    override val iconName: String
-        get() = "ic_purpose_${name.lowercase()}"
-
     companion object {
-        fun fromServerKey(key: String): Purpose? =
-            entries.find { it.serverKey == key }
-
-        fun fromDisplayName(name: String): Purpose? =
-            entries.find { it.displayName == name }
-
-        fun getAllPurposes(): List<Purpose> = entries.toList()
+        fun fromServerKey(key: String): Purpose? = entries.find { it.serverKey == key }
+        fun fromDisplayName(name: String): Purpose? = entries.find { it.displayName == name }
     }
+
 }
+
+
