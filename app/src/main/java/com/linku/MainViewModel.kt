@@ -8,9 +8,9 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.system.NotificationController
+import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,14 +18,15 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
-    val loginSessionStore: LoginSessionStore,
-    private val notificationController: NotificationController
+    private val notificationController: NotificationController,
+    private val authPreference: AuthPreference
 ) : AndroidViewModel(application) {
 
     private val connectivityManager =
@@ -94,6 +95,20 @@ class MainViewModel @Inject constructor(
             }
         }
         Log.d("MainViewModel", "clearRecentQuery return")
+    }
+
+    // 디바이스 정보 초기화 비즈니스 로직 내포
+    fun initDeviceInfo(deviceType: String) {
+        viewModelScope.launch {
+            val uniqueDeviceId = "android-${UUID.randomUUID()}"
+            authPreference.initDeviceInfo(uniqueDeviceId, deviceType)
+        }
+    }
+
+    // 리프레시 토큰 유효성 검사 (컴포저블에서 동기/비동기 흐름 제어를 위해 suspend 함수로 제공)
+    suspend fun hasValidRefreshToken(): Boolean {
+        val token = authPreference.getRefreshToken()
+        return !token.isNullOrBlank()
     }
 
     // 알림 허용 여부 저장
