@@ -1,15 +1,16 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.error.ApiError
 import com.linku.core.model.LoginResult
 import com.linku.core.model.TokenReissueResult
 import com.linku.core.model.auth.Gender
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpEmailResult
+import com.linku.core.model.auth.UserSession
 import com.linku.core.repository.AuthRepository
 import com.linku.data.api.AuthApi
 import com.linku.data.api.dto.auth.login.email.LoginRequestDTO
@@ -24,17 +25,18 @@ import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.SocialProfileMapper
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
-
 
 class AuthRepositoryImpl @Inject constructor(
     private val authApi: AuthApi,
-    private val loginSessionStore: LoginSessionStore,
     private val authPreference: AuthPreference
 ) : AuthRepository {
-    override val sessionState: Flow<LoginSessionStore.SessionSnapshot>
-        get() = loginSessionStore.session
+
+    /** .fold()로 정리하면 onSuccess랑,onFailure이 명료할 것 같은데,
+     * 팀장의 에러처리 결정 이후 수정 여부 결정.  */
+
+    override val sessionState: Flow<UserSession>
+        get() = authPreference.sessionState
 
     /** 닉네임 중복 확인 */
     override suspend fun checkNickname(nickname: String): Result<Unit> =
@@ -52,14 +54,17 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<LoginResult> {
         Log.d(TAG, "[로그인 시도]")
 
+        val savedDeviceId = authPreference.getDeviceId()
+        val savedDeviceType = authPreference.getDeviceType()
+
         return safeApiCall(
             apiCall = {
                 authApi.signIn(
                     LoginRequestDTO(
                         email = email,
                         password = password,
-                        deviceId = "android-$deviceId",
-                        deviceType = deviceType
+                        deviceId = savedDeviceId,
+                        deviceType = savedDeviceType
                     )
                 )
             }
@@ -76,7 +81,8 @@ class AuthRepositoryImpl @Inject constructor(
             authPreference.saveTokens(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                userId = response.userId
+                userId = response.userId,
+                loginType = LoginType.EMAIL
             )
             Log.d(TAG, "[토큰 저장 완료]")
 
@@ -154,28 +160,24 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun reissue(refreshToken: String): Result<TokenReissueResult> {
         Log.d(TAG, "[토큰 재발급 시도]")
 
-        val deviceId = try {
-            loginSessionStore.deviceId.first()
-                ?: return Result.failure(
-                    ApiError.Common.Unauthorized(
-                        message = "기기 정보가 없습니다. 다시 로그인해주세요."
-                    )
-                )
-        } catch (e: Exception) {
-            return Result.failure(e)
-        }
+        val savedDeviceId = authPreference.getDeviceId()
 
         return safeApiCall(
             apiCall = {
                 authApi.reissue(
                     ReissueRequestDTO(
                         refreshToken = refreshToken,
-                        deviceId = deviceId
+                        deviceId = savedDeviceId
                     )
                 )
             }
         ).map { response ->
             Log.d(TAG, "[토큰 재발급 성공]")
+            authPreference.updateAccessToken(
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken
+            )
+
             TokenReissueResult(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken
@@ -229,7 +231,8 @@ class AuthRepositoryImpl @Inject constructor(
             authPreference.saveTokens(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                userId = response.userId
+                userId = response.userId,
+                loginType = LoginType.KAKAO
             )
             Log.d(TAG, "[토큰 저장 완료]")
             Log.d(TAG, "[카카오 로그인 성공]")
@@ -256,7 +259,8 @@ class AuthRepositoryImpl @Inject constructor(
             authPreference.saveTokens(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                userId = response.userId
+                userId = response.userId,
+                loginType = LoginType.GOOGLE
             )
             Log.d(TAG, "[토큰 저장 완료]")
             Log.d(TAG, "[구글 로그인 성공]")

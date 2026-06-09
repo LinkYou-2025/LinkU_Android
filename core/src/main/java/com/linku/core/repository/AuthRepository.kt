@@ -1,6 +1,6 @@
 package com.linku.core.repository
 
-import com.linku.core.datastore.session.LoginSessionStore
+
 import com.linku.core.model.LoginResult
 import com.linku.core.model.TokenReissueResult
 import com.linku.core.model.auth.Gender
@@ -8,10 +8,11 @@ import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Job
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpEmailResult
+import com.linku.core.model.auth.UserSession
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
-    val sessionState: Flow<LoginSessionStore.SessionSnapshot>
+    val sessionState: Flow<UserSession>
     //레포지토리가 세션 상태 플로우 제공하도록 수정함.
 
     suspend fun checkNickname(nickname: String): Result<Unit>
@@ -58,6 +59,11 @@ interface AuthRepository {
     suspend fun loginWithGoogle(
         token: String
     ): Result<LoginResult>
+
+    // 비밀번호 재설정 링크 전송
+    suspend fun sendPasswordResetEmail(
+        email: String
+    ): Result<Unit>
 
 
 }
