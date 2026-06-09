@@ -83,7 +83,7 @@ class HomeViewModel @Inject constructor(
     // 여기는 토큰 사용이 없음.
     fun loadUserBasics() {
         viewModelScope.launch {
-            val userId = authPreference.userId
+            val userId = authPreference.getUserId()
             if (userId == null || userId <= 0L) {
                 // 로그인 전이므로 조용히 무시. (재진입에서 다시 호출할 것)
                 return@launch
