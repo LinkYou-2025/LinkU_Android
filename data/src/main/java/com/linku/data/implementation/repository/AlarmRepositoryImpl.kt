@@ -64,10 +64,6 @@ class AlarmRepositoryImpl @Inject constructor(
         }.map { it.toDomain() }
     }
 
-    override fun isPushAlarmEnabled(): Boolean =
-        notificationPreference.isMasterNotificationEnabled()
-
-
     override suspend fun registerFCMToken(
         token: String
     ): Result<Unit> {

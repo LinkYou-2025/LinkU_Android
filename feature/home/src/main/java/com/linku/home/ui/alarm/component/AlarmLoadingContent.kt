@@ -21,7 +21,7 @@ import com.linku.design.theme.LinkuPreview
  * 알람 목록의 로딩 상태를 표시하는 컴포저블입니다.
  *
  * 데이터를 불러오는 동안 사용자에게 시각적 피드백을 제공하기 위해
- * [LazyColumn]을 사용하여 스켈레톤(Skeleton) UI 형태의 플레이스홀더를 렌더링합니다.
+ * [Column]을 사용하여 스켈레톤(Skeleton) UI 형태의 플레이스홀더를 렌더링합니다.
  */
 @Composable
 fun AlarmLoadingContent() {

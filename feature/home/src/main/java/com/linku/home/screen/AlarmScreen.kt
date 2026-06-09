@@ -34,7 +34,6 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
-import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.home.ui.alarm.component.AlarmTopBar
 import com.linku.home.ui.alarm.component.AlarmFilterTabs
@@ -73,11 +72,6 @@ fun AlarmScreen(
     // PagingData와 LoadState(로딩/에러 상태)를 함께 관리한다
     val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
-
-    // 탭을 바꿀 때 목록 갱신 -> 인디케이터 없이 조용히 새로고침
-    LaunchedEffect(selectedTab) {
-        alarmPagingItems.refresh()
-    }
 
     // 새로고침이 완료되면 인디케이터 해제
     LaunchedEffect(alarmPagingItems.loadState.refresh) {
