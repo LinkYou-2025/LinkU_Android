@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -23,8 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -39,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.system.SystemBarController
@@ -51,8 +49,9 @@ import com.linku.login.viewmodel.SignUpViewModel
 
 @Composable
 internal fun WelcomeScreen(
-    navigator: NavHostController,
-    signUpViewModel: SignUpViewModel //null 불가.
+    onNavigateToLogin: () -> Unit,
+    onNavigateBackOnError: () -> Unit,
+    signUpViewModel: SignUpViewModel
 ) {
 
     val colorTheme = MaterialTheme.linkuColors
@@ -63,6 +62,7 @@ internal fun WelcomeScreen(
     val systemBarController = LocalContext.current as? SystemBarController
     val isPreview = LocalInspectionMode.current
 
+    // 시스템 바 제어 생명주기 엮기 -> 하... FIXME 이거 전역적으로 관리되게 수정해야함...아...
     DisposableEffect(Unit) {
         if (!isPreview && systemBarController != null) {
             systemBarController.setSystemBarMode(SystemBarMode.HIDDEN)
@@ -76,38 +76,23 @@ internal fun WelcomeScreen(
     }
 
     // 뒤로가기 막기
-    BackHandler {
-        // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
-    }
-    //  signUpState 사용
-    val signUpState by signUpViewModel?.signUpState?.collectAsStateWithLifecycle() ?: remember {
-        mutableStateOf(SignUpState.Idle)
-    }
+    BackHandler {}
 
+    val signUpState by signUpViewModel.signUpState.collectAsStateWithLifecycle()
 
     //화면 진입 시 자동 회원가입 요청 하나라도 비면 회원가입 불가.
     LaunchedEffect(Unit) {
-
-
         //릴리즈 빌드에는 로그 찍히지 않음. 디버그로는 확인가능함. api 연동 확인용으로 일단 놓음.
         // TODO : 런칭 전 해당 로그 삭제.
         if (BuildConfig.DEBUG) {
+            val currentForm = signUpViewModel.state.value.signUpForm
             Log.d("WelcomeScreen", "=== 회원가입 폼 상태 ===")
-            Log.d("WelcomeScreen", "email: ${signUpViewModel.uiState.value.signUpForm?.email}")
-            Log.d(
-                "WelcomeScreen",
-                "nickname: ${signUpViewModel.uiState.value.signUpForm?.nickname}"
-            )
-            Log.d("WelcomeScreen", "gender: ${signUpViewModel.uiState.value.signUpForm?.gender}")
-            Log.d("WelcomeScreen", "jobId: ${signUpViewModel.uiState.value.signUpForm?.jobId}")
-            Log.d(
-                "WelcomeScreen",
-                "purposeList: ${signUpViewModel.uiState.value.signUpForm?.purposeList}"
-            )
-            Log.d(
-                "WelcomeScreen",
-                "interestList: ${signUpViewModel.uiState.value.signUpForm?.interestList}"
-            )
+            Log.d("WelcomeScreen", "email: ${currentForm.email}")
+            Log.d("WelcomeScreen", "nickname: ${currentForm.nickname}")
+            Log.d("WelcomeScreen", "gender: ${currentForm.gender}")
+            Log.d("WelcomeScreen", "jobId: ${currentForm.jobId}")
+            Log.d("WelcomeScreen", "purposeList: ${currentForm.purposeList}")
+            Log.d("WelcomeScreen", "interestList: ${currentForm.interestList}")
             Log.d("WelcomeScreen", "=====================")
         }
         signUpViewModel.signUp()
@@ -118,17 +103,12 @@ internal fun WelcomeScreen(
         when (signUpState) {
             is SignUpState.Success -> {
                 Log.d("WelcomeScreen", "회원가입 성공")
-                navigator.navigate("email_login") {
-                    popUpTo("auth_graph") { inclusive = true }
-                }
-
             }
 
             is SignUpState.Error -> {
                 val message = (signUpState as SignUpState.Error).message
                 Log.e("WelcomeScreen", "회원가입 실패: $message")
-                // 에러 시 이전 단계로 돌아감.
-                navigator.popBackStack()
+                onNavigateBackOnError()
             }
 
             is SignUpState.Loading -> {
@@ -136,7 +116,6 @@ internal fun WelcomeScreen(
             }
 
             is SignUpState.Idle -> {
-                // 초기 상태
             }
         }
     }
@@ -210,7 +189,12 @@ internal fun WelcomeScreen(
                     .align(Alignment.BottomCenter)
                     .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
                     .height(50.scaler)
-                    .background(colorTheme.white, shape = RoundedCornerShape(18.dp)),
+                    .background(colorTheme.white, shape = RoundedCornerShape(18.dp))
+                    .clickable(
+                        enabled = signUpState is SignUpState.Success
+                    ) {
+                        onNavigateToLogin()
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -221,8 +205,6 @@ internal fun WelcomeScreen(
                 )
             }
         }
-
-
     }
 }
 

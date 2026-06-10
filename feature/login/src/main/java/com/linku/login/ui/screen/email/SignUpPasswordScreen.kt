@@ -12,13 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -28,32 +24,37 @@ import com.linku.login.ui.item.PasswordRuleItem
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SignUpViewModel
+import com.linku.login.viewmodel.state.SignUpEffect
 
 @Composable
 internal fun SignUpPasswordScreen(
     onBackClick: () -> Unit,
     onNavigateToNickname: () -> Unit,
-    signUpViewModel: SignUpViewModel = hiltViewModel()
+    signUpViewModel: SignUpViewModel
 ) {
     BackHandler { onBackClick() }
 
     val colorTheme = MaterialTheme.linkuColors
-
-    val passwordUiState by signUpViewModel.uiState.collectAsStateWithLifecycle()
+    val passwordUiState by signUpViewModel.state.collectAsStateWithLifecycle()
     val passwordState = passwordUiState.passwordStep
 
-    var confirmPassword by remember { mutableStateOf("") }
 
     // 화면 재진입시 리셋.
     LaunchedEffect(Unit) {
-        confirmPassword = ""
-        signUpViewModel.onPasswordChanged(password = "", confirmPassword = "")
+        signUpViewModel.onPasswordChanged("")
+        signUpViewModel.onConfirmPasswordChanged("")
     }
 
-    LaunchedEffect(passwordState.isNavigateTrigger) {
-        if (passwordState.isNavigateTrigger) {
-            onNavigateToNickname()
-            signUpViewModel.clearPasswordNavigationTrigger()
+    LaunchedEffect(signUpViewModel.sideEffect) {
+        signUpViewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SignUpEffect.NavigateToNickname -> {
+                    onNavigateToNickname()
+                }
+
+                else -> { /* 딱히 할 게 없네용 형상 남김 */
+                }
+            }
         }
     }
 
@@ -67,11 +68,7 @@ internal fun SignUpPasswordScreen(
     ) {
         PasswordLoginTextField(
             value = passwordUiState.signUpForm.password,
-            onValueChange = { newPassword ->
-                signUpViewModel.updateForm { form ->
-                    form.copy(password = newPassword)
-                }
-            },
+            onValueChange = { signUpViewModel.onPasswordChanged(it) },
             hint = "비밀번호를 입력해주세요."
         )
 
@@ -99,12 +96,12 @@ internal fun SignUpPasswordScreen(
             Spacer(Modifier.height(20.scaler))
 
             PasswordLoginTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
+                value = passwordState.confirmPassword,
+                onValueChange = { signUpViewModel.onConfirmPasswordChanged(it) },
                 hint = "비밀번호를 확인해주세요."
             )
 
-            if (confirmPassword.isNotEmpty() && !passwordState.doPasswordsMatch) {
+            if (passwordState.confirmPassword.isNotEmpty() && !passwordState.doPasswordsMatch) {
                 Text(
                     text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
                     fontSize = 13.sp,
