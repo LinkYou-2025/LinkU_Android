@@ -12,6 +12,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -66,8 +67,8 @@ object ServerApiModule {
                     if (chain.request().header("Authorization") != null) {
                         return@addInterceptor chain.proceed(chain.request())
                     }
-                    val token = authPreference.accessToken
-                    val request = if (token.isNotBlank()) {
+                    val token = runBlocking { authPreference.getAccessToken() }
+                    val request = if (token.isNullOrBlank()) {
                         chain.request().newBuilder()
                             .header("Authorization", "Bearer $token")  // addHeader → header
                             .build()
