@@ -223,25 +223,41 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun loginWithKakao(token: String): Result<LoginResult> {
         Log.d(TAG, "[카카오 로그인 시도]")
 
+        val savedDeviceId = authPreference.getDeviceId() ?: ""
+        val savedDeviceType = authPreference.getDeviceType() ?: ""
+
         return safeApiCall(
             apiCall = {
-                authApi.kakaoLogin(SocialLoginRequestDTO(token = token))
+                authApi.kakaoLogin(
+                    SocialLoginRequestDTO(
+                        token = token,
+                        deviceId = savedDeviceId,
+                        deviceType = savedDeviceType
+                    )
+                )
             }
         ).map { response ->
-            authPreference.saveTokens(
-                accessToken = response.accessToken,
-                refreshToken = response.refreshToken,
-                userId = response.userId,
-                loginType = LoginType.KAKAO
-            )
-            Log.d(TAG, "[토큰 저장 완료]")
-            Log.d(TAG, "[카카오 로그인 성공]")
+            val currentStatus = response.status?.uppercase() ?: "ACTIVE"
+
+            if (currentStatus == "ACTIVE") {
+                authPreference.saveTokens(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    userId = response.userId,
+                    loginType = LoginType.KAKAO
+                )
+                Log.d(TAG, "[카카오 로그인] ACTIVE 상태 - 토큰 저장 완료")
+            } else if (currentStatus == "TEMP") {
+                Log.d(TAG, "[카카오 로그인] TEMP 상태 - 추가 입력 필요 (토큰 저장 스킵)")
+            }
+
+            Log.d(TAG, "[카카오 로그인 성공] status=$currentStatus")
 
             LoginResult(
                 userId = response.userId,
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                status = response.status ?: "",
+                status = currentStatus,
                 inactiveDate = ""
             )
         }
@@ -251,19 +267,35 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun loginWithGoogle(token: String): Result<LoginResult> {
         Log.d(TAG, "[구글 로그인 시도]")
 
+        val savedDeviceId = authPreference.getDeviceId() ?: ""
+        val savedDeviceType = authPreference.getDeviceType() ?: ""
+
         return safeApiCall(
             apiCall = {
-                authApi.googleLogin(SocialLoginRequestDTO(token = token))
+                authApi.googleLogin(
+                    SocialLoginRequestDTO(
+                        token = token,
+                        deviceId = savedDeviceId,
+                        deviceType = savedDeviceType
+                    )
+                )
             }
         ).map { response ->
-            authPreference.saveTokens(
-                accessToken = response.accessToken,
-                refreshToken = response.refreshToken,
-                userId = response.userId,
-                loginType = LoginType.GOOGLE
-            )
-            Log.d(TAG, "[토큰 저장 완료]")
-            Log.d(TAG, "[구글 로그인 성공]")
+            val currentStatus = response.status?.uppercase() ?: "ACTIVE"
+
+            if (currentStatus == "ACTIVE") {
+                authPreference.saveTokens(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    userId = response.userId,
+                    loginType = LoginType.GOOGLE
+                )
+                Log.d(TAG, "[구글 로그인] ACTIVE 상태 - 토큰 저장 완료")
+            } else if (currentStatus == "TEMP") {
+                Log.d(TAG, "[구글 로그인] TEMP 상태 - 추가 입력 필요 (토큰 저장 스킵)")
+            }
+
+            Log.d(TAG, "[구글 로그인 성공] status=$currentStatus")
 
             LoginResult(
                 userId = response.userId,
