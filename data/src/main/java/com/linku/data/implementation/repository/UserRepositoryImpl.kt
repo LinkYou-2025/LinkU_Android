@@ -1,27 +1,21 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.UserRepository
-import com.linku.data.api.ApiError
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.safeApiCall
-import com.linku.data.api.withAuth
-import com.linku.data.api.withAuthRaw
+import com.linku.data.api.safeApiCallUnit
 import com.linku.data.preference.AuthPreference
 import javax.inject.Inject
 
-
-/* 지현이와 개발 범위 조절해야할 것 같아서. 일단 패스 */
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference, // logout을 위해 유지
-    private val loginSessionStore: LoginSessionStore
+    private val authPreference: AuthPreference,
 ) : UserRepository {
 
 
@@ -31,23 +25,6 @@ class UserRepositoryImpl @Inject constructor(
         return safeApiCall(
             apiCall = { serverApi.getUserInfo() }
         ).map { dto ->
-            Log.d(TAG, " [서버 원본] purposes: ${dto.purposes}")
-            Log.d(TAG, " [서버 원본] interests: ${dto.interests}")
-
-            val displayPurposes = dto.purposes.mapNotNull { serverKey ->
-                Purpose.fromServerKey(serverKey)?.displayName ?: serverKey.also {
-                    Log.w(TAG, "알 수 없는 Purpose serverKey: $serverKey")
-                }
-            }
-            val displayInterests = dto.interests.mapNotNull { serverKey ->
-                Interest.fromServerKey(serverKey)?.displayName ?: serverKey.also {
-                    Log.w(TAG, "알 수 없는 Interest serverKey: $serverKey")
-                }
-            }
-
-            Log.d(TAG, "[변환 후] purposes: $displayPurposes")
-            Log.d(TAG, "[변환 후] interests: $displayInterests")
-
             UserInfo(
                 nickname = dto.nickName.orEmpty(),
                 email = dto.email,
@@ -57,32 +34,11 @@ class UserRepositoryImpl @Inject constructor(
                 myLinku = dto.myLinku,
                 myFolder = dto.myFolder,
                 myAiLinku = dto.myAiLinku,
-                purposes = displayPurposes,
-                interests = displayInterests
+                purposes = dto.purposes.mapNotNull { Purpose.fromServerKey(it)?.displayName ?: it },
+                interests = dto.interests.mapNotNull {
+                    Interest.fromServerKey(it)?.displayName ?: it
+                }
             )
-        }.onSuccess { userInfo ->
-
-            Log.d(TAG, "[세션 저장] purposes: ${userInfo.purposes}")
-            Log.d(TAG, " [세션 저장] interests: ${userInfo.interests}")
-
-            try {
-                loginSessionStore.saveLogin(
-                    userId = userId,
-                    nickname = userInfo.nickname,
-                    email = userInfo.email,
-                    gender = userInfo.gender,
-                    jobId = userInfo.jobId,
-                    jobName = userInfo.jobName,
-                    myLinku = userInfo.myLinku,
-                    myFolder = userInfo.myFolder,
-                    myAiLinku = userInfo.myAiLinku,
-                    purposes = userInfo.purposes,
-                    interests = userInfo.interests
-                )
-                Log.d(TAG, " [세션 저장 완료]")
-            } catch (e: Exception) {
-                Log.e(TAG, " [세션 저장 실패] ${e.message}")
-            }
         }
     }
 
@@ -91,53 +47,34 @@ class UserRepositoryImpl @Inject constructor(
         jobId: Long,
         purposes: List<String>,
         interests: List<String>
-    ): Boolean {
-        // 수정 시에도 한글 -> ENUM 변환 후 전송
-        val mappedPurposes = purposes.mapNotNull { displayName ->
-            Purpose.fromDisplayName(displayName)?.serverKey
-        }
-        val mappedInterests = interests.mapNotNull { displayName ->
-            Interest.fromDisplayName(displayName)?.serverKey
-        }
+    ): Result<Unit> {
 
         val dto = UpdateUserProfileRequestDTO(
             nickname = nickname,
             jobId = jobId,
-            purposes = mappedPurposes,
-            interests = mappedInterests
+            purposes = purposes.mapNotNull { Purpose.fromDisplayName(it)?.serverKey },
+            interests = interests.mapNotNull { Interest.fromDisplayName(it)?.serverKey }
         )
 
-
-        val response = serverApi.withAuthRaw(authPreference) {
-            updateUserInfo(dto) // ApiResponseString 반환
+        return safeApiCallUnit {
+            serverApi.updateUserInfo(dto)
         }
-
-        // response.isSuccess가 false라면 예외를 던지거나 false를 반환하도록 처리
-        if (response.isSuccess != true) {
-            throw ApiError.BusinessError(null, response.result ?: "수정 실패")
-        }
-
-        return true
     }
 
-    // BaseResponse<withDrawalResultDTO> 반환 → withAuth
     override suspend fun deleteUser(reason: String): Boolean {
-        val dto = DeleteUserRequestDTO(reason)
-        serverApi.withAuth(authPreference) { deleteUser(dto) }
-        return true
+        return try {
+            serverApi.deleteUser(DeleteUserRequestDTO(reason))
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 
     // BaseResponse<UserInfoDTO> 반환 → withAuth
     override suspend fun getNickname(userId: Long): String? {
         return try {
-            val dto = serverApi.withAuth(authPreference) {
-                getUserInfo(/*userId*/)
-            }
-            val nick = dto.nickName
-            Log.d(TAG, "닉네임=$nick")
-            nick?.takeIf { it.isNotBlank() }
-        } catch (e: ApiError) {
-            Log.e(TAG, "닉네임 가져오기 실패: ${e.message}")
+            serverApi.getUserInfo().result.nickName?.takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
             null
         }
     }
@@ -145,48 +82,11 @@ class UserRepositoryImpl @Inject constructor(
     // logout
     override suspend fun logout() {
         authPreference.clear()
-        loginSessionStore.clear()
         //clearAuthData()
         Log.d(TAG, "로그아웃 완료")
     }
 
-
     companion object {
         private const val TAG = "UserRepository"
     }
-
-
-    override suspend fun refreshUserInfo(userId: Long) {
-        getUserInfo(userId)
-        // getUserInfo 내부에서 sessionStore.saveLogin()
-    }
-
-    override suspend fun updateUserProfile(
-        nickname: String,
-        jobId: Long,
-        jobName: String,
-        purposes: List<String>,
-        interests: List<String>
-    ) {
-        // 서버 DB 수정
-        updateUserInfo(
-            nickname = nickname,
-            jobId = jobId,
-            purposes = purposes,
-            interests = interests
-        )
-
-        // 서버 성공 시 로컬 세션 즉시 반영
-        loginSessionStore.updateProfile(
-            nickname = nickname,
-            jobId = jobId,
-            jobName = jobName,
-            purposes = purposes,
-            interests = interests
-        )
-    }
-
-
 }
-
-// 여기 언제 리펙함...
