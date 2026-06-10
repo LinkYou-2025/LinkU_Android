@@ -1,24 +1,44 @@
 package com.linku.login.ui.screen.social
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Purpose
 import com.linku.design.theme.LinkuPreview
+import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SocialAuthViewModel
+import com.linku.login.viewmodel.state.SocialAuthUiEffect
 
 @Composable
 fun SocialPurposeScreen(
-    navigator: NavHostController,
+    onBackClick: () -> Unit,
+    onNavigateToInterest: () -> Unit,
     viewModel: SocialAuthViewModel
 ) {
-    val savedPurposes by viewModel.purposes.collectAsStateWithLifecycle()
+    BackHandler { onBackClick() }
+
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val selectedPurposes = uiState.socialLoginForm.purposes
+
+    LaunchedEffect(viewModel.sideEffect) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SocialAuthUiEffect.NavigateToAdditionalInfo -> {
+                    onNavigateToInterest()
+                }
+
+                else -> { /* 음 딱히?? 할게 없네용 */
+                }
+            }
+        }
+    }
 
     SignUpSelectionLayout(
         currentStep = 3,
@@ -26,19 +46,16 @@ fun SocialPurposeScreen(
             append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
         },
         subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-        items = Purpose.getAllPurposes(),
-        selectedItems = savedPurposes,
+        items = Purpose.entries.toList(),
+        iconRes = { it.iconRes },
+        selectedItems = selectedPurposes,
         buttonText = "다음",
-        canProceed = savedPurposes.isNotEmpty(),
+        canProceed = selectedPurposes.isNotEmpty(),
         onButtonClick = {
-            if (savedPurposes.isEmpty()) return@SignUpSelectionLayout
-            navigator.navigate("social_interest")
+            onNavigateToInterest()
         },
         onToggle = { purpose ->
-            val nextPurposes =
-                if (savedPurposes.contains(purpose)) savedPurposes - purpose
-                else savedPurposes + purpose
-            viewModel.updatePurposes(nextPurposes)
+            viewModel.togglePurpose(purpose)
         }
     )
 }
@@ -56,7 +73,8 @@ private fun SocialPurposeScreenPreview() {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-            items = Purpose.getAllPurposes(),
+            items = Purpose.entries.toList(),
+            iconRes = { it.iconRes },
             selectedItems = selectedPurposes,
             buttonText = "다음",
             canProceed = selectedPurposes.isNotEmpty(),
@@ -84,7 +102,8 @@ private fun SocialPurposeScreenSelectedPreview() {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-            items = Purpose.getAllPurposes(),
+            items = Purpose.entries.toList(),
+            iconRes = { it.iconRes },
             selectedItems = selectedPurposes,
             buttonText = "다음",
             canProceed = selectedPurposes.isNotEmpty(),

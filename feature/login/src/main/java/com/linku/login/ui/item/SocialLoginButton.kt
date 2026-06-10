@@ -44,6 +44,9 @@ internal fun SocialLoginButton(
     type: LoginType,
     onClick: () -> Unit = {}
 ) {
+
+    if (type == LoginType.NONE) return //None일 땐 ui가 없음.
+
     val colorTheme = MaterialTheme.linkuColors
 
     val backgroundColor = when (type) {

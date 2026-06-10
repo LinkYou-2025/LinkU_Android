@@ -26,9 +26,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -44,32 +41,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.SystemBarMode
-import com.linku.core.model.auth.SignUpState
 import com.linku.core.system.SystemBarController
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
+import com.linku.login.BuildConfig
 import com.linku.login.R
-import com.linku.login.viewmodel.SignUpViewModel
+import com.linku.login.viewmodel.SocialAuthViewModel
+import com.linku.login.viewmodel.state.SocialAuthUiEffect
 
 @Composable
 internal fun WelcomeSocialScreen(
-    navigator: NavHostController,
-    signUpViewModel: SignUpViewModel? = null,
-    onLoginSuccess: () -> Unit = {}
+    socialToken: String,
+    onNavigateToHome: () -> Unit,
+    onNavigateBackOnError: () -> Unit,
+    viewModel: SocialAuthViewModel
 ) {
     //디자인 모듈 가져오기.
     val colorTheme = MaterialTheme.linkuColors
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
 
-    //  시스템 바 숨기기 설정
     val systemBarController = LocalContext.current as? SystemBarController
     val isPreview = LocalInspectionMode.current
+
+    BackHandler { }
 
     DisposableEffect(Unit) {
         if (!isPreview && systemBarController != null) {
@@ -83,53 +82,90 @@ internal fun WelcomeSocialScreen(
         }
     }
 
-    // 뒤로가기 막기
-    BackHandler {
-        // 아무것도 하지 않음 → 뒤로가기 무시됨 -> 아예 이전 화원가입 했던 화면들 돌아갈 수 없음!
-    }
-    //  signUpState 사용
-    val signUpState by signUpViewModel?.signUpState?.collectAsStateWithLifecycle() ?: remember {
-        mutableStateOf(SignUpState.Idle)
-    }
-    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsStateWithLifecycle()
-    var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val isFormLoading = uiState.isLoading
+    val runtimeError = uiState.error
 
-    //화면 진입 시 자동 회원가입 요청
-    LaunchedEffect(Unit) {// Unit은 절대 안 바뀜. 그렇지만 이게 맞는 설계이니
-        if (!isSignUpRequested) {
-            isSignUpRequested = true
-            Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
-            signUpViewModel?.signUp()
+    LaunchedEffect(Unit) {
+        if (BuildConfig.DEBUG) {
+            val currentForm = viewModel.state.value.socialLoginForm
+            Log.d("WelcomeSocialScreen", "=== 소셜 최종 제출 폼 정보 명세 ===")
+            Log.d("WelcomeSocialScreen", "nickname: ${currentForm.nickname}")
+            Log.d("WelcomeSocialScreen", "gender: ${currentForm.gender}")
+            Log.d("WelcomeSocialScreen", "job: ${currentForm.job.displayName}")
+            Log.d("WelcomeSocialScreen", "purposes: ${currentForm.purposes}")
+            Log.d("WelcomeSocialScreen", "interests: ${currentForm.interests}")
+            Log.d("WelcomeSocialScreen", "===============================")
         }
+        viewModel.completeSocialProfile(socialToken)
     }
 
-    // 서버 응답 감지
-    LaunchedEffect(signUpState) {
-        when (signUpState) {
-            is SignUpState.Success -> {
-                Log.d("WelcomeScreen", "회원가입 성공")
-                onLoginSuccess()  //  MainApp의 홈 이동 로직 호출
-                navigator.navigate("email_login") {
-                    popUpTo("auth_graph") { inclusive = true }
+    // 소셜 비즈니스 파이프라인 단발성 Side Effect 관찰 및 수집
+    LaunchedEffect(viewModel.sideEffect) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SocialAuthUiEffect.CompleteProfileSuccess -> {
+                    Log.d("WelcomeSocialScreen", "소셜 프로필 원격 동기화 전면 성공 -> 홈 진입")
+                    onNavigateToHome()
                 }
-                isSignUpRequested = false
-            }
-            // 재시도 문제가 있음. 사용자에게 회원가입 시패시 안내를 하고 재시도를 하도록 해야함.
-            is SignUpState.Error -> {
-                val message = (signUpState as SignUpState.Error).message
-                Log.e("WelcomeScreen", "회원가입 실패: $message")
-                isSignUpRequested = false
-            }
 
-            is SignUpState.Loading -> {
-                Log.d("WelcomeScreen", "회원가입 진행 중...")
-            }
-
-            is SignUpState.Idle -> {
-                // 초기 상태
+                else -> { /* 딱히 여기서 할게 없는데용 */
+                }
             }
         }
     }
+
+    LaunchedEffect(runtimeError) {
+        if (!runtimeError.isNullOrBlank()) {
+            Log.e("WelcomeSocialScreen", "소셜 가입 확정 실패 감지: $runtimeError")
+            onNavigateBackOnError()
+        }
+    }
+
+
+//    //  signUpState 사용
+//    val signUpState by signUpViewModel?.signUpState?.collectAsStateWithLifecycle() ?: remember {
+//        mutableStateOf(SignUpState.Idle)
+//    }
+//    //val signUpSuccess by signUpViewModel.signUpSuccess.collectAsStateWithLifecycle()
+//    var isSignUpRequested by remember { mutableStateOf(false) } //중복 호출 방자용 상태 추가
+//
+//    //화면 진입 시 자동 회원가입 요청
+//    LaunchedEffect(Unit) {// Unit은 절대 안 바뀜. 그렇지만 이게 맞는 설계이니
+//        if (!isSignUpRequested) {
+//            isSignUpRequested = true
+//            Log.d("WelcomeScreen", "Welcome 진입 → 회원가입 자동 요청")
+//            signUpViewModel?.signUp()
+//        }
+//    }
+//
+//    // 서버 응답 감지
+//    LaunchedEffect(signUpState) {
+//        when (signUpState) {
+//            is SignUpState.Success -> {
+//                Log.d("WelcomeScreen", "회원가입 성공")
+//                onLoginSuccess()  //  MainApp의 홈 이동 로직 호출
+//                navigator.navigate("email_login") {
+//                    popUpTo("auth_graph") { inclusive = true }
+//                }
+//                isSignUpRequested = false
+//            }
+//            // 재시도 문제가 있음. 사용자에게 회원가입 시패시 안내를 하고 재시도를 하도록 해야함.
+//            is SignUpState.Error -> {
+//                val message = (signUpState as SignUpState.Error).message
+//                Log.e("WelcomeScreen", "회원가입 실패: $message")
+//                isSignUpRequested = false
+//            }
+//
+//            is SignUpState.Loading -> {
+//                Log.d("WelcomeScreen", "회원가입 진행 중...")
+//            }
+//
+//            is SignUpState.Idle -> {
+//                // 초기 상태
+//            }
+//        }
+//    }
 
     // 하단 동적 패딩 계산 로직 -> 기존 회원가입 바텀 그라데이션 버튼과 동일하게 작동함.
     val imeBottom = WindowInsets.ime.getBottom(density)
@@ -201,38 +237,22 @@ internal fun WelcomeSocialScreen(
                     .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
                     .height(50.scaler)
                     .background(colorTheme.white, shape = RoundedCornerShape(18.dp))
-                    .clickable {
-                        when (signUpState) {
-                            is SignUpState.Error -> {
-                                // 실패 시 재시도
-                                isSignUpRequested = false
-                                signUpViewModel?.signUp()
-                            }
-
-                            is SignUpState.Success -> onLoginSuccess()
-                            else -> {} // Loading 중엔 무시
-                        }
+                    .clickable(
+                        enabled = !isFormLoading && runtimeError == null
+                    ) {
+                        // 정상일 떄는 더블 클릭 되지 않도록 함.
                     },
                 contentAlignment = Alignment.Center
             ) {
-                //  상태에 따라 버튼 내용 변경
-                when (signUpState) {
-                    is SignUpState.Loading -> CircularProgressIndicator(
+                if (isFormLoading) {
+                    CircularProgressIndicator( //TODO : 문현우씨 만든거 훔치기
                         modifier = Modifier.size(24.dp),
                         color = colorTheme.accentColor,
                         strokeWidth = 2.dp
                     )
-
-                    is SignUpState.Error -> Text(
-                        text = "다시 시도하기",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        style = TextStyle(brush = colorTheme.maincolor),
-                        fontFamily = Paperlogy.font
-                    )
-
-                    else -> Text(
-                        text = "홈으로 이동하기",
+                } else {
+                    Text(
+                        text = "링큐 시작하기",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(brush = colorTheme.maincolor),
@@ -248,10 +268,17 @@ internal fun WelcomeSocialScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun WelcomeScreenPreview() {
+fun WelcomeSocialScreenPreview() {
     val fakeNavController = rememberNavController()
     LinkuPreview {
-        WelcomeSocialScreen(navigator = fakeNavController)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.linkuColors.verticalMainColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = "LinkU Social Welcome Preview", color = MaterialTheme.linkuColors.white)
+        }
     }
 }
 
