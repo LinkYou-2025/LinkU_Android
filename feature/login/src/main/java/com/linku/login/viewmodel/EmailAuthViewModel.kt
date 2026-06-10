@@ -4,17 +4,16 @@ import android.util.Log
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.error.AppError
+import com.linku.core.error.ApiError
 import com.linku.core.repository.AuthRepository
+import com.linku.login.mvi.MviContainer
+import com.linku.login.mvi.mviContainer
+import com.linku.login.viewmodel.state.EmailUiEffect
 import com.linku.login.viewmodel.state.EmailUiEvent
 import com.linku.login.viewmodel.state.EmailUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,10 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class EmailAuthViewModel @Inject constructor(
     private val authRepository: AuthRepository
-) : ViewModel() {
-
-    private val _emailUiState = MutableStateFlow(EmailUiState())
-    val emailUiState: StateFlow<EmailUiState> = _emailUiState.asStateFlow()
+) : ViewModel(), MviContainer<EmailUiState, EmailUiEffect> by mviContainer(EmailUiState()) {
 
     private var timerJob: Job? = null
 
@@ -41,16 +37,16 @@ internal class EmailAuthViewModel @Inject constructor(
     }
 
     private fun handleToastShown() {
-        _emailUiState.update { it.copy(failureToastMessage = null) } // 중복 실행 방지
+        updateState { copy(failureToastMessage = null) }
     }
 
     private fun handleEmailChanged(newEmail: String) {
-        _emailUiState.update { it.copy(email = newEmail, emailError = null) }
+        updateState { copy(email = newEmail, emailError = null) }
     }
 
     private fun handleCodeChanged(newCode: String) {
         if (newCode.length <= 6) {
-            _emailUiState.update { it.copy(code = newCode, codeError = null) }
+            updateState { copy(code = newCode, codeError = null) }
         }
     }
 
@@ -58,42 +54,42 @@ internal class EmailAuthViewModel @Inject constructor(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             var currentTimer = 180
-            _emailUiState.update {
-                it.copy(timer = currentTimer, isCodeSent = true, verificationFailCount = 0)
+            updateState {
+                copy(timer = currentTimer, isCodeSent = true, verificationFailCount = 0)
             }
 
             while (currentTimer > 0) {
                 delay(1000)
                 currentTimer--
-                _emailUiState.update { it.copy(timer = currentTimer) }
+                updateState { copy(timer = currentTimer) }
             }
-            _emailUiState.update { it.copy(isCodeSent = false, codeError = "인증 시간이 만료되었습니다.") }
+            updateState { copy(isCodeSent = false, codeError = "인증 시간이 만료되었습니다.") }
         }
     }
 
     private fun stopTimer() {
         timerJob?.cancel()
-        _emailUiState.update { it.copy(timer = 0) }
+        updateState { copy(timer = 0) }
     }
 
     /** 이메일 인증 코드 전송 및 재발송 */
     private fun sendEmailCode() {
-        val email = _emailUiState.value.email.trim()
+        val email = state.value.email.trim()
         Log.d("EmailAuthVM", "sendEmailCode() called. email=$email")
 
-        // 이메일 api 전송 전 사용자 입력 검즘(빈 값, 형식)
+        // 버튼에서 막고 있기는 한데 그래도 혹시 모르는 방어 코드
         if (email.isBlank()) {
-            _emailUiState.update { it.copy(emailError = "이메일을 입력해주세요.") }
+            updateState { copy(emailError = "이메일을 입력해주세요.") }
             return
         }
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            _emailUiState.update { it.copy(emailError = "이메일 양식이 올바르지 않습니다.") }
+            updateState { copy(emailError = "이메일 양식이 올바르지 않습니다.") }
             return
         }
 
         viewModelScope.launch {
-            _emailUiState.update {
-                it.copy(
+            updateState {
+                copy(
                     isLoading = true,
                     emailError = null,
                     code = "",
@@ -102,74 +98,79 @@ internal class EmailAuthViewModel @Inject constructor(
                 )
             }
 
-            authRepository.sendEmailCode(email)
-                .fold(
-                    onSuccess = {
-                        _emailUiState.update { it.copy(isLoading = false) }
-                        startTimer()
-                    },
-                    onFailure = { exception ->
-                        Log.e("EmailAuthVM", "sendEmailCode 실패", exception)
+            authRepository.sendEmailCode(email).foldApp(
+                onSuccess = {
+                    updateState { copy(isLoading = false) }
+                    startTimer()
+                },
+                onFailure = { error ->
+                    Log.e("EmailAuthVM", "sendEmailCode 실패", error)
 
-                        val message = (exception as? AppError)?.displayMessage ?: "서버 오류가 발생했습니다."
-                        _emailUiState.update { it.copy(isLoading = false, emailError = message) }
+                    val uiEmailError = when (error) {
+                        is ApiError.User.DuplicateEmail -> "이미 가입된 이메일입니다."
+                        else -> "인증 코드 발송에 실패했습니다. 다시 시도해주세요." // 그 외 에러는 마스킹(로그에서만 찍을거예용)
                     }
-                )
+
+                    updateState { copy(isLoading = false, emailError = uiEmailError) }
+                }
+            )
         }
     }
 
 
     /** 이메일 인증 코드 검증 */
     private fun verifyEmailCode() {
-
-        val email = _emailUiState.value.email.trim()
-        val code = _emailUiState.value.code.trim()
+        val email = state.value.email.trim()
+        val code = state.value.code.trim()
         Log.d("EmailAuthVM", "verifyEmailCode() called. email=$email, code=$code")
 
         // 인증 코드 누락 방어
         if (code.isBlank()) {
-            _emailUiState.update { it.copy(codeError = "코드를 입력해주세요.") }
+            updateState { copy(codeError = "코드를 입력해주세요.") }
             return
         }
 
         // 타이머 만료시 서버 요청 차단
-        if (_emailUiState.value.timer <= 0) {
-            _emailUiState.update { it.copy(codeError = "인증 시간이 초과되었습니다. 다시 발송해주세요.") }
+        if (state.value.timer <= 0) {
+            updateState { copy(codeError = "인증 시간이 초과되었습니다. 다시 발송해주세요.") }
             return
         }
 
         viewModelScope.launch {
-            _emailUiState.update { it.copy(isLoading = true, codeError = null) }
+            updateState { copy(isLoading = true, codeError = null) }
 
-            authRepository.verifyEmailCode(email, code)
-                .fold(
-                    onSuccess = {
-                        stopTimer()
-                        _emailUiState.update { it.copy(isLoading = false, isVerifySuccess = true) }
-
-                    },
-                    onFailure = { exception ->
-                        Log.e("EmailAuthVM", "verifyEmailCode 실패", exception)
-                        val message = (exception as? AppError)?.displayMessage ?: "서버 오류가 발생했습니다."
-
-                        val emailFailCount = _emailUiState.value.verificationFailCount + 1
-
-                        _emailUiState.update {
-                            it.copy(
-                                isLoading = false,
-                                codeError = message,
-                                verificationFailCount = emailFailCount,
-                                failureToastMessage = "인증번호가 올바르지 않습니다. (인증 실패 횟수: 총 $emailFailCount/5번)"
-                            )
-                        }
+            authRepository.verifyEmailCode(email, code).foldApp(
+                onSuccess = {
+                    stopTimer()
+                    updateState { copy(isLoading = false, isVerifySuccess = true) }
+                    postSideEffect(EmailUiEffect.NavigateToPassword(email))
+                },
+                onFailure = { error ->
+                    Log.e("EmailAuthVM", "verifyEmailCode 실패", error)
+                    val emailFailCount = state.value.verificationFailCount + 1
+                    updateState {
+                        copy(
+                            isLoading = false,
+                            codeError = error.displayMessage,
+                            verificationFailCount = emailFailCount
+                        )
                     }
-                )
+                    val toastMessage = when (error) {
+                        is ApiError.User.VerificationFailed -> {
+                            "인증번호가 올바르지 않습니다. (인증 실패 횟수: 총 ${emailFailCount}/5번)"
+                        }
+
+                        else -> "오류가 발생했습니다. 다시 시도해주세요." // TODO : 수정하기 -> 서버가 갑자기 중단되거나 할 때, pm 멘트 정해주면 수정하기. 프론트가 제어할 수 없는 에러에 대해
+                    }
+                    postSideEffect(EmailUiEffect.ShowToast(toastMessage))
+                }
+            )
         }
     }
 
     fun resetAll() {
         stopTimer()
-        _emailUiState.value = EmailUiState()
+        updateState { EmailUiState() }
     }
 
     override fun onCleared() {
