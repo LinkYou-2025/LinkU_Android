@@ -23,16 +23,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -42,8 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
 import com.linku.core.system.SystemBarController
@@ -56,77 +52,73 @@ import com.linku.login.ui.item.GradientButtonCore
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.PasswordLoginTextField
 import com.linku.login.viewmodel.LoginViewModel
+import com.linku.login.viewmodel.state.LoginUiEffect
+import com.linku.login.viewmodel.state.LoginUiState
 
 @Composable
 fun EmailLoginScreen(
-    navigator: NavHostController,
     loginViewModel: LoginViewModel? = null,
     onSignUpClick: () -> Unit,
+    onResetPasswordClick: () -> Unit,
     onLoginSuccess: () -> Unit = {}
 ) {
 
-    // 1. 키보드 제어를 위한 FocusManager 가져오기
     val focusManager = LocalFocusManager.current
-
-    // 2. 디자인 모듈의 폰트 패밀리 가져오기
     val colorTheme = MaterialTheme.linkuColors
+    val density = LocalDensity.current
 
-    // LoginState 관찰 추가
-    val loginState by loginViewModel?.loginState?.collectAsStateWithLifecycle()
-        ?: remember { mutableStateOf(LoginState.Idle) }
+    val uiState by loginViewModel?.state?.collectAsStateWithLifecycle()
+        ?: androidx.compose.runtime.remember { mutableStateOf(LoginUiState()) }
+    val loginState = uiState.loginState
 
-    LaunchedEffect(loginState) {
-        when (loginState) {
-            is LoginState.Success -> {
-                focusManager.clearFocus()
-                onLoginSuccess()
+    val windowInfo = LocalWindowInfo.current
+    val containerSize = windowInfo.containerSize
+    val containerWidthDp = with(density) { containerSize.width.toDp() }
+    val containerHeightDp = with(density) { containerSize.height.toDp() }
+
+    LaunchedEffect(loginViewModel?.sideEffect) {
+        loginViewModel?.sideEffect?.collect { effect ->
+            when (effect) {
+                is LoginUiEffect.LoginSuccess -> {
+                    focusManager.clearFocus()
+                    onLoginSuccess()
+                }
+
+                is LoginUiEffect.NavigateToSignUp -> {
+                    focusManager.clearFocus()
+                    onSignUpClick()
+                }
+
+                is LoginUiEffect.NavigateToResetPassword -> {
+                    focusManager.clearFocus()
+                    onResetPasswordClick()
+                }
             }
-
-            is LoginState.Error -> {
-                focusManager.clearFocus()
-            }
-
-            else -> {}
         }
     }
 
-    val systemBarController =
-        LocalContext.current as? SystemBarController
+    val systemBarController = LocalContext.current as? SystemBarController
     val isPreview = LocalInspectionMode.current
 
     // 로그인 입력 화면 진입 시 시스템 바 복구
-    DisposableEffect(Unit) { // systemBarController 대신 Unit 권장
+    DisposableEffect(Unit) {
         if (!isPreview && systemBarController != null) {
             systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
         }
-        onDispose {
-            // 이 화면을 나갈 때의 동작이 필요 없음. 비움.
-        }
+        onDispose {}
     }
 
+    val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(uiState.email).matches()
+    val isFormValid = uiState.email.isNotBlank() && uiState.password.isNotBlank() && isEmailValid
 
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-
-    val isEmailValid =
-        Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    val isFormValid = email.isNotBlank() && password.isNotBlank() && isEmailValid
-
-    // 🔑 화면 높이
-    val configuration = LocalConfiguration.current
-    val screenHeight = configuration.screenHeightDp.dp
-
-    // 🔑 키보드 상태 (프리뷰 안전)
-    val density = LocalDensity.current
     val isInPreview = LocalInspectionMode.current
     val imeBottom = if (isInPreview) 0 else WindowInsets.ime.getBottom(density)
     val isKeyboardOpen = imeBottom > 0
     val buttonOffsetY = if (isKeyboardOpen) 0.dp else (-4.scaler)
 
 
-    // 🔑 피그마 비율 적용
     val logoRatio = if (isKeyboardOpen) 102f / 917f else 262f / 917f //키보드 활성화 전, 후
-    val logoTopPadding = screenHeight * logoRatio
+    val logoTopPadding = containerHeightDp * logoRatio
 
     Box(
         modifier = Modifier
@@ -174,29 +166,16 @@ fun EmailLoginScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 LoginTextField(
-                    value = email,
-                    onValueChange = {
-                        email = it
-                        // 입력 시 에러 초기화.
-                        if (loginState is LoginState.Error) {
-                            loginViewModel?.clearError()
-                        }
-                    },
-                    hint = "이메일",
-
-                    )
+                    value = uiState.email,
+                    onValueChange = { loginViewModel?.onEmailChanged(it) },
+                    hint = "이메일"
+                )
 
                 Spacer(Modifier.height((10.scaler)))
 
                 PasswordLoginTextField(
-                    value = password,
-                    onValueChange = {
-                        password = it
-                        // 입력 시 에러 초기화.
-                        if (loginState is LoginState.Error) {
-                            loginViewModel?.clearError()
-                        }
-                    }
+                    value = uiState.password,
+                    onValueChange = { loginViewModel?.onPasswordChanged(it) }
                 )
 
                 // 에러 메시지 추가
@@ -233,24 +212,11 @@ fun EmailLoginScreen(
                     enabled = isFormValid && loginState !is LoginState.Loading, //로딩 중 비활성화.
                     activeGradient = colorTheme.maincolor,
                     inactiveGradient = colorTheme.inactiveColor,
-                    onClick = {
-                        //focusManager.clearFocus() //키보드 내리기 필요하다면 사용하기.
-                        loginViewModel?.login(
-                            email.trim(),
-                            password.trim()
-                        )
-                    }
+                    onClick = { loginViewModel?.login() }
                 )
             }
 
             Spacer(Modifier.height((20.scaler)))
-
-
-            // 🔑 비율 기반 가로 위치 계산
-            // 디자인 기준 너비 412 대비 현재 화면의 비율 지점
-            val resetStartPos = (101.scaler)   // 비밀번호 재설정 시작점
-            val dividerStartPos = (220.scaler) // | 시작점
-            val signUpStartPos = (247.scaler)  // 회원가입 시작점
 
             Row(
                 modifier = Modifier
@@ -269,9 +235,7 @@ fun EmailLoginScreen(
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
-                            //if (loginState !is LoginState.Loading) { -> 혹시 나중에 로딩중이 길어지면 사용해주세요.
-                            navigator.navigate("resetPassword")
-                            //}
+                            loginViewModel?.onResetPasswordClicked()
                         }
                 )
                 Text(
@@ -288,8 +252,7 @@ fun EmailLoginScreen(
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
-                            focusManager.clearFocus()
-                            onSignUpClick()
+                            loginViewModel?.onSignUpClicked()
                         }
                 )
             }
@@ -306,11 +269,10 @@ fun EmailLoginScreen(
 fun EmailLoginPreview() {
     LinkuPreview {
         EmailLoginScreen(
-            navigator = rememberNavController(),
             loginViewModel = null,
             onSignUpClick = {},
+            onResetPasswordClick = {},
             onLoginSuccess = {}
-
         )
     }
 }
