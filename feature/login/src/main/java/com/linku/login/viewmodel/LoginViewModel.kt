@@ -4,21 +4,23 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.model.auth.LoginErrorType
 import com.linku.core.model.auth.LoginState
+import com.linku.core.model.auth.LoginType
 import com.linku.core.repository.AuthRepository
-import com.linku.core.repository.UserRepository
 import com.linku.data.api.ApiError
 import com.linku.data.api.toLoginErrorType
 import com.linku.data.preference.AuthPreference
+import com.linku.login.mvi.MviContainer
+import com.linku.login.mvi.mviContainer
+import com.linku.login.viewmodel.state.LoginUiEffect
+import com.linku.login.viewmodel.state.LoginUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.util.UUID
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -26,99 +28,83 @@ import kotlin.coroutines.cancellation.CancellationException
 open class LoginViewModel @Inject constructor(
     application: Application,
     private val authRepository: AuthRepository,
-    private val userRepository: UserRepository, //getUserInfo 사용함.
-    private val loginSessionStore: LoginSessionStore,
     private val authPreference: AuthPreference,
-) : AndroidViewModel(application) {
-
-
-    // 로그인/자동로그인 공통 함수, 마이페이지 조회 → 세션 풀 세팅
-    private suspend fun fetchAndSaveUserSession(userId: Long) {
-        val userInfo =
-            userRepository.getUserInfo(userId)
-                .getOrThrow() // 사용자 정보 조회 api GET /api/users/{userId} 이용.
-        // .getOrThrow() 그대로 놓을까 fold()로 ? 일단 .getOrThrow()로 제어함.
-        loginSessionStore.saveLogin( // SessionStore에 세션 생성.
-            userId = userId,
-            nickname = userInfo.nickname,
-            email = userInfo.email,
-            gender = userInfo.gender,
-            jobId = userInfo.jobId,
-            jobName = userInfo.jobName,
-            myLinku = userInfo.myLinku,
-            myFolder = userInfo.myFolder,
-            myAiLinku = userInfo.myAiLinku,
-            purposes = userInfo.purposes,
-            interests = userInfo.interests
-        )
-
-        Log.d(TAG, "유저 세션 풀 세팅 완료 (ID: $userId)")
-    }
-
-    private val _loginState = MutableStateFlow<LoginState>(LoginState.Idle)
-    val loginState: StateFlow<LoginState> = _loginState
+) : AndroidViewModel(application),
+    MviContainer<LoginUiState, LoginUiEffect> by mviContainer(LoginUiState()) {
 
     private val _autoLoginState = MutableStateFlow<AutoLoginState>(AutoLoginState.Idle)
     val autoLoginState: StateFlow<AutoLoginState> = _autoLoginState
 
+    fun onEmailChanged(email: String) {
+        updateState { copy(email = email) }
+        clearError()
+    }
+
+    fun onPasswordChanged(password: String) {
+        updateState { copy(password = password) }
+        clearError()
+    }
+
     fun clearError() {
-        if (_loginState.value is LoginState.Error) {
-            _loginState.value = LoginState.Idle
+        if (state.value.loginState is LoginState.Error) {
+            updateState { copy(loginState = LoginState.Idle) }
         }
     }
 
-    fun login(email: String, password: String) {
+    fun onSignUpClicked() {
+        postSideEffect(LoginUiEffect.NavigateToSignUp)
+    }
 
+    fun onResetPasswordClicked() {
+        postSideEffect(LoginUiEffect.NavigateToResetPassword)
+    }
+
+    fun login(
+        email: String = state.value.email.trim(),
+        password: String = state.value.password.trim()
+    ) {
         if (email.isBlank() || password.isBlank()) {
-            _loginState.value = LoginState.Error(LoginErrorType.INVALID_CREDENTIALS)
+            updateState { copy(loginState = LoginState.Error(LoginErrorType.INVALID_CREDENTIALS)) }
             return
         }
 
         viewModelScope.launch {
             try {
-                // 로딩 시작
-                _loginState.value = LoginState.Loading
+                updateState { copy(loginState = LoginState.Loading) }
                 Log.d(TAG, "로그인 시도")
 
-                val deviceId = loginSessionStore.deviceId.first() ?: run {
-                    val newDeviceId = "android-" + UUID.randomUUID().toString()
-                    val newDeviceType = if (getApplication<Application>()
-                            .resources.configuration.smallestScreenWidthDp >= 600
-                    )
-                        "TABLET" else "PHONE"
-                    loginSessionStore.saveDeviceInfoIfAbsent(newDeviceId, newDeviceType)
-                    newDeviceId
-                }
+                val deviceId = authPreference.getDeviceId()
+                val deviceType = authPreference.getDeviceType()
 
-                val deviceType = loginSessionStore.deviceType.first() ?: "PHONE"
 
-                // API 호출
                 val loginResult = authRepository.login(
-                    email = email.trim(),
-                    password = password.trim(),
+                    email = email,
+                    password = password,
                     deviceId = deviceId,
                     deviceType = deviceType
-                ).getOrThrow()
+                ).getOrThrow() //TODO :  .fold() 형식으로 수정하기
 
-                // 마이페이지 조회 → 세션 풀 세팅
-                fetchAndSaveUserSession(loginResult.userId)
+                authPreference.saveTokens(
+                    accessToken = loginResult.accessToken,
+                    refreshToken = loginResult.refreshToken,
+                    userId = loginResult.userId,
+                    loginType = LoginType.EMAIL
+                )
+                Log.d(TAG, "인증 토큰 및 유저 ID 저장 완료 (ID: ${loginResult.userId})")
 
-                // 성공 상태
-                _loginState.value = LoginState.Success(loginResult)
+                // 성공 상태 -> MainApp에서 isLoggedIn Flow 변화를 감지해 홈으로 이동하게 함.
+                updateState { copy(loginState = LoginState.Success(loginResult)) }
+                postSideEffect(LoginUiEffect.LoginSuccess)
 
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {
                 Log.e(TAG, "로그인 실패", exception)
-                _loginState.value = LoginState.Error(exception.toLoginErrorType())
+                updateState { copy(loginState = LoginState.Error(exception.toLoginErrorType())) }
             }
         }
     }
 
-
-    // ServerApi.refreshToken() 호출 -> 성공하면 새로운 엑세스 토큰 발급하고 리프레쉬 토큰 저장함.
-    // 실패하는 경우 토큰 정리함.
-    // 자동 로그인 시점에 마이페이지 조회 → 세션 풀 세팅함.
     fun tryAutoLogin(
         onSuccess: () -> Unit,
         onFail: () -> Unit
@@ -127,21 +113,17 @@ open class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                _autoLoginState.value = AutoLoginState.Checking
+                // dataStore 기반의 isLoggedIn Flow 최신 값을 받아옴
+                val isAlreadyLoggedIn = authPreference.isLoggedIn.first()
 
-                if (!authPreference.isLoggedIn) {
+                if (!isAlreadyLoggedIn) {
                     _autoLoginState.value = AutoLoginState.Failed
                     onFail()
                     return@launch
                 }
 
-                val userId = authPreference.userId //비정상 상태일 경우에는
-                    ?: throw IllegalStateException("userId missing")
-                fetchAndSaveUserSession(userId) //세션 풀세팅
-
-
                 Log.d(TAG, "자동 로그인 성공")
-                _autoLoginState.value = AutoLoginState.Success // 이 앱 안에 ui에 바로 쓸 세션이 있음.
+                _autoLoginState.value = AutoLoginState.Success
                 onSuccess()
 
             } catch (e: ApiError.TokenExpired) {
@@ -160,8 +142,6 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
-
-    // 태그 상수 추가함.
     companion object {
         private const val TAG = "LoginViewModel"
     }
