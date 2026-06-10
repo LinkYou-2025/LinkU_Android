@@ -35,11 +35,10 @@ interface AuthApi {
         @Body signUpEmailRequestDTO: SignUpEmailRequestDTO
     ): BaseResponse<SignUpEmailResponseDTO>
 
-
     @GET("auth/check-nickname")
     suspend fun checkNickname(
         @Query("nickname") nickname: String
-    ): BaseResponse<Unit> // result {}
+    ): BaseResponse<*> // result {}
 
     // 로그인
     @POST("auth/login")
