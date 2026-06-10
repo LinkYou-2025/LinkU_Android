@@ -44,6 +44,7 @@ import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.viewmodel.EmailAuthViewModel
 import com.linku.login.viewmodel.SignUpViewModel
+import com.linku.login.viewmodel.state.EmailUiEffect
 import com.linku.login.viewmodel.state.EmailUiEvent
 import com.linku.login.viewmodel.state.EmailUiState
 import java.util.Locale
@@ -54,32 +55,32 @@ internal fun EmailVerificationScreen(
     onBackClick: () -> Unit,
     onNavigateToPassword: () -> Unit,
     viewModel: EmailAuthViewModel = hiltViewModel(),
-    signUpViewModel: SignUpViewModel = hiltViewModel()
+    signUpViewModel: SignUpViewModel
 ) {
     BackHandler {
         onBackClick()
     }
 
     val context = LocalContext.current
-    val emailUiState by viewModel.emailUiState.collectAsStateWithLifecycle()
+    val emailUiState by viewModel.state.collectAsStateWithLifecycle()
 
     // 화면 진입 시 리셋
     LaunchedEffect(Unit) {
         viewModel.onEvent(EmailUiEvent.ClearStatus)
     }
 
-    LaunchedEffect(emailUiState.failureToastMessage) {
-        emailUiState.failureToastMessage?.let { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-            viewModel.onEvent(EmailUiEvent.ToastShown)
-        }
-    }
+    LaunchedEffect(viewModel.sideEffect) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is EmailUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
 
-    // 상태 변화 감지
-    LaunchedEffect(emailUiState.isVerifySuccess) {
-        if (emailUiState.isVerifySuccess) {
-            signUpViewModel.updateForm { it.copy(email = emailUiState.email.trim()) }
-            onNavigateToPassword()
+                is EmailUiEffect.NavigateToPassword -> {
+                    signUpViewModel.updateForm { it.copy(email = effect.verifiedEmail) }
+                    onNavigateToPassword()
+                }
+            }
         }
     }
 

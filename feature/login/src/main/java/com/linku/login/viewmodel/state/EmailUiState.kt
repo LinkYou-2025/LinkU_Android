@@ -1,5 +1,8 @@
 package com.linku.login.viewmodel.state
 
+import com.linku.login.mvi.UiSideEffect
+import com.linku.login.mvi.UiState
+
 /**
  * 이메일 인증 화면의 UI 상태를 통제하는 데이터 가방입니다.
  *
@@ -25,7 +28,7 @@ internal data class EmailUiState(
     val isVerifySuccess: Boolean = false,
     val failureToastMessage: String? = null,
     val verificationFailCount: Int = 0
-)
+) : UiState
 
 /**
  * 이메일 인증 화면에서 사용자의 액션에 의해 발생할 수 있는 UI 이벤트 명세서입니다.
@@ -44,4 +47,9 @@ internal sealed interface EmailUiEvent {
     object VerifyCodeClicked : EmailUiEvent
     object ClearStatus : EmailUiEvent
     object ToastShown : EmailUiEvent
+}
+
+internal sealed interface EmailUiEffect : UiSideEffect {
+    data class NavigateToPassword(val verifiedEmail: String) : EmailUiEffect
+    data class ShowToast(val message: String) : EmailUiEffect
 }
