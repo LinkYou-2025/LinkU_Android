@@ -6,13 +6,14 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import com.linku.core.di.ApplicationScope
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 class LinkUFireBaseMessageService : FirebaseMessagingService() {
@@ -23,6 +24,10 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
     @Inject
     lateinit var notificationPreference: NotificationPreference
 
+    @Inject
+    @ApplicationScope
+    lateinit var externalScope: CoroutineScope
+
     //FireBase에서 새 토큰이 발급되었을 때 호출되는 콜백
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -30,7 +35,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
         notificationPreference.setFcmToken(token)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        externalScope.launch {
             alarmRepository.registerFCMToken(token)
         }
     }
