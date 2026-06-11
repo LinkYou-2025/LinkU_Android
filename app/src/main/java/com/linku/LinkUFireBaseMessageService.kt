@@ -70,7 +70,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             .setSmallIcon(R.drawable.ic_logo)
             .setContentTitle(title)
             .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
