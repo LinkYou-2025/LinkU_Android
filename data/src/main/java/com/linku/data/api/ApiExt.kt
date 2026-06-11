@@ -35,8 +35,7 @@ suspend fun <DTO> safeApiCall(
     //에러 처리
     if (!response.isSuccess) {
         return Result.failure<DTO>(
-            mapToApiError(
-                response.code, response.message
+            mapToApiError(response.code, response.message
             )
         ).apiExceptions()
     }
@@ -93,7 +92,12 @@ suspend fun safeApiCall204(
     apiCall: suspend () -> Response<Unit>
 ): Result<Unit> {
 
-    val response = apiCall()
+    //요청 - 네트워크/HTTP 예외는 Result.failure 로 포장 후 apiExceptions() 에서 도메인 에러로 변환
+    val response = try {
+        apiCall()
+    } catch (e: Exception) {
+        return Result.failure<Unit>(e).apiExceptions()
+    }
 
     if (!response.isSuccessful) {
         return Result.failure<Unit>(

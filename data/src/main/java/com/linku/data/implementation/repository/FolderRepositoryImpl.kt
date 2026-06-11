@@ -13,6 +13,7 @@ import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.folder.FolderCreateRequestDTO
 import com.linku.data.api.dto.folder.FolderTreeResponseDTO
 import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
+import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
 import com.linku.data.api.safeApiCall
@@ -162,28 +163,21 @@ class FolderRepositoryImpl @Inject constructor(
                     )
                 })
 
-                Log.d(
-                    "FolderRepositoryImpl",
-                    "getLinksFolders well done onGetFolders(${response.folders})"
-                )
+                Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetFolders(${response.folders})")
 
                 onGetLinks(response.links.map {
                     LinkItemInfo(
                         linkuId = it.linkuId,
                         parentFolderId = parentFolderId,
                         title = it.title,
-                        tags = it.keyword?.let { keyword -> keyword.split(",").map { it.trim() } }
-                            ?: emptyList(),
+                        tags = it.keyword?.let { keyword -> keyword.split(",").map { it.trim() } } ?: emptyList(),
                         url = it.url,
                         linkuImageUrl = it.linkuImageUrl,
                         createdAt = it.createdAt,
                     )
                 })
 
-                Log.d(
-                    "FolderRepositoryImpl",
-                    "getLinksFolders well done onGetLinks(${response.links})"
-                )
+                Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetLinks(${response.links})")
 
                 nextCursor = response.nextCursor
             }.onFailure {
