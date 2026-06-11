@@ -12,10 +12,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class AlarmRepositoryModule {
 
-    // 페이크 레포지토리
     @Binds
     @Singleton
-    @Suppress("unused")
     abstract fun provideAlarmRepository(
         impl: AlarmRepositoryImpl
     ): AlarmRepository
