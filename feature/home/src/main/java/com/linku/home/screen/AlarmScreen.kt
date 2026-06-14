@@ -75,7 +75,8 @@ fun AlarmScreen(
 
     // 새로고침이 완료되면 인디케이터 해제
     LaunchedEffect(alarmPagingItems.loadState.refresh) {
-        if (alarmPagingItems.loadState.refresh is LoadState.NotLoading) {
+        if (alarmPagingItems.loadState.refresh is LoadState.NotLoading ||
+            alarmPagingItems.loadState.refresh is LoadState.Error) {
             isUserRefreshing = false
         }
     }

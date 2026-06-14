@@ -18,19 +18,15 @@ import java.time.temporal.ChronoUnit
  * @receiver ISO 8601 형식의 UTC 타임스탬프 문자열 (예: "2024-01-01T00:00:00.000Z")
  * @return 상대 시간 문자열
  */
-fun String.toRelativeTime(): String {
-
+fun String.toRelativeTime(now: Instant = Instant.now()): String {
     // 파싱
     val parsed = runCatching { Instant.parse(this) }
         .getOrElse { return "알 수 없음" }
 
     // 현재 시간과 차이 계산
     val diff = maxOf(
-        0L, // clock skew를 대비하기 위함
-        ChronoUnit.MINUTES.between(
-            parsed,
-            Instant.now()
-        )
+        0L,
+        ChronoUnit.MINUTES.between(parsed, now)
     )
 
     return when {
