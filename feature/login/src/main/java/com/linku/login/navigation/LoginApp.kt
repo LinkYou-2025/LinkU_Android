@@ -49,13 +49,27 @@ import com.linku.login.viewmodel.EmailAuthViewModel
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.login.viewmodel.SignUpViewModel
 import com.linku.login.viewmodel.SocialAuthViewModel
+import com.linku.login.viewmodel.state.LoginUiEffect
 
 @Composable
 fun LoginApp(
     onLoginSuccess: () -> Unit,
+    onAutoLoginSuccess: () -> Unit,
+    onAutoLoginFail: () -> Unit,
     loginViewModel: LoginViewModel
 ) {
     val navController = rememberNavController()
+
+    // 채널 effect는 오직 LoginApp에서만
+    LaunchedEffect(Unit) {
+        loginViewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is LoginUiEffect.LoginSuccess -> onLoginSuccess()
+                is LoginUiEffect.AutoLoginSuccess -> onAutoLoginSuccess()
+                is LoginUiEffect.AutoLoginFail -> onAutoLoginFail()
+            }
+        }
+    }
 
 
     NavHost(

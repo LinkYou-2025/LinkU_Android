@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -38,6 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
@@ -246,7 +248,29 @@ fun MainApp(
                             mutableStateOf(false)
                         }
 
-                        val splashScope = androidx.compose.runtime.rememberCoroutineScope()
+                        val splashScope = rememberCoroutineScope()
+
+                        val autoLoginState by loginViewModel.autoLoginState.collectAsStateWithLifecycle()
+
+                        LaunchedEffect(autoLoginState) {
+                            when (autoLoginState) {
+                                is AutoLoginState.Success -> {
+                                    homeViewModel.refreshAfterLogin()
+                                    navigator.navigate(NavigationRoute.Home.route) {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+
+                                is AutoLoginState.Failed -> {
+                                    navigator.navigate("login_root") {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                    }
+                                }
+
+                                else -> Unit
+                            }
+                        }
 
                         Splash(
                             onResult = {
@@ -262,78 +286,11 @@ fun MainApp(
                                         return@launch
                                     }
 
-                                    loginViewModel.tryAutoLogin(
-                                        onSuccess = {
-                                            homeViewModel.refreshAfterLogin()
-                                            navigator.navigate(NavigationRoute.Home.route) {
-                                                popUpTo(NavigationRoute.Splash.route) {
-                                                    inclusive = true
-                                                }
-                                                launchSingleTop = true
-                                            }
-                                        },
-                                        onFail = {
-                                            navigator.navigate("login_root") {
-                                                popUpTo(
-                                                    NavigationRoute.Splash.route
-                                                ) { inclusive = true }
-                                            }
-                                        }
-                                    )
+                                    loginViewModel.tryAutoLogin()
                                     autoLoginTried = true
                                 }
                             }
                         )
-
-//                        Splash(
-//                            // NOTE: AuthPreference 체크, autoLoginTried 관리는
-//                            // LoginViewModel.tryAutoLogin()으로 이동 예정
-//                            // TODO: 자동 로그인 리팩토링 후 수정
-//
-//                            onResult = {
-//                                val auth = deps.authPreference()
-//                                //스플래쉬에서 자동 로그인 조건 = refresh 토큰 존재 여부 확인
-//                                //자동 로그인 판단을 여기서 한다고 생각하면 됨.
-//
-//
-//                                val hasRefresh = !auth.refreshToken.isNullOrBlank()
-//
-//                                //  이미 자동 로그인 시도했으면 강제 로그인
-//                                if (autoLoginTried) {
-//                                    navigator.navigate("login_root") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                    }
-//                                    return@Splash
-//                                }
-//
-//                                if (!hasRefresh) {
-//                                    // refresh 없음 → 로그인 화면으로 이동
-//                                    navigator.navigate("login_root") {
-//                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                    }
-//
-//                                    return@Splash
-//                                }
-//
-//
-//                                // refresh 있음 → 자동로그인 시도
-//                                loginViewModel.tryAutoLogin(
-//                                    onSuccess = {
-//                                        homeViewModel.refreshAfterLogin()
-//                                        navigator.navigate(NavigationRoute.Home.route) {
-//                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                            launchSingleTop = true
-//                                        }
-//                                    },
-//                                    onFail = {
-//                                        navigator.navigate("login_root") {
-//                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-//                                        }
-//
-//                                    }
-//                                )
-//                            }
-//                        )
                     }
                 }
 
@@ -365,6 +322,19 @@ fun MainApp(
                             navigator.navigate(NavigationRoute.Home.route) {
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
+                            }
+                        },
+                        onAutoLoginSuccess = {
+                            showNavBar = true
+                            homeViewModel.refreshAfterLogin()
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onAutoLoginFail = {
+                            navigator.navigate("login_root") {
+                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                             }
                         }
                     )

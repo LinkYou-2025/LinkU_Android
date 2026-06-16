@@ -20,7 +20,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -52,7 +51,6 @@ import com.linku.login.ui.item.GradientButtonCore
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.PasswordLoginTextField
 import com.linku.login.viewmodel.LoginViewModel
-import com.linku.login.viewmodel.state.LoginUiEffect
 import com.linku.login.viewmodel.state.LoginUiState
 
 @Composable
@@ -75,27 +73,6 @@ fun EmailLoginScreen(
     val containerSize = windowInfo.containerSize
     val containerWidthDp = with(density) { containerSize.width.toDp() }
     val containerHeightDp = with(density) { containerSize.height.toDp() }
-
-    LaunchedEffect(loginViewModel?.sideEffect) {
-        loginViewModel?.sideEffect?.collect { effect ->
-            when (effect) {
-                is LoginUiEffect.LoginSuccess -> {
-                    focusManager.clearFocus()
-                    onLoginSuccess()
-                }
-
-                is LoginUiEffect.NavigateToSignUp -> {
-                    focusManager.clearFocus()
-                    onSignUpClick()
-                }
-
-                is LoginUiEffect.NavigateToResetPassword -> {
-                    focusManager.clearFocus()
-                    onResetPasswordClick()
-                }
-            }
-        }
-    }
 
     val systemBarController = LocalContext.current as? SystemBarController
     val isPreview = LocalInspectionMode.current
@@ -235,7 +212,8 @@ fun EmailLoginScreen(
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
-                            loginViewModel?.onResetPasswordClicked()
+                            onResetPasswordClick()
+                            //loginViewModel?.onResetPasswordClicked()
                         }
                 )
                 Text(
@@ -252,7 +230,8 @@ fun EmailLoginScreen(
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
-                            loginViewModel?.onSignUpClicked()
+                            onSignUpClick()
+                            //loginViewModel?.onSignUpClicked()
                         }
                 )
             }

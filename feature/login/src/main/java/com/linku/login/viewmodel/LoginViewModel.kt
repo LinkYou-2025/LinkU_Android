@@ -51,14 +51,6 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
-    fun onSignUpClicked() {
-        postSideEffect(LoginUiEffect.NavigateToSignUp)
-    }
-
-    fun onResetPasswordClicked() {
-        postSideEffect(LoginUiEffect.NavigateToResetPassword)
-    }
-
     fun login(
         email: String = state.value.email.trim(),
         password: String = state.value.password.trim()
@@ -105,10 +97,7 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
-    fun tryAutoLogin(
-        onSuccess: () -> Unit,
-        onFail: () -> Unit
-    ) {
+    fun tryAutoLogin() {
         if (_autoLoginState.value == AutoLoginState.Checking) return
 
         viewModelScope.launch {
@@ -118,26 +107,26 @@ open class LoginViewModel @Inject constructor(
 
                 if (!isAlreadyLoggedIn) {
                     _autoLoginState.value = AutoLoginState.Failed
-                    onFail()
+                    postSideEffect(LoginUiEffect.AutoLoginFail)
                     return@launch
                 }
 
                 Log.d(TAG, "자동 로그인 성공")
                 _autoLoginState.value = AutoLoginState.Success
-                onSuccess()
+                postSideEffect(LoginUiEffect.AutoLoginSuccess)
 
             } catch (e: ApiError.TokenExpired) {
                 // 이 경우만 logout
                 Log.e(TAG, "자동 로그인 실패: 토큰 만료")
                 authPreference.clear()
                 _autoLoginState.value = AutoLoginState.Failed
-                onFail()
+                postSideEffect(LoginUiEffect.AutoLoginFail)
 
             } catch (e: Exception) {
                 // 나머지는 절대 logout 하지 않음
                 Log.e(TAG, "자동 로그인 실패: ${e.message}")
                 _autoLoginState.value = AutoLoginState.Failed
-                onFail()
+                postSideEffect(LoginUiEffect.AutoLoginFail)
             }
         }
     }
