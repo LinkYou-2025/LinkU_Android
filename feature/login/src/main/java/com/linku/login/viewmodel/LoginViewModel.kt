@@ -4,12 +4,12 @@ import android.app.Application
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.ApiError
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.model.auth.LoginErrorType
 import com.linku.core.model.auth.LoginState
 import com.linku.core.model.auth.LoginType
 import com.linku.core.repository.AuthRepository
-import com.linku.data.api.ApiError
 import com.linku.data.api.toLoginErrorType
 import com.linku.data.preference.AuthPreference
 import com.linku.login.mvi.MviContainer
@@ -115,7 +115,7 @@ open class LoginViewModel @Inject constructor(
                 _autoLoginState.value = AutoLoginState.Success
                 postSideEffect(LoginUiEffect.AutoLoginSuccess)
 
-            } catch (e: ApiError.TokenExpired) {
+            } catch (e: ApiError.Auth.TokenExpired) {
                 // 이 경우만 logout
                 Log.e(TAG, "자동 로그인 실패: 토큰 만료")
                 authPreference.clear()
