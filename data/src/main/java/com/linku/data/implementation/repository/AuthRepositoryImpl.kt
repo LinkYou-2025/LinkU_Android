@@ -301,7 +301,7 @@ class AuthRepositoryImpl @Inject constructor(
                 userId = response.userId,
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                status = response.status ?: "",
+                status = currentStatus,
                 inactiveDate = ""
             )
         }.onFailure { e ->
