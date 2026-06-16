@@ -2,15 +2,20 @@ package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
+import com.linku.data.api.dto.user.DeleteUserResponseDTO
+import com.linku.data.api.dto.user.NicknameResponseDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.dto.user.UserInfoResponseDTO
-import com.linku.data.api.dto.user.DeleteUserResponseDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 
 interface UserApi {
+
+    @GET("users/nickname")
+    suspend fun checkNickname(
+    ): BaseResponse<NicknameResponseDTO>
 
 //    //자동 로그인을 위한 토큰 재발급 API
 //    @POST("users/reissue")

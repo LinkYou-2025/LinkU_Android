@@ -70,13 +70,24 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    // BaseResponse<UserInfoDTO> 반환 → withAuth
-    override suspend fun getNickname(userId: Long): String? {
-        return try {
-            serverApi.getUserInfo().result.nickName?.takeIf { it.isNotBlank() }
-        } catch (e: Exception) {
-            null
-        }
+//    // BaseResponse<UserInfoDTO> 반환 → withAuth
+//    override suspend fun getNickname(userId: Long): String? {
+//        return try {
+//            serverApi.getUserInfo().result.nickName?.takeIf { it.isNotBlank() }
+//        } catch (e: Exception) {
+//            null
+//        }
+//    }
+
+    // 기존 코드 최대한 그대로 사용함.
+    override suspend fun getNickname(): String? {
+        return safeApiCall {
+            serverApi.checkNickname()
+        }.onSuccess {
+            Log.d(TAG, "[닉네임 조회 성공] nickname=$it")
+        }.onFailure {
+            Log.e(TAG, "[닉네임 조회 실패] ${it.message}")
+        }.getOrNull()?.nickname
     }
 
     // logout

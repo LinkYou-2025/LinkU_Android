@@ -53,8 +53,8 @@ class HomeViewModel @Inject constructor(
     }
 
     // 사용자 닉네임
-    private val userNameState = mutableStateOf<String?>(null)
-    val userName get() = userNameState.value
+//    private val userNameState = mutableStateOf<String?>(null)
+//    val userName get() = userNameState.value
 
     // 직업 ID 보관
     private val jobIdState = mutableStateOf<Long?>(null)
@@ -91,7 +91,7 @@ class HomeViewModel @Inject constructor(
 
             userRepository.getUserInfo(userId)
                 .onSuccess { userInfo ->
-                    userNameState.value = userInfo.nickname
+//                    userNameState.value = userInfo.nickname
                     jobIdState.value = userInfo.jobId
                 }
                 .onFailure { e ->
@@ -110,7 +110,7 @@ class HomeViewModel @Inject constructor(
     //로그아웃 시 모든 데이터 비워주는 기능
     fun clearData() {
         // 모든 상태값 초기화
-        userNameState.value = null
+//        userNameState.value = null
         jobIdState.value = null
         _recentLinks.value = emptyList()
         linkDetailState.value = null

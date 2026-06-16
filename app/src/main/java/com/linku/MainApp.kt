@@ -345,12 +345,20 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-
                         }
 
+                        // 홈 탭 진입 및 복귀 할 때마다 닉네임 갱신
+                        LaunchedEffect(currentRoute) {
+                            if (currentRoute == NavigationRoute.Home.route) {
+                                viewModel.fetchNickname()
+                            }
+                        }
+
+                        val nickname by viewModel.nickname.collectAsStateWithLifecycle()
 
                         HomeApp(
                             viewModel = homeViewModel,
+                            nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToMyPage = {  // TODO: 추후 알림 설정 페이지로 이동
                                 navigator.navigate(NavigationRoute.MyPage.route) {
                                     popUpTo(navigator.graph.findStartDestination().id) {
@@ -407,6 +415,7 @@ fun MainApp(
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
+                                viewModel.clearNickname()
                                 navigator.navigate("login_root") {
                                     // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
                                     popUpTo(navigator.graph.findStartDestination().id) {

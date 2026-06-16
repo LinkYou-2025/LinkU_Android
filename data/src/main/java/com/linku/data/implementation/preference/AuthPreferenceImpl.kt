@@ -31,6 +31,7 @@ class AuthPreferenceImpl @Inject constructor(
         val LOGIN_TYPE = stringPreferencesKey("login_type")
         val DEVICE_ID = stringPreferencesKey("device_id")
         val DEVICE_TYPE = stringPreferencesKey("device_type")
+        val NICKNAME = stringPreferencesKey("nickname")
     }
 
     override suspend fun initDeviceInfo(deviceId: String, deviceType: String) {
@@ -116,6 +117,15 @@ class AuthPreferenceImpl @Inject constructor(
         context.authDataStore.edit { prefs ->
             prefs.clear()
             prefs[Keys.LOGGED_IN] = false
+        }
+    }
+
+    override suspend fun getCachedNickname(): String? =
+        context.authDataStore.data.map { it[Keys.NICKNAME] }.first()
+
+    override suspend fun saveNickname(nickname: String) {
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.NICKNAME] = nickname
         }
     }
 }

@@ -37,6 +37,9 @@ interface AuthPreference {
 
     suspend fun clear()
 
+    suspend fun getCachedNickname(): String?
+    suspend fun saveNickname(nickname: String)
+
 }
 
 
