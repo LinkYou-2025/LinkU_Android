@@ -230,6 +230,7 @@ fun EmailLoginScreen(
                     color = colorTheme.gray[600],
                     modifier = Modifier
                         .noRippleClickable {
+                            focusManager.clearFocus()
                             onSignUpClick()
                             //loginViewModel?.onSignUpClicked()
                         }
