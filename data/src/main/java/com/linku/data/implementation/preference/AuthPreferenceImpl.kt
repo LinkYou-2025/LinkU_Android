@@ -79,12 +79,9 @@ class AuthPreferenceImpl @Inject constructor(
         context.authDataStore.data.map { it[Keys.DEVICE_TYPE] ?: "PHONE" }.first()
 
     override suspend fun getLoginType(): LoginType {
-        val name = context.authDataStore.data.map { it[Keys.LOGIN_TYPE] }.first()
-        return if (name != null) {
-            runCatching { LoginType.valueOf(name) }.getOrElse { LoginType.NONE }
-        } else {
-            LoginType.NONE
-        }
+        val name =
+            context.authDataStore.data.map { it[Keys.LOGIN_TYPE] }.first() ?: return LoginType.NONE
+        return runCatching { LoginType.valueOf(name) }.getOrElse { LoginType.NONE }
     }
 
     override suspend fun saveTokens(
