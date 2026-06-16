@@ -21,6 +21,7 @@ import com.linku.login.viewmodel.state.SocialLoginForm
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -165,7 +166,7 @@ class SocialAuthViewModel @Inject constructor(
                 .debounce(NICKNAME_DEBOUNCE_TIME)
                 .distinctUntilChanged()
                 .filter { isValidNickname(it) }
-                .collect { query ->
+                .collectLatest { query ->
                     checkNicknameInternal(query)
                 }
         }
@@ -174,24 +175,23 @@ class SocialAuthViewModel @Inject constructor(
     /**
      * 이메일 회원가입 양식과 완전히 동일하게 세부 에러 타입별 분기 처리를 진행하는 중복 검사 엔진입니다.
      */
-    private fun checkNicknameInternal(nickname: String) {
-        viewModelScope.launch {
-            updateState { copy(nicknameCheckState = NicknameCheckState.Checking) }
+    private suspend fun checkNicknameInternal(nickname: String) {
+        updateState { copy(nicknameCheckState = NicknameCheckState.Checking) }
 
-            authRepository.checkNickname(nickname).foldApp(
-                onSuccess = {
-                    updateState { copy(nicknameCheckState = NicknameCheckState.Available) }
-                },
-                onFailure = { error ->
-                    val nextCheckState = when (error) {
-                        is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
-                        else -> NicknameCheckState.Error(error.displayMessage)
-                    }
-                    updateState { copy(nicknameCheckState = nextCheckState) }
-                    Log.e(TAG, "닉네임 중복 체크 실패", error)
+        authRepository.checkNickname(nickname).foldApp(
+            onSuccess = {
+                updateState { copy(nicknameCheckState = NicknameCheckState.Available) }
+            },
+            onFailure = { error ->
+                val nextCheckState = when (error) {
+                    is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
+                    else -> NicknameCheckState.Error(error.displayMessage)
                 }
-            )
-        }
+                updateState { copy(nicknameCheckState = nextCheckState) }
+                Log.e(TAG, "닉네임 중복 체크 실패", error)
+            }
+        )
+
     }
 
     /**
