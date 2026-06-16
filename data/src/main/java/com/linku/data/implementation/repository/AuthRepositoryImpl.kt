@@ -223,8 +223,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun loginWithKakao(token: String): Result<LoginResult> {
         Log.d(TAG, "[카카오 로그인 시도]")
 
-        val savedDeviceId = authPreference.getDeviceId() ?: ""
-        val savedDeviceType = authPreference.getDeviceType() ?: ""
+        val savedDeviceId = authPreference.getDeviceId()
+        val savedDeviceType = authPreference.getDeviceType()
 
         return safeApiCall(
             apiCall = {
@@ -267,8 +267,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun loginWithGoogle(token: String): Result<LoginResult> {
         Log.d(TAG, "[구글 로그인 시도]")
 
-        val savedDeviceId = authPreference.getDeviceId() ?: ""
-        val savedDeviceType = authPreference.getDeviceType() ?: ""
+        val savedDeviceId = authPreference.getDeviceId()
+        val savedDeviceType = authPreference.getDeviceType()
 
         return safeApiCall(
             apiCall = {

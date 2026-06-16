@@ -63,7 +63,7 @@ internal class EmailAuthViewModel @Inject constructor(
                 currentTimer--
                 updateState { copy(timer = currentTimer) }
             }
-            updateState { copy(isCodeSent = false, codeError = "인증 시간이 만료되었습니다.") }
+            updateState { copy(codeError = "인증 시간이 만료되었습니다.") }
         }
     }
 
