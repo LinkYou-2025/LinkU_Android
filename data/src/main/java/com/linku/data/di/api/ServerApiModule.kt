@@ -68,9 +68,9 @@ object ServerApiModule {
                         return@addInterceptor chain.proceed(chain.request())
                     }
                     val token = runBlocking { authPreference.getAccessToken() }
-                    val request = if (token.isNullOrBlank()) {
+                    val request = if (!token.isNullOrBlank()) {
                         chain.request().newBuilder()
-                            .header("Authorization", "Bearer $token")  // addHeader → header
+                            .header("Authorization", "Bearer $token")
                             .build()
                     } else chain.request()
                     chain.proceed(request)
