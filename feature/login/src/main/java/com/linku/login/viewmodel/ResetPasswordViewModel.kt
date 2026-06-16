@@ -44,6 +44,8 @@ by mviContainer(ResetPasswordState()) {
      * 성공 시 성공 다이얼로그 표시, 실패 시 에러 메시지 표시
      */
     fun onSendEmailClicked() {
+        if (state.value.isLoading) return
+
         viewModelScope.launch {
             updateState { copy(isLoading = true, error = null) }
 
