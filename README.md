@@ -179,3 +179,10 @@
 - - 기기명: Pixel 8
   - API 35 (Android 15.0, x86_64)
   - 1080 x 2400 px (412 x 915 dp)
+
+## Copyright
+
+© 2026 LinkU Team. All rights reserved.
+
+This project and its source code are proprietary and confidential.
+Unauthorized copying, modification, distribution, or use of this software is strictly prohibited.
