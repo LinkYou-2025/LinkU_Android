@@ -53,9 +53,15 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
         // 둘 다 없으면 처리 불필요로 판단하여 종료
         val title = message.notification?.title ?: message.data["title"] ?: return
         val body = message.notification?.body ?: message.data["message"] ?: return
+        val targetId = message.data["targetId"] ?: "null"
 
-        Log.d("FCM", "메세지 수신 완료")
-        Log.d("FCM", "title: $title / body: $body")
+        Log.d("FCM", """
+            FCM 수신
+            title: $title
+            body: $body
+            targetId: $targetId
+            """.trimIndent()
+        )
 
         // 일단은 액티비티로의 이동처리만 구현. 추후 수정 예정
         val pendingIntent = PendingIntent.getActivity(

@@ -41,7 +41,7 @@ import com.linku.home.ui.alarm.component.AlarmItem
 import com.linku.home.ui.alarm.component.AlarmNothingTab
 import com.linku.home.ui.alarm.component.AlarmSettingTab
 import com.linku.home.ui.alarm.component.AlarmAppendStateFooter
-import com.linku.home.ui.alarm.component.AlarmErrorContent
+import com.linku.home.ui.alarm.component.AlarmErrorLayout
 import com.linku.home.ui.alarm.component.AlarmLoadingContent
 import com.linku.home.viewmodel.AlarmViewModel
 import kotlinx.coroutines.flow.flowOf
@@ -175,7 +175,7 @@ private fun AlarmScreenContent(
                         }
 
                         is LoadState.Error -> {
-                            item { AlarmErrorContent(alarmPagingItems, refreshState) }
+                            item { AlarmErrorLayout(alarmPagingItems, refreshState) }
                         }
 
                         else -> {

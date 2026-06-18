@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,23 +45,18 @@ fun SystemAlarmTab(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            verticalAlignment = Alignment.Top
+            verticalAlignment = Alignment.CenterVertically
         ) {
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Image(
-                    painter = painterResource(
-                        if (isSystemAlarmAllowed) R.drawable.ic_info_blue
-                        else R.drawable.ic_info_red
-                    ),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(start = 2.dp, top = 2.dp)
-                )
-            }
+            Image(
+                painter = painterResource(
+                    if (isSystemAlarmAllowed) R.drawable.ic_info_blue
+                    else R.drawable.ic_info_red
+                ),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(20.dp)
+                    .offset(y = (-12).dp)
+            )
 
             // 분기 처리 및 특정 텍스트에만 스타일을 따로 지정
             val text = buildAnnotatedString {
@@ -78,21 +74,16 @@ fun SystemAlarmTab(
             Text(
                 text = text,
                 color = LocalColorTheme.current.gray[600],
-                modifier = Modifier
-                    .padding(start = 12.dp),
-                fontSize = 14.sp
+                fontSize = 14.sp,
+                modifier = Modifier.padding(start = 12.dp)
             )
         }
 
-        Box(
+        Image(
+            painter = painterResource(R.drawable.ic_long_right),
+            contentDescription = null,
             modifier = Modifier.size(14.dp)
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_long_right),
-                contentDescription = null,
-                modifier = Modifier.size(14.dp)
-            )
-        }
+        )
     }
 }
 

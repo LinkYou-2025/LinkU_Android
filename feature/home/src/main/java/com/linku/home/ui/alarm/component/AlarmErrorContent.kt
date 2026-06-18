@@ -30,20 +30,20 @@ import com.linku.design.theme.LocalColorTheme
  * 일단 임시구현해두었습니다 ~~
  */
 @Composable
-fun AlarmErrorContent(
+fun AlarmErrorLayout(
     alarmPagingItems: LazyPagingItems<AlarmSummary>,
     errorState: LoadState.Error
 ) {
     val message = (errorState.error as AppError).displayMessage
 
-    AlarmErrorContent(
+    AlarmErrorLayoutContent(
         message = message,
         onRetry = { alarmPagingItems.retry() }
     )
 }
 
 @Composable
-private fun AlarmErrorContent(
+private fun AlarmErrorLayoutContent(
     message: String,
     onRetry: () -> Unit
 ) {
@@ -67,9 +67,9 @@ private fun AlarmErrorContent(
 
 @Composable
 @Preview(showBackground = true)
-private fun AlarmErrorContentPreview() {
+private fun AlarmErrorLayoutPreview() {
     LinkuPreview {
-        AlarmErrorContent(
+        AlarmErrorLayoutContent(
             message = NetworkError.NoConnection().displayMessage,
             onRetry = {}
         )
