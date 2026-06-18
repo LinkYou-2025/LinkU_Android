@@ -1,6 +1,8 @@
 package com.linku.data.mapper
 
 import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 /**
@@ -18,10 +20,18 @@ import java.time.temporal.ChronoUnit
  * @receiver ISO 8601 형식의 UTC 타임스탬프 문자열 (예: "2024-01-01T00:00:00.000Z")
  * @return 상대 시간 문자열
  */
-fun String.toRelativeTime(now: Instant = Instant.now()): String {
+fun String.toRelativeTime(
+    now: Instant = Instant.now(),
+    zoneId: ZoneId = ZoneId.systemDefault()
+): String {
     // 파싱
-    val parsed = runCatching { Instant.parse(this) }
-        .getOrElse { return "알 수 없음" }
+    val parsed = runCatching {
+        LocalDateTime.parse(this)
+            .atZone(zoneId)
+            .toInstant()
+    }.getOrElse {
+        return "알 수 없음"
+    }
 
     // 현재 시간과 차이 계산
     val diff = maxOf(
