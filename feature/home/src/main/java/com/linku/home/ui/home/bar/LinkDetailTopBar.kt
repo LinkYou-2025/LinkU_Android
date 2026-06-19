@@ -2,6 +2,7 @@ package com.linku.home.ui.home.bar
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +13,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenuItem
+//import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,11 +36,19 @@ fun LinkDetailTopBar(
     linkTitle: String,
     category: String,
     emotion: String,
+    situation: String,
+    isEditMode: Boolean,
+    isCategoryDropdownOpen: Boolean,
+    isEmotionDropdownOpen: Boolean,
+    isSituationDropdownOpen: Boolean,
     onBack: () -> Unit,
     onMoreClick: () -> Unit,
     onLinkGoClick: () -> Unit,
+    onCategoryClick: () -> Unit,
+    onEmotionClick: () -> Unit,
+    onSituationClick: () -> Unit,
+    onTitleClearClick: () -> Unit,
 ) {
-
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -71,7 +81,7 @@ fun LinkDetailTopBar(
                 )
 
                 Text(
-                    text = "새로운 링크",
+                    text = if (isEditMode) "링크 수정하기" else "저장된 링크",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = LocalColorTheme.current.white,
@@ -82,7 +92,7 @@ fun LinkDetailTopBar(
                     modifier = Modifier
                         .size(18.dp)
                         .align(Alignment.CenterEnd)
-                        .noRippleClickable {
+                        .noRippleClickable(enabled = !isEditMode) {
                             onMoreClick()
                         }
                 ) {
@@ -101,17 +111,42 @@ fun LinkDetailTopBar(
                     .fillMaxWidth()
                     .padding(top = 29.dp, start = 24.dp, end = 24.dp, bottom = 23.dp)  // 편집 모드에서는 top = 20.dp
             ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 12.dp)  // 편집 모드에서는 bottom = 11.dp
+                        .then(
+                            if (isEditMode) {
+                                Modifier
+                                    .padding(bottom = 11.dp)
+                                    .clip(RoundedCornerShape(13.dp))
+                                    .border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(13.dp))
+                                    .padding(horizontal = 15.dp, vertical = 4.dp)
+                            } else {
+                                Modifier.padding(bottom = 12.dp)
+                            }
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
                         text = linkTitle,
-                        fontSize = 24.sp,  // 편집모드에서는 22.sp
+                        fontSize = if (isEditMode) 22.sp else 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = LocalColorTheme.current.white
                     )
+
+                    if (isEditMode) {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .noRippleClickable { onTitleClearClick() }
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_delete_blue),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
                 }
 
                 Row(
@@ -123,39 +158,159 @@ fun LinkDetailTopBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Text(
-                            text = category,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
+                        Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(LocalColorTheme.current.purple[50])
-                                .padding(horizontal = 10.dp, vertical = 3.dp)
-                        )
+                                .background(
+                                    when {
+                                        isEditMode && isCategoryDropdownOpen -> LocalColorTheme.current.white
+                                        isEditMode -> LocalColorTheme.current.blue[200]
+                                        else -> LocalColorTheme.current.purple[50]
+                                    }
+                                )  // 추후 카테고리 API 연동 후 실제 색상으로 변경 예정
+                                .then(
+                                    if(isEditMode) {
+                                        Modifier.border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(10.dp))
+                                    } else {
+                                        Modifier
+                                    }
+                                )
+                                .noRippleClickable(enabled = isEditMode) {
+                                    onCategoryClick()
+                                }
+                                .padding(horizontal = 10.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = category,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = when {
+                                    isEditMode && isCategoryDropdownOpen -> LocalColorTheme.current.blue[300]
+                                    isEditMode -> LocalColorTheme.current.white
+                                    else -> LocalColorTheme.current.black  // API 연동 후 수정 예정
+                                }
+                            )
 
-                        Text(
-                            text = emotion,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
+                            if(isEditMode) {
+                                Image(
+                                    painter = painterResource(R.drawable.ic_toggle),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(12.dp)
+                                        .rotate(if (isCategoryDropdownOpen) 180f else 0f)
+                                )
+                            }
+                        }
+
+                        Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(LocalColorTheme.current.purple[50])
-                                .padding(horizontal = 10.dp, vertical = 3.dp)
-                        )
+                                .background(
+                                    when {
+                                        isEditMode && isEmotionDropdownOpen -> LocalColorTheme.current.white
+                                        isEditMode -> LocalColorTheme.current.blue[200]
+                                        else -> LocalColorTheme.current.blue[50]
+                                    }
+                                )
+                                .then(
+                                    if(isEditMode) {
+                                        Modifier.border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(10.dp))
+                                    } else {
+                                        Modifier
+                                    }
+                                )
+                                .noRippleClickable(enabled = isEditMode) {
+                                    onEmotionClick()
+                                }
+                                .padding(horizontal = 10.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = emotion,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = when {
+                                    isEditMode && isEmotionDropdownOpen -> LocalColorTheme.current.blue[300]
+                                    isEditMode -> LocalColorTheme.current.white
+                                    else -> LocalColorTheme.current.blue[300]
+                                }
+                            )
+
+                            if(isEditMode) {
+                                Image(
+                                    painter = painterResource(R.drawable.ic_toggle),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(12.dp)
+                                        .rotate(if (isEmotionDropdownOpen) 180f else 0f)
+                                )
+                            }
+                        }
+
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(
+                                    when {
+                                        isEditMode && isSituationDropdownOpen -> LocalColorTheme.current.white
+                                        isEditMode -> LocalColorTheme.current.blue[200]
+                                        else -> LocalColorTheme.current.purple[50]
+                                    }
+                                )
+                                .then(
+                                    if(isEditMode) {
+                                        Modifier.border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(10.dp))
+                                    } else {
+                                        Modifier
+                                    }
+                                )
+                                .noRippleClickable(enabled = isEditMode) {
+                                    onSituationClick()
+                                }
+                                .padding(horizontal = 10.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = situation,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = when {
+                                    isEditMode && isSituationDropdownOpen -> LocalColorTheme.current.blue[300]
+                                    isEditMode -> LocalColorTheme.current.white
+                                    else -> LocalColorTheme.current.purple[300]
+                                }
+                            )
+
+                            if(isEditMode) {
+                                Image(
+                                    painter = painterResource(R.drawable.ic_toggle),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .width(12.dp)
+                                        .rotate(if (isSituationDropdownOpen) 180f else 0f)
+                                )
+                            }
+                        }
                     }
 
-                    Box(
-                        modifier = Modifier
-                            .size(22.dp)
-                            .noRippleClickable {
-                                onLinkGoClick()
-                            },
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_link_go),
-                            contentDescription = null,
-                            modifier = Modifier.height(22.dp)
-                        )
+                    if(!isEditMode) {
+                        Box(
+                            modifier = Modifier
+                                .size(22.dp)
+                                .noRippleClickable {
+                                    onLinkGoClick()
+                                },
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_link_go),
+                                contentDescription = null,
+                                modifier = Modifier.height(22.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -163,38 +318,38 @@ fun LinkDetailTopBar(
     }
 }
 
-@Composable
-private fun LinkDetailDropdownItem(
-    iconRes: Int,
-    text: String,
-    onClick: () -> Unit,
-) {
-    DropdownMenuItem(
-        text = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(18.dp)
-            ) {
-                Image(
-                    painter = painterResource(iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.size(28.dp)
-                )
-
-                Text(
-                    text = text,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[800]
-                )
-            }
-        },
-        onClick = onClick,
-        modifier = Modifier
-            .height(64.dp)
-            .padding(horizontal = 12.dp)
-    )
-}
+//@Composable
+//private fun LinkDetailDropdownItem(
+//    iconRes: Int,
+//    text: String,
+//    onClick: () -> Unit,
+//) {
+//    DropdownMenuItem(
+//        text = {
+//            Row(
+//                verticalAlignment = Alignment.CenterVertically,
+//                horizontalArrangement = Arrangement.spacedBy(18.dp)
+//            ) {
+//                Image(
+//                    painter = painterResource(iconRes),
+//                    contentDescription = null,
+//                    modifier = Modifier.size(28.dp)
+//                )
+//
+//                Text(
+//                    text = text,
+//                    fontSize = 24.sp,
+//                    fontWeight = FontWeight.Medium,
+//                    color = LocalColorTheme.current.gray[800]
+//                )
+//            }
+//        },
+//        onClick = onClick,
+//        modifier = Modifier
+//            .height(64.dp)
+//            .padding(horizontal = 12.dp)
+//    )
+//}
 
 @Preview(showBackground = false)
 @Composable
@@ -204,9 +359,18 @@ fun PreviewLinkDetailTopBar() {
             linkTitle = "3일만에 오픽 AL 꿀팁",
             category = "어학",
             emotion = "평온",
+            situation = "통학 중",
+            isEditMode = false,
+            isCategoryDropdownOpen = false,
+            isEmotionDropdownOpen = false,
+            isSituationDropdownOpen = false,
             onBack = { },
             onMoreClick = { },
             onLinkGoClick = { },
+            onEmotionClick = { },
+            onCategoryClick = { },
+            onSituationClick = { },
+            onTitleClearClick = { }
         )
     }
 }
