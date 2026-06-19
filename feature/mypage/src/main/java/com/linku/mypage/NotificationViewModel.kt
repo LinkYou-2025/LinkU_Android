@@ -106,38 +106,31 @@ class NotificationViewModel @Inject constructor(
 
     private suspend fun handleLinkuNotificationIntent(
         intent: LinkuNotificationIntent
-    ) = when (intent) {
-        // All 토글의 상태가 바뀌면 서브 토글들도 All을 따라간다.
-        is ToggleAll ->
-            optimisticUpdate(AlarmType.ALL) { setting ->
-                setting.copy(
-                    isAllEnabled = intent.enabled,
-                    isLinkEnabled = intent.enabled,
-                    isFolderEnabled = intent.enabled,
-                    isCurationEnabled = intent.enabled,
-                    isNoticeEnabled = intent.enabled
-                )
-            }
+    ) {
+        optimisticUpdate(intent.alarmType) {
+            when (intent) {
+                is ToggleLink ->
+                    it.copy(isLinkEnabled = intent.enabled)
 
-        is ToggleLink ->
-            optimisticUpdate(AlarmType.LINK) {
-                it.copy(isLinkEnabled = intent.enabled)
-            }
+                is ToggleFolder ->
+                    it.copy(isFolderEnabled = intent.enabled)
 
-        is ToggleFolder ->
-            optimisticUpdate(AlarmType.FOLDER) {
-                it.copy(isFolderEnabled = intent.enabled)
-            }
+                is ToggleCuration ->
+                    it.copy(isCurationEnabled = intent.enabled)
 
-        is ToggleCuration ->
-            optimisticUpdate(AlarmType.CURATION) {
-                it.copy(isCurationEnabled = intent.enabled)
-            }
+                is ToggleNotice ->
+                    it.copy(isNoticeEnabled = intent.enabled)
 
-        is ToggleNotice ->
-            optimisticUpdate(AlarmType.NOTICE) {
-                it.copy(isNoticeEnabled = intent.enabled)
+                is ToggleAll ->
+                    it.copy(
+                        isAllEnabled = intent.enabled,
+                        isLinkEnabled = intent.enabled,
+                        isFolderEnabled = intent.enabled,
+                        isCurationEnabled = intent.enabled,
+                        isNoticeEnabled = intent.enabled
+                    )
             }
+        }
     }
 
     /**
