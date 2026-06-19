@@ -7,7 +7,14 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
+import com.linku.mypage.intent.LinkuNotificationIntent
 import com.linku.mypage.intent.NotificationIntent
+import com.linku.mypage.intent.RefreshSystemAlarm
+import com.linku.mypage.intent.ToggleAll
+import com.linku.mypage.intent.ToggleCuration
+import com.linku.mypage.intent.ToggleFolder
+import com.linku.mypage.intent.ToggleLink
+import com.linku.mypage.intent.ToggleNotice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,33 +96,48 @@ class NotificationViewModel @Inject constructor(
     private suspend fun reduce(
         intent: NotificationIntent
     ) = when (intent) {
-        is NotificationIntent.RefreshSystemAlarm ->
+        is RefreshSystemAlarm ->
             _notificationState.update {
                 it.copy(isSystemAlarmAllowed = checker.isNotificationEnabled()) }
 
+        is LinkuNotificationIntent ->
+            handleLinkuNotificationIntent(intent)
+    }
+
+    private suspend fun handleLinkuNotificationIntent(
+        intent: LinkuNotificationIntent
+    ) = when (intent) {
         // All 토글의 상태가 바뀌면 서브 토글들도 All을 따라간다.
-        is NotificationIntent.ToggleAll ->
+        is ToggleAll ->
             optimisticUpdate(AlarmType.ALL) { setting ->
                 setting.copy(
-                    isAllEnabled     = intent.enabled,
-                    isLinkEnabled    = intent.enabled,
-                    isFolderEnabled  = intent.enabled,
+                    isAllEnabled = intent.enabled,
+                    isLinkEnabled = intent.enabled,
+                    isFolderEnabled = intent.enabled,
                     isCurationEnabled = intent.enabled,
-                    isNoticeEnabled  = intent.enabled
+                    isNoticeEnabled = intent.enabled
                 )
             }
 
-        is NotificationIntent.ToggleLink ->
-            optimisticUpdate(AlarmType.LINK) { it.copy(isLinkEnabled = intent.enabled) }
+        is ToggleLink ->
+            optimisticUpdate(AlarmType.LINK) {
+                it.copy(isLinkEnabled = intent.enabled)
+            }
 
-        is NotificationIntent.ToggleFolder ->
-            optimisticUpdate(AlarmType.FOLDER) { it.copy(isFolderEnabled = intent.enabled) }
+        is ToggleFolder ->
+            optimisticUpdate(AlarmType.FOLDER) {
+                it.copy(isFolderEnabled = intent.enabled)
+            }
 
-        is NotificationIntent.ToggleCuration ->
-            optimisticUpdate(AlarmType.CURATION) { it.copy(isCurationEnabled = intent.enabled) }
+        is ToggleCuration ->
+            optimisticUpdate(AlarmType.CURATION) {
+                it.copy(isCurationEnabled = intent.enabled)
+            }
 
-        is NotificationIntent.ToggleNotice ->
-            optimisticUpdate(AlarmType.NOTICE) { it.copy(isNoticeEnabled = intent.enabled) }
+        is ToggleNotice ->
+            optimisticUpdate(AlarmType.NOTICE) {
+                it.copy(isNoticeEnabled = intent.enabled)
+            }
     }
 
     /**
@@ -145,7 +167,6 @@ class NotificationViewModel @Inject constructor(
             val updated = reducer(state.alarmToggleUiState)
 
             state.copy(
-
                 // 모든 서브알림이 비활성화 -> 전체 알림도 자동으로 OFF 처리
                 // 그 외의 경우에는 reducer가 계산한 상태를 그대로 반영
                 alarmToggleUiState = if (updated.areAllSubDisabled()) {
@@ -169,7 +190,6 @@ class NotificationViewModel @Inject constructor(
             }
         )
     }
-
 
     // 화면 진입 시 초기 알람 설정 상태를 load
     private fun loadAlarmSetting() {

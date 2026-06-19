@@ -44,7 +44,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        // 푸시알람 활성화 안되어있으면 종료
+        // 푸시알림 활성화 안되어있으면 종료
         if (!notificationPreference.isMasterNotificationEnabled()) return
 
         // FCM 메시지 타입에 따라 title/body 추출
@@ -71,7 +71,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        // 알람 제작
+        // 알림 제작
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_logo)
             .setContentTitle(title)
@@ -81,6 +81,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             .setContentIntent(pendingIntent)
             .build()
 
+        // 알림 출력
         getSystemService(NotificationManager::class.java)
             .notify(System.currentTimeMillis().toInt(), notification)
     }
