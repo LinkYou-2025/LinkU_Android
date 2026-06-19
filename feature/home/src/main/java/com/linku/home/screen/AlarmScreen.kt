@@ -58,9 +58,6 @@ fun AlarmScreen(
     //탭 선택 상태
     var selectedTab by rememberSaveable { mutableStateOf(AlarmType.ALL) }
 
-    // 탭별 목록의 스크롤 상태를 저장하는 Map
-    val listStates = remember { AlarmType.entries.associateWith { LazyListState() } }
-
     // 사용자가 직접 스와이프 새로고침을 트리거했을 때 활성화되는 state
     var isUserRefreshing by remember { mutableStateOf(false) }
 
@@ -86,7 +83,6 @@ fun AlarmScreen(
         selectedTab = selectedTab,
         onSelectedChange = { selectedTab = it },
         alarmPagingItems = alarmPagingItems,
-        listState = listStates.getValue(selectedTab),
         isUserRefreshing = isUserRefreshing,
         onRefresh = {
             isUserRefreshing = true
@@ -105,7 +101,6 @@ private fun AlarmScreenContent(
     selectedTab: AlarmType,
     onSelectedChange: (AlarmType) -> Unit,
     alarmPagingItems: LazyPagingItems<AlarmSummary>,
-    listState: LazyListState,
     isUserRefreshing: Boolean,
     onRefresh: () -> Unit,
     pullToRefreshState: PullToRefreshState,
@@ -163,7 +158,6 @@ private fun AlarmScreenContent(
                  * - loadState.append: 스크롤로 다음 페이지를 불러올 때의 상태. [AlarmAppendStateFooter]에서 사용
                  */
                 LazyColumn(
-                    state = listState,
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     contentPadding = PaddingValues(top = 12.dp),
                     modifier = Modifier.fillMaxSize()
