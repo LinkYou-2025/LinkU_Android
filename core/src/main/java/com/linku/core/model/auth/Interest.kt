@@ -26,8 +26,8 @@ enum class Interest(
     PSYCHOLOGY("심리\n& 자기계발", "PSYCHOLOGY");
 
     companion object {
-        fun fromServerKey(key: String): Interest? = entries.find { it.serverKey == key }
-        fun fromDisplayName(name: String): Interest? = entries.find { it.displayName == name }
+        fun fromServerKey(key: String): Interest? = selectionItemOfServerKey(key)
+        fun fromDisplayName(name: String): Interest? = selectionItemOfDisplayName(name)
     }
 }
 

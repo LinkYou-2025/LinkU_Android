@@ -22,10 +22,9 @@ enum  class Purpose(
     OTHERS("기타", "OTHERS");
 
     companion object {
-        fun fromServerKey(key: String): Purpose? = entries.find { it.serverKey == key }
-        fun fromDisplayName(name: String): Purpose? = entries.find { it.displayName == name }
+        fun fromServerKey(key: String): Purpose? = selectionItemOfServerKey(key)
+        fun fromDisplayName(name: String): Purpose? = selectionItemOfDisplayName(name)
     }
-
 }
 
 
