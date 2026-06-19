@@ -1,20 +1,15 @@
 package com.linku.data.implementation.repository
 
-import android.util.Log
 import com.linku.core.model.CurationDetail
 import com.linku.core.model.CurationItem
 import com.linku.core.model.RecommendedLink
 import com.linku.core.repository.CurationRepository
 import com.linku.data.api.CurationApi
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.BaseEmptyResponse
-import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.CurationLatestResponse
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
 import okio.Buffer
-import retrofit2.HttpException
 import javax.inject.Inject
 
 
@@ -26,45 +21,42 @@ class CurationRepositoryImpl @Inject constructor(
 ) : CurationRepository {
 
 
-
-
-
-    override suspend fun getMyRecentCuration(userId: Long): CurationItem {
-        Log.d("CurationRepo", "getMyRecentCuration() via RAW path")  // ✅ 추가
-        // ✅ Raw 호출
-        val resp = curationApi.getMyRecentCurationRaw(userId)
-        if (!resp.isSuccessful) throw HttpException(resp)
-
-        val bodyStr = resp.body()?.string() ?: throw IllegalStateException("빈 응답")
-
-        Log.d("CurationApi", "response body = $bodyStr")
-
-        // ✅ result 키 존재 여부 먼저 확인
-        return if (hasResultKey(bodyStr)) {
-            val type = Types.newParameterizedType(
-                BaseResponse::class.java,
-                CurationLatestResponse::class.java
-            )
-            val adapter = moshi.adapter<BaseResponse<CurationLatestResponse>>(type)
-            val base = adapter.fromJson(bodyStr)
-                ?: throw IllegalStateException("파싱 실패(BaseResponse)")
-            val dto = base.result // 팀 규칙상 non-null
-            CurationItem(
-                id = dto.curationId,
-                month = dto.month,
-                thumbnailUrl = dto.thumbnailUrl
-            )
-        } else {
-            val emptyAdapter = moshi.adapter(BaseEmptyResponse::class.java)
-            val empty = emptyAdapter.fromJson(bodyStr)
-                ?: throw IllegalStateException("파싱 실패(BaseEmptyResponse)")
-            if (!empty.isSuccess) {
-                throw IllegalStateException("최근 큐레이션 호출 실패: ${empty.code}/${empty.message}")
-            }
-            // 최신 없음 → VM에서 생성 플로우로 넘기기
-            throw NoSuchElementException("최근 큐레이션이 없습니다.")
-        }
-    }
+//    override suspend fun getMyRecentCuration(userId: Long): CurationItem {
+//        Log.d("CurationRepo", "getMyRecentCuration() via RAW path")  // ✅ 추가
+//        // ✅ Raw 호출
+//        val resp = curationApi.getMyRecentCurationRaw(userId)
+//        if (!resp.isSuccessful) throw HttpException(resp)
+//
+//        val bodyStr = resp.body()?.string() ?: throw IllegalStateException("빈 응답")
+//
+//        Log.d("CurationApi", "response body = $bodyStr")
+//
+//        // ✅ result 키 존재 여부 먼저 확인
+//        return if (hasResultKey(bodyStr)) {
+//            val type = Types.newParameterizedType(
+//                BaseResponse::class.java,
+//                CurationLatestResponse::class.java
+//            )
+//            val adapter = moshi.adapter<BaseResponse<CurationLatestResponse>>(type)
+//            val base = adapter.fromJson(bodyStr)
+//                ?: throw IllegalStateException("파싱 실패(BaseResponse)")
+//            val dto = base.result // 팀 규칙상 non-null
+//            CurationItem(
+//                id = dto.curationId,
+//                month = dto.month,
+//                thumbnailUrl = dto.thumbnailUrl
+//            )
+//        } else {
+//            val emptyAdapter = moshi.adapter(BaseEmptyResponse::class.java)
+//            val empty = emptyAdapter.fromJson(bodyStr)
+//                ?: throw IllegalStateException("파싱 실패(BaseEmptyResponse)")
+//            if (!empty.isSuccess) {
+//                throw IllegalStateException("최근 큐레이션 호출 실패: ${empty.code}/${empty.message}")
+//            }
+//            // 최신 없음 → VM에서 생성 플로우로 넘기기
+//            throw NoSuchElementException("최근 큐레이션이 없습니다.")
+//        }
+//    }
 
     private fun hasResultKey(json: String): Boolean {
         val reader = JsonReader.of(Buffer().writeUtf8(json))

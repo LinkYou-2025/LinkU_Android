@@ -34,25 +34,13 @@ import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SelectionItem
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.SelectionCardItem
 import com.linku.login.ui.item.StepIndicator
 
-/**
- * 목적/관심사 선택 공통 레이아웃
- *
- * 사용처:
- * - InterestPurposeScreen (SignUpViewModel - Purpose)
- * - InterestContentScreen (SignUpViewModel - Interest)
- * - SocialPurposeScreen   (SocialAuthViewModel - Purpose)
- * - SocialInterestScreen  (SocialAuthViewModel - Interest)
- *
- * 그리드: FlowColumn - 열당 3개 고정, 가로 스크롤
- * 카드 간격: 10dp (가로/세로 동일)
- *
- * TODO: 디자이너 아이콘 작업 완료 시
- *  - SelectionCardItem 내부 placeholder 분기 제거 후 Image()만 남기기
- */
+
 @Composable
 internal fun <T : SelectionItem> SignUpSelectionLayout(
     // 상단 영역
@@ -63,6 +51,9 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
     // 데이터
     items: List<T>,
     selectedItems: List<T>,
+
+    // 아이콘
+    iconRes: (T) -> Int,
 
     // 버튼
     buttonText: String,
@@ -81,7 +72,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(colorTheme.white)
-                    .padding(bottom = 16.dp)
+                    .padding(bottom = 16.scaler)
             ) {
                 BottomGradientButton(
                     text = buttonText,
@@ -97,8 +88,8 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 52.dp)
-                .padding(innerPadding)
+                .padding(top = 60.scaler)
+                .padding(bottom = innerPadding.calculateBottomPadding())
                 .background(colorTheme.white)
         ) {
             // Step 인디케이터
@@ -119,8 +110,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
-            // 피그마: 타이틀 ~ 서브텍스트 간격 15dp
-            Spacer(modifier = Modifier.height(15.dp))
+            Spacer(modifier = Modifier.height(15.scaler))
 
             // 서브텍스트
             Text(
@@ -132,7 +122,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
-            Spacer(modifier = Modifier.height(28.dp)) //TODO :프리뷰상 40인거 아는데 그러면 화면이 부족해요... 일단 28로 해놓기는 했습니다..
+            Spacer(modifier = Modifier.height(28.scaler)) //TODO :프리뷰상 40인거 아는데 그러면 화면이 부족해요... 일단 28로 해놓기는 했습니다..
 
             // FlowColumn: 열당 3개 고정, 가로 스크롤
             // 참고 : https://developer.android.com/develop/ui/compose/layouts/flow?hl=ko
@@ -146,13 +136,13 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                     modifier = Modifier
                         .fillMaxHeight()
                         .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp)
+                        .padding(horizontal = 20.scaler)
                 ) {
                     items.forEach { item ->
                         SelectionCardItem(
                             text = item.displayName,
                             isSelected = selectedItems.contains(item),
-                            iconName = item.iconName,
+                            iconRes = iconRes(item),
                             onClick = { onToggle(item) }
                         )
                     }
@@ -167,8 +157,8 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 15.dp)
+                        .padding(horizontal = 20.scaler)
+                        .padding(bottom = 15.scaler)
                 )
             }
 
@@ -190,7 +180,8 @@ private fun SignUpSelectionLayoutPreview() {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-            items = Purpose.getAllPurposes(),
+            items = Purpose.entries.toList(),
+            iconRes = { it.iconRes },
             selectedItems = selectedItems,
             buttonText = "다음",
             canProceed = selectedItems.isNotEmpty(),
@@ -218,7 +209,8 @@ private fun SignUpSelectionLayoutSelectedPreview() {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-            items = Purpose.getAllPurposes(),
+            items = Purpose.entries.toList(),
+            iconRes = { it.iconRes },
             selectedItems = selectedItems,
             buttonText = "다음",
             canProceed = selectedItems.isNotEmpty(),
@@ -243,7 +235,8 @@ private fun SignUpSelectionLayoutInterestPreview() {
                 append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
-            items = Interest.getAllInterests(),
+            items = Interest.entries.toList(),
+            iconRes = { it.iconRes },
             selectedItems = selectedItems,
             buttonText = "다음",
             canProceed = selectedItems.isNotEmpty(),

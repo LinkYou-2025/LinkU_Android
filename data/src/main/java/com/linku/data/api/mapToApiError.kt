@@ -48,7 +48,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     // =========================================================
     "USERS4001" -> ApiError.User.AlreadyActiveUser(message)
     "USERS4002" -> ApiError.User.InvalidGender(message)
-    "USERS4004" -> ApiError.Folder.InvitationExpired(message)
+    "USERS4004" -> ApiError.User.ExpiredVerificationCode(message)
     "USERS4005" -> ApiError.User.InvalidPassword(message)
     "USERS4006" -> ApiError.User.PasswordMismatch(message)
     "USERS4011" -> ApiError.User.VerificationFailed(message)

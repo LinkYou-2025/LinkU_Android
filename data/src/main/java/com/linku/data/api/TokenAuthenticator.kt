@@ -1,10 +1,8 @@
 package com.linku.data.api
 
 import android.util.Log
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.preference.AuthPreference
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -19,7 +17,6 @@ import javax.inject.Singleton
 @Singleton
 class TokenAuthenticator @Inject constructor(
     private val authPreference: AuthPreference,
-    private val loginSessionStore: LoginSessionStore,
     private val authApi: AuthApi
 ) : Authenticator {
 
@@ -39,7 +36,7 @@ class TokenAuthenticator @Inject constructor(
         return runBlocking {
             refreshMutex.withLock {
                 try {
-                    val currentToken = authPreference.accessToken
+                    val currentToken = authPreference.getAccessToken().orEmpty()
 
                     if (currentToken.isNotBlank() &&
                         response.request.header("Authorization") != "Bearer $currentToken"
@@ -50,17 +47,17 @@ class TokenAuthenticator @Inject constructor(
                             .build()
                     }
 
-                    val refreshToken = authPreference.refreshToken
-                        ?: run {
-                            Log.e(TAG, "[토큰 재발급 실패] refreshToken 없음")
-                            return@withLock null
-                        }
+                    val refreshToken = authPreference.getRefreshToken()
+                    if (refreshToken.isNullOrBlank()) {
+                        Log.e(TAG, "[토큰 재발급 실패] refreshToken 없음")
+                        return@withLock null
+                    }
 
-                    val deviceId = loginSessionStore.deviceId.first()
-                        ?: run {
-                            Log.e(TAG, "[토큰 재발급 실패] deviceId 없음")
-                            return@withLock null
-                        }
+                    val deviceId = authPreference.getDeviceId()
+                    if (deviceId.isBlank()) {
+                        Log.e(TAG, "[토큰 재발급 실패] deviceId 없음")
+                        return@withLock null
+                    }
 
                     val reissueResponse = authApi.reissue(
                         ReissueRequestDTO(
@@ -79,9 +76,10 @@ class TokenAuthenticator @Inject constructor(
                     val newRefreshToken = reissueResponse.result.refreshToken
 
 
-                    // 새 토큰 저장
-                    authPreference.accessToken = newAccessToken
-                    authPreference.refreshToken = newRefreshToken
+                    authPreference.updateAccessToken(
+                        accessToken = newAccessToken,
+                        refreshToken = newRefreshToken
+                    )
 
                     Log.d(TAG, "[토큰 재발급 성공] 원래 요청 재시도")
 

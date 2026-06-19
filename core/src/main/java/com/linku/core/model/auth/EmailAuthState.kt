@@ -16,4 +16,8 @@ object AuthErrorMessages {
     const val SERVER_ERROR = "서버 오류"
     const val VERIFY_FAILED = "인증번호가 올바르지 않습니다! 다시 시도해주세요."
     const val NETWORK_ERROR = "네트워크 오류"
+    const val EMPTY_EMAIL = "이메일이 비어있습니다."
+    const val EMPTY_CODE = "인증 코드가 비어있습니다."
+    const val VERIFY_TIMEOUT = "인증 시간이 만료되었습니다. 다시 시도해주세요."
+
 }

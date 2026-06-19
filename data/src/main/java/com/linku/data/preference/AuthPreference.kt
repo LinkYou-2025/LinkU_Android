@@ -1,31 +1,45 @@
 package com.linku.data.preference
 
-//엑세스 토큰 직접 Retrofit 인터셉터가 아닌, 함수 단위로 현재 사용중임.
-/*
-* 로그인 /api/users/login은 최초 로그인 전용으로, 이메일 로그인에서 사용함.
-* 여기서 엑세스 토큰 + 리프레쉬 토큰 응답을 함.
-* 이를 AuthPreference에 저장함.
-*
-* */
-
+import com.linku.core.model.auth.LoginType
+import com.linku.core.model.auth.UserSession
+import kotlinx.coroutines.flow.Flow
 
 interface AuthPreference {
 
-    val isLoggedIn : Boolean
-        get() = !refreshToken.isNullOrBlank() //로그인 상태 확인
-    var accessToken: String // 모든 인증 api 요청에 사용함.
-    var refreshToken: String? // 자동로그인/ 엑세스 토큰 재발급의 기준임. 엑세스 토큰은 기간이 짧기에
-    var userId: Long? // 사용자 확인용.
-    var socialToken: String?
+    val isLoggedIn: Flow<Boolean>
+    val sessionState: Flow<UserSession>
 
+    suspend fun initDeviceInfo(deviceId: String, deviceType: String)
 
-    fun clear() //모든 인증 정보 삭제(로그아웃, 회원탈퇴)
+    suspend fun getDeviceId(): String
+    suspend fun getDeviceType(): String
 
-    fun saveTokens(
+    suspend fun getAccessToken(): String?
+    suspend fun getRefreshToken(): String?
+    suspend fun getUserId(): Long?
+
+    suspend fun getLoginType(): LoginType
+
+    suspend fun saveTokens(
         accessToken: String,
-        refreshToken: String?, //sns 로그인 중 에는 null로 옴.
-        userId: Long
+        refreshToken: String?,
+        userId: Long,
+        loginType: LoginType
     )
 
+    // 소셜 가입(TEMP) 유저가 나중에 가입을 최종 완료했을 때 수단만 따로 업데이트하기 위함
+    suspend fun updateLoginType(loginType: LoginType)
+
+    suspend fun updateAccessToken(
+        accessToken: String,
+        refreshToken: String?
+    )
+
+    suspend fun clear()
+
+    suspend fun getCachedNickname(): String?
+    suspend fun saveNickname(nickname: String)
+
 }
+
 

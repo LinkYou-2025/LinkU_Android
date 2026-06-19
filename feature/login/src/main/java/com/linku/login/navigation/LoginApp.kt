@@ -49,13 +49,27 @@ import com.linku.login.viewmodel.EmailAuthViewModel
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.login.viewmodel.SignUpViewModel
 import com.linku.login.viewmodel.SocialAuthViewModel
+import com.linku.login.viewmodel.state.LoginUiEffect
 
 @Composable
 fun LoginApp(
     onLoginSuccess: () -> Unit,
+    onAutoLoginSuccess: () -> Unit,
+    onAutoLoginFail: () -> Unit,
     loginViewModel: LoginViewModel
 ) {
     val navController = rememberNavController()
+
+    // 채널 effect는 오직 LoginApp에서만
+    LaunchedEffect(Unit) {
+        loginViewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is LoginUiEffect.LoginSuccess -> onLoginSuccess()
+                is LoginUiEffect.AutoLoginSuccess -> onAutoLoginSuccess()
+                is LoginUiEffect.AutoLoginFail -> onAutoLoginFail()
+            }
+        }
+    }
 
 
     NavHost(
@@ -93,7 +107,6 @@ fun LoginApp(
             authComposable("login") { parentEntry ->
                 // 추가함 :  parentEntry → auth_graph 전체를 범위로 하는 ViewModel 로그인 상태가 화면 전환 중에도 유지됨.
                 val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
-
                 val skipAnimation =
                     parentEntry.savedStateHandle.get<Boolean>("skip_login_animation") ?: false
 
@@ -102,13 +115,23 @@ fun LoginApp(
                 }
 
                 AnimatedLoginScreen(
-                    navigator = navController,
                     skipAnimation = skipAnimation,
-                    viewModel = socialAuthVm, //추가함 : 받아서 -> 로그인 스크린으로 전달함.
+                    viewModel = socialAuthVm,
                     onLoginSuccess = onLoginSuccess,
-                    onSignUpClick = {
-                        parentEntry.savedStateHandle["show_terms_sheet"] = true
+                    onNavigateToEmailLogin = {
+                        parentEntry.savedStateHandle["show_terms_sheet"] = false
                         navController.navigate("email_login")
+                    },
+                    onNavigateToSocialOnboarding = { token ->
+                        // TEMP 신규 사용자 감지 시 소셜 온보딩 하위 그래프 세션 인입
+                        navController.navigate("social_auth_graph") {
+                            launchSingleTop = true
+                        }
+                        navController.getBackStackEntry("social_auth_graph")
+                            .savedStateHandle["socialToken"] = token
+                    },
+                    onAnimationSkipHandled = {
+                        parentEntry.savedStateHandle.remove<Boolean>("skip_login_animation")
                     }
                 )
             }
@@ -116,7 +139,7 @@ fun LoginApp(
             // 2. 이메일 로그인 + 약관 바텀시트
             authComposable("email_login") { parentEntry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
-
+                val signUpUiState by signUpVm.state.collectAsStateWithLifecycle()
                 val showTermsSheet by parentEntry.savedStateHandle
                     .getStateFlow("show_terms_sheet", false)
                     .collectAsStateWithLifecycle()
@@ -127,19 +150,26 @@ fun LoginApp(
 
                 EmailLoginScreen(
                     loginViewModel = loginViewModel,
-                    navigator = navController,
-                    onSignUpClick = { parentEntry.savedStateHandle["show_terms_sheet"] = true },
+                    onSignUpClick = {
+                        parentEntry.savedStateHandle["show_terms_sheet"] = true
+                    },
+                    onResetPasswordClick = {
+                        navController.navigate("reset_password")
+                    },
                     onLoginSuccess = onLoginSuccess
                 )
 
                 TermsAgreementSheet(
                     visible = showTermsSheet,
                     state = TermsAgreementState(
-                        agreeTerms = signUpVm.signUpForm.agreeTerms,
-                        agreePrivacy = signUpVm.signUpForm.agreePrivacy,
-                        agreeMarketing = signUpVm.signUpForm.agreeMarketing,
+                        agreeTerms = signUpUiState.signUpForm.agreeTerms,
+                        agreePrivacy = signUpUiState.signUpForm.agreePrivacy,
+                        agreeMarketing = signUpUiState.signUpForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
+                        onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
+                        onAgreePrivacyChange = { signUpVm.setAgreePrivacy(it) },
+                        onAgreeMarketingChange = { signUpVm.setAgreeMarketing(it) },
                         onClose = { parentEntry.savedStateHandle["show_terms_sheet"] = false },
                         onClickTerms = {
                             parentEntry.savedStateHandle["show_terms_sheet"] = false
@@ -173,6 +203,8 @@ fun LoginApp(
                 authComposable(route) { parentEntry ->
                     val vm: SignUpViewModel = hiltViewModel(parentEntry)
 
+                    val signUpUiState by vm.state.collectAsStateWithLifecycle()
+
                     val onBack: () -> Unit = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                         navController.popBackStack()
@@ -181,20 +213,20 @@ fun LoginApp(
 
                     when (route) {
                         "terms/service" -> ServiceTermsScreen(
-                            alreadyAgreed = vm.signUpForm.agreeTerms,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             // agreeAction(vm) 뒤에 세미콜론 제거 → 람다 마지막 식이 Unit이어야 함
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "terms/privacy" -> PrivacyTermsScreenFixed(
-                            alreadyAgreed = vm.signUpForm.agreePrivacy,
+                            alreadyAgreed = signUpUiState.signUpForm.agreePrivacy,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "terms/marketing" -> MarketingTermsScreenComposable(
-                            alreadyAgreed = vm.signUpForm.agreeMarketing,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeMarketing,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
@@ -207,14 +239,16 @@ fun LoginApp(
                 val emailVm: EmailAuthViewModel = hiltViewModel(parentEntry)
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
 
-                BackHandler {
-                    parentEntry.savedStateHandle["skip_login_animation"] = true
-                    navController.popBackStack()
-                }
-
                 EmailVerificationScreen(
-                    navigator = navController,
-                    parentEntry = parentEntry,
+                    onBackClick = {
+                        parentEntry.savedStateHandle["skip_login_animation"] = true
+                        navController.popBackStack()
+                    },
+                    onNavigateToPassword = {
+                        navController.navigate("sign_up_password") {
+                            launchSingleTop = true
+                        }
+                    },
                     viewModel = emailVm,
                     signUpViewModel = signUpVm
                 )
@@ -222,48 +256,115 @@ fun LoginApp(
 
             // 5. 회원가입 단계
             authComposable("sign_up_password") { parentEntry ->
-                SignUpPasswordScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                SignUpPasswordScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToNickname = {
+                        navController.navigate("sign_up_nickname") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
+
             authComposable("sign_up_nickname") { parentEntry ->
-                SignUpNicknameScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                SignUpNicknameScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToGender = {
+                        navController.navigate("sign_up_gender") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
+
             authComposable("sign_up_gender") { parentEntry ->
-                SignUpGenderScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+                SignUpGenderScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToJob = {
+                        navController.navigate("sign_up_job") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
+
             authComposable("sign_up_job") { parentEntry ->
-                SignUpJobScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                SignUpJobScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToPurpose = {
+                        navController.navigate("sign_up_purpose") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
+
             authComposable("sign_up_purpose") { parentEntry ->
-                InterestPurposeScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                InterestPurposeScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToInterest = {
+                        navController.navigate("sign_up_interest") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
+
             authComposable("sign_up_interest") { parentEntry ->
-                InterestContentScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                InterestContentScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onNavigateToWelcome = {
+                        navController.navigate("welcome") { launchSingleTop = true }
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
+
             authComposable("welcome") { parentEntry ->
-                WelcomeScreen(navController, hiltViewModel(parentEntry))
+                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
+
+                WelcomeScreen(
+                    onNavigateToLogin = {
+                        navController.navigate("email_login") {
+                            popUpTo("auth_graph") { inclusive = true }
+                        }
+                    },
+                    onNavigateBackOnError = {
+                        navController.popBackStack()
+                    },
+                    signUpViewModel = signUpVm
+                )
             }
 
             composable("reset_password") {
-                ResetPasswordScreen(navigator = navController)
+                ResetPasswordScreen(
+                    onNavigateToEmailLogin = {
+                        navController.navigate("email_login") {
+                            popUpTo("reset_password") { inclusive = true }
+                        }
+                    }
+                )
             }
         }
 
-        /**
-         * 소셜 로그인 회원가입 순서
-         * 1. 스플래쉬 → 2. 로그인 → 3. 카카오 버튼 선택 → 4. 카카오 SDK 인증
-         * 5. social_login_gate (약관 동의) → 6. SocialNicknameScreen → 7. Gender
-         * 8. Job → 9. Purpose → 10. Interest → 11. WelcomeSocialScreen → 12. 홈
-         *
-         *   카카오 로그인: 딥링크 방식 → 카카오 SDK 방식으로 변경
-         *   LoginScreen에서 KakaoLoginState.Success(TEMP) 감지 시 social_login_gate로 이동
-         *   accessToken은 social_auth_graph의 savedStateHandle["socialToken"]에 저장
-         *   social_interest에서 socialToken을 꺼내 completeSocialProfile API 호출
-         *
-         *   socialComposable: rememberSocialParentEntry로 social_auth_graph 스코프 ViewModel 공유
-         *   null이면 NavigateToLoginOnError 호출 → 로그인 화면으로 안전하게 복귀
-         *
-         *   social_welcome: onLoginSuccess 콜백 전달 → 홈 이동
-         */
         navigation(
             route = "social_auth_graph",
             startDestination = "social_login_gate"
@@ -290,7 +391,7 @@ fun LoginApp(
             socialComposable("social_login_gate") { parentEntry, entry ->
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
                 val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
-
+                val signUpUiState by signUpVm.state.collectAsStateWithLifecycle()
                 val showTermsSheet by entry.savedStateHandle
                     .getStateFlow("show_terms_sheet", true)
                     .collectAsStateWithLifecycle()
@@ -300,10 +401,21 @@ fun LoginApp(
                 }
 
                 LoginScreen(
-                    navigator = navController,
                     viewModel = socialAuthVm,
                     onLoginSuccess = onLoginSuccess,
                     buttonsEnabled = false,  // 버튼 비활성화
+                    onNavigateToEmailLogin = {
+                        navController.navigate("email_login")
+                    },
+                    onNavigateToSocialOnboarding = { token ->
+                        // TEMP 유저 효과 발생 시 내비게이션 흐름 및 세션 전달을 그래프가 제어합니다.
+                        // TODO : 수정하기
+                        navController.navigate("social_auth_graph") {
+                            launchSingleTop = true
+                        }
+                        navController.getBackStackEntry("social_auth_graph")
+                            .savedStateHandle["socialToken"] = token
+                    },
                     logoSlot = {
                         Image(
                             painter = painterResource(id = R.drawable.img_login_logo),
@@ -320,11 +432,14 @@ fun LoginApp(
                 TermsAgreementSheet(
                     visible = showTermsSheet,
                     state = TermsAgreementState(
-                        agreeTerms = signUpVm.signUpForm.agreeTerms,
-                        agreePrivacy = signUpVm.signUpForm.agreePrivacy,
-                        agreeMarketing = signUpVm.signUpForm.agreeMarketing,
+                        agreeTerms = signUpUiState.signUpForm.agreeTerms,
+                        agreePrivacy = signUpUiState.signUpForm.agreePrivacy,
+                        agreeMarketing = signUpUiState.signUpForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
+                        onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
+                        onAgreePrivacyChange = { signUpVm.setAgreePrivacy(it) },
+                        onAgreeMarketingChange = { signUpVm.setAgreeMarketing(it) },
                         onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
@@ -357,7 +472,7 @@ fun LoginApp(
             socialTermsSteps.forEach { (route, agreeAction) ->
                 socialComposable(route) { parentEntry, _ ->
                     val vm: SignUpViewModel = hiltViewModel(parentEntry)
-
+                    val signUpUiState by vm.state.collectAsStateWithLifecycle()
                     val onBack: () -> Unit = {
                         navController.popBackStack()
                         navController.currentBackStackEntry
@@ -368,19 +483,19 @@ fun LoginApp(
 
                     when (route) {
                         "social_terms/service" -> ServiceTermsScreen(
-                            alreadyAgreed = vm.signUpForm.agreeTerms,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/privacy" -> PrivacyTermsScreenFixed(
-                            alreadyAgreed = vm.signUpForm.agreePrivacy,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/marketing" -> MarketingTermsScreenComposable(
-                            alreadyAgreed = vm.signUpForm.agreeMarketing,
+                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
@@ -391,55 +506,87 @@ fun LoginApp(
             // 소셜 회원가입 입력 플로우
             socialComposable("social_nickname") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                SocialNicknameScreen(navController, vm)
+                SocialNicknameScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToGender = {
+                        navController.navigate("social_gender") {
+                            launchSingleTop = true
+                        }
+                    },
+                    viewModel = vm
+                )
             }
 
             socialComposable("social_gender") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                SocialGenderScreen(navController, vm)
+                SocialGenderScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToJob = {
+                        navController.navigate("social_job") {
+                            launchSingleTop = true
+                        }
+                    },
+                    viewModel = vm
+                )
             }
 
             socialComposable("social_job") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                SocialJobScreen(navController, vm)
+                SocialJobScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToPurpose = {
+                        navController.navigate("social_purpose") {
+                            launchSingleTop = true
+                        }
+                    },
+                    viewModel = vm
+                )
             }
 
             socialComposable("social_purpose") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                SocialPurposeScreen(navController, vm)
+                SocialPurposeScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onNavigateToInterest = {
+                        navController.navigate("social_interest") {
+                            launchSingleTop = true
+                        }
+                    },
+                    viewModel = vm
+                )
             }
 
-            // [수정 3 적용] social_interest: entry -> 명시 + socialComposable 헬퍼 사용
-            // [수정 4 적용] onComplete 콜백 안에서만 API 호출 → 리컴포지션 때 호출 안 됨
             socialComposable("social_interest") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
                 val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
 
                 SocialInterestScreen(
-                    navigator = navController,
+                    onBackClick = { navController.popBackStack() },
                     viewModel = vm,
-                    // onComplete은 버튼 클릭 시 1회만 호출 → API 중복 호출 없음
                     onComplete = {
-                        vm.completeSocialProfile(
-                            socialToken = socialToken,
-                            onSuccess = {
-                                navController.navigate("social_welcome") {
-                                    popUpTo("social_auth_graph") { inclusive = true }
-                                }
-                            }
-                        )
+                        navController.navigate("social_welcome") {
+                            launchSingleTop = true
+                        }
                     }
                 )
             }
 
-            composable("social_welcome") {
+            socialComposable("social_welcome") { parentEntry, _ ->
+                val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
+                val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
+
                 WelcomeSocialScreen(
-                    navigator = navController,
-                    onLoginSuccess = onLoginSuccess
+                    socialToken = socialToken,
+                    onNavigateToHome = onLoginSuccess,
+                    onNavigateBackOnError = {
+                        navController.popBackStack()
+                    },
+                    viewModel = vm
                 )
             }
         }
     }
 }
+
 
 
