@@ -28,6 +28,7 @@ import java.io.InputStream
 @Composable
 fun HomeApp(
     viewModel: HomeViewModel,
+    nickname: String, // 닉네임 호출을 위해 추가함.
     onNavigateToMyPage: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
@@ -81,7 +82,7 @@ fun HomeApp(
         composable("onboarding") {
             HomeScreen(
                 homeViewModel = viewModel,
-                userName = viewModel.userName.orEmpty().ifBlank { "링큐" },
+                userName = nickname,
                 showRecommendations = viewModel.showRecommendations,
                 recommendedLinks = viewModel.recommendedLinks,
                 recentLinks = recentLinks,

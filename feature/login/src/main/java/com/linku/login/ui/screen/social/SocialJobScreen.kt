@@ -1,9 +1,11 @@
 package com.linku.login.ui.screen.social
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,7 +13,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.linku.core.model.auth.Job
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
@@ -19,25 +20,41 @@ import com.linku.login.ui.item.OptionButton
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SocialAuthViewModel
+import com.linku.login.viewmodel.state.SocialAuthUiEffect
 
 @Composable
 fun SocialJobScreen(
-    navigator: NavHostController,
+    onBackClick: () -> Unit,
+    onNavigateToPurpose: () -> Unit,
     viewModel: SocialAuthViewModel
 ) {
+    BackHandler { onBackClick() }
 
-    // SocialAuthViewModel 상태
-    val selectedJob by viewModel.job.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val selectedJob = uiState.socialLoginForm.job
     val jobs = Job.getAllJobs()
 
     val isButtonEnabled = selectedJob != Job.NONE
+
+    LaunchedEffect(viewModel.sideEffect) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SocialAuthUiEffect.NavigateToAdditionalInfo -> {
+                    onNavigateToPurpose()
+                }
+
+                else -> { /* 딱히 할게 없네용 */
+                }
+            }
+        }
+    }
 
     SignUpStepLayout(
         currentStep = 3,
         title = "현재 하고 계신 일이나\n활동을 알려주세요",
         buttonEnabled = isButtonEnabled,
         onNextClick = {
-            navigator.navigate("social_purpose") { launchSingleTop = true }
+            onNavigateToPurpose()
         }
     ) {
         Spacer(Modifier.height(4.scaler)) // layout 32 + 4 = 기존 36과 동일
@@ -46,7 +63,7 @@ fun SocialJobScreen(
             OptionButton(
                 text = job.displayName,
                 selected = selectedJob == job,
-                onClick = { viewModel.updateJob(job) },
+                onClick = { viewModel.onJobChanged(job) },
                 modifier = Modifier.fillMaxWidth()
             )
             Spacer(Modifier.height(12.scaler))

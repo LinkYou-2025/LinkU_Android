@@ -8,25 +8,56 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.repository.RecentSearchRepository
+import com.linku.core.repository.UserRepository
 import com.linku.core.system.NotificationController
+import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
-    val loginSessionStore: LoginSessionStore,
-    private val notificationController: NotificationController
+    private val notificationController: NotificationController,
+    private val authPreference: AuthPreference,
+    private val userRepository: UserRepository // 닉네임 호출용
 ) : AndroidViewModel(application) {
+
+    // 닉네임 캐싱 먼저 -> ui 지직거림 방지
+    private val _nickname = MutableStateFlow<String>("")
+    val nickname: StateFlow<String> = _nickname.asStateFlow()
+
+    fun fetchNickname() {
+        viewModelScope.launch {
+            // 우선적으로 캐싱 먼저 가져옵니다.(닉네임 변경이 그렇게 많지 않을테니. ui 자연스러움을 위해서 입니다)
+            val cachedNickname = authPreference.getCachedNickname()
+            if (!cachedNickname.isNullOrBlank()) {
+                _nickname.value = cachedNickname
+            }
+
+            // 서버에서 최신 닉네임 조회 후, 변경 감지 시 갱신 및 닉네임 캐시 업데이트
+            val fresh = userRepository.getNickname()
+            if (!fresh.isNullOrBlank() && fresh != cachedNickname) {
+                _nickname.value = fresh
+                authPreference.saveNickname(fresh)  // 캐시 갱신
+            }
+        }
+    }
+
+    // 메인 뷰모델은 액티비티에 속해있어서 앱 종료까지 살아있어서, 로그아웃시에도 닉네임 정보 살아 있을 수 있음. 제거용 구현
+    fun clearNickname() {
+        _nickname.value
+    }
 
     private val connectivityManager =
         getApplication<Application>().getSystemService(ConnectivityManager::class.java)
@@ -94,6 +125,20 @@ class MainViewModel @Inject constructor(
             }
         }
         Log.d("MainViewModel", "clearRecentQuery return")
+    }
+
+    // 디바이스 정보 초기화 비즈니스 로직 내포
+    fun initDeviceInfo(deviceType: String) {
+        viewModelScope.launch {
+            val uniqueDeviceId = "android-${UUID.randomUUID()}"
+            authPreference.initDeviceInfo(uniqueDeviceId, deviceType)
+        }
+    }
+
+    // 리프레시 토큰 유효성 검사 (컴포저블에서 동기/비동기 흐름 제어를 위해 suspend 함수로 제공)
+    suspend fun hasValidRefreshToken(): Boolean {
+        val token = authPreference.getRefreshToken()
+        return !token.isNullOrBlank()
     }
 
     // 알림 허용 여부 저장

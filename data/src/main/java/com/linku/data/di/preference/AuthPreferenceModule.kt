@@ -16,7 +16,6 @@ import javax.inject.Singleton
 object AuthPreferenceModule {
     @Provides
     @Singleton
-
     fun provideAuthPreference(
         @ApplicationContext context: Context
     ): AuthPreference {

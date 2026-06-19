@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,13 +67,12 @@ fun PasswordResetAlert(
             // 타이틀
             Text(
                 text = "비밀번호 재설정 메일 전송 완료!",
-                style = TextStyle(
-                    fontSize = 18.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Medium, // 500은 Medium입니다.
-                    color = colorTheme.black,
-                    textAlign = TextAlign.Center
-                )
+                fontSize = 18.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Medium,
+                color = colorTheme.black,
+                textAlign = TextAlign.Center
+
             )
             // 🔹 타이틀 ↔ 설명 간격 20
             Spacer(modifier = Modifier.height(20.dp))
@@ -82,13 +80,12 @@ fun PasswordResetAlert(
             // 설명 텍스트
             Text(
                 text = "비밀번호 재설정 메일을 발송했습니다.\n메일함을 확인해주세요!",
-                style = TextStyle(
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Normal, // 400은 Normal입니다.
-                    color = colorTheme.gray[600],
-                    textAlign = TextAlign.Center
-                )
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Normal,
+                color = colorTheme.gray[600],
+                textAlign = TextAlign.Center
+
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -107,13 +104,11 @@ fun PasswordResetAlert(
             ) {
                 Text(
                     text = "로그인 하러가기",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        lineHeight = 20.sp,
-                        fontWeight = FontWeight.Bold, // 700은 Bold입니다.
-                        color = colorTheme.white,
-                        textAlign = TextAlign.Center
-                    )
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorTheme.white,
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -122,10 +117,7 @@ fun PasswordResetAlert(
     }
 }
 
-@Preview(
-    showBackground = true,
-    backgroundColor = 0xFFF2F2F2
-)
+@Preview
 @Composable
 private fun PasswordResetAlertPreview() {
     LinkuPreview {

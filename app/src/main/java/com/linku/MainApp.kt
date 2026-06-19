@@ -21,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -38,7 +39,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.linku.core.model.auth.LoginState
+import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
@@ -57,16 +58,17 @@ import com.linku.mypage.MyPageApp
 import com.linku.mypage.MyPageViewModel
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
-import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
-    ) {
+) {
 
     val context = LocalContext.current
+    val app = LocalContext.current.applicationContext
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -81,7 +83,10 @@ fun MainApp(
     // FIXME : 지민님한테 여쭈어보기. 매번 앱 실행할 때마다 최근 기록을 지우는 것보다는 로그아웃 때 지우는건 어떤지
     LaunchedEffect(Unit) {
         viewModel.clearRecentQuery()
-        // TODO: onResume 기반 세션 갱신으로 변경 예정, mypageViewModel.refreshUserInfo()
+
+        val smallestWidth = app.resources.configuration.smallestScreenWidthDp
+        val deviceType = if (smallestWidth >= 600) "TABLET" else "PHONE"
+        viewModel.initDeviceInfo(deviceType)
     }
 
     val navigator = rememberNavController()
@@ -111,19 +116,7 @@ fun MainApp(
 
     // TODO : 로그인 뷰모델에서 Success 상태로 바꾸기 전에 세션 갱신하게 수정해야함.
     // 기기가 3대라 이렇게 되면 사용자 정보가 따로 놀 수 있음.
-    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
-    LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) {
-            Log.d("SOCIAL_VM", "LoginState.Success 감지 → 홈 이동")
-            homeViewModel.refreshAfterLogin()
-            //mypageViewModel.refreshUserInfo() //로그인시 세션을 주기에 불필요함.
-            showNavBar = true
-            navigator.navigate(NavigationRoute.Home.route) {
-                popUpTo(0) { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-    }
+
 
     // FIXME : 변수를 거쳐서 네비게이션에 가야 하는지 궁금합니다. 변수를 제거하는건?
     var saveLinkEntryTriggered by remember { mutableStateOf(false) }
@@ -233,10 +226,7 @@ fun MainApp(
             onFABClick = { saveLinkEntryTriggered = true }
         ) {
 
-            val app = LocalContext.current.applicationContext
-            val deps = remember {
-                EntryPointAccessors.fromApplication(app, SplashDeps::class.java)
-            }
+
 
 
 
@@ -258,53 +248,47 @@ fun MainApp(
                             mutableStateOf(false)
                         }
 
+                        val splashScope = rememberCoroutineScope()
+
+                        val autoLoginState by loginViewModel.autoLoginState.collectAsStateWithLifecycle()
+
+                        LaunchedEffect(autoLoginState) {
+                            when (autoLoginState) {
+                                is AutoLoginState.Success -> {
+                                    homeViewModel.refreshAfterLogin()
+                                    navigator.navigate(NavigationRoute.Home.route) {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+
+                                is AutoLoginState.Failed -> {
+                                    navigator.navigate("login_root") {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                    }
+                                }
+
+                                else -> Unit
+                            }
+                        }
+
                         Splash(
-                            // NOTE: AuthPreference 체크, autoLoginTried 관리는
-                            // LoginViewModel.tryAutoLogin()으로 이동 예정
-                            // TODO: 자동 로그인 리팩토링 후 수정
-
                             onResult = {
-                                val auth = deps.authPreference()
-                                //스플래쉬에서 자동 로그인 조건 = refresh 토큰 존재 여부 확인
-                                //자동 로그인 판단을 여기서 한다고 생각하면 됨.
+                                splashScope.launch {
+                                    val hasRefresh = viewModel.hasValidRefreshToken()
 
-
-                                val hasRefresh = !auth.refreshToken.isNullOrBlank()
-
-                                //  이미 자동 로그인 시도했으면 강제 로그인
-                                if (autoLoginTried) {
-                                    navigator.navigate("login_root") {
-                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                    }
-                                    return@Splash
-                                }
-
-                                if (!hasRefresh) {
-                                    // refresh 없음 → 로그인 화면으로 이동
-                                    navigator.navigate("login_root") {
-                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                    }
-
-                                    return@Splash
-                                }
-
-
-                                // refresh 있음 → 자동로그인 시도
-                                loginViewModel.tryAutoLogin(
-                                    onSuccess = {
-                                        homeViewModel.refreshAfterLogin()
-                                        navigator.navigate(NavigationRoute.Home.route) {
-                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    },
-                                    onFail = {
+                                    if (autoLoginTried || !hasRefresh) {
                                         navigator.navigate("login_root") {
-                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                            popUpTo(NavigationRoute.Splash.route) {
+                                                inclusive = true
+                                            }
                                         }
-
+                                        return@launch
                                     }
-                                )
+
+                                    loginViewModel.tryAutoLogin()
+                                    autoLoginTried = true
+                                }
                             }
                         )
                     }
@@ -339,6 +323,19 @@ fun MainApp(
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
                             }
+                        },
+                        onAutoLoginSuccess = {
+                            showNavBar = true
+                            homeViewModel.refreshAfterLogin()
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onAutoLoginFail = {
+                            navigator.navigate("login_root") {
+                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                            }
                         }
                     )
                 }
@@ -348,12 +345,20 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-
                         }
 
+                        // 홈 탭 진입 및 복귀 할 때마다 닉네임 갱신
+                        LaunchedEffect(currentRoute) {
+                            if (currentRoute == NavigationRoute.Home.route) {
+                                viewModel.fetchNickname()
+                            }
+                        }
+
+                        val nickname by viewModel.nickname.collectAsStateWithLifecycle()
 
                         HomeApp(
                             viewModel = homeViewModel,
+                            nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToMyPage = {  // TODO: 추후 알림 설정 페이지로 이동
                                 navigator.navigate(NavigationRoute.MyPage.route) {
                                     popUpTo(navigator.graph.findStartDestination().id) {
@@ -395,9 +400,7 @@ fun MainApp(
                         LaunchedEffect(Unit) {
                             showNavBar = true
 
-                            // 화면 진입 시 최신 정보 로드
-                            mypageViewModel.refreshUserInfo()
-                            //mypageViewModel.loadUserInfo()
+                            mypageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
 
@@ -412,6 +415,7 @@ fun MainApp(
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
+                                viewModel.clearNickname()
                                 navigator.navigate("login_root") {
                                     // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
                                     popUpTo(navigator.graph.findStartDestination().id) {

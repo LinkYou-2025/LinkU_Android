@@ -26,6 +26,9 @@ data class SignUpEmailRequestDTO (
     val purposeList: List<String>,
 
     @field:Json(name = "interestList")
-    val interestList: List<String>
+    val interestList: List<String>,
+
+    @field:Json(name = "termsMap")
+    val termsMap: Map<String, Boolean>
 
 )

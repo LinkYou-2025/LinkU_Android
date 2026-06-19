@@ -22,9 +22,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -35,38 +32,16 @@ import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.login.R
 
-/**
- * 회원가입 목적/관심사 선택 카드 아이템
- *
- * 피그마 스펙:
- * - 기본: 150x150dp, radius=22dp, 배경 흰색, 테두리 없음
- * - 선택됨: shadow + maincolor 그라데이션 테두리(1dp)
- * - 상단 이미지 자리: 26x26dp 회색 사각형 (추후 png로 교체)
- * - 체크: 선택 시 우상단 26dp 원 - maincolor 그라데이션 배경 + CheckIndicator
- * - padding: start=20, top=25, end=20, bottom=25
- *
- *  * TODO: 디자이너 아이콘 작업 완료 시
- *  *  - resId == 0 분기 제거 후 Image()만 남기기
- */
 @Composable
 internal fun SelectionCardItem(
     text: String,
     isSelected: Boolean,
-    iconName: String,  //"ic_purpose_work", "ic_interest_it" 형태
+    iconRes: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    //디자인 모듈.
-    val colorTheme = MaterialTheme.linkuColors
-    val context = LocalContext.current
 
-    // iconName으로 drawable 리소스 조회 (없으면 0 반환) //TODO : 디자이너 작업 완료시 삭제.
-    // 프리뷰 환경에서는 getIdentifier 스킵
-    val iconResId = if (LocalInspectionMode.current) {
-        0  // 프리뷰에서는 무조건 placeholder
-    } else {
-        context.resources.getIdentifier(iconName, "drawable", context.packageName)
-    }
+    val colorTheme = MaterialTheme.linkuColors
 
     val cardModifier = if (isSelected) {
         modifier
@@ -77,7 +52,6 @@ internal fun SelectionCardItem(
             )
             .border(width = 1.dp, brush = colorTheme.maincolor, shape = RoundedCornerShape(22.dp))
     } else {
-        // 비선택시 연한 회색 테두리 항상 표시
         modifier.border(
             width = 1.dp,
             color = colorTheme.gray[200],
@@ -102,30 +76,13 @@ internal fun SelectionCardItem(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 상단: 아이콘 (없으면 회색 placeholder)
-            // TODO: 디자이너 작업 완료 시 분기 제거 후 Image()만 남기기
-            if (iconResId != 0) {
-                Image(
-                    painter = painterResource(id = iconResId),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .width(26.dp)
-                        .height(26.dp)
-                )
-            } else {
-                // 디자이너 완료시 사라질 코드. 굳이 컬러테마로 구현하지 않음.
-                Box(
-                    modifier = Modifier
-                        .width(26.dp)
-                        .height(26.dp)
-                        .background(
-                            color = Color(0xFFD9D9D9),
-                            shape = RoundedCornerShape(size = 10.dp)
-                        )
-                )
-            }
-
-            // 하단: 텍스트
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .width(26.dp)
+                    .height(26.dp)
+            )
             Text(
                 text = text,
                 fontSize = 16.sp,
@@ -135,7 +92,6 @@ internal fun SelectionCardItem(
             )
         }
 
-        // 선택 시 우상단 체크 아이콘
         if (isSelected) {
             Box(
                 modifier = Modifier
@@ -157,51 +113,7 @@ internal fun SelectionCardItem(
     }
 }
 
-
-// 1. 기본 (미선택)
-@Preview(showBackground = true, name = "카드 - 미선택")
-@Composable
-fun SelectionCardItemPreview() {
-    LinkuPreview {
-        SelectionCardItem(
-            text = "취업\n& 커리어 준비",
-            isSelected = false,
-            iconName = "ic_purpose_career",
-            onClick = {}
-        )
-    }
-}
-
-// 2. 선택됨
-@Preview(showBackground = true, name = "카드 - 선택됨")
-@Composable
-fun SelectionCardItemSelectedPreview() {
-    LinkuPreview {
-        SelectionCardItem(
-            text = "취업\n& 커리어 준비",
-            isSelected = true,
-            iconName = "ic_purpose_career",
-            onClick = {}
-        )
-    }
-}
-
-// 3. 긴 텍스트
-@Preview(showBackground = true, name = "카드 - 긴 텍스트")
-@Composable
-fun SelectionCardItemLongTextPreview() {
-    LinkuPreview {
-        SelectionCardItem(
-            text = "블로그/콘텐츠 작성 참고용",
-            isSelected = false,
-            iconName = "ic_purpose_creation_reference",
-            onClick = {}
-        )
-    }
-}
-
-// 4. 두 카드 나란히 (미선택 vs 선택)
-@Preview(showBackground = true, name = "카드 - 나란히 비교")
+@Preview
 @Composable
 fun SelectionCardItemComparePreview() {
     LinkuPreview {
@@ -212,13 +124,13 @@ fun SelectionCardItemComparePreview() {
             SelectionCardItem(
                 text = "사이드 프로젝트\n& 창업",
                 isSelected = false,
-                iconName = "ic_purpose_side_project",
+                iconRes = R.drawable.ic_purpose_side_project,
                 onClick = {}
             )
             SelectionCardItem(
                 text = "인사이트 모으기",
                 isSelected = true,
-                iconName = "ic_purpose_insights",
+                iconRes = R.drawable.ic_purpose_insights,
                 onClick = {}
             )
         }
