@@ -7,7 +7,7 @@ interface SelectionItem {
 
 inline fun <reified T> selectionItemOfServerKey(serverKey: String): T?
         where T : Enum<T>, T : SelectionItem {
-    return runCatching { enumValueOf<T>(serverKey) }.getOrNull()
+    return enumValues<T>().firstOrNull { it.serverKey == serverKey }
 }
 
 inline fun <reified T> selectionItemOfDisplayName(displayName: String): T?
