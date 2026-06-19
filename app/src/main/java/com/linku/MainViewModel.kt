@@ -34,8 +34,8 @@ class MainViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     // 닉네임 캐싱 먼저 -> ui 지직거림 방지
-    private val _nickname = MutableStateFlow<String?>(null)
-    val nickname: StateFlow<String?> = _nickname.asStateFlow()
+    private val _nickname = MutableStateFlow<String>("")
+    val nickname: StateFlow<String> = _nickname.asStateFlow()
 
     fun fetchNickname() {
         viewModelScope.launch {
@@ -56,7 +56,7 @@ class MainViewModel @Inject constructor(
 
     // 메인 뷰모델은 액티비티에 속해있어서 앱 종료까지 살아있어서, 로그아웃시에도 닉네임 정보 살아 있을 수 있음. 제거용 구현
     fun clearNickname() {
-        _nickname.value = null
+        _nickname.value
     }
 
     private val connectivityManager =
