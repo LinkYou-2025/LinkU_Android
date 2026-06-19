@@ -38,7 +38,6 @@ import com.linku.design.modifier.skeleton
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.OnResumeEffect
@@ -50,6 +49,12 @@ import com.linku.mypage.component.notification.NotificationSwitch
 import com.linku.mypage.component.notification.SubNotificationSwitch
 import com.linku.mypage.component.notification.SystemAlarmTab
 import com.linku.mypage.intent.NotificationIntent
+import com.linku.mypage.intent.RefreshSystemAlarm
+import com.linku.mypage.intent.ToggleAll
+import com.linku.mypage.intent.ToggleCuration
+import com.linku.mypage.intent.ToggleFolder
+import com.linku.mypage.intent.ToggleLink
+import com.linku.mypage.intent.ToggleNotice
 
 @Composable
 fun AlarmSettingScreen(
@@ -74,7 +79,7 @@ fun AlarmSettingScreen(
     // 시스템 알림 설정 상태를 최신 값으로 갱신
     // 사용자가 시스템 알람 화면에서 알람 설정을 바꾸고 앱으로 돌아오는 상황에 대응
     OnResumeEffect {
-        viewModel.sendIntent(NotificationIntent.RefreshSystemAlarm)
+        viewModel.sendIntent(RefreshSystemAlarm)
     }
 
     AlarmSettingScreenContent(
@@ -160,7 +165,7 @@ private fun AlarmSettingScreenContent(
             NotificationSwitch(
                 title = "모든 푸시 알림",
                 checked = state.alarmToggleUiState.isAllEnabled,
-                onCheckedChange = { onIntent(NotificationIntent.ToggleAll(it)) }
+                onCheckedChange = { onIntent(ToggleAll(it)) }
             )
 
             if (state.alarmToggleUiState.isAllEnabled) {
@@ -169,7 +174,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "링크 활동 알림",
                     checked = state.alarmToggleUiState.isLinkEnabled,
-                    onCheckedChange = { onIntent(NotificationIntent.ToggleLink(it)) }
+                    onCheckedChange = { onIntent(ToggleLink(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -177,7 +182,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "폴더 공유 및 권한 알림",
                     checked = state.alarmToggleUiState.isFolderEnabled,
-                    onCheckedChange = { onIntent(NotificationIntent.ToggleFolder(it)) }
+                    onCheckedChange = { onIntent(ToggleFolder(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -185,7 +190,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "AI 큐레이션 알림",
                     checked = state.alarmToggleUiState.isCurationEnabled,
-                    onCheckedChange = { onIntent(NotificationIntent.ToggleCuration(it)) }
+                    onCheckedChange = { onIntent(ToggleCuration(it)) }
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -193,7 +198,7 @@ private fun AlarmSettingScreenContent(
                 SubNotificationSwitch(
                     title = "공지 및 서비스 알림",
                     checked = state.alarmToggleUiState.isNoticeEnabled,
-                    onCheckedChange = { onIntent(NotificationIntent.ToggleNotice(it)) }
+                    onCheckedChange = { onIntent(ToggleNotice(it)) }
                 )
             }
         }
