@@ -42,12 +42,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.linku.core.model.EmotionType
 import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.home.R
+import com.linku.home.component.DeleteLinkModal
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.component.LinkDetailCategoryDropdown
 import com.linku.home.component.LinkDetailCustomDropdown
@@ -78,6 +80,7 @@ fun LinkDetailScreen(
     val uriHandler = LocalUriHandler.current
 
     var isDropdownVisible by remember { mutableStateOf(false) }
+    var isDeleteModalVisible by remember { mutableStateOf(false) }
 
     var isEditMode by remember { mutableStateOf(false) }
     var selectedTitle by remember { mutableStateOf(linkTitle) }
@@ -114,7 +117,7 @@ fun LinkDetailScreen(
                 .fillMaxWidth()
         ) {
             LinkDetailTopBar(
-                linkTitle = linkTitle,
+                linkTitle = selectedTitle,
                 category = selectedCategory,
                 emotion = selectedEmotion,
                 situation = selectedSituation,
@@ -340,7 +343,8 @@ fun LinkDetailScreen(
                 },
                 onDeleteClick = {
                     isDropdownVisible = false
-                    // 삭제 로직 추가 예정
+                    openedDropdownType = null
+                    isDeleteModalVisible = true
                 },
                 onShareClick = {
                     isDropdownVisible = false
@@ -357,6 +361,33 @@ fun LinkDetailScreen(
                     .align(Alignment.TopEnd)
                     .padding(top = 100.dp, end = 20.dp),
             )
+        }
+
+        if (isDeleteModalVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(1f)
+                    .noRippleClickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    DeleteLinkModal(
+                        onDismiss = {
+                            isDeleteModalVisible = false
+                        },
+                        onConfirm = {
+                            isDeleteModalVisible = false
+                            // TODO: 삭제 API 호출 -> 삭제 성공 후 어디로 이동하는지 물어보기
+                            onBack()
+                        }
+                    )
+                }
+            }
         }
 
         if (openedDropdownType != null) {
