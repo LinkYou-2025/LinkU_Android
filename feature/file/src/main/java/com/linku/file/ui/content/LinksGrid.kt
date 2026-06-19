@@ -4,8 +4,13 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,8 +30,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.cheonjaeung.compose.grid.SimpleGridCells
-import com.cheonjaeung.compose.grid.VerticalGrid
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
@@ -35,8 +38,12 @@ import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
+private const val MIDDLE_PADDING = 18.51
+
 @Composable
 fun LinksGrid(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ){
@@ -52,71 +59,70 @@ fun LinksGrid(
 
     val isShareMode = folderStateViewModel.isSharedFolders
 
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * 스크롤은 compose 전 자식 요소에게 크기를 물어보고 최종 크기를 결정하는 방식.   *
-    * SequentialGrid 기반인 VerticalGrid는 SubcomposeLayout임.                       *
-    * 이는 자식에게 묻는 과정에서 compose가 다시 발생하는 문제로 최신부턴 사용 불가. *
-    * 그러므로 꼭 LazyVertical 그리드로 변경 예정.                                   *
-    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-    VerticalGrid(
-        modifier = Modifier
-            .fillMaxWidth(),
-        columns = SimpleGridCells.Fixed(2),
-        horizontalArrangement = Arrangement.spacedBy(9.dp),
-        verticalArrangement = Arrangement.spacedBy(18.51.dp),
+    LazyVerticalGrid(
+        modifier = modifier,
+        contentPadding = contentPadding,
+        columns = GridCells.Fixed(2),
+        verticalArrangement = Arrangement.spacedBy(MIDDLE_PADDING.dp),
     ) {
         if(!isShareMode){
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .noRippleClickable {
-                        Log.d("LinksGrid", "링크 추가하기 클릭")
-                        if (hasNotCategorizationLinks) {
-                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                        } else {
-                            categorizationModalWindowVisible = true
-                        }
-                    },
-                contentAlignment = Alignment.TopStart
-            ) {
-                Box(
-                    modifier = Modifier,
-                    contentAlignment = Alignment.TopCenter
+            item {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
-                        modifier = Modifier.alpha(1f),
+                        modifier = Modifier
+                            .noRippleClickable {
+                                Log.d("LinksGrid", "링크 추가하기 클릭")
+                                if (hasNotCategorizationLinks) {
+                                    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                                } else {
+                                    categorizationModalWindowVisible = true
+                                }
+                            },
+                        contentAlignment = Alignment.TopStart
                     ) {
-                        LinkItemLayout(
-                            link = null
-                        )
+                        Box(
+                            modifier = Modifier,
+                            contentAlignment = Alignment.TopCenter
+                        ) {
+                            Box(
+                                modifier = Modifier.alpha(1f),
+                            ) {
+                                LinkItemLayout(
+                                    link = null
+                                )
+                            }
+
+                            Image(
+                                modifier = Modifier.padding(top = 103.dp),
+                                painter = painterResource(R.drawable.add_folder_icon),
+                                contentDescription = null
+                            )
+
+                            Text(
+                                modifier = Modifier.padding(top = 147.dp),
+                                text = "링크 추가하기",
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight(500),
+                                color = colors.black,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
-
-                    Image(
-                        modifier = Modifier.padding(top = 103.dp),
-                        painter = painterResource(R.drawable.add_folder_icon),
-                        contentDescription = null
-                    )
-
-                    Text(
-                        modifier = Modifier.padding(top = 147.dp),
-                        text = "링크 추가하기",
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight(500),
-                        color = colors.black,
-                        textAlign = TextAlign.Center,
-                    )
                 }
             }
         }
 
-        // items 람다 안에 folder를 넘겨줘야 FolderItemLayout에서 사용할 수 있어!
-        for((i, link) in linkList.withIndex()) {
-
-            Box(
+        itemsIndexed(linkList){ index, link ->
+            Row(
                 modifier = Modifier
                     .fillMaxWidth(),
-                contentAlignment = if((i%2==1) xor isShareMode) Alignment.TopStart else Alignment.TopEnd
+                horizontalArrangement = if((index % 2 == 1) xor isShareMode) Arrangement.Start else Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 LinkItemLayout(
                     link = link,
@@ -184,7 +190,7 @@ fun LinksGrid(
 @Composable
 private fun LinksGridTest(){
     LinksGrid(
-        hiltViewModel(),
-        viewModel(),
+        fileViewModel = hiltViewModel(),
+        folderStateViewModel = viewModel(),
     )
 }
