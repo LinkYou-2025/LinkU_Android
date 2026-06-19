@@ -9,6 +9,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.design.modifier.noRippleClickable
 import com.linku.file.FileViewModel
 import com.linku.file.ui.item.TopFolderItemLayout
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
@@ -28,19 +29,20 @@ internal fun TopFolderGrid(
         contentPadding = contentPadding,
         folderList = fileViewModel.parentFolders.collectAsState().value,
         categoryColorMap = fileViewModel.categoryColorMap.collectAsState().value,
-        onFolderClick = { folder ->
-            if (editStateViewModel.isEditMode) {
-                folderStateViewModel.updateReadyToUpdateTopFolder(folder)
-                folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
-            } else {
-                fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
-                folderStateViewModel.updateSelectedTopFolder(folder)
-                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-            }
-        }
     ) { folder, colorStyle ->
         TopFolderItemLayout(
-            modifier = Modifier.fillMaxSize(164f/174f),
+            modifier = Modifier
+                .fillMaxSize(164f/174f)
+                .noRippleClickable{
+                    if (editStateViewModel.isEditMode) {
+                        folderStateViewModel.updateReadyToUpdateTopFolder(folder)
+                        folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
+                    } else {
+                        fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
+                        folderStateViewModel.updateSelectedTopFolder(folder)
+                        folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                    }
+                },
             colorStyle = colorStyle,
             folder = folder,
             isEditMode = editStateViewModel.isEditMode,

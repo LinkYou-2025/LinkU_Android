@@ -12,8 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.linku.core.model.FolderSimpleInfo
-import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
+
+private const val MIDDLE_PADDING = 18.51
 
 @Composable
 internal fun FolderGrid(
@@ -21,24 +22,22 @@ internal fun FolderGrid(
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
     folderList: List<FolderSimpleInfo>,
     categoryColorMap: Map<String, CategoryColorStyle>,
-    onFolderClick: (FolderSimpleInfo) -> Unit,
-    FolderLayout: @Composable (folder: FolderSimpleInfo, colorStyle: CategoryColorStyle) -> Unit
+    folderLayout: @Composable (folder: FolderSimpleInfo, colorStyle: CategoryColorStyle) -> Unit
 ){
     LazyVerticalGrid(
         modifier = modifier,
         contentPadding = contentPadding,
         columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(18.51.dp)
+        verticalArrangement = Arrangement.spacedBy(MIDDLE_PADDING.dp)
     ) {
         itemsIndexed(folderList){ index, folder ->
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .noRippleClickable { onFolderClick(folder) },
+                    .fillMaxWidth(),
                 horizontalArrangement = if(index % 2 == 0) Arrangement.Start else Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                FolderLayout(
+                folderLayout(
                     folder,
                     categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT
                 )
