@@ -96,12 +96,19 @@ class NotificationViewModel @Inject constructor(
     private suspend fun reduce(
         intent: NotificationIntent
     ) = when (intent) {
-        is RefreshSystemAlarm ->
-            _notificationState.update {
-                it.copy(isSystemAlarmAllowed = checker.isNotificationEnabled()) }
+        is RefreshSystemAlarm -> refreshSystemAlarm()
 
         is LinkuNotificationIntent ->
             handleLinkuNotificationIntent(intent)
+    }
+
+    private fun refreshSystemAlarm() {
+        _notificationState.update {
+            it.copy(
+                isSystemAlarmAllowed =
+                    checker.isNotificationEnabled()
+            )
+        }
     }
 
     private suspend fun handleLinkuNotificationIntent(
