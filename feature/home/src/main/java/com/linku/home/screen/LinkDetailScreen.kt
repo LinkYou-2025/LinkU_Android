@@ -1,6 +1,7 @@
 package com.linku.home.screen
 
 import android.content.ClipData
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,7 +23,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -49,6 +53,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.home.R
+import com.linku.home.component.AIArticleModal
 import com.linku.home.component.DeleteLinkModal
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.component.LinkDetailCategoryDropdown
@@ -56,6 +61,7 @@ import com.linku.home.component.LinkDetailCustomDropdown
 import com.linku.home.component.LinkDetailEmotionDropdown
 import com.linku.home.component.LinkDetailOptionDropdown
 import com.linku.home.ui.home.bar.LinkDetailTopBar
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 private enum class LinkDetailDropdownType {
@@ -72,17 +78,24 @@ fun LinkDetailScreen(
     situation: String,
     linkUrl: String,
     memo: String,
+    tags: List<String>,
+    aiSummary: String,
     onBack: () -> Unit,
-//    onMoreClick: () -> Unit,  // 드롭다운으로 변경 예정
 ) {
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
+    val context = LocalContext.current
+
+    var isEditMode by remember { mutableStateOf(false) }
+    var isAiSummaryMode by remember { mutableStateOf(false) }
 
     var isDropdownVisible by remember { mutableStateOf(false) }
     var isDeleteModalVisible by remember { mutableStateOf(false) }
+    var isAiArticleModalVisible by remember { mutableStateOf(false) }
+    var isAiArticleProcessing by remember { mutableStateOf(false) }
+    var aiArticleProgress by remember { mutableFloatStateOf(0f) }
 
-    var isEditMode by remember { mutableStateOf(false) }
     var selectedTitle by remember { mutableStateOf(linkTitle) }
     var selectedCategory by remember { mutableStateOf(category) }
     var selectedEmotion by remember { mutableStateOf(emotion) }
@@ -97,6 +110,13 @@ fun LinkDetailScreen(
 
     val situationOptions = SituationOptions.linkDetailSituations
 
+    val visibleTags = tags
+        .filter { it.isNotBlank() }
+        .take(4)
+        .map { tag ->
+            if (tag.startsWith("#")) tag else "#$tag"
+        }
+
     // 카테고리 더미데이터
     val categoryOptions = listOf(
         LinkCategoryOption(1L, "카테고리2", Color(0xFF55D6C2)),
@@ -106,6 +126,23 @@ fun LinkDetailScreen(
         LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
         LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
     )
+
+    LaunchedEffect(isAiArticleProcessing) {
+        if (isAiArticleProcessing) {
+            aiArticleProgress = 0f
+
+            while (aiArticleProgress < 1f) {
+                delay(80)
+                aiArticleProgress = (aiArticleProgress + 0.02f).coerceAtMost(1f)
+            }
+
+            delay(300)
+
+            isAiArticleProcessing = false
+            isAiArticleModalVisible = false
+            isAiSummaryMode = true
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -156,7 +193,7 @@ fun LinkDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(top = 25.dp, start = 20.dp, end = 20.dp)
             ) {
-                Box() {
+                Box {
                     Image(
                         painter = painterResource(R.drawable.img_default),
                         contentDescription = null,
@@ -268,6 +305,96 @@ fun LinkDetailScreen(
                     }
                 }
 
+                if (isAiSummaryMode) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 25.dp),
+                        verticalArrangement = Arrangement.spacedBy(13.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(start = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_sparkles_colored),
+                                contentDescription = null,
+                                modifier = Modifier.height(15.dp)
+                            )
+
+                            Text(
+                                text = "AI 태그",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = LocalColorTheme.current.black
+                            )
+                        }
+
+                        if (visibleTags.isNotEmpty()) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                visibleTags.forEach { tag ->
+                                    Text(
+                                        text = tag,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = LocalColorTheme.current.black,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(20.dp))
+                                            .border(1.dp, LocalColorTheme.current.inactiveColor, RoundedCornerShape(20.dp))
+                                            .background(LocalColorTheme.current.white)
+                                            .padding(horizontal = 15.dp, vertical = 9.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 28.dp),
+                        verticalArrangement = Arrangement.spacedBy(13.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(start = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_sparkles_colored),
+                                contentDescription = null,
+                                modifier = Modifier.height(15.dp)
+                            )
+
+                            Text(
+                                text = "AI 링크 요약",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = LocalColorTheme.current.black
+                            )
+                        }
+
+                        Text(
+                            text = aiSummary,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = LocalColorTheme.current.black,
+                            lineHeight = 20.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(18.dp))
+                                .border(1.dp, LocalColorTheme.current.inactiveColor, RoundedCornerShape(18.dp))
+                                .background(LocalColorTheme.current.white)
+                                .padding(horizontal = 22.dp, vertical = 16.dp)
+                        )
+                    }
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -331,6 +458,10 @@ fun LinkDetailScreen(
                                 .padding(horizontal = 22.dp, vertical = 15.5.dp)
                         )
                     }
+
+                    if (isAiSummaryMode) {
+                        Spacer(modifier = Modifier.height(40.dp))
+                    }
                 }
             }
         }
@@ -348,7 +479,22 @@ fun LinkDetailScreen(
                 },
                 onShareClick = {
                     isDropdownVisible = false
-                    // 공유 로직 추가 예정
+                    openedDropdownType = null
+
+                    val shareText = buildString {
+                        appendLine(selectedTitle)
+                        append(linkUrl)
+                    }
+
+                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                        type = "text/plain"  // MIME 타입
+                        putExtra(Intent.EXTRA_TEXT, shareText)  // 공유할 내용
+                        putExtra(Intent.EXTRA_TITLE, selectedTitle)  // 미리보기 제목
+                        putExtra(Intent.EXTRA_SUBJECT, selectedTitle)  // 이메일 앱용 제목
+                    }
+
+                    val shareIntent = Intent.createChooser(sendIntent, "링크 공유하기")  // ShareSheet 상단에 보이는 제목
+                    context.startActivity(shareIntent)
                 },
                 onGoClick = {
                     isDropdownVisible = false
@@ -387,6 +533,25 @@ fun LinkDetailScreen(
                         }
                     )
                 }
+            }
+        }
+
+        if (isAiArticleModalVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(2f)
+                    .noRippleClickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                AIArticleModal(
+                    progress = aiArticleProgress,
+                    onQuit = {
+                        isAiArticleModalVisible = false
+                    },
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
             }
         }
 
@@ -446,48 +611,56 @@ fun LinkDetailScreen(
             }
         }
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .align(Alignment.BottomCenter)
-                .clip(RoundedCornerShape(18.dp))
-                .background(LocalColorTheme.current.maincolor)
-                .padding(vertical = 15.dp)
-                .noRippleClickable {
-                    if (isEditMode) {
-                        isEditMode = false
-                        openedDropdownType = null
-                        // 수정 API 불러오기
-                    } else {
-                        // AI 요약 로직
-                    }
-                },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            if (isEditMode) {
-                Text(
-                    text = "완료",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.white
-                )
-            } else {
-                Image(
-                    painter = painterResource(R.drawable.ic_sparkles),
-                    contentDescription = null,
-                    modifier = Modifier.height(17.51.dp)
-                )
+        if (!isAiSummaryMode) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .align(Alignment.BottomCenter)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(LocalColorTheme.current.maincolor)
+                    .padding(vertical = 15.dp)
+                    .noRippleClickable {
+                        if (isEditMode) {
+                            isEditMode = false
+                            openedDropdownType = null
+                            // 수정 API 불러오기
+                        } else {
+                            isAiArticleModalVisible = true
+                            openedDropdownType = null
 
-                Spacer(modifier = Modifier.width(10.dp))
+                            if (!isAiArticleProcessing) {
+                                aiArticleProgress = 0f
+                                isAiArticleProcessing = true
+                            }
+                        }
+                    },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                if (isEditMode) {
+                    Text(
+                        text = "완료",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LocalColorTheme.current.white
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.ic_sparkles),
+                        contentDescription = null,
+                        modifier = Modifier.height(17.51.dp)
+                    )
 
-                Text(
-                    text = "AI 요약",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.white
-                )
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Text(
+                        text = "AI 요약",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = LocalColorTheme.current.white
+                    )
+                }
             }
         }
     }
@@ -504,8 +677,9 @@ fun PreviewLinkDetailScreen() {
             situation = "통학 중",
             linkUrl = "https://blog.naver.com/linkU/1234",
             memo = "오픽 시험 준비시 도움이 되는 내용 정리, AI 활용한 공부법 정리 및 다양한 내용이 포함된 링크!!",
+            tags = listOf("오픽", "AL", "영어회화", "자격증"),
+            aiSummary = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",
             onBack = { },
-//            onMoreClick = { },
         )
     }
 }
