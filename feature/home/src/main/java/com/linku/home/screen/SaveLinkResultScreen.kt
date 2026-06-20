@@ -696,7 +696,7 @@ fun SaveLinkResultScreen(
                 Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                     AIArticleModal(
                         progress = aiProgress,
-                        onCancel = onCancelAi,
+                        onQuit = onCancelAi,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                 }
