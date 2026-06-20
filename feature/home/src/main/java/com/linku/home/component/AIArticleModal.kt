@@ -31,7 +31,7 @@ import com.linku.design.theme.linkuColors
 @Composable
 fun AIArticleModal(
     progress: Float,
-    onCancel: () -> Unit,
+    onQuit: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.linkuColors
@@ -77,7 +77,7 @@ fun AIArticleModal(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(18.dp))
                 .background(colors.blue[200])
-                .noRippleClickable { onCancel() }
+                .noRippleClickable { onQuit() }
                 .padding(vertical = 14.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -124,7 +124,7 @@ private fun PreviewAIArticleModal() {
     LinkuPreview {
         AIArticleModal(
             progress = 0.5f,
-            onCancel = {}
+            onQuit = { }
         )
     }
 }
