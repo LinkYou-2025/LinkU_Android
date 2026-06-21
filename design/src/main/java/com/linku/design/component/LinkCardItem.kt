@@ -182,7 +182,7 @@ fun LinkCardItem(
                     .padding(top = 36.dp, end = 12.dp)
             ) {
                 DeleteLinkItemModal(
-                    onClickModal = {
+                    onDeleteClick = {
                         isMenuVisible = false
                         onClickDelete()
                     }

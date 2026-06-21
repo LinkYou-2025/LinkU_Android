@@ -20,7 +20,7 @@ import com.linku.design.theme.ThemeProvider
 
 @Composable
 fun DeleteLinkItemModal(
-    onClickModal: () -> Unit = { }
+    onDeleteClick: () -> Unit = { }
 ) {
     Column(
         modifier = Modifier
@@ -33,7 +33,7 @@ fun DeleteLinkItemModal(
             .clip(RoundedCornerShape(14.dp))
             .background(LocalColorTheme.current.white)
             .padding(horizontal = 15.dp, vertical = 10.dp)
-            .noRippleClickable { onClickModal() }
+            .noRippleClickable { onDeleteClick() }
     ) {
         Text(
             text = "삭제하기",
@@ -49,6 +49,8 @@ fun DeleteLinkItemModal(
 @Composable
 fun PreviewDeleteLinkItemModal() {
     ThemeProvider {
-        DeleteLinkItemModal(onClickModal = { })
+        DeleteLinkItemModal(
+            onDeleteClick = { }
+        )
     }
 }
