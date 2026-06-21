@@ -31,7 +31,9 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
     //FireBase에서 새 토큰이 발급되었을 때 호출되는 콜백
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d("FCM Token", token)
+        if (BuildConfig.DEBUG) {
+            Log.d("FCM Token", token)
+        }
 
         notificationPreference.setFcmToken(token)
 
