@@ -1,20 +1,15 @@
 package com.linku.home
 
-import android.net.Uri
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
-import java.io.File
-import java.io.FileOutputStream
-import java.io.InputStream
 
 @Composable
 fun HomeApp(
@@ -84,16 +79,4 @@ fun HomeApp(
             )
         }
     }
-}
-
-/** Uri를 앱 캐시 폴더의 임시 File로 복사 */
-private fun Uri.toTempFile(context: android.content.Context): File {
-    val fileName = "picked_${System.currentTimeMillis()}.jpg"
-    val tempFile = File(context.cacheDir, fileName)
-    context.contentResolver.openInputStream(this).use { input: InputStream? ->
-        FileOutputStream(tempFile).use { output ->
-            if (input != null) input.copyTo(output)
-        }
-    }
-    return tempFile
 }
