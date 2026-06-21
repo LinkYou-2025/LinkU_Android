@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,6 +25,7 @@ import com.linku.mypage.screen.ServiceQuitScreen
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
+    notificationViewModel: NotificationViewModel = hiltViewModel(),
     onLogoutToLogin: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -322,7 +324,10 @@ fun MyPageApp(
         }
 
         composable("alarmSetting") {
-            AlarmSettingScreen(navController = navController)
+            AlarmSettingScreen(
+                navController = navController,
+                viewModel = notificationViewModel
+            )
         }
 
         composable("quit") {

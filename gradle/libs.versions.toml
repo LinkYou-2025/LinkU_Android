@@ -77,7 +77,6 @@ coil-svg = { module = "io.coil-kt.coil3:coil-svg", version.ref = "coilComposeVer
 coil3-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilComposeVersion" }
 converter-moshi = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "converterMoshi" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
-firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 grid = { module = "com.cheonjaeung.compose.grid:grid", version.ref = "grid" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -117,7 +116,6 @@ androidx-navigation-compose = { group = "androidx.navigation", name = "navigatio
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 androidx-media3-common-ktx = { group = "androidx.media3", name = "media3-common-ktx",  version = {ref = "media3"}}
 androidx-runtime-android = { group = "androidx.compose.runtime", name = "runtime-android"  }
-firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
 androidx-compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 androidx-navigation-compose-jvmstubs = { group = "androidx.navigation", name = "navigation-compose-jvmstubs", version.ref = "navigation" }
 #androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt" }
@@ -152,6 +150,14 @@ androidx-lifecycle-runtime-compose = { group = "androidx.lifecycle", name = "lif
 paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+
+[bundles]
+firebase = [
+    "firebase-bom",
+    "firebase-messaging-ktx"
+]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

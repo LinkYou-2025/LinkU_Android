@@ -8,10 +8,12 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.model.alarm.AlarmType
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
-import com.linku.core.system.NotificationController
 import com.linku.data.preference.AuthPreference
+import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +30,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
-    private val notificationController: NotificationController,
+    private val notificationPreference: NotificationPreference,
+    private val alarmRepository: AlarmRepository,
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository // 닉네임 호출용
 ) : AndroidViewModel(application) {
@@ -140,11 +143,29 @@ class MainViewModel @Inject constructor(
         val token = authPreference.getRefreshToken()
         return !token.isNullOrBlank()
     }
+    // 시스템 알람 허용 여부에 따른 초기 푸시알람설정 초기화
+    fun setNotificationEnabled(isGranted: Boolean) {
+        if (!isGranted) return
 
-    // 알림 허용 여부 저장
-    // 로그인 성공 후 시스템 권한 요청 결과를 로컬에 반영
-    fun setNotificationEnabled(enabled: Boolean) {
-        notificationController.setNotificationEnabled(enabled)
+        viewModelScope.launch {
+            val token = notificationPreference.getFcmToken()
+
+            if (token == null) {
+                Log.d("FCM", "token 없음 → skip")
+                return@launch
+            }
+
+            // 토큰 등록이 성공했으면 전체 푸시알림 활성화
+            val registerResult = alarmRepository.registerFCMToken(token)
+
+            if (registerResult.isSuccess) {
+                alarmRepository.updateAlarmSetting(AlarmType.ALL)
+                    .onFailure { e ->
+                        Log.e("FCM", "알람 설정 실패: ${e.message}", e)
+                    }
+            } else {
+                Log.e("FCM", "register 실패: ${registerResult.exceptionOrNull()?.message}")
+            }
+        }
     }
-
 }

@@ -23,7 +23,6 @@ import com.linku.home.R
 
 @Composable
 fun AlarmNothingTab(
-    onClick: () -> Unit,
     isVisible: Boolean = true
 ) {
     if (!isVisible) return
@@ -31,7 +30,6 @@ fun AlarmNothingTab(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .clickable { onClick() }
             .background(LocalColorTheme.current.white)
             .padding(horizontal = 17.dp, vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -63,5 +61,5 @@ fun AlarmNothingTab(
 @Preview
 @Composable
 fun PreviewAlarmNothingTab() {
-    AlarmNothingTab(onClick = {})
+    AlarmNothingTab()
 }

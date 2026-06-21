@@ -90,4 +90,9 @@ dependencies {
 
     implementation(libs.androidx.datastore.preferences)
 
+    //Paging3
+    implementation(libs.paging.runtime)
+
+    // Firebase
+    implementation(libs.bundles.firebase)
 }

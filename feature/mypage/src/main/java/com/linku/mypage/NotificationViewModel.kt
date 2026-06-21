@@ -2,74 +2,173 @@ package com.linku.mypage
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.AppError
+import com.linku.core.model.alarm.AlarmSetting
+import com.linku.core.model.alarm.AlarmType
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
-import com.linku.core.system.NotificationController
+import com.linku.mypage.intent.LinkuNotificationIntent
+import com.linku.mypage.intent.NotificationIntent
+import com.linku.mypage.intent.RefreshSystemAlarm
+import com.linku.mypage.intent.ToggleAll
+import com.linku.mypage.intent.ToggleCuration
+import com.linku.mypage.intent.ToggleFolder
+import com.linku.mypage.intent.ToggleLink
+import com.linku.mypage.intent.ToggleNotice
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
-    private val notificationController: NotificationController,
+    private val alarmRepository: AlarmRepository,
     private val checker: PermissionChecker
-): ViewModel() {
-    // 뷰모델 내부의 상태 변수. 컨트롤러의 getState()메서드로 초기화
-    private val _notificationState = MutableStateFlow(notificationController.getState())
+) : ViewModel() {
 
-    // ui에 노출시킬 변수
+    // UI 이벤트(Intent) 입력 큐로서의 채널
+    // ViewModel 내부에서만 consumeAsFlow로 처리되는 내부 전용 구조
+    private val intentChannel = Channel<NotificationIntent>(Channel.UNLIMITED)
+
+    //알람 활성화 상태
+    private val _notificationState = MutableStateFlow(AlarmSettingUiState())
     val notificationState = _notificationState.asStateFlow()
 
-    // 시스템 알림 권한 요청이 필요할 때 UI에 전달하는 이벤트
-    private val _permissionEvent = MutableSharedFlow<Unit>()
-    val permissionEvent = _permissionEvent.asSharedFlow()
+    // 1회성 UI 이벤트 전달용 채널
+    private val _sideEffect = Channel<NotificationEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
 
-    // 전체 알림 토글
-    fun toggleNotification(enabled: Boolean) {
-        // OFF 전환은 바로 처리
-        if (!enabled) {
-            notificationController.setNotificationEnabled(false)
-            _notificationState.value = notificationController.getState()
-            return
+    init {
+        loadAlarmSetting()
+        processIntents()
+    }
+
+    /**
+     * UI에서 발생한 Intent를 Channel에 전달하는 진입 함수.
+     *
+     * ViewModel 외부(UI)에서 발생한 모든 사용자 액션은
+     * 이 함수를 통해 Intent로 변환되어 event loop로 전달된다.
+     *
+     * 역할:
+     * - UI → Intent stream 연결
+     * - MVI 구조에서 단일 진입점 역할
+     * - [sendIntent] → [processIntents] → [handleIntent] 흐름으로 이어짐
+     */
+    fun sendIntent(intent: NotificationIntent) {
+        intentChannel.trySend(intent)
+    }
+
+    private fun processIntents() {
+        viewModelScope.launch {
+            intentChannel.consumeAsFlow()
+                .collect { handleIntent(it) }
+        }
+    }
+
+    private suspend fun handleIntent(
+        intent: NotificationIntent
+    ) = when (intent) {
+        is RefreshSystemAlarm -> refreshSystemAlarm()
+
+        is LinkuNotificationIntent ->
+            handleLinkuNotificationIntent(intent)
+    }
+
+    private fun refreshSystemAlarm() {
+        _notificationState.update {
+            it.copy(
+                isSystemAlarmAllowed =
+                    checker.isNotificationEnabled()
+            )
+        }
+    }
+
+    private suspend fun handleLinkuNotificationIntent(
+        intent: LinkuNotificationIntent
+    ) {
+        optimisticUpdate(intent)
+    }
+
+    private suspend fun optimisticUpdate(
+        intent: LinkuNotificationIntent
+    ) {
+        // 실패 시 롤백할 값 저장
+        val previous = _notificationState.value
+
+        // 낙관적 업데이트 수행
+        _notificationState.update { state ->
+            val updated = intent.reduce(state.alarmToggleUiState)
+
+            state.copy(
+                // updated로 모든 서브알람이 꺼진다면 전테알람도 꺼지게 한다.
+                alarmToggleUiState = if (updated.areAllSubDisabled()) {
+                    updated.copy(isAllEnabled = false)
+                } else {
+                    updated
+                }
+            )
         }
 
-        // ON 전환 시 시스템 권한 체크
-        if (checker.isNotificationEnabled()) {
-            notificationController.setNotificationEnabled(true)
-            _notificationState.value = notificationController.getState()
+        // 서버 응답 최종반영
+        alarmRepository.updateAlarmSetting(intent.alarmType).fold(
+            onSuccess = { setting ->
+                _notificationState.update {
+                    it.copy(alarmToggleUiState = setting)
+                }
+            },
+            onFailure = { throwable ->
+                _notificationState.update { currentState ->
+                    currentState.copy(
+                        alarmToggleUiState = previous.alarmToggleUiState
+                    )
+                }
 
-        } else { // 시스템 권한이 없다면
-            // UI에 권한 요청 요청
-            viewModelScope.launch {
-                _permissionEvent.emit(Unit)
+                val message = (throwable as AppError).displayMessage
+                _sideEffect.send(NotificationEffect.ShowToast(message))
             }
+        )
+    }
+
+    // 화면 진입 시 초기 알람 설정 상태를 load
+    private fun loadAlarmSetting() {
+        viewModelScope.launch {
+            _notificationState.update {
+                it.copy(
+                    isLoading = true,
+                    isSystemAlarmAllowed = checker.isNotificationEnabled()
+                )
+            }
+
+            alarmRepository.getAlarmSetting()
+                .fold(
+                    onSuccess = { setting ->
+                        _notificationState.update { it.copy(isLoading = false, alarmToggleUiState = setting) }
+                    },
+                    onFailure = { throwable ->
+                        _notificationState.update { it.copy(isLoading = false) }
+
+                        // 토스트 메세지 발행
+                        val message = (throwable as AppError).displayMessage
+                        _sideEffect.send(NotificationEffect.ShowToast(message))
+                    }
+                )
         }
     }
 
-
-    // ======== 알림 토글 ========
-    // 설정 변경 후 StateFlow를 갱신하여 UI에 반영
-
-    fun toggleAiCuration(enabled: Boolean) {
-        notificationController.setAiCurationEnabled(enabled)
-        _notificationState.value = notificationController.getState()
-    }
-
-    fun toggleLinkActivity(enabled: Boolean) {
-        notificationController.setLinkActivityEnabled(enabled)
-        _notificationState.value = notificationController.getState()
-    }
-
-    fun toggleSharedFolder(enabled: Boolean) {
-        notificationController.setSharedFolderEnabled(enabled)
-        _notificationState.value = notificationController.getState()
-    }
-
-    fun toggleSystemNotice(enabled: Boolean) {
-        notificationController.setSystemNoticeEnabled(enabled)
-        _notificationState.value = notificationController.getState()
-    }
 }
+
+// 1회성 사이드 이펙트
+sealed interface NotificationEffect {
+    data class ShowToast(val message: String) : NotificationEffect
+}
+
+data class AlarmSettingUiState(
+    val isLoading: Boolean = false,
+    val isSystemAlarmAllowed: Boolean = false,
+    val alarmToggleUiState: AlarmSetting = AlarmSetting(),
+)
