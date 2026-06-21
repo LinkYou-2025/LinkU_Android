@@ -59,7 +59,7 @@ import com.linku.home.component.LinkCategoryOption
 import com.linku.home.component.LinkDetailCategoryDropdown
 import com.linku.home.component.LinkDetailCustomDropdown
 import com.linku.home.component.LinkDetailEmotionDropdown
-import com.linku.home.component.LinkDetailOptionDropdown
+import com.linku.home.component.LinkDetailSituationDropdown
 import com.linku.home.ui.home.bar.LinkDetailTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -75,7 +75,7 @@ fun LinkDetailScreen(
     linkTitle: String,
     category: String,
     emotion: String,
-    situation: String,
+    situationId: Long?,
     linkUrl: String,
     memo: String,
     tags: List<String>,
@@ -97,19 +97,24 @@ fun LinkDetailScreen(
     var isAiArticleProcessing by remember { mutableStateOf(false) }
     var aiArticleProgress by remember { mutableFloatStateOf(0f) }
 
+    val emotionOptions = EmotionType.entries.toList()
+    val situationOptions = SituationOptions.allSituations
+
     var selectedTitle by remember { mutableStateOf(linkTitle) }
     var selectedCategory by remember { mutableStateOf(category) }
     var selectedEmotion by remember { mutableStateOf(emotion) }
-    var selectedSituation by remember { mutableStateOf(situation) }
+    var selectedSituation by remember(situationId) {
+        mutableStateOf(
+            situationOptions.firstOrNull { it.id == situationId }
+        )
+    }
     var selectedMemo by remember { mutableStateOf(memo) }
 
     var openedDropdownType by remember {
         mutableStateOf<LinkDetailDropdownType?>(null)
     }
 
-    val emotionOptions = EmotionType.entries.toList()
 
-    val situationOptions = SituationOptions.linkDetailSituations
 
     val visibleTags = tags
         .filter { it.isNotBlank() }
@@ -118,12 +123,12 @@ fun LinkDetailScreen(
             if (tag.startsWith("#")) tag else "#$tag"
         }
 
-    LaunchedEffect(linkTitle, category, emotion, situation, memo) {
+    LaunchedEffect(linkTitle, category, emotion, situationId, memo) {
         if (!isEditMode) {
             selectedTitle = linkTitle
             selectedCategory = category
             selectedEmotion = emotion
-            selectedSituation = situation
+            selectedSituation = situationOptions.firstOrNull { it.id == situationId }
             selectedMemo = memo
         }
     }
@@ -158,7 +163,7 @@ fun LinkDetailScreen(
                 linkTitle = selectedTitle,
                 category = selectedCategory,
                 emotion = selectedEmotion,
-                situation = selectedSituation,
+                situation = selectedSituation?.tagName ?: "상황",
                 isEditMode = isEditMode,
                 isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
                 isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
@@ -593,10 +598,10 @@ fun LinkDetailScreen(
                 }
 
                 LinkDetailDropdownType.SITUATION -> {
-                    LinkDetailOptionDropdown(
-                        options = situationOptions.map { it.tagName },
-                        selectedOption = selectedSituation,
-                        onOptionClick = {
+                    LinkDetailSituationDropdown(
+                        situations = situationOptions,
+                        selectedSituation = selectedSituation,
+                        onSituationClick = {
                             selectedSituation = it
                             openedDropdownType = null
                         },
@@ -683,7 +688,7 @@ fun PreviewLinkDetailScreen() {
             linkTitle = "3일만에 오픽 AL 꿀팁",
             category = "카테고리2",
             emotion = "평온",
-            situation = "통학 중",
+            situationId = 10L,
             linkUrl = "https://blog.naver.com/linkU/1234",
             memo = "오픽 시험 준비시 도움이 되는 내용 정리, AI 활용한 공부법 정리 및 다양한 내용이 포함된 링크!!",
             tags = listOf("오픽", "AL", "영어회화", "자격증"),
