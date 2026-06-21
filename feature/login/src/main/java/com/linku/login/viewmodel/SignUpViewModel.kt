@@ -182,7 +182,7 @@ class SignUpViewModel @Inject constructor(
                     jobId = signUpForm.jobId,
                     purposeList = signUpForm.purposeList,
                     interestList = signUpForm.interestList
-                )
+                ).getOrThrow()
 
                 // 성공 → result 반환됨 (실패면 예외 throw되어 catch로 감)
                 Log.d("SignUpViewModel", "[회원가입 성공] userId=${result.userId}")

@@ -5,10 +5,9 @@ import com.linku.core.error.TokenExpiredException
 import com.linku.core.model.auth.LoginErrorType
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.preference.AuthPreference
-import retrofit2.Response
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
@@ -17,6 +16,7 @@ import java.net.UnknownHostException
 // Exception(모든 에러의 최상위 부모)
 //  => IOException(UnknownHostException) - 인터넷 끊김
 //  SocketTimeoutException(응답 느림), TokenExpiredException(토큰 만료), HttpException(서버가 400,500 던짐)
+@Deprecated("safeApiCall로 교체 예정")
 sealed class ApiError : Exception() {
 
     // 인증 관련
@@ -132,16 +132,16 @@ private fun shouldRefreshToken(exception: Exception): Boolean {
 // 이런 경우 서버한테 한 번에 1번만 보낼 수 있는 뮤텍스 방법을 이용함.
 private val refreshMutex = Mutex()
 
-private suspend fun ServerApi.refreshTokenIfNeeded(
-    authPreference: AuthPreference
-) = refreshMutex.withLock { //락 걸음.
-    val refresh = authPreference.refreshToken
-        ?: throw ApiError.TokenExpired("다시 로그인해주세요")
-    //헤더 방식으로 변환.
-    val pair = withCheck { reissue(refresh) }
-    pair.refreshToken?.let { authPreference.refreshToken = it }
-    pair.accessToken?.let { authPreference.accessToken = it } //null이 아니면 실행
-}
+//private suspend fun ServerApi.refreshTokenIfNeeded(
+//    authPreference: AuthPreference
+//) = refreshMutex.withLock { //락 걸음.
+//    val refresh = authPreference.refreshToken
+//        ?: throw ApiError.TokenExpired("다시 로그인해주세요")
+//    //헤더 방식으로 변환.
+//    val pair = withCheck { reissue(refresh) }
+//    pair.refreshToken?.let { authPreference.refreshToken = it }
+//    pair.accessToken?.let { authPreference.accessToken = it } //null이 아니면 실행
+//}
 
 /**
  * 토큰 갱신 + 1회 재시도 + 에러 변환
@@ -155,7 +155,7 @@ private suspend fun <T> ServerApi.withTokenRefresh(
     } catch (exception: Exception) {
         if (shouldRefreshToken(exception)) {
             try {
-                refreshTokenIfNeeded(authPreference)
+//                refreshTokenIfNeeded(authPreference)
                 block() // api 재시도
             } catch (refreshError: Exception) { // 갱신 실패시 에러
                 throw refreshError.toApiError()
@@ -277,7 +277,7 @@ suspend fun <T> ServerApi.withAuthResp204Raw(
         }
     }
 
-    return withTokenRefresh(authPreference) { execute() } 
+    return withTokenRefresh(authPreference) { execute() }
 }
 
 // 로그인 오류 타입 명시

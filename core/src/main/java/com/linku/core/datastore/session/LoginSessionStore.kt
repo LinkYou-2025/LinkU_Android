@@ -36,17 +36,21 @@ class LoginSessionStore @Inject constructor(
 ) {
     private object Keys {
         val LOGGED_IN      = booleanPreferencesKey("logged_in")
-        val USER_ID = longPreferencesKey("user_id") // String -> Long
+        val USER_ID = longPreferencesKey("user_id")
         val USER_NICK      = stringPreferencesKey("user_nickname")
         val USER_EMAIL     = stringPreferencesKey("user_email")
         val USER_GENDER    = stringPreferencesKey("user_gender")
-        val USER_JOB_ID = longPreferencesKey("user_job_id") // String -> Long
+        val USER_JOB_ID = longPreferencesKey("user_job_id")
         val USER_JOB_NAME  = stringPreferencesKey("user_job_name")
-        val USER_MY_LINKU = longPreferencesKey("user_my_linku") // String -> Long
-        val USER_MY_FOLDER = longPreferencesKey("user_my_folder") // String -> Long
-        val USER_MY_AI_LINKU = longPreferencesKey("user_my_ai_linku") // String -> Long
-        val USER_PURPOSES = stringPreferencesKey("user_purposes")    // 마이페이지 수정을 위해 추가.
-        val USER_INTERESTS = stringPreferencesKey("user_interests")  // 마이페이지 수정을 위해 추가.
+        val USER_MY_LINKU = longPreferencesKey("user_my_linku")
+        val USER_MY_FOLDER = longPreferencesKey("user_my_folder")
+        val USER_MY_AI_LINKU = longPreferencesKey("user_my_ai_linku")
+        val USER_PURPOSES = stringPreferencesKey("user_purposes")
+        val USER_INTERESTS = stringPreferencesKey("user_interests")
+
+        // 기기 정보 추가
+        val DEVICE_ID = stringPreferencesKey("device_id")
+        val DEVICE_TYPE = stringPreferencesKey("device_type")
     }
 
     /** 앱 시작 시 오토로그인 분기용 */
@@ -84,10 +88,39 @@ class LoginSessionStore @Inject constructor(
         }
     }
 
+    // 기기 정보 저장(최초 1회만)
+    suspend fun saveDeviceInfoIfAbsent(deviceId: String, deviceType: String) {
+        context.dataStore.edit { p ->
+            if (p[Keys.DEVICE_ID] == null) {
+                p[Keys.DEVICE_ID] = deviceId
+            }
+            if (p[Keys.DEVICE_TYPE] == null) {
+                p[Keys.DEVICE_TYPE] = deviceType
+            }
+        }
+    }
+
+    // 기기 정보 읽기
+    val deviceId: Flow<String?> = context.dataStore.data.map { p ->
+        p[Keys.DEVICE_ID]
+    }
+
+    val deviceType: Flow<String?> = context.dataStore.data.map { p ->
+        p[Keys.DEVICE_TYPE]
+    }
+
     suspend fun clear() {
         context.dataStore.edit { p ->
+            // 기기 정보는 유지하고 세션 정보만 삭제
+            val deviceId = p[Keys.DEVICE_ID]
+            val deviceType = p[Keys.DEVICE_TYPE]
+
+            p.clear()
+
+            // 기기 정보 복원
+            deviceId?.let { p[Keys.DEVICE_ID] = it }
+            deviceType?.let { p[Keys.DEVICE_TYPE] = it }
             p[Keys.LOGGED_IN] = false
-            p.clear() // 모든 세션 데이터 한 번에 삭제
         }
     }
 

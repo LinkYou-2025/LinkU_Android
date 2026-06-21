@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,11 +34,10 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.AuthErrorMessages
 import com.linku.core.model.auth.EmailAuthState
 import com.linku.design.modifier.noRippleClickable
@@ -49,6 +47,8 @@ import com.linku.design.util.scaler
 import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
+import com.linku.login.ui.model.EmailVerificationEvents
+import com.linku.login.ui.model.EmailVerificationUiState
 import com.linku.login.viewmodel.EmailAuthViewModel
 import com.linku.login.viewmodel.SignUpViewModel
 import java.util.Locale
@@ -79,7 +79,6 @@ fun EmailVerificationScreen(
 
     // 뷰모델 상태
     val authState by viewModel.authState.collectAsStateWithLifecycle()
-    val timer by viewModel.timer.collectAsStateWithLifecycle()
 
 
     // 파생 상태로- 중복 제거.
@@ -91,7 +90,8 @@ fun EmailVerificationScreen(
     val isCodeValid = code.length == 6
     val isSending = authState is EmailAuthState.Sending // 파생 상태
     val isVerifying = authState is EmailAuthState.Verifying // 파생 상태
-    val isCodeSent = authState is EmailAuthState.SendSuccess
+    val isCodeSent by viewModel.isCodeSent.collectAsStateWithLifecycle()
+    val timer by viewModel.timer.collectAsStateWithLifecycle()
 
     // 상태에 따라 파생 값 계산
     val sendResult: String? = when (val state = authState) {
@@ -108,7 +108,7 @@ fun EmailVerificationScreen(
 
     // 화면 진입 시 리셋
     LaunchedEffect(Unit) {
-        viewModel.resetAll()
+        viewModel.reset()  // 타이머 건드리지 않고 상태만 Idle로
     }
 
 
@@ -146,49 +146,42 @@ fun EmailVerificationScreen(
     }
 
 
-    // UI만 그리는 프레젠테이션 컴포저블에 상태/이벤트를 위임 -> 렌더 이슈로 부득이하게 프리뷰 구현을 위해 코드 추가.
     EmailVerificationScreenContent(
-        navigator = navigator,
-        email = email,
-        onEmailChange = { email = it },
-        code = code,
-        onCodeChange = { code = it },
-        isSending = isSending,
-        isVerifying = isVerifying,
-        sendResult = sendResult,
-        verifyResult = verifyResult,
-        isCodeSent = isCodeSent,
-        isCodeValid = isCodeValid,
-        emailValid = emailValid,
-        onSendCode = { viewModel.sendEmailCode(email.trim()) },
-        onVerifyCode = { viewModel.verifyEmailCode(email.trim(), code.trim()) }
+        uiState = EmailVerificationUiState(
+            email = email,
+            code = code,
+            isSending = isSending,
+            isVerifying = isVerifying,
+            sendResult = sendResult,
+            verifyResult = verifyResult,
+            isCodeSent = isCodeSent,
+            isCodeValid = isCodeValid,
+            emailValid = emailValid,
+            timer = timer,
+        ),
+        events = EmailVerificationEvents(
+            onEmailChange = { email = it },
+            onCodeChange = { code = it },
+            onSendCode = { viewModel.sendEmailCode(email.trim()) },
+            onVerifyCode = { viewModel.verifyEmailCode(email.trim(), code.trim()) }
+        )
     )
 }
 
-/**
- * UI만 그리는 프레젠테이션 컴포저블입니다.
- * Preview에서 ViewModel 없이 안전하게 사용 가능.
- * 여기 이메일 인증에서는  """ui"""만 담당합니다
- */
+
 @Composable
 fun EmailVerificationScreenContent(
-    navigator: NavHostController,
-    email: String,
-    onEmailChange: (String) -> Unit,
-    code: String,
-    onCodeChange: (String) -> Unit,
-    isSending: Boolean,
-    isVerifying: Boolean,
-    sendResult: String?,
-    verifyResult: String?,
-    isCodeSent: Boolean,
-    isCodeValid: Boolean,
-    emailValid: Boolean,
-    onSendCode: () -> Unit,
-    onVerifyCode: () -> Unit
+    uiState: EmailVerificationUiState,
+    events: EmailVerificationEvents,
 ) {
+    val (email, code, isSending, isVerifying, sendResult, verifyResult, isCodeSent, isCodeValid, emailValid, timer) = uiState
+    val (onEmailChange, onCodeChange, onSendCode, onVerifyCode) = events
 
     val colorTheme = MaterialTheme.linkuColors
+
+    val isButtonEnabled = sendResult != AuthErrorMessages.SERVER_ERROR &&
+            !isSending && !isVerifying &&
+            (if (isCodeSent) isCodeValid else emailValid)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -202,12 +195,7 @@ fun EmailVerificationScreenContent(
                 ),
             horizontalAlignment = Alignment.Start
         ) {
-            //1단계
-            StepIndicator(
-                currentStep = 1,
-                totalSteps = 3,
-                label = "계정 정보"
-            )
+            StepIndicator(currentStep = 1)
             Spacer(modifier = Modifier.height((36.scaler)))
             Text(
                 text = "가입을 위한 이메일 주소를\n인증해주세요",
@@ -217,119 +205,111 @@ fun EmailVerificationScreenContent(
                 color = colorTheme.black
             )
             Spacer(modifier = Modifier.height((32.scaler)))
-            // 이메일 입력 필드
 
-            //이메일 입력 필드
-            LoginTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                hint = "이메일 주소를 입력해주세요",
-                enabled = !isCodeSent, // 인증번호 발송 후엔 수정 불가. //enabled = true
-                modifier = Modifier.fillMaxWidth(),
-            )
-
-            // 에러 문구
-            val emailErrorText: String? = when {
-                email.isNotBlank() && !emailValid -> "이메일 양식이 올바르지 않습니다!"
-                sendResult == AuthErrorMessages.EMAIL_ALREADY_EXISTS -> AuthErrorMessages.EMAIL_ALREADY_EXISTS
-                else -> null
-            }
-            emailErrorText?.let {
-                Spacer(modifier = Modifier.height((6.scaler)))
-                Text(
-                    text = it,
-                    color = colorTheme.negative,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier.offset(
-                        x = (4.scaler)
+            when {
+                // 1단계: 이메일 입력
+                !isCodeSent -> {
+                    LoginTextField(
+                        value = email,
+                        onValueChange = onEmailChange,
+                        hint = "이메일 주소를 입력해주세요",
+                        enabled = !isSending,
+                        modifier = Modifier.fillMaxWidth(),
                     )
 
-                )
-            }
-            // 인증 코드 입력 영역 이건 타이머가 있어서 따로 요소 불러오지 않고 여기서만.
-            if (isCodeSent) {
-                Spacer(modifier = Modifier.height((10.scaler)))
-                OutlinedTextField(
-                    value = code,
-                    onValueChange = onCodeChange,
-                    placeholder = {
+                    val emailErrorText: String? = when {
+                        email.isNotBlank() && !emailValid -> "이메일 양식이 올바르지 않습니다!"
+                        sendResult == AuthErrorMessages.EMAIL_ALREADY_EXISTS -> AuthErrorMessages.EMAIL_ALREADY_EXISTS
+                        sendResult == AuthErrorMessages.SERVER_ERROR -> "서버 오류: 잠시 후 다시 시도해주세요"
+                        else -> null
+                    }
+                    emailErrorText?.let {
+                        Spacer(modifier = Modifier.height((6.scaler)))
                         Text(
-                            "코드를 입력해주세요",
-                            fontSize = 14.sp,
-                            color = colorTheme.gray[400]
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height((56.scaler))
-                        .background(colorTheme.white, shape = RoundedCornerShape(16.dp))
-                        .border(
-                            width = 1.dp,
-                            brush = colorTheme.maincolor,
-                            shape = RoundedCornerShape(16.dp)
-                        ),
-                    shape = RoundedCornerShape(16.dp),
-                    singleLine = true,
-                    enabled = !isVerifying,
-                    trailingIcon = {
-                        if (sendResult == AuthErrorMessages.SERVER_ERROR) {
-                            Text(
-                                text = "잠시 후 다시 시도해주세요.",
-                                color = colorTheme.negative,
-                                fontSize = 13.sp,
-                                modifier = Modifier.padding(end = 12.dp)
-                            )
-                        } else {
-                            TimerText()  // 여기만 리컴포지션
-                        }
-                    },
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    )
-                )
-
-                when (verifyResult) {
-                    AuthErrorMessages.VERIFY_FAILED,
-                    AuthErrorMessages.NETWORK_ERROR -> {
-                        Spacer(modifier = Modifier.height((12.scaler)))
-                        Text(
-                            text = verifyResult,
+                            text = it,
                             color = colorTheme.negative,
                             fontSize = 13.sp,
-                            lineHeight = 15.sp,
-                            fontWeight = FontWeight(400),
-                            modifier = Modifier.padding(start = (12.scaler))
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.offset(x = (4.scaler))
                         )
                     }
-
-                    else -> Unit
                 }
 
-            } else if (sendResult == AuthErrorMessages.SERVER_ERROR) {
-                Spacer(modifier = Modifier.height((8.scaler)))
-                Text(
-                    text = "서버 오류: 잠시 후 다시 시도해주세요",
-                    color = colorTheme.negative,
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding((8.scaler))
-                )
+                // 2단계: 인증 코드 입력
+                isCodeSent -> {
+                    LoginTextField(
+                        value = email,
+                        onValueChange = {},
+                        hint = "이메일 주소를 입력해주세요",
+                        enabled = false, // 이메일 수정 불가
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    Spacer(modifier = Modifier.height((10.scaler)))
+                    OutlinedTextField(
+                        value = code,
+                        onValueChange = onCodeChange,
+                        placeholder = {
+                            Text(
+                                "코드를 입력해주세요",
+                                fontSize = 14.sp,
+                                color = colorTheme.gray[400]
+                            )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height((56.scaler))
+                            .background(colorTheme.white, shape = RoundedCornerShape(16.dp))
+                            .border(
+                                width = 1.dp,
+                                brush = colorTheme.maincolor,
+                                shape = RoundedCornerShape(16.dp)
+                            ),
+                        shape = RoundedCornerShape(16.dp),
+                        singleLine = true,
+                        enabled = !isVerifying,
+                        trailingIcon = {
+                            if (sendResult == AuthErrorMessages.SERVER_ERROR) {
+                                Text(
+                                    text = "잠시 후 다시 시도해주세요.",
+                                    color = colorTheme.negative,
+                                    fontSize = 13.sp,
+                                    modifier = Modifier.padding(end = 12.dp)
+                                )
+                            } else {
+                                TimerText(timer)
+                            }
+                        },
+                        colors = TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        )
+                    )
+
+                    verifyResult?.let {
+                        if (it == AuthErrorMessages.VERIFY_FAILED || it == AuthErrorMessages.NETWORK_ERROR) {
+                            Spacer(modifier = Modifier.height((12.scaler)))
+                            Text(
+                                text = it,
+                                color = colorTheme.negative,
+                                fontSize = 13.sp,
+                                lineHeight = 15.sp,
+                                fontWeight = FontWeight(400),
+                                modifier = Modifier.padding(start = (12.scaler))
+                            )
+                        }
+                    }
+                }
             }
         }
-        // 하단 고정 영역
-        val isButtonEnabled = sendResult != AuthErrorMessages.SERVER_ERROR &&
-                !isSending && !isVerifying &&
-                (if (isCodeSent) isCodeValid else emailValid)
 
+        // 하단 고정 영역
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Bottom,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 인증번호 안내 텍스트 (버튼 위 21dp)
             Text(
                 text = "인증번호가 오지 않는다면?",
                 fontSize = 12.sp,
@@ -339,12 +319,8 @@ fun EmailVerificationScreenContent(
                 textAlign = TextAlign.Center,
                 textDecoration = TextDecoration.Underline,
                 modifier = Modifier
-                    .padding(
-                        bottom = (21.scaler)
-                    )
-                    .noRippleClickable {
-                        // TODO: 재전송 안내 api 개발시 연동하기!
-                    }
+                    .padding(bottom = (21.scaler))
+                    .noRippleClickable { }
             )
 
             BottomGradientButton(
@@ -353,76 +329,41 @@ fun EmailVerificationScreenContent(
                 activeGradient = colorTheme.maincolor,
                 inactiveGradient = colorTheme.inactiveColor,
                 onClick = {
-                    if (isCodeSent) {
-                        onVerifyCode()
-                    } else {
-                        onSendCode()
-                    }
+                    if (isCodeSent) onVerifyCode() else onSendCode()
                 }
             )
         }
     }
 }
 
-/**
- * Preview에서는 ViewModel 없이 더미 상태만 넘겨서 프리뷰는 잘 표시될 수 있도록 함..
- */
-@Preview(showBackground = true)
-@Composable
-fun EmailVerificationScreenPreview() {
-    val fakeNavigator = rememberNavController()
-    LinkuPreview {
-        EmailVerificationScreenContent(
-            navigator = fakeNavigator,
-            email = "",
-            onEmailChange = {},
-            code = "",
-            onCodeChange = {},
-            isSending = false,
-            isVerifying = false,
-            sendResult = null,
-            verifyResult = null,
-            isCodeSent = false,
-            isCodeValid = false,
-            emailValid = true,
-            onSendCode = {},
-            onVerifyCode = {}
-        )
-    }
-}
-
-
-//타이머  보려고
 @Preview(showBackground = true)
 @Composable
 fun EmailVerificationScreen_TimerPreview() {
-    val fakeNavigator = rememberNavController()
-
     LinkuPreview {
         EmailVerificationScreenContent(
-            navigator = fakeNavigator,
-            email = "test@email.com",
-            onEmailChange = {},
-            code = "123456",
-            onCodeChange = {},
-            isSending = false,
-            isVerifying = false,
-            sendResult = "인증 코드 전송 성공",
-            verifyResult = AuthErrorMessages.VERIFY_FAILED,
-            isCodeSent = true,
-            isCodeValid = true,
-            emailValid = true,
-            onSendCode = {},
-            onVerifyCode = {}
+            uiState = EmailVerificationUiState(
+                email = "test@email.com",
+                code = "123456",
+                sendResult = "인증 코드 전송 성공",
+                verifyResult = AuthErrorMessages.VERIFY_FAILED,
+                isCodeSent = true,
+                isCodeValid = true,
+                emailValid = true,
+                timer = 180,
+            ),
+            events = EmailVerificationEvents(
+                onEmailChange = {},
+                onCodeChange = {},
+                onSendCode = {},
+                onVerifyCode = {}
+            )
         )
     }
 }
 
 
 @Composable
-private fun TimerText() {
-    val viewModel: EmailAuthViewModel = hiltViewModel()
-    val timer by viewModel.timer.collectAsState()
+private fun TimerText(timer: Int) {
     val timerText = String.format(Locale.getDefault(), "%02d:%02d", timer / 60, timer % 60)
     Text(
         text = timerText,

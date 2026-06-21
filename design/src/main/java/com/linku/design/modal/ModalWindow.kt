@@ -140,7 +140,7 @@ fun ModalWindow(
                                 .noRippleClickable{
                                     onOkay()
                                     onDismiss()
-                                  },
+                                },
                             contentAlignment = Alignment.Center
                         ){
                             Text(

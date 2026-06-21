@@ -5,13 +5,12 @@ import com.linku.core.model.CategoryColorList
 import com.linku.core.repository.CategoryRepository
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.folder.UpdateCategoryColorRequestDTO
-import com.linku.data.api.withAuth
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCallUnit
 import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
-    private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
+    private val serverApi: ServerApi
 ) : CategoryRepository {
 
     // 카테고리 색깔 조회
@@ -19,28 +18,30 @@ class CategoryRepositoryImpl @Inject constructor(
     ): List<CategoryColorList> {
         Log.d("CategoryRepositoryImpl", "getCategoryList")
 
-        val categoryColorList: List<CategoryColorList>
+        var categoryColorList: List<CategoryColorList> = emptyList()
 
-        try{
+        try {
             Log.d("CategoryRepositoryImpl", "try")
 
-            categoryColorList = serverApi.withAuth(authPreference){
-                getCategoryColor()
-            }.map{
-                CategoryColorList(
-                    categoryId = it.categoryId,
-                    categoryName = it.categoryName,
-                    colorName = it.colorName,
-                    colorCode1 = it.colorCode1,
-                    colorCode2 = it.colorCode2,
-                    colorCode3 = it.colorCode3,
-                    colorCode4 = it.colorCode4
-                )
+            safeApiCall(
+                apiCall = { serverApi.getCategoryColor() }
+            ).onSuccess { dtoList ->
+                categoryColorList = dtoList.map { dto ->
+                    CategoryColorList(
+                        categoryId = dto.categoryId,
+                        categoryName = dto.categoryName,
+                        colorName = dto.colorName,
+                        colorCode1 = dto.colorCode1,
+                        colorCode2 = dto.colorCode2,
+                        colorCode3 = dto.colorCode3,
+                        colorCode4 = dto.colorCode4
+                    )
+                }
+                Log.d("CategoryRepositoryImpl", "try result: $categoryColorList")
+            }.onFailure {
+                throw it
             }
-
-            Log.d("CategoryRepositoryImpl", "try result: $categoryColorList")
-
-        }catch(e: Exception) {
+        } catch (e: Exception) {
             Log.d("CategoryRepositoryImpl", "error: $e")
             return emptyList()
         }
@@ -60,12 +61,12 @@ class CategoryRepositoryImpl @Inject constructor(
         try {
             Log.d("CategoryRepositoryImpl", "try")
 
-            val result = serverApi.withAuth(authPreference) {
-                updateCategoryColor(categoryId, UpdateCategoryColorRequestDTO(body))
+            val result = safeApiCallUnit {
+                serverApi.updateCategoryColor(categoryId, UpdateCategoryColorRequestDTO(body))
             }
 
             Log.d("CategoryRepositoryImpl", "try well done: $result")
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.d("CategoryRepositoryImpl", "error: $e")
         }
 

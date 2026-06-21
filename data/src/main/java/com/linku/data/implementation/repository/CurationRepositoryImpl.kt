@@ -1,29 +1,27 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
-import com.linku.core.model.CurationItem
-import com.linku.core.repository.CurationRepository
-import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.server.CurationLatestResponse
-import com.linku.data.preference.AuthPreference
-import javax.inject.Inject
-import com.linku.core.model.RecommendedLink
 import com.linku.core.model.CurationDetail
-import retrofit2.HttpException
+import com.linku.core.model.CurationItem
+import com.linku.core.model.RecommendedLink
+import com.linku.core.repository.CurationRepository
 import com.linku.data.api.CurationApi
-import com.linku.data.api.dto.BaseResponse
-import com.squareup.moshi.Types
-import com.squareup.moshi.JsonReader
-import okio.Buffer
-import com.squareup.moshi.Moshi
+import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.BaseEmptyResponse
+import com.linku.data.api.dto.BaseResponse
+import com.linku.data.api.dto.server.CurationLatestResponse
+import com.squareup.moshi.JsonReader
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
+import okio.Buffer
+import retrofit2.HttpException
+import javax.inject.Inject
 
 
-
+/* 여기 아직 아무것도 연동 안해서 일단은 패스. -미래의 나에게 부탁하겠음- */
 class CurationRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val curationApi: CurationApi,
-    private val authPreference: AuthPreference,
     private val moshi: Moshi,
 ) : CurationRepository {
 

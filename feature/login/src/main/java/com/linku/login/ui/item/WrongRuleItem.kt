@@ -23,7 +23,6 @@ import com.linku.design.util.scaler
 @Composable
 internal fun WrongRuleItem(
     text: String,
-    // satisfied: Boolean,
     modifier: Modifier = Modifier
 ) {
 

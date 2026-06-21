@@ -7,11 +7,9 @@ import com.linku.core.model.search.FastSearchLinkInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.LinkuUpdateDTO
-import com.linku.data.api.withAuth
-import com.linku.data.preference.AuthPreference
+import com.linku.data.api.safeApiCall
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -27,7 +25,6 @@ import javax.inject.Inject
 
 class LinkuRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
-    private val authPreference: AuthPreference,
 ): LinkuRepository {
     // 빈 문자열(또는 공백) -> null 정리용
     private fun String?.nullIfBlank(): String? =
@@ -66,43 +63,49 @@ class LinkuRepositoryImpl @Inject constructor(
         // --- API 호출 ---
         // addLink 의 반환 타입이 BaseResponse<LinkuSimpleDTO> 인 경우와
         // LinkuSimpleDTO 자체를 반환하는 경우 둘 다 대응할 수 있게 주석 남깁니다.
-        val dto = serverApi.withAuth(authPreference) {
-            // 반환이 BaseResponse<LinkuSimpleDTO> 인 경우:
-            // addLink(imagePart, linkuBody, memoBody, emotionBody).result
+        lateinit var result: LinkSimpleInfo
 
-            // 반환이 LinkuSimpleDTO 인 경우:
-            addLink(
-                image = imagePart,
-                linku = linkuBody,
-                memo = memoBody,
-                emotionId = emotionBody
+        safeApiCall(
+            apiCall = {
+                serverApi.addLink(
+                    image = imagePart,
+                    linku = linkuBody,
+                    memo = memoBody,
+                    emotionId = emotionBody
+                )
+            }
+        ).onSuccess {
+            result = LinkSimpleInfo(
+                linkuId = it.linkuId ?: 0L,
+                categoryId = it.categoryId,
+                memo = it.memo?.nullIfBlank(),
+                emotionId = it.emotionId,
+                title = it.title.orEmpty(),
+                domain = it.domain.orEmpty(),
+                domainImageUrl = it.domainImageUrl,
+                linkuImageUrl = it.linkuImageUrl,
+                aiArticleExists = it.aiArticleExists == true
             )
+        }.onFailure {
+            throw it
         }
 
-        // dto 가 null 가능할 수 있으므로 안전 매핑
-        // (withAuth 블록에서 .result 를 꺼냈다면 dto 가 nullable 일 수 있음)
-        requireNotNull(dto) { "addLink() response was null" }
-
-        return LinkSimpleInfo(
-            linkuId = dto.linkuId ?: 0L,
-            categoryId = dto.categoryId,
-            memo = dto.memo?.nullIfBlank(),     // "" -> null 로 통일
-            emotionId = dto.emotionId,
-            title = dto.title.orEmpty(),
-            domain = dto.domain.orEmpty(),
-            domainImageUrl = dto.domainImageUrl,
-            linkuImageUrl = dto.linkuImageUrl,
-            aiArticleExists = dto.aiArticleExists == true
-        )
+        return result
     }
 
     // 링크 유효성 검사
     override suspend fun checkLink(url: String): Boolean {
-        val res = serverApi.withAuth(authPreference) {
-            checkLink(url = url)
+        var result = false
+
+        safeApiCall(
+            apiCall = { serverApi.checkLink(url = url) }
+        ).onSuccess {
+            result = it.exist == true
+        }.onFailure {
+            throw it
         }
 
-        return res.exist == true
+        return result
     }
 
     // 링크 추천
@@ -112,28 +115,36 @@ class LinkuRepositoryImpl @Inject constructor(
         page: Int,
         size: Int
     ): List<LinkSimpleInfo> {
-        val list = serverApi.withAuth(authPreference) {
-            recommendLink(
-                situationId = situationId,
-                emotionId = emotionId,
-                page = page,
-                size = size
-            )
+        var result: List<LinkSimpleInfo> = emptyList()
+
+        safeApiCall(
+            apiCall = {
+                serverApi.recommendLink(
+                    situationId = situationId,
+                    emotionId = emotionId,
+                    page = page,
+                    size = size
+                )
+            }
+        ).onSuccess { dtoList ->
+            result = dtoList.map {
+                LinkSimpleInfo(
+                    linkuId = it.linkuId ?: 0L,
+                    categoryId = it.categoryId,
+                    memo = it.memo,
+                    emotionId = it.emotionId,
+                    title = it.title.orEmpty(),
+                    domain = it.domain.orEmpty(),
+                    domainImageUrl = it.domainImageUrl,
+                    linkuImageUrl = it.linkuImageUrl,
+                    aiArticleExists = it.aiArticleExists == true
+                )
+            }
+        }.onFailure {
+            throw it
         }
 
-        return list.map { dto ->
-            LinkSimpleInfo(
-                linkuId = dto.linkuId ?: 0L,
-                categoryId = dto.categoryId,
-                memo = dto.memo,
-                emotionId = dto.emotionId,
-                title = dto.title.orEmpty(),
-                domain = dto.domain.orEmpty(),
-                domainImageUrl = dto.domainImageUrl,
-                linkuImageUrl = dto.linkuImageUrl,
-                aiArticleExists = dto.aiArticleExists == true
-            )
-        }
+        return result
     }
 
 
@@ -143,59 +154,72 @@ class LinkuRepositoryImpl @Inject constructor(
 //            recentLinks(limit = limit)   // BaseResponse<List<LinkuSimpleDTO>>
 //        }
         //홈에서 가장 먼저 호출하는 api 여기서 withAuth 처음 진입함.
-        val raw = serverApi.withAuth(authPreference) { recentLinks(limit = limit) }
+        var result: List<LinkSimpleInfo> = emptyList()
 
-        // BaseResponse<T> / T(List) 둘 다 커버
-        val list: List<LinkuSimpleDTO> = when (raw) {
-            is BaseResponse<*> -> (raw.result as? List<LinkuSimpleDTO>).orEmpty()
-            is List<*> -> raw.filterIsInstance<LinkuSimpleDTO>()
-            else -> emptyList()
+        safeApiCall(
+            apiCall = { serverApi.recentLinks(limit = limit) }
+        ).onSuccess { raw ->
+            // 원래 있던 캐스팅 로직 원형 그대로 보존
+            val list: List<LinkuSimpleDTO> = when (raw) {
+                is BaseResponse<*> -> (raw.result as? List<LinkuSimpleDTO>).orEmpty()
+                is List<*> -> raw.filterIsInstance<LinkuSimpleDTO>()
+                else -> emptyList()
+            }
+
+            Log.d("RepoRecent", "recent size=${list.size}")
+
+            result = list.map { dto ->
+                LinkSimpleInfo(
+                    linkuId = dto.linkuId,
+                    categoryId = dto.categoryId,
+                    memo = dto.memo,
+                    emotionId = dto.emotionId,
+                    title = dto.title.orEmpty(),
+                    domain = dto.domain.orEmpty(),
+                    domainImageUrl = dto.domainImageUrl,
+                    linkuImageUrl = dto.linkuImageUrl,
+                    aiArticleExists = dto.aiArticleExists == true
+                )
+            }
+        }.onFailure {
+            throw it
         }
 
-        Log.d("RepoRecent", "recent size=${list.size}")
-
-        return list.map { dto ->
-            LinkSimpleInfo(
-                linkuId = dto.linkuId,
-                categoryId = dto.categoryId,
-                memo = dto.memo,
-                emotionId = dto.emotionId,
-                title = dto.title.orEmpty(),
-                domain = dto.domain.orEmpty(),
-                domainImageUrl = dto.domainImageUrl, //TODO : 이거 도메인 정보만 받고, 프론트에서 아예 이미지를 주는게 서버비 절감에 도움이 될 것 같은데.... 지현아 괜찮아?
-                linkuImageUrl = dto.linkuImageUrl,
-                aiArticleExists = dto.aiArticleExists == true
-            )
-        }
+        return result
     }
 
     // 링크 상세 보기 구현
     // * 수정 전 *
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
-        // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
-        val dto = serverApi.withAuth(authPreference) {
-            viewDetailLink(linkuid = linkuId)
-        }
-        requireNotNull(dto) { "Link detail result was null" }
+        lateinit var result: LinkResultInfo
 
-        return LinkResultInfo(
-            userId = dto.userId,
-            linkuId = dto.linkuId,
-            linkuFolderId = dto.linkuFolderId,
-            categoryId = dto.categoryId,
-            linku = dto.linku,
-            memo = dto.memo?.takeIf { it.isNotBlank() },
-            emotionId = dto.emotionId,
-            domain = dto.domain ?: "",
-            title = dto.title,
-            domainImageUrl = dto.domainImageUrl,
-            linkuImageUrl = dto.linkuImageUrl,
-            aiArticleExists = dto.aiArticleExists == true,
-            keyword = dto.keyword?.takeIf { it.isNotBlank() },
-            summary = dto.summary?.takeIf { it.isNotBlank() },
-            createdAt = dto.createdAt,
-            updatedAt = dto.updatedAt
-        )
+        safeApiCall(
+            apiCall = { serverApi.viewDetailLink(linkuid = linkuId) }
+        ).onSuccess {
+            // safeApiCall 내부에서 null 검증이 끝나고 논널(it)로 오기 때문에, requireNotNull 코드를 onSuccess 안에서 녹여내는 형식으로 규격을 맞췄습니다.
+            result = LinkResultInfo(
+                userId = it.userId,
+                linkuId = it.linkuId,
+                linkuFolderId = it.linkuFolderId,
+                categoryId = it.categoryId,
+                linku = it.linku,
+                memo = it.memo?.takeIf { it.isNotBlank() },
+                emotionId = it.emotionId,
+                domain = it.domain ?: "",
+                title = it.title,
+                domainImageUrl = it.domainImageUrl,
+                linkuImageUrl = it.linkuImageUrl,
+                aiArticleExists = it.aiArticleExists == true,
+                keyword = it.keyword?.takeIf { it.isNotBlank() },
+                summary = it.summary?.takeIf { it.isNotBlank() },
+                createdAt = it.createdAt,
+                updatedAt = it.updatedAt
+            )
+        }.onFailure {
+            throw it
+        }
+
+        return result
     }
 
     // * 수정 후 *
@@ -203,60 +227,67 @@ class LinkuRepositoryImpl @Inject constructor(
         userId: Long,
         linkuId: Long
     ): LinkResultInfo {
-        // dto = LinkuResultDTO  (withAuth가 BaseResponse.result를 풀어서 반환)
-        val dto = serverApi.withAuth(authPreference) {
-            viewDetailLink(userId = userId,linkuid = linkuId)
-        }
-        requireNotNull(dto) { "Link detail result was null" }
+        lateinit var result: LinkResultInfo
 
-        return LinkResultInfo(
-            userId = dto.userId,
-            linkuId = dto.linkuId,
-            linkuFolderId = dto.linkuFolderId,
-            categoryId = dto.categoryId,
-            linku = dto.linku,
-            memo = dto.memo?.takeIf { it.isNotBlank() },
-            emotionId = dto.emotionId,
-            domain = dto.domain ?: "",
-            title = dto.title,
-            domainImageUrl = dto.domainImageUrl,
-            linkuImageUrl = dto.linkuImageUrl,
-            aiArticleExists = dto.aiArticleExists == true,
-            keyword = dto.keyword?.takeIf { it.isNotBlank() },
-            summary = dto.summary?.takeIf { it.isNotBlank() },
-            createdAt = dto.createdAt,
-            updatedAt = dto.updatedAt
-        )
+        safeApiCall(
+            apiCall = { serverApi.viewDetailLink(userId = userId, linkuid = linkuId) }
+        ).onSuccess {
+            result = LinkResultInfo(
+                userId = it.userId,
+                linkuId = it.linkuId,
+                linkuFolderId = it.linkuFolderId,
+                categoryId = it.categoryId,
+                linku = it.linku,
+                memo = it.memo?.takeIf { it.isNotBlank() },
+                emotionId = it.emotionId,
+                domain = it.domain ?: "",
+                title = it.title,
+                domainImageUrl = it.domainImageUrl,
+                linkuImageUrl = it.linkuImageUrl,
+                aiArticleExists = it.aiArticleExists == true,
+                keyword = it.keyword?.takeIf { it.isNotBlank() },
+                summary = it.summary?.takeIf { it.isNotBlank() },
+                createdAt = it.createdAt,
+                updatedAt = it.updatedAt
+            )
+        }.onFailure {
+            throw it
+        }
+
+        return result
     }
 
     override suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo> {
         Log.d("fastSearch", "keyword: $keyword")
 
-        val response: List<FastSearchLinkInfo>
-        try{
+        var result: List<FastSearchLinkInfo> = emptyList()
+
+        try {
             Log.d("fastSearch", "try")
 
-            response = serverApi.withAuth(authPreference) {
-                quickSearch(keyword = keyword)
-            }.map{
-                FastSearchLinkInfo(
-                    linkuId = it.linkuId,
-                    title = it.title,
-                    domainImageUrl = it.domainImageUrl,
-                    linkUrl = it.linkUrl
-                )
+            safeApiCall(
+                apiCall = { serverApi.quickSearch(keyword = keyword) }
+            ).onSuccess { dtoList ->
+                result = dtoList.map {
+                    FastSearchLinkInfo(
+                        linkuId = it.linkuId,
+                        title = it.title,
+                        domainImageUrl = it.domainImageUrl,
+                        linkUrl = it.linkUrl
+                    )
+                }
+                Log.d("fastSearch", "response: $result")
+            }.onFailure {
+                throw it
             }
-
-            Log.d("fastSearch", "response: $response")
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Log.d("fastSearch", "error: $e")
-
             return emptyList()
         }
 
-        Log.d("fastSearch", "return: $response")
+        Log.d("fastSearch", "return: $result")
 
-        return response
+        return result
     }
 
     // 링크 수정
@@ -278,28 +309,33 @@ class LinkuRepositoryImpl @Inject constructor(
             title = title
         )
 
-        val dto = serverApi.withAuth(authPreference) {
-            updateLink(linkuId = linkuId, body = body)
-        }
-        requireNotNull(dto) { "updateLink() result was null" }
+        lateinit var result: LinkResultInfo
 
-        return LinkResultInfo(
-            userId = dto.userId,
-            linkuId = dto.linkuId,
-            linkuFolderId = dto.linkuFolderId,
-            categoryId = dto.categoryId,
-            linku = dto.linku,
-            memo = dto.memo?.takeIf { it.isNotBlank() },
-            emotionId = dto.emotionId,
-            domain = dto.domain ?: "",
-            title = dto.title,
-            domainImageUrl = dto.domainImageUrl,
-            linkuImageUrl = dto.linkuImageUrl,
-            aiArticleExists = dto.aiArticleExists == true,
-            keyword = dto.keyword?.takeIf { it.isNotBlank() },
-            summary = dto.summary?.takeIf { it.isNotBlank() },
-            createdAt = dto.createdAt,
-            updatedAt = dto.updatedAt
-        )
+        safeApiCall(
+            apiCall = { serverApi.updateLink(linkuId = linkuId, body = body) }
+        ).onSuccess {
+            result = LinkResultInfo(
+                userId = it.userId,
+                linkuId = it.linkuId,
+                linkuFolderId = it.linkuFolderId,
+                categoryId = it.categoryId,
+                linku = it.linku,
+                memo = it.memo?.takeIf { it.isNotBlank() },
+                emotionId = it.emotionId,
+                domain = it.domain ?: "",
+                title = it.title,
+                domainImageUrl = it.domainImageUrl,
+                linkuImageUrl = it.linkuImageUrl,
+                aiArticleExists = it.aiArticleExists == true,
+                keyword = it.keyword?.takeIf { it.isNotBlank() },
+                summary = it.summary?.takeIf { it.isNotBlank() },
+                createdAt = it.createdAt,
+                updatedAt = it.updatedAt
+            )
+        }.onFailure {
+            throw it
+        }
+
+        return result
     }
 }

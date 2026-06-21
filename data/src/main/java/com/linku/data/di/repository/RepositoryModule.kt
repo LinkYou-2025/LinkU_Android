@@ -1,8 +1,6 @@
 package com.linku.data.di.repository
 
-import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
-import com.linku.data.implementation.repository.AuthRepositoryImpl
 import com.linku.data.implementation.repository.UserRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -17,14 +15,10 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    @Suppress("unused")
     abstract fun bindUserRepository(
         impl: UserRepositoryImpl
     ): UserRepository
 
-    @Binds
-    @Singleton
-    abstract fun bindAuthRepository(
-        impl: AuthRepositoryImpl
-    ): AuthRepository
 }
 

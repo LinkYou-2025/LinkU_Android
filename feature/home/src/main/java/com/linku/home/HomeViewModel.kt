@@ -1,11 +1,11 @@
 package com.linku.home
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import android.util.Log
 import com.linku.core.model.AiArticle
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
@@ -18,15 +18,15 @@ import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
-import com.linku.design.top.search.FastSearchItem
 import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -89,10 +89,10 @@ class HomeViewModel @Inject constructor(
                 return@launch
             }
 
-            runCatching { userRepository.getUserInfo(userId) }
-                .onSuccess { info ->
-                    userNameState.value = info.nickname
-                    jobIdState.value = info.jobId.toLong()
+            userRepository.getUserInfo(userId)
+                .onSuccess { userInfo ->
+                    userNameState.value = userInfo.nickname
+                    jobIdState.value = userInfo.jobId
                 }
                 .onFailure { e ->
                     Log.e("HomeVM", "loadUserBasics failed", e)
@@ -112,7 +112,7 @@ class HomeViewModel @Inject constructor(
         // 모든 상태값 초기화
         userNameState.value = null
         jobIdState.value = null
-        recentLinksState.value = emptyList()
+        _recentLinks.value = emptyList()
         linkDetailState.value = null
         linkCache.clear() // 상세 정보 캐시도 삭제
         _categoryColorMap.value = emptyMap()
@@ -225,8 +225,11 @@ class HomeViewModel @Inject constructor(
     }
 
     // 최근 조회 링크 상태
-    private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
-    val recentLinks get() = recentLinksState.value
+    private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
+    val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
+//    private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
+//    val recentLinks get() = recentLinksState.value
+
 
     // AI 요약
     private val aiArticleDetailState = mutableStateOf<AiArticle?>(null)
@@ -270,10 +273,10 @@ class HomeViewModel @Inject constructor(
                 )
 
                 // 낙관적 업데이트: 메모리의 최근 목록 즉시 갱신
-                recentLinksState.value = buildList {
+                _recentLinks.value = buildList {
                     add(saved)
                     addAll(
-                        recentLinksState.value
+                        _recentLinks.value
                             .filter { it.linkuId != saved.linkuId } // 중복 제거
                             .take(9) // 최대 10개 유지
                     )
@@ -345,10 +348,10 @@ class HomeViewModel @Inject constructor(
     fun loadRecentLinks() {
         viewModelScope.launch {
             runCatching { linkuRepository.getRecentLinks(limit = 10) }
-                .onSuccess { recentLinksState.value = it }
+                .onSuccess { _recentLinks.value = it }
                 .onFailure {
                     Log.e("HomeVM", "loadRecentLinks failed", it)
-                    recentLinksState.value = emptyList()
+                    _recentLinks.value = emptyList()
                 }
         }
     }

@@ -54,8 +54,6 @@ fun SignUpPasswordScreen(
 
     SignUpStepLayout(
         currentStep = 1,
-        totalSteps = 3,
-        label = "계정 정보",
         title = "사용하실 비밀번호를\n입력해주세요",
         buttonEnabled = canProceed,
         onNextClick = {
@@ -122,8 +120,6 @@ fun SignUpPasswordScreenPreview() {
     LinkuPreview {
         SignUpStepLayoutPreview(
             currentStep = 1,
-            totalSteps = 3,
-            label = "계정 정보",
             title = "사용하실 비밀번호를\n입력해주세요",
             buttonEnabled = true,
         ) {

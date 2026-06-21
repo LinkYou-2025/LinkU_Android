@@ -49,9 +49,9 @@ import com.linku.login.R
 internal fun PasswordLoginTextField(
     value: String,
     onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
     hint: String = "비밀번호",
     enabled: Boolean = true,
-    modifier: Modifier = Modifier
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val shape = RoundedCornerShape(16.dp)

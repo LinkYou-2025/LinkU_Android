@@ -57,8 +57,6 @@ import com.linku.login.ui.item.StepIndicator
 internal fun <T : SelectionItem> SignUpSelectionLayout(
     // 상단 영역
     currentStep: Int,
-    totalSteps: Int,
-    stepLabel: String,
     titleText: AnnotatedString,
     subText: String,
 
@@ -106,9 +104,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
             // Step 인디케이터
             Box(modifier = Modifier.padding(horizontal = 20.dp)) {
                 StepIndicator(
-                    currentStep = currentStep,
-                    totalSteps = totalSteps,
-                    label = stepLabel
+                    currentStep = currentStep
                 )
             }
 
@@ -190,8 +186,6 @@ private fun SignUpSelectionLayoutPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
             },
@@ -220,8 +214,6 @@ private fun SignUpSelectionLayoutSelectedPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 목적으로 링크를\n저장하고 싶으신가요?")
             },
@@ -247,8 +239,6 @@ private fun SignUpSelectionLayoutInterestPreview() {
     LinkuPreview {
         SignUpSelectionLayout(
             currentStep = 3,
-            totalSteps = 3,
-            stepLabel = "관심사 설정",
             titleText = buildAnnotatedString {
                 append("어떤 분야의 콘텐츠를\n관심 있으신가요?")
             },

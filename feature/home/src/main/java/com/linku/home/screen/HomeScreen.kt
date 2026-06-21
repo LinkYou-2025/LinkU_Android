@@ -55,7 +55,7 @@ import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
 import com.linku.home.component.rememberClipboardUrl
-import com.linku.home.ui.top.bar.HomeTopBar
+import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.launch
 
 data class LinkItem(
