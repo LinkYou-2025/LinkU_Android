@@ -41,6 +41,7 @@ fun LinkCardItem(
     linkTitle: String,
     tags: List<String>,
     domainName: String? = null,
+    isExternalLink: Boolean,
     @DrawableRes linkImage: Int? = null,
     @DrawableRes domainImage: Int? = null,
     onClickDelete: () -> Unit
@@ -75,17 +76,32 @@ fun LinkCardItem(
                     .weight(1f),
                 horizontalAlignment = Alignment.Start
             ) {
-                Text(
-                    text = linkTitle,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.linkuColors.black,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 13.dp)
-                )
+                        .padding(top = 13.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (isExternalLink) {
+                        Image(
+                            painter = painterResource(R.drawable.ic_out_link),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    Text(
+                        text = linkTitle,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.linkuColors.black,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(5.dp))
 
@@ -184,6 +200,7 @@ fun PreviewLinkCardItem_HasAiSummary() {
             hasAiSummary = true,
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
+            isExternalLink = false,
             linkImage = R.drawable.img_genz_trend,
             domainImage = R.drawable.ic_domain_blog_naver_logo,
             domainName = "BLOG",
@@ -200,6 +217,24 @@ fun PreviewLinkCardItem_NoAiSummary() {
             hasAiSummary = false,
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
+            isExternalLink = false,
+            domainImage = R.drawable.ic_domain_blog_naver_logo,
+            domainName = "BLOG",
+            onClickDelete = { }
+        )
+    }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun PreviewLinkCardItem_HasOutLink() {
+    ThemeProvider {
+        LinkCardItem(
+            hasAiSummary = true,
+            linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
+            tags = listOf("생산성·툴", "평온"),
+            isExternalLink = true,
+            linkImage = R.drawable.img_genz_trend,
             domainImage = R.drawable.ic_domain_blog_naver_logo,
             domainName = "BLOG",
             onClickDelete = { }
