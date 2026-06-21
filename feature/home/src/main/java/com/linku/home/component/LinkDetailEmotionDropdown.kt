@@ -24,6 +24,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.home.R
+import com.linku.home.util.imgRes
 
 @Composable
 fun LinkDetailEmotionDropdown(
@@ -51,7 +52,7 @@ fun LinkDetailEmotionDropdown(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Image(
-                    painter = painterResource(emotion.iconRes()),
+                    painter = painterResource(emotion.imgRes),
                     contentDescription = null,
                     modifier = Modifier.size(29.dp)
                 )
