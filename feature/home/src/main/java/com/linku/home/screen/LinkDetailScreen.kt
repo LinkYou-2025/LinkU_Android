@@ -80,6 +80,7 @@ fun LinkDetailScreen(
     memo: String,
     tags: List<String>,
     aiSummary: String,
+    categoryOptions: List<LinkCategoryOption>,
     onBack: () -> Unit,
 ) {
     val clipboard = LocalClipboard.current
@@ -117,15 +118,15 @@ fun LinkDetailScreen(
             if (tag.startsWith("#")) tag else "#$tag"
         }
 
-    // 카테고리 더미데이터
-    val categoryOptions = listOf(
-        LinkCategoryOption(1L, "카테고리2", Color(0xFF55D6C2)),
-        LinkCategoryOption(2L, "카테고리3", Color(0xFFFFBE3D)),
-        LinkCategoryOption(3L, "카테고리4", Color(0xFF2FB4E9)),
-        LinkCategoryOption(4L, "카테고리5", Color(0xFFFF5757)),
-        LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
-        LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
-    )
+    LaunchedEffect(linkTitle, category, emotion, situation, memo) {
+        if (!isEditMode) {
+            selectedTitle = linkTitle
+            selectedCategory = category
+            selectedEmotion = emotion
+            selectedSituation = situation
+            selectedMemo = memo
+        }
+    }
 
     LaunchedEffect(isAiArticleProcessing) {
         if (isAiArticleProcessing) {
@@ -459,9 +460,7 @@ fun LinkDetailScreen(
                         )
                     }
 
-                    if (isAiSummaryMode) {
-                        Spacer(modifier = Modifier.height(40.dp))
-                    }
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
             }
         }
@@ -669,6 +668,16 @@ fun LinkDetailScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewLinkDetailScreen() {
+    // 카테고리 더미데이터
+    val categoryOptions = listOf(
+        LinkCategoryOption(1L, "카테고리2", Color(0xFF55D6C2)),
+        LinkCategoryOption(2L, "카테고리3", Color(0xFFFFBE3D)),
+        LinkCategoryOption(3L, "카테고리4", Color(0xFF2FB4E9)),
+        LinkCategoryOption(4L, "카테고리5", Color(0xFFFF5757)),
+        LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
+        LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
+    )
+
     ThemeProvider {
         LinkDetailScreen(
             linkTitle = "3일만에 오픽 AL 꿀팁",
@@ -679,6 +688,7 @@ fun PreviewLinkDetailScreen() {
             memo = "오픽 시험 준비시 도움이 되는 내용 정리, AI 활용한 공부법 정리 및 다양한 내용이 포함된 링크!!",
             tags = listOf("오픽", "AL", "영어회화", "자격증"),
             aiSummary = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",
+            categoryOptions = categoryOptions,
             onBack = { },
         )
     }

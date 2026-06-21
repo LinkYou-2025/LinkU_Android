@@ -1,11 +1,9 @@
 package com.linku.home.screen
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,9 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -52,11 +46,12 @@ import java.io.File
 fun SaveLinkScreen(
     image: File?,
     url: String,
-    title: String? = "",
+    title: String = "",
     memo: String,
     selectedEmotionId: Long?,
     onPickImage: () -> Unit,
     onUrlChange: (String) -> Unit,
+    onTitleChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onEmotionSelect: (Long?) -> Unit,
     onSaveClick: () -> Unit,
@@ -173,7 +168,7 @@ fun SaveLinkScreen(
                     .fillMaxWidth()
                     .padding(top = 14.dp, start = 20.dp, end = 20.dp)
                     .then(
-                        if (url == "") {
+                        if (title.isEmpty()) {
                             Modifier.border(1.dp, color = Basic.gray[200], shape = RoundedCornerShape(20.dp))
                         } else {
                             Modifier.border(width = 1.dp, brush = Basic.maincolor, shape = RoundedCornerShape(18.dp))
@@ -182,7 +177,7 @@ fun SaveLinkScreen(
                     .padding(horizontal = 22.dp, vertical = 15.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
-                if (url.isEmpty()) {
+                if (title.isEmpty()) {
                     Text(
                         text = "링크 제목을 입력해주세요.",
                         fontSize = 14.sp,
@@ -192,10 +187,15 @@ fun SaveLinkScreen(
                 }
 
                 BasicTextField(
-                    value = url,  // TODO: 추후 API 파라미터에 링크 제목 추가되면 바꾸기
-                    onValueChange = onUrlChange,
+                    value = title,
+                    onValueChange = onTitleChange,
                     singleLine = true,
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
+                    textStyle = TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = LocalColorTheme.current.black,
+                        fontFamily = LocalFontTheme.current.font
+                    ),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -239,8 +239,7 @@ fun SaveLinkScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 19.dp)
-                    .noRippleClickable { onPickImage() },
+                    .padding(start = 20.dp, end = 20.dp, top = 19.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 if (image != null) {
@@ -260,6 +259,7 @@ fun SaveLinkScreen(
                             .clip(RoundedCornerShape(18.dp))
                             .background(LocalColorTheme.current.gray[100])
                             .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp))
+                            .noRippleClickable { onPickImage() }
                             .padding(38.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -430,12 +430,13 @@ fun PreviewSaveLinkScreen() {
             title = "",
             memo = "",
             selectedEmotionId = null,
-            onPickImage = {},
-            onUrlChange = {},
-            onMemoChange = {},
-            onEmotionSelect = {},
-            onSaveClick = {},
-            onBack = {},
+            onPickImage = { },
+            onUrlChange = { },
+            onTitleChange = { },
+            onMemoChange = { },
+            onEmotionSelect = { },
+            onSaveClick = { },
+            onBack = { },
             isCheckingUrl = false,
             isDuplicateUrl = null,
             isInvalidLink = false
