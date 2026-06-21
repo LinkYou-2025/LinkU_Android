@@ -1,43 +1,15 @@
 package com.linku.core.model
 
-import androidx.annotation.DrawableRes
-import com.linku.design.R
-
 enum class EmotionType(
     val id: Long,
-    val tagName: String,
-    @DrawableRes val imgRes: Int
+    val tagName: String
 ) {
-    JOY(
-        id = 1L,
-        tagName = "즐거움",
-        imgRes = R.drawable.ic_joy
-    ),
-    CALM(
-        id = 2L,
-        tagName = "평온",
-        imgRes = R.drawable.ic_calm
-    ),
-    EXCITE(
-        id = 3L,
-        tagName = "설렘",
-        imgRes = R.drawable.ic_excite
-    ),
-    SAD(
-        id = 4L,
-        tagName = "슬픔",
-        imgRes = R.drawable.ic_sad
-    ),
-    IRRITATION(
-        id = 5L,
-        tagName = "짜증",
-        imgRes = R.drawable.ic_irritation
-    ),
-    ANGER(
-        id = 6L,
-        tagName = "분노",
-        imgRes = R.drawable.ic_anger
-    );
+    JOY(id = 1L, tagName = "즐거움"),
+    CALM(id = 2L, tagName = "평온"),
+    EXCITE(id = 3L, tagName = "설렘"),
+    SAD(id = 4L, tagName = "슬픔"),
+    IRRITATION(id = 5L, tagName = "짜증"),
+    ANGER(id = 6L, tagName = "분노");
 
     companion object {
         fun fromId(id: Long?): EmotionType? {
