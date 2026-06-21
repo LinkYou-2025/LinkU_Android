@@ -1,5 +1,6 @@
 package com.linku.mypage.intent
 
+import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmType
 
 // Intent 최상위 인터페이스
@@ -15,36 +16,72 @@ sealed interface NotificationIntent
 sealed interface LinkuNotificationIntent : NotificationIntent {
     val enabled: Boolean
     val alarmType: AlarmType
+
+    fun reduce(setting: AlarmSetting): AlarmSetting
 }
 
 data class ToggleAll(
     override val enabled: Boolean
 ) : LinkuNotificationIntent {
     override val alarmType = AlarmType.ALL
+
+    override fun reduce(setting: AlarmSetting): AlarmSetting {
+        return setting.copy(
+            isAllEnabled = enabled,
+            isLinkEnabled = enabled,
+            isFolderEnabled = enabled,
+            isCurationEnabled = enabled,
+            isNoticeEnabled = enabled
+        )
+    }
 }
 
 data class ToggleLink(
     override val enabled: Boolean
 ) : LinkuNotificationIntent {
     override val alarmType = AlarmType.LINK
+
+    override fun reduce(setting: AlarmSetting): AlarmSetting {
+        return setting.copy(
+            isLinkEnabled = enabled
+        )
+    }
 }
 
 data class ToggleFolder(
     override val enabled: Boolean
 ) : LinkuNotificationIntent {
     override val alarmType = AlarmType.FOLDER
+
+    override fun reduce(setting: AlarmSetting): AlarmSetting {
+        return setting.copy(
+            isFolderEnabled = enabled
+        )
+    }
 }
 
 data class ToggleCuration(
     override val enabled: Boolean
 ) : LinkuNotificationIntent {
     override val alarmType = AlarmType.CURATION
+
+    override fun reduce(setting: AlarmSetting): AlarmSetting {
+        return setting.copy(
+            isCurationEnabled = enabled
+        )
+    }
 }
 
 data class ToggleNotice(
     override val enabled: Boolean
 ) : LinkuNotificationIntent {
     override val alarmType = AlarmType.NOTICE
+
+    override fun reduce(setting: AlarmSetting): AlarmSetting {
+        return setting.copy(
+            isNoticeEnabled = enabled
+        )
+    }
 }
 
 data object RefreshSystemAlarm : NotificationIntent
