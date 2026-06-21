@@ -79,6 +79,10 @@ fun MainApp(
         }
     }
 
+    // 닉네임 최상단 뒤치(사용하는 스크린)
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+
+
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     // FIXME : 지민님한테 여쭈어보기. 매번 앱 실행할 때마다 최근 기록을 지우는 것보다는 로그아웃 때 지우는건 어떤지
     LaunchedEffect(Unit) {
@@ -124,6 +128,14 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == NavigationRoute.Home.route ||
+            currentRoute == "curation_list"
+        ) {
+            viewModel.fetchNickname()
+        }
+    }
 
     fun isTabRoute(current: String?, root: String): Boolean =
         current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
@@ -347,15 +359,6 @@ fun MainApp(
                             showNavBar = true
                         }
 
-                        // 홈 탭 진입 및 복귀 할 때마다 닉네임 갱신
-                        LaunchedEffect(currentRoute) {
-                            if (currentRoute == NavigationRoute.Home.route) {
-                                viewModel.fetchNickname()
-                            }
-                        }
-
-                        val nickname by viewModel.nickname.collectAsStateWithLifecycle()
-
                         HomeApp(
                             viewModel = homeViewModel,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
@@ -391,7 +394,8 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
-                    showNavBar = { showNavBar = it }
+                    showNavBar = { showNavBar = it },
+                    nickname = nickname.orEmpty().ifBlank { "링큐" }
                 )
 
 
