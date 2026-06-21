@@ -152,6 +152,7 @@ class HomeViewModel @Inject constructor(
     // 새로운 링크 저장
     private val imageState = mutableStateOf<File?>(null)
     private val urlState = mutableStateOf("")
+    private val titleState = mutableStateOf("")
     private val memoState = mutableStateOf("")
     private val emotionIdState = mutableStateOf<Long?>(null)
     private val isSavingState = mutableStateOf(false)
@@ -163,6 +164,7 @@ class HomeViewModel @Inject constructor(
 
     val image get() = imageState.value
     val url get() = urlState.value
+    val title get() = titleState.value
     val memo get() = memoState.value
     val selectedEmotionId get() = emotionIdState.value
     val isSaving get() = isSavingState.value
@@ -211,6 +213,7 @@ class HomeViewModel @Inject constructor(
             isCheckingUrlState.value = false
         }
     }
+    fun setTitle(newTitle: String) { titleState.value = newTitle }
     fun setMemo(newMemo: String) { memoState.value = newMemo }
     fun selectEmotion(id: Long?) { emotionIdState.value = id }
 
@@ -220,6 +223,7 @@ class HomeViewModel @Inject constructor(
     fun resetForm() {
         imageState.value = null
         urlState.value = ""
+        titleState.value = ""
         memoState.value = ""
         emotionIdState.value = null
     }
