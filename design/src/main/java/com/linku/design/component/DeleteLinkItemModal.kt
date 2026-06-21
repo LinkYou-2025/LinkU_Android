@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,15 +23,17 @@ import com.linku.design.theme.ThemeProvider
 fun DeleteLinkItemModal(
     onDeleteClick: () -> Unit = { }
 ) {
+    val shape = RoundedCornerShape(14.dp)
+
     Column(
         modifier = Modifier
             .width(120.dp)
-            .graphicsLayer {
-                shadowElevation = 10.dp.toPx()
-                this.shape = shape
-                clip = true
-            }
-            .clip(RoundedCornerShape(14.dp))
+            .shadow(
+                elevation = 10.dp,
+                shape = shape,
+                clip = false
+            )
+            .clip(shape)
             .background(LocalColorTheme.current.white)
             .padding(horizontal = 15.dp, vertical = 10.dp)
             .noRippleClickable { onDeleteClick() }
