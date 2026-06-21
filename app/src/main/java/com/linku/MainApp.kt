@@ -519,48 +519,33 @@ fun MainApp(
                     }
 
                     // TODO: 카테고리 API 연동 후 categoryId 기준 실제 카테고리명/색상 매핑으로 교체
+                    val CATEGORY_MAP = linkedMapOf(
+                        1L to "어학",
+                        2L to "뉴스",
+                        3L to "공부법",
+                        4L to "IT·개발",
+                        5L to "자기계발",
+                        6L to "취업·이직",
+                        7L to "비즈니스 인사이트",
+                        8L to "생산성·툴",
+                        9L to "라이프스타일",
+                        10L to "심리·자기이해",
+                        11L to "에세이·칼럼",
+                        12L to "트렌드",
+                        13L to "디자인·예술",
+                        14L to "영상·뮤직",
+                        15L to "맛집·여행",
+                        16L to "기타"
+                    )
+
                     fun categoryNameOf(id: Long?): String {
-                        return when (id) {
-                            1L -> "어학"
-                            2L -> "뉴스"
-                            3L -> "공부법"
-                            4L -> "IT·개발"
-                            5L -> "자기계발"
-                            6L -> "취업·이직"
-                            7L -> "비즈니스 인사이트"
-                            8L -> "생산성·툴"
-                            9L -> "라이프스타일"
-                            10L -> "심리·자기이해"
-                            11L -> "에세이·칼럼"
-                            12L -> "트렌드"
-                            13L -> "디자인·예술"
-                            14L -> "영상·뮤직"
-                            15L -> "맛집·여행"
-                            16L -> "기타"
-                            else -> "카테고리"
-                        }
+                        return CATEGORY_MAP[id] ?: "카테고리"
                     }
 
                     fun categoryIdOf(name: String): Long? {
-                        return when (name) {
-                            "어학" -> 1L
-                            "뉴스" -> 2L
-                            "공부법" -> 3L
-                            "IT·개발" -> 4L
-                            "자기계발" -> 5L
-                            "취업·이직" -> 6L
-                            "비즈니스 인사이트" -> 7L
-                            "생산성·툴" -> 8L
-                            "라이프스타일" -> 9L
-                            "심리·자기이해" -> 10L
-                            "에세이·칼럼" -> 11L
-                            "트렌드" -> 12L
-                            "디자인·예술" -> 13L
-                            "영상·뮤직" -> 14L
-                            "맛집·여행" -> 15L
-                            "기타" -> 16L
-                            else -> null
-                        }
+                        return CATEGORY_MAP.entries
+                            .firstOrNull { it.value == name }
+                            ?.key
                     }
 
                     fun keywordToTags(keyword: String?): List<String> {
