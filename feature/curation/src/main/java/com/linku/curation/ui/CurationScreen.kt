@@ -2,46 +2,51 @@ package com.linku.curation.ui
 
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.linku.curation.CurationViewModel
-import com.linku.design.top.bar.TopBar
-import com.linku.design.util.scaler
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.graphics.Color
 import com.linku.curation.R
+import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.effect.highlight.RadialGradientCircle
 import com.linku.curation.ui.main_card.CurationMainCardPager
+import com.linku.curation.ui.screen.CurationKeywordDetailScreen
 import com.linku.curation.ui.screen.detail.CurationMonthDetailOverlay
 import com.linku.design.theme.font.Paperlogy
-import androidx.compose.foundation.pager.rememberPagerState
-import com.linku.curation.ui.calendar.CalendarBox
-import com.linku.curation.ui.screen.CurationKeywordDetailScreen
+import com.linku.design.top.bar.TopBar
+import com.linku.design.util.scaler
 
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun CurationScreen(
+    nickname: String,
     viewModel: CurationViewModel = hiltViewModel(),
     //onOpenDetail: (userId: Long, curationId: Long, imageUrl: String?, cardIndex: Int) -> Unit = { _, _, _, _ -> } // 파라미터 4개로 변경
 ) {
-    val nickname by viewModel.nickname.collectAsState()
-
     // Pager 상태를 Screen에서 고정
     val pagerState = rememberPagerState(
         initialPage = 0,
@@ -53,6 +58,8 @@ fun CurationScreen(
     var showKeywordDetail by remember { mutableStateOf(false) }
     var selectedImageUrl by remember { mutableStateOf<String?>(null) }
     var selectedPage by remember { mutableStateOf(0) }
+
+    val displayNickname = nickname.ifBlank { "세나" }
 
 
     SharedTransitionLayout {
@@ -99,7 +106,7 @@ fun CurationScreen(
             ) { innerPadding ->
 
                 CurationScreenContent(
-                    nickname = nickname.ifBlank { "세나" },
+                    nickname = displayNickname,
                     pagerState = pagerState,
                     isDetailOpen = showDetail,
                     // TODO: 실제 curationId
@@ -127,6 +134,7 @@ fun CurationScreen(
             // 2번 카드 전용 추가 : 키워드 화면
             if (showKeywordDetail) {
                 CurationKeywordDetailScreen(
+                    nickname = displayNickname,
                     onBack = { showKeywordDetail = false },
                     onHome = { showKeywordDetail = false }
                 )

@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -30,25 +28,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.linku.curation.CurationViewModel
-import com.linku.curation.R
 import com.linku.curation.ui.effect.highlight.RadialGradientCircle
 import com.linku.design.theme.font.Paperlogy
 import com.linku.design.util.LocalFigmaDimens
 import com.linku.design.util.scaler
 
-//큐레이션 두번째 카드 - 디테일 화면 제작중...
+
 @Composable
 fun CurationKeywordDetailScreen(
+    nickname: String,
     viewModel: CurationViewModel = hiltViewModel(),
     onBack: () -> Unit = {},
     onHome: () -> Unit = {}
 ) {
-    val nickname by viewModel.nickname.collectAsState()
-    val jobName by viewModel.jobName.collectAsState()
-
     CurationKeywordDetailContent(
         nickname = nickname,
-        jobName = jobName,
         onBack = onBack,
         onHome = onHome
     )
@@ -57,7 +51,6 @@ fun CurationKeywordDetailScreen(
 @Composable
 private fun CurationKeywordDetailContent(
     nickname: String,
-    jobName: String,
     onBack: () -> Unit = {},
     onHome: () -> Unit = {}
 ) {
@@ -115,7 +108,7 @@ private fun CurationKeywordDetailContent(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "${nickname}님과 같은 ${jobName}들은\n이번 달, 이런 키워드를 많이 봤어요",
+                text = "${nickname}님은 \n이번 달, 이런 키워드를 많이 봤어요",
                 style = TextStyle(
                     fontSize = 20.sp,
                     lineHeight = 25.sp,
@@ -163,7 +156,6 @@ private fun CurationKeywordDetailScreenPreview() {
     ) {
         CurationKeywordDetailContent(
             nickname = "세나",
-            jobName = "직장인"  // 프리뷰용 고정값
         )
     }
 }
