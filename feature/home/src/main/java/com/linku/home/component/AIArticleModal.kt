@@ -103,7 +103,6 @@ fun SimpleProgressBar(progress: Float, modifier: Modifier = Modifier) {
 
     Box(
         modifier = modifier
-            .fillMaxWidth()
             .height(6.dp)
             .clip(RoundedCornerShape(4.dp))
             .background(colors.gray[200])
