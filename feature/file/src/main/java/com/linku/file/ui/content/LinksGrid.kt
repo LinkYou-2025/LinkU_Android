@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
@@ -65,80 +67,25 @@ fun LinksGrid(
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(MIDDLE_PADDING.dp),
     ) {
-        if(!isShareMode){
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Start,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .noRippleClickable {
-                                Log.d("LinksGrid", "링크 추가하기 클릭")
-                                if (hasNotCategorizationLinks) {
-                                    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                                } else {
-                                    categorizationModalWindowVisible = true
-                                }
-                            },
-                        contentAlignment = Alignment.TopStart
-                    ) {
-                        Box(
-                            modifier = Modifier,
-                            contentAlignment = Alignment.TopCenter
-                        ) {
-                            Box(
-                                modifier = Modifier.alpha(1f),
-                            ) {
-                                LinkItemLayout(
-                                    link = null
-                                )
-                            }
-
-                            Image(
-                                modifier = Modifier.padding(top = 103.dp),
-                                painter = painterResource(R.drawable.add_folder_icon),
-                                contentDescription = null
-                            )
-
-                            Text(
-                                modifier = Modifier.padding(top = 147.dp),
-                                text = "링크 추가하기",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight(500),
-                                color = colors.black,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
+        this.LinksGrid(
+            linkList = linkList,
+            isShareMode = isShareMode,
+            onAddLinkClick = {
+                Log.d("LinksGrid", "링크 추가하기 클릭")
+                if (hasNotCategorizationLinks) {
+                    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                } else {
+                    categorizationModalWindowVisible = true
                 }
+            },
+            onLinkClick = { link ->
+                fileViewModel.onLinkClick?.invoke(link.linkuId)
+            },
+            onLinkLongClick = { linkId ->
+                selectedLinkId = linkId
+                deleteModalWindowVisible = true
             }
-        }
-
-        itemsIndexed(linkList){ index, link ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = if((index % 2 == 1) xor isShareMode) Arrangement.Start else Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                LinkItemLayout(
-                    link = link,
-                    onClick = {
-                        fileViewModel.onLinkClick?.invoke(link.linkuId)
-                    },
-                    onLongClick = {
-                        if(!isShareMode){
-                            selectedLinkId = link.linkuId
-
-                            deleteModalWindowVisible = true
-                        }
-                    }
-                )
-            }
-        }
+        )
     }
 
     // 분류되지 않는 링크가 없으면 뜨는 모달창
@@ -183,6 +130,98 @@ fun LinksGrid(
             color = colors.gray[600],
             textAlign = TextAlign.Center,
         )
+    }
+}
+
+fun LazyGridScope.LinksGrid(
+    linkList: List<LinkItemInfo>,
+    isShareMode: Boolean,
+    onAddLinkClick: () -> Unit,
+    onLinkClick: (LinkItemInfo) -> Unit,
+    onLinkLongClick: (Long) -> Unit,
+    showAddLinkItem: Boolean = !isShareMode,
+    isLongClickEnabled: Boolean = !isShareMode,
+    itemIndexOffset: Int = if (showAddLinkItem) 1 else 0,
+) {
+    if (showAddLinkItem) {
+        item {
+            AddLinkItem(onClick = onAddLinkClick)
+        }
+    }
+
+    itemsIndexed(linkList) { index, link ->
+        val itemIndex = index + itemIndexOffset
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = if (itemIndex % 2 == 0) {
+                Arrangement.Start
+            } else {
+                Arrangement.End
+            },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LinkItemLayout(
+                link = link,
+                onClick = {
+                    onLinkClick(link)
+                },
+                onLongClick = { linkId ->
+                    if (isLongClickEnabled) {
+                        onLinkLongClick(linkId)
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AddLinkItem(
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.linkuColors
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .noRippleClickable(onClick = onClick),
+            contentAlignment = Alignment.TopStart
+        ) {
+            Box(
+                modifier = Modifier,
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Box(
+                    modifier = Modifier.alpha(1f),
+                ) {
+                    LinkItemLayout(
+                        link = null
+                    )
+                }
+
+                Image(
+                    modifier = Modifier.padding(top = 103.dp),
+                    painter = painterResource(R.drawable.add_folder_icon),
+                    contentDescription = null
+                )
+
+                Text(
+                    modifier = Modifier.padding(top = 147.dp),
+                    text = "링크 추가하기",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight(500),
+                    color = colors.black,
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
     }
 }
 

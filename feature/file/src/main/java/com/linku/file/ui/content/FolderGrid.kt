@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.runtime.Composable
@@ -30,18 +31,33 @@ internal fun FolderGrid(
         columns = GridCells.Fixed(2),
         verticalArrangement = Arrangement.spacedBy(MIDDLE_PADDING.dp)
     ) {
-        itemsIndexed(folderList){ index, folder ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = if(index % 2 == 0) Arrangement.Start else Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                folderLayout(
-                    folder,
-                    categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT
-                )
-            }
+        this.FolderGrid(
+            folderList = folderList,
+            categoryColorMap = categoryColorMap,
+            folderLayout = folderLayout
+        )
+    }
+}
+
+internal fun LazyGridScope.FolderGrid(
+    folderList: List<FolderSimpleInfo>,
+    categoryColorMap: Map<String, CategoryColorStyle>,
+    itemIndexOffset: Int = 0,
+    folderLayout: @Composable (folder: FolderSimpleInfo, colorStyle: CategoryColorStyle) -> Unit
+) {
+    itemsIndexed(folderList) { index, folder ->
+        val itemIndex = index + itemIndexOffset
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = if (itemIndex % 2 == 0) Arrangement.Start else Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            folderLayout(
+                folder,
+                categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT
+            )
         }
     }
 }
