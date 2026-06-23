@@ -1,6 +1,5 @@
 package com.linku.design.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -23,12 +22,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
@@ -39,12 +40,12 @@ import com.linku.design.R
 fun LinkCardItem(
     hasAiSummary: Boolean,
     linkTitle: String,
-    tags: List<String>,
+    tags: List<String> = emptyList(),
     domainName: String? = null,
     isExternalLink: Boolean,
-    @DrawableRes linkImage: Int? = null,
-    @DrawableRes domainImage: Int? = null,
-    onClickDelete: () -> Unit
+    linkImageUrl: String? = null,
+    domainImageUrl: String? = null,
+    onDeleteClick: () -> Unit
 ) {
     var isMenuVisible by remember { mutableStateOf(false) }
 
@@ -60,13 +61,25 @@ fun LinkCardItem(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Image(
-                painter = painterResource(linkImage ?: R.drawable.img_link_default),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(85.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            )
+            if (linkImageUrl.isNullOrBlank()) {
+                Image(
+                    painter = painterResource(R.drawable.img_link_default),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(85.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            } else {
+                Image(
+                    painter = rememberAsyncImagePainter(model = linkImageUrl),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(85.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+            }
 
             Spacer(modifier = Modifier.width(14.dp))
 
@@ -131,15 +144,23 @@ fun LinkCardItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (domainImage != null) {
+                    if (!domainImageUrl.isNullOrBlank()) {
                         Image(
-                            painter = painterResource(domainImage),
+                            painter = rememberAsyncImagePainter(model = domainImageUrl),
                             contentDescription = null,
+                            contentScale = ContentScale.Crop,
                             modifier = Modifier.size(16.dp)
                         )
-
-                        Spacer(modifier = Modifier.width(4.dp))
+                    } else {
+                        Image(
+                            painter = painterResource(R.drawable.ic_domain_default),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(22.dp)
+                        )
                     }
+
+                    Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
                         text = domainName ?: "",
@@ -151,17 +172,21 @@ fun LinkCardItem(
             }
 
             Box(
-                modifier = Modifier
-                    .height(85.dp)
-                    .padding(end = 5.dp)
-                    .noRippleClickable { isMenuVisible = !isMenuVisible },
-                contentAlignment = Alignment.TopEnd
+                modifier = Modifier.height(85.dp)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_more),
-                    contentDescription = null,
-                    modifier = Modifier.size(17.dp)
-                )
+                Box(
+                    modifier = Modifier
+                        .size(17.dp)
+                        .padding(end = 5.dp)
+                        .noRippleClickable { isMenuVisible = !isMenuVisible },
+                    contentAlignment = Alignment.TopEnd
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.ic_more),
+                        contentDescription = null,
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
             }
         }
 
@@ -176,18 +201,15 @@ fun LinkCardItem(
         }
 
         if (isMenuVisible) {
-            Box(
+            DeleteLinkItemModal(
+                onDeleteClick = {
+                    isMenuVisible = false
+                    onDeleteClick()
+                },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 36.dp, end = 12.dp)
-            ) {
-                DeleteLinkItemModal(
-                    onDeleteClick = {
-                        isMenuVisible = false
-                        onClickDelete()
-                    }
-                )
-            }
+            )
         }
     }
 }
@@ -201,10 +223,10 @@ fun PreviewLinkCardItem_HasAiSummary() {
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
             isExternalLink = false,
-            linkImage = R.drawable.img_genz_trend,
-            domainImage = R.drawable.ic_domain_blog_naver_logo,
+            linkImageUrl = null,
+            domainImageUrl = null,
             domainName = "BLOG",
-            onClickDelete = { }
+            onDeleteClick = { }
         )
     }
 }
@@ -218,9 +240,10 @@ fun PreviewLinkCardItem_NoAiSummary() {
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
             isExternalLink = false,
-            domainImage = R.drawable.ic_domain_blog_naver_logo,
+            linkImageUrl = null,
+            domainImageUrl = null,
             domainName = "BLOG",
-            onClickDelete = { }
+            onDeleteClick = { }
         )
     }
 }
@@ -234,10 +257,10 @@ fun PreviewLinkCardItem_HasOutLink() {
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
             isExternalLink = true,
-            linkImage = R.drawable.img_genz_trend,
-            domainImage = R.drawable.ic_domain_blog_naver_logo,
+            linkImageUrl = null,
+            domainImageUrl = null,
             domainName = "BLOG",
-            onClickDelete = { }
+            onDeleteClick = { }
         )
     }
 }
