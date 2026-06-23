@@ -1,5 +1,6 @@
 package com.linku.home.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,104 +43,60 @@ fun LinkDetailCustomDropdown(
             .background(LocalColorTheme.current.white)
             .padding(horizontal = 24.dp, vertical = 13.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .noRippleClickable { onEditClick() }
+        LinkDetailDropdownItem(
+            iconRes = R.drawable.ic_link_edit,
+            text = "링크 수정하기",
+            onClick = { onEditClick() }
+        )
+
+        LinkDetailDropdownItem(
+            iconRes = R.drawable.ic_link_delete,
+            text = "링크 삭제하기",
+            onClick = { onDeleteClick() }
+        )
+
+        LinkDetailDropdownItem(
+            iconRes = R.drawable.ic_link_share,
+            text = "링크 공유하기",
+            onClick = { onShareClick() }
+        )
+
+        LinkDetailDropdownItem(
+            iconRes = R.drawable.ic_link_go_gray,
+            text = "링크 보러가기",
+            onClick = { onGoClick() }
+        )
+    }
+}
+
+@Composable
+private fun LinkDetailDropdownItem(
+    @DrawableRes iconRes: Int,
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .noRippleClickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(vertical = 7.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_link_edit),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
+            Image(
+                painter = painterResource(iconRes),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
 
-                Text(
-                    text = "링크 수정하기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.black
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .noRippleClickable { onDeleteClick() }
-        ) {
-            Row(
-                modifier = Modifier.padding(vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_link_delete),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-
-                Text(
-                    text = "링크 삭제하기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.black
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .noRippleClickable { onShareClick() }
-        ) {
-            Row(
-                modifier = Modifier.padding(vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_link_share),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-
-                Text(
-                    text = "링크 공유하기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.black
-                )
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .noRippleClickable { onGoClick() }
-        ) {
-            Row(
-                modifier = Modifier.padding(vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_link_go_gray),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-
-                Text(
-                    text = "링크 보러가기",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.black
-                )
-            }
+            Text(
+                text = text,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                color = LocalColorTheme.current.black
+            )
         }
     }
 }
