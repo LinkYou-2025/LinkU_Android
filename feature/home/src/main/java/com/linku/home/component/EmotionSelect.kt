@@ -36,7 +36,7 @@ import com.linku.home.R
 private data class EmotionUi(
     val id: Long,
     val label: String,
-    @DrawableRes val iconRes: Int
+    @param:DrawableRes val iconRes: Int
 )
 
 private val EMOTIONS = listOf(
