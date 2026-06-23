@@ -21,12 +21,13 @@ import com.linku.design.theme.ThemeProvider
 
 @Composable
 fun DeleteLinkItemModal(
-    onDeleteClick: () -> Unit = { }
+    onDeleteClick: () -> Unit = { },
+    modifier: Modifier
 ) {
     val shape = RoundedCornerShape(14.dp)
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .width(120.dp)
             .shadow(
                 elevation = 10.dp,
@@ -53,7 +54,8 @@ fun DeleteLinkItemModal(
 fun PreviewDeleteLinkItemModal() {
     ThemeProvider {
         DeleteLinkItemModal(
-            onDeleteClick = { }
+            onDeleteClick = { },
+            modifier = Modifier
         )
     }
 }
