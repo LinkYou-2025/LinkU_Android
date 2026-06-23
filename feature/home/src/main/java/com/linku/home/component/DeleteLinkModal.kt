@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
 import com.linku.home.R
 
@@ -55,7 +56,7 @@ fun DeleteLinkModal(
                 painter = painterResource(R.drawable.ic_linku_blur),
                 contentDescription = null,
                 modifier = Modifier
-                    .height(30.dp)
+                    .height(25.dp)
             )
         }
 
@@ -63,7 +64,6 @@ fun DeleteLinkModal(
             text = "해당 링크를 삭제하시겠습니까?",
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
-            fontFamily = LocalFontTheme.current.font,
             color = LocalColorTheme.current.black,
             modifier = Modifier.padding(top = 15.dp)
         )
@@ -136,8 +136,10 @@ fun DeleteLinkModal(
 @Preview(showBackground = false)
 @Composable
 fun PreviewDeleteLinkModal() {
-    DeleteLinkModal(
-        onDismiss = {},
-        onConfirm = {}
-    )
+    ThemeProvider {
+        DeleteLinkModal(
+            onDismiss = {},
+            onConfirm = {}
+        )
+    }
 }
