@@ -297,7 +297,6 @@ fun LinkDetailScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(LocalColorTheme.current.gray[200])
-                                .padding(horizontal = 13.5.dp, vertical = 7.dp)
                                 .noRippleClickable {
                                     coroutineScope.launch {
                                         clipboard.setClipEntry(
@@ -307,6 +306,7 @@ fun LinkDetailScreen(
                                         )
                                     }
                                 }
+                                .padding(horizontal = 13.5.dp, vertical = 7.dp)
                         )
                     }
                 }
