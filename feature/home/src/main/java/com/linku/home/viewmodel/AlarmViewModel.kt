@@ -3,6 +3,8 @@ package com.linku.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import com.linku.core.error.AppError
+import com.linku.core.error.NetworkError
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
@@ -43,6 +45,15 @@ class AlarmViewModel @Inject constructor(
         alarmRepository
             .getAlarms(type)
             .cachedIn(viewModelScope)
+    }
+
+    // 에러 메세지 커스텀.
+    // 도메인의 공통된 displayMessage는 건들지 않고 알람함 에러 뷰 ui 요구사항에 맞춘다.
+    fun handleError(error: AppError): String {
+        return when (error) {
+            is NetworkError -> "네트워크 연결이 불안정해요\n인터넷 연결 상태를 확인한 후 다시 시도해주세요."
+            else -> error.displayMessage
+        }
     }
 
 
