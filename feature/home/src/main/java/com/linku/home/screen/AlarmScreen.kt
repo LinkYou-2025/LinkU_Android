@@ -140,7 +140,7 @@ private fun AlarmScreenContent(
                 onRefresh = onRefresh,
                 state = pullToRefreshState,
                 indicator = {
-                    Indicator( //인디케이터는 임시 구현~~
+                    Indicator(
                         modifier = Modifier.align(Alignment.TopCenter),
                         isRefreshing = isUserRefreshing,
                         containerColor = LocalColorTheme.current.gray[200],

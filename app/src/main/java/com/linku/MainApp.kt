@@ -154,30 +154,30 @@ fun MainApp(
     }
 
     // 알람 권한 요청 트리거 플래그
-    var requestNotificationPermission by remember { mutableStateOf(false) }
+    //var requestNotificationPermission by remember { mutableStateOf(false) }
 
     // 권한 요청 런쳐
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        viewModel.setNotificationEnabled(isGranted)
-        Log.d("MainApp", "알림 권한 요청 결과: $isGranted")
-    }
+//    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+//        ActivityResultContracts.RequestPermission()
+//    ) { isGranted ->
+//        viewModel.setNotificationEnabled(isGranted)
+//        Log.d("MainApp", "알림 권한 요청 결과: $isGranted")
+//    }
 
 
     // 플래그 감지 시 권한 요청 런쳐 실행
-    LaunchedEffect(requestNotificationPermission) {
-        if (requestNotificationPermission) {
-
-            // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                viewModel.setNotificationEnabled(true)
-            }
-            requestNotificationPermission = false // 한 번만 요청하도록 처리
-        }
-    }
+//    LaunchedEffect(requestNotificationPermission) {
+//        if (requestNotificationPermission) {
+//
+//            // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+//            } else {
+//                viewModel.setNotificationEnabled(true)
+//            }
+//            requestNotificationPermission = false // 한 번만 요청하도록 처리
+//        }
+//    }
     // NOTE : 이게 App에 있어야 할까..? MainActivity에 있는게 맞을 것 같은데, 리펙 가능한 부분인가..? 고민이 듬
     ThemeProvider {
         DoubleBackToExitIfTop(navigator = navigator)
@@ -226,11 +226,6 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true }
         ) {
-
-
-
-
-
             NavHost(
                 navController = navigator,
                 startDestination = NavigationRoute.Splash.route,
@@ -305,7 +300,7 @@ fun MainApp(
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 로그인 성공 후 알림 권한 요청 트리거
-                            requestNotificationPermission = true
+                            //requestNotificationPermission = true
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->

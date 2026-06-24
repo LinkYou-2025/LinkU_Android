@@ -13,6 +13,12 @@ class NotificationPreference(
         //KEY
         private const val KEY_NOTIFICATION_MASTER = "key_notification_master"
         private const val KEY_FCM_TOKEN = "key_fcm_token"
+
+        private const val KEY_SYSTEM_PERMISSION_REQUESTED =
+            "key_system_permission_requested"
+
+        private const val KEY_PUSH_PERMISSION_REQUESTED =
+            "key_push_permission_requested"
     }
 
     private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -36,4 +42,20 @@ class NotificationPreference(
     fun clearFcmToken() {
         pref.edit { remove(KEY_FCM_TOKEN) }
     }
+
+    // ===== Dialog State =====
+    fun isSystemPermissionRequested(): Boolean =
+        pref.getBoolean(KEY_SYSTEM_PERMISSION_REQUESTED, false)
+
+    fun setSystemPermissionRequested(requested: Boolean) {
+        pref.edit { putBoolean(KEY_SYSTEM_PERMISSION_REQUESTED, requested) }
+    }
+
+    fun isPushPermissionRequested(): Boolean =
+        pref.getBoolean(KEY_PUSH_PERMISSION_REQUESTED, false)
+
+    fun setPushPermissionRequested(requested: Boolean) {
+        pref.edit { putBoolean(KEY_PUSH_PERMISSION_REQUESTED, requested) }
+    }
+
 }
