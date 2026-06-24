@@ -168,7 +168,13 @@ private fun AlarmScreenContent(
                         }
 
                         is LoadState.Error -> {
-                            item { AlarmErrorLayout(alarmPagingItems, refreshState) }
+                            item {
+                                AlarmErrorLayout(
+                                    alarmPagingItems = alarmPagingItems,
+                                    errorState = refreshState,
+                                    modifier = Modifier.fillParentMaxSize()
+                                )
+                            }
                         }
 
                         else -> {

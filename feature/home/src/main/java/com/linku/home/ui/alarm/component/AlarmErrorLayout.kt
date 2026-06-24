@@ -1,6 +1,7 @@
 package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -50,18 +51,28 @@ import kotlinx.coroutines.flow.flowOf
 @Composable
 fun AlarmErrorLayout(
     alarmPagingItems: LazyPagingItems<AlarmSummary>,
-    errorState: LoadState.Error
+    errorState: LoadState.Error,
+    modifier: Modifier = Modifier
 ) {
+
+    // 텍스트 스타일 따로 분리
     val titleStyle = SpanStyle(
         fontWeight = FontWeight(600),
         fontSize = 18.sp,
         color = LocalColorTheme.current.black
     )
 
+    val subStyle = SpanStyle(
+        fontWeight = FontWeight(500),
+        fontSize = 14.sp,
+        color = LocalColorTheme.current.gray[500]
+    )
+
+    // 에러 유형에 따라 출력 메세지 스타일 분기처리.
     val message = when (val error = errorState.error as AppError) {
         is NetworkError -> buildAnnotatedString {
             withStyle(titleStyle) { append("네트워크 연결이 불안정해요.") }
-            append("\n인터넷 연결 상태를 확인한 후 다시 시도해주세요.")
+            withStyle(subStyle) { append("\n인터넷 연결 상태를 확인한 후 다시 시도해주세요.") }
         }
 
         else -> buildAnnotatedString {
@@ -71,70 +82,70 @@ fun AlarmErrorLayout(
 
     AlarmErrorLayoutContent(
         message = message,
-        onRetry = { alarmPagingItems.retry() }
+        onRetry = { alarmPagingItems.retry() },
+        modifier = modifier
     )
 }
 
 @Composable
 private fun AlarmErrorLayoutContent(
     message: AnnotatedString,
-    onRetry: () -> Unit
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
+
+        // 와이파이 끊김 아이콘
+        Box(
+            modifier = Modifier
+                .size(68.dp)
+                .background(
+                    color = LocalColorTheme.current.purple[50], // 연보라 배경
+                    shape = RoundedCornerShape(24.dp)
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            // 와이파이 끊김 아이콘
-            Box(
-                modifier = Modifier
-                    .size(68.dp)
-                    .background(
-                        color = LocalColorTheme.current.purple[50], // 연보라 배경
-                        shape = RoundedCornerShape(24.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_not_wifi),
-                    contentDescription = null,
-                    tint = Color.Unspecified
-                )
-            }
-
-            Spacer(Modifier.size(14.dp))
-
-            // 출력 메세지
-            Text(
-                text = message,
-                color = LocalColorTheme.current.gray[600],
-                textAlign = TextAlign.Center,
-                lineHeight = 28.sp
+            Icon(
+                painter = painterResource(R.drawable.ic_not_wifi),
+                contentDescription = null,
+                tint = Color.Unspecified
             )
+        }
 
-            Spacer(Modifier.size(26.dp))
+        Spacer(Modifier.size(14.dp))
 
-            // 다시 시도 버튼
-            TextButton(
-                onClick = onRetry,
-                modifier = Modifier
-                    .size(112.dp, 44.dp)
-                    .background(
-                        brush = LocalColorTheme.current.maincolor,
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-            ) {
-                Text(
-                    text = "다시 시도",
-                    style = TextStyle(
-                        color = LocalColorTheme.current.white,
-                        fontWeight = FontWeight(500),
-                        fontSize = 16.sp
-                    )
+        // 출력 메세지
+        Text(
+            text = message,
+            color = LocalColorTheme.current.gray[600],
+            textAlign = TextAlign.Center,
+            lineHeight = 28.sp
+        )
+
+        Spacer(Modifier.size(26.dp))
+
+        // 다시 시도 버튼
+        TextButton(
+            onClick = onRetry,
+            modifier = Modifier
+                .size(112.dp, 44.dp)
+                .background(
+                    brush = LocalColorTheme.current.maincolor,
+                    shape = RoundedCornerShape(16.dp)
+                ),
+        ) {
+            Text(
+                text = "다시 시도",
+                style = TextStyle(
+                    color = LocalColorTheme.current.white,
+                    fontWeight = FontWeight(500),
+                    fontSize = 16.sp
                 )
-            }
+            )
         }
     }
 }

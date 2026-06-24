@@ -1,8 +1,12 @@
 package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -15,6 +19,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.LocalColorTheme
 
 /**
  * 알람 목록 하단에 추가 로딩 상태를 표시하는 푸터 컴포저블입니다.
@@ -24,7 +29,6 @@ import com.linku.design.theme.LinkuPreview
  *
  * @param alarmPagingItems append 상태를 제공하는 페이징 데이터
  *
- * 일단 임시구현해두었습니다~~
  */
 @Composable
 fun AlarmAppendStateFooter(
@@ -47,31 +51,29 @@ private fun AlarmAppendStateFooterContent(
     appendState: LoadState,
     onRetry: () -> Unit
 ) {
-    when (appendState) {
-        is LoadState.Loading -> {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(235.dp)
+            .padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        when (appendState) {
+            is LoadState.Loading -> {
+                CircularProgressIndicator(
+                    color = LocalColorTheme.current.black
+                )
             }
+
+            is LoadState.Error -> {
+                AlarmErrorFooter(
+                    onClick = onRetry
+                )
+            }
+
+            else -> Unit
         }
 
-        is LoadState.Error -> {
-            // 임시 구현
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                TextButton(onClick = onRetry) {
-                    Text("다시 시도")
-                }
-            }
-        }
-
-        else -> Unit
     }
 }
 
