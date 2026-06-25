@@ -18,7 +18,7 @@ import javax.inject.Inject
  * 따라서 유스케이스 레이어를 신설
  */
 class FirstPushAlarmAllowedUseCase @Inject constructor(
-    private val alarmRepository: AlarmRepository
+    private val alarmRepository: AlarmRepository,
 ) {
     suspend operator fun invoke(): Result<Unit> = runCatching {
 

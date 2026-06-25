@@ -81,6 +81,7 @@ class AlarmRepositoryImpl @Inject constructor(
                 FcmTokenRequest(token)
             )
         }.onSuccess {
+            notificationPreference.setFcmTokenRegistered(true)
             Log.d("FCM", "fcm 토큰 서버 전송 완료")
         }.onFailure { e ->
             Log.e("FCM", "fcm 토큰 서버 전송 실패: ${e::class.simpleName} - ${e.message}")

@@ -4,17 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.AppError
 import com.linku.core.model.alarm.AlarmSetting
-import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
+import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
+import com.linku.data.preference.NotificationPreference
+import com.linku.mypage.intent.ConfirmFirstPushPermission
 import com.linku.mypage.intent.LinkuNotificationIntent
 import com.linku.mypage.intent.NotificationIntent
 import com.linku.mypage.intent.RefreshSystemAlarm
 import com.linku.mypage.intent.ToggleAll
-import com.linku.mypage.intent.ToggleCuration
-import com.linku.mypage.intent.ToggleFolder
-import com.linku.mypage.intent.ToggleLink
-import com.linku.mypage.intent.ToggleNotice
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,7 +26,9 @@ import javax.inject.Inject
 @HiltViewModel
 class NotificationViewModel @Inject constructor(
     private val alarmRepository: AlarmRepository,
-    private val checker: PermissionChecker
+    private val checker: PermissionChecker,
+    private val notificationPreference: NotificationPreference,
+    private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase
 ) : ViewModel() {
 
     // UI 이벤트(Intent) 입력 큐로서의 채널
@@ -77,6 +77,9 @@ class NotificationViewModel @Inject constructor(
 
         is LinkuNotificationIntent ->
             handleLinkuNotificationIntent(intent)
+
+        is ConfirmFirstPushPermission ->
+            handleConfirmFirstPushPermission()
     }
 
     private fun refreshSystemAlarm() {
@@ -91,7 +94,35 @@ class NotificationViewModel @Inject constructor(
     private suspend fun handleLinkuNotificationIntent(
         intent: LinkuNotificationIntent
     ) {
+        // 전체 알람을 off → on으로 켜는 경우에 fcm 토큰이 등록되었는지 여부 체크
+        if (intent is ToggleAll) {
+            if (!notificationPreference.isFcmTokenRegistered()) {
+                _sideEffect.send(NotificationEffect.ShowPushAlarmDialog)
+                return
+            }
+        }
+
         optimisticUpdate(intent)
+    }
+
+    private suspend fun handleConfirmFirstPushPermission() {
+        firstPushAlarmAllowedUseCase().fold(
+            onSuccess = {
+                notificationPreference.setFcmTokenRegistered(true)
+                loadAlarmSetting()
+                _sideEffect.send(
+                    NotificationEffect.ShowToast("푸시 알림이 설정되었어요.")
+                )
+
+            },
+            onFailure = { throwable ->
+                _sideEffect.send(
+                    NotificationEffect.ShowToast(
+                        (throwable as AppError).displayMessage
+                    )
+                )
+            }
+        )
     }
 
     private suspend fun optimisticUpdate(
@@ -105,7 +136,7 @@ class NotificationViewModel @Inject constructor(
             val updated = intent.reduce(state.alarmToggleUiState)
 
             state.copy(
-                // updated로 모든 서브알람이 꺼진다면 전테알람도 꺼지게 한다.
+                // updated로 모든 서브알람이 꺼진다면 전체알람도 꺼지게 한다.
                 alarmToggleUiState = if (updated.areAllSubDisabled()) {
                     updated.copy(isAllEnabled = false)
                 } else {
@@ -165,6 +196,7 @@ class NotificationViewModel @Inject constructor(
 // 1회성 사이드 이펙트
 sealed interface NotificationEffect {
     data class ShowToast(val message: String) : NotificationEffect
+    data object ShowPushAlarmDialog : NotificationEffect
 }
 
 data class AlarmSettingUiState(

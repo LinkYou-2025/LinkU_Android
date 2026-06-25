@@ -20,6 +20,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +41,7 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.core.model.alarm.AlarmSetting
+import com.linku.design.LinkUDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.OnResumeEffect
 import com.linku.mypage.AlarmSettingUiState
@@ -47,6 +51,7 @@ import com.linku.mypage.R
 import com.linku.mypage.component.notification.NotificationSwitch
 import com.linku.mypage.component.notification.SubNotificationSwitch
 import com.linku.mypage.component.notification.SystemAlarmTab
+import com.linku.mypage.intent.ConfirmFirstPushPermission
 import com.linku.mypage.intent.NotificationIntent
 import com.linku.mypage.intent.RefreshSystemAlarm
 import com.linku.mypage.intent.ToggleAll
@@ -63,16 +68,33 @@ fun AlarmSettingScreen(
     val state by viewModel.notificationState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // 에러 발생시 Toast를 띄우는 Side Effect
+    var showPushAlarmDialog by remember { mutableStateOf(false) }
+
+    // Side Effect 수신
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is NotificationEffect.ShowToast ->
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is NotificationEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
             }
         }
     }
 
+    if (showPushAlarmDialog) {
+        LinkUDialog(
+            onDismissRequest = { showPushAlarmDialog = false },
+            onConfirmation = {
+                showPushAlarmDialog = false
+                viewModel.sendIntent(ConfirmFirstPushPermission)
+            },
+            dialogTitle = "링큐의 알림을 받아보세요",
+            dialogText = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
+            buttonText1 = "나중에",
+            buttonText2 = "허용하기"
+        )
+    }
 
     // 액티비티가 ON_RESUME될 때마다
     // 시스템 알림 설정 상태를 최신 값으로 갱신

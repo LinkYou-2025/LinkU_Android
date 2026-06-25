@@ -35,7 +35,6 @@ class MainViewModel @Inject constructor(
     application: Application,
     private val recentRepository: RecentSearchRepository,
     private val notificationPreference: NotificationPreference,
-    private val alarmRepository: AlarmRepository,
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
     private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase
@@ -154,7 +153,10 @@ class MainViewModel @Inject constructor(
 
     fun checkAndShowPushAlarmDialog() {
         if (!notificationPreference.isPushPermissionRequested()) {
+
+            // 다이알로그를 보여주고 바로 true로 세팅한다.
             notificationPreference.setPushPermissionRequested(true)
+
             viewModelScope.launch {
                 _sideEffect.send(SideEffect.ShowPushAlarmDialog)
             }
@@ -166,7 +168,10 @@ class MainViewModel @Inject constructor(
             firstPushAlarmAllowedUseCase()
                 .fold(
                     onSuccess = { _sideEffect.send(SideEffect.ShowToast("푸시 알림이 설정되었어요.")) },
-                    onFailure = { e -> _sideEffect.send(SideEffect.ShowToast(e.message)) }
+                    onFailure = { e ->
+                        notificationPreference.setPushPermissionRequested(false)
+                        _sideEffect.send(SideEffect.ShowToast(e.message))
+                    }
                 )
         }
     }

@@ -19,6 +19,9 @@ class NotificationPreference(
 
         private const val KEY_PUSH_PERMISSION_REQUESTED =
             "key_push_permission_requested"
+
+        private const val KEY_FCM_TOKEN_REGISTERED =
+            "key_fcm_token_registered"
     }
 
     private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
@@ -39,6 +42,14 @@ class NotificationPreference(
         pref.edit { putString(KEY_FCM_TOKEN, token) }
     }
 
+    // ===== FCM Token Server Registration =====
+    fun isFcmTokenRegistered(): Boolean =
+        pref.getBoolean(KEY_FCM_TOKEN_REGISTERED, false)
+
+    fun setFcmTokenRegistered(registered: Boolean) {
+        pref.edit { putBoolean(KEY_FCM_TOKEN_REGISTERED, registered) }
+    }
+
     fun clearFcmToken() {
         pref.edit { remove(KEY_FCM_TOKEN) }
     }
@@ -57,5 +68,6 @@ class NotificationPreference(
     fun setPushPermissionRequested(requested: Boolean) {
         pref.edit { putBoolean(KEY_PUSH_PERMISSION_REQUESTED, requested) }
     }
+
 
 }
