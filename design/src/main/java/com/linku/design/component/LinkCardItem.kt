@@ -29,12 +29,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
+import com.linku.design.R
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import com.linku.design.R
 
 @Composable
 fun LinkCardItem(
@@ -47,13 +46,15 @@ fun LinkCardItem(
     domainImageUrl: String = "",
     onDeleteClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var isMenuVisible by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
         Row(
             modifier = Modifier
@@ -61,25 +62,16 @@ fun LinkCardItem(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (linkImageUrl.isBlank()) {
-                Image(
-                    painter = painterResource(R.drawable.img_link_default),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(85.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-            } else {
-                Image(
-                    painter = rememberAsyncImagePainter(model = linkImageUrl),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(85.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-            }
+            AsyncImage(
+                model = linkImageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.img_link_default),
+                error = painterResource(R.drawable.img_link_default),
+                modifier = Modifier
+                    .size(85.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
 
             Spacer(modifier = Modifier.width(14.dp))
 
@@ -126,10 +118,10 @@ fun LinkCardItem(
                             text = tag,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = LocalColorTheme.current.gray[600],
+                            color = colors.gray[600],
                             modifier = Modifier
                                 .background(
-                                    color = LocalColorTheme.current.gray[100],
+                                    color = colors.gray[100],
                                     shape = RoundedCornerShape(6.dp)
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -144,21 +136,14 @@ fun LinkCardItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (domainImageUrl.isNotBlank()) {
-                        Image(
-                            painter = rememberAsyncImagePainter(model = domainImageUrl),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    } else {
-                        Image(
-                            painter = painterResource(R.drawable.ic_domain_default),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                    AsyncImage(
+                        model = domainImageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.ic_domain_default),
+                        error = painterResource(R.drawable.ic_domain_default),
+                        modifier = Modifier.size(22.dp)
+                    )
 
                     Spacer(modifier = Modifier.width(6.dp))
 
@@ -166,7 +151,7 @@ fun LinkCardItem(
                         text = domainName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.gray[600]
+                        color = colors.gray[600]
                     )
                 }
             }
