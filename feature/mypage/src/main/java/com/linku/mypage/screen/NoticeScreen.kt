@@ -2,7 +2,6 @@ package com.linku.mypage.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -92,7 +92,7 @@ fun NoticeScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(

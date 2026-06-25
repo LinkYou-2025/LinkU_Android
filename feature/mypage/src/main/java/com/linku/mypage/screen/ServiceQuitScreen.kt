@@ -2,7 +2,6 @@ package com.linku.mypage.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -87,7 +86,7 @@ fun ServiceQuitScreen(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .width(11.dp)
-                        .clickable { navController.popBackStack() }
+                        .noRippleClickable { navController.popBackStack() }
                 )
 
                 Text(
@@ -214,7 +213,7 @@ fun ServiceQuitScreen(
                 Row(
                     modifier = Modifier
                         .align(Alignment.End)
-                        .clickable { isAgreeChecked = !isAgreeChecked },
+                        .noRippleClickable { isAgreeChecked = !isAgreeChecked },
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -275,7 +274,7 @@ fun ServiceQuitScreen(
                 .fillMaxSize()
                 .background(Color(0x66000000)) // 40% 투명한 검정색 배경
                 .zIndex(1f)
-                .clickable(enabled = false) {}, // 외부 클릭 막기
+                .noRippleClickable(enabled = false) {}, // 외부 클릭 막기
             contentAlignment = Alignment.Center
         ) {
             Box(

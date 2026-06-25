@@ -4,7 +4,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
@@ -91,7 +91,7 @@ fun DeleteLinkuModal(
                     .clip(RoundedCornerShape(14.dp))
                     .border(BorderStroke(1.dp, brush = Basic.maincolor), RoundedCornerShape(14.dp))
                     .background(colors.white)
-                    .clickable { onDismiss() },
+                    .noRippleClickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
                 BrushText(
@@ -112,7 +112,7 @@ fun DeleteLinkuModal(
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .background(brush = Basic.maincolor)
-                    .clickable { onConfirm() },
+                    .noRippleClickable { onConfirm() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(

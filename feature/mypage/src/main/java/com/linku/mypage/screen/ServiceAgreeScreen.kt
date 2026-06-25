@@ -2,7 +2,6 @@ package com.linku.mypage.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -63,7 +62,7 @@ fun ServiceAgreeScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(

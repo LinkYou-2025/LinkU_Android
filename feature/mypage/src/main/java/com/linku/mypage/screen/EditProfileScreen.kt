@@ -3,7 +3,6 @@ package com.linku.mypage.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -149,7 +148,7 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(
@@ -251,7 +250,7 @@ fun EditProfileScreen(
                             modifier = Modifier
                                 .size(18.dp)
                                 .then(
-                                    if (name.isNotEmpty()) Modifier.clickable { name = "" }
+                                    if (name.isNotEmpty()) Modifier.noRippleClickable { name = "" }
                                     else Modifier
                                 )
                         )
@@ -514,7 +513,7 @@ private fun JobDropdownField(
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
             .border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
-            .clickable { onClick() }
+            .noRippleClickable { onClick() }
             .padding(horizontal = 22.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -549,7 +548,7 @@ private fun JobDropdownItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .noRippleClickable { onClick() }
             .padding(horizontal = 22.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
