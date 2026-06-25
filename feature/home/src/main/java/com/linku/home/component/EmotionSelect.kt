@@ -94,15 +94,11 @@ private fun EmotionBadgeImage(
     selected: Boolean,
     onToggle: () -> Unit
 ) {
-    val boxBackground = Brush.horizontalGradient(
-        listOf(Color(0x1A2C6FFF), Color(0x1AC800FF))
-    )
-
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(
-                brush = if (selected) boxBackground else SolidColor(LocalColorTheme.current.white)
+                brush = if (selected) LocalColorTheme.current.inactiveColor else SolidColor(LocalColorTheme.current.white)
             )
             .then(
                 if (selected) {
@@ -130,7 +126,7 @@ private fun EmotionBadgeImage(
             style = TextStyle(
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
-                color = if (selected) LocalColorTheme.current.black else LocalColorTheme.current.gray[800],
+                color = LocalColorTheme.current.black,
                 fontFamily = LocalFontTheme.current.font
             )
         )

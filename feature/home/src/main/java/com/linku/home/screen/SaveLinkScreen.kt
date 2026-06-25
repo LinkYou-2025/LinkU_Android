@@ -40,6 +40,7 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
+import com.linku.home.component.SituationSelect
 import java.io.File
 
 @Composable
@@ -49,11 +50,14 @@ fun SaveLinkScreen(
     title: String = "",
     memo: String,
     selectedEmotionId: Long?,
+    selectedSituationId: Long?,
+    jobId: Long,
     onPickImage: () -> Unit,
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onEmotionSelect: (Long?) -> Unit,
+    onSituationSelect: (Long?) -> Unit,
     onSaveClick: () -> Unit,
     onBack: () -> Unit,
     isCheckingUrl: Boolean,
@@ -70,7 +74,11 @@ fun SaveLinkScreen(
         !isInvalidLink &&
         (isDuplicateUrl != true)
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LocalColorTheme.current.white)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -385,7 +393,34 @@ fun SaveLinkScreen(
                 onEmotionSelect = onEmotionSelect
             )
 
-            Spacer(modifier = Modifier.height(100.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 25.dp, start = 24.dp, end = 32.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "상황",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = LocalColorTheme.current.gray[800]
+                )
+
+                Text(
+                    text = "선택",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = LocalColorTheme.current.blue[200]
+                )
+            }
+
+            SituationSelect(
+                jobId = jobId,
+                selectedSituationId = selectedSituationId,
+                onSituationSelect = onSituationSelect
+            )
+
+            Spacer(modifier = Modifier.height(70.dp))
         }
 
         Column(
@@ -430,11 +465,14 @@ fun PreviewSaveLinkScreen() {
             title = "",
             memo = "",
             selectedEmotionId = null,
+            selectedSituationId = null,
+            jobId = 2L,
             onPickImage = { },
             onUrlChange = { },
             onTitleChange = { },
             onMemoChange = { },
             onEmotionSelect = { },
+            onSituationSelect = { },
             onSaveClick = { },
             onBack = { },
             isCheckingUrl = false,
