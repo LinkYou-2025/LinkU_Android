@@ -465,17 +465,26 @@ fun MainApp(
                         title = vm.title,
                         memo = vm.memo,
                         selectedEmotionId = vm.selectedEmotionId,
+                        selectedSituationId = vm.selectedSituationId,
+                        jobId = vm.jobId ?: 3L,
                         onPickImage = { imagePicker.launch("image/*") },
                         onUrlChange = vm::setUrl,
                         onTitleChange = vm::setTitle,
                         onMemoChange = vm::setMemo,
                         onEmotionSelect = vm::selectEmotion,
+                        onSituationSelect = vm::selectSituation,
                         onSaveClick = {
-                            // 저장 버튼 로그 + API 호출
-                            Log.d("SaveLink", "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, image=${vm.image?.name}")
+                            Log.d(
+                                "SaveLink",
+                                "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, situationId=${vm.selectedSituationId}, image=${vm.image?.name}"
+                            )
+
                             vm.saveLink(
                                 onSucceed = { saved ->
-                                    Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
+                                    Log.d(
+                                        "SaveLink",
+                                        "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
+                                    )
                                     vm.loadLinkDetail(saved.linkuId)
                                     vm.resetForm()
                                     navigator.navigate("savelinkresult/${saved.linkuId}")

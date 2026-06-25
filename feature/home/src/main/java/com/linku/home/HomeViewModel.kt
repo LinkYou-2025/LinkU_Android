@@ -155,6 +155,7 @@ class HomeViewModel @Inject constructor(
     private val titleState = mutableStateOf("")
     private val memoState = mutableStateOf("")
     private val emotionIdState = mutableStateOf<Long?>(null)
+    private val situationIdState = mutableStateOf<Long?>(null)
     private val isSavingState = mutableStateOf(false)
 
     // URL 유효성 검사
@@ -167,6 +168,7 @@ class HomeViewModel @Inject constructor(
     val title get() = titleState.value
     val memo get() = memoState.value
     val selectedEmotionId get() = emotionIdState.value
+    val selectedSituationId get() = situationIdState.value
     val isSaving get() = isSavingState.value
 
     val isCheckingUrl get() = isCheckingUrlState.value
@@ -216,7 +218,7 @@ class HomeViewModel @Inject constructor(
     fun setTitle(newTitle: String) { titleState.value = newTitle }
     fun setMemo(newMemo: String) { memoState.value = newMemo }
     fun selectEmotion(id: Long?) { emotionIdState.value = id }
-
+    fun selectSituation(id: Long?) { situationIdState.value = id }
 
 
     // 저장 폼 초기화
@@ -226,6 +228,7 @@ class HomeViewModel @Inject constructor(
         titleState.value = ""
         memoState.value = ""
         emotionIdState.value = null
+        situationIdState.value = null
     }
 
     // 최근 조회 링크 상태
@@ -273,7 +276,8 @@ class HomeViewModel @Inject constructor(
                     image = imageState.value,
                     url = currentUrl,
                     memo = memoState.value.ifBlank { null },
-                    emotionId = emotionIdState.value
+                    emotionId = emotionIdState.value,
+                    // situationId = situationIdState.value
                 )
 
                 // 낙관적 업데이트: 메모리의 최근 목록 즉시 갱신
