@@ -1,13 +1,10 @@
 package com.linku
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -43,6 +40,7 @@ import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
+import com.linku.design.LinkUDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
@@ -66,9 +64,22 @@ import java.io.FileOutputStream
 fun MainApp(
     viewModel: MainViewModel,
 ) {
-
     val context = LocalContext.current
     val app = LocalContext.current.applicationContext
+
+    var showPushAlarmDialog by remember { mutableStateOf(false) }
+
+    // 채널 사이드 이펙트 수신
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SideEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
+            }
+        }
+    }
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -156,6 +167,22 @@ fun MainApp(
     // NOTE : 이게 App에 있어야 할까..? MainActivity에 있는게 맞을 것 같은데, 리펙 가능한 부분인가..? 고민이 듬
     ThemeProvider {
         DoubleBackToExitIfTop(navigator = navigator)
+
+        // 다이알로그를 보여줘야 하면 출력.
+        if (showPushAlarmDialog) {
+            LinkUDialog(
+                onDismissRequest = { showPushAlarmDialog = false },
+                onConfirmation = {
+                    showPushAlarmDialog = false
+                    viewModel.allowPushAlarm() // 성공/실패 토스트는 VM이 쏨
+                },
+                dialogTitle = "링큐의 알림을 받아보세요",
+                dialogText = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
+                buttonText1 = "나중에",
+                buttonText2 = "허용하기"
+            )
+        }
+
         MainScreen(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
@@ -315,6 +342,7 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
+                            viewModel.checkAndShowPushAlarmDialog()
                         }
 
                         // 홈 탭 진입 및 복귀 할 때마다 닉네임 갱신

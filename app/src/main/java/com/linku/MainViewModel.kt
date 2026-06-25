@@ -12,15 +12,19 @@ import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -33,8 +37,12 @@ class MainViewModel @Inject constructor(
     private val notificationPreference: NotificationPreference,
     private val alarmRepository: AlarmRepository,
     private val authPreference: AuthPreference,
-    private val userRepository: UserRepository // 닉네임 호출용
+    private val userRepository: UserRepository, // 닉네임 호출용
+    private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase
 ) : AndroidViewModel(application) {
+
+    private val _sideEffect = Channel<SideEffect>(Channel.BUFFERED)
+    val sideEffect = _sideEffect.receiveAsFlow()
 
     // 닉네임 캐싱 먼저 -> ui 지직거림 방지
     private val _nickname = MutableStateFlow<String>("")
@@ -144,4 +152,29 @@ class MainViewModel @Inject constructor(
         return !token.isNullOrBlank()
     }
 
+    fun checkAndShowPushAlarmDialog() {
+        if (!notificationPreference.isPushPermissionRequested()) {
+            notificationPreference.setPushPermissionRequested(true)
+            viewModelScope.launch {
+                _sideEffect.send(SideEffect.ShowPushAlarmDialog)
+            }
+        }
+    }
+
+    fun allowPushAlarm() {
+        viewModelScope.launch {
+            firstPushAlarmAllowedUseCase()
+                .fold(
+                    onSuccess = { _sideEffect.send(SideEffect.ShowToast("푸시 알림이 설정되었어요.")) },
+                    onFailure = { e -> _sideEffect.send(SideEffect.ShowToast(e.message)) }
+                )
+        }
+    }
+
+}
+
+// 1회성 사이드 이펙트
+sealed interface SideEffect {
+    data object ShowPushAlarmDialog: SideEffect
+    data class ShowToast(val message: String?) : SideEffect
 }
