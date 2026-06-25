@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.google.firebase.messaging.FirebaseMessaging
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
@@ -16,6 +17,7 @@ import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.AlarmMapper.toDomain
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
@@ -63,6 +65,11 @@ class AlarmRepositoryImpl @Inject constructor(
             notificationPreference.setMasterNotificationEnabled(dto.isAllEnabled)
         }.map { it.toDomain() }
     }
+
+    override suspend fun getFCMTokenFromFCM(): Result<String> =
+        runCatching {
+            FirebaseMessaging.getInstance().token.await()
+        }
 
     override suspend fun registerFCMToken(
         token: String

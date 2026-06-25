@@ -17,5 +17,7 @@ interface AlarmRepository {
 
     suspend fun getAlarmSetting(): Result<AlarmSetting>
 
+    suspend fun getFCMTokenFromFCM(): Result<String>
+
     suspend fun registerFCMToken(token: String): Result<Unit>
 }
