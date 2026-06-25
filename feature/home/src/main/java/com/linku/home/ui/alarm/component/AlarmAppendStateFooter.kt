@@ -34,8 +34,13 @@ import com.linku.design.theme.LocalColorTheme
 fun AlarmAppendStateFooter(
     alarmPagingItems: LazyPagingItems<AlarmSummary>
 ) {
+    val append = alarmPagingItems.loadState.append
+    val endReached = append.endOfPaginationReached
+
+    if (endReached) return  // 끝까지 도달했으면 푸터 출력 X
+
     AlarmAppendStateFooterContent(
-        appendState = alarmPagingItems.loadState.append,
+        appendState = append,
         onRetry = { alarmPagingItems.retry() }
     )
 }

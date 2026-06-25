@@ -58,6 +58,7 @@ fun Splash(onResult: () -> Unit) {
     // 시스템 알림 권한 요청 팝업이 끝났는지 여부
     var permissionFinished by remember { mutableStateOf(false) }
 
+    // 권한 요청 런쳐
     val notificationPermissionLauncher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission() // 단일 권한 요청 계약
