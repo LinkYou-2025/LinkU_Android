@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,9 +31,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 import com.linku.design.R as Res
 
@@ -44,10 +45,12 @@ fun AccountSettingScreen(
     onChangePasswordClick: () -> Unit,
     onCustomInfoSettingClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100])
+            .background(colors.gray[100])
     ) {
         Box(
             modifier = Modifier
@@ -69,7 +72,7 @@ fun AccountSettingScreen(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = LocalFontTheme.current.font,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -81,7 +84,7 @@ fun AccountSettingScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 20.dp)
                 .clip(RoundedCornerShape(22.dp))
-                .background(LocalColorTheme.current.white)
+                .background(colors.white)
                 .graphicsLayer {
                     shadowElevation = 12.dp.toPx()
                     ambientShadowColor = Color.Black.copy(alpha = 0.02f)
@@ -97,7 +100,7 @@ fun AccountSettingScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(end = 5.dp)
-                        .noRippleClickable() {
+                        .noRippleClickable {
                             onEditProfileClick()
                         },
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -107,7 +110,7 @@ fun AccountSettingScreen(
                         text = "내 정보 수정",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
 
                     Image(
@@ -129,7 +132,7 @@ fun AccountSettingScreen(
                             text = "비밀번호 변경",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Normal,
-                            color = LocalColorTheme.current.black
+                            color = colors.black
                         )
 
                         Image(
@@ -155,7 +158,7 @@ fun AccountSettingScreen(
                         text = "맞춤정보 설정",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
 
                     Image(
@@ -163,7 +166,7 @@ fun AccountSettingScreen(
                         contentDescription = null,
                         modifier = Modifier
                             .size(8.dp, 14.dp)
-                            .noRippleClickable() {
+                            .noRippleClickable {
                                 onCustomInfoSettingClick()
                             }
                     )

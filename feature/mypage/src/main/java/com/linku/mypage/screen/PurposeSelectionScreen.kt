@@ -3,11 +3,10 @@ package com.linku.mypage.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -22,8 +21,8 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.BrushText
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.mypage.component.CustomInfoSelectionItem
 
@@ -44,6 +43,8 @@ fun PurposeSelectionScreen(
     navController: NavController,
     onNextClick: () -> Unit  // TODO: 목적 저장 API 연결
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val selectedItems = remember { mutableStateListOf<String>() }
 
     CustomInfoSelectionContent(
@@ -51,7 +52,7 @@ fun PurposeSelectionScreen(
             Column {
                 BrushText(
                     text = "어떤 목적으로 링크를",
-                    brush = LocalColorTheme.current.maincolor,
+                    brush = colors.maincolor,
                     style = TextStyle(
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Medium,
@@ -63,7 +64,7 @@ fun PurposeSelectionScreen(
                 ) {
                     BrushText(
                         text = "저장",
-                        brush = LocalColorTheme.current.maincolor,
+                        brush = colors.maincolor,
                         style = TextStyle(
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Medium,
@@ -74,7 +75,7 @@ fun PurposeSelectionScreen(
                         text = "하고 싶으신가요?",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
                 }
 
@@ -82,7 +83,7 @@ fun PurposeSelectionScreen(
                     text = "모두 선택해주세요.",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.black
+                    color = colors.black
                 )
             }
         },

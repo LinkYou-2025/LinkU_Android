@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.component.LogoutModal
 import com.linku.mypage.ui.top.bar.MypageTopBar
 
@@ -49,12 +50,14 @@ fun MyPageScreen(
     onNavigateAISummary: () -> Unit,  // TODO: 윤지언니에게 세션 관련해서 한 번 더 물어보고 작업하기...
     onRequestLogout: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var showLogoutDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100])
+            .background(colors.gray[100])
     ) {
         MypageTopBar(
             isNoticeExist = false, // TODO: 실제 알림 여부 연결
@@ -87,7 +90,7 @@ fun MyPageScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(15.dp))
-                        .background(LocalColorTheme.current.white)
+                        .background(colors.white)
                         .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
                 ) {
                     Text(
@@ -95,7 +98,7 @@ fun MyPageScreen(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.gray[500]
+                        color = colors.gray[500]
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -105,7 +108,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)
@@ -119,7 +122,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)
@@ -133,7 +136,7 @@ fun MyPageScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(15.dp))
-                        .background(LocalColorTheme.current.white)
+                        .background(colors.white)
                         .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
                 ) {
                     Text(
@@ -141,7 +144,7 @@ fun MyPageScreen(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.gray[500]
+                        color = colors.gray[500]
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -151,7 +154,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)
@@ -165,7 +168,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)
@@ -179,7 +182,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)
@@ -193,7 +196,7 @@ fun MyPageScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(15.dp))
-                        .background(LocalColorTheme.current.white)
+                        .background(colors.white)
                         .padding(start = 25.dp, top = 24.dp, end = 25.dp, bottom = 21.dp)
                 ) {
                     Text(
@@ -201,7 +204,7 @@ fun MyPageScreen(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.gray[500]
+                        color = colors.gray[500]
                     )
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -211,7 +214,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)
@@ -225,7 +228,7 @@ fun MyPageScreen(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 6.dp)

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,9 +29,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -38,11 +39,13 @@ fun ServiceQuitModal(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white),
+            .background(colors.white),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column (
@@ -64,7 +67,7 @@ fun ServiceQuitModal(
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
             fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.black,
+            color = colors.black,
             modifier = Modifier.padding(top = 15.dp)
         )
 
@@ -75,7 +78,7 @@ fun ServiceQuitModal(
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Normal,
             fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.gray[600],
+            color = colors.gray[600],
             modifier = Modifier.padding(top = 13.dp)
         )
 
@@ -89,7 +92,7 @@ fun ServiceQuitModal(
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .border(BorderStroke(1.dp, brush = Basic.maincolor), RoundedCornerShape(14.dp))
-                    .background(LocalColorTheme.current.white)
+                    .background(colors.white)
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
@@ -124,7 +127,7 @@ fun ServiceQuitModal(
                         fontWeight = FontWeight.Medium,
                         fontFamily = LocalFontTheme.current.font
                     ),
-                    color = LocalColorTheme.current.white
+                    color = colors.white
                 )
             }
         }

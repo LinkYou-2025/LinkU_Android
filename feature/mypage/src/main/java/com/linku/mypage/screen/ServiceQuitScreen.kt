@@ -13,9 +13,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,9 +36,9 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 import com.linku.mypage.component.QuitReasonItem
 import com.linku.mypage.component.ServiceQuitModal
@@ -56,6 +56,8 @@ fun ServiceQuitScreen(
     navController: NavController,
     onRequestQuit: (reason: String) -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var reasonText by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
@@ -70,7 +72,7 @@ fun ServiceQuitScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(LocalColorTheme.current.white)
+                .background(colors.white)
                 .padding(horizontal = 20.dp)
         ) {
             Box(
@@ -92,7 +94,7 @@ fun ServiceQuitScreen(
                     text = "회원 탈퇴",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.black,
+                    color = colors.black,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -103,7 +105,7 @@ fun ServiceQuitScreen(
                 text = "그동안 링큐를 이용해주셔서\n감사합니다.",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
 
@@ -114,7 +116,7 @@ fun ServiceQuitScreen(
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.Normal,
-                color = LocalColorTheme.current.gray[700],
+                color = colors.gray[700],
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
 
@@ -145,13 +147,13 @@ fun ServiceQuitScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(14.dp))
-                    .background(LocalColorTheme.current.gray[100])
+                    .background(colors.gray[100])
                     .padding(horizontal = 22.dp, vertical = 13.dp)
             ) {
                 if (reasonText.isBlank()) {
                     Text(
                         text = "탈퇴 사유를 적어주세요.",
-                        color = LocalColorTheme.current.gray[600],
+                        color = colors.gray[600],
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     )
@@ -165,7 +167,7 @@ fun ServiceQuitScreen(
                         }
                     },
                     textStyle = TextStyle(
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     )
@@ -178,7 +180,7 @@ fun ServiceQuitScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(15.dp))
-                    .background(LocalColorTheme.current.gray[100])
+                    .background(colors.gray[100])
                     .padding(horizontal = 21.dp, vertical = 16.dp),
             ) {
                 Column(
@@ -189,7 +191,7 @@ fun ServiceQuitScreen(
                         text = "탈퇴 안내 및 유의사항",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -203,7 +205,7 @@ fun ServiceQuitScreen(
                         fontSize = 15.sp,
                         lineHeight = 24.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[800]
+                        color = colors.gray[800]
                     )
                 }
 
@@ -220,7 +222,7 @@ fun ServiceQuitScreen(
                         text = "위 안내 사항을 확인했으며 이에 동의합니다.",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[800]
+                        color = colors.gray[800]
                     )
 
                     Spacer(modifier = Modifier.width(12.dp))
@@ -250,7 +252,7 @@ fun ServiceQuitScreen(
                     .clip(RoundedCornerShape(18.dp))
                     .then(
                         if (isQuitEnabled) Modifier.background(Basic.maincolor)
-                        else Modifier.background(LocalColorTheme.current.gray[300])
+                        else Modifier.background(colors.gray[300])
                     )
                     .noRippleClickable(enabled = isQuitEnabled) { showDialog = true }
                     .padding(vertical = 15.dp),
@@ -260,7 +262,7 @@ fun ServiceQuitScreen(
                     text = "탈퇴하기",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.white
+                    color = colors.white
                 )
             }
         }

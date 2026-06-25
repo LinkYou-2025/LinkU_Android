@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,9 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -38,11 +39,13 @@ fun DeleteLinkuModal(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white),
+            .background(colors.white),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column (
@@ -63,7 +66,7 @@ fun DeleteLinkuModal(
             text = "해당 링크를 삭제하시겠습니까?",
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
-            color = LocalColorTheme.current.black,
+            color = colors.black,
             modifier = Modifier.padding(top = 22.dp)
         )
 
@@ -73,7 +76,7 @@ fun DeleteLinkuModal(
             lineHeight = 22.sp,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Normal,
-            color = LocalColorTheme.current.gray[600],
+            color = colors.gray[600],
             modifier = Modifier.padding(top = 15.dp)
         )
 
@@ -87,7 +90,7 @@ fun DeleteLinkuModal(
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .border(BorderStroke(1.dp, brush = Basic.maincolor), RoundedCornerShape(14.dp))
-                    .background(LocalColorTheme.current.white)
+                    .background(colors.white)
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
@@ -116,7 +119,7 @@ fun DeleteLinkuModal(
                     text = "삭제하기",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.white
+                    color = colors.white
                 )
             }
         }

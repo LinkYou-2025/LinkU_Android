@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -17,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 
 @Composable
 fun QuitReasonItem(
@@ -25,6 +26,8 @@ fun QuitReasonItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -34,7 +37,7 @@ fun QuitReasonItem(
                 .size(20.dp)
                 .border(
                     width = if (selected) 5.dp else 1.dp,
-                    color = LocalColorTheme.current.blue[200],
+                    color = colors.blue[200],
                     shape = CircleShape
                 )
                 .clip(CircleShape)
@@ -47,7 +50,7 @@ fun QuitReasonItem(
             text = text,
             fontSize = 16.sp,
             fontWeight = FontWeight.Normal,
-            color = LocalColorTheme.current.black
+            color = colors.black
         )
     }
 }
