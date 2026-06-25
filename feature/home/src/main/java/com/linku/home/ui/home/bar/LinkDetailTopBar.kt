@@ -1,4 +1,4 @@
-package com.linku.home.ui.top.bar
+package com.linku.home.ui.home.bar
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
