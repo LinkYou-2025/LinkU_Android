@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 
 @Composable
@@ -36,11 +37,13 @@ fun LinkDetailCustomDropdown(
     onDismiss: () -> Unit,
     modifier: Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+    
     Column(
         modifier = modifier
             .width(240.dp)
             .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(horizontal = 24.dp, vertical = 13.dp)
     ) {
         LinkDetailDropdownItem(
@@ -75,6 +78,8 @@ private fun LinkDetailDropdownItem(
     text: String,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -95,7 +100,7 @@ private fun LinkDetailDropdownItem(
                 text = text,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
-                color = LocalColorTheme.current.black
+                color = colors.black
             )
         }
     }

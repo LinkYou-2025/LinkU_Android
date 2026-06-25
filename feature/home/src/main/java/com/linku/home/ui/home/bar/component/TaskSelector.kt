@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,9 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.home.screen.Situation
 
 @Composable
@@ -82,6 +83,8 @@ private fun TaskChip(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     BoxChip(
         selected = selected,
         onClick = onClick
@@ -102,7 +105,7 @@ private fun TaskChip(
                 style = TextStyle(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[800],
+                    color = colors.gray[800],
                     fontFamily = LocalFontTheme.current.font
                 )
             )
@@ -116,14 +119,16 @@ private fun BoxChip(
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(10.dp))
             .then(
                 if (selected) {
-                    Modifier.background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(10.dp))
+                    Modifier.background(brush = colors.backgroundmaincolor, shape = RoundedCornerShape(10.dp))
                 } else {
-                    Modifier.background(color = LocalColorTheme.current.gray[100], shape = RoundedCornerShape(10.dp))
+                    Modifier.background(color = colors.gray[100], shape = RoundedCornerShape(10.dp))
                 }
             )
             .then(

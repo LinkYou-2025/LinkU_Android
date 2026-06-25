@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,15 +25,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 
 @Composable
-fun EmotionSelector(
+fun EmotionIconSelector(
     selectedEmotionId: Long?,
     onEmotionChange: (Long?) -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     // 컬러 아이콘
     val colorIcons = listOf(
         R.drawable.ic_joy,
@@ -75,9 +78,9 @@ fun EmotionSelector(
                     .clip(RoundedCornerShape(18.dp))
                     .then(
                         if (isSelected) {
-                            Modifier.background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
+                            Modifier.background(brush = colors.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
                         } else {
-                            Modifier.background(color = LocalColorTheme.current.gray[100], shape = RoundedCornerShape(18.dp))
+                            Modifier.background(color = colors.gray[100], shape = RoundedCornerShape(18.dp))
                         }
                     )
                     .then(
@@ -112,7 +115,7 @@ fun EmotionSelector(
 fun PreviewEmotionSelector() {
     var selected by remember { mutableStateOf<Long?>(1L) }
 
-    EmotionSelector(
+    EmotionIconSelector(
         selectedEmotionId = selected,
         onEmotionChange = { selected = it }
     )

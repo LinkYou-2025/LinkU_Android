@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,8 +22,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 
 data class LinkCategoryOption(
     val id: Long,
@@ -37,10 +38,12 @@ fun LinkDetailCategoryDropdown(
     onCategoryClick: (LinkCategoryOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(start = 12.dp, top = 13.dp, bottom = 13.dp, end = 56.dp)
             .heightIn(max = 264.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -71,9 +74,9 @@ fun LinkDetailCategoryDropdown(
                         FontWeight.Normal
                     },
                     color = if (category.name == selectedCategory) {
-                        LocalColorTheme.current.blue[200]
+                        colors.blue[200]
                     } else {
-                        LocalColorTheme.current.gray[800]
+                        colors.gray[800]
                     }
                 )
             }

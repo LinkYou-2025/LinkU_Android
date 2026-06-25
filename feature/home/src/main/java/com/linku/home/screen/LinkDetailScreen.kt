@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,8 +51,8 @@ import androidx.compose.ui.zIndex
 import com.linku.core.model.EmotionType
 import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.AIArticleModal
 import com.linku.home.component.DeleteLinkModal
@@ -83,6 +84,8 @@ fun LinkDetailScreen(
     categoryOptions: List<LinkCategoryOption>,
     onBack: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
@@ -153,7 +156,7 @@ fun LinkDetailScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
         Column(
             modifier = Modifier
@@ -211,7 +214,7 @@ fun LinkDetailScreen(
                             .alpha(if (isEditMode) 0.6f else 1f)
                             .border(
                                 width = 1.dp,
-                                color = LocalColorTheme.current.gray[200],
+                                color = colors.gray[200],
                                 shape = RoundedCornerShape(18.dp)
                             )
                     )
@@ -228,7 +231,7 @@ fun LinkDetailScreen(
                                 modifier = Modifier
                                     .size(84.dp)
                                     .clip(RoundedCornerShape(30.dp))
-                                    .background(LocalColorTheme.current.gray[700])
+                                    .background(colors.gray[700])
                                     .alpha(0.6f),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
@@ -247,7 +250,7 @@ fun LinkDetailScreen(
                                     text = "사진 변경",
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.white
+                                    color = colors.white
                                 )
                             }
                         }
@@ -262,10 +265,10 @@ fun LinkDetailScreen(
                         .clip(RoundedCornerShape(18.dp))
                         .border(
                             width = 1.dp,
-                            color = LocalColorTheme.current.gray[200],
+                            color = colors.gray[200],
                             shape = RoundedCornerShape(18.dp)
                         )
-                        .background(LocalColorTheme.current.white)
+                        .background(colors.white)
                         .padding(top = 7.5.dp, start = 22.dp, end = 8.5.dp, bottom = 7.5.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -275,7 +278,7 @@ fun LinkDetailScreen(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                         lineHeight = 20.sp,
-                        color = if (isEditMode) LocalColorTheme.current.gray[400] else LocalColorTheme.current.black,
+                        color = if (isEditMode) colors.gray[400] else colors.black,
                         modifier = Modifier
                             .then(
                                 if (isEditMode) {
@@ -293,10 +296,10 @@ fun LinkDetailScreen(
                             text = "복사",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = LocalColorTheme.current.gray[600],
+                            color = colors.gray[600],
                             modifier = Modifier
                                 .clip(RoundedCornerShape(12.dp))
-                                .background(LocalColorTheme.current.gray[200])
+                                .background(colors.gray[200])
                                 .noRippleClickable {
                                     coroutineScope.launch {
                                         clipboard.setClipEntry(
@@ -333,7 +336,7 @@ fun LinkDetailScreen(
                                 text = "AI 태그",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = LocalColorTheme.current.black
+                                color = colors.black
                             )
                         }
 
@@ -348,11 +351,11 @@ fun LinkDetailScreen(
                                         text = tag,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
-                                        color = LocalColorTheme.current.black,
+                                        color = colors.black,
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .border(1.dp, LocalColorTheme.current.inactiveColor, RoundedCornerShape(20.dp))
-                                            .background(LocalColorTheme.current.white)
+                                            .border(1.dp, colors.inactiveColor, RoundedCornerShape(20.dp))
+                                            .background(colors.white)
                                             .padding(horizontal = 15.dp, vertical = 9.dp)
                                     )
                                 }
@@ -381,7 +384,7 @@ fun LinkDetailScreen(
                                 text = "AI 링크 요약",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = LocalColorTheme.current.black
+                                color = colors.black
                             )
                         }
 
@@ -389,13 +392,13 @@ fun LinkDetailScreen(
                             text = aiSummary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
-                            color = LocalColorTheme.current.black,
+                            color = colors.black,
                             lineHeight = 20.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
-                                .border(1.dp, LocalColorTheme.current.inactiveColor, RoundedCornerShape(18.dp))
-                                .background(LocalColorTheme.current.white)
+                                .border(1.dp, colors.inactiveColor, RoundedCornerShape(18.dp))
+                                .background(colors.white)
                                 .padding(horizontal = 22.dp, vertical = 16.dp)
                         )
                     }
@@ -410,7 +413,7 @@ fun LinkDetailScreen(
                         text = "메모",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
 
                     Spacer(modifier = Modifier.height(12.dp))
@@ -425,12 +428,12 @@ fun LinkDetailScreen(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
                                 lineHeight = 20.sp,
-                                color = LocalColorTheme.current.black
+                                color = colors.black
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
-                                .background(LocalColorTheme.current.gray[100])
+                                .background(colors.gray[100])
                                 .padding(horizontal = 22.dp, vertical = 15.5.dp),
                             decorationBox = { innerTextField ->
                                 Box(
@@ -442,7 +445,7 @@ fun LinkDetailScreen(
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Normal,
                                             lineHeight = 20.sp,
-                                            color = LocalColorTheme.current.gray[400]
+                                            color = colors.gray[400]
                                         )
                                     }
 
@@ -456,11 +459,11 @@ fun LinkDetailScreen(
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                             lineHeight = 20.sp,
-                            color = LocalColorTheme.current.black,
+                            color = colors.black,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
-                                .background(LocalColorTheme.current.gray[100])
+                                .background(colors.gray[100])
                                 .padding(horizontal = 22.dp, vertical = 15.5.dp)
                         )
                     }
@@ -622,7 +625,7 @@ fun LinkDetailScreen(
                     .padding(horizontal = 20.dp)
                     .align(Alignment.BottomCenter)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(LocalColorTheme.current.maincolor)
+                    .background(colors.maincolor)
                     .padding(vertical = 15.dp)
                     .noRippleClickable {
                         if (isEditMode) {
@@ -647,7 +650,7 @@ fun LinkDetailScreen(
                         text = "완료",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = LocalColorTheme.current.white
+                        color = colors.white
                     )
                 } else {
                     Image(
@@ -662,7 +665,7 @@ fun LinkDetailScreen(
                         text = "AI 요약",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = LocalColorTheme.current.white
+                        color = colors.white
                     )
                 }
             }

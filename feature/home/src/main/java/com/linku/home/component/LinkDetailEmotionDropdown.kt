@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,8 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.EmotionType
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.util.imgRes
 
@@ -33,10 +34,12 @@ fun LinkDetailEmotionDropdown(
     onEmotionClick: (EmotionType) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+    
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(top = 14.dp, start = 16.dp, end = 56.dp, bottom = 14.dp)
             .heightIn(max = 264.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -66,9 +69,9 @@ fun LinkDetailEmotionDropdown(
                         FontWeight.Normal
                     },
                     color = if (emotion.tagName == selectedEmotion) {
-                        LocalColorTheme.current.blue[200]
+                        colors.blue[200]
                     } else {
-                        LocalColorTheme.current.gray[800]
+                        colors.gray[800]
                     }
                 )
             }

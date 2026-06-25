@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-//import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.AbsoluteAlignment
@@ -27,8 +27,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 
 @Composable
@@ -49,11 +49,13 @@ fun LinkDetailTopBar(
     onSituationClick: () -> Unit,
     onTitleClearClick: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))
-            .background(LocalColorTheme.current.blue[200])
+            .background(colors.blue[200])
     ) {
         Image(
             painter = painterResource(R.drawable.linku_logo_transparent),
@@ -84,7 +86,7 @@ fun LinkDetailTopBar(
                     text = if (isEditMode) "링크 수정하기" else "저장된 링크",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.white,
+                    color = colors.white,
                     modifier = Modifier.align(Alignment.Center)
                 )
 
@@ -118,7 +120,7 @@ fun LinkDetailTopBar(
                                 Modifier
                                     .padding(bottom = 11.dp)
                                     .clip(RoundedCornerShape(13.dp))
-                                    .border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(13.dp))
+                                    .border(1.dp, colors.white, RoundedCornerShape(13.dp))
                                     .padding(horizontal = 15.dp, vertical = 4.dp)
                             } else {
                                 Modifier.padding(bottom = 12.dp)
@@ -131,7 +133,7 @@ fun LinkDetailTopBar(
                         text = linkTitle,
                         fontSize = if (isEditMode) 22.sp else 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = LocalColorTheme.current.white
+                        color = colors.white
                     )
 
                     if (isEditMode) {
@@ -163,14 +165,14 @@ fun LinkDetailTopBar(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
-                                        isEditMode && isCategoryDropdownOpen -> LocalColorTheme.current.white
-                                        isEditMode -> LocalColorTheme.current.blue[200]
-                                        else -> LocalColorTheme.current.purple[50]
+                                        isEditMode && isCategoryDropdownOpen -> colors.white
+                                        isEditMode -> colors.blue[200]
+                                        else -> colors.purple[50]
                                     }
                                 )  // 추후 카테고리 API 연동 후 실제 색상으로 변경 예정
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(10.dp))
+                                        Modifier.border(1.dp, colors.white, RoundedCornerShape(10.dp))
                                     } else {
                                         Modifier
                                     }
@@ -187,9 +189,9 @@ fun LinkDetailTopBar(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = when {
-                                    isEditMode && isCategoryDropdownOpen -> LocalColorTheme.current.blue[300]
-                                    isEditMode -> LocalColorTheme.current.white
-                                    else -> LocalColorTheme.current.black  // API 연동 후 수정 예정
+                                    isEditMode && isCategoryDropdownOpen -> colors.blue[300]
+                                    isEditMode -> colors.white
+                                    else -> colors.black  // API 연동 후 수정 예정
                                 }
                             )
 
@@ -209,14 +211,14 @@ fun LinkDetailTopBar(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
-                                        isEditMode && isEmotionDropdownOpen -> LocalColorTheme.current.white
-                                        isEditMode -> LocalColorTheme.current.blue[200]
-                                        else -> LocalColorTheme.current.blue[50]
+                                        isEditMode && isEmotionDropdownOpen -> colors.white
+                                        isEditMode -> colors.blue[200]
+                                        else -> colors.blue[50]
                                     }
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(10.dp))
+                                        Modifier.border(1.dp, colors.white, RoundedCornerShape(10.dp))
                                     } else {
                                         Modifier
                                     }
@@ -233,9 +235,9 @@ fun LinkDetailTopBar(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = when {
-                                    isEditMode && isEmotionDropdownOpen -> LocalColorTheme.current.blue[300]
-                                    isEditMode -> LocalColorTheme.current.white
-                                    else -> LocalColorTheme.current.blue[300]
+                                    isEditMode && isEmotionDropdownOpen -> colors.blue[300]
+                                    isEditMode -> colors.white
+                                    else -> colors.blue[300]
                                 }
                             )
 
@@ -255,14 +257,14 @@ fun LinkDetailTopBar(
                                 .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
-                                        isEditMode && isSituationDropdownOpen -> LocalColorTheme.current.white
-                                        isEditMode -> LocalColorTheme.current.blue[200]
-                                        else -> LocalColorTheme.current.purple[50]
+                                        isEditMode && isSituationDropdownOpen -> colors.white
+                                        isEditMode -> colors.blue[200]
+                                        else -> colors.purple[50]
                                     }
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, LocalColorTheme.current.white, RoundedCornerShape(10.dp))
+                                        Modifier.border(1.dp, colors.white, RoundedCornerShape(10.dp))
                                     } else {
                                         Modifier
                                     }
@@ -279,9 +281,9 @@ fun LinkDetailTopBar(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = when {
-                                    isEditMode && isSituationDropdownOpen -> LocalColorTheme.current.blue[300]
-                                    isEditMode -> LocalColorTheme.current.white
-                                    else -> LocalColorTheme.current.purple[300]
+                                    isEditMode && isSituationDropdownOpen -> colors.blue[300]
+                                    isEditMode -> colors.white
+                                    else -> colors.purple[300]
                                 }
                             )
 
@@ -317,39 +319,6 @@ fun LinkDetailTopBar(
         }
     }
 }
-
-//@Composable
-//private fun LinkDetailDropdownItem(
-//    iconRes: Int,
-//    text: String,
-//    onClick: () -> Unit,
-//) {
-//    DropdownMenuItem(
-//        text = {
-//            Row(
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.spacedBy(18.dp)
-//            ) {
-//                Image(
-//                    painter = painterResource(iconRes),
-//                    contentDescription = null,
-//                    modifier = Modifier.size(28.dp)
-//                )
-//
-//                Text(
-//                    text = text,
-//                    fontSize = 24.sp,
-//                    fontWeight = FontWeight.Medium,
-//                    color = LocalColorTheme.current.gray[800]
-//                )
-//            }
-//        },
-//        onClick = onClick,
-//        modifier = Modifier
-//            .height(64.dp)
-//            .padding(horizontal = 12.dp)
-//    )
-//}
 
 @Preview(showBackground = false)
 @Composable

@@ -15,12 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -28,10 +28,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
-import com.linku.design.theme.LocalFontTheme
+import com.linku.design.BrushText
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 
 @Composable
@@ -39,11 +39,13 @@ fun DeleteLinkModal(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(LocalColorTheme.current.white),
+            .background(colors.white),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Column (
@@ -64,7 +66,7 @@ fun DeleteLinkModal(
             text = "해당 링크를 삭제하시겠습니까?",
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
-            color = LocalColorTheme.current.black,
+            color = colors.black,
             modifier = Modifier.padding(top = 15.dp)
         )
 
@@ -74,8 +76,7 @@ fun DeleteLinkModal(
             lineHeight = 22.sp,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Normal,
-            fontFamily = LocalFontTheme.current.font,
-            color = LocalColorTheme.current.gray[600],
+            color = colors.gray[600],
             modifier = Modifier.padding(top = 13.dp)
         )
 
@@ -89,20 +90,17 @@ fun DeleteLinkModal(
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
                     .border(BorderStroke(1.dp, brush = Basic.maincolor), RoundedCornerShape(14.dp))
-                    .background(LocalColorTheme.current.white)
+                    .background(colors.white)
                     .clickable { onDismiss() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
+                BrushText(
                     text = "취소하기",
+                    brush = colors.maincolor,
                     style = TextStyle(
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        brush = Basic.maincolor,  // 그라데이션 Brush 사용
-                        fontFamily = LocalFontTheme.current.font
-                    ),
-                    modifier = Modifier
-                        .graphicsLayer(alpha = 0.99f) // brush 적용 시 필수
+                        fontWeight = FontWeight.Medium
+                    )
                 )
             }
 
@@ -113,18 +111,15 @@ fun DeleteLinkModal(
                     .weight(1f)
                     .height(50.dp)
                     .clip(RoundedCornerShape(14.dp))
-                    .background(brush = Basic.maincolor)
+                    .background(brush = colors.maincolor)
                     .clickable { onConfirm() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "삭제하기",
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        fontFamily = LocalFontTheme.current.font
-                    ),
-                    color = LocalColorTheme.current.white
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colors.white
                 )
             }
         }

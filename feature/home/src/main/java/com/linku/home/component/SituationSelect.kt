@@ -3,11 +3,12 @@ package com.linku.home.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -19,9 +20,9 @@ import androidx.compose.ui.unit.sp
 import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -60,17 +61,19 @@ private fun SituationChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Text(
         text = situation.tagName,
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal,
-        color = LocalColorTheme.current.black,
+        color = colors.black,
         modifier = Modifier
             .background(
                 brush = if (selected) {
-                    LocalColorTheme.current.inactiveColor
+                    colors.inactiveColor
                 } else {
-                    SolidColor(LocalColorTheme.current.white)
+                    SolidColor(colors.white)
                 },
                 shape = RoundedCornerShape(20.dp)
             )
@@ -84,7 +87,7 @@ private fun SituationChip(
                 } else {
                     Modifier.border(
                         width = 1.dp,
-                        color = LocalColorTheme.current.gray[200],
+                        color = colors.gray[200],
                         shape = RoundedCornerShape(20.dp)
                     )
                 }

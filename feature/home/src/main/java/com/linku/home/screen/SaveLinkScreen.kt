@@ -19,25 +19,26 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.style.TextAlign
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
@@ -64,6 +65,8 @@ fun SaveLinkScreen(
     isDuplicateUrl: Boolean?,
     isInvalidLink: Boolean,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val scrollState = rememberScrollState()
     val bannedDomains = listOf("youtube.com", "youtu.be")
     val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
@@ -77,7 +80,7 @@ fun SaveLinkScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
         Column(
             modifier = Modifier
@@ -105,7 +108,7 @@ fun SaveLinkScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
+                    color = colors.black,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -114,7 +117,7 @@ fun SaveLinkScreen(
                 text = "URL 링크",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.padding(top = 31.dp, start = 24.dp)
             )
 
@@ -137,7 +140,7 @@ fun SaveLinkScreen(
                         text = "링크를 입력하거나 붙여넣어 주세요.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[400]
+                        color = colors.gray[400]
                     )
                 }
 
@@ -145,7 +148,7 @@ fun SaveLinkScreen(
                     value = url,
                     onValueChange = onUrlChange,
                     singleLine = true,
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
+                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = colors.black, fontFamily = LocalFontTheme.current.font),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -160,14 +163,14 @@ fun SaveLinkScreen(
                     text = "링크 제목",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.black,
+                    color = colors.black,
                 )
 
                 Text(
                     text = "선택",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.blue[200],
+                    color = colors.blue[200],
                 )
             }
 
@@ -190,7 +193,7 @@ fun SaveLinkScreen(
                         text = "링크 제목을 입력해주세요.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[400]
+                        color = colors.gray[400]
                     )
                 }
 
@@ -201,7 +204,7 @@ fun SaveLinkScreen(
                     textStyle = TextStyle(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         fontFamily = LocalFontTheme.current.font
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -215,7 +218,7 @@ fun SaveLinkScreen(
 //                isCheckingUrl -> Text(
 //                    text = "링크를 확인 중입니다…",
 //                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
-//                    color = LocalColorTheme.current.gray[600],
+//                    color = colors.gray[600],
 //                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
 //                )
 //                isInvalidLink -> {
@@ -225,7 +228,7 @@ fun SaveLinkScreen(
 //                isDuplicateUrl == false -> Text(
 //                    text = "저장 가능한 링크예요.",
 //                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
-//                    color = LocalColorTheme.current.blue[200],
+//                    color = colors.blue[200],
 //                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
 //                )
 //                else -> Unit
@@ -259,14 +262,14 @@ fun SaveLinkScreen(
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(18.dp))
-                            .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp))
+                            .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
                     )
                 } else {
                     Column(
                         modifier = Modifier
                             .clip(RoundedCornerShape(18.dp))
-                            .background(LocalColorTheme.current.gray[100])
-                            .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(18.dp))
+                            .background(colors.gray[100])
+                            .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
                             .noRippleClickable { onPickImage() }
                             .padding(38.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -281,7 +284,7 @@ fun SaveLinkScreen(
                             text = "사진 추가",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Light,
-                            color = LocalColorTheme.current.gray[500],
+                            color = colors.gray[500],
                             modifier = Modifier.padding(top = 7.dp)
                         )
                     }
@@ -298,14 +301,14 @@ fun SaveLinkScreen(
                     text = "메모",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[800],
+                    color = colors.gray[800],
                 )
 
                 Text(
                     text = "선택",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.blue[200]
+                    color = colors.blue[200]
                 )
             }
 
@@ -315,7 +318,7 @@ fun SaveLinkScreen(
                     .padding(top = 13.dp, start = 20.dp, end = 20.dp)
                     .then(
                         if (memo.isEmpty()) {
-                            Modifier.border(width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
+                            Modifier.border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
                         } else {
                             Modifier.border(
                                 border = BorderStroke(width = 1.dp, brush = Basic.maincolor),
@@ -332,14 +335,14 @@ fun SaveLinkScreen(
                         text = "메모할 내용을 입력해주세요.",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[400]
+                        color = colors.gray[400]
                     )
                 }
 
                 BasicTextField(
                     value = memo,
                     onValueChange = { if (it.length <= 200) onMemoChange(it) },
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = LocalColorTheme.current.black, fontFamily = LocalFontTheme.current.font),
+                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = colors.black, fontFamily = LocalFontTheme.current.font),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -355,14 +358,14 @@ fun SaveLinkScreen(
                     text = memo.length.toString(),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[700]
+                    color = colors.gray[700]
                 )
 
                 Text(
                     text = "/200자",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[400],
+                    color = colors.gray[400],
                     modifier = Modifier.padding(start = 1.dp)
                 )
             }
@@ -377,14 +380,14 @@ fun SaveLinkScreen(
                     text = "감정",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[800]
+                    color = colors.gray[800]
                 )
 
                 Text(
                     text = "선택",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.blue[200]
+                    color = colors.blue[200]
                 )
             }
 
@@ -403,14 +406,14 @@ fun SaveLinkScreen(
                     text = "상황",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[800]
+                    color = colors.gray[800]
                 )
 
                 Text(
                     text = "선택",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.blue[200]
+                    color = colors.blue[200]
                 )
             }
 
@@ -437,7 +440,7 @@ fun SaveLinkScreen(
                         if (isButtonEnabled) {
                             Modifier.background(Basic.maincolor)
                         } else {
-                            Modifier.background(LocalColorTheme.current.gray[300])
+                            Modifier.background(colors.gray[300])
                         }
                     )
                     .padding(vertical = 15.dp),
@@ -447,7 +450,7 @@ fun SaveLinkScreen(
                     text = "저장",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.white,
+                    color = colors.white,
                     textAlign = TextAlign.Center
                 )
             }
