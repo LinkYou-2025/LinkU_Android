@@ -41,10 +41,10 @@ fun LinkCardItem(
     hasAiSummary: Boolean,
     linkTitle: String,
     tags: List<String> = emptyList(),
-    domainName: String? = null,
+    domainName: String = "",
     isExternalLink: Boolean,
-    linkImageUrl: String? = null,
-    domainImageUrl: String? = null,
+    linkImageUrl: String = "",
+    domainImageUrl: String = "",
     onDeleteClick: () -> Unit
 ) {
     var isMenuVisible by remember { mutableStateOf(false) }
@@ -61,7 +61,7 @@ fun LinkCardItem(
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            if (linkImageUrl.isNullOrBlank()) {
+            if (linkImageUrl.isBlank()) {
                 Image(
                     painter = painterResource(R.drawable.img_link_default),
                     contentDescription = null,
@@ -144,7 +144,7 @@ fun LinkCardItem(
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (!domainImageUrl.isNullOrBlank()) {
+                    if (domainImageUrl.isNotBlank()) {
                         Image(
                             painter = rememberAsyncImagePainter(model = domainImageUrl),
                             contentDescription = null,
@@ -163,7 +163,7 @@ fun LinkCardItem(
                     Spacer(modifier = Modifier.width(6.dp))
 
                     Text(
-                        text = domainName ?: "",
+                        text = domainName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         color = LocalColorTheme.current.gray[600]
@@ -223,8 +223,8 @@ fun PreviewLinkCardItem_HasAiSummary() {
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
             isExternalLink = false,
-            linkImageUrl = null,
-            domainImageUrl = null,
+            linkImageUrl = "",
+            domainImageUrl = "",
             domainName = "BLOG",
             onDeleteClick = { }
         )
@@ -240,8 +240,8 @@ fun PreviewLinkCardItem_NoAiSummary() {
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
             isExternalLink = false,
-            linkImageUrl = null,
-            domainImageUrl = null,
+            linkImageUrl = "",
+            domainImageUrl = "",
             domainName = "BLOG",
             onDeleteClick = { }
         )
@@ -257,8 +257,8 @@ fun PreviewLinkCardItem_HasOutLink() {
             linkTitle = "요즘 대학생들이 진짜 쓰는 앱 TOP10",
             tags = listOf("생산성·툴", "평온"),
             isExternalLink = true,
-            linkImageUrl = null,
-            domainImageUrl = null,
+            linkImageUrl = "",
+            domainImageUrl = "",
             domainName = "BLOG",
             onDeleteClick = { }
         )
