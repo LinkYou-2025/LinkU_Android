@@ -3,7 +3,6 @@ package com.linku.home.screen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,6 +48,7 @@ import coil3.compose.AsyncImage
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.search.SearchBarTopSheet
@@ -526,7 +526,7 @@ private fun LinkCard(
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
             .padding(10.dp)
-            .clickable { onClick() }
+            .noRippleClickable { onClick() }
     ) {
         Box() {
 //            Image(

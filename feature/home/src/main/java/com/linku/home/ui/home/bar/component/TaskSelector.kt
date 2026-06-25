@@ -2,7 +2,6 @@ package com.linku.home.ui.home.bar.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
@@ -139,7 +139,7 @@ private fun BoxChip(
                 ) else Modifier
             )
             .padding(horizontal = 15.dp, vertical = 8.dp)
-            .clickable(onClick = onClick)
+            .noRippleClickable(onClick = onClick)
     ) {
         content()
     }

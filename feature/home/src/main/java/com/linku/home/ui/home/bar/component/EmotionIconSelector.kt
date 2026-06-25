@@ -3,7 +3,6 @@ package com.linku.home.ui.home.bar.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -25,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
 import com.linku.home.R
@@ -91,7 +91,7 @@ fun EmotionIconSelector(
                         ) else Modifier
                     )
                     .padding(8.dp)
-                    .clickable {
+                    .noRippleClickable {
                         onEmotionChange(if (isSelected) null else id)
                     },
                 contentAlignment = Alignment.Center

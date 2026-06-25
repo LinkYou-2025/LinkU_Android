@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -40,6 +39,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.font.Taebaek
@@ -124,7 +124,7 @@ fun HomeTopBar(
             Box(
                 modifier = Modifier
                     .size(30.dp)
-                    .clickable { onAlarmClick() }
+                    .noRippleClickable { onAlarmClick() }
             ) {
                 AlarmButton(
                     isNoticeExist = isNoticeExist,
@@ -201,7 +201,7 @@ fun HomeTopBar(
                             .height(48.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(brush = buttonBrush)
-                            .clickable(enabled = recommendEnabled) { onRecommendClick() },
+                            .noRippleClickable(enabled = recommendEnabled) { onRecommendClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -238,7 +238,7 @@ fun HomeTopBar(
                     modifier = Modifier
                         .width(44.dp)
                         .align(Alignment.CenterHorizontally)
-                        .clickable { onExpandClick() }
+                        .noRippleClickable { onExpandClick() }
                 )
             }
         }
