@@ -65,11 +65,14 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             """.trimIndent()
         )
 
+        val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+            ?: return // null이면 알림 생략하고 종료
+
         // 일단은 액티비티로의 이동처리만 구현. 추후 수정 예정
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
-            packageManager.getLaunchIntentForPackage(packageName),
+            launchIntent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 

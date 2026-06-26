@@ -163,6 +163,7 @@ class MyPageViewModel @Inject constructor(
     }
 
     // 로그아웃 */
+    // TODO: FCM토큰 삭제 API호출
     fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
