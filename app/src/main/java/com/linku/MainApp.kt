@@ -367,7 +367,7 @@ fun MainApp(
                             viewModel = homeViewModel,
                             alarmViewModel = alarmViewModel,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
-                            onNavigateToMyPage = {
+                            onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onShowNavBar = { showNavBar = it }

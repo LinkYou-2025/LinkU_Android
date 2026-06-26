@@ -32,7 +32,7 @@ fun HomeApp(
     viewModel: HomeViewModel,
     alarmViewModel: AlarmViewModel,
     nickname: String, // 닉네임 호출을 위해 추가함.
-    onNavigateToMyPage: () -> Unit,
+    onNavigateToSetting: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
     val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
@@ -246,7 +246,7 @@ fun HomeApp(
             }
 
             AlarmScreen(
-                onNavigateToMyPage = onNavigateToMyPage,
+                onNavigateToSetting = onNavigateToSetting,
                 onBack = { navController.popBackStack() },
                 onNavigateToHome = {
                     navController.navigate("onboarding") {
