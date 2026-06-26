@@ -23,8 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,28 +34,20 @@ import com.linku.design.theme.LocalFontTheme
 
 
 /**
- * LinkU 디자인 시스템을 따르는 커스텀 알림 다이얼로그입니다.
+ * 알림 허용을 요청하는 커스텀 다이얼로그입니다.
  *
- * 아이콘, 제목, 설명 문구 및 두 개의 액션 버튼(취소/확인)으로 구성됩니다.
+ * 아이콘, 제목, 설명 문구 및 두 개의 액션 버튼(나중에/허용하기)으로 구성됩니다.
  *
  * @param onDismissRequest 다이얼로그 외부를 클릭하거나 첫 번째 버튼을 눌렀을 때 실행되는 콜백
- * @param onConfirmation 두 번째(확인) 버튼을 눌렀을 때 실행되는 콜백
- * @param dialogTitle 다이얼로그 상단에 표시될 제목
- * @param dialogText 다이얼로그 중앙에 표시될 상세 설명 문구
- * @param buttonText1 첫 번째 버튼(일반적으로 취소 또는 나중에)의 텍스트
- * @param buttonText2 두 번째 버튼(일반적으로 확인 또는 허용)의 텍스트
+ * @param onConfirmation 두 번째(허용하기) 버튼을 눌렀을 때 실행되는 콜백
  * @param modifier 레이아웃 수정을 위한 Modifier
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LinkUDialog(
+fun AlarmAllowDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
     modifier: Modifier = Modifier,
-    dialogTitle: String = "링큐의 알림을 받아보세요",
-    dialogText: String = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
-    buttonText1: String = "나중에",
-    buttonText2: String = "허용하기",
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
@@ -79,7 +69,7 @@ fun LinkUDialog(
             Spacer(Modifier.size(12.dp))
 
             Text(
-                text = dialogTitle,
+                text = "링큐의 알림을 받아보세요",
                 color = LocalColorTheme.current.black,
                 fontWeight = FontWeight.Medium,
                 fontSize = 18.sp
@@ -88,7 +78,7 @@ fun LinkUDialog(
             Spacer(Modifier.size(16.dp))
 
             Text(
-                text = dialogText,
+                text = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
                 textAlign = TextAlign.Center,
                 color = LocalColorTheme.current.gray[600],
                 fontSize = 14.sp,
@@ -107,7 +97,7 @@ fun LinkUDialog(
                             clip(RoundedCornerShape(8.dp))
                 ) {
                     Text(
-                        text = buttonText1,
+                        text = "나중에",
                         style = LocalTextStyle.current.copy(
                             fontFamily = LocalFontTheme.current.font,
                             brush = LocalColorTheme.current.maincolor
@@ -124,7 +114,7 @@ fun LinkUDialog(
                         .size(88.dp, 34.dp)
                 ) {
                     Text(
-                        text = buttonText2,
+                        text = "허용하기",
                         color = LocalColorTheme.current.white,
                         fontFamily = LocalFontTheme.current.font,
                         fontWeight = FontWeight.Medium
@@ -139,9 +129,9 @@ fun LinkUDialog(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-private fun LinkUDialogPreview() {
+private fun AlarmAllowDialogPreview() {
     LinkuPreview {
-        LinkUDialog(
+        AlarmAllowDialog(
             onDismissRequest = {},
             onConfirmation = {}
         )

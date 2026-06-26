@@ -40,7 +40,7 @@ import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
-import com.linku.design.LinkUDialog
+import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
@@ -173,7 +173,7 @@ fun MainApp(
 
         // 다이알로그를 보여줘야 하면 출력.
         if (showPushAlarmDialog) {
-            LinkUDialog(
+            AlarmAllowDialog(
                 onDismissRequest = { showPushAlarmDialog = false },
                 onConfirmation = {
                     showPushAlarmDialog = false

@@ -41,7 +41,7 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.core.model.alarm.AlarmSetting
-import com.linku.design.LinkUDialog
+import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.OnResumeEffect
 import com.linku.mypage.AlarmSettingUiState
@@ -83,7 +83,7 @@ fun AlarmSettingScreen(
     }
 
     if (showPushAlarmDialog) {
-        LinkUDialog(
+        AlarmAllowDialog(
             onDismissRequest = { showPushAlarmDialog = false },
             onConfirmation = {
                 showPushAlarmDialog = false
