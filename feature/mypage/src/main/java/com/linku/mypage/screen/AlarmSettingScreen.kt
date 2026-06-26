@@ -165,8 +165,8 @@ private fun AlarmSettingScreenContent(
             isSystemAlarmAllowed = state.isSystemAlarmAllowed,
             modifier = Modifier.padding(horizontal = 20.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
 
+        Spacer(modifier = Modifier.height(16.dp))
 
         // 알림 수신 설정 토글
         Column(

@@ -30,7 +30,6 @@ import java.io.InputStream
 @Composable
 fun HomeApp(
     viewModel: HomeViewModel,
-    alarmViewModel: AlarmViewModel,
     nickname: String, // 닉네임 호출을 위해 추가함.
     onNavigateToSetting: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
@@ -38,6 +37,11 @@ fun HomeApp(
     val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val navController = rememberNavController()
+
+    // 일림 목록창에서 사용할 뷰모델
+    // 홈 화면에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
+    // HomeApp에서 주입한다.
+    val alarmViewModel: AlarmViewModel = hiltViewModel()
 
 //    // === 감정/상황 키 → 서버 ID 매핑 ===
 //    fun emotionKeyToId(key: String): Long = when (key) {
