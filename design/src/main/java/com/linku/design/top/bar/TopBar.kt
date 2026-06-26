@@ -103,16 +103,17 @@ fun TopBar(
         )
 
         // 알림
-        Icon(
-            painter = painterResource(id = Res.drawable.ic_alarm),
-            contentDescription = "알림",
-            tint = colorTheme.gray[300],
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = 29.8f.scaler, top = 50.38f.scaler)
-                .size(width = 22.26f.scaler, height = 27.18f.scaler)
-                .noRippleClickable { onClickAlarm() }
-        )
+        // 다인누나의 요구사항에 따라 제거함.
+//        Icon(
+//            painter = painterResource(id = Res.drawable.ic_alarm),
+//            contentDescription = "알림",
+//            tint = colorTheme.gray[300],
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                .padding(end = 29.8f.scaler, top = 50.38f.scaler)
+//                .size(width = 22.26f.scaler, height = 27.18f.scaler)
+//                .noRippleClickable { onClickAlarm() }
+//        )
 
         // 빠른 링크 검색바. (showSearchBar가 true일 때만 표시가 됩니다. 마이페이지 탑바 생성시 참고 부탁드립니다.)
         if (showSearchBar) {
