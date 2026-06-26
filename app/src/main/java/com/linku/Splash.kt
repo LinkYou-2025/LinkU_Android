@@ -68,7 +68,6 @@ fun Splash(onResult: () -> Unit) {
 
     // 알림 설정 저장소
     // 스플래시에서만 일회성으로 사용하는 값이라 Hilt & ViewModel 없이 직접 생성.
-    // 스플래시에 뷰모델...? 이게 더 이상함.
     val context = LocalContext.current
     val notificationPreference = remember {
         NotificationPreference(context)
