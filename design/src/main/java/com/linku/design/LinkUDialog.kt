@@ -53,11 +53,11 @@ import com.linku.design.theme.LocalFontTheme
 fun LinkUDialog(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
-    dialogTitle: String,
-    dialogText: String,
-    buttonText1: String,
-    buttonText2: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    dialogTitle: String = "링큐의 알림을 받아보세요",
+    dialogText: String = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
+    buttonText1: String = "나중에",
+    buttonText2: String = "허용하기",
 ) {
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
@@ -145,11 +145,7 @@ private fun LinkUDialogPreview() {
     LinkuPreview {
         LinkUDialog(
             onDismissRequest = {},
-            onConfirmation = {},
-            buttonText1 = "나중에",
-            buttonText2 = "허용하기",
-            dialogTitle = "링큐의 알림을 받아보세요",
-            dialogText = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다."
+            onConfirmation = {}
         )
     }
 }

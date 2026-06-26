@@ -14,12 +14,17 @@ class NotificationPreference(
         private const val KEY_NOTIFICATION_MASTER = "key_notification_master"
         private const val KEY_FCM_TOKEN = "key_fcm_token"
 
+        // 스플래시에서 안드로이드 시스템 알람이 최초 호출되었는지 여부
         private const val KEY_SYSTEM_PERMISSION_REQUESTED =
             "key_system_permission_requested"
 
+        // 푸시알람 활성화 팝업창이 호출되었는지 여부
         private const val KEY_PUSH_PERMISSION_REQUESTED =
             "key_push_permission_requested"
 
+        // 사용자가 홈 화면에서의 팝업을 통해 푸시알람을 활성화하지 않고,
+        // 알람 설정 창에서 토글을 누르려고 시도했을 때를 대비
+        // fcm토큰이 서버에 등록되어있는지 여부를 판별함
         private const val KEY_FCM_TOKEN_REGISTERED =
             "key_fcm_token_registered"
     }

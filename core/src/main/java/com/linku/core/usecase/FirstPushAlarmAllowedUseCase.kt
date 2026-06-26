@@ -12,7 +12,7 @@ import javax.inject.Inject
  *
  * @property alarmRepository FCM 토큰 관리 및 알람 설정 업데이트를 담당하는 레포지토리입니다.
  *
- * 제작 이유: 사용자가 처음 푸시알람 설정을 했을 때는, fcm에서 현재 토큰을 가져옴 -> 서버에 토큰 등록 api 호출 -> 푸사알림 활성화 api 호출
+ * 제작 이유: 사용자가 팝업을 통해 처음 푸시알람 설정을 했을 때는, fcm에서 현재 토큰을 가져옴 -> 서버에 토큰 등록 api 호출 -> 푸사알림 활성화 api 호출
  * 이 3개의 과정을 거쳐야 함. 근데 이 로직이 그대로 뷰모델에 박혀버리면?
  * 딱 봐도 스파게티가 될 가능성이 보임
  * 따라서 유스케이스 레이어를 신설
@@ -29,6 +29,7 @@ class FirstPushAlarmAllowedUseCase @Inject constructor(
             .getOrThrow()
 
         alarmRepository.updateAlarmSetting(AlarmType.ALL)
+            .getOrThrow()
     }
 
 }

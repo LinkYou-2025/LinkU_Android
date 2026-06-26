@@ -105,6 +105,9 @@ class NotificationViewModel @Inject constructor(
         optimisticUpdate(intent)
     }
 
+    // 푸시 알림 최초 수신 동의를 처리
+    // 성공 시 FCM 토큰을 등록 완료 상태로 저장하고 알림 설정을 갱신
+    // 실패 시 에러 메시지를 토스트로 노출
     private suspend fun handleConfirmFirstPushPermission() {
         firstPushAlarmAllowedUseCase().fold(
             onSuccess = {

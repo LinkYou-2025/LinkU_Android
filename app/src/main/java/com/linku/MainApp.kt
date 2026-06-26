@@ -178,11 +178,7 @@ fun MainApp(
                 onConfirmation = {
                     showPushAlarmDialog = false
                     viewModel.allowPushAlarm() // 성공/실패 토스트는 VM이 쏨
-                },
-                dialogTitle = "링큐의 알림을 받아보세요",
-                dialogText = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
-                buttonText1 = "나중에",
-                buttonText2 = "허용하기"
+                }
             )
         }
 
