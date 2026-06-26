@@ -20,6 +20,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -140,11 +141,9 @@ private fun AlarmErrorLayoutContent(
         ) {
             Text(
                 text = "다시 시도",
-                style = TextStyle(
-                    color = LocalColorTheme.current.white,
-                    fontWeight = FontWeight(500),
-                    fontSize = 16.sp
-                )
+                color = LocalColorTheme.current.white,
+                fontWeight = FontWeight(500),
+                fontSize = 16.sp
             )
         }
     }

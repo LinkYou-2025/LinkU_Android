@@ -38,12 +38,9 @@ fun AlarmErrorFooter(
         // 안내 문구
         Text(
             text = "추가 알림을 불러오지 못했어요",
-            style = TextStyle(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = LocalColorTheme.current.black,
-                fontFamily = LocalFontTheme.current.font
-            )
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp,
+            color = LocalColorTheme.current.black,
         )
 
         Spacer(Modifier.size(16.dp))
@@ -65,12 +62,9 @@ fun AlarmErrorFooter(
             Spacer(Modifier.size(6.dp))
             Text(
                 text = "다시 시도",
-                style = TextStyle(
-                    color = LocalColorTheme.current.white,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    fontFamily = LocalFontTheme.current.font
-                )
+                color = LocalColorTheme.current.white,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
             )
         }
     }

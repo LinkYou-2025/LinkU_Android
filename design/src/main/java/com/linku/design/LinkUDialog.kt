@@ -108,7 +108,7 @@ fun LinkUDialog(
                 ) {
                     Text(
                         text = buttonText1,
-                        style = TextStyle(
+                        style = LocalTextStyle.current.copy(
                             fontFamily = LocalFontTheme.current.font,
                             brush = LocalColorTheme.current.maincolor
                         )
@@ -125,11 +125,9 @@ fun LinkUDialog(
                 ) {
                     Text(
                         text = buttonText2,
-                        style = TextStyle(
-                            color = LocalColorTheme.current.white,
-                            fontFamily = LocalFontTheme.current.font,
-                            fontWeight = FontWeight.Medium
-                        )
+                        color = LocalColorTheme.current.white,
+                        fontFamily = LocalFontTheme.current.font,
+                        fontWeight = FontWeight.Medium
                     )
                 }
 
