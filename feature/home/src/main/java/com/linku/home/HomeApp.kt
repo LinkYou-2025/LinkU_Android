@@ -13,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,6 +22,7 @@ import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
 import com.linku.home.screen.SaveLinkResultScreen
 import com.linku.home.screen.SaveLinkScreen
+import com.linku.home.viewmodel.AlarmViewModel
 import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
@@ -28,6 +30,7 @@ import java.io.InputStream
 @Composable
 fun HomeApp(
     viewModel: HomeViewModel,
+    alarmViewModel: AlarmViewModel,
     nickname: String, // 닉네임 호출을 위해 추가함.
     onNavigateToMyPage: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
@@ -250,7 +253,8 @@ fun HomeApp(
                         popUpTo("onboarding") { inclusive = false }
                         launchSingleTop = true
                     }
-                }
+                },
+                viewModel = alarmViewModel
             )
         }
     }

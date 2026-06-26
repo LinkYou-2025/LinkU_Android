@@ -49,11 +49,14 @@ import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
 import com.linku.home.screen.SaveLinkResultScreen
 import com.linku.home.screen.SaveLinkScreen
+import com.linku.home.viewmodel.AlarmViewModel
 import com.linku.linku_android.curation.curationGraph
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
 import com.linku.mypage.MyPageViewModel
+import com.linku.mypage.NotificationViewModel
+import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
 import kotlinx.coroutines.launch
@@ -109,6 +112,9 @@ fun MainApp(
     val homeViewModel: HomeViewModel = hiltViewModel()
     // 로그인 혹은 자동 로그인 성공 후 생성함. 여기서는 이미 AuthPreference 주입 끝.
 
+    // 일림 목록창에서 사용할 뷰모델
+    val alarmViewModel: AlarmViewModel = hiltViewModel()
+
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
     val folderStateViewModel: FolderStateViewModel = viewModel()
@@ -121,6 +127,9 @@ fun MainApp(
 
     // 마이페이지에서 사용할 뷰모델
     val mypageViewModel: MyPageViewModel = hiltViewModel()
+
+    // 알림 설정 창에서 사용할 뷰모델
+    val notificationViewModel: NotificationViewModel = hiltViewModel()
 
     // TODO : 안드로이드 팀원들에게 물어보기. 이거 rememberSaveable로 변경을 해야하는 건 아닌지.
     var showNavBar by remember { mutableStateOf(false) }
@@ -356,16 +365,10 @@ fun MainApp(
 
                         HomeApp(
                             viewModel = homeViewModel,
+                            alarmViewModel = alarmViewModel,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
-                            onNavigateToMyPage = {  // TODO: 추후 알림 설정 페이지로 이동
-                                navigator.navigate(NavigationRoute.MyPage.route) {
-                                    popUpTo(navigator.graph.findStartDestination().id) {
-                                        saveState = true
-                                        inclusive = false
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                            onNavigateToMyPage = {
+                                navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onShowNavBar = { showNavBar = it }
                         )
@@ -406,6 +409,7 @@ fun MainApp(
 
                         MyPageApp(
                             viewModel = mypageViewModel,
+                            notificationViewModel = notificationViewModel,
                             onLogoutToLogin = {
                                 showNavBar = false  // 바텀바 끄기
 
@@ -427,6 +431,19 @@ fun MainApp(
 //                                    launchSingleTop = true
 //                                }
                             }
+                        )
+                    }
+                }
+
+                with(NavigationRoute.AlarmSetting) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
+                        val notificationViewModel: NotificationViewModel = hiltViewModel()
+
+                        AlarmSettingScreen(
+                            navController = navigator,
+                            viewModel = notificationViewModel
                         )
                     }
                 }

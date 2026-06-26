@@ -25,7 +25,7 @@ import com.linku.mypage.screen.ServiceQuitScreen
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
-    notificationViewModel: NotificationViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel,
     onLogoutToLogin: () -> Unit
 ) {
     val navController = rememberNavController()

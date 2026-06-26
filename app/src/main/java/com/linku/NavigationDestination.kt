@@ -23,6 +23,8 @@ sealed class NavigationRoute(
     data object File: NavigationRoute("file")
     data object Curation: NavigationRoute("curation")
     data object MyPage: NavigationRoute("my_page")
+
+    data object AlarmSetting: NavigationRoute("alarm_setting")
 }
 
 class LoginRoutingInfo(val empty: Any? = null)

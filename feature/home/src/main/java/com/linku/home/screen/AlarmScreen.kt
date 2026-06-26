@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -50,7 +51,7 @@ fun AlarmScreen(
     onBack: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToHome: () -> Unit,
-    viewModel: AlarmViewModel = hiltViewModel()
+    viewModel: AlarmViewModel
 ) {
     val pushAlarmEnabled by viewModel.pushAlarmEnabled.collectAsStateWithLifecycle()
 
@@ -68,6 +69,13 @@ fun AlarmScreen(
     // PagingData와 LoadState(로딩/에러 상태)를 함께 관리한다
     val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
+
+    // 사용자가 AlarmSettingTab을 클릭해 푸시 알람 활성화를 하고
+    // 뒤로가기 버튼을 통해 AlarmScreen으로 돌아왔을 때를 대비
+    LifecycleResumeEffect(Unit) {
+        viewModel.refreshNotificationStatus()
+        onPauseOrDispose { } // 아무것도 안 해도 필수로 작성해야함 호애엥
+    }
 
     // 새로고침이 완료되면 인디케이터 해제
     LaunchedEffect(alarmPagingItems.loadState.refresh) {

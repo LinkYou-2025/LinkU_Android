@@ -23,6 +23,11 @@ class AlarmViewModel @Inject constructor(
     private val _pushAlarmEnabled = MutableStateFlow(notificationPreference.isMasterNotificationEnabled())
     val pushAlarmEnabled = _pushAlarmEnabled.asStateFlow()
 
+    // 진입 시마다 호출할 갱신 함수
+    fun refreshNotificationStatus() {
+        _pushAlarmEnabled.value = notificationPreference.isMasterNotificationEnabled()
+    }
+
     /**
      * Map<AlarmType, Flow<PagingData<AlarmSummary>>>
      *
@@ -46,7 +51,6 @@ class AlarmViewModel @Inject constructor(
             .getAlarms(type)
             .cachedIn(viewModelScope)
     }
-
 
     /**
      * 지정된 [AlarmType]에 해당하는 페이징된 알람 데이터 Flow를 반환합니다.
