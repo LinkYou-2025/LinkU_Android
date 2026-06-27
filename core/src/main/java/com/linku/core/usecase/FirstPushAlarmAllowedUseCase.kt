@@ -3,7 +3,7 @@ package com.linku.core.usecase
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import javax.inject.Inject
-
+import kotlinx.coroutines.CancellationException
 /**
  * 푸시 알림의 초기 등록 및 구성을 처리하는 유즈케이스입니다.
  *
@@ -31,6 +31,13 @@ class FirstPushAlarmAllowedUseCase @Inject constructor(
 
         alarmRepository.updateAlarmSetting(AlarmType.ALL)
             .getOrThrow()
+
+        Unit
+
+    }.onFailure{
+        // 사용자가 화면을 나가는 등의 이유로 발생하는 CancellationException는
+        // 정상 흐름이므로 Result로 감싸지 않고 그대로 전파
+        if (it is CancellationException) throw it
     }
 
 }
