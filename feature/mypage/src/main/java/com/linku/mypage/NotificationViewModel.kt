@@ -95,7 +95,7 @@ class NotificationViewModel @Inject constructor(
         intent: LinkuNotificationIntent
     ) {
         // 전체 알람을 off → on으로 켜는 경우에 fcm 토큰이 등록되었는지 여부 체크
-        if (intent is ToggleAll) {
+        if (intent is ToggleAll && intent.enabled) {
             if (!notificationPreference.isFcmTokenRegistered()) {
                 _sideEffect.send(NotificationEffect.ShowPushAlarmDialog)
                 return
@@ -121,7 +121,8 @@ class NotificationViewModel @Inject constructor(
             onFailure = { throwable ->
                 _sideEffect.send(
                     NotificationEffect.ShowToast(
-                        (throwable as AppError).displayMessage
+                        (throwable as? AppError)?.displayMessage
+                            ?: "푸시 알림 설정에 실패했어요. 잠시 후에 다시 시도해주세요."
                     )
                 )
             }

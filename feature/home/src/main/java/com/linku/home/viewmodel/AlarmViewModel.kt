@@ -3,8 +3,6 @@ package com.linku.home.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import com.linku.core.error.AppError
-import com.linku.core.error.NetworkError
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
