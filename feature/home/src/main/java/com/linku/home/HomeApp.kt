@@ -40,7 +40,7 @@ fun HomeApp(
 
     // 일림 목록창에서 사용할 뷰모델
     // 홈 화면에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
-    // HomeApp에서 주입한다.
+    // HomeApp에서 만들어 주입한다.
     val alarmViewModel: AlarmViewModel = hiltViewModel()
 
 //    // === 감정/상황 키 → 서버 ID 매핑 ===

@@ -35,7 +35,7 @@ fun MyPageApp(
 
     // 알림 설정 창에서 사용할 뷰모델
     // 마이페이지에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
-    // MyPageApp에서 주입한다.
+    // MyPageApp에서 만들어 주입한다.
     val notificationViewModel: NotificationViewModel = hiltViewModel()
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용

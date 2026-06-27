@@ -20,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,7 +57,7 @@ fun Splash(onResult: () -> Unit) {
     var isGlowPhase by remember { mutableStateOf(false) }
 
     // 시스템 알림 권한 요청 팝업이 끝났는지 여부
-    var permissionFinished by remember { mutableStateOf(false) }
+    var permissionFinished by rememberSaveable { mutableStateOf(false) }
 
     // 권한 요청 런쳐
     val notificationPermissionLauncher =
