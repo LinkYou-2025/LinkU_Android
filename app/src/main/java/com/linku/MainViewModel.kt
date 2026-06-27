@@ -172,7 +172,11 @@ class MainViewModel @Inject constructor(
                     onSuccess = { _sideEffect.send(SideEffect.ShowToast("푸시 알림이 설정되었어요.")) },
                     onFailure = { e ->
                         notificationPreference.setPushPermissionRequested(false)
-                        _sideEffect.send(SideEffect.ShowToast(e.message))
+                        _sideEffect.send(
+                            SideEffect.ShowToast(
+                                e.message ?: "푸시 알림 설정에 실패했어요. 알림 설정 창에서 다시 시도할 수 있어요."
+                            )
+                        )
                     }
                 )
         }

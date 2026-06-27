@@ -68,6 +68,7 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override suspend fun getFCMTokenFromFCM(): Result<String> =
         runCatching {
+            // 공식문서 보고 구현했습니당
             FirebaseMessaging.getInstance().token.await()
         }
 

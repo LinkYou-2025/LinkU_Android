@@ -70,7 +70,7 @@ fun MainApp(
     val context = LocalContext.current
     val app = LocalContext.current.applicationContext
 
-    var showPushAlarmDialog by remember { mutableStateOf(false) }
+    var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
 
     // 채널 사이드 이펙트 수신
     LaunchedEffect(Unit) {
