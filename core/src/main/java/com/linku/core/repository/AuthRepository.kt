@@ -27,7 +27,7 @@ interface AuthRepository {
         nickname: String,
         email: String,
         password: String,
-        gender: String,
+        gender: Gender,
         jobId: Int,
         purposeList: List<Purpose>,
         interestList: List<Interest>,
