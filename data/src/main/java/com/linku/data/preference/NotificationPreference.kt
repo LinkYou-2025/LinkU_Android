@@ -22,7 +22,7 @@ class NotificationPreference(
         private const val KEY_PUSH_PERMISSION_REQUESTED =
             "key_push_permission_requested"
 
-        // 사용자가 홈 화면에서의 팝업을 통해 푸시알람을 활성화하지 않고,
+        // 사용자가 팝업을 통해 푸시알람을 최초 활성화하지 않고,
         // 알람 설정 창에서 토글을 누르려고 시도했을 때를 대비
         // fcm토큰이 서버에 등록되어있는지 여부를 판별함
         private const val KEY_FCM_TOKEN_REGISTERED =
@@ -40,8 +40,11 @@ class NotificationPreference(
     }
 
     // ===== FCM Token =====
-    fun getFcmToken(): String? =
-        pref.getString(KEY_FCM_TOKEN, null)
+    // 게터 메서드는 삭제. 현재 fcm 토큰을 가져오는 작업은
+    // FCM으로부터 직접 가져오는 것으로 통일하여
+    // 단일 진실 공급원 원칙을 확실히 준수하기 위함.
+//    fun getFcmToken(): String? =
+//        pref.getString(KEY_FCM_TOKEN, null)
 
     fun setFcmToken(token: String) {
         pref.edit { putString(KEY_FCM_TOKEN, token) }
@@ -55,6 +58,7 @@ class NotificationPreference(
         pref.edit { putBoolean(KEY_FCM_TOKEN_REGISTERED, registered) }
     }
 
+    //TODO: fcm토큰 삭제 api 연동 작업 시에 사용 예정
     fun clearFcmToken() {
         pref.edit { remove(KEY_FCM_TOKEN) }
     }
