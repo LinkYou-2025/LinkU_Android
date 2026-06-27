@@ -17,7 +17,7 @@ data class SignUpEmailRequestDTO (
     val password: String,
 
     @field:Json(name = "gender")
-    val gender: Int,
+    val gender: String,
 
     @field:Json(name = "jobId")
     val jobId: Int,

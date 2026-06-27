@@ -101,7 +101,7 @@ class AuthRepositoryImpl @Inject constructor(
         nickname: String,
         email: String,
         password: String,
-        gender: Int,
+        gender: String,
         jobId: Int,
         purposeList: List<Purpose>,
         interestList: List<Interest>,
