@@ -187,5 +187,5 @@ class MainViewModel @Inject constructor(
 // 1회성 사이드 이펙트
 sealed interface SideEffect {
     data object ShowPushAlarmDialog: SideEffect
-    data class ShowToast(val message: String?) : SideEffect
+    data class ShowToast(val message: String) : SideEffect
 }

@@ -88,12 +88,12 @@ fun AlarmAllowDialog(
             Spacer(Modifier.size(19.dp))
 
             Row(
-                modifier = modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
                     onClick = onDismissRequest,
-                    modifier = modifier.size( 88.dp, 34.dp).
+                    modifier = Modifier.size( 88.dp, 34.dp).
                             clip(RoundedCornerShape(8.dp))
                 ) {
                     Text(
@@ -109,7 +109,7 @@ fun AlarmAllowDialog(
 
                 TextButton(
                     onClick = onConfirmation,
-                    modifier = modifier.clip(RoundedCornerShape(8.dp))
+                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
                         .background(LocalColorTheme.current.maincolor)
                         .size(88.dp, 34.dp)
                 ) {
