@@ -119,7 +119,7 @@ class AuthRepositoryImpl @Inject constructor(
                         nickName = nickname,
                         email = email,
                         password = password,
-                        gender = gender.value,
+                        gender = gender.name,
                         jobId = jobId,
                         purposeList = purposeList.map { it.serverKey },
                         interestList = interestList.map { it.serverKey },
