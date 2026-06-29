@@ -285,7 +285,7 @@ internal class SignUpViewModel @Inject constructor(
                     nickname = form.nickname,
                     email = form.email,
                     password = form.password,
-                    gender = form.gender.value,
+                    gender = form.gender,
                     jobId = form.jobId,
                     purposeList = form.purposeList,
                     interestList = form.interestList,
