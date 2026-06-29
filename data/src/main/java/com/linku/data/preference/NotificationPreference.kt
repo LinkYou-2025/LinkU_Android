@@ -40,11 +40,10 @@ class NotificationPreference(
     }
 
     // ===== FCM Token =====
-    // 게터 메서드는 삭제. 현재 fcm 토큰을 가져오는 작업은
-    // FCM으로부터 직접 가져오는 것으로 통일하여
-    // 단일 진실 공급원 원칙을 확실히 준수하기 위함.
-//    fun getFcmToken(): String? =
-//        pref.getString(KEY_FCM_TOKEN, null)
+
+    // TODO: FCM 토큰 유효성 검사에 사용 예정
+    fun getFcmToken(): String? =
+        pref.getString(KEY_FCM_TOKEN, null)
 
     fun setFcmToken(token: String) {
         pref.edit { putString(KEY_FCM_TOKEN, token) }
