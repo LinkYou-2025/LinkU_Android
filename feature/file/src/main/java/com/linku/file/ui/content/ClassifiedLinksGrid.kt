@@ -4,8 +4,11 @@ import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -38,6 +42,7 @@ import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 private const val INTER_LAYER_PADDING = 18.51
+private const val ITEM_RATIO = 10f / 174f
 
 @Composable
 internal fun ClassifiedLinksGrid(
@@ -56,44 +61,60 @@ internal fun ClassifiedLinksGrid(
 
     var selectedLinkId by remember { mutableStateOf<Long?>(null) }
 
-    LazyVerticalGrid(
-        modifier = modifier,
-        contentPadding = contentPadding,
-        columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
-    ) {
-        item {
-            AddLinkItem(
-                modifier = Modifier
-                    .fillMaxSize(164f / 174f)
-                    .noRippleClickable{
-                        Log.d("LinksGrid", "링크 추가하기 클릭")
-                        if (notCategorizationLinks.isNotEmpty()) {
-                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                        } else {
-                            categorizationModalWindowVisible = true
-                        }
-                    }
-            )
-        }
+    val layoutDirection = LocalLayoutDirection.current
 
-        LinkGrid(
-            linkList = linkList,
-            itemIndexOffset = 1
-        ){ link ->
-            LinkItemLayout(
-                modifier = Modifier.fillMaxSize(164f / 174f),
-                link = link,
-                onClick = {
-                    fileViewModel.onLinkClick?.invoke(link.linkuId)
-                },
-                onLongClick = {
-                    selectedLinkId = link.linkuId
-                    deleteModalWindowVisible = true
-                }
-            )
+    BoxWithConstraints(
+        modifier = modifier
+    ) {
+        val horizontalPadding =
+            contentPadding.calculateStartPadding(layoutDirection) +
+                    contentPadding.calculateEndPadding(layoutDirection)
+
+        val availableWidth = maxWidth - horizontalPadding
+
+        val horizontalSpacing = availableWidth * ITEM_RATIO
+
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
+            horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
+        ) {
+            item {
+                AddLinkItem(
+                    modifier = Modifier
+                        .fillMaxSize(164f / 174f)
+                        .noRippleClickable {
+                            Log.d("LinksGrid", "링크 추가하기 클릭")
+                            if (notCategorizationLinks.isNotEmpty()) {
+                                folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                            } else {
+                                categorizationModalWindowVisible = true
+                            }
+                        }
+                )
+            }
+
+            LinkGrid(
+                linkList = linkList,
+                itemIndexOffset = 1
+            ) { link ->
+                LinkItemLayout(
+                    modifier = Modifier.fillMaxSize(164f / 174f),
+                    link = link,
+                    onClick = {
+                        fileViewModel.onLinkClick?.invoke(link.linkuId)
+                    },
+                    onLongClick = {
+                        selectedLinkId = link.linkuId
+                        deleteModalWindowVisible = true
+                    }
+                )
+            }
         }
     }
+
 
     // 분류되지 않는 링크가 없으면 뜨는 모달창
     ModalWindow(

@@ -6,8 +6,11 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -48,9 +52,12 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 private const val INTER_LAYER_PADDING = 18.51
 private const val SECTION_TITLE_TOP_PADDING = 21.49
 private const val SECTION_TITLE_BOTTOM_PADDING = 1.49
+private const val ITEM_RATIO = 10f / 174f
 
 @Composable
 internal fun MyFoldersGrid(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel
@@ -68,79 +75,94 @@ internal fun MyFoldersGrid(
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
     var selectedLinkId by remember { mutableStateOf<Long?>(null) }
 
-    LazyVerticalGrid(
-        modifier = Modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-        columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
+    val layoutDirection = LocalLayoutDirection.current
+
+    BoxWithConstraints(
+        modifier = modifier
     ) {
-        item {
-            AddBottomFolderItem(
-                modifier = Modifier
-                    .fillMaxSize(164f / 174f)
-                    .noRippleClickable {
-                        if (!editStateViewModel.isEditMode) {
-                            folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+        val horizontalPadding =
+            contentPadding.calculateStartPadding(layoutDirection) +
+                    contentPadding.calculateEndPadding(layoutDirection)
+
+        val availableWidth = maxWidth - horizontalPadding
+
+        val horizontalSpacing = availableWidth * ITEM_RATIO
+
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
+            horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
+        ) {
+            item {
+                AddBottomFolderItem(
+                    modifier = Modifier
+                        .fillMaxSize(164f / 174f)
+                        .noRippleClickable {
+                            if (!editStateViewModel.isEditMode) {
+                                folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                            }
                         }
-                    }
-            )
-        }
-
-        FolderGrid(
-            folderList = folderList,
-            itemIndexOffset = 1
-        ) { folder ->
-            MyFolderItem(
-                folder = folder,
-                colorStyle = selectedTopFolderColorStyle,
-                isEditMode = editStateViewModel.isEditMode,
-                onClick = {
-                    fileViewModel.getLinks(folder.folderId)
-                    folderStateViewModel.updateSelectedBottomFolder(folder)
-                    folderStateViewModel.updateFolderState(FolderState.LINKS)
-                },
-                onEdit = {
-                    folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
-                    folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                },
-                onChangeSharing = {
-                    fileViewModel.folderToPrivate(folder)
-                },
-                onDelete = {
-                    fileViewModel.deleteSubfolder(folder.folderId)
-                }
-            )
-        }
-
-        if (linkList.isNotEmpty()) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                Text(
-                    text = "분류되지 않은 링크",
-                    fontSize = 20.sp,
-                    lineHeight = 30.sp,
-                    fontWeight = FontWeight(700),
-                    color = colors.black,
-                    modifier = Modifier.padding(
-                        top = SECTION_TITLE_TOP_PADDING.dp,
-                        bottom = SECTION_TITLE_BOTTOM_PADDING.dp
-                    )
                 )
             }
 
-            LinkGrid(
-                linkList = linkList
-            ){ link ->
-                LinkItemLayout(
-                    modifier = Modifier.fillMaxSize(164f / 174f),
-                    link = link,
+            FolderGrid(
+                folderList = folderList,
+                itemIndexOffset = 1
+            ) { folder ->
+                MyFolderItem(
+                    folder = folder,
+                    colorStyle = selectedTopFolderColorStyle,
+                    isEditMode = editStateViewModel.isEditMode,
                     onClick = {
-                        fileViewModel.onLinkClick?.invoke(link.linkuId)
+                        fileViewModel.getLinks(folder.folderId)
+                        folderStateViewModel.updateSelectedBottomFolder(folder)
+                        folderStateViewModel.updateFolderState(FolderState.LINKS)
                     },
-                    onLongClick = {
-                        selectedLinkId = link.linkuId
-                        deleteModalWindowVisible = true
+                    onEdit = {
+                        folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
+                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                    },
+                    onChangeSharing = {
+                        fileViewModel.folderToPrivate(folder)
+                    },
+                    onDelete = {
+                        fileViewModel.deleteSubfolder(folder.folderId)
                     }
                 )
+            }
+
+            if (linkList.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = "분류되지 않은 링크",
+                        fontSize = 20.sp,
+                        lineHeight = 30.sp,
+                        fontWeight = FontWeight(700),
+                        color = colors.black,
+                        modifier = Modifier.padding(
+                            top = SECTION_TITLE_TOP_PADDING.dp,
+                            bottom = SECTION_TITLE_BOTTOM_PADDING.dp
+                        )
+                    )
+                }
+
+                LinkGrid(
+                    linkList = linkList
+                ) { link ->
+                    LinkItemLayout(
+                        modifier = Modifier.fillMaxSize(164f / 174f),
+                        link = link,
+                        onClick = {
+                            fileViewModel.onLinkClick?.invoke(link.linkuId)
+                        },
+                        onLongClick = {
+                            selectedLinkId = link.linkuId
+                            deleteModalWindowVisible = true
+                        }
+                    )
+                }
             }
         }
     }

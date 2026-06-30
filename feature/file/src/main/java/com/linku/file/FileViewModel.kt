@@ -83,7 +83,7 @@ class FileViewModel @Inject constructor(
     private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     // 매번 북마크 우선 정렬
     val parentFolders: StateFlow<List<FolderSimpleInfo>> =
-        _parentFolders
+        _parentFolders.asStateFlow()
             .map { list ->
                 list.sortedByDescending { it.isBookmarked }
             }
@@ -912,7 +912,7 @@ class FileViewModel @Inject constructor(
 
     // ---------- delete method ----------
     // 소분류 폴더 삭제
-    fun deleteSubfolder(folderId: Long, index: Int) {
+    fun deleteSubfolder(folderId: Long) {
         Log.d("FileViewModel", "deleteSubfolder")
 
         viewModelScope.launch {
@@ -925,7 +925,7 @@ class FileViewModel @Inject constructor(
                 Log.d("FileViewModel", "deleteSubfolder try")
 
                 folderRepository.deleteSubfolder(folderId)
-                _subFolders.value = _subFolders.value.filterIndexed { i, _ -> i != index }
+                _subFolders.value = _subFolders.value.filterIndexed { i, folder -> folder.folderId != folderId }
 
                 Log.d("FileViewModel", "deleteSubfolder try result")
 

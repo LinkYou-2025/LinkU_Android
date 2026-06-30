@@ -1,13 +1,17 @@
 package com.linku.file.ui.content
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -21,6 +25,7 @@ import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 private const val INTER_LAYER_PADDING = 18.51
+private const val ITEM_RATIO = 10f / 174f
 
 @Composable
 internal fun CategoryGrid(
@@ -33,37 +38,51 @@ internal fun CategoryGrid(
     val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
     val categories by fileViewModel.parentFolders.collectAsStateWithLifecycle()
 
-    LazyVerticalGrid(
-        modifier = modifier,
-        contentPadding = contentPadding,
-        columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
-        horizontalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp)
-    ){
-        FolderGrid(
-            folderList = categories
-        ) { folder ->
-            CategoryItemLayout(
-                modifier = Modifier
-                    .fillMaxSize(164f / 174f)
-                    .noRippleClickable {
-                        if (editStateViewModel.isEditMode) {
-                            folderStateViewModel.updateReadyToUpdateTopFolder(folder)
-                            folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
-                        } else {
-                            fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
-                            folderStateViewModel.updateSelectedTopFolder(folder)
-                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                        }
-                    },
-                colorStyle = categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT,
-                folder = folder,
-                isEditMode = editStateViewModel.isEditMode,
-            ) {
-                fileViewModel.updateBookmark(
-                    folderId = folder.folderId,
-                    updateBookmarked = !folder.isBookmarked
-                )
+    val layoutDirection = LocalLayoutDirection.current
+
+    BoxWithConstraints(
+        modifier = modifier
+    ) {
+        val horizontalPadding =
+            contentPadding.calculateStartPadding(layoutDirection) +
+                    contentPadding.calculateEndPadding(layoutDirection)
+
+        val availableWidth = maxWidth - horizontalPadding
+
+        val horizontalSpacing = availableWidth * ITEM_RATIO
+
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
+            horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
+        ) {
+            FolderGrid(
+                folderList = categories
+            ) { folder ->
+                CategoryItemLayout(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .noRippleClickable {
+                            if (editStateViewModel.isEditMode) {
+                                folderStateViewModel.updateReadyToUpdateTopFolder(folder)
+                                folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
+                            } else {
+                                fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
+                                folderStateViewModel.updateSelectedTopFolder(folder)
+                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                            }
+                        },
+                    colorStyle = categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT,
+                    folder = folder,
+                    isEditMode = editStateViewModel.isEditMode,
+                ) {
+                    fileViewModel.updateBookmark(
+                        folderId = folder.folderId,
+                        updateBookmarked = !folder.isBookmarked
+                    )
+                }
             }
         }
     }
