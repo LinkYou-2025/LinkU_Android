@@ -155,7 +155,7 @@ fun FileScreen(
                     }
                 }
                 FolderState.LINKS -> {
-                    LinksGrid(
+                    ClassifiedLinksGrid(
                         fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel,
                     )

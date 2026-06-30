@@ -6,12 +6,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,10 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
@@ -40,52 +37,62 @@ import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
-private const val MIDDLE_PADDING = 18.51
+private const val INTER_LAYER_PADDING = 18.51
 
 @Composable
-fun LinksGrid(
+internal fun ClassifiedLinksGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ){
     val colors = MaterialTheme.linkuColors
-    val linkList = fileViewModel.links.collectAsStateWithLifecycle().value
+    val linkList by fileViewModel.links.collectAsStateWithLifecycle()
 
-    val hasNotCategorizationLinks = fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle().value.isNotEmpty()
+    val notCategorizationLinks by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     var categorizationModalWindowVisible by remember { mutableStateOf(false) }
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
 
     var selectedLinkId by remember { mutableStateOf<Long?>(null) }
 
-    val isShareMode = folderStateViewModel.isSharedFolders
-
     LazyVerticalGrid(
         modifier = modifier,
         contentPadding = contentPadding,
         columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(MIDDLE_PADDING.dp),
+        verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
     ) {
-        this.LinksGrid(
+        item {
+            AddLinkItem(
+                modifier = Modifier
+                    .fillMaxSize(164f / 174f)
+                    .noRippleClickable{
+                        Log.d("LinksGrid", "링크 추가하기 클릭")
+                        if (notCategorizationLinks.isNotEmpty()) {
+                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                        } else {
+                            categorizationModalWindowVisible = true
+                        }
+                    }
+            )
+        }
+
+        LinkGrid(
             linkList = linkList,
-            isShareMode = isShareMode,
-            onAddLinkClick = {
-                Log.d("LinksGrid", "링크 추가하기 클릭")
-                if (hasNotCategorizationLinks) {
-                    folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                } else {
-                    categorizationModalWindowVisible = true
+            itemIndexOffset = 1
+        ){ link ->
+            LinkItemLayout(
+                modifier = Modifier.fillMaxSize(164f / 174f),
+                link = link,
+                onClick = {
+                    fileViewModel.onLinkClick?.invoke(link.linkuId)
+                },
+                onLongClick = {
+                    selectedLinkId = link.linkuId
+                    deleteModalWindowVisible = true
                 }
-            },
-            onLinkClick = { link ->
-                fileViewModel.onLinkClick?.invoke(link.linkuId)
-            },
-            onLinkLongClick = { linkId ->
-                selectedLinkId = linkId
-                deleteModalWindowVisible = true
-            }
-        )
+            )
+        }
     }
 
     // 분류되지 않는 링크가 없으면 뜨는 모달창
@@ -133,103 +140,50 @@ fun LinksGrid(
     }
 }
 
-fun LazyGridScope.LinksGrid(
-    linkList: List<LinkItemInfo>,
-    isShareMode: Boolean,
-    onAddLinkClick: () -> Unit,
-    onLinkClick: (LinkItemInfo) -> Unit,
-    onLinkLongClick: (Long) -> Unit,
-    showAddLinkItem: Boolean = !isShareMode,
-    isLongClickEnabled: Boolean = !isShareMode,
-    itemIndexOffset: Int = if (showAddLinkItem) 1 else 0,
-) {
-    if (showAddLinkItem) {
-        item {
-            AddLinkItem(onClick = onAddLinkClick)
-        }
-    }
-
-    itemsIndexed(linkList) { index, link ->
-        val itemIndex = index + itemIndexOffset
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = if (itemIndex % 2 == 0) {
-                Arrangement.Start
-            } else {
-                Arrangement.End
-            },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            LinkItemLayout(
-                link = link,
-                onClick = {
-                    onLinkClick(link)
-                },
-                onLongClick = { linkId ->
-                    if (isLongClickEnabled) {
-                        onLinkLongClick(linkId)
-                    }
-                }
-            )
-        }
-    }
-}
-
 @Composable
 private fun AddLinkItem(
-    onClick: () -> Unit
+    modifier: Modifier
 ) {
     val colors = MaterialTheme.linkuColors
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth(),
     ) {
         Box(
-            modifier = Modifier
-                .noRippleClickable(onClick = onClick),
-            contentAlignment = Alignment.TopStart
+            modifier = modifier,
+            contentAlignment = Alignment.TopCenter
         ) {
             Box(
-                modifier = Modifier,
-                contentAlignment = Alignment.TopCenter
+                modifier = Modifier.alpha(1f),
             ) {
-                Box(
-                    modifier = Modifier.alpha(1f),
-                ) {
-                    LinkItemLayout(
-                        link = null
-                    )
-                }
-
-                Image(
-                    modifier = Modifier.padding(top = 103.dp),
-                    painter = painterResource(R.drawable.add_folder_icon),
-                    contentDescription = null
-                )
-
-                Text(
-                    modifier = Modifier.padding(top = 147.dp),
-                    text = "링크 추가하기",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight(500),
-                    color = colors.black,
-                    textAlign = TextAlign.Center,
+                LinkItemLayout(
+                    link = null
                 )
             }
+
+            Image(
+                modifier = Modifier.padding(top = 103.dp),
+                painter = painterResource(R.drawable.add_folder_icon),
+                contentDescription = null
+            )
+
+            Text(
+                modifier = Modifier.padding(top = 147.dp),
+                text = "링크 추가하기",
+                fontSize = 15.sp,
+                fontWeight = FontWeight(500),
+                color = colors.black,
+                textAlign = TextAlign.Center,
+            )
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun LinksGridTest(){
-    LinksGrid(
-        fileViewModel = hiltViewModel(),
+private fun ClassifiedLinksGridTest(){
+    ClassifiedLinksGrid(
+        fileViewModel = viewModel(),
         folderStateViewModel = viewModel(),
     )
 }

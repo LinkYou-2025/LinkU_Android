@@ -10,16 +10,16 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -46,6 +46,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -66,15 +68,16 @@ import com.linku.file.ui.theme.domainLogoPainterOrNull
 )
 @Composable
 fun LinkItemLayout(
+    modifier: Modifier = Modifier,
     link: LinkItemInfo? = null,
     onClick: (LinkItemInfo?) -> Unit = {},
     onLongClick: (Long) -> Unit = {},
 ) {
     val colors = MaterialTheme.linkuColors
 
-    val tags = link?.tags?:emptyList()
+    val tags = link?.tags ?: emptyList()
 
-    val domainIcon = link?.let{ domainLogoPainterOrNull(it.url) }
+    val domainIcon = link?.let { domainLogoPainterOrNull(it.url) }
 
     val isNotAdder = link != null
 
@@ -86,47 +89,11 @@ fun LinkItemLayout(
         .fallback(R.drawable.link_categorization_default) // null이면 이거 표시
         .build()
 
-    // 링크 분류 태그(Chip) 컴포저블
-    @Composable
-    fun LinkItemTag(tag: String){
-        // 태그의 배경(Box)
-        Box (
-            // 태그 배경: 크기 wrap, 둥근 모서리(6dp), Gray100 배경색
-            modifier = Modifier
-                .background(
-                    shape = RoundedCornerShape(size = 6.dp),
-                    color = colors.gray[100]
-                )
-                .padding(horizontal = 6.dp, vertical = 1.dp),
-            contentAlignment = Alignment.Center
-        ) {
+    val baseWidth = 181.dp
+    val baseHeight = 267.dp
+    val aspect = baseWidth / baseHeight
 
-            // 태그 텍스트
-            Text(
-                // 태그 텍스트를 Box 중앙에 정렬, 내부 여백(가로 1dp, 세로 2dp)
-                modifier = Modifier
-                    .padding(horizontal = 1.dp, vertical = 2.dp),
-                text = tag,
-                // 폰트 크기(12sp)
-                fontSize = 12.sp,
-                // 폰트 굵기(Normal)
-                fontWeight = FontWeight.Normal,
-                // 글자색(Gray600)
-                color = colors.gray[600],
-
-                textAlign = TextAlign.Center,
-
-                style = TextStyle(
-                    platformStyle = PlatformTextStyle(
-                        includeFontPadding = false
-                    )
-                )
-            )
-
-        }
-    }
-
-    val modifier = if(link != null) Modifier.combinedClickable(
+    val clickableModifier = if (link != null) Modifier.combinedClickable(
             indication = null,
             interactionSource = remember { MutableInteractionSource() },
             onClick = {
@@ -143,148 +110,143 @@ fun LinkItemLayout(
 
     // 전체 카드 바탕 Surface
     Surface(
-        // 카드 크기: 가로 181dp, 세로 267dp
-        modifier = Modifier
-            .width(181.dp)
-            .then(modifier)
+        modifier = modifier
+            .aspectRatio(aspect, matchHeightConstraintsFirst = false)
+            .then(clickableModifier)
             .shadow(
                 elevation = 4.dp,
                 shape = RoundedCornerShape(18.dp)
             ),
-        // 모서리 둥글게(18dp)
-        //shape = RoundedCornerShape(18.dp),
-        // 카드 배경색(White)
+        shape = RoundedCornerShape(18.dp),
         color = colors.white,
-        // 그림자(입체감) 효과(20dp)
-        //shadowElevation = 5.dp//(if(painter == null) 0 else 5).dp,
     ) {
-        // 내용 전체를 세로로 배치하는 Column
-        Column (
-            // 전체 영역 채우고, 내부 패딩 11dp
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(11.dp)
-                .alpha(if (isNotAdder) 1f else 0.35f)
-        ) {
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+            val scaleW = maxWidth / baseWidth
+            val scaleH = maxHeight / baseHeight
+            val scale = minOf(scaleW, scaleH)
 
-            // (1) 링크의 메인 이미지
-            Box(
-                // 둥근 모서리(18dp)로 클립, 사이즈 157dp, 가로 중앙 정렬
-                modifier = Modifier
-                    .clip(RoundedCornerShape(18.dp))
-                    .size(157.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .background(color = if (isNotAdder) colors.gray[100] else colors.white),
-                contentAlignment = Alignment.Center
-            ){
-                if(isNotAdder){
-                    AsyncImage(
-                        modifier = Modifier.fillMaxSize(),
-                        // 사용할 이미지 리소스
-                        model = painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop
-                    )
-                }else{
-                    Icon(
-                        modifier = Modifier.width(90.dp),
-                        painter = painterResource(com.linku.design.R.drawable.logo_whiteback),
-                        tint = colors.gray[400],
-                        contentDescription = null
-                    )
-                }
-            }
+            fun s(dp: Dp) = dp * scale
+            fun ssp(textUnit: TextUnit) = (textUnit.value * scale).sp
 
-            // 링크 메인 이미지, 제목 사이 간격
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // (2) 링크 제목
-            Text(
-                // 위쪽 여백(10dp)
-                modifier = Modifier,
-                text = link?.title?:"제목",
-                // 폰트 크기(15sp)
-                fontSize = 15.sp,
-                // 폰트 굵기(Medium, 500)
-                fontWeight = FontWeight(500),
-                // 글자색(Black)
-                color = colors.black,
-                maxLines = 1, // 최대 2줄
-                overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
-            )
-
-            // 링크 제목, 태그 사이 간격
-            Spacer(modifier = Modifier.height(1.dp))
-
-            // (3) 링크 분류 태그(여러 개를 Row에 배치)
-            LazyRow(
-                // 가로 전체 채우기, 위쪽 여백(8dp)
-                modifier = Modifier
-                    .height(30.dp),
-                // 태그 간 5dp 간격, 왼쪽 정렬
-                horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.Start),
-                // 세로 중앙 정렬
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                // 전달받은 tags 리스트를 순회하며 LinkItemTag 생성
-                items(tags){
-                    LinkItemTag(it)
-                }
-            }
-
-            // 링크 태그, 설명 프레임 사이 간격
-            Spacer(modifier = Modifier.height(5.dp))
-
-            // (5) 링크 설명 프레임 (도메인, 아이콘 등)
-            Row(
-                // 가로 전체 채우기, wrapContentHeight로 높이 최소화
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                // 요소 간 7dp 간격, 왼쪽 정렬
-                horizontalArrangement = Arrangement.spacedBy(7.dp, Alignment.Start),
-                // 세로 중앙 정렬
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-
+            @Composable
+            fun LinkItemTag(tag: String) {
                 Box(
                     modifier = Modifier
-                        .size(26.dp)
-                        .clip(CircleShape)
-                        .background(colors.gray[200]),
+                        .background(
+                            shape = RoundedCornerShape(size = s(6.dp)),
+                            color = colors.gray[100]
+                        )
+                        .padding(horizontal = s(6.dp), vertical = s(1.dp)),
                     contentAlignment = Alignment.Center
-                ){
-                    // 도메인 아이콘
-                    domainIcon?.let {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            // 아이콘 이미지 리소스
-                            painter = it,
+                ) {
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = s(1.dp), vertical = s(2.dp)),
+                        text = tag,
+                        fontSize = ssp(12.sp),
+                        fontWeight = FontWeight.Normal,
+                        color = colors.gray[600],
+                        textAlign = TextAlign.Center,
+                        style = TextStyle(
+                            platformStyle = PlatformTextStyle(
+                                includeFontPadding = false
+                            )
+                        )
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(s(11.dp))
+                    .alpha(if (isNotAdder) 1f else 0.35f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(s(18.dp)))
+                        .size(s(157.dp))
+                        .align(Alignment.CenterHorizontally)
+                        .background(color = if (isNotAdder) colors.gray[100] else colors.white),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isNotAdder) {
+                        AsyncImage(
+                            modifier = Modifier.fillMaxSize(),
+                            model = painter,
                             contentDescription = null,
                             contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            modifier = Modifier.fillMaxWidth(90f / 157f),
+                            painter = painterResource(com.linku.design.R.drawable.logo_whiteback),
+                            tint = colors.gray[400],
+                            contentDescription = null
                         )
                     }
                 }
 
-                // 링크의 도메인 텍스트
+                Spacer(modifier = Modifier.height(s(10.dp)))
+
                 Text(
-                    modifier = Modifier,
-
-                    // 텍스트 내용
-                    text = link?.url?:"도메인",
-
-                    // 폰트 크기 (12sp)
-                    fontSize = 12.sp,
-
-                    // 폰트 굵기 (Bold)
-                    fontWeight = FontWeight.Bold,
-
-                    // 글자색 (Gray800)
-                    color = colors.gray[800],
-                    maxLines = 1, // 최대 1줄
-                    overflow = TextOverflow.Ellipsis // 잘리면 ... 표시
+                    modifier = Modifier.fillMaxWidth(),
+                    text = link?.title ?: "제목",
+                    fontSize = ssp(15.sp),
+                    fontWeight = FontWeight(500),
+                    color = colors.black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
+
+                Spacer(modifier = Modifier.height(s(1.dp)))
+
+                LazyRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(s(30.dp)),
+                    horizontalArrangement = Arrangement.spacedBy(s(5.dp), Alignment.Start),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    items(tags) {
+                        LinkItemTag(it)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(s(5.dp)))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(s(7.dp), Alignment.Start),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(s(26.dp))
+                            .clip(CircleShape)
+                            .background(colors.gray[200]),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        domainIcon?.let {
+                            Image(
+                                modifier = Modifier.fillMaxSize(),
+                                painter = it,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
+                    Text(
+                        modifier = Modifier.weight(1f),
+                        text = link?.url ?: "도메인",
+                        fontSize = ssp(12.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = colors.gray[800],
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
@@ -322,5 +284,5 @@ private fun LinkItemTest() {
         )
     }
 
-    LinkItemLayout {  }
+    LinkItemLayout()
 }
