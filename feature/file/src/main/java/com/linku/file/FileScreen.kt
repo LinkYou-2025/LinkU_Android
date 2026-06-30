@@ -138,13 +138,10 @@ fun FileScreen(
                 }
                 FolderState.BOTTOM -> {
                     if(!folderStateViewModel.isSharedFolders){
-                        BottomFolderGrid(
+                        MyFoldersGrid(
                             fileViewModel = fileViewModel,
                             editStateViewModel = editStateViewModel,
-                            folderStateViewModel = folderStateViewModel,
-                            onFolderAdd = {
-                                folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                            }
+                            folderStateViewModel = folderStateViewModel
                         )
                     }else{
                         SharedBottomFolderGrid(

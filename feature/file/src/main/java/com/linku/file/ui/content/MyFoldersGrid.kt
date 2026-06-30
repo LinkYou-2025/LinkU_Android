@@ -7,6 +7,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,7 +29,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.model.FolderSimpleInfo
@@ -38,31 +38,29 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.file.ui.item.BottomFolderItemLayout
 import com.linku.file.ui.item.EmptyFolderItemLayout
+import com.linku.file.ui.item.LinkItemLayout
+import com.linku.file.ui.item.MyFolderItemLayout
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
-private const val MIDDLE_PADDING = 18.51
+private const val INTER_LAYER_PADDING = 18.51
 private const val SECTION_TITLE_TOP_PADDING = 21.49
 private const val SECTION_TITLE_BOTTOM_PADDING = 1.49
 
 @Composable
-fun BottomFolderGrid(
+internal fun MyFoldersGrid(
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
-    folderStateViewModel: FolderStateViewModel,
-    onFolderAdd: () -> Unit
+    folderStateViewModel: FolderStateViewModel
 ) {
     val colors = MaterialTheme.linkuColors
 
     val folderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
     val linkList by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
     val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
-    val folderIndexById = remember(folderList) {
-        folderList.mapIndexed { index, folder -> folder.folderId to index }.toMap()
-    }
+
     val selectedTopFolderColorStyle =
         categoryColorMap[folderStateViewModel.selectedTopFolder?.folderName]
             ?: CategoryColorStyle.categoryStyleList[0]
@@ -74,44 +72,44 @@ fun BottomFolderGrid(
         modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
         columns = GridCells.Fixed(2),
-        verticalArrangement = Arrangement.spacedBy(MIDDLE_PADDING.dp),
+        verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
     ) {
         item {
             AddBottomFolderItem(
-                isEditMode = editStateViewModel.isEditMode,
-                onClick = onFolderAdd
+                modifier = Modifier
+                    .fillMaxSize(164f / 174f)
+                    .noRippleClickable {
+                        if (!editStateViewModel.isEditMode) {
+                            folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                        }
+                    }
             )
         }
 
-        this.FolderGrid(
+        FolderGrid(
             folderList = folderList,
-            categoryColorMap = categoryColorMap,
             itemIndexOffset = 1
-        ) { folder, _ ->
-            val folderIndex = folderIndexById[folder.folderId]
-
-            if (folderIndex != null) {
-                BottomFolderItem(
-                    folder = folder,
-                    colorStyle = selectedTopFolderColorStyle,
-                    isEditMode = editStateViewModel.isEditMode,
-                    onClick = {
-                        fileViewModel.getLinks(folder.folderId)
-                        folderStateViewModel.updateSelectedBottomFolder(folder)
-                        folderStateViewModel.updateFolderState(FolderState.LINKS)
-                    },
-                    onEdit = {
-                        folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
-                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                    },
-                    onChangeSharing = {
-                        fileViewModel.folderToPrivate(folder)
-                    },
-                    onDelete = {
-                        fileViewModel.deleteSubfolder(folder.folderId, folderIndex)
-                    }
-                )
-            }
+        ) { folder ->
+            MyFolderItem(
+                folder = folder,
+                colorStyle = selectedTopFolderColorStyle,
+                isEditMode = editStateViewModel.isEditMode,
+                onClick = {
+                    fileViewModel.getLinks(folder.folderId)
+                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                    folderStateViewModel.updateFolderState(FolderState.LINKS)
+                },
+                onEdit = {
+                    folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
+                    folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                },
+                onChangeSharing = {
+                    fileViewModel.folderToPrivate(folder)
+                },
+                onDelete = {
+                    fileViewModel.deleteSubfolder(folder.folderId)
+                }
+            )
         }
 
         if (linkList.isNotEmpty()) {
@@ -129,21 +127,21 @@ fun BottomFolderGrid(
                 )
             }
 
-            this.LinksGrid(
-                linkList = linkList,
-                isShareMode = false,
-                onAddLinkClick = {},
-                onLinkClick = { link ->
-                    fileViewModel.onLinkClick?.invoke(link.linkuId)
-                },
-                onLinkLongClick = { linkId ->
-                    selectedLinkId = linkId
-                    deleteModalWindowVisible = true
-                },
-                showAddLinkItem = false,
-                isLongClickEnabled = true,
-                itemIndexOffset = 0
-            )
+            LinkGrid(
+                linkList = linkList
+            ){ link ->
+                LinkItemLayout(
+                    modifier = Modifier.fillMaxSize(164f / 174f),
+                    link = link,
+                    onClick = {
+                        fileViewModel.onLinkClick?.invoke(link.linkuId)
+                    },
+                    onLongClick = {
+                        selectedLinkId = link.linkuId
+                        deleteModalWindowVisible = true
+                    }
+                )
+            }
         }
     }
 
@@ -174,26 +172,18 @@ fun BottomFolderGrid(
 
 @Composable
 private fun AddBottomFolderItem(
-    isEditMode: Boolean,
-    onClick: () -> Unit
+    modifier: Modifier
 ) {
     val colors = MaterialTheme.linkuColors
 
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopStart
+    Row(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Box(
-            modifier = Modifier.noRippleClickable {
-                if (!isEditMode) {
-                    onClick()
-                }
-            },
+            modifier = modifier,
             contentAlignment = Alignment.Center
         ) {
-            EmptyFolderItemLayout(
-                modifier = Modifier.fillMaxSize(164f / 174f)
-            )
+            EmptyFolderItemLayout()
 
             Image(
                 modifier = Modifier.padding(top = 71.dp),
@@ -214,7 +204,7 @@ private fun AddBottomFolderItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BottomFolderItem(
+private fun MyFolderItem(
     folder: FolderSimpleInfo,
     colorStyle: CategoryColorStyle,
     isEditMode: Boolean,
@@ -242,7 +232,7 @@ private fun BottomFolderItem(
         ),
         contentAlignment = Alignment.Center
     ) {
-        BottomFolderItemLayout(
+        MyFolderItemLayout(
             modifier = Modifier.fillMaxSize(164f / 174f),
             colorStyle = colorStyle,
             folder = folder,
@@ -276,10 +266,10 @@ private fun BottomFolderItem(
 
 @Preview(showBackground = true)
 @Composable
-private fun BottomFolderGridTest() {
-    BottomFolderGrid(
-        fileViewModel = hiltViewModel(),
+private fun MyFoldersGridTest() {
+    MyFoldersGrid(
+        fileViewModel = viewModel(),
         editStateViewModel = viewModel(),
         folderStateViewModel = viewModel(),
-    ) {}
+    )
 }

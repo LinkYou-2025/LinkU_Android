@@ -282,7 +282,7 @@ internal fun ShareBottomSheet(
                     ) { }
                 }
                 FolderState.LINKS -> {
-                    BottomFolderItemLayout(
+                    MyFolderItemLayout(
                         modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedBottomFolder!!
