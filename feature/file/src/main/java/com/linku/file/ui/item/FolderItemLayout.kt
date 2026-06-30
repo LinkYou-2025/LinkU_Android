@@ -51,10 +51,6 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.content.BookMarkStar
-import com.linku.file.ui.content.LockFolderIcon
-import com.linku.file.ui.content.PencilIcon
-import com.linku.file.ui.content.ShareFolderIcon
 
 @Composable
 fun FolderItemLayout(
@@ -275,7 +271,7 @@ fun EmptyFolderItemLayout(
 }
 
 @Composable
-fun TopFolderItemLayout(
+fun CategoryItemLayout(
     modifier: Modifier = Modifier,
     colorStyle: CategoryColorStyle,
     folder: FolderSimpleInfo,
@@ -324,7 +320,7 @@ fun TopFolderItemLayout(
 }
 
 @Composable
-fun BottomFolderItemLayout(
+fun MyFolderItemLayout(
     modifier: Modifier = Modifier,
     colorStyle: CategoryColorStyle,
     folder: FolderSimpleInfo,
@@ -379,7 +375,7 @@ fun BottomFolderItemLayout(
 private fun FolderItemTest() {
     Column{
         EmptyFolderItemLayout()
-        TopFolderItemLayout(
+        CategoryItemLayout(
             colorStyle = CategoryColorStyle.categoryStyleList[0],
             folder = FolderSimpleInfo(
                 folderId = 0,
@@ -389,7 +385,7 @@ private fun FolderItemTest() {
                 isSharing = null
             )
         ){}
-        BottomFolderItemLayout(
+        MyFolderItemLayout(
             folder = FolderSimpleInfo(
                 folderId = 0,
                 folderName = "기본",
