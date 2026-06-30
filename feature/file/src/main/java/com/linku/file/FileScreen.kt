@@ -37,11 +37,11 @@ import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
-import com.linku.file.ui.content.BottomFolderGrid
-import com.linku.file.ui.content.LinksGrid
+import com.linku.file.ui.content.CategoryGrid
+import com.linku.file.ui.content.ClassifiedLinksGrid
+import com.linku.file.ui.content.MyFoldersGrid
 import com.linku.file.ui.content.SharedBottomFolderGrid
 import com.linku.file.ui.content.SharedTopFolderGrid
-import com.linku.file.ui.content.TopFolderGrid
 import com.linku.file.ui.top.bar.FileTopBar
 import com.linku.file.ui.top.bar.component.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
@@ -121,7 +121,7 @@ fun FileScreen(
             when(folderStateViewModel.currentFolderState) {
                 FolderState.TOP -> {
                     if(!folderStateViewModel.isSharedFolders){
-                        TopFolderGrid(
+                        CategoryGrid(
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
                             fileViewModel = fileViewModel,
