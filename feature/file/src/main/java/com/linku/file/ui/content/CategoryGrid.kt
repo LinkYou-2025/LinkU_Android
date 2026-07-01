@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -38,14 +39,13 @@ internal fun CategoryGrid(
     val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
     val categories by fileViewModel.parentFolders.collectAsStateWithLifecycle()
 
-    val layoutDirection = LocalLayoutDirection.current
-
     BoxWithConstraints(
         modifier = modifier
     ) {
-        val horizontalPadding =
-            contentPadding.calculateStartPadding(layoutDirection) +
-                    contentPadding.calculateEndPadding(layoutDirection)
+        val horizontalPadding = with(LocalLayoutDirection) {
+            contentPadding.calculateStartPadding(current) +
+                    contentPadding.calculateEndPadding(current)
+        }
 
         val availableWidth = maxWidth - horizontalPadding
 
@@ -58,9 +58,7 @@ internal fun CategoryGrid(
             verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
         ) {
-            FolderGrid(
-                folderList = categories
-            ) { folder ->
+            items(categories) { folder ->
                 CategoryItemLayout(
                     modifier = Modifier
                         .fillMaxSize()

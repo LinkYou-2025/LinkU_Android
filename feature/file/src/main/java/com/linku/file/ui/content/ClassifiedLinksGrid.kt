@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -96,10 +97,7 @@ internal fun ClassifiedLinksGrid(
                 )
             }
 
-            LinkGrid(
-                linkList = linkList,
-                itemIndexOffset = 1
-            ) { link ->
+            items(linkList) { link ->
                 LinkItemLayout(
                     modifier = Modifier.fillMaxSize(164f / 174f),
                     link = link,
