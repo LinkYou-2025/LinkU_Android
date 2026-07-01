@@ -86,7 +86,7 @@ private fun CurationScreenContent(
         Spacer(modifier = Modifier.height(26.scaler))
 
         CurationMainCardPager(
-            imageUrls = listOf(null, null, null),
+            imageUrls = List(3) { "" }, //아 pm이 나중에 3개 이상으로 확장될 수도 있대요. 그래서 이렇게 했어요
             pagerState = pagerState,
             onCardClick = onCardClick
         )
