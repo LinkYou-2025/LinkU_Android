@@ -63,6 +63,10 @@ sealed class ThemeColorScheme(
     //구글 로그인 버튼 컬러용
     val googleLoginColor: Color = Color(0xFF1F1F1F),
     //구글 로그인 보더 컬러용
-    val googleLoginBorderColor: Color = Color(0xFF747775)
+    val googleLoginBorderColor: Color = Color(0xFF747775),
 
+    //큐레이션 전용 그라데이션
+    val curationGradient: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFF1451D5), Color(0xFF000208))
+    ),
 )
