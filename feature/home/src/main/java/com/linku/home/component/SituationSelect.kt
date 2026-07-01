@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.JobType
 import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
@@ -27,27 +28,21 @@ import com.linku.design.theme.linkuColors
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SituationSelect(
-    jobId: Long,
+    jobType: JobType,
     selectedSituationId: Long?,
     onSituationSelect: (Long?) -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    val situations = SituationOptions.situationsFor(jobId)
+    FlowRow {
+        jobType.situations.forEach { situation ->
+            val situationId = situation.id.value
+            val selected = selectedSituationId == situationId
 
-    FlowRow(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(top = 13.dp, start = 20.dp, end = 20.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        situations.forEach { situation ->
             SituationChip(
                 situation = situation,
-                selected = selectedSituationId == situation.id,
+                selected = selected,
                 onClick = {
                     onSituationSelect(
-                        if (selectedSituationId == situation.id) null else situation.id
+                        if (selected) null else situationId
                     )
                 }
             )
@@ -102,7 +97,7 @@ private fun SituationChip(
 fun PreviewSituationSelect() {
     ThemeProvider {
         SituationSelect(
-            jobId = 3L,
+            jobType = JobType.OFFICE_WORKER,
             selectedSituationId = 18L,
             onSituationSelect = { }
         )

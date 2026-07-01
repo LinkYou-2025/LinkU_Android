@@ -1,110 +1,184 @@
 package com.linku.core.model
 
 data class Situation(
-    val id: Long,
+    val id: SituationId,
     val tagName: String
 )
 
-object SituationOptions {
-    private const val DEFAULT_JOB_ID = 3L
+enum class SituationId(val value: Long) {
+    HIGH_SCHOOL_COMMUTE(1L),
+    HIGH_SCHOOL_STUDY(2L),
+    HIGH_SCHOOL_MEAL(3L),
+    HIGH_SCHOOL_EXAM_PREP(4L),
+    HIGH_SCHOOL_WITH_FRIENDS(5L),
+    HIGH_SCHOOL_SHOPPING(6L),
+    HIGH_SCHOOL_REST(7L),
+    HIGH_SCHOOL_BEFORE_SLEEP(8L),
 
-    private val situationsByJobId: Map<Long, List<Situation>> = mapOf(
-        1L to listOf(
-            Situation(1L, "통학 중"),
-            Situation(2L, "공부 중"),
-            Situation(3L, "식사 중"),
-            Situation(4L, "시험 준비"),
-            Situation(5L, "친구랑"),
-            Situation(6L, "쇼핑 중"),
-            Situation(7L, "휴식 중"),
-            Situation(8L, "자기 전")
-        ),
-        2L to listOf(
-            Situation(9L, "과제 중"),
-            Situation(10L, "통학 중"),
-            Situation(11L, "쇼핑 중"),
-            Situation(12L, "알바 중"),
-            Situation(13L, "트렌드 확인"),
-            Situation(14L, "데이트 중"),
-            Situation(15L, "휴식 중"),
-            Situation(16L, "자기 전")
-        ),
-        3L to listOf(
-            Situation(17L, "출퇴근"),
-            Situation(18L, "트렌드 확인"),
-            Situation(19L, "업무 중"),
-            Situation(20L, "커리어 고민"),
-            Situation(21L, "쇼핑 중"),
-            Situation(22L, "데이트 중"),
-            Situation(23L, "휴식 중"),
-            Situation(24L, "자기 전")
-        ),
-        4L to listOf(
-            Situation(25L, "출퇴근"),
-            Situation(26L, "업무 준비 중"),
-            Situation(27L, "데이트 중"),
-            Situation(28L, "식사"),
-            Situation(29L, "쇼핑 중"),
-            Situation(30L, "트렌드 확인"),
-            Situation(31L, "휴식 중"),
-            Situation(32L, "자기 전")
-        ),
-        5L to listOf(
-            Situation(33L, "작업 중"),
-            Situation(34L, "쇼핑 중"),
-            Situation(35L, "트렌드 확인"),
-            Situation(36L, "데이트 중"),
-            Situation(37L, "운동 중"),
-            Situation(38L, "식사"),
-            Situation(39L, "휴식 중"),
-            Situation(40L, "자기 전")
-        ),
-        6L to listOf(
-            Situation(41L, "자소서 작성"),
-            Situation(42L, "면접 준비"),
-            Situation(43L, "요리 중"),
-            Situation(44L, "트렌드 확인"),
-            Situation(45L, "쇼핑 중"),
-            Situation(46L, "운동 중"),
-            Situation(47L, "휴식 중"),
-            Situation(48L, "자기 전")
+    UNIVERSITY_ASSIGNMENT(9L),
+    UNIVERSITY_COMMUTE(10L),
+    UNIVERSITY_SHOPPING(11L),
+    UNIVERSITY_PART_TIME_JOB(12L),
+    UNIVERSITY_TREND_CHECK(13L),
+    UNIVERSITY_DATE(14L),
+    UNIVERSITY_REST(15L),
+    UNIVERSITY_BEFORE_SLEEP(16L),
+
+    OFFICE_COMMUTE(17L),
+    OFFICE_TREND_CHECK(18L),
+    OFFICE_WORKING(19L),
+    OFFICE_CAREER_WORRY(20L),
+    OFFICE_SHOPPING(21L),
+    OFFICE_DATE(22L),
+    OFFICE_REST(23L),
+    OFFICE_BEFORE_SLEEP(24L),
+
+    SELF_EMPLOYED_COMMUTE(25L),
+    SELF_EMPLOYED_WORK_PREP(26L),
+    SELF_EMPLOYED_DATE(27L),
+    SELF_EMPLOYED_MEAL(28L),
+    SELF_EMPLOYED_SHOPPING(29L),
+    SELF_EMPLOYED_TREND_CHECK(30L),
+    SELF_EMPLOYED_REST(31L),
+    SELF_EMPLOYED_BEFORE_SLEEP(32L),
+
+    CREATOR_WORKING(33L),
+    CREATOR_SHOPPING(34L),
+    CREATOR_TREND_CHECK(35L),
+    CREATOR_DATE(36L),
+    CREATOR_EXERCISE(37L),
+    CREATOR_MEAL(38L),
+    CREATOR_REST(39L),
+    CREATOR_BEFORE_SLEEP(40L),
+
+    JOB_SEEKER_COVER_LETTER(41L),
+    JOB_SEEKER_INTERVIEW_PREP(42L),
+    JOB_SEEKER_COOKING(43L),
+    JOB_SEEKER_TREND_CHECK(44L),
+    JOB_SEEKER_SHOPPING(45L),
+    JOB_SEEKER_EXERCISE(46L),
+    JOB_SEEKER_REST(47L),
+    JOB_SEEKER_BEFORE_SLEEP(48L)
+}
+
+enum class JobType(
+    val id: Long,
+    val situations: List<Situation>
+) {
+    HIGH_SCHOOL_STUDENT(
+        id = 1L,
+        situations = listOf(
+            Situation(SituationId.HIGH_SCHOOL_COMMUTE, "통학 중"),
+            Situation(SituationId.HIGH_SCHOOL_STUDY, "공부 중"),
+            Situation(SituationId.HIGH_SCHOOL_MEAL, "식사 중"),
+            Situation(SituationId.HIGH_SCHOOL_EXAM_PREP, "시험 준비"),
+            Situation(SituationId.HIGH_SCHOOL_WITH_FRIENDS, "친구랑"),
+            Situation(SituationId.HIGH_SCHOOL_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.HIGH_SCHOOL_REST, "휴식 중"),
+            Situation(SituationId.HIGH_SCHOOL_BEFORE_SLEEP, "자기 전")
         )
-    )
+    ),
 
-    val allSituations: List<Situation> by lazy {
-        situationsByJobId.values.flatten()
-    }
+    UNIVERSITY_STUDENT(
+        id = 2L,
+        situations = listOf(
+            Situation(SituationId.UNIVERSITY_ASSIGNMENT, "과제 중"),
+            Situation(SituationId.UNIVERSITY_COMMUTE, "통학 중"),
+            Situation(SituationId.UNIVERSITY_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.UNIVERSITY_PART_TIME_JOB, "알바 중"),
+            Situation(SituationId.UNIVERSITY_TREND_CHECK, "트렌드 확인"),
+            Situation(SituationId.UNIVERSITY_DATE, "데이트 중"),
+            Situation(SituationId.UNIVERSITY_REST, "휴식 중"),
+            Situation(SituationId.UNIVERSITY_BEFORE_SLEEP, "자기 전")
+        )
+    ),
 
-    private val allSituationsById: Map<Long, Situation> by lazy {
-        allSituations.associateBy { it.id }
-    }
+    OFFICE_WORKER(
+        id = 3L,
+        situations = listOf(
+            Situation(SituationId.OFFICE_COMMUTE, "출퇴근"),
+            Situation(SituationId.OFFICE_TREND_CHECK, "트렌드 확인"),
+            Situation(SituationId.OFFICE_WORKING, "업무 중"),
+            Situation(SituationId.OFFICE_CAREER_WORRY, "커리어 고민"),
+            Situation(SituationId.OFFICE_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.OFFICE_DATE, "데이트 중"),
+            Situation(SituationId.OFFICE_REST, "휴식 중"),
+            Situation(SituationId.OFFICE_BEFORE_SLEEP, "자기 전")
+        )
+    ),
 
-    private val situationsByJobAndId: Map<Long, Map<Long, Situation>> by lazy {
-        situationsByJobId.mapValues { (_, situations) ->
-            situations.associateBy { it.id }
+    SELF_EMPLOYED(
+        id = 4L,
+        situations = listOf(
+            Situation(SituationId.SELF_EMPLOYED_COMMUTE, "출퇴근"),
+            Situation(SituationId.SELF_EMPLOYED_WORK_PREP, "업무 준비 중"),
+            Situation(SituationId.SELF_EMPLOYED_DATE, "데이트 중"),
+            Situation(SituationId.SELF_EMPLOYED_MEAL, "식사"),
+            Situation(SituationId.SELF_EMPLOYED_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.SELF_EMPLOYED_TREND_CHECK, "트렌드 확인"),
+            Situation(SituationId.SELF_EMPLOYED_REST, "휴식 중"),
+            Situation(SituationId.SELF_EMPLOYED_BEFORE_SLEEP, "자기 전")
+        )
+    ),
+
+    CREATOR(
+        id = 5L,
+        situations = listOf(
+            Situation(SituationId.CREATOR_WORKING, "작업 중"),
+            Situation(SituationId.CREATOR_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.CREATOR_TREND_CHECK, "트렌드 확인"),
+            Situation(SituationId.CREATOR_DATE, "데이트 중"),
+            Situation(SituationId.CREATOR_EXERCISE, "운동 중"),
+            Situation(SituationId.CREATOR_MEAL, "식사"),
+            Situation(SituationId.CREATOR_REST, "휴식 중"),
+            Situation(SituationId.CREATOR_BEFORE_SLEEP, "자기 전")
+        )
+    ),
+
+    JOB_SEEKER(
+        id = 6L,
+        situations = listOf(
+            Situation(SituationId.JOB_SEEKER_COVER_LETTER, "자소서 작성"),
+            Situation(SituationId.JOB_SEEKER_INTERVIEW_PREP, "면접 준비"),
+            Situation(SituationId.JOB_SEEKER_COOKING, "요리 중"),
+            Situation(SituationId.JOB_SEEKER_TREND_CHECK, "트렌드 확인"),
+            Situation(SituationId.JOB_SEEKER_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.JOB_SEEKER_EXERCISE, "운동 중"),
+            Situation(SituationId.JOB_SEEKER_REST, "휴식 중"),
+            Situation(SituationId.JOB_SEEKER_BEFORE_SLEEP, "자기 전")
+        )
+    );
+
+    companion object {
+        private val DEFAULT = OFFICE_WORKER
+
+        fun fromId(id: Long?): JobType {
+            return entries.firstOrNull { it.id == id } ?: DEFAULT
         }
     }
+}
 
-    fun situationsFor(jobId: Long): List<Situation> {
-        return situationsByJobId[jobId] ?: situationsByJobId.getValue(DEFAULT_JOB_ID)
+object SituationOptions {
+    val allSituations: List<Situation>
+        get() = JobType.entries.flatMap { it.situations }
+
+    fun situationsFor(jobId: Long?): List<Situation> {
+        return JobType.fromId(jobId).situations
     }
 
-    fun nameOf(id: Long?): String? {
-        if (id == null) return null
+    // 선택한 상황을 서버에 보낼 때 Long id가 필요하다면 valueOf 사용
+//    fun valueOf(tagName: String, jobId: Long?): Long? {
+//        return JobType.fromId(jobId)
+//            .situations
+//            .firstOrNull { it.tagName == tagName }
+//            ?.id
+//            ?.value
+//    }
 
-        return allSituationsById[id]?.tagName
-    }
-
-    fun nameOf(id: Long?, jobId: Long): String? {
-        if (id == null) return null
-
-        return situationsByJobAndId[jobId]?.get(id)?.tagName
-            ?: situationsByJobAndId[DEFAULT_JOB_ID]?.get(id)?.tagName
-    }
-
-    fun idOf(tagName: String, jobId: Long): Long? {
-        return situationsFor(jobId)
-            .firstOrNull { it.tagName == tagName }
-            ?.id
-    }
+    // 서버에서 받은 situationId: Long을 화면에 이름으로 보여줘야 한다면 nameOf 사용
+//    fun nameOf(id: Long?): String? {
+//        return allSituations
+//            .firstOrNull { it.id.value == id }
+//            ?.tagName
+//    }
 }

@@ -44,6 +44,8 @@ fun LinkDetailEmotionDropdown(
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         emotions.forEach { emotion ->
+            val isSelected = emotion.tagName == selectedEmotion
+
             Row(
                 modifier = Modifier
                     .noRippleClickable {
@@ -62,12 +64,12 @@ fun LinkDetailEmotionDropdown(
                 Text(
                     text = emotion.tagName,
                     fontSize = 15.sp,
-                    fontWeight = if (emotion.tagName == selectedEmotion) {
+                    fontWeight = if (isSelected) {
                         FontWeight.Medium
                     } else {
                         FontWeight.Normal
                     },
-                    color = if (emotion.tagName == selectedEmotion) {
+                    color = if (isSelected) {
                         colors.blue[200]
                     } else {
                         colors.gray[800]

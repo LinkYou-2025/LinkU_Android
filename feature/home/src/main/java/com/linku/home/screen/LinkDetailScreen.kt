@@ -108,7 +108,7 @@ fun LinkDetailScreen(
     var selectedEmotion by remember { mutableStateOf(emotion) }
     var selectedSituation by remember(situationId) {
         mutableStateOf(
-            situationOptions.firstOrNull { it.id == situationId }
+            situationOptions.firstOrNull { it.id.value == situationId }
         )
     }
     var selectedMemo by remember { mutableStateOf(memo) }
@@ -131,7 +131,7 @@ fun LinkDetailScreen(
             selectedTitle = linkTitle
             selectedCategory = category
             selectedEmotion = emotion
-            selectedSituation = situationOptions.firstOrNull { it.id == situationId }
+            selectedSituation = situationOptions.firstOrNull { it.id.value == situationId }
             selectedMemo = memo
         }
     }

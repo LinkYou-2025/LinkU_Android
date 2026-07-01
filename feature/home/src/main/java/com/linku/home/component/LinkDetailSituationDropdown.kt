@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.Situation
+import com.linku.core.model.SituationId
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -36,15 +37,17 @@ fun LinkDetailSituationDropdown(
             .heightIn(max = 264.dp)
     ) {
         situations.forEach { situation ->
+            val isSelected = situation.id == selectedSituation?.id
+
             Text(
                 text = situation.tagName,
                 fontSize = 15.sp,
-                fontWeight = if (situation.id == selectedSituation?.id) {
+                fontWeight = if (isSelected) {
                     FontWeight.Medium
                 } else {
                     FontWeight.Normal
                 },
-                color = if (situation.id == selectedSituation?.id) {
+                color = if (isSelected) {
                     colors.blue[200]
                 } else {
                     colors.gray[800]
@@ -64,12 +67,12 @@ fun LinkDetailSituationDropdown(
 fun PreviewLinkDetailSituationDropdown() {
     ThemeProvider {
         val situations = listOf(
-            Situation(18L, "트렌드 확인"),
-            Situation(10L, "통학 중"),
-            Situation(9L, "과제 중"),
-            Situation(11L, "쇼핑 중"),
-            Situation(14L, "데이트 중"),
-            Situation(12L, "알바 전")
+            Situation(SituationId.OFFICE_TREND_CHECK, "트렌드 확인"),
+            Situation(SituationId.UNIVERSITY_COMMUTE, "통학 중"),
+            Situation(SituationId.UNIVERSITY_ASSIGNMENT, "과제 중"),
+            Situation(SituationId.UNIVERSITY_SHOPPING, "쇼핑 중"),
+            Situation(SituationId.UNIVERSITY_DATE, "데이트 중"),
+            Situation(SituationId.UNIVERSITY_PART_TIME_JOB, "알바 전")
         )
 
         LinkDetailSituationDropdown(

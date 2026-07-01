@@ -34,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
+import com.linku.core.model.JobType
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -66,6 +67,7 @@ fun SaveLinkScreen(
     isInvalidLink: Boolean,
 ) {
     val colors = MaterialTheme.linkuColors
+    val jobType = JobType.fromId(jobId)
 
     val scrollState = rememberScrollState()
     val bannedDomains = listOf("youtube.com", "youtu.be")
@@ -418,7 +420,7 @@ fun SaveLinkScreen(
             }
 
             SituationSelect(
-                jobId = jobId,
+                jobType = jobType,
                 selectedSituationId = selectedSituationId,
                 onSituationSelect = onSituationSelect
             )
