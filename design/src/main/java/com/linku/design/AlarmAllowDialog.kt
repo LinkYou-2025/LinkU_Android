@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.linkuColors
 
@@ -52,7 +51,6 @@ fun AlarmAllowDialog(
     modifier: Modifier = Modifier,
 ) {
     val colorTheme = MaterialTheme.linkuColors
-
 
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
@@ -98,11 +96,12 @@ fun AlarmAllowDialog(
             ) {
                 TextButton(
                     onClick = onDismissRequest,
-                    modifier = Modifier.size( 88.dp, 34.dp).
-                            clip(RoundedCornerShape(8.dp))
+                    modifier = Modifier.size( 88.dp, 38.dp).
+                            clip(RoundedCornerShape(16.dp))
                 ) {
                     Text(
                         text = "나중에",
+                        fontSize = 14.sp,
                         style = LocalTextStyle.current.copy(
                             brush = colorTheme.maincolor
                         )
@@ -113,12 +112,13 @@ fun AlarmAllowDialog(
 
                 TextButton(
                     onClick = onConfirmation,
-                    modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                    modifier = Modifier.size(88.dp, 38.dp)
+                        .clip(RoundedCornerShape(16.dp))
                         .background(colorTheme.maincolor)
-                        .size(88.dp, 34.dp)
                 ) {
                     Text(
                         text = "허용하기",
+                        fontSize = 14.sp,
                         color = colorTheme.white,
                         fontFamily = LocalFontTheme.current.font,
                         fontWeight = FontWeight.Medium

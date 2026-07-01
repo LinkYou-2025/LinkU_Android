@@ -23,7 +23,7 @@ class AlarmViewModel @Inject constructor(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false
+            initialValue = true
         )
 
     /**
