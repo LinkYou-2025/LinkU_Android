@@ -32,15 +32,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
-import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 /**
  * 링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.
@@ -61,20 +58,23 @@ private const val ITEM_RATIO = 10f / 174f
  *
  * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
  * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
- * @param fileViewModel 링크 목록, 미분류 링크 목록, 링크 클릭 및 삭제 동작을 제공하는 ViewModel입니다.
- * @param folderStateViewModel 링크 분류 바텀시트 표시 상태를 갱신하는 ViewModel입니다.
+ * @param links 표시할 분류된 링크 목록입니다.
+ * @param hasNotCategorizationLinks 분류 바텀시트에 전달할 미분류 링크가 존재하는지 여부입니다.
+ * @param onLinkCategorizationClick 링크 분류 추가 아이템을 눌렀을 때 실행할 동작입니다.
+ * @param onLinkClick 링크 카드를 눌렀을 때 링크 ID를 전달하는 콜백입니다.
+ * @param onDeleteLink 삭제 확인 모달에서 확인을 눌렀을 때 링크 ID를 전달하는 콜백입니다.
  */
 @Composable
 internal fun ClassifiedLinksGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-    fileViewModel: FileViewModel,
-    folderStateViewModel: FolderStateViewModel,
+    links: List<LinkItemInfo>,
+    hasNotCategorizationLinks: Boolean,
+    onLinkCategorizationClick: () -> Unit,
+    onLinkClick: (Long) -> Unit,
+    onDeleteLink: (Long) -> Unit,
 ){
     val colors = MaterialTheme.linkuColors
-    val linkList by fileViewModel.links.collectAsStateWithLifecycle()
-
-    val notCategorizationLinks by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     var categorizationModalWindowVisible by remember { mutableStateOf(false) }
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
@@ -107,8 +107,8 @@ internal fun ClassifiedLinksGrid(
                         .fillMaxSize(164f / 174f)
                         .noRippleClickable {
                             Log.d("LinksGrid", "링크 추가하기 클릭")
-                            if (notCategorizationLinks.isNotEmpty()) {
-                                folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                            if (hasNotCategorizationLinks) {
+                                onLinkCategorizationClick()
                             } else {
                                 categorizationModalWindowVisible = true
                             }
@@ -116,12 +116,12 @@ internal fun ClassifiedLinksGrid(
                 )
             }
 
-            items(linkList) { link ->
+            items(links) { link ->
                 LinkItemLayout(
                     modifier = Modifier.fillMaxSize(164f / 174f),
                     link = link,
                     onClick = {
-                        fileViewModel.onLinkClick?.invoke(link.linkuId)
+                        onLinkClick(link.linkuId)
                     },
                     onLongClick = {
                         selectedLinkId = link.linkuId
@@ -156,7 +156,7 @@ internal fun ClassifiedLinksGrid(
         onOkay = {
             // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
             selectedLinkId?.let { id ->
-                fileViewModel.deleteLink(id)
+                onDeleteLink(id)
             }
             // 상태 정리
             deleteModalWindowVisible = false
@@ -232,7 +232,10 @@ private fun AddLinkItem(
 @Composable
 private fun ClassifiedLinksGridTest(){
     ClassifiedLinksGrid(
-        fileViewModel = viewModel(),
-        folderStateViewModel = viewModel(),
+        links = emptyList(),
+        hasNotCategorizationLinks = false,
+        onLinkCategorizationClick = {},
+        onLinkClick = {},
+        onDeleteLink = {},
     )
 }

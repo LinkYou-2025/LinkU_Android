@@ -10,20 +10,14 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.file.FileViewModel
 import com.linku.file.ui.item.CategoryItemLayout
-import com.linku.file.viewmodel.edit.state.EditStateViewModel
-import com.linku.file.viewmodel.folder.state.FolderState
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 /**
  * 카테고리 카드 행 사이에 적용되는 기본 세로 간격(dp).
@@ -44,24 +38,24 @@ private const val ITEM_RATIO = 10f / 174f
  *
  * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
  * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
- * @param fileViewModel 카테고리 목록, 색상 매핑, 북마크 갱신 및 하위 데이터 로딩을 담당하는 ViewModel입니다.
- * @param folderStateViewModel 선택된 폴더와 폴더 화면 상태를 갱신하는 ViewModel입니다.
- * @param editStateViewModel 현재 편집 모드 여부를 제공하는 ViewModel입니다.
+ * @param categories 표시할 최상위 폴더 카테고리 목록입니다.
+ * @param categoryColorMap 카테고리 이름을 키로 사용하는 색상 스타일 맵입니다.
+ * @param isEditMode 현재 편집 모드 여부입니다.
+ * @param onFolderClick 일반 모드에서 카테고리 카드를 눌렀을 때 실행할 동작입니다.
+ * @param onFolderEditClick 편집 모드에서 카테고리 카드를 눌렀을 때 실행할 동작입니다.
+ * @param onBookmarkClick 북마크 아이콘을 눌렀을 때 실행할 동작입니다.
  */
 @Composable
 internal fun CategoryGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-    fileViewModel: FileViewModel,
-    folderStateViewModel: FolderStateViewModel,
-    editStateViewModel: EditStateViewModel
+    categories: List<FolderSimpleInfo>,
+    categoryColorMap: Map<String, CategoryColorStyle>,
+    isEditMode: Boolean,
+    onFolderClick: (FolderSimpleInfo) -> Unit,
+    onFolderEditClick: (FolderSimpleInfo) -> Unit,
+    onBookmarkClick: (FolderSimpleInfo) -> Unit
 ){
-    /** 카테고리 색상 맵. 카테고리의 이름을 키로 사용. */
-    val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
-    
-    /** 카테고리 리스트. 카테고리의 정보를 담은 FolderSimpleInfo 리스트. */
-    val categories by fileViewModel.parentFolders.collectAsStateWithLifecycle()
-
     /**
      * 그리드에게 주어진 전체 너비를 참조하기 위한 컴포넌트.
      *
@@ -100,25 +94,19 @@ internal fun CategoryGrid(
                         .fillMaxSize()
                         .noRippleClickable {
                             // 편집 모드일 경우: 해당 폴더를 수정 대상으로 지정하고 수정 바텀시트를 노출합니다.
-                            if (editStateViewModel.isEditMode) {
-                                folderStateViewModel.updateReadyToUpdateTopFolder(folder)
-                                folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
+                            if (isEditMode) {
+                                onFolderEditClick(folder)
                             } else {
                                 // 일반 모드일 경우: 하위 데이터(폴더/링크)를 로드하고 상세 화면으로 이동합니다.
-                                fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
-                                folderStateViewModel.updateSelectedTopFolder(folder)
-                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                                onFolderClick(folder)
                             }
                         },
                     colorStyle = categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT,
                     folder = folder,
-                    isEditMode = editStateViewModel.isEditMode,
+                    isEditMode = isEditMode,
                 ) {
                     // 북마크 아이콘 클릭 시: 북마크 상태를 현재의 반대 값으로 반전하여 업데이트합니다.
-                    fileViewModel.updateBookmark(
-                        folderId = folder.folderId,
-                        updateBookmarked = !folder.isBookmarked
-                    )
+                    onBookmarkClick(folder)
                 }
             }
         }
@@ -135,8 +123,11 @@ internal fun CategoryGrid(
 @Composable
 private fun CategoryGridTest(){
     CategoryGrid(
-        fileViewModel = viewModel(),
-        folderStateViewModel = viewModel(),
-        editStateViewModel = viewModel(),
+        categories = emptyList(),
+        categoryColorMap = emptyMap(),
+        isEditMode = false,
+        onFolderClick = {},
+        onFolderEditClick = {},
+        onBookmarkClick = {},
     )
 }

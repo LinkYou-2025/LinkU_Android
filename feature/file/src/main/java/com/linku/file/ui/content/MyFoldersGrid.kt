@@ -34,21 +34,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.model.FolderSimpleInfo
+import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
-import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.file.ui.item.EmptyFolderItemLayout
 import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.ui.item.MyFolderItemLayout
-import com.linku.file.viewmodel.edit.state.EditStateViewModel
-import com.linku.file.viewmodel.folder.state.FolderState
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 /**
  * 폴더/링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.
@@ -80,27 +75,35 @@ private const val ITEM_RATIO = 10f / 174f
  *
  * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
  * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
- * @param fileViewModel 하위 폴더, 미분류 링크, 색상 매핑 및 삭제/로딩 동작을 제공하는 ViewModel입니다.
- * @param editStateViewModel 현재 편집 모드 여부를 제공하는 ViewModel입니다.
- * @param folderStateViewModel 선택된 하위 폴더와 바텀시트 표시 상태를 갱신하는 ViewModel입니다.
+ * @param folders 표시할 하위 폴더 목록입니다.
+ * @param notCategorizationLinks 표시할 미분류 링크 목록입니다.
+ * @param selectedTopFolderColorStyle 하위 폴더 카드에 적용할 선택된 최상위 폴더 색상 스타일입니다.
+ * @param isEditMode 현재 편집 모드 여부입니다.
+ * @param onAddFolderClick 폴더 추가 아이템을 눌렀을 때 실행할 동작입니다.
+ * @param onFolderClick 일반 모드에서 하위 폴더 카드를 눌렀을 때 실행할 동작입니다.
+ * @param onFolderEditClick 편집 모드에서 하위 폴더 편집 아이콘을 눌렀을 때 실행할 동작입니다.
+ * @param onChangeSharingClick 편집 모드에서 공유 상태 아이콘을 눌렀을 때 실행할 동작입니다.
+ * @param onDeleteFolder 삭제 확인 모달에서 확인을 눌렀을 때 하위 폴더를 전달하는 콜백입니다.
+ * @param onLinkClick 미분류 링크 카드를 눌렀을 때 링크 ID를 전달하는 콜백입니다.
+ * @param onDeleteNotCategorizationLink 미분류 링크 삭제 확인 모달에서 확인을 눌렀을 때 링크 ID를 전달하는 콜백입니다.
  */
 @Composable
 internal fun MyFoldersGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-    fileViewModel: FileViewModel,
-    editStateViewModel: EditStateViewModel,
-    folderStateViewModel: FolderStateViewModel
+    folders: List<FolderSimpleInfo>,
+    notCategorizationLinks: List<LinkItemInfo>,
+    selectedTopFolderColorStyle: CategoryColorStyle,
+    isEditMode: Boolean,
+    onAddFolderClick: () -> Unit,
+    onFolderClick: (FolderSimpleInfo) -> Unit,
+    onFolderEditClick: (FolderSimpleInfo) -> Unit,
+    onChangeSharingClick: (FolderSimpleInfo) -> Unit,
+    onDeleteFolder: (FolderSimpleInfo) -> Unit,
+    onLinkClick: (Long) -> Unit,
+    onDeleteNotCategorizationLink: (Long) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
-
-    val folderList by fileViewModel.subFolders.collectAsStateWithLifecycle()
-    val linkList by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
-    val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
-
-    val selectedTopFolderColorStyle =
-        categoryColorMap[folderStateViewModel.selectedTopFolder?.folderName]
-            ?: CategoryColorStyle.categoryStyleList[0]
 
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
     var selectedLinkId by remember { mutableStateOf<Long?>(null) }
@@ -130,37 +133,34 @@ internal fun MyFoldersGrid(
                     modifier = Modifier
                         .fillMaxSize(164f / 174f)
                         .noRippleClickable {
-                            if (!editStateViewModel.isEditMode) {
-                                folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                            if (!isEditMode) {
+                                onAddFolderClick()
                             }
                         }
                 )
             }
 
-            items(folderList) { folder ->
+            items(folders) { folder ->
                 MyFolderItem(
                     folder = folder,
                     colorStyle = selectedTopFolderColorStyle,
-                    isEditMode = editStateViewModel.isEditMode,
+                    isEditMode = isEditMode,
                     onClick = {
-                        fileViewModel.getLinks(folder.folderId)
-                        folderStateViewModel.updateSelectedBottomFolder(folder)
-                        folderStateViewModel.updateFolderState(FolderState.LINKS)
+                        onFolderClick(folder)
                     },
                     onEdit = {
-                        folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
-                        folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                        onFolderEditClick(folder)
                     },
                     onChangeSharing = {
-                        fileViewModel.folderToPrivate(folder)
+                        onChangeSharingClick(folder)
                     },
                     onDelete = {
-                        fileViewModel.deleteSubfolder(folder.folderId)
+                        onDeleteFolder(folder)
                     }
                 )
             }
 
-            if (linkList.isNotEmpty()) {
+            if (notCategorizationLinks.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = "분류되지 않은 링크",
@@ -175,12 +175,12 @@ internal fun MyFoldersGrid(
                     )
                 }
 
-                items(linkList) { link ->
+                items(notCategorizationLinks) { link ->
                     LinkItemLayout(
                         modifier = Modifier.fillMaxSize(164f / 174f),
                         link = link,
                         onClick = {
-                            fileViewModel.onLinkClick?.invoke(link.linkuId)
+                            onLinkClick(link.linkuId)
                         },
                         onLongClick = {
                             selectedLinkId = link.linkuId
@@ -196,7 +196,7 @@ internal fun MyFoldersGrid(
         visible = deleteModalWindowVisible,
         onOkay = {
             selectedLinkId?.let { id ->
-                fileViewModel.deleteNotCategorizationLink(id)
+                onDeleteNotCategorizationLink(id)
             }
             deleteModalWindowVisible = false
             selectedLinkId = null
@@ -340,8 +340,16 @@ private fun MyFolderItem(
 @Composable
 private fun MyFoldersGridTest() {
     MyFoldersGrid(
-        fileViewModel = viewModel(),
-        editStateViewModel = viewModel(),
-        folderStateViewModel = viewModel(),
+        folders = emptyList(),
+        notCategorizationLinks = emptyList(),
+        selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
+        isEditMode = false,
+        onAddFolderClick = {},
+        onFolderClick = {},
+        onFolderEditClick = {},
+        onChangeSharingClick = {},
+        onDeleteFolder = {},
+        onLinkClick = {},
+        onDeleteNotCategorizationLink = {},
     )
 }
