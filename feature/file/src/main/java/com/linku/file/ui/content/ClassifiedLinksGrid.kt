@@ -74,26 +74,42 @@ internal fun ClassifiedLinksGrid(
     onLinkClick: (Long) -> Unit,
     onDeleteLink: (Long) -> Unit,
 ){
+    /** 모달과 안내 문구에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
 
+    /** 분류할 수 있는 미분류 링크가 없을 때 표시할 안내 모달 상태입니다. */
     var categorizationModalWindowVisible by remember { mutableStateOf(false) }
+
+    /** 링크를 길게 눌렀을 때 표시할 삭제 확인 모달 상태입니다. */
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
 
+    /** 삭제 확인 모달에서 사용할 현재 선택된 링크 ID입니다. */
     var selectedLinkId by remember { mutableStateOf<Long?>(null) }
 
+    /** contentPadding의 start/end 값을 현재 레이아웃 방향에 맞게 계산하기 위한 방향 정보입니다. */
     val layoutDirection = LocalLayoutDirection.current
 
+    /**
+     * 그리드가 실제로 사용할 수 있는 가로 폭을 기준으로 카드 사이 간격을 계산합니다.
+     *
+     * 카테고리/폴더 그리드와 동일한 방식으로 2열 카드 간격을 비율 기반으로 맞춰,
+     * 화면 폭이 달라져도 카드와 열 사이 여백의 균형을 유지합니다.
+     */
     BoxWithConstraints(
         modifier = modifier
     ) {
+        /** 현재 레이아웃 방향(LTR/RTL)을 고려한 좌우 패딩의 합입니다. */
         val horizontalPadding =
             contentPadding.calculateStartPadding(layoutDirection) +
                     contentPadding.calculateEndPadding(layoutDirection)
 
+        /** 전체 최대 너비에서 좌우 패딩을 제외한 실제 콘텐츠 영역의 너비입니다. */
         val availableWidth = maxWidth - horizontalPadding
 
+        /** 콘텐츠 가용 너비에 비례해 계산한 두 열 사이의 가로 간격입니다. */
         val horizontalSpacing = availableWidth * ITEM_RATIO
 
+        /** 링크 추가 카드와 링크 카드 목록을 같은 2열 그리드 안에 배치합니다. */
         LazyVerticalGrid(
             modifier = Modifier.fillMaxSize(),
             contentPadding = contentPadding,
@@ -101,12 +117,15 @@ internal fun ClassifiedLinksGrid(
             verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
         ) {
+            /** 첫 번째 셀은 항상 링크를 분류/추가하는 진입점으로 사용합니다. */
             item {
                 AddLinkItem(
                     modifier = Modifier
+                        // 실제 링크 카드와 동일한 셀 점유율을 사용해 그리드 정렬을 맞춥니다.
                         .fillMaxSize(164f / 174f)
                         .noRippleClickable {
                             Log.d("LinksGrid", "링크 추가하기 클릭")
+                            // 미분류 링크가 있으면 분류 바텀시트를 열고, 없으면 안내 모달을 띄웁니다.
                             if (hasNotCategorizationLinks) {
                                 onLinkCategorizationClick()
                             } else {
@@ -116,14 +135,17 @@ internal fun ClassifiedLinksGrid(
                 )
             }
 
+            /** 분류된 링크 목록을 링크 카드 레이아웃으로 렌더링합니다. */
             items(links) { link ->
                 LinkItemLayout(
                     modifier = Modifier.fillMaxSize(164f / 174f),
                     link = link,
                     onClick = {
+                        // 상세 화면 이동은 상위에서 전달받은 링크 클릭 콜백으로 위임합니다.
                         onLinkClick(link.linkuId)
                     },
                     onLongClick = {
+                        // 길게 누른 링크 ID를 저장한 뒤 삭제 확인 모달을 표시합니다.
                         selectedLinkId = link.linkuId
                         deleteModalWindowVisible = true
                     }
@@ -133,7 +155,7 @@ internal fun ClassifiedLinksGrid(
     }
 
 
-    // 분류되지 않는 링크가 없으면 뜨는 모달창
+    // 분류되지 않은 링크가 없을 때 링크 추가 동선을 안내하는 모달창입니다.
     ModalWindow(
         visible = categorizationModalWindowVisible,
         onDismiss = { categorizationModalWindowVisible = false },
@@ -150,15 +172,15 @@ internal fun ClassifiedLinksGrid(
         )
     }
 
-    // 링크 삭제 모달창
+    // 링크 카드 long click 이후 실제 삭제를 한 번 더 확인하는 모달창입니다.
     ModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
-            // ✅ 확인에서 안전하게 현재 선택된 id로 삭제
+            // 확인 시점에 선택된 링크 ID가 남아 있을 때만 삭제 콜백을 실행합니다.
             selectedLinkId?.let { id ->
                 onDeleteLink(id)
             }
-            // 상태 정리
+            // 모달을 닫으면서 선택 상태도 함께 비워 다음 삭제 동작과 섞이지 않게 합니다.
             deleteModalWindowVisible = false
             selectedLinkId = null
         },
@@ -190,15 +212,19 @@ internal fun ClassifiedLinksGrid(
 private fun AddLinkItem(
     modifier: Modifier
 ) {
+    /** 링크 추가 아이템의 라벨 색상을 가져오기 위한 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
+    /** 카드 폭은 상위 modifier가 결정하고, Row는 그리드 셀 안에서 가로 기준선을 맞춥니다. */
     Row(
         modifier = Modifier.fillMaxWidth(),
     ) {
+        /** 빈 링크 카드 위에 아이콘과 텍스트를 겹쳐 올리는 오버레이 컨테이너입니다. */
         Box(
             modifier = modifier,
             contentAlignment = Alignment.TopCenter
         ) {
+            /** 실제 링크 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
             Box(
                 modifier = Modifier.alpha(1f),
             ) {
@@ -207,12 +233,14 @@ private fun AddLinkItem(
                 )
             }
 
+            /** 링크 추가를 나타내는 아이콘을 카드 상단 기준 위치에 배치합니다. */
             Image(
                 modifier = Modifier.padding(top = 103.dp),
                 painter = painterResource(R.drawable.add_folder_icon),
                 contentDescription = null
             )
 
+            /** 추가 아이콘 아래에 표시되는 링크 추가 라벨입니다. */
             Text(
                 modifier = Modifier.padding(top = 147.dp),
                 text = "링크 추가하기",

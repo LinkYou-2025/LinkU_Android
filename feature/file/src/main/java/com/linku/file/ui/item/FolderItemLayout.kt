@@ -86,15 +86,15 @@ fun FolderItemLayout(
     textBackgroundColor: Color,
     folderName: String = "",
 ) {
+    /** 폴더명 배지와 텍스트에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
 
-    // 디자인 원본 기준 사이즈 (너가 쓰던 고정 dp)
+    // 디자인 원본 기준 사이즈입니다. 카드 비율과 내부 요소 스케일 계산의 기준값으로 사용합니다.
     val baseW = 165.3.dp
     val baseH = 145.8535.dp
     val aspect = baseW / baseH // ≈ 1.1327
 
-    // 외부에서 너비만 정하고 싶으면: fillMaxWidth().aspectRatio(aspect)
-    // 높이를 정했다면: 원하는 height + .fillMaxWidth() 제거 등 자유롭게
+    // 외부에서 전달한 modifier가 크기를 정하고, aspectRatio가 폴더 카드의 원본 비율을 유지합니다.
     Surface(
         modifier = modifier
             .aspectRatio(aspect, matchHeightConstraintsFirst = false),
@@ -102,17 +102,23 @@ fun FolderItemLayout(
         color = backgroundColor,
         shadowElevation = 3.8.dp
     ) {
+        /**
+         * 실제 배치된 카드 크기를 기준으로 폴더 레이어, 아이콘 위치, 폰트 크기를 함께 스케일링합니다.
+         *
+         * 그리드 셀 크기가 달라져도 폴더 일러스트의 겹침과 하단 텍스트 영역의 비율을 유지하기 위해
+         * 모든 기준 dp/sp 값을 같은 scale 값으로 변환합니다.
+         */
         BoxWithConstraints(Modifier.fillMaxSize()) {
 
-            // 에러 경고 제거용 변수
+            // BoxWithConstraintsScope 참조를 보관해 스코프 사용 경고를 피하기 위한 값입니다.
             val tmp = this
 
-            // 현재 실제 너비/높이에 맞춰 스케일 계산
+            // 현재 실제 너비/높이에 맞춰 디자인 기준 크기 대비 스케일을 계산합니다.
             val scaleW = maxWidth / baseW
             val scaleH = maxHeight / baseH
             val scale = minOf(scaleW, scaleH)
 
-            // dp, sp를 스케일하는 헬퍼
+            // 디자인 기준 dp, sp를 현재 카드 크기에 맞게 변환하는 헬퍼입니다.
             fun s(dp: Dp) = dp * scale
             fun ssp(sp: TextUnit) = (sp.value * scale).sp
 
@@ -133,8 +139,10 @@ fun FolderItemLayout(
                 padding: PaddingValues = PaddingValues(0.dp),
                 rotation: Float = 0f,
             ) {
+                /** 회전과 그림자를 가진 폴더 뒷장/중간장/앞장 레이어입니다. */
                 Surface(
                     modifier = Modifier
+                        // 레이어별 기준 여백을 현재 카드 스케일에 맞게 변환합니다.
                         .padding(
                             PaddingValues(
                                 start = s(padding.calculateStartPadding(LayoutDirection.Ltr)),
@@ -143,7 +151,9 @@ fun FolderItemLayout(
                                 bottom = s(padding.calculateBottomPadding())
                             )
                         )
+                        // 레이어마다 다른 회전값을 적용해 폴더 종이가 겹친 느낌을 만듭니다.
                         .rotate(rotation)
+                        // 레이어의 기준 너비/높이를 현재 카드 크기에 맞춰 스케일링합니다.
                         .width(s(size))
                         .height(s(height))
                         .shadow(
@@ -158,25 +168,26 @@ fun FolderItemLayout(
                 ) {}
             }
 
+            /** 폴더 레이어와 하단 마스크를 카드 중앙 기준으로 겹쳐 배치하는 루트 컨테이너입니다. */
             Box(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                // 원본: 105.45, padding bottom 5.7, rot -7.39
+                // 첫 번째 레이어: 가장 뒤쪽 종이입니다. 원본: 105.45, padding bottom 5.7, rot -7.39
                 FolderLayerBox(
                     color = color1,
                     size = 105.45.dp,
                     padding = PaddingValues(bottom = 5.7.dp),
                     rotation = -7.39f
                 )
-                // 원본: 105.45, padding bottom 3.1825, rot 4.86
+                // 두 번째 레이어: 가운데 종이입니다. 원본: 105.45, padding bottom 3.1825, rot 4.86
                 FolderLayerBox(
                     color = color2,
                     size = 105.45.dp,
                     padding = PaddingValues(bottom = 3.1825.dp),
                     rotation = 4.86f
                 )
-                // 원본: size 126.407 x 107.9605, padding top 7.6
+                // 세 번째 레이어: 가장 앞쪽 흰색/컬러 종이입니다. 원본: size 126.407 x 107.9605, padding top 7.6
                 FolderLayerBox(
                     color = color3,
                     size = 126.407.dp,
@@ -185,12 +196,13 @@ fun FolderItemLayout(
                     rotation = 0f
                 )
 
+                /** 하단 폴더 마스크, 아이콘 슬롯, 폴더명 배지를 배치하는 영역입니다. */
                 Box(
                     Modifier
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                 ) {
-                    // 마스크 이미지는 가로를 꽉 채우고 브러시를 입힘
+                    // 마스크 이미지는 카드 하단을 채우고 전달받은 브러시로 카테고리별 색감을 입힙니다.
                     Image(
                         painter = painterResource(R.drawable.folder_mask),
                         contentScale = ContentScale.FillWidth,
@@ -200,6 +212,7 @@ fun FolderItemLayout(
                             .align(Alignment.BottomCenter)
                             .graphicsLayer(alpha = 0.99f)
                             .drawWithCache {
+                                // 원본 마스크 이미지를 그린 뒤 브러시를 SrcAtop으로 덮어 폴더 하단 색상을 만듭니다.
                                 onDrawWithContent {
                                     drawContent()
                                     drawRect(folderMaskBrush, blendMode = BlendMode.SrcAtop)
@@ -212,7 +225,7 @@ fun FolderItemLayout(
                             )
                     )
 
-                    // 아이콘 위치/패딩 스케일
+                    // 왼쪽 상단 슬롯입니다. 공유/잠금 아이콘처럼 폴더 상태를 나타내는 아이콘을 배치합니다.
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -221,6 +234,7 @@ fun FolderItemLayout(
                         leftIcon()
                     }
 
+                    // 오른쪽 상단 슬롯입니다. 북마크/편집 아이콘처럼 사용자가 누르는 액션을 배치합니다.
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -229,6 +243,7 @@ fun FolderItemLayout(
                         rightIcon()
                     }
 
+                    // 폴더명이 있을 때만 하단에 첫 글자 배지와 이름 텍스트를 표시합니다.
                     if (folderName.isNotEmpty()) {
                         Row(
                             modifier = Modifier
@@ -237,6 +252,7 @@ fun FolderItemLayout(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(s(7.7805.dp))
                         ) {
+                            /** 폴더명 첫 글자를 보여주는 원형 배지입니다. */
                             Box(
                                 modifier = Modifier
                                     .size(s(29.1745.dp))
@@ -248,6 +264,7 @@ fun FolderItemLayout(
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
+                                /** 폴더명의 첫 글자를 배지 중앙에 표시합니다. */
                                 Text(
                                     text = folderName.first().toString(),
                                     fontSize = ssp(15.sp),
@@ -256,6 +273,7 @@ fun FolderItemLayout(
                                 )
                             }
 
+                            /** 폴더 전체 이름입니다. 길이가 길면 한 줄에서 말줄임 처리합니다. */
                             Text(
                                 modifier = Modifier
                                     .padding(end = s(17.499.dp)),
@@ -287,8 +305,10 @@ fun EmptyFolderItemLayout(
     modifier: Modifier = Modifier,
     folderName: String = ""
 ){
+    /** 비어 있는 폴더 카드에 사용할 회색 계열 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
+    // 실제 폴더 데이터가 없는 추가/빈 상태에서도 공통 폴더 카드 구조를 재사용합니다.
     FolderItemLayout(
         backgroundColor = colors.gray[200],
         color1 = colors.gray[300],
@@ -300,6 +320,7 @@ fun EmptyFolderItemLayout(
                 0.2f to colors.gray[200].copy(alpha = 1.0f),
             )
         ),
+        // 빈 폴더 카드는 상태/액션 아이콘이 없으므로 좌우 슬롯을 비워 둡니다.
         leftIcon = {},
         rightIcon = {},
         textBackgroundColor = colors.gray[500],
@@ -330,8 +351,10 @@ fun CategoryItemLayout(
     isEditMode: Boolean = false,
     onBookmark: () -> Unit
 ){
+    /** 카테고리 카드의 기본 배경과 마스크 색상을 가져오기 위한 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
+    // 카테고리 색상 스타일을 공통 폴더 카드의 레이어 색상으로 매핑합니다.
     FolderItemLayout(
         backgroundColor = colors.gray[200],
         color1 = colorStyle.color3,
@@ -345,14 +368,17 @@ fun CategoryItemLayout(
         ),
         leftIcon = {},
         rightIcon = {
+            // 화면 요구에 따라 북마크/편집 아이콘 영역 자체를 숨길 수 있습니다.
             if(visibleBookmarked){
                 if (isEditMode) {
+                    // 편집 모드에서는 북마크 대신 수정 가능 상태를 나타내는 연필 아이콘을 표시합니다.
                     Box(
                         modifier = Modifier
                     ) {
                         PencilIcon(colorStyle.color2)
                     }
                 } else {
+                    // 일반 모드에서는 북마크 아이콘을 눌러 즐겨찾기 상태를 변경합니다.
                     Box(
                         modifier = Modifier
                             .noRippleClickable {
@@ -393,8 +419,10 @@ fun MyFolderItemLayout(
     onEdit: ()-> Unit = {},
     onChangeSharing: () -> Unit = {}
 ){
+    /** 하위 폴더 카드의 앞쪽 레이어와 마스크에 사용할 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
+    // 선택된 카테고리 색상 스타일을 하위 폴더 카드의 레이어 색상으로 매핑합니다.
     FolderItemLayout(
         backgroundColor = colorStyle.color1,
         color1 = colorStyle.color2,
@@ -402,6 +430,7 @@ fun MyFolderItemLayout(
         color3 = colors.white,
         folderMaskBrush = colorStyle.verticalGradient(),
         leftIcon = {
+            // 왼쪽 슬롯에는 공유 상태 아이콘을 표시하고, 편집 모드에서만 클릭 액션을 허용합니다.
             Box(
                 modifier = Modifier.noRippleClickable{
                     if (isEditMode) {
@@ -410,6 +439,7 @@ fun MyFolderItemLayout(
                 }
             ){
                 folder.isSharing?.let{
+                    // 서버에서 내려온 공유 상태 문자열에 따라 공유/개인 폴더 아이콘을 선택합니다.
                     when(it){
                         "share" -> ShareFolderIcon(colorStyle.color2)
                         "personal" -> LockFolderIcon(colorStyle.color2)
@@ -419,6 +449,7 @@ fun MyFolderItemLayout(
             }
         },
         rightIcon = {
+            // 오른쪽 슬롯에는 편집 모드에서만 폴더 수정 아이콘을 표시합니다.
             if (isEditMode) {
                 Box(
                     modifier = Modifier.noRippleClickable{

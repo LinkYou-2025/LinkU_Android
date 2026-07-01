@@ -103,24 +103,39 @@ internal fun MyFoldersGrid(
     onLinkClick: (Long) -> Unit,
     onDeleteNotCategorizationLink: (Long) -> Unit
 ) {
+    /** 섹션 제목과 삭제 모달 문구에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
 
+    /** 미분류 링크 카드 long click 이후 표시되는 삭제 확인 모달 상태입니다. */
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
+
+    /** 삭제 확인 모달에서 사용할 현재 선택된 미분류 링크 ID입니다. */
     var selectedLinkId by remember { mutableStateOf<Long?>(null) }
 
+    /** contentPadding의 start/end 값을 현재 레이아웃 방향에 맞게 계산하기 위한 방향 정보입니다. */
     val layoutDirection = LocalLayoutDirection.current
 
+    /**
+     * 폴더 카드와 미분류 링크 카드를 하나의 2열 그리드에 함께 배치합니다.
+     *
+     * 하위 폴더 섹션과 미분류 링크 섹션은 같은 LazyVerticalGrid 안에서 순서만 나뉘며,
+     * 카드 간격은 현재 화면의 가용 폭에 비례해서 계산합니다.
+     */
     BoxWithConstraints(
         modifier = modifier
     ) {
+        /** 현재 레이아웃 방향(LTR/RTL)을 고려한 좌우 패딩의 합입니다. */
         val horizontalPadding =
             contentPadding.calculateStartPadding(layoutDirection) +
                     contentPadding.calculateEndPadding(layoutDirection)
 
+        /** 전체 최대 너비에서 좌우 패딩을 제외한 실제 콘텐츠 영역의 너비입니다. */
         val availableWidth = maxWidth - horizontalPadding
 
+        /** 콘텐츠 가용 너비에 비례해 계산한 두 열 사이의 가로 간격입니다. */
         val horizontalSpacing = availableWidth * ITEM_RATIO
 
+        /** 폴더 추가 카드, 하위 폴더 목록, 미분류 링크 섹션을 순서대로 배치합니다. */
         LazyVerticalGrid(
             modifier = Modifier.fillMaxSize(),
             contentPadding = contentPadding,
@@ -128,11 +143,14 @@ internal fun MyFoldersGrid(
             verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
         ) {
+            /** 첫 번째 셀은 항상 하위 폴더 추가 진입점으로 사용합니다. */
             item {
                 AddBottomFolderItem(
                     modifier = Modifier
+                        // 실제 폴더 카드와 동일한 셀 점유율을 사용해 그리드 정렬을 맞춥니다.
                         .fillMaxSize(164f / 174f)
                         .noRippleClickable {
+                            // 편집 모드에서는 카드 내부 편집 액션과 충돌하지 않도록 추가 동작을 막습니다.
                             if (!isEditMode) {
                                 onAddFolderClick()
                             }
@@ -140,27 +158,34 @@ internal fun MyFoldersGrid(
                 )
             }
 
+            /** 선택된 최상위 폴더에 속한 하위 폴더 목록을 렌더링합니다. */
             items(folders) { folder ->
                 MyFolderItem(
                     folder = folder,
                     colorStyle = selectedTopFolderColorStyle,
                     isEditMode = isEditMode,
                     onClick = {
+                        // 일반 모드에서 하위 폴더를 눌렀을 때의 화면 전환/데이터 로딩은 상위로 위임합니다.
                         onFolderClick(folder)
                     },
                     onEdit = {
+                        // 편집 아이콘 클릭 시 수정 대상 지정과 바텀시트 노출을 상위로 위임합니다.
                         onFolderEditClick(folder)
                     },
                     onChangeSharing = {
+                        // 공유 상태 아이콘 클릭 시 공유 상태 변경 동작을 상위로 위임합니다.
                         onChangeSharingClick(folder)
                     },
                     onDelete = {
+                        // 폴더 삭제 확인 후 실행할 실제 삭제 동작을 상위로 위임합니다.
                         onDeleteFolder(folder)
                     }
                 )
             }
 
+            /** 미분류 링크가 있을 때만 폴더 목록 아래에 별도 섹션으로 노출합니다. */
             if (notCategorizationLinks.isNotEmpty()) {
+                /** 섹션 제목은 두 열을 모두 차지해야 하므로 maxLineSpan을 사용합니다. */
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = "분류되지 않은 링크",
@@ -175,14 +200,17 @@ internal fun MyFoldersGrid(
                     )
                 }
 
+                /** 미분류 링크 목록을 폴더 카드 다음 셀부터 이어서 배치합니다. */
                 items(notCategorizationLinks) { link ->
                     LinkItemLayout(
                         modifier = Modifier.fillMaxSize(164f / 174f),
                         link = link,
                         onClick = {
+                            // 미분류 링크도 일반 링크와 동일하게 상세 화면 이동 콜백으로 위임합니다.
                             onLinkClick(link.linkuId)
                         },
                         onLongClick = {
+                            // 길게 누른 링크 ID를 저장한 뒤 삭제 확인 모달을 표시합니다.
                             selectedLinkId = link.linkuId
                             deleteModalWindowVisible = true
                         }
@@ -192,12 +220,15 @@ internal fun MyFoldersGrid(
         }
     }
 
+    // 미분류 링크 카드 long click 이후 실제 삭제를 한 번 더 확인하는 모달창입니다.
     ModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
+            // 확인 시점에 선택된 링크 ID가 남아 있을 때만 삭제 콜백을 실행합니다.
             selectedLinkId?.let { id ->
                 onDeleteNotCategorizationLink(id)
             }
+            // 모달을 닫으면서 선택 상태도 함께 비워 다음 삭제 동작과 섞이지 않게 합니다.
             deleteModalWindowVisible = false
             selectedLinkId = null
         },
@@ -229,23 +260,29 @@ internal fun MyFoldersGrid(
 private fun AddBottomFolderItem(
     modifier: Modifier
 ) {
+    /** 폴더 추가 아이템의 라벨 색상을 가져오기 위한 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
+    /** 카드 폭은 상위 modifier가 결정하고, Row는 그리드 셀 안에서 가로 기준선을 맞춥니다. */
     Row(
         modifier = Modifier.fillMaxWidth()
     ) {
+        /** 빈 폴더 카드 위에 아이콘과 텍스트를 겹쳐 올리는 오버레이 컨테이너입니다. */
         Box(
             modifier = modifier,
             contentAlignment = Alignment.Center
         ) {
+            /** 실제 폴더 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
             EmptyFolderItemLayout()
 
+            /** 폴더 추가를 나타내는 아이콘을 카드 중앙 기준 위치에 배치합니다. */
             Image(
                 modifier = Modifier.padding(top = 71.dp),
                 painter = painterResource(R.drawable.add_folder_icon),
                 contentDescription = null
             )
 
+            /** 추가 아이콘과 함께 표시되는 폴더 추가 라벨입니다. */
             Text(
                 text = "폴더 추가하기",
                 fontSize = 15.sp,
@@ -282,25 +319,34 @@ private fun MyFolderItem(
     onChangeSharing: () -> Unit,
     onDelete: () -> Unit
 ) {
+    /** 폴더 삭제 확인 모달 문구에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
+
+    /** ripple 없이 click/long click을 처리하기 위해 공유하는 interaction source입니다. */
     val interactionSource = remember { MutableInteractionSource() }
+
+    /** 하위 폴더를 길게 눌렀을 때 표시되는 삭제 확인 모달 상태입니다. */
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
 
+    /** 카드 전체에 일반 클릭과 long click을 함께 연결하는 터치 영역입니다. */
     Box(
         modifier = Modifier.combinedClickable(
             indication = null,
             interactionSource = interactionSource,
             onClick = {
+                // 편집 모드에서는 내부 편집/공유 아이콘 액션만 사용하고 폴더 진입은 막습니다.
                 if (!isEditMode) {
                     onClick()
                 }
             },
             onLongClick = {
+                // 폴더 삭제는 즉시 실행하지 않고 확인 모달을 먼저 표시합니다.
                 deleteModalWindowVisible = true
             }
         ),
         contentAlignment = Alignment.Center
     ) {
+        /** 실제 폴더 카드 UI는 공통 카드 레이아웃 컴포저블에 위임합니다. */
         MyFolderItemLayout(
             modifier = Modifier.fillMaxSize(164f / 174f),
             colorStyle = colorStyle,
@@ -311,9 +357,11 @@ private fun MyFolderItem(
         )
     }
 
+    // 하위 폴더 long click 이후 실제 삭제를 한 번 더 확인하는 모달창입니다.
     ModalWindow(
         visible = deleteModalWindowVisible,
         onOkay = {
+            // 확인을 누른 경우에만 상위에서 전달한 삭제 동작을 실행합니다.
             onDelete()
             deleteModalWindowVisible = false
         },

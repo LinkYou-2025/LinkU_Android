@@ -88,6 +88,7 @@ internal fun CategoryGrid(
             verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
         ) {
+            /** 전달받은 최상위 폴더 목록을 카테고리 카드로 하나씩 렌더링. */
             items(categories) { folder ->
                 CategoryItemLayout(
                     modifier = Modifier
@@ -101,8 +102,10 @@ internal fun CategoryGrid(
                                 onFolderClick(folder)
                             }
                         },
+                    // 폴더 이름으로 매핑된 카테고리 색상이 없으면 기본 색상 스타일을 사용합니다.
                     colorStyle = categoryColorMap[folder.folderName] ?: CategoryColorStyle.DEFAULT,
                     folder = folder,
+                    // 편집 모드에서는 카드 내부 우측 아이콘이 북마크에서 편집 아이콘으로 바뀝니다.
                     isEditMode = isEditMode,
                 ) {
                     // 북마크 아이콘 클릭 시: 북마크 상태를 현재의 반대 값으로 반전하여 업데이트합니다.
@@ -122,6 +125,7 @@ internal fun CategoryGrid(
 )
 @Composable
 private fun CategoryGridTest(){
+    /** Preview에서는 외부 ViewModel 없이 빈 상태의 그리드 레이아웃만 확인합니다. */
     CategoryGrid(
         categories = emptyList(),
         categoryColorMap = emptyMap(),
