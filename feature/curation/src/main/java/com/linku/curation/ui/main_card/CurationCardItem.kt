@@ -77,7 +77,7 @@ fun getCurationCardContents(): List<CurationCardContent> {
 @Composable
 fun CurationCardItem(
     modifier: Modifier = Modifier,
-    imageUrl: String? = "", // null로 놓으면 유지민이 또 뭐라고 하겠지...
+    imageUrl: String? = "", // null로 놓으면 지민이가 코멘트를 남기겠지...
     page: Int = 0,
     totalPage: Int = 3,
     onCheckOutClick: () -> Unit = {},
