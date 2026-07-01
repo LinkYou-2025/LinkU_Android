@@ -22,8 +22,8 @@ import com.linku.design.util.scaler
 
 @Composable
 fun CurationHeader(
-    nickname: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    nickname: String = "세나",
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
@@ -32,7 +32,7 @@ fun CurationHeader(
             painter = painterResource(id = R.drawable.img_curation_title),
             contentDescription = null,
             modifier = Modifier
-                .padding(start = 24.scaler, top = 28.scaler)
+                .padding(start = 24.scaler)
                 .size(width = 102.scaler, height = 15.scaler)
         )
 
