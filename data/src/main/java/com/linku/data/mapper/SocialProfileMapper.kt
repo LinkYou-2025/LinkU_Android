@@ -13,7 +13,7 @@ object SocialProfileMapper {
         interests: List<Interest>
     ) = SocialProfileRequestDTO(
             nickName = nickName,
-            gender = gender.value,
+            gender = gender.name,
             jobId = job.id,
             purposeList = purposes.map { it.serverKey },
             interestList = interests.map { it.serverKey }
