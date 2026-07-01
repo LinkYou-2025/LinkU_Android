@@ -15,6 +15,7 @@ import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.linkuColors
 
 
 /**
@@ -49,6 +51,9 @@ fun AlarmAllowDialog(
     onConfirmation: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colorTheme = MaterialTheme.linkuColors
+
+
     BasicAlertDialog(
         onDismissRequest = onDismissRequest,
     ) {
@@ -57,7 +62,7 @@ fun AlarmAllowDialog(
             modifier = modifier
                 .width(372.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(LocalColorTheme.current.white)
+                .background(colorTheme.white)
                 .padding(vertical = 28.dp)
         ) {
             Icon(
@@ -70,7 +75,7 @@ fun AlarmAllowDialog(
 
             Text(
                 text = "링큐의 알림을 받아보세요",
-                color = LocalColorTheme.current.black,
+                color = colorTheme.black,
                 fontWeight = FontWeight.Medium,
                 fontSize = 18.sp
             )
@@ -80,7 +85,7 @@ fun AlarmAllowDialog(
             Text(
                 text = "AI 요약 완료, 공유 폴더 업데이트,\n맞춤 큐레이션 등 서비스 이용에 필요한\n알림을 받아보실 수 있습니다.",
                 textAlign = TextAlign.Center,
-                color = LocalColorTheme.current.gray[600],
+                color = colorTheme.gray[600],
                 fontSize = 14.sp,
                 lineHeight = 20.sp
             )
@@ -99,8 +104,7 @@ fun AlarmAllowDialog(
                     Text(
                         text = "나중에",
                         style = LocalTextStyle.current.copy(
-                            fontFamily = LocalFontTheme.current.font,
-                            brush = LocalColorTheme.current.maincolor
+                            brush = colorTheme.maincolor
                         )
                     )
                 }
@@ -110,12 +114,12 @@ fun AlarmAllowDialog(
                 TextButton(
                     onClick = onConfirmation,
                     modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                        .background(LocalColorTheme.current.maincolor)
+                        .background(colorTheme.maincolor)
                         .size(88.dp, 34.dp)
                 ) {
                     Text(
                         text = "허용하기",
-                        color = LocalColorTheme.current.white,
+                        color = colorTheme.white,
                         fontFamily = LocalFontTheme.current.font,
                         fontWeight = FontWeight.Medium
                     )

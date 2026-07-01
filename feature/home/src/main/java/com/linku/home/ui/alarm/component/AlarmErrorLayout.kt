@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
@@ -36,6 +38,7 @@ import com.linku.core.error.NetworkError
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import kotlinx.coroutines.flow.flowOf
 
@@ -94,6 +97,8 @@ private fun AlarmErrorLayoutContent(
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorTheme = MaterialTheme.linkuColors
+
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -104,10 +109,8 @@ private fun AlarmErrorLayoutContent(
         Box(
             modifier = Modifier
                 .size(68.dp)
-                .background(
-                    color = LocalColorTheme.current.purple[50], // 연보라 배경
-                    shape = RoundedCornerShape(24.dp)
-                ),
+                .clip(RoundedCornerShape(24.dp))
+                .background(colorTheme.purple[50]),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -122,7 +125,7 @@ private fun AlarmErrorLayoutContent(
         // 출력 메세지
         Text(
             text = message,
-            color = LocalColorTheme.current.gray[600],
+            color = colorTheme.gray[600],
             textAlign = TextAlign.Center,
             lineHeight = 28.sp
         )
@@ -135,13 +138,13 @@ private fun AlarmErrorLayoutContent(
             modifier = Modifier
                 .size(112.dp, 44.dp)
                 .background(
-                    brush = LocalColorTheme.current.maincolor,
+                    brush = colorTheme.maincolor,
                     shape = RoundedCornerShape(16.dp)
                 ),
         ) {
             Text(
                 text = "다시 시도",
-                color = LocalColorTheme.current.white,
+                color = colorTheme.white,
                 fontWeight = FontWeight(500),
                 fontSize = 16.sp
             )
