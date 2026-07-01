@@ -155,11 +155,9 @@ class MainViewModel @Inject constructor(
     // 이미 요청된 적 있으면 아무 동작도 하지 않음
     // 다이얼로그 표시 전에 요청 여부를 true로 선저장하여 중복 노출을 방지
     fun checkAndShowPushAlarmDialog() {
-        if (!notificationPreference.isPushPermissionRequested()) {
-
-            notificationPreference.setPushPermissionRequested(true)
-
-            viewModelScope.launch {
+        viewModelScope.launch {
+            if (!notificationPreference.isPushPermissionRequested()) {
+                notificationPreference.setPushPermissionRequested(true)
                 _sideEffect.send(SideEffect.ShowPushAlarmDialog)
             }
         }

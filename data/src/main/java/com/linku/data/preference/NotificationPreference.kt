@@ -1,81 +1,91 @@
 package com.linku.data.preference
 
 import android.content.Context
-import androidx.core.content.edit
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+
+private val Context.notificationDataStore by preferencesDataStore(name = "notification_prefs")
 
 class NotificationPreference(
-    context: Context
+    private val context: Context
 ) {
 
-    companion object {
-        private const val PREF_NAME = "notification"
-
-        //KEY
-        private const val KEY_NOTIFICATION_MASTER = "key_notification_master"
-        private const val KEY_FCM_TOKEN = "key_fcm_token"
-
-        // 스플래시에서 안드로이드 시스템 알람이 최초 호출되었는지 여부
-        private const val KEY_SYSTEM_PERMISSION_REQUESTED =
-            "key_system_permission_requested"
-
-        // 푸시알람 활성화 팝업창이 호출되었는지 여부
-        private const val KEY_PUSH_PERMISSION_REQUESTED =
-            "key_push_permission_requested"
-
-        // 사용자가 팝업을 통해 푸시알람을 최초 활성화하지 않고,
-        // 알람 설정 창에서 토글을 누르려고 시도했을 때를 대비
-        // fcm토큰이 서버에 등록되어있는지 여부를 판별함
-        private const val KEY_FCM_TOKEN_REGISTERED =
-            "key_fcm_token_registered"
+    private object Keys {
+        val NOTIFICATION_MASTER = booleanPreferencesKey("key_notification_master")
+        val FCM_TOKEN = stringPreferencesKey("key_fcm_token")
+        val FCM_TOKEN_REGISTERED = booleanPreferencesKey("key_fcm_token_registered")
+        val SYSTEM_PERMISSION_REQUESTED = booleanPreferencesKey("key_system_permission_requested")
+        val PUSH_PERMISSION_REQUESTED = booleanPreferencesKey("key_push_permission_requested")
     }
 
-    private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-
     // ===== Notification =====
-    fun isMasterNotificationEnabled(): Boolean =
-        pref.getBoolean(KEY_NOTIFICATION_MASTER, true)
 
-    fun setMasterNotificationEnabled(enabled: Boolean) {
-        pref.edit { putBoolean(KEY_NOTIFICATION_MASTER, enabled) }
+    // 실시간 구독용 Flow (AlarmViewModel 등에서 StateFlow로 변환하여 사용)
+    val masterNotificationEnabled: Flow<Boolean> = context.notificationDataStore.data.map { prefs ->
+        prefs[Keys.NOTIFICATION_MASTER] ?: true
+    }
+
+    suspend fun isMasterNotificationEnabled(): Boolean =
+        context.notificationDataStore.data.map { it[Keys.NOTIFICATION_MASTER] ?: true }.first()
+
+    suspend fun setMasterNotificationEnabled(enabled: Boolean) {
+        context.notificationDataStore.edit { prefs ->
+            prefs[Keys.NOTIFICATION_MASTER] = enabled
+        }
     }
 
     // ===== FCM Token =====
 
     // TODO: FCM 토큰 유효성 검사에 사용 예정
-    fun getFcmToken(): String? =
-        pref.getString(KEY_FCM_TOKEN, null)
+    suspend fun getFcmToken(): String? =
+        context.notificationDataStore.data.map { it[Keys.FCM_TOKEN] }.first()
 
-    fun setFcmToken(token: String) {
-        pref.edit { putString(KEY_FCM_TOKEN, token) }
+    suspend fun setFcmToken(token: String) {
+        context.notificationDataStore.edit { prefs ->
+            prefs[Keys.FCM_TOKEN] = token
+        }
     }
 
     // ===== FCM Token Server Registration =====
-    fun isFcmTokenRegistered(): Boolean =
-        pref.getBoolean(KEY_FCM_TOKEN_REGISTERED, false)
 
-    fun setFcmTokenRegistered(registered: Boolean) {
-        pref.edit { putBoolean(KEY_FCM_TOKEN_REGISTERED, registered) }
+    suspend fun isFcmTokenRegistered(): Boolean =
+        context.notificationDataStore.data.map { it[Keys.FCM_TOKEN_REGISTERED] ?: false }.first()
+
+    suspend fun setFcmTokenRegistered(registered: Boolean) {
+        context.notificationDataStore.edit { prefs ->
+            prefs[Keys.FCM_TOKEN_REGISTERED] = registered
+        }
     }
 
     //TODO: fcm토큰 삭제 api 연동 작업 시에 사용 예정
-    fun clearFcmToken() {
-        pref.edit { remove(KEY_FCM_TOKEN) }
+    suspend fun clearFcmToken() {
+        context.notificationDataStore.edit { prefs ->
+            prefs.remove(Keys.FCM_TOKEN)
+        }
     }
 
     // ===== Dialog State =====
-    fun isSystemPermissionRequested(): Boolean =
-        pref.getBoolean(KEY_SYSTEM_PERMISSION_REQUESTED, false)
 
-    fun setSystemPermissionRequested(requested: Boolean) {
-        pref.edit { putBoolean(KEY_SYSTEM_PERMISSION_REQUESTED, requested) }
+    suspend fun isSystemPermissionRequested(): Boolean =
+        context.notificationDataStore.data.map { it[Keys.SYSTEM_PERMISSION_REQUESTED] ?: false }.first()
+
+    suspend fun setSystemPermissionRequested(requested: Boolean) {
+        context.notificationDataStore.edit { prefs ->
+            prefs[Keys.SYSTEM_PERMISSION_REQUESTED] = requested
+        }
     }
 
-    fun isPushPermissionRequested(): Boolean =
-        pref.getBoolean(KEY_PUSH_PERMISSION_REQUESTED, false)
+    suspend fun isPushPermissionRequested(): Boolean =
+        context.notificationDataStore.data.map { it[Keys.PUSH_PERMISSION_REQUESTED] ?: false }.first()
 
-    fun setPushPermissionRequested(requested: Boolean) {
-        pref.edit { putBoolean(KEY_PUSH_PERMISSION_REQUESTED, requested) }
+    suspend fun setPushPermissionRequested(requested: Boolean) {
+        context.notificationDataStore.edit { prefs ->
+            prefs[Keys.PUSH_PERMISSION_REQUESTED] = requested
+        }
     }
-
-
 }

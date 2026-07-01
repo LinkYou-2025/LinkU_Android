@@ -71,12 +71,6 @@ fun AlarmScreen(
     val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
 
-    // 사용자가 AlarmSettingTab을 클릭해 푸시 알람 활성화를 하고
-    // 뒤로가기 버튼을 통해 AlarmScreen으로 돌아왔을 때를 대비
-    LifecycleResumeEffect(Unit) {
-        viewModel.refreshNotificationStatus()
-        onPauseOrDispose { } // 아무것도 안 해도 필수로 작성해야함 호애엥
-    }
 
     // 새로고침이 완료되면 인디케이터 해제
     LaunchedEffect(alarmPagingItems.loadState.refresh) {
