@@ -1,15 +1,11 @@
 package com.linku.home.ui.alarm.component
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +16,7 @@ import androidx.paging.compose.LazyPagingItems
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 
 /**
  * 알람 목록 하단에 추가 로딩 상태를 표시하는 푸터 컴포저블입니다.
@@ -56,6 +53,8 @@ private fun AlarmAppendStateFooterContent(
     appendState: LoadState,
     onRetry: () -> Unit
 ) {
+    val colorTheme = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,7 +65,7 @@ private fun AlarmAppendStateFooterContent(
         when (appendState) {
             is LoadState.Loading -> {
                 CircularProgressIndicator(
-                    color = LocalColorTheme.current.black
+                    color = colorTheme.black
                 )
             }
 

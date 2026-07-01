@@ -20,9 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
@@ -37,7 +35,6 @@ import com.linku.core.error.AppError
 import com.linku.core.error.NetworkError
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import kotlinx.coroutines.flow.flowOf
@@ -58,18 +55,19 @@ fun AlarmErrorLayout(
     errorState: LoadState.Error,
     modifier: Modifier = Modifier
 ) {
+    val colorTheme = MaterialTheme.linkuColors
 
     // 텍스트 스타일 따로 분리
     val titleStyle = SpanStyle(
         fontWeight = FontWeight(600),
         fontSize = 18.sp,
-        color = LocalColorTheme.current.black
+        color = colorTheme.black
     )
 
     val subStyle = SpanStyle(
         fontWeight = FontWeight(500),
         fontSize = 14.sp,
-        color = LocalColorTheme.current.gray[500]
+        color = colorTheme.gray[500]
     )
 
     // 에러 유형에 따라 출력 메세지 스타일 분기처리.

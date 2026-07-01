@@ -33,7 +33,7 @@ class NotificationViewModel @Inject constructor(
 
     // UI 이벤트(Intent) 입력 큐로서의 채널
     // ViewModel 내부에서만 consumeAsFlow로 처리되는 내부 전용 구조
-    private val intentChannel = Channel<NotificationIntent>(Channel.UNLIMITED)
+    private val intentChannel = Channel<NotificationIntent>(Channel.BUFFERED)
 
     //알람 활성화 상태
     private val _notificationState = MutableStateFlow(AlarmSettingUiState())
@@ -111,7 +111,6 @@ class NotificationViewModel @Inject constructor(
     private suspend fun handleConfirmFirstPushPermission() {
         firstPushAlarmAllowedUseCase().fold(
             onSuccess = {
-                notificationPreference.setFcmTokenRegistered(true)
                 loadAlarmSetting()
                 _sideEffect.send(
                     NotificationEffect.ShowToast("푸시 알림이 설정되었어요.")
