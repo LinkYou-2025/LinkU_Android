@@ -36,15 +36,15 @@ import kotlin.math.absoluteValue
  *
  * @param modifier 외부에서 전달하는 Modifier
  * @param pagerState HorizontalPager 스크롤 상태. 외부에서 rememberPagerState로 생성해서 전달
- * @param imageUrls 각 카드에 표시할 이미지 URL 리스트. null이면 fallback 이미지 표시
+ * @param imageUrls 각 카드에 표시할 이미지 URL 리스트. blank / "null" 문자열이면 fallback 이미지 표시
  * @param onCardClick 카드 하단 체크아웃 버튼 클릭 시 호출. (페이지 인덱스, 이미지 URL) 전달
  */
 @Composable
 fun CurationMainCardPager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
-    imageUrls: List<String?>,
-    onCardClick: (index: Int, imageUrl: String?) -> Unit = { _, _ -> },
+    imageUrls: List<String>,
+    onCardClick: (index: Int, imageUrl: String) -> Unit = { _, _ -> },
 ) {
     Column(
         modifier = modifier,
