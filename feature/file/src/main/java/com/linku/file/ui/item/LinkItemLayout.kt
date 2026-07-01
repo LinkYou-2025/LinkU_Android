@@ -1,4 +1,6 @@
-// 폴더 단위의 레이아웃
+/**
+ * 링크 카드 UI를 구성하는 레이아웃 컴포저블을 정의합니다.
+ */
 
 package com.linku.file.ui.item
 
@@ -61,6 +63,19 @@ import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.theme.domainLogoPainterOrNull
 
+/**
+ * 링크 정보를 카드 형태로 표시합니다.
+ *
+ * [link]가 존재하면 썸네일, 제목, 태그 목록, 도메인 정보를 표시하고 클릭/길게 누르기
+ * 동작을 활성화합니다. [link]가 `null`이면 링크 추가 아이템에서 재사용할 수 있는
+ * 비활성 placeholder 카드로 렌더링됩니다. 카드 내부 요소는 기준 크기를 바탕으로
+ * [BoxWithConstraints]에서 계산한 스케일에 맞춰 함께 축소/확대됩니다.
+ *
+ * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
+ * @param link 표시할 링크 정보입니다. `null`이면 placeholder 상태로 표시합니다.
+ * @param onClick 링크 카드 클릭 시 호출되는 콜백입니다.
+ * @param onLongClick 링크 카드 길게 누르기 시 링크 ID를 전달하는 콜백입니다.
+ */
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalFoundationApi::class,
@@ -128,6 +143,11 @@ fun LinkItemLayout(
             fun s(dp: Dp) = dp * scale
             fun ssp(textUnit: TextUnit) = (textUnit.value * scale).sp
 
+            /**
+             * 링크 카드에 표시되는 단일 태그 칩입니다.
+             *
+             * @param tag 칩 내부에 표시할 태그명입니다.
+             */
             @Composable
             fun LinkItemTag(tag: String) {
                 Box(
@@ -252,6 +272,9 @@ fun LinkItemLayout(
     }
 }
 
+/**
+ * [LinkItemLayout]의 링크 추가 placeholder 상태를 확인하기 위한 Compose Preview입니다.
+ */
 @Preview(showBackground = true)
 @Composable
 private fun LinkItemTest() {

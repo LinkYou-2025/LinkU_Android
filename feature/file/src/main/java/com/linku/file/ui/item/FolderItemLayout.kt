@@ -1,4 +1,6 @@
-// 폴더 단위의 레이아웃
+/**
+ * 폴더 카드 계열 UI를 구성하는 공통 레이아웃과 파생 컴포저블을 정의합니다.
+ */
 
 package com.linku.file.ui.item
 
@@ -52,6 +54,25 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
 
+/**
+ * 폴더 카드의 기본 시각 구조를 그리는 공통 레이아웃입니다.
+ *
+ * 이 컴포저블은 카드 배경, 겹쳐진 폴더 레이어, 마스크 이미지, 좌우 아이콘 영역,
+ * 폴더명 배지를 한 번에 구성합니다. 실제 카드 크기는 외부 [modifier]와 내부 기준
+ * 비율을 함께 사용해 결정되며, 내부 요소는 [BoxWithConstraints]에서 계산한 스케일을
+ * 기준으로 함께 축소/확대됩니다.
+ *
+ * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
+ * @param backgroundColor 카드 Surface 배경색입니다.
+ * @param color1 뒤쪽에 배치되는 첫 번째 폴더 레이어 색상입니다.
+ * @param color2 가운데에 배치되는 두 번째 폴더 레이어 색상입니다.
+ * @param color3 앞쪽에 배치되는 세 번째 폴더 레이어 색상입니다.
+ * @param folderMaskBrush 하단 폴더 마스크 이미지에 입힐 브러시입니다.
+ * @param leftIcon 카드 왼쪽 상단에 배치할 아이콘 슬롯입니다.
+ * @param rightIcon 카드 오른쪽 상단에 배치할 아이콘 슬롯입니다.
+ * @param textBackgroundColor 폴더명 첫 글자 배지의 배경색입니다.
+ * @param folderName 카드 하단에 표시할 폴더명입니다. 빈 문자열이면 폴더명 영역을 숨깁니다.
+ */
 @Composable
 fun FolderItemLayout(
     modifier: Modifier = Modifier,
@@ -95,6 +116,15 @@ fun FolderItemLayout(
             fun s(dp: Dp) = dp * scale
             fun ssp(sp: TextUnit) = (sp.value * scale).sp
 
+            /**
+             * 폴더 일러스트를 구성하는 단일 레이어를 현재 카드 크기에 맞춰 그립니다.
+             *
+             * @param color 레이어의 채움 색상입니다.
+             * @param size 레이어의 기준 너비입니다.
+             * @param height 레이어의 기준 높이입니다. 지정하지 않으면 [size]와 같은 값으로 사용합니다.
+             * @param padding 기준 크기에서 적용할 외부 여백입니다.
+             * @param rotation 레이어에 적용할 회전 각도입니다.
+             */
             @Composable
             fun FolderLayerBox(
                 color: Color,
@@ -244,6 +274,14 @@ fun FolderItemLayout(
     }
 }
 
+/**
+ * 비어 있는 폴더 카드 형태를 표시합니다.
+ *
+ * 폴더 추가 카드나 placeholder처럼 실제 폴더 색상이 필요 없는 상황에서 사용합니다.
+ *
+ * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
+ * @param folderName 카드 하단에 표시할 폴더명입니다. 기본값은 빈 문자열입니다.
+ */
 @Composable
 fun EmptyFolderItemLayout(
     modifier: Modifier = Modifier,
@@ -270,6 +308,19 @@ fun EmptyFolderItemLayout(
     )
 }
 
+/**
+ * 최상위 카테고리 폴더 카드를 표시합니다.
+ *
+ * 카테고리 색상 스타일을 폴더 레이어와 배지 색상에 반영하고, 일반 모드에서는 북마크
+ * 아이콘을, 편집 모드에서는 연필 아이콘을 오른쪽 상단에 표시합니다.
+ *
+ * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
+ * @param colorStyle 카테고리 카드에 적용할 색상 스타일입니다.
+ * @param folder 표시할 폴더 정보입니다.
+ * @param visibleBookmarked 북마크/편집 아이콘 영역을 표시할지 여부입니다.
+ * @param isEditMode 편집 모드 활성화 여부입니다.
+ * @param onBookmark 북마크 아이콘을 눌렀을 때 실행할 동작입니다.
+ */
 @Composable
 fun CategoryItemLayout(
     modifier: Modifier = Modifier,
@@ -319,6 +370,20 @@ fun CategoryItemLayout(
     )
 }
 
+/**
+ * 선택된 카테고리 아래의 하위 폴더 카드를 표시합니다.
+ *
+ * 공유 상태에 따라 왼쪽 상단에 공유/잠금 아이콘을 표시하고, 편집 모드에서는 해당 아이콘을
+ * 눌러 공유 상태를 변경할 수 있습니다. 편집 모드에서는 오른쪽 상단에 폴더 수정 아이콘도
+ * 표시합니다.
+ *
+ * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
+ * @param colorStyle 하위 폴더 카드에 적용할 색상 스타일입니다.
+ * @param folder 표시할 하위 폴더 정보입니다.
+ * @param isEditMode 편집 모드 활성화 여부입니다.
+ * @param onEdit 편집 아이콘을 눌렀을 때 실행할 동작입니다.
+ * @param onChangeSharing 공유 상태 아이콘을 눌렀을 때 실행할 동작입니다.
+ */
 @Composable
 fun MyFolderItemLayout(
     modifier: Modifier = Modifier,
@@ -370,6 +435,9 @@ fun MyFolderItemLayout(
     )
 }
 
+/**
+ * 폴더 카드 계열 컴포저블의 기본 상태를 확인하기 위한 Compose Preview입니다.
+ */
 @Preview(showBackground = true)
 @Composable
 private fun FolderItemTest() {

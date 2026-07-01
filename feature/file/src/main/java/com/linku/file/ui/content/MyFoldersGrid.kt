@@ -50,11 +50,40 @@ import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
+/**
+ * 폴더/링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.
+ */
 private const val INTER_LAYER_PADDING = 18.51
+
+/**
+ * 미분류 링크 섹션 제목 위쪽에 적용되는 여백(dp)입니다.
+ */
 private const val SECTION_TITLE_TOP_PADDING = 21.49
+
+/**
+ * 미분류 링크 섹션 제목 아래쪽에 적용되는 여백(dp)입니다.
+ */
 private const val SECTION_TITLE_BOTTOM_PADDING = 1.49
+
+/**
+ * 사용 가능한 가로 폭을 기준으로 두 열 사이의 가로 간격을 계산할 때 사용하는 비율입니다.
+ */
 private const val ITEM_RATIO = 10f / 174f
 
+/**
+ * 선택된 최상위 폴더의 하위 폴더와 미분류 링크를 한 그리드 안에 표시합니다.
+ *
+ * 첫 번째 셀에는 하위 폴더 추가 아이템을 배치하고, 이어서 하위 폴더 목록을 표시합니다.
+ * 미분류 링크가 존재하면 전체 폭 섹션 제목을 추가한 뒤 링크 카드를 이어서 렌더링합니다.
+ * 하위 폴더는 편집 모드에 따라 수정/공유 상태 변경 액션을 제공하고, 링크는 길게 눌러
+ * 삭제 확인 모달을 열 수 있습니다.
+ *
+ * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
+ * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
+ * @param fileViewModel 하위 폴더, 미분류 링크, 색상 매핑 및 삭제/로딩 동작을 제공하는 ViewModel입니다.
+ * @param editStateViewModel 현재 편집 모드 여부를 제공하는 ViewModel입니다.
+ * @param folderStateViewModel 선택된 하위 폴더와 바텀시트 표시 상태를 갱신하는 ViewModel입니다.
+ */
 @Composable
 internal fun MyFoldersGrid(
     modifier: Modifier = Modifier,
@@ -188,6 +217,14 @@ internal fun MyFoldersGrid(
     }
 }
 
+/**
+ * 하위 폴더 목록의 첫 번째 셀에 표시되는 폴더 추가 아이템입니다.
+ *
+ * 빈 폴더 카드 위에 추가 아이콘과 라벨을 겹쳐 표시하며, 실제 클릭 동작은 상위 그리드에서
+ * 전달한 [modifier]의 클릭 modifier를 통해 처리합니다.
+ *
+ * @param modifier 카드 크기와 클릭 영역을 결정하는 [Modifier]입니다.
+ */
 @Composable
 private fun AddBottomFolderItem(
     modifier: Modifier
@@ -220,6 +257,20 @@ private fun AddBottomFolderItem(
     }
 }
 
+/**
+ * 하위 폴더 카드의 클릭, 길게 누르기, 삭제 확인 모달을 함께 처리하는 래퍼입니다.
+ *
+ * 일반 모드에서는 클릭 시 하위 폴더의 링크 화면으로 이동하고, 편집 모드에서는 카드 내부의
+ * 편집/공유 아이콘 액션만 활성화합니다. 길게 누르면 삭제 확인 모달을 표시합니다.
+ *
+ * @param folder 표시할 하위 폴더 정보입니다.
+ * @param colorStyle 선택된 최상위 폴더에서 파생된 폴더 카드 색상 스타일입니다.
+ * @param isEditMode 편집 모드 활성화 여부입니다.
+ * @param onClick 일반 모드에서 폴더 카드를 눌렀을 때 실행할 동작입니다.
+ * @param onEdit 편집 모드에서 편집 아이콘을 눌렀을 때 실행할 동작입니다.
+ * @param onChangeSharing 편집 모드에서 공유 상태 아이콘을 눌렀을 때 실행할 동작입니다.
+ * @param onDelete 삭제 확인 모달에서 확인을 눌렀을 때 실행할 동작입니다.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MyFolderItem(
@@ -282,6 +333,9 @@ private fun MyFolderItem(
     }
 }
 
+/**
+ * [MyFoldersGrid]의 기본 상태를 확인하기 위한 Compose Preview입니다.
+ */
 @Preview(showBackground = true)
 @Composable
 private fun MyFoldersGridTest() {

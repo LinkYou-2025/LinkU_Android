@@ -42,9 +42,28 @@ import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
+/**
+ * 링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.
+ */
 private const val INTER_LAYER_PADDING = 18.51
+
+/**
+ * 사용 가능한 가로 폭을 기준으로 두 열 사이의 가로 간격을 계산할 때 사용하는 비율입니다.
+ */
 private const val ITEM_RATIO = 10f / 174f
 
+/**
+ * 선택된 폴더에 속한 링크 목록을 두 열 그리드로 표시합니다.
+ *
+ * 첫 번째 셀에는 링크 분류를 시작하는 추가 아이템을 배치하고, 이후 셀에는 분류된 링크를
+ * [LinkItemLayout]으로 렌더링합니다. 분류되지 않은 링크가 없을 때는 안내 모달을 띄우며,
+ * 링크를 길게 누르면 삭제 확인 모달을 표시합니다.
+ *
+ * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
+ * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
+ * @param fileViewModel 링크 목록, 미분류 링크 목록, 링크 클릭 및 삭제 동작을 제공하는 ViewModel입니다.
+ * @param folderStateViewModel 링크 분류 바텀시트 표시 상태를 갱신하는 ViewModel입니다.
+ */
 @Composable
 internal fun ClassifiedLinksGrid(
     modifier: Modifier = Modifier,
@@ -159,6 +178,14 @@ internal fun ClassifiedLinksGrid(
     }
 }
 
+/**
+ * 링크 목록의 첫 번째 셀에 표시되는 링크 추가 아이템입니다.
+ *
+ * 빈 링크 카드 위에 추가 아이콘과 라벨을 겹쳐 표시하며, 실제 클릭 동작은 상위 그리드에서
+ * 전달한 [modifier]의 클릭 modifier를 통해 처리합니다.
+ *
+ * @param modifier 카드 크기와 클릭 영역을 결정하는 [Modifier]입니다.
+ */
 @Composable
 private fun AddLinkItem(
     modifier: Modifier
@@ -198,6 +225,9 @@ private fun AddLinkItem(
     }
 }
 
+/**
+ * [ClassifiedLinksGrid]의 기본 상태를 확인하기 위한 Compose Preview입니다.
+ */
 @Preview(showBackground = true)
 @Composable
 private fun ClassifiedLinksGridTest(){
