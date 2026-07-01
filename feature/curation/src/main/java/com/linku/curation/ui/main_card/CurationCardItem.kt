@@ -123,7 +123,7 @@ fun CurationCardItem(
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 262.scaler)
+                .padding(top = 248.scaler) // TODO : 피그마 대로 구현하니 너무 내려감... 임의로 262 -> 248로 수정함. 디자이너가 괜찮으면 좋겠음...
         ) {
             Text(
                 text = content.title,

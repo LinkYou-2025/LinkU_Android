@@ -3,7 +3,6 @@ package com.linku.curation.ui.calendar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,7 +17,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.curation.R
 import com.linku.design.theme.LinkuPreview
@@ -49,8 +47,8 @@ fun CalendarIconBox(
 
     Box(
         modifier = modifier
-            .width(45.dp)
-            .height(48.dp),
+            .width(45.scaler)
+            .height(48.scaler),
         contentAlignment = Alignment.TopCenter
     ) {
         // 배경 달력 이미지
@@ -74,14 +72,13 @@ fun CalendarIconBox(
             Text(
                 text = year,
                 fontSize = 6.sp,
+                lineHeight = 6.sp,
                 fontFamily = Laundrygothic.font, // PaperLogy 아님!
                 fontWeight = FontWeight(400),
                 color = colorTheme.white,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 13.scaler)
             )
 
-            Spacer(modifier = Modifier.height(7.scaler))
 
             // 월
             Text(
@@ -92,7 +89,7 @@ fun CalendarIconBox(
                 fontWeight = FontWeight(700),
                 color = colorTheme.black,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 1.scaler)
+                modifier = Modifier.padding(horizontal = 0.scaler)
             )
         }
 
