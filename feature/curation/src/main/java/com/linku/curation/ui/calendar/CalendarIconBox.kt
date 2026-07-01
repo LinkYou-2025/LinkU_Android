@@ -1,7 +1,5 @@
 package com.linku.curation.ui.calendar
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,24 +8,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.font.Laundrygothic
-import com.linku.design.util.scaler
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.runtime.remember
-import java.time.LocalDate
 import com.linku.curation.R
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.font.Laundrygothic
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+import java.time.LocalDate
+
 // 월 약어 리스트
 private val MONTH_LABELS = listOf(
     "JAN", "FEB", "MAR", "APR", "MAY", "JUN",
@@ -35,11 +34,12 @@ private val MONTH_LABELS = listOf(
 )
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CalendarIconBox(
     modifier: Modifier = Modifier
 ) {
+    val colorTheme = MaterialTheme.linkuColors
+
     // 전달 계산 +  연도 넘김도 자동으로 처리됨.
     val prevMonth = remember {
         LocalDate.now().minusMonths(1)
@@ -73,13 +73,11 @@ fun CalendarIconBox(
             // 연도
             Text(
                 text = year,
-                style = TextStyle(
-                    fontSize = 6.sp,
-                    fontFamily = Laundrygothic.font,
-                    fontWeight = FontWeight(400),
-                    color = Color(0xFFFFFFFF),
-                    textAlign = TextAlign.Center,
-                ),
+                fontSize = 6.sp,
+                fontFamily = Laundrygothic.font, // PaperLogy 아님!
+                fontWeight = FontWeight(400),
+                color = colorTheme.white,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 13.scaler)
             )
 
@@ -88,14 +86,12 @@ fun CalendarIconBox(
             // 월
             Text(
                 text = monthLabel,
-                style = TextStyle(
-                    fontSize = 14.sp,
-                    lineHeight = 30.sp,
-                    fontFamily = Laundrygothic.font,
-                    fontWeight = FontWeight(700),
-                    color = Color(0xFF000000),
-                    textAlign = TextAlign.Center,
-                ),
+                fontSize = 14.sp,
+                lineHeight = 30.sp,
+                fontFamily = Laundrygothic.font, // PaperLogy 아님!
+                fontWeight = FontWeight(700),
+                color = colorTheme.black,
+                textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 1.scaler)
             )
         }
@@ -104,15 +100,10 @@ fun CalendarIconBox(
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview
 @Composable
 fun PreviewCalendarIconBox() {
-    Box(
-        modifier = Modifier
-            .wrapContentSize()
-            .padding(16.dp),
-        contentAlignment = Alignment.Center
-    ) {
+    LinkuPreview {
         CalendarIconBox()
     }
 }
