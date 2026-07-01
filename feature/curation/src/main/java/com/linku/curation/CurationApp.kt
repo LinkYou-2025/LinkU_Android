@@ -1,17 +1,16 @@
 package com.linku.linku_android.curation
 
-import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.runtime.remember
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.linku.curation.CurationViewModel
 import com.linku.curation.ui.CurationScreen
-import com.linku.curation.ui.screen.detail.CurationMonthDetailScreen
+import com.linku.curation.ui.screen.CurationCard1Screen
+import com.linku.curation.ui.screen.CurationCard3Screen
 
-@OptIn (ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,
     showNavBar: (Boolean) -> Unit,
@@ -31,26 +30,20 @@ fun NavGraphBuilder.curationGraph(
 
             CurationScreen(
                 nickname = nickname,
-                viewModel = curationVm
+                viewModel = curationVm,
+                onCard1Click = { navigator.navigate("curation_card1") },
+                onCard3Click = { navigator.navigate("curation_card3") }
             )
         }
 
-        composable(
-            route = "curation_month_detail/{curationId}?imageUrl={imageUrl}&cardIndex={cardIndex}",
-//            enterTransition = { EnterTransition.None },
-//            exitTransition = { ExitTransition.None }
-        ) { backStack ->
+        composable("curation_card1") {
             showNavBar(false)
+            CurationCard1Screen(onBack = { navigator.popBackStack() })
+        }
 
-            val curationId = backStack.arguments?.getString("curationId")?.toLong() ?: 0L
-            val imageUrl = backStack.arguments?.getString("imageUrl")
-            val cardIndex = backStack.arguments?.getString("cardIndex")?.toInt() ?: 0
-
-            CurationMonthDetailScreen(
-                curationId = curationId,
-                imageUrl = imageUrl,
-                onBack = { navigator.popBackStack() }
-            )
+        composable("curation_card3") {
+            showNavBar(false)
+            CurationCard3Screen(onBack = { navigator.popBackStack() })
         }
     }
 }
