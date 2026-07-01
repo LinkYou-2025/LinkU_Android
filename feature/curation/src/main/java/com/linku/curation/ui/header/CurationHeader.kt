@@ -23,7 +23,7 @@ import com.linku.design.util.scaler
 @Composable
 fun CurationHeader(
     modifier: Modifier = Modifier,
-    nickname: String = "세나",
+    nickname: String,
 ) {
     val colorTheme = MaterialTheme.linkuColors
 

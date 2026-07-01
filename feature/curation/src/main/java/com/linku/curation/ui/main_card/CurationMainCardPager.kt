@@ -43,8 +43,8 @@ import kotlin.math.absoluteValue
 fun CurationMainCardPager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
-    imageUrls: List<String?> = listOf("", "", ""),
-    onCardClick: (index: Int, imageUrl: String?) -> Unit = { _, _ -> }
+    imageUrls: List<String?>,
+    onCardClick: (index: Int, imageUrl: String?) -> Unit = { _, _ -> },
 ) {
     Column(
         modifier = modifier,
