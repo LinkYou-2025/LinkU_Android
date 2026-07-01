@@ -10,4 +10,6 @@
    <include domain="sharedpref" path="."/>
    <exclude domain="sharedpref" path="device.xml"/>
 -->
+    <!-- 리프레시 토큰 등 인증 정보가 백업에 포함되면 앱 삭제 후 재설치해도 자동 로그인되는 버그 발생 -->
+    <exclude domain="file" path="datastore/auth_prefs.preferences_pb"/>
 </full-backup-content>

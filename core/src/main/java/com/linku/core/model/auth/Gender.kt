@@ -1,12 +1,10 @@
 package com.linku.core.model.auth
 
-enum class Gender(val value: Int) {
-    NONE(0),
-    MALE(1),
-    FEMALE(2);
+enum class Gender {
+    NONE, MALE, FEMALE;
 
     companion object {
-        fun fromValue(value: Int): Gender =
-            entries.find { it.value == value } ?: NONE
+        fun fromApiValue(apiValue: String?): Gender =
+            runCatching { valueOf(apiValue.orEmpty().uppercase()) }.getOrDefault(NONE)
     }
 }
