@@ -22,17 +22,17 @@ import com.linku.design.util.scaler
  * 큐레이션 메인 카드
  *
  * - Backend 이미지 URL 표시
- * - imageUrl == null / blank → fallback 이미지 표시
+ * - imageUrl이 빈 문자열이면 fallback 이미지 표시
  * - 사이즈: 346 x 432 (scaler)
  *
  * @param modifier 외부에서 전달하는 Modifier (기본값: Modifier)
- * @param imageUrl 백엔드에서 받아오는 카드 이미지 URL. null이거나 빈 문자열이면 fallbackImage로 대체됨
+ * @param imageUrl 백엔드에서 받아오는 카드 이미지 URL. 빈 문자열이면 fallbackImage로 대체됨
  * @param fallbackImage imageUrl이 없을 때 표시할 기본 이미지 리소스 (기본값: img_curation_example)
  */
 @Composable
 fun CurationMainCard(
     modifier: Modifier = Modifier,
-    imageUrl: String? = "",
+    imageUrl: String,
     @DrawableRes fallbackImage: Int = R.drawable.img_curation_example, //이건 프리뷰 확인 용이라 나중에 지워주세요:)
 ) {
     val colorTheme = MaterialTheme.linkuColors
@@ -46,7 +46,7 @@ fun CurationMainCard(
             .clip(RoundedCornerShape(24.scaler))
             .background(colorTheme.curationCardBackground)
     ) {
-        if (imageUrl.isNullOrBlank()) {
+        if (imageUrl.isBlank()) {
             Image(
                 painter = painterResource(id = fallbackImage),
                 contentDescription = null,
@@ -68,6 +68,6 @@ fun CurationMainCard(
 @Preview(showBackground = true)
 @Composable
 private fun PreviewCurationMainCard() {
-    CurationMainCard()
+    CurationMainCard(imageUrl = "")
 }
 

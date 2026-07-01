@@ -68,7 +68,7 @@ fun getCurationCardContents(): List<CurationCardContent> {
  * 큐레이션 메인 카드 아이템 (이미지 + 타이틀 + 설명 + 페이지 인디케이터 + 체크아웃 버튼)
  *
  * @param modifier 외부에서 전달하는 Modifier (기본값: Modifier)
- * @param imageUrl 카드 배경 이미지 URL. null / blank / "null" 문자열이면 fallbackImage로 대체됨
+ * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨
  * @param page 현재 카드의 0-based 페이지 인덱스. getCurationCardContents()에서 해당 인덱스의 콘텐츠를 가져오는 데도 사용됨
  * @param totalPage 전체 카드 페이지 수 (페이지 인디케이터 표시용, 기본값: 3)
  * @param onCheckOutClick 카드 우측 하단 체크아웃 버튼 클릭 콜백
@@ -77,7 +77,7 @@ fun getCurationCardContents(): List<CurationCardContent> {
 @Composable
 fun CurationCardItem(
     modifier: Modifier = Modifier,
-    imageUrl: String? = "", // null로 놓으면 지민이가 코멘트를 남기겠지...
+    imageUrl: String,
     page: Int = 0,
     totalPage: Int = 3,
     onCheckOutClick: () -> Unit = {},
@@ -184,7 +184,8 @@ fun CurationCardItem(
 private fun PreviewCurationCardItem() {
     LinkuPreview {
         CurationCardItem(
-            modifier = Modifier.size(width = 346.scaler, height = 432.scaler)
+            modifier = Modifier.size(width = 346.scaler, height = 432.scaler),
+            imageUrl = "",
         )
     }
 }
