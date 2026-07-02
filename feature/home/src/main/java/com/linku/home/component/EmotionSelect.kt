@@ -40,7 +40,7 @@ fun EmotionSelect(
     onEmotionSelect: (Long?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val emotions = EmotionType.entries.toList()
+    val emotions = EmotionType.entries
 
     FlowRow(
         modifier = modifier
