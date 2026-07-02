@@ -2,7 +2,6 @@ package com.linku.mypage.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -28,9 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 import com.linku.mypage.component.NoticeItem
 
@@ -38,6 +39,8 @@ import com.linku.mypage.component.NoticeItem
 fun NoticeScreen(
     navController: NavController
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var expandedNoticeIndex by remember { mutableStateOf<Int?>(null) }
 
     val notices = listOf(
@@ -75,7 +78,7 @@ fun NoticeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100])
+            .background(colors.gray[100])
     ) {
         Box(
             modifier = Modifier
@@ -89,7 +92,7 @@ fun NoticeScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(
@@ -97,7 +100,7 @@ fun NoticeScreen(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = LocalFontTheme.current.font,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.align(Alignment.Center)
             )
         }

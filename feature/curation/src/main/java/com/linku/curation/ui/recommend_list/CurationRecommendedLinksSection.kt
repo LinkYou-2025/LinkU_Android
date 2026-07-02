@@ -1,15 +1,26 @@
 package com.linku.curation.ui.recommend_list
 
-
+//TODO : 지현이 PR merge 되면 이거 제거 후 지현이가 만든거 사용하기
 // 역할: 추천 링크 리스트 섹션 + 카드
 // 기능: 서버에서 받은 RecommendedLink(title, imageUrl, url, categories, domain)를 표시
 // 관심사: 리스트 반복, 썸네일/아이콘 표시, 클릭 콜백
 
-import androidx.compose.ui.unit.lerp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,14 +41,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
-import com.linku.curation.ui.resolveSourceIcon
-import com.linku.curation.ui.resolveSourceLabel
+import coil3.request.crossfade
 import com.linku.core.model.RecommendedLink
 import com.linku.curation.R
-import coil3.request.crossfade
+import com.linku.curation.ui.resolveSourceIcon
+import com.linku.curation.ui.resolveSourceLabel
 import com.linku.curation.ui.util.ShimmerSkeleton
 import com.linku.curation.ui.util.rememberScaleFactor
 import com.linku.curation.ui.util.shimmer

@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,8 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -47,6 +48,8 @@ fun NoticeItem(
     expanded: Boolean,
     onToggle: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var hasEverExpanded by remember { mutableStateOf(false) }
     var hasBeenRead by remember { mutableStateOf(false) }
 
@@ -74,7 +77,7 @@ fun NoticeItem(
                 clip = true
             }
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -104,9 +107,9 @@ fun NoticeItem(
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (hasBeenRead) {
-                        LocalColorTheme.current.gray[300]
+                        colors.gray[300]
                     } else {
-                        LocalColorTheme.current.gray[600]
+                        colors.gray[600]
                     }
                 )
 
@@ -117,9 +120,9 @@ fun NoticeItem(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (hasBeenRead) {
-                        LocalColorTheme.current.gray[400]
+                        colors.gray[400]
                     } else {
-                        LocalColorTheme.current.black
+                        colors.black
                     }
                 )
             }
@@ -150,7 +153,7 @@ fun NoticeItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(LocalColorTheme.current.gray[200])
+                        .background(colors.gray[200])
                 )
 
                 Spacer(modifier = Modifier.height(13.dp))
@@ -159,7 +162,7 @@ fun NoticeItem(
                     text = contents,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[700],
+                    color = colors.gray[700],
                     lineHeight = 22.sp,
                     modifier = Modifier.padding(horizontal = 1.dp)
                 )

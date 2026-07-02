@@ -4,7 +4,14 @@ package com.linku.design.top.bar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -13,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -20,13 +28,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.font.Paperlogy
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
-import com.linku.design.R as Res
+import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.font.Taebaek
 import com.linku.design.util.scaler
-import androidx.compose.ui.graphics.Color
+import com.linku.design.R as Res
 
 /*
     공통 TopBar 컴포넌트
@@ -40,11 +47,12 @@ import androidx.compose.ui.graphics.Color
  * @param onClickAlarm 알림 아이콘 클릭 콜백
  */
 
-private const val TOPBAR_SIMPLE_HEIGHT = 77.4f   // 로고 + 알림만
+private const val TOPBAR_SIMPLE_HEIGHT = 80f   // 로고 + 알림만
 private const val TOPBAR_SEARCH_HEIGHT = 139f    // 검색바 포함 //기존 파일은 206f
 
 private val DEFAULT_BACKGROUND = Color.White // 기본 배경 흰색
 
+//아 이것도 리펙해야하나...?
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,

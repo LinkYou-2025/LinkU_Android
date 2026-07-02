@@ -47,7 +47,8 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
-import com.linku.home.screen.SaveLinkResultScreen
+import com.linku.home.component.LinkCategoryOption
+import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
 import com.linku.home.viewmodel.AlarmViewModel
 import com.linku.linku_android.curation.curationGraph
@@ -92,6 +93,10 @@ fun MainApp(
             // TODO: 딤처리 (PM 확정 후 - 문구)
         }
     }
+
+    // 닉네임 최상단 뒤치(사용하는 스크린)
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+
 
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     // FIXME : 지민님한테 여쭈어보기. 매번 앱 실행할 때마다 최근 기록을 지우는 것보다는 로그아웃 때 지우는건 어떤지
@@ -138,6 +143,14 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == NavigationRoute.Home.route ||
+            currentRoute == "curation_list"
+        ) {
+            viewModel.fetchNickname()
+        }
+    }
 
     fun isTabRoute(current: String?, root: String): Boolean =
         current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
@@ -344,20 +357,18 @@ fun MainApp(
                             viewModel.checkAndShowPushAlarmDialog()
                         }
 
-                        // 홈 탭 진입 및 복귀 할 때마다 닉네임 갱신
-                        LaunchedEffect(currentRoute) {
-                            if (currentRoute == NavigationRoute.Home.route) {
-                                viewModel.fetchNickname()
-                            }
-                        }
-
-                        val nickname by viewModel.nickname.collectAsStateWithLifecycle()
-
                         HomeApp(
                             viewModel = homeViewModel,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
+                            },
+                            onNavigateToSaveLink = { url ->
+                                homeViewModel.setUrl(url)
+                                navigator.navigate("savelink")
+                            },
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
                             },
                             onShowNavBar = { showNavBar = it }
                         )
@@ -381,7 +392,8 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
-                    showNavBar = { showNavBar = it }
+                    showNavBar = { showNavBar = it },
+                    nickname = nickname.orEmpty().ifBlank { "링큐" }
                 )
 
 
@@ -456,18 +468,29 @@ fun MainApp(
                     SaveLinkScreen(
                         image = vm.image,
                         url = vm.url,
+                        title = vm.title,
                         memo = vm.memo,
                         selectedEmotionId = vm.selectedEmotionId,
+                        selectedSituationId = vm.selectedSituationId,
+                        jobId = vm.jobId ?: 3L,
                         onPickImage = { imagePicker.launch("image/*") },
                         onUrlChange = vm::setUrl,
+                        onTitleChange = vm::setTitle,
                         onMemoChange = vm::setMemo,
                         onEmotionSelect = vm::selectEmotion,
+                        onSituationSelect = vm::selectSituation,
                         onSaveClick = {
-                            // 저장 버튼 로그 + API 호출
-                            Log.d("SaveLink", "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, image=${vm.image?.name}")
+                            Log.d(
+                                "SaveLink",
+                                "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, situationId=${vm.selectedSituationId}, image=${vm.image?.name}"
+                            )
+
                             vm.saveLink(
                                 onSucceed = { saved ->
-                                    Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
+                                    Log.d(
+                                        "SaveLink",
+                                        "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
+                                    )
                                     vm.loadLinkDetail(saved.linkuId)
                                     vm.resetForm()
                                     navigator.navigate("savelinkresult/${saved.linkuId}")
@@ -499,48 +522,115 @@ fun MainApp(
                         vm.loadCategoryColors()
                     }
 
+                    fun emotionNameOf(id: Long?): String {
+                        return when (id) {
+                            1L -> "즐거움"
+                            2L -> "평온"
+                            3L -> "설렘"
+                            4L -> "슬픔"
+                            5L -> "짜증"
+                            6L -> "분노"
+                            else -> "감정"
+                        }
+                    }
+
+                    // TODO: 카테고리 API 연동 후 categoryId 기준 실제 카테고리명/색상 매핑으로 교체
+                    val CATEGORY_MAP = linkedMapOf(
+                        1L to "어학",
+                        2L to "뉴스",
+                        3L to "공부법",
+                        4L to "IT·개발",
+                        5L to "자기계발",
+                        6L to "취업·이직",
+                        7L to "비즈니스 인사이트",
+                        8L to "생산성·툴",
+                        9L to "라이프스타일",
+                        10L to "심리·자기이해",
+                        11L to "에세이·칼럼",
+                        12L to "트렌드",
+                        13L to "디자인·예술",
+                        14L to "영상·뮤직",
+                        15L to "맛집·여행",
+                        16L to "기타"
+                    )
+
+                    fun categoryNameOf(id: Long?): String {
+                        return CATEGORY_MAP[id] ?: "카테고리"
+                    }
+
+                    fun categoryIdOf(name: String): Long? {
+                        return CATEGORY_MAP.entries
+                            .firstOrNull { it.value == name }
+                            ?.key
+                    }
+
+                    fun keywordToTags(keyword: String?): List<String> {
+                        return keyword
+                            .orEmpty()
+                            .split(",", " ", "#")
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                            .take(4)
+                    }
+
                     // 진행률/색상 맵 수집
                     val aiProgress = vm.aiProgress.collectAsState().value
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
+                    val categoryOptions = categoryColorMap.mapNotNull { (name, style) ->
+                        val id = categoryIdOf(name) ?: return@mapNotNull null
+
+                        LinkCategoryOption(
+                            id = id,
+                            name = name,
+                            color = style.color4
+                        )
+                    }
+
                     // 외부 브라우저 열기
                     fun openUrl(url: String) {
                         runCatching {
-                            val fixed = if (url.startsWith("http")) url else "https://$url"
+                            val fixed = if (
+                                url.startsWith("http://") || url.startsWith("https://")
+                            ) {
+                                url
+                            } else {
+                                "https://$url"
+                            }
+
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
                                 fixed.toUri()
                             )
+
                             context.startActivity(intent)
                         }.onFailure {
                             Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
                         }
                     }
 
-                    SaveLinkResultScreen(
-                        link = vm.linkDetail,
-                        aiArticle = vm.aiArticleDetail,
-                        isLoading = vm.isLoadingLinkDetail || vm.isLoadingAiArticle,
-                        isAiLoading = vm.isLoadingAiArticle,
-                        onBack = { navigator.popBackStack() },
-                        onOpenLink = { url -> openUrl(url) },
-                        categoryColorMap = categoryColorMap,
-                        onSubmitEdit = { title, memo, categoryId, emotionId ->
-                            vm.updateLink(
-                                title = title,
-                                memo = memo,
-                                categoryId = categoryId,
-                                emotionId = emotionId,
-                                onSucceed = { Toast.makeText(context, "수정 완료", Toast.LENGTH_SHORT).show() },
-                                onFailed = { e ->
-                                    Log.e("SaveLinkResult", "수정 실패", e)
-                                    Toast.makeText(context, e.message ?: "수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        },
-                        onRequestAiSummary = { vm.loadAiArticle(linkuId) },
-                        aiProgress = aiProgress,
-                        onCancelAi = { vm.cancelAiArticleJob() }
+                    val linkDetail = vm.linkDetail
+                    val aiArticle = vm.aiArticleDetail
+
+                    val displayKeyword = aiArticle?.keyword?.trim().orEmpty()
+                        .ifEmpty { linkDetail?.keyword.orEmpty() }
+
+                    val displaySummary = aiArticle?.summary?.trim().orEmpty()
+                        .ifEmpty { linkDetail?.summary.orEmpty() }
+
+                    LinkDetailScreen(
+                        linkTitle = linkDetail?.title.orEmpty(),
+                        category = categoryNameOf(linkDetail?.categoryId),
+                        emotion = emotionNameOf(linkDetail?.emotionId),
+                        situationId = null, // TODO: 상세 API에 situationId 생기면 linkDetail?.situationId로 변경
+                        linkUrl = linkDetail?.linku.orEmpty(),
+                        memo = linkDetail?.memo.orEmpty(),
+                        tags = keywordToTags(displayKeyword),
+                        aiSummary = displaySummary,
+                        categoryOptions = categoryOptions,
+                        onBack = {
+                            navigator.popBackStack()
+                        }
                     )
                 }
 

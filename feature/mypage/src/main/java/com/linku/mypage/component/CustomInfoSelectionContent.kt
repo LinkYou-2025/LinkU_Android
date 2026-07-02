@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,9 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -37,10 +38,12 @@ fun CustomInfoSelectionContent(
     onButtonClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
         Box(
             modifier = Modifier
@@ -62,7 +65,7 @@ fun CustomInfoSelectionContent(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = LocalFontTheme.current.font,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -96,12 +99,12 @@ fun CustomInfoSelectionContent(
                 .then(
                     if (isButtonEnabled) {
                         Modifier.background(
-                            brush = LocalColorTheme.current.maincolor,
+                            brush = colors.maincolor,
                             shape = RoundedCornerShape(18.dp)
                         )
                     } else {
                         Modifier.background(
-                            color = LocalColorTheme.current.gray[300],
+                            color = colors.gray[300],
                             shape = RoundedCornerShape(18.dp)
                         )
                     }
@@ -116,7 +119,7 @@ fun CustomInfoSelectionContent(
                 text = buttonText,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = LocalColorTheme.current.white
+                color = colors.white
             )
         }
     }
@@ -125,6 +128,8 @@ fun CustomInfoSelectionContent(
 @Preview(showBackground = true)
 @Composable
 fun PreviewCustomInfoSelectionContent() {
+    val colors = MaterialTheme.linkuColors
+
     ThemeProvider {
         CustomInfoSelectionContent(
             questionContent = {
@@ -132,14 +137,14 @@ fun PreviewCustomInfoSelectionContent() {
                     text = "어떤 정보를 수정하시겠어요?",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = LocalColorTheme.current.black
+                    color = colors.black
                 )
             },
             selectionContent = {
                 Text(
                     text = "선택된 정보가 여기에 표시됩니다.",
                     fontSize = 14.sp,
-                    color = LocalColorTheme.current.gray[700]
+                    color = colors.gray[700]
                 )
             },
             buttonText = "저장",
