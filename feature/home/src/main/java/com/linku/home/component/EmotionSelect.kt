@@ -85,21 +85,12 @@ private fun EmotionBadgeImage(
                 },
                 shape = RoundedCornerShape(20.dp)
             )
-            .then(
-                if (selected) {
-                    Modifier.border(
-                        width = 1.dp,
-                        brush = Basic.maincolor,
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                } else {
-                    Modifier.border(
-                        width = 1.dp,
-                        color = colors.gray[200],
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                }
+            .border(
+                width = 1.dp,
+                brush = if (selected) Basic.maincolor else SolidColor(colors.gray[200]), // 와! 코드가 확 줄어드러욧!
+                shape = RoundedCornerShape(20.dp)
             )
+
             .noRippleClickable { onClick() }
             .padding(horizontal = 15.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
