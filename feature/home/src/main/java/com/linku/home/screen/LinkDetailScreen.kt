@@ -104,7 +104,12 @@ fun LinkDetailScreen(
     val situationOptions = SituationOptions.allSituations
 
     var selectedTitle by remember { mutableStateOf(linkTitle) }
-    var selectedCategory by remember { mutableStateOf(category) }
+    var selectedCategory by remember { mutableStateOf(category) }  // TopBar에 보여줄 이름
+    var selectedCategoryId by remember(categoryOptions, category) {  // 선택 여부 비교 및 API 전달용
+        mutableStateOf(
+            categoryOptions.firstOrNull { it.name == category }?.id
+        )
+    }
     var selectedEmotion by remember { mutableStateOf(emotion) }
     var selectedSituation by remember(situationId) {
         mutableStateOf(
@@ -126,10 +131,11 @@ fun LinkDetailScreen(
             if (tag.startsWith("#")) tag else "#$tag"
         }
 
-    LaunchedEffect(linkTitle, category, emotion, situationId, memo) {
+    LaunchedEffect(linkTitle, category, emotion, situationId, memo, categoryOptions) {
         if (!isEditMode) {
             selectedTitle = linkTitle
             selectedCategory = category
+            selectedCategoryId = categoryOptions.firstOrNull { it.name == category }?.id
             selectedEmotion = emotion
             selectedSituation = situationOptions.firstOrNull { it.id.value == situationId }
             selectedMemo = memo
@@ -575,8 +581,9 @@ fun LinkDetailScreen(
                 LinkDetailDropdownType.CATEGORY -> {
                     LinkDetailCategoryDropdown(
                         categories = categoryOptions,
-                        selectedCategory = selectedCategory,
+                        selectedCategoryId = selectedCategoryId,
                         onCategoryClick = {
+                            selectedCategoryId = it.id
                             selectedCategory = it.name
                             openedDropdownType = null
                         },

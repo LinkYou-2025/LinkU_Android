@@ -34,7 +34,7 @@ data class LinkCategoryOption(
 @Composable
 fun LinkDetailCategoryDropdown(
     categories: List<LinkCategoryOption>,
-    selectedCategory: String,
+    selectedCategoryId: Long?,
     onCategoryClick: (LinkCategoryOption) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -49,6 +49,8 @@ fun LinkDetailCategoryDropdown(
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         categories.forEach { category ->
+            val isSelected = category.id == selectedCategoryId
+
             Row(
                 modifier = Modifier
                     .noRippleClickable {
@@ -68,12 +70,12 @@ fun LinkDetailCategoryDropdown(
                 Text(
                     text = category.name,
                     fontSize = 15.sp,
-                    fontWeight = if (category.name == selectedCategory) {
+                    fontWeight = if (isSelected) {
                         FontWeight.Medium
                     } else {
                         FontWeight.Normal
                     },
-                    color = if (category.name == selectedCategory) {
+                    color = if (isSelected) {
                         colors.blue[200]
                     } else {
                         colors.gray[800]
@@ -97,7 +99,7 @@ fun PreviewLinkDetailCategoryDropdown() {
                 LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
                 LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
             ),
-            selectedCategory = "카테고리2",
+            selectedCategoryId = 1L,
             onCategoryClick = { }
         )
     }
