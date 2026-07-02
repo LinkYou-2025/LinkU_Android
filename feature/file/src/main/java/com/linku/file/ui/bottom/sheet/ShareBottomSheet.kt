@@ -65,9 +65,9 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.file.ui.item.BottomFolderItemLayout
+import com.linku.file.ui.item.CategoryItemLayout
 import com.linku.file.ui.item.EmptyFolderItemLayout
-import com.linku.file.ui.item.TopFolderItemLayout
+import com.linku.file.ui.item.MyFolderItemLayout
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
@@ -275,14 +275,14 @@ internal fun ShareBottomSheet(
                     )
                 }
                 FolderState.BOTTOM -> {
-                    TopFolderItemLayout(
+                    CategoryItemLayout(
                         modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedTopFolder!!
                     ) { }
                 }
                 FolderState.LINKS -> {
-                    BottomFolderItemLayout(
+                    MyFolderItemLayout(
                         modifier = Modifier.fillMaxSize(201.10968f/412f),
                         colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
                         folder = selectedBottomFolder!!
