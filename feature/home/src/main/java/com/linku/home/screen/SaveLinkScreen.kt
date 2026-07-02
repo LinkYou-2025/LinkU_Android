@@ -43,6 +43,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
+import com.linku.home.util.containsMultipleLinks
 import java.io.File
 
 @Composable
@@ -72,12 +73,15 @@ fun SaveLinkScreen(
     val scrollState = rememberScrollState()
     val bannedDomains = listOf("youtube.com", "youtu.be")
     val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
+    val hasMultipleLinks = containsMultipleLinks(url)
+
     val isButtonEnabled =
         url.isNotBlank() &&
-        !isCheckingUrl &&
-        !showVideoWarning &&
-        !isInvalidLink &&
-        (isDuplicateUrl != true)
+                !hasMultipleLinks &&
+                !isCheckingUrl &&
+                !showVideoWarning &&
+                !isInvalidLink &&
+                (isDuplicateUrl != true)
 
     Box(
         modifier = Modifier
