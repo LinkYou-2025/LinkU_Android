@@ -87,7 +87,7 @@ private fun EmotionBadgeImage(
             )
             .border(
                 width = 1.dp,
-                brush = if (selected) Basic.maincolor else SolidColor(colors.gray[200]), // 와! 코드가 확 줄어드러욧!
+                brush = if (selected) Basic.maincolor else SolidColor(colors.gray[200]),
                 shape = RoundedCornerShape(20.dp)
             )
 
