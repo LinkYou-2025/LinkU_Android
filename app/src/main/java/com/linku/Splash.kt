@@ -1,5 +1,9 @@
 package com.linku
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -16,6 +20,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
+import com.linku.data.preference.NotificationPreference
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
 
@@ -50,8 +56,40 @@ fun Splash(onResult: () -> Unit) {
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
 
+    // 시스템 알림 권한 요청 팝업이 끝났는지 여부
+    var permissionFinished by rememberSaveable { mutableStateOf(false) }
+
+    // 권한 요청 런쳐
+    val notificationPermissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission() // 단일 권한 요청 계약
+        ) {
+            permissionFinished = true // 허용&거부 상관없이 팝업 끝나면 true
+        }
+
+    // 알림 설정 저장소
+    // 스플래시에서만 일회성으로 사용하는 값이라 Hilt & ViewModel 없이 직접 생성.
+    val context = LocalContext.current
+    val notificationPreference = remember {
+        NotificationPreference(context)
+    }
 
     LaunchedEffect(Unit) {
+        // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !notificationPreference.isSystemPermissionRequested()
+        ) {
+            notificationPreference.setSystemPermissionRequested(true)
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else { // 이미 시스템 팝업 띄운 전적이 있으면 permissionFinished를 true로 세팅하고 넘김.
+            permissionFinished = true
+        }
+    }
+
+    LaunchedEffect(permissionFinished) {
+        if (!permissionFinished) return@LaunchedEffect // 알람 팝업 작업이 완료되기 전까지 대기
+
         println(" Splash 시작됨")
         rotationAnim.animateTo(
             targetValue = 180f,

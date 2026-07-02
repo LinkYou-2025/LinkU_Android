@@ -85,3 +85,5 @@ data class ToggleNotice(
 }
 
 data object RefreshSystemAlarm : NotificationIntent
+
+data object ConfirmFirstPushPermission : NotificationIntent

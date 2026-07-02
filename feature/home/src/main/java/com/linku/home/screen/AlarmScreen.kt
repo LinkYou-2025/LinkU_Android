@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -43,14 +44,15 @@ import com.linku.home.ui.alarm.component.AlarmAppendStateFooter
 import com.linku.home.ui.alarm.component.AlarmErrorLayout
 import com.linku.home.ui.alarm.component.AlarmLoadingContent
 import com.linku.home.viewmodel.AlarmViewModel
+import com.linku.design.theme.LinkuPreview
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun AlarmScreen(
     onBack: () -> Unit,
-    onNavigateToMyPage: () -> Unit,
+    onNavigateToSetting: () -> Unit,
     onNavigateToHome: () -> Unit,
-    viewModel: AlarmViewModel = hiltViewModel()
+    viewModel: AlarmViewModel
 ) {
     val pushAlarmEnabled by viewModel.pushAlarmEnabled.collectAsStateWithLifecycle()
 
@@ -68,6 +70,7 @@ fun AlarmScreen(
     // PagingData와 LoadState(로딩/에러 상태)를 함께 관리한다
     val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
+
 
     // 새로고침이 완료되면 인디케이터 해제
     LaunchedEffect(alarmPagingItems.loadState.refresh) {
@@ -89,7 +92,7 @@ fun AlarmScreen(
         },
         pullToRefreshState = pullToRefreshState,
         onBack = onBack,
-        onNavigateToMyPage = onNavigateToMyPage,
+        onNavigateToMyPage = onNavigateToSetting,
         onNavigateToHome = onNavigateToHome
     )
 }
@@ -140,7 +143,7 @@ private fun AlarmScreenContent(
                 onRefresh = onRefresh,
                 state = pullToRefreshState,
                 indicator = {
-                    Indicator( //인디케이터는 임시 구현~~
+                    Indicator(
                         modifier = Modifier.align(Alignment.TopCenter),
                         isRefreshing = isUserRefreshing,
                         containerColor = LocalColorTheme.current.gray[200],
@@ -168,7 +171,13 @@ private fun AlarmScreenContent(
                         }
 
                         is LoadState.Error -> {
-                            item { AlarmErrorLayout(alarmPagingItems, refreshState) }
+                            item {
+                                AlarmErrorLayout(
+                                    alarmPagingItems = alarmPagingItems,
+                                    errorState = refreshState,
+                                    modifier = Modifier.fillParentMaxSize()
+                                )
+                            }
                         }
 
                         else -> {
@@ -201,37 +210,47 @@ private fun AlarmScreenContent(
 private fun AlarmScreenContentPreview() {
     val sampleAlarms = listOf(
         AlarmSummary(
-            id = 1,
-            alarmType = AlarmType.CURATION,
-            whenSubmitted = "10분 전",
-            message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
-            targetId = 1L,
+            id = 1L,
+            alarmType = AlarmType.LINK,
+            whenSubmitted = "2023-10-27 10:00:00",
+            message = "새로운 링크가 추가되었습니다.",
+            targetId = 101L,
             isRead = false
         ),
         AlarmSummary(
-            id = 2,
-            alarmType = AlarmType.NOTICE,
-            whenSubmitted = "1시간 전",
-            message = "새로운 서비스 공지사항입니다.",
-            targetId = 2L,
+            id = 2L,
+            alarmType = AlarmType.FOLDER,
+            whenSubmitted = "2023-10-27 11:00:00",
+            message = "폴더에 초대되었습니다.",
+            targetId = 102L,
             isRead = true
+        ),
+        AlarmSummary(
+            id = 3L,
+            alarmType = AlarmType.CURATION,
+            whenSubmitted = "2023-10-27 12:00:00",
+            message = "큐레이션이 업데이트되었습니다.",
+            targetId = 103L,
+            isRead = false
         )
     )
-    val alarms = flowOf(PagingData.from(sampleAlarms)).collectAsLazyPagingItems()
+    val alarmPagingItems = flowOf(PagingData.from(sampleAlarms)).collectAsLazyPagingItems()
 
-//    LinkuPreview {
-//        AlarmScreenContent(
-//            selectedTab = AlarmType.ALL,
-//            onSelectedChange = {},
-//            alarmPagingItems = alarms,
-//            listState = rememberLazyListState(),
-//            onBack = {},
-//            onNavigateToMyPage = {},
-//            onNavigateToHome = {},
-//            isUserRefreshing = false,
-//            onRefresh = {},
-//        )
-//    }
+    LinkuPreview {
+        AlarmScreenContent(
+            isAlarmAllowed = false,
+            selectedTab = AlarmType.ALL,
+            onSelectedChange = {},
+            alarmPagingItems = alarmPagingItems,
+            isUserRefreshing = false,
+            onRefresh = {},
+            pullToRefreshState = rememberPullToRefreshState(),
+            onBack = {},
+            onNavigateToMyPage = {},
+            onNavigateToHome = {}
+        )
+    }
 }
+
 
 

@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import com.google.firebase.messaging.FirebaseMessaging
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
@@ -16,6 +17,7 @@ import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.AlarmMapper.toDomain
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
 
@@ -64,6 +66,12 @@ class AlarmRepositoryImpl @Inject constructor(
         }.map { it.toDomain() }
     }
 
+    override suspend fun getFCMTokenFromFCM(): Result<String> =
+        runCatching {
+            // 공식문서 보고 구현했습니당
+            FirebaseMessaging.getInstance().token.await()
+        }
+
     override suspend fun registerFCMToken(
         token: String
     ): Result<Unit> {
@@ -74,6 +82,7 @@ class AlarmRepositoryImpl @Inject constructor(
                 FcmTokenRequest(token)
             )
         }.onSuccess {
+            notificationPreference.setFcmTokenRegistered(true)
             Log.d("FCM", "fcm 토큰 서버 전송 완료")
         }.onFailure { e ->
             Log.e("FCM", "fcm 토큰 서버 전송 실패: ${e::class.simpleName} - ${e.message}")
