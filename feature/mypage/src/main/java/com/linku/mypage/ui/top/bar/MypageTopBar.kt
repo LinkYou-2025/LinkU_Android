@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,8 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
 import com.linku.mypage.R
 import com.linku.design.R as Res
@@ -48,13 +49,15 @@ fun MypageTopBar(
     onAISummaryClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
-            .background(color = LocalColorTheme.current.white)
+            .background(color = colors.white)
     ) {
         Column(
             modifier = Modifier
@@ -131,7 +134,7 @@ fun MypageTopBar(
 
                         Text(
                             text = nickname,
-                            color = LocalColorTheme.current.black,
+                            color = colors.black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                         )
@@ -139,7 +142,7 @@ fun MypageTopBar(
 
                     Text(
                         text = email,
-                        color = LocalColorTheme.current.gray[600],
+                        color = colors.gray[600],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                     )
@@ -159,10 +162,10 @@ fun MypageTopBar(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(LocalColorTheme.current.gray[100])
+                        .background(colors.gray[100])
                         .border(
                             1.dp,
-                            LocalColorTheme.current.gray[200],
+                            colors.gray[200],
                             RoundedCornerShape(14.dp)
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -170,7 +173,7 @@ fun MypageTopBar(
                 ) {
                     Text(
                         text = "나의 링크",
-                        color = LocalColorTheme.current.gray[700],
+                        color = colors.gray[700],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(bottom = 2.dp)
@@ -178,7 +181,7 @@ fun MypageTopBar(
 
                     Text(
                         text = myLinku.toString(),
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -191,10 +194,10 @@ fun MypageTopBar(
                         .weight(1f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(14.dp))
-                        .background(LocalColorTheme.current.gray[100])
+                        .background(colors.gray[100])
                         .border(
                             1.dp,
-                            LocalColorTheme.current.gray[200],
+                            colors.gray[200],
                             RoundedCornerShape(14.dp)
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -202,7 +205,7 @@ fun MypageTopBar(
                 ) {
                     Text(
                         text = "나의 폴더",
-                        color = LocalColorTheme.current.gray[700],
+                        color = colors.gray[700],
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(bottom = 2.dp)
@@ -210,7 +213,7 @@ fun MypageTopBar(
 
                     Text(
                         text = myFolder.toString(),
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                     )
@@ -222,10 +225,10 @@ fun MypageTopBar(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(14.dp))
-                        .background(LocalColorTheme.current.backgroundmaincolor)
+                        .background(colors.backgroundmaincolor)
                         .border(
                             1.dp,
-                            LocalColorTheme.current.inactiveColor,
+                            colors.inactiveColor,
                             RoundedCornerShape(14.dp)
                         )
                         .padding(vertical = 14.dp)
@@ -246,7 +249,7 @@ fun MypageTopBar(
 
                         BrushText(
                             text = "AI 요약 링크",
-                            brush = LocalColorTheme.current.maincolor,
+                            brush = colors.maincolor,
                             style = TextStyle(
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium,
@@ -256,7 +259,7 @@ fun MypageTopBar(
 
                     BrushText(
                         text = myAiLinku.toString(),
-                        brush = LocalColorTheme.current.maincolor,
+                        brush = colors.maincolor,
                         style = TextStyle(
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,

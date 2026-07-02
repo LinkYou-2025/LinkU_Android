@@ -3,7 +3,6 @@ package com.linku.mypage.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +20,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,9 +43,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -62,6 +62,8 @@ fun EditProfileScreen(
     userGender: String,
     userSocialLoginType: String,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var isProfileImageChanged by remember { mutableStateOf(false) }
 
     var name by remember(userNickname) { mutableStateOf(userNickname) }
@@ -132,7 +134,7 @@ fun EditProfileScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
         Box(
             modifier = Modifier
@@ -146,7 +148,7 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(
@@ -154,7 +156,7 @@ fun EditProfileScreen(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = LocalFontTheme.current.font,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -181,7 +183,7 @@ fun EditProfileScreen(
                 Box(
                     modifier = Modifier
                         .size(30.dp)
-                        .border(4.dp, LocalColorTheme.current.white, shape = CircleShape)
+                        .border(4.dp, colors.white, shape = CircleShape)
                         .align(Alignment.BottomEnd)
                         .noRippleClickable {
                             onPickProfileImage()
@@ -207,7 +209,7 @@ fun EditProfileScreen(
                     text = "닉네임",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[600],
+                    color = colors.gray[600],
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
@@ -218,8 +220,8 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border( width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
-                        .background(LocalColorTheme.current.white)
+                        .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                        .background(colors.white)
                         .padding(horizontal = 22.dp, vertical = 10.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
@@ -234,7 +236,7 @@ fun EditProfileScreen(
                             textStyle = TextStyle(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.black
+                                color = colors.black
                             ),
                             modifier = Modifier
                                 .weight(1f)
@@ -248,7 +250,7 @@ fun EditProfileScreen(
                             modifier = Modifier
                                 .size(18.dp)
                                 .then(
-                                    if (name.isNotEmpty()) Modifier.clickable { name = "" }
+                                    if (name.isNotEmpty()) Modifier.noRippleClickable { name = "" }
                                     else Modifier
                                 )
                         )
@@ -262,7 +264,7 @@ fun EditProfileScreen(
                         text = "이미 존재하는 닉네임이에요.",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.negative,
+                        color = colors.negative,
                         modifier = Modifier.padding(start = 4.dp)
                     )
 
@@ -282,7 +284,7 @@ fun EditProfileScreen(
                     text = "이메일",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[600],
+                    color = colors.gray[600],
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
@@ -293,8 +295,8 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border( width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
-                        .background(LocalColorTheme.current.gray[100])
+                        .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                        .background(colors.gray[100])
                         .padding(horizontal = 22.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -302,7 +304,7 @@ fun EditProfileScreen(
                         text = userEmail,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[600]
+                        color = colors.gray[600]
                     )
                 }
 
@@ -313,7 +315,7 @@ fun EditProfileScreen(
                         text = socialLoginGuideText!!,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[500],
+                        color = colors.gray[500],
                         modifier = Modifier.padding(start = 4.dp)
                     )
 
@@ -333,7 +335,7 @@ fun EditProfileScreen(
                     text = "성별",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[600],
+                    color = colors.gray[600],
                 )
 
                 Spacer(modifier = Modifier.height(12.5.dp))
@@ -351,7 +353,7 @@ fun EditProfileScreen(
                                 .size(20.dp)
                                 .border(
                                     width = if (selectedGender == "남성") 5.dp else 1.dp,
-                                    color = LocalColorTheme.current.blue[200],
+                                    color = colors.blue[200],
                                     shape = CircleShape
                                 )
                                 .clip(CircleShape)
@@ -363,7 +365,7 @@ fun EditProfileScreen(
                             text = "남성",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Normal,
-                            color = LocalColorTheme.current.gray[800]
+                            color = colors.gray[800]
                         )
                     }
 
@@ -376,7 +378,7 @@ fun EditProfileScreen(
                                 .size(20.dp)
                                 .border(
                                     width = if (selectedGender == "여성") 5.dp else 1.dp,
-                                    color = LocalColorTheme.current.blue[200],
+                                    color = colors.blue[200],
                                     shape = CircleShape
                                 )
                                 .clip(CircleShape)
@@ -388,7 +390,7 @@ fun EditProfileScreen(
                             text = "여성",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Normal,
-                            color = LocalColorTheme.current.gray[800]
+                            color = colors.gray[800]
                         )
                     }
                 }
@@ -406,7 +408,7 @@ fun EditProfileScreen(
                     text = "하고 있는 일 · 활동",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.gray[600],
+                    color = colors.gray[600],
                     modifier = Modifier.padding(start = 4.dp)
                 )
 
@@ -430,10 +432,10 @@ fun EditProfileScreen(
                 .then(
                     if (isSubmitEnabled) {
                         Modifier
-                            .background(LocalColorTheme.current.maincolor)
+                            .background(colors.maincolor)
                             .noRippleClickable { handleSubmit() }
                     } else {
-                        Modifier.background(LocalColorTheme.current.gray[300])
+                        Modifier.background(colors.gray[300])
                     }
                 )
                 .padding(vertical = 15.dp),
@@ -443,7 +445,7 @@ fun EditProfileScreen(
                 text = "완료",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = LocalColorTheme.current.white
+                color = colors.white
             )
         }
     }
@@ -456,6 +458,8 @@ fun JobDropdownMenu(
     onOptionSelected: (String) -> Unit,
     menuMaxHeight: Dp = 262.dp
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var expanded by remember { mutableStateOf(false) }
 
     Box {
@@ -470,14 +474,14 @@ fun JobDropdownMenu(
             modifier = Modifier
                 .width(372.dp)
                 .heightIn(max = menuMaxHeight)
-                .border(width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
+                .border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
                 .shadow(
                     elevation = 10.dp,
                     shape = RoundedCornerShape(18.dp),
                     ambientColor = Color(0xFF7C7C7C).copy(alpha = 0.25f),
                     spotColor = Color(0xFF7C7C7C).copy(alpha = 0.25f)
                 )
-                .background(LocalColorTheme.current.white, RoundedCornerShape(18.dp))
+                .background(colors.white, RoundedCornerShape(18.dp))
                 .padding(horizontal = 22.dp, vertical = 11.dp),
             offset = DpOffset(x = 0.dp, y = (-302).dp)
         ) {
@@ -500,14 +504,16 @@ private fun JobDropdownField(
     selectedOption: String,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 52.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
-            .border(width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
-            .clickable { onClick() }
+            .background(colors.white)
+            .border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+            .noRippleClickable { onClick() }
             .padding(horizontal = 22.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
@@ -520,7 +526,7 @@ private fun JobDropdownField(
                 text = selectedOption,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Normal,
-                color = LocalColorTheme.current.black
+                color = colors.black
             )
 
             Icon(
@@ -537,10 +543,12 @@ private fun JobDropdownItem(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .noRippleClickable { onClick() }
             .padding(horizontal = 22.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -562,7 +570,7 @@ private fun JobDropdownItem(
             text = text,
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
-            color = LocalColorTheme.current.black
+            color = colors.black
         )
     }
 }

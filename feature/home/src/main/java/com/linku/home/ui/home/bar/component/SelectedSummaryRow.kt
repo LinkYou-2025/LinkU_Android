@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,9 +23,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.screen.Situation
 
@@ -34,6 +35,8 @@ fun SelectedSummaryRow(
     selectedTaskId: Long?,
     situations: List<Situation>,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val colorIcons = listOf(
         R.drawable.ic_joy,
         R.drawable.ic_calm,
@@ -65,7 +68,7 @@ fun SelectedSummaryRow(
             modifier = Modifier
                 .size(32.dp)
                 .clip(RoundedCornerShape(10.dp))
-                .background(brush = LocalColorTheme.current.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
+                .background(brush = colors.backgroundmaincolor, shape = RoundedCornerShape(18.dp))
                 .border(
                     width = 1.dp,
                     brush = Basic.maincolor,
@@ -87,7 +90,7 @@ fun SelectedSummaryRow(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
                 .background(
-                    brush = LocalColorTheme.current.backgroundmaincolor,
+                    brush = colors.backgroundmaincolor,
                     shape = RoundedCornerShape(10.dp)
                 )
                 .border(

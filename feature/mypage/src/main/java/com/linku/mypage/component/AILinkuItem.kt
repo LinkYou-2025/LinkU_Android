@@ -28,9 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
@@ -44,23 +42,16 @@ fun AILinkuItem(
     domainName: String? = null,
     onClickDelete: () -> Unit = {}
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var isMenuVisible by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
-//        Box(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .size(30.dp)
-//                .zIndex(1f)
-//        ) {
-//
-//        }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -103,10 +94,10 @@ fun AILinkuItem(
                             text = tag,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = LocalColorTheme.current.gray[600],
+                            color = colors.gray[600],
                             modifier = Modifier
                                 .background(
-                                    color = LocalColorTheme.current.gray[100],
+                                    color = colors.gray[100],
                                     shape = RoundedCornerShape(6.dp)
                                 )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
@@ -135,7 +126,7 @@ fun AILinkuItem(
                         text = domainName ?: "",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.gray[600]
+                        color = colors.gray[600]
                     )
                 }
             }

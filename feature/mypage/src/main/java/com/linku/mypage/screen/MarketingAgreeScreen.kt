@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,15 +39,17 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
 fun MarketingAgreeScreen(
     navController: NavController
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val cardShape = RoundedCornerShape(22.dp)
     var isChecked by remember { mutableStateOf(false) }
 
@@ -56,7 +59,7 @@ fun MarketingAgreeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LocalColorTheme.current.white)
+                .background(colors.white)
         ) {
             Box(
                 modifier = Modifier
@@ -78,7 +81,7 @@ fun MarketingAgreeScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
+                    color = colors.black,
                     modifier = Modifier.align(Alignment.Center)
                 )
             }
@@ -96,7 +99,7 @@ fun MarketingAgreeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(18.dp))
-                            .background(LocalColorTheme.current.gray[100])
+                            .background(colors.gray[100])
                             .padding(horizontal = 24.dp, vertical = 20.dp),
                         verticalArrangement = Arrangement.spacedBy(15.dp)
                     ) {
@@ -107,7 +110,7 @@ fun MarketingAgreeScreen(
                                 text = "링큐(LINK:U) 마케팅 수신동의",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = LocalColorTheme.current.black
+                                color = colors.black
                             )
 
                             Spacer(modifier = Modifier.width(2.dp))
@@ -116,7 +119,7 @@ fun MarketingAgreeScreen(
                                 text = "(선택)",
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = LocalColorTheme.current.gray[600]
+                                color = colors.gray[600]
                             )
                         }
 
@@ -127,7 +130,7 @@ fun MarketingAgreeScreen(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black,
+                                        color = colors.black,
                                     )
                                 ) {
                                     append("""
@@ -140,7 +143,7 @@ fun MarketingAgreeScreen(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black
+                                        color = colors.black
                                     )
                                 ) {
                                     append("선택 사항")
@@ -150,7 +153,7 @@ fun MarketingAgreeScreen(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black
+                                        color = colors.black
                                     )
                                 ) {
                                     append("""
@@ -167,7 +170,7 @@ fun MarketingAgreeScreen(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black
+                                        color = colors.black
                                     )
                                 ) {
                                     append("""
@@ -196,7 +199,7 @@ fun MarketingAgreeScreen(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Normal,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black
+                                        color = colors.black
                                     )
                                 ) {
                                     append("설정 메뉴에서 마케팅 수신 동의 해제")
@@ -206,7 +209,7 @@ fun MarketingAgreeScreen(
                                     style = SpanStyle(
                                         fontWeight = FontWeight.Light,
                                         fontSize = 12.sp,
-                                        color = LocalColorTheme.current.black
+                                        color = colors.black
                                     )
                                 ) {
                                     append("""
@@ -240,8 +243,8 @@ fun MarketingAgreeScreen(
                     clip = true
                 }
                 .clip(RoundedCornerShape(22.dp))
-                .border(1.dp, LocalColorTheme.current.gray[200], RoundedCornerShape(22.dp))
-                .background(LocalColorTheme.current.white)
+                .border(1.dp, colors.gray[200], RoundedCornerShape(22.dp))
+                .background(colors.white)
                 .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -249,7 +252,7 @@ fun MarketingAgreeScreen(
                 text = "마케팅 수신에 동의합니다.",
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Normal,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.weight(1f)
             )
 
