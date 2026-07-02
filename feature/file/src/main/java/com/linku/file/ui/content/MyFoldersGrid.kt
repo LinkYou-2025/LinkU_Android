@@ -160,7 +160,7 @@ internal fun MyFoldersGrid(
             }
 
             /** 선택된 최상위 폴더에 속한 하위 폴더 목록을 렌더링합니다. */
-            items(folders) { folder ->
+            items(folders, key = {it.folderId}) { folder ->
                 MyFolderItem(
                     folder = folder,
                     colorStyle = selectedTopFolderColorStyle,
@@ -202,7 +202,7 @@ internal fun MyFoldersGrid(
                 }
 
                 /** 미분류 링크 목록을 폴더 카드 다음 셀부터 이어서 배치합니다. */
-                items(notCategorizationLinks) { link ->
+                items(notCategorizationLinks, key = {it.linkuId}) { link ->
                     LinkItemLayout(
                         modifier = Modifier.fillMaxSize(164f / 174f),
                         link = link,

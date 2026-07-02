@@ -90,7 +90,7 @@ internal fun CategoryGrid(
             horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
         ) {
             /** 전달받은 최상위 폴더 목록을 카테고리 카드로 하나씩 렌더링. */
-            items(categories) { folder ->
+            items(categories, key = {it.folderId}) { folder ->
                 CategoryItemLayout(
                     modifier = Modifier
                         .fillMaxSize()

@@ -137,7 +137,7 @@ internal fun ClassifiedLinksGrid(
             }
 
             /** 분류된 링크 목록을 링크 카드 레이아웃으로 렌더링합니다. */
-            items(links) { link ->
+            items(links, key = {it.linkuId}) { link ->
                 LinkItemLayout(
                     modifier = Modifier.fillMaxSize(164f / 174f),
                     link = link,
