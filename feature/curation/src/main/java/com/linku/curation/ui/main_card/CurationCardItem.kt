@@ -84,7 +84,7 @@ fun CurationCardItem(
     @DrawableRes fallbackImage: Int = R.drawable.img_curation_example // 일단 프리뷰 테스트를 위해 기본 이미지 넣어두었습니다~!
 ) {
     val colorTheme = MaterialTheme.linkuColors
-    val resolvedImageUrl = imageUrl?.takeIf { it.isNotBlank() && it != "null" }
+    val resolvedImageUrl = imageUrl.takeIf { it.isNotBlank() && it != "null" }
     val contents = getCurationCardContents()
     val content = contents.getOrNull(page) ?: contents[0]
 
