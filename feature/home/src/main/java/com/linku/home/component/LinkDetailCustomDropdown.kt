@@ -28,17 +28,23 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.home.R
 
+enum class LinkDetailAction(
+    @param:DrawableRes val iconRes: Int,
+    val label: String
+) {
+    EDIT(R.drawable.ic_link_edit, "링크 수정하기"),
+    DELETE(R.drawable.ic_link_delete, "링크 삭제하기"),
+    SHARE(R.drawable.ic_link_share, "링크 공유하기"),
+    GO(R.drawable.ic_link_go_gray, "링크 보러가기")
+}
+
 @Composable
 fun LinkDetailCustomDropdown(
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onGoClick: () -> Unit,
-    onDismiss: () -> Unit,
-    modifier: Modifier
+    onAction: (LinkDetailAction) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.linkuColors
-    
+
     Column(
         modifier = modifier
             .width(240.dp)
@@ -46,36 +52,20 @@ fun LinkDetailCustomDropdown(
             .background(colors.white)
             .padding(horizontal = 24.dp, vertical = 13.dp)
     ) {
-        LinkDetailDropdownItem(
-            iconRes = R.drawable.ic_link_edit,
-            text = "링크 수정하기",
-            onClick = { onEditClick() }
-        )
-
-        LinkDetailDropdownItem(
-            iconRes = R.drawable.ic_link_delete,
-            text = "링크 삭제하기",
-            onClick = { onDeleteClick() }
-        )
-
-        LinkDetailDropdownItem(
-            iconRes = R.drawable.ic_link_share,
-            text = "링크 공유하기",
-            onClick = { onShareClick() }
-        )
-
-        LinkDetailDropdownItem(
-            iconRes = R.drawable.ic_link_go_gray,
-            text = "링크 보러가기",
-            onClick = { onGoClick() }
-        )
+        LinkDetailAction.entries.forEach { action ->
+            LinkDetailDropdownItem(
+                action = action,
+                onClick = {
+                    onAction(action)
+                }
+            )
+        }
     }
 }
 
 @Composable
 private fun LinkDetailDropdownItem(
-    @DrawableRes iconRes: Int,
-    text: String,
+    action: LinkDetailAction,
     onClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
@@ -91,13 +81,13 @@ private fun LinkDetailDropdownItem(
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             Image(
-                painter = painterResource(iconRes),
+                painter = painterResource(action.iconRes),
                 contentDescription = null,
                 modifier = Modifier.size(18.dp)
             )
 
             Text(
-                text = text,
+                text = action.label,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Normal,
                 color = colors.black
@@ -111,11 +101,7 @@ private fun LinkDetailDropdownItem(
 fun PreviewLinkDetailCustomDropdown() {
     ThemeProvider {
         LinkDetailCustomDropdown(
-            onEditClick = { },
-            onDeleteClick = { },
-            onShareClick = { },
-            onGoClick = { },
-            onDismiss = { },
+            onAction = { },
             modifier = Modifier
         )
     }

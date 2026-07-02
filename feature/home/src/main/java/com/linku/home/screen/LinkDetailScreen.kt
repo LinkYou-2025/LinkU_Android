@@ -57,6 +57,7 @@ import com.linku.home.R
 import com.linku.home.component.AIArticleModal
 import com.linku.home.component.DeleteLinkModal
 import com.linku.home.component.LinkCategoryOption
+import com.linku.home.component.LinkDetailAction
 import com.linku.home.component.LinkDetailCategoryDropdown
 import com.linku.home.component.LinkDetailCustomDropdown
 import com.linku.home.component.LinkDetailEmotionDropdown
@@ -481,44 +482,44 @@ fun LinkDetailScreen(
 
         if (isDropdownVisible) {
             LinkDetailCustomDropdown(
-                onEditClick = {
-                    isDropdownVisible = false
-                    isEditMode = true
-                },
-                onDeleteClick = {
-                    isDropdownVisible = false
-                    openedDropdownType = null
-                    isDeleteModalVisible = true
-                },
-                onShareClick = {
+                onAction = { action ->
                     isDropdownVisible = false
                     openedDropdownType = null
 
-                    val shareText = buildString {
-                        appendLine(selectedTitle)
-                        append(linkUrl)
-                    }
+                    when (action) {
+                        LinkDetailAction.EDIT -> {
+                            isEditMode = true
+                        }
 
-                    val sendIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"  // MIME 타입
-                        putExtra(Intent.EXTRA_TEXT, shareText)  // 공유할 내용
-                        putExtra(Intent.EXTRA_TITLE, selectedTitle)  // 미리보기 제목
-                        putExtra(Intent.EXTRA_SUBJECT, selectedTitle)  // 이메일 앱용 제목
-                    }
+                        LinkDetailAction.DELETE -> {
+                            isDeleteModalVisible = true
+                        }
 
-                    val shareIntent = Intent.createChooser(sendIntent, "링크 공유하기")  // ShareSheet 상단에 보이는 제목
-                    context.startActivity(shareIntent)
-                },
-                onGoClick = {
-                    isDropdownVisible = false
-                    uriHandler.openUri(linkUrl)
-                },
-                onDismiss = {
-                    isDropdownVisible = false
+                        LinkDetailAction.SHARE -> {
+                            val shareText = buildString {
+                                appendLine(selectedTitle)
+                                append(linkUrl)
+                            }
+
+                            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, shareText)
+                                putExtra(Intent.EXTRA_TITLE, selectedTitle)
+                                putExtra(Intent.EXTRA_SUBJECT, selectedTitle)
+                            }
+
+                            val shareIntent = Intent.createChooser(sendIntent, "링크 공유하기")
+                            context.startActivity(shareIntent)
+                        }
+
+                        LinkDetailAction.GO -> {
+                            uriHandler.openUri(linkUrl)
+                        }
+                    }
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 100.dp, end = 20.dp),
+                    .padding(top = 100.dp, end = 20.dp)
             )
         }
 
