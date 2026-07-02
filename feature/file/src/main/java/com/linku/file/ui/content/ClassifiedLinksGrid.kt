@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
@@ -253,17 +254,61 @@ private fun AddLinkItem(
     }
 }
 
-/**
- * [ClassifiedLinksGrid]의 기본 상태를 확인하기 위한 Compose Preview입니다.
- */
 @Preview(showBackground = true)
 @Composable
-private fun ClassifiedLinksGridTest(){
-    ClassifiedLinksGrid(
-        links = emptyList(),
-        hasNotCategorizationLinks = false,
-        onLinkCategorizationClick = {},
-        onLinkClick = {},
-        onDeleteLink = {},
+private fun ClassifiedLinksGridPreview() {
+    val sampleLinks = listOf(
+        LinkItemInfo(
+            linkuId = 1L,
+            parentFolderId = 1L,
+            title = "네이버",
+            url = "https://www.naver.com",
+            tags = listOf("포털", "검색"),
+            linkuImageUrl = null,
+            createdAt = null
+        ),
+        LinkItemInfo(
+            linkuId = 2L,
+            parentFolderId = 1L,
+            title = "구글",
+            url = "https://www.google.com",
+            tags = listOf("검색", "글로벌"),
+            linkuImageUrl = null,
+            createdAt = null
+        ),
+        LinkItemInfo(
+            linkuId = 3L,
+            parentFolderId = 1L,
+            title = "유튜브",
+            url = "https://www.youtube.com",
+            tags = listOf("영상", "엔터테인먼트"),
+            linkuImageUrl = null,
+            createdAt = null
+        )
     )
+
+    LinkuPreview {
+        ClassifiedLinksGrid(
+            links = sampleLinks,
+            hasNotCategorizationLinks = true,
+            onLinkCategorizationClick = {},
+            onLinkClick = {},
+            onDeleteLink = {}
+        )
+    }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun ClassifiedLinksGridEmptyPreview() {
+    LinkuPreview {
+        ClassifiedLinksGrid(
+            links = emptyList(),
+            hasNotCategorizationLinks = false,
+            onLinkCategorizationClick = {},
+            onLinkClick = {},
+            onDeleteLink = {}
+        )
+    }
+}
+

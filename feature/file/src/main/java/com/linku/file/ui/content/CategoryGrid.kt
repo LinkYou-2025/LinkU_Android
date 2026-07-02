@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.file.ui.item.CategoryItemLayout
 
@@ -121,17 +122,61 @@ internal fun CategoryGrid(
  */
 @Preview(
     showBackground = true,
-    heightDp = 2000
+    heightDp = 1000
 )
 @Composable
-private fun CategoryGridTest(){
-    /** Preview에서는 외부 ViewModel 없이 빈 상태의 그리드 레이아웃만 확인합니다. */
-    CategoryGrid(
-        categories = emptyList(),
-        categoryColorMap = emptyMap(),
-        isEditMode = false,
-        onFolderClick = {},
-        onFolderEditClick = {},
-        onBookmarkClick = {},
+private fun CategoryGridPreview() {
+    val categories = listOf(
+        FolderSimpleInfo(1, "Travel", 0, false),
+        FolderSimpleInfo(2, "Food", 0, true),
+        FolderSimpleInfo(3, "Work", 0, false),
+        FolderSimpleInfo(4, "Music", 0, false),
+        FolderSimpleInfo(5, "Reading", 0, true),
+        FolderSimpleInfo(6, "Health", 0, false)
     )
+    val categoryColorMap = categories.zip(CategoryColorStyle.categoryStyleList)
+        .associate { it.first.folderName to it.second }
+
+    LinkuPreview {
+        CategoryGrid(
+            categories = categories,
+            categoryColorMap = categoryColorMap,
+            isEditMode = false,
+            onFolderClick = {},
+            onFolderEditClick = {},
+            onBookmarkClick = {}
+        )
+    }
+}
+
+/**
+ * [CategoryGrid]의 편집 모드 상태를 확인하기 위한 Compose Preview입니다.
+ */
+@Preview(
+    showBackground = true,
+    heightDp = 1000
+)
+@Composable
+private fun CategoryGridEditModePreview() {
+    val categories = listOf(
+        FolderSimpleInfo(1, "Travel", 0, false),
+        FolderSimpleInfo(2, "Food", 0, true),
+        FolderSimpleInfo(3, "Work", 0, false),
+        FolderSimpleInfo(4, "Music", 0, false),
+        FolderSimpleInfo(5, "Reading", 0, true),
+        FolderSimpleInfo(6, "Health", 0, false)
+    )
+    val categoryColorMap = categories.zip(CategoryColorStyle.categoryStyleList)
+        .associate { it.first.folderName to it.second }
+
+    LinkuPreview {
+        CategoryGrid(
+            categories = categories,
+            categoryColorMap = categoryColorMap,
+            isEditMode = true,
+            onFolderClick = {},
+            onFolderEditClick = {},
+            onBookmarkClick = {}
+        )
+    }
 }

@@ -38,6 +38,7 @@ import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
@@ -381,23 +382,64 @@ private fun MyFolderItem(
     }
 }
 
-/**
- * [MyFoldersGrid]의 기본 상태를 확인하기 위한 Compose Preview입니다.
- */
-@Preview(showBackground = true)
+@Preview(showBackground = true, heightDp = 1000)
 @Composable
-private fun MyFoldersGridTest() {
-    MyFoldersGrid(
-        folders = emptyList(),
-        notCategorizationLinks = emptyList(),
-        selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
-        isEditMode = false,
-        onAddFolderClick = {},
-        onFolderClick = {},
-        onFolderEditClick = {},
-        onChangeSharingClick = {},
-        onDeleteFolder = {},
-        onLinkClick = {},
-        onDeleteNotCategorizationLink = {},
+private fun MyFoldersGridPreview() {
+    val folders = listOf(
+        FolderSimpleInfo(1, "Folder 1", 0, false),
+        FolderSimpleInfo(2, "Folder 2", 0, true),
+        FolderSimpleInfo(3, "Folder 3", 0, false)
     )
+    val links = listOf(
+        LinkItemInfo(1, 0, "Link 1", "https://example.com/1", emptyList(), null, null),
+        LinkItemInfo(2, 0, "Link 2", "https://example.com/2", emptyList(), null, null),
+        LinkItemInfo(3, 0, "Link 3", "https://example.com/3", emptyList(), null, null)
+    )
+
+    LinkuPreview {
+        MyFoldersGrid(
+            folders = folders,
+            notCategorizationLinks = links,
+            selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
+            isEditMode = false,
+            onAddFolderClick = {},
+            onFolderClick = {},
+            onFolderEditClick = {},
+            onChangeSharingClick = {},
+            onDeleteFolder = {},
+            onLinkClick = {},
+            onDeleteNotCategorizationLink = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 1000)
+@Composable
+private fun MyFoldersGridEditModePreview() {
+    val folders = listOf(
+        FolderSimpleInfo(1, "Folder 1", 0, false),
+        FolderSimpleInfo(2, "Folder 2", 0, true),
+        FolderSimpleInfo(3, "Folder 3", 0, false)
+    )
+    val links = listOf(
+        LinkItemInfo(1, 0, "Link 1", "https://example.com/1", emptyList(), null, null),
+        LinkItemInfo(2, 0, "Link 2", "https://example.com/2", emptyList(), null, null),
+        LinkItemInfo(3, 0, "Link 3", "https://example.com/3", emptyList(), null, null)
+    )
+
+    LinkuPreview {
+        MyFoldersGrid(
+            folders = folders,
+            notCategorizationLinks = links,
+            selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
+            isEditMode = true,
+            onAddFolderClick = {},
+            onFolderClick = {},
+            onFolderEditClick = {},
+            onChangeSharingClick = {},
+            onDeleteFolder = {},
+            onLinkClick = {},
+            onDeleteNotCategorizationLink = {}
+        )
+    }
 }
