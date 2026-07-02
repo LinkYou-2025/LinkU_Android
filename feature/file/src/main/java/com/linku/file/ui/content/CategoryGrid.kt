@@ -18,7 +18,7 @@ import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.file.ui.item.CategoryItemLayout
+import com.linku.file.ui.item.items.CategoryItemLayout
 
 /**
  * 카테고리 카드 행 사이에 적용되는 기본 세로 간격(dp).

@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -344,6 +346,8 @@ internal fun ShareBottomSheetLayout(
                     .fillMaxWidth()
                     .fillMaxHeight(SHEET_SELECT_SCREEN_HEIGHT_RATIO),
                 colors = colors,
+                preSelectDepth = selectDepth,
+                categories = folderTree,
             )
         }
     }
@@ -909,13 +913,115 @@ private fun LinkShareButton(
 }
 /*----------------폴더 공유 바텀 시트 메인 스크린----------------*/
 
+
+
+
+/*----------------공유 폴더 선택 스크린----------------*/
 // 공유할 폴더 선택 스크린
 @Composable
 private fun SelectFolderToShareScreen(
     modifier: Modifier,
     colors: ThemeColorScheme,
+    preSelectDepth: SelectDepth,
+    categories: List<FolderSimpleInfo>
 ){
+    var _newSelectDepth: SelectDepth by remember { mutableStateOf(preSelectDepth) }
+
+    Column(
+        modifier = modifier.padding(horizontal = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp)
+    ){
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            /** newSelectDepth의 스냅샷 */
+            val newSelectDepth = _newSelectDepth
+
+            // 카테고리 리스트
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                items(categories) { category ->
+
+                    Text(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(46.dp)
+                            .padding(start = 15.dp)
+                            .then(
+                                if (newSelectDepth is Category && newSelectDepth.category == category)
+                                    Modifier
+                                        .background(
+                                            color = colors.gray[100],
+                                            shape = RoundedCornerShape(size = 16.dp)
+                                        )
+                                        .noRippleClickable { _newSelectDepth = None }
+                                else Modifier.noRippleClickable {
+                                    _newSelectDepth = Category(category)
+                                }
+                            ),
+                        text = category.folderName,
+                        textAlign = TextAlign.Center,
+                        fontSize = 16.sp,
+                        color = if (newSelectDepth is Category && newSelectDepth.category == category) colors.gray[800] else colors.gray[600]
+                    )
+                }
+            }
+
+            if (newSelectDepth is Category) {
+
+                val folders = newSelectDepth.category.children
+
+                // 폴더 리스트
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    items(folders) { folder ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp)
+                                .padding(start = 15.dp)
+                                .then(
+                                    if (newSelectDepth is Folder && newSelectDepth.folder == folders)
+                                        Modifier
+                                            .background(
+                                                color = colors.gray[100],
+                                                shape = RoundedCornerShape(size = 16.dp)
+                                            )
+                                            .noRippleClickable { _newSelectDepth = None }
+                                    else Modifier.noRippleClickable {
+                                        _newSelectDepth = Folder(newSelectDepth.category, folder)
+                                    }
+                                ),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_shared_bottom_sheet_folder_select),
+                                contentDescription = "폴더 아이콘",
+                                tint = if (newSelectDepth is Folder && newSelectDepth.folder == folder) colors.blue[200] else colors.gray[400]
+                            )
+
+                            Text(
+                                text = folder.folderName,
+                                textAlign = TextAlign.Center,
+                                fontSize = 16.sp,
+                                color = if (newSelectDepth is Folder && newSelectDepth.folder == folder) colors.gray[800] else colors.gray[600]
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
+/*----------------공유 폴더 선택 스크린----------------*/
+
+
+
 
 @Preview(showBackground = true)
 @Composable
