@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -92,38 +93,36 @@ fun LinkDetailScreen(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
 
-    var isEditMode by remember { mutableStateOf(false) }
-    var isAiSummaryMode by remember { mutableStateOf(false) }
+    var isEditMode by rememberSaveable { mutableStateOf(false) }
+    var isAiSummaryMode by rememberSaveable { mutableStateOf(false) }
 
-    var isDropdownVisible by remember { mutableStateOf(false) }
-    var isDeleteModalVisible by remember { mutableStateOf(false) }
-    var isAiArticleModalVisible by remember { mutableStateOf(false) }
-    var isAiArticleProcessing by remember { mutableStateOf(false) }
-    var aiArticleProgress by remember { mutableFloatStateOf(0f) }
+    var isDropdownVisible by rememberSaveable { mutableStateOf(false) }
+    var isDeleteModalVisible by rememberSaveable { mutableStateOf(false) }
+    var isAiArticleModalVisible by rememberSaveable { mutableStateOf(false) }
+    var isAiArticleProcessing by rememberSaveable { mutableStateOf(false) }
+    var aiArticleProgress by rememberSaveable { mutableFloatStateOf(0f) }
 
-    val emotionOptions = EmotionType.entries.toList()
+    val emotionOptions = EmotionType.entries
     val situationOptions = SituationOptions.allSituations
 
-    var selectedTitle by remember { mutableStateOf(linkTitle) }
-    var selectedCategory by remember { mutableStateOf(category) }  // TopBar에 보여줄 이름
-    var selectedCategoryId by remember(categoryOptions, category) {  // 선택 여부 비교 및 API 전달용
+    var selectedTitle by rememberSaveable { mutableStateOf(linkTitle) }
+    var selectedCategory by rememberSaveable { mutableStateOf(category) }
+    var selectedCategoryId by rememberSaveable {
         mutableStateOf(
             categoryOptions.firstOrNull { it.name == category }?.id
         )
     }
-    var selectedEmotion by remember { mutableStateOf(emotion) }
-    var selectedSituation by remember(situationId) {
-        mutableStateOf(
-            situationOptions.firstOrNull { it.id.value == situationId }
-        )
-    }
-    var selectedMemo by remember { mutableStateOf(memo) }
+    var selectedEmotion by rememberSaveable { mutableStateOf(emotion) }
+    var selectedSituationId by rememberSaveable { mutableStateOf(situationId) }
+    var selectedMemo by rememberSaveable { mutableStateOf(memo) }
 
-    var openedDropdownType by remember {
+    val selectedSituation = situationOptions.firstOrNull {
+        it.id.value == selectedSituationId
+    }
+
+    var openedDropdownType by rememberSaveable {
         mutableStateOf<LinkDetailDropdownType?>(null)
     }
-
-
 
     val visibleTags = tags
         .filter { it.isNotBlank() }
@@ -138,7 +137,7 @@ fun LinkDetailScreen(
             selectedCategory = category
             selectedCategoryId = categoryOptions.firstOrNull { it.name == category }?.id
             selectedEmotion = emotion
-            selectedSituation = situationOptions.firstOrNull { it.id.value == situationId }
+            selectedSituationId = situationId
             selectedMemo = memo
         }
     }
@@ -613,7 +612,7 @@ fun LinkDetailScreen(
                         situations = situationOptions,
                         selectedSituation = selectedSituation,
                         onSituationClick = {
-                            selectedSituation = it
+                            selectedSituationId = it.id.value
                             openedDropdownType = null
                         },
                         modifier = Modifier
