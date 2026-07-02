@@ -1,6 +1,9 @@
 package com.linku.data.mapper
 
-import com.linku.core.model.auth.*
+import com.linku.core.model.auth.Gender
+import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.Purpose
 import com.linku.data.api.dto.auth.signup.social.SocialProfileRequestDTO
 
 object SocialProfileMapper {

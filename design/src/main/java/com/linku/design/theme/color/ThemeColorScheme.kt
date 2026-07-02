@@ -63,6 +63,29 @@ sealed class ThemeColorScheme(
     //구글 로그인 버튼 컬러용
     val googleLoginColor: Color = Color(0xFF1F1F1F),
     //구글 로그인 보더 컬러용
-    val googleLoginBorderColor: Color = Color(0xFF747775)
+    val googleLoginBorderColor: Color = Color(0xFF747775),
 
+    //큐레이션 전용 그라데이션
+    val curationGradient: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFF1451D5), Color(0xFF000208))
+    ),
+
+    //큐레이션 캘린더 박스 컬러
+    val curationCalendarBoxColor: Color = Color(0xFFEFF4FF),
+
+    //큐레이션 카드 배경 (이미지 로딩 전 fallback)
+    val curationCardBackground: Color = Color(0xFFF2F2F2),
+
+    //큐레이션 카드 이미지 위 오버레이 그라데이션
+    val curationCardOverlayGradient: Brush = Brush.verticalGradient(
+        colorStops = arrayOf(
+            0.0f to Color(0x00000000),
+            1.0f to Color(0x66000000)
+        )
+    ),
+
+    //큐레이션 감정 분석 섹션 타이틀 그라데이션
+    val emotionTitleGradient: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFF2C6FFF), Color(0xFF000208))
+    ),
 )
