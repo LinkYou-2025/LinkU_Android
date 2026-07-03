@@ -22,9 +22,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -43,7 +48,19 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
+import com.linku.home.component.TimedCustomToastMessage
+import com.linku.home.util.UrlValidationResult
+import com.linku.home.util.validateUrlInput
 import java.io.File
+
+private fun UrlValidationResult.toToastMessage(): String {
+    return when (this) {
+        UrlValidationResult.InvalidFormat,
+        UrlValidationResult.MultipleLinks -> "유효하지 않은 링크입니다!"
+        UrlValidationResult.VideoFormat -> "영상 콘텐츠는 지원하지 않아요!"
+        UrlValidationResult.Valid -> "유효한 링크입니다!"
+    }
+}
 
 @Composable
 fun SaveLinkScreen(
@@ -70,14 +87,22 @@ fun SaveLinkScreen(
     val jobType = JobType.fromId(jobId)
 
     val scrollState = rememberScrollState()
-    val bannedDomains = listOf("youtube.com", "youtu.be")
-    val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
+    val urlValidationResult = validateUrlInput(url)
+    var isUrlToastVisible by remember { mutableStateOf(false) }
+    var urlToastMessage by remember { mutableStateOf("") }
+    var isUrlToastSuccess by remember { mutableStateOf(false) }
+
     val isButtonEnabled =
-        url.isNotBlank() &&
+        urlValidationResult == UrlValidationResult.Valid &&
         !isCheckingUrl &&
-        !showVideoWarning &&
         !isInvalidLink &&
         (isDuplicateUrl != true)
+
+    fun showUrlToast(result: UrlValidationResult) {
+        urlToastMessage = result.toToastMessage()
+        isUrlToastSuccess = result == UrlValidationResult.Valid
+        isUrlToastVisible = true
+    }
 
     Box(
         modifier = Modifier
@@ -212,42 +237,6 @@ fun SaveLinkScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
-//            // URL 검사 결과 메시지
-//            when {
-//                url.isBlank() -> Unit
-//                showVideoWarning -> WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
-//                isCheckingUrl -> Text(
-//                    text = "링크를 확인 중입니다…",
-//                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
-//                    color = colors.gray[600],
-//                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
-//                )
-//                isInvalidLink -> {
-//                    WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
-//                }
-//                isDuplicateUrl == true -> WarningText("이미 저장된 링크예요.")
-//                isDuplicateUrl == false -> Text(
-//                    text = "저장 가능한 링크예요.",
-//                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
-//                    color = colors.blue[200],
-//                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
-//                )
-//                else -> Unit
-//            }
-//
-////            if (isInvalidLink) {
-////                WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
-////            }
-////
-////            if (showVideoWarning) {
-////                WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
-////            }
-//
-//            // 둘 다 false일 때만 Spacer 추가
-//            if (!isInvalidLink && !showVideoWarning) {
-//                Spacer(modifier = Modifier.height(12.dp))
-//            }
 
             Column(
                 modifier = Modifier
@@ -437,7 +426,19 @@ fun SaveLinkScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .noRippleClickable(enabled = isButtonEnabled) { onSaveClick() }
+                    .noRippleClickable {
+                        val currentUrlValidationResult = validateUrlInput(url)
+
+                        showUrlToast(currentUrlValidationResult)
+
+                        if (currentUrlValidationResult != UrlValidationResult.Valid) {
+                            return@noRippleClickable
+                        }
+
+                        if (isButtonEnabled) {
+                            onSaveClick()
+                        }
+                    }
                     .then (
                         if (isButtonEnabled) {
                             Modifier.background(Basic.maincolor)
@@ -457,6 +458,26 @@ fun SaveLinkScreen(
                 )
             }
         }
+
+        TimedCustomToastMessage(
+            visible = isUrlToastVisible,
+            backgroundColor = if (isUrlToastSuccess) {
+                Color(0xFFE0FBEB)
+            } else {
+                Color(0xFFFFDADA)
+            },
+            textColor = if (isUrlToastSuccess) {
+                colors.positive
+            } else {
+                colors.negative
+            },
+            toastMessage = urlToastMessage,
+            onDismiss = { isUrlToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 86.dp),
+            delayMillis = 3_000L
+        )
     }
 }
 
