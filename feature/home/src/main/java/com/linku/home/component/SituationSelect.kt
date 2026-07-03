@@ -31,8 +31,15 @@ fun SituationSelect(
     jobType: JobType,
     selectedSituationId: Long?,
     onSituationSelect: (Long?) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    FlowRow {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 13.dp, start = 20.dp, end = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         jobType.situations.forEach { situation ->
             val situationId = situation.id.value
             val selected = selectedSituationId == situationId
