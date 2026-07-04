@@ -37,6 +37,7 @@ fun CurationScreen(
     viewModel: CurationViewModel = hiltViewModel(), //TODO princehw가 구현해줄거임!
     onCard1Click: () -> Unit = {}, // TODO 다음 PR에서 구현..
     onCard3Click: () -> Unit = {}, // TODO 다음 PR에서 구현..
+    onMonthlyCurationClick: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
     var showKeywordDetail by remember { mutableStateOf(false) }
@@ -59,7 +60,8 @@ fun CurationScreen(
                         1 -> showKeywordDetail = true
                         2 -> onCard3Click()
                     }
-                }
+                },
+                onMonthlyCurationClick = onMonthlyCurationClick
             )
         }
 
@@ -75,10 +77,11 @@ fun CurationScreen(
 
 @Composable
 private fun CurationScreenContent(
+    modifier: Modifier = Modifier,
     nickname: String,
     pagerState: PagerState,
     onCardClick: (index: Int, imageUrl: String?) -> Unit,
-    modifier: Modifier = Modifier
+    onMonthlyCurationClick: () -> Unit = {},
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         CurationHeader(nickname = nickname)
@@ -104,7 +107,10 @@ private fun CurationScreenContent(
 
         Spacer(modifier = Modifier.height(18.scaler))
 
-        CalendarBox(modifier = Modifier.padding(horizontal = 18.scaler))
+        CalendarBox(
+            modifier = Modifier.padding(horizontal = 18.scaler),
+            onClick = onMonthlyCurationClick
+        )
     }
 }
 
