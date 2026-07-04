@@ -43,7 +43,7 @@ fun CurationScreen(
     val displayNickname = nickname.ifBlank { "세나" }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        CurationBackground(showLogo = true)
+        CurationBackground(modifier = Modifier.fillMaxSize(), showLogo = true)
 
         Column(modifier = Modifier.fillMaxSize()) {
             TopBar(showSearchBar = false, backgroundColor = null)
