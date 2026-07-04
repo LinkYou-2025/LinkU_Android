@@ -1,10 +1,14 @@
 package com.linku.curation.ui.util
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -15,7 +19,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-fun CurationBackground(
+fun BoxScope.CurationBackground(
     showLogo: Boolean = false
 ) {
     val colorTheme = MaterialTheme.linkuColors
@@ -33,7 +37,8 @@ fun CurationBackground(
             painter = painterResource(id = R.drawable.img_curation_logo),
             contentDescription = null,
             modifier = Modifier
-                .offset(x = 224.scaler, y = 95.scaler)
+                .align(Alignment.TopEnd)
+                .offset(x = 9.scaler, y = 95.scaler)
                 .size(width = 197.scaler, height = 140.scaler)
         )
     }
@@ -43,6 +48,8 @@ fun CurationBackground(
 @Composable
 fun PreviewCurationBackground() {
     LinkuPreview {
-        CurationBackground(showLogo = true)
+        Box(modifier = Modifier.fillMaxSize()) {
+            CurationBackground(showLogo = true)
+        }
     }
 }
