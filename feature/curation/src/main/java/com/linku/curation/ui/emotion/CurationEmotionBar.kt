@@ -29,7 +29,7 @@ private val BAR_HEIGHT = 45.dp // 높이는 모두 동일함.
  * @param color 지정하면 [rank] 기반 기본 색상 대신 이 색을 사용함 (데이터 없는 플레이스홀더 바 등에서 사용)
  */
 @Composable
-fun CurationEmotionBar(
+internal fun CurationEmotionBar(
     modifier: Modifier = Modifier,
     progress: Float = 0.75f,
     rank: Int = 0, //0,1,2 (혹시 마음에 안 들면 1번부터 하게 편하게 수정해주세요~!)

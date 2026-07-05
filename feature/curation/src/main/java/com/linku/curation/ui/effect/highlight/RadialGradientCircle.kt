@@ -25,7 +25,7 @@ import com.linku.design.util.scaler
 
 // 큐레이션 대신 해주는데 기본으로 쓰는 값들은 넣어 드려야지....
 @Composable
-fun RadialGradientCircle(
+internal fun RadialGradientCircle(
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.linkuColors.accentColor,
     alpha: Float = 0.12f,

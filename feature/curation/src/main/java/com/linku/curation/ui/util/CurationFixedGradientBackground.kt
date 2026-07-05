@@ -22,7 +22,7 @@ import com.linku.design.theme.linkuColors
  * @param content 배경 위에 그릴 스크롤 컨텐츠.
  */
 @Composable
-fun CurationFixedGradientBackground(
+internal fun CurationFixedGradientBackground(
     modifier: Modifier = Modifier,
     brush: Brush = MaterialTheme.linkuColors.curationFirstCardBackground, // 나중에 확장 가능성을 고려해서 파라미터 받는 것으로 짬.
     content: @Composable BoxScope.() -> Unit = {}, // 스크롤 해도 배경은 고정하기 위해서 추가함. 더 좋은 의견이 있다면 언제든 환영입니다.

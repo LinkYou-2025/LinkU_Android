@@ -32,7 +32,7 @@ import com.linku.design.top.bar.TopBar
 import com.linku.design.util.scaler
 
 @Composable
-fun CurationScreen(
+internal fun CurationScreen(
     nickname: String,
     viewModel: CurationViewModel = hiltViewModel(), //TODO princehw가 구현해줄거임!
     onCard1Click: () -> Unit = {}, // TODO 다음 PR에서 구현..

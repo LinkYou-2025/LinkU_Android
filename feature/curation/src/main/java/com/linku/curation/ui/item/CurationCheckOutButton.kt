@@ -28,7 +28,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-fun CurationCheckOutButton(
+internal fun CurationCheckOutButton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
 ) {

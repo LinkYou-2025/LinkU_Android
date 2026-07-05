@@ -26,7 +26,7 @@ private const val MONTH_COUNT = 12
  * 있어 nullable로 받으며, [MonthlyCurationItem]에서 null을 빈 문자열("")로 취급한다
  */
 @Composable
-fun MonthlyCurationGrid(
+internal fun MonthlyCurationGrid(
     modifier: Modifier = Modifier,
     onMonthClick: (Int) -> Unit = {},
     imageUrlOf: (Int) -> String? = { "" },

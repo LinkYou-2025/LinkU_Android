@@ -45,7 +45,7 @@ import com.linku.design.util.scaler
  * @param titleDescriptionGap title과 description 사이 간격 (피그마 px에 [scaler]를 적용해서 전달)
  */
 @Composable
-fun CurationTopHeader(
+internal fun CurationTopHeader(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     contentTopOffset: Dp, // 로고 + 제목 + 설명이 세트가 y좌표가 유동적이라 추가했습니다(다현아 살려줘)

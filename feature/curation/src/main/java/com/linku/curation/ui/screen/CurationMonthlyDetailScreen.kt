@@ -47,7 +47,7 @@ import com.linku.design.util.scaler
  * @param onGoHome 예외 상태의 "링크 저장하러 가기" 버튼 클릭 시 호출. 홈 화면으로 이동
  */
 @Composable
-fun CurationMonthlyDetailScreen(
+internal fun CurationMonthlyDetailScreen(
     onBack: () -> Unit,
     nickname: String = "",
     year: String = "2026",

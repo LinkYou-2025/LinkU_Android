@@ -36,7 +36,7 @@ data class EmotionItem(
  * @param items 백엔드에서 수신한 감정 항목 리스트 (progress + keyword, 최대 3개)
  */
 @Composable
-fun CurationEmotionSection(
+internal fun CurationEmotionSection(
     modifier: Modifier = Modifier,
     items: List<EmotionItem> = emptyList(),
 ) {

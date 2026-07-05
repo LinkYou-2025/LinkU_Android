@@ -40,7 +40,7 @@ import kotlin.math.absoluteValue
  * @param onCardClick 카드 하단 체크아웃 버튼 클릭 시 호출. (페이지 인덱스, 이미지 URL) 전달
  */
 @Composable
-fun CurationMainCardPager(
+internal fun CurationMainCardPager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
     imageUrls: List<String>,
@@ -113,7 +113,7 @@ fun CurationMainCardPager(
  * 선택된 페이지는 가로로 길게 늘어난 pill 형태, 나머지는 원형 도트로 표시.
  */
 @Composable
-fun CurationPagerIndicator(
+internal fun CurationPagerIndicator(
     pageCount: Int,
     currentPage: Int,
     modifier: Modifier = Modifier

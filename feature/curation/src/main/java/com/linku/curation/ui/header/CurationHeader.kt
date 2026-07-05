@@ -21,7 +21,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-fun CurationHeader(
+internal fun CurationHeader(
     modifier: Modifier = Modifier,
     nickname: String,
 ) {

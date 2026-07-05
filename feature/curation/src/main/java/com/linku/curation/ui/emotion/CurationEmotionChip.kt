@@ -23,7 +23,7 @@ import com.linku.design.theme.linkuColors
  * @param text 표시할 키워드 (예: "#짜증")
  */
 @Composable
-fun CurationEmotionChip(
+internal fun CurationEmotionChip(
     modifier: Modifier = Modifier,
     text: String = "짜증",
 ) {

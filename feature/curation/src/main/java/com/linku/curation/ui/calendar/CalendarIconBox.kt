@@ -33,7 +33,7 @@ private val MONTH_LABELS = listOf(
 
 
 @Composable
-fun CalendarIconBox(
+internal fun CalendarIconBox(
     modifier: Modifier = Modifier
 ) {
     val colorTheme = MaterialTheme.linkuColors

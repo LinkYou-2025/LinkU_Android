@@ -33,7 +33,7 @@ import com.linku.design.util.scaler
  * 빈 문자열("")로 취급한다 - 이 경우 숫자도 표시하지 않음
  */
 @Composable
-fun MonthlyCurationItem(
+internal fun MonthlyCurationItem(
     modifier: Modifier = Modifier,
     month: Int,
     imageUrl: String? = "", // null일 수 있습니다. 월간 큐레이션이 일부 누락 되면 null이에요
