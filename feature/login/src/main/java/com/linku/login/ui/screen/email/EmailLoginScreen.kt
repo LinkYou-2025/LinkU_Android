@@ -42,12 +42,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
 import com.linku.core.system.SystemBarController
+import com.linku.design.component.GradientButtonCore
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.R
-import com.linku.login.ui.item.GradientButtonCore
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.PasswordLoginTextField
 import com.linku.login.viewmodel.LoginViewModel

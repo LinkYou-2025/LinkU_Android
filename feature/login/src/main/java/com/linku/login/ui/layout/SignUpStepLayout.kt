@@ -17,10 +17,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
-import com.linku.login.ui.item.BottomGradientButton
 import com.linku.login.ui.item.StepIndicator
 
 /**
