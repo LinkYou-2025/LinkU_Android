@@ -32,8 +32,7 @@ internal fun CurationEmotionChip(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            // unbounded = true로 둬야 부모(Row)가 좁게 줄 때도 글자 너비만큼 그대로 확장됨
-            .wrapContentWidth(unbounded = true)
+            .wrapContentWidth()
             .border(
                 width = 1.dp,
                 color = colorTheme.blue[200],
