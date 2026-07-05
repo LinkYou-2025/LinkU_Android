@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +37,7 @@ import com.linku.design.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+
 
 @Composable
 fun LinkCardItem(
@@ -84,7 +88,9 @@ fun LinkCardItem(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 13.dp),
+                        .padding(top = 13.dp)
+                        // 최소 높이만 20dp로 맞추고, 폰트 크게 설정 등으로 더 필요하면 늘어나게 둠(글자 짤림 방지)
+                        .heightIn(min = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (isExternalLink) {
@@ -104,13 +110,26 @@ fun LinkCardItem(
                         color = MaterialTheme.linkuColors.black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
+                        // 폰트 기본 여백 때문에 아이콘이랑 세로 중앙이 안 맞아서 제거함
+                        style = TextStyle(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        ),
                         modifier = Modifier.weight(1f)
                     )
                 }
 
                 Spacer(modifier = Modifier.height(5.dp))
 
+                val tagChipModifier = Modifier
+                    .background(
+                        color = colors.gray[100],
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+
                 Row(
+                    // 태그가 없어도 도메인 행 위치가 밀리지 않도록 최소 높이만 20dp로 고정
+                    modifier = Modifier.heightIn(min = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     tags.forEach { tag ->
@@ -119,12 +138,7 @@ fun LinkCardItem(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.gray[600],
-                            modifier = Modifier
-                                .background(
-                                    color = colors.gray[100],
-                                    shape = RoundedCornerShape(6.dp)
-                                )
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                            modifier = tagChipModifier
                         )
 
                         Spacer(modifier = Modifier.width(6.dp))
