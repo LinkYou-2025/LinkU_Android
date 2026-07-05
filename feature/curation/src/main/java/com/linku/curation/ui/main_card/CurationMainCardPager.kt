@@ -113,7 +113,7 @@ fun CurationMainCardPager(
  * 선택된 페이지는 가로로 길게 늘어난 pill 형태, 나머지는 원형 도트로 표시.
  */
 @Composable
-private fun CurationPagerIndicator(
+fun CurationPagerIndicator(
     pageCount: Int,
     currentPage: Int,
     modifier: Modifier = Modifier
