@@ -476,7 +476,7 @@ fun MainApp(
                         onTitleChange = vm::setTitle,
                         onMemoChange = vm::setMemo,
                         onEmotionSelect = vm::selectEmotion,
-                        onSituationSelect = vm::selectSituation,
+                        onSituationClick  = vm::onSituationClick,
                         onSaveClick = {
                             Log.d(
                                 "SaveLink",

@@ -218,7 +218,13 @@ class HomeViewModel @Inject constructor(
     fun setTitle(newTitle: String) { titleState.value = newTitle }
     fun setMemo(newMemo: String) { memoState.value = newMemo }
     fun selectEmotion(id: Long?) { emotionIdState.value = id }
-    fun selectSituation(id: Long?) { situationIdState.value = id }
+    fun onSituationClick(id: Long) {
+        situationIdState.value = if (situationIdState.value == id) {
+            null
+        } else {
+            id
+        }
+    }
 
 
     // 저장 폼 초기화

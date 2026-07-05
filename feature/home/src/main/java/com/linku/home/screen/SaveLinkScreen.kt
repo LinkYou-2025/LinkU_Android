@@ -76,7 +76,7 @@ fun SaveLinkScreen(
     onTitleChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onEmotionSelect: (Long?) -> Unit,
-    onSituationSelect: (Long?) -> Unit,
+    onSituationClick: (Long) -> Unit,
     onSaveClick: () -> Unit,
     onBack: () -> Unit,
     isCheckingUrl: Boolean,
@@ -410,7 +410,7 @@ fun SaveLinkScreen(
             SituationSelect(
                 jobType = jobType,
                 selectedSituationId = selectedSituationId,
-                onSituationClick = onSituationSelect
+                onSituationClick = onSituationClick
             )
 
             Spacer(modifier = Modifier.height(70.dp))
@@ -487,7 +487,7 @@ fun PreviewSaveLinkScreen() {
             onTitleChange = { },
             onMemoChange = { },
             onEmotionSelect = { },
-            onSituationSelect = { },
+            onSituationClick = { },
             onSaveClick = { },
             onBack = { },
             isCheckingUrl = false,
