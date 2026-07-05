@@ -56,6 +56,8 @@ fun CurationRecommendedLinksPager(
     onLinkClick: (String) -> Unit = {},
     onDeleteClick: (RecommendedLink) -> Unit = {},
 ) {
+    if (links.isEmpty()) return
+
     val colorTheme = MaterialTheme.linkuColors
     val pages = remember(links, linksPerPage) { links.chunked(linksPerPage) }
     val pagerState = rememberPagerState(pageCount = { pages.size })
