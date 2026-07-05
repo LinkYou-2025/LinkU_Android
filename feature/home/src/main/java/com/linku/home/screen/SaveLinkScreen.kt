@@ -92,19 +92,16 @@ fun SaveLinkScreen(
     var isUrlToastVisible by remember { mutableStateOf(false) }
     var urlToastMessage by remember { mutableStateOf("") }
     var isUrlToastSuccess by remember { mutableStateOf(false) }
-    val isValidUrlFormat = urlValidationResult == UrlValidationResult.Valid
 
-    val isButtonEnabled =
-        isValidUrlFormat &&
-                !isCheckingUrl &&
-                !isInvalidLink &&
-                isDuplicateUrl != true
-
-    fun showUrlToast(result: UrlValidationResult) {
-        urlToastMessage = result.toToastMessage()
-        isUrlToastSuccess = result == UrlValidationResult.Valid
-        isUrlToastVisible = true
+    val blockReason: String? = when {
+        urlValidationResult != UrlValidationResult.Valid -> urlValidationResult.toToastMessage()
+        isCheckingUrl -> "링크를 확인하고 있어요."
+        isInvalidLink -> "유효하지 않은 링크입니다!"
+        isDuplicateUrl == true -> "이미 저장된 링크예요."
+        else -> null
     }
+
+    val isButtonEnabled = blockReason == null
 
     Box(
         modifier = Modifier
@@ -429,9 +426,11 @@ fun SaveLinkScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
                     .noRippleClickable {
-                        showUrlToast(urlValidationResult)
+                        urlToastMessage = blockReason ?: "유효한 링크입니다!"
+                        isUrlToastSuccess = blockReason == null
+                        isUrlToastVisible = true
 
-                        if (isButtonEnabled) {
+                        if (blockReason == null) {
                             onSaveClick()
                         }
                     }
