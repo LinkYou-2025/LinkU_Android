@@ -1,5 +1,6 @@
 package com.linku.home.util
 
+import android.net.Uri
 import android.util.Patterns
 
 sealed interface UrlValidationResult {
@@ -96,12 +97,21 @@ private fun isExactSingleUrl(
 private fun isVideoUrl(url: String): Boolean {
     val videoDomains = listOf(
         "youtube.com",
-        "www.youtube.com",
-        "m.youtube.com",
         "youtu.be"
     )
 
+    val host = runCatching {
+        val normalizedUrl = if (url.contains("://")) {
+            url
+        } else {
+            "https://$url"
+        }
+
+        Uri.parse(normalizedUrl).host
+    }.getOrNull() ?: return false
+
     return videoDomains.any { domain ->
-        url.contains(domain, ignoreCase = true)
+        host.equals(domain, ignoreCase = true) ||
+                host.endsWith(".$domain", ignoreCase = true)
     }
 }
