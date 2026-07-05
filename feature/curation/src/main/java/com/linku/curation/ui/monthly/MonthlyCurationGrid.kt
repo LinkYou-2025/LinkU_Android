@@ -42,12 +42,20 @@ fun MonthlyCurationGrid(
                 horizontalArrangement = Arrangement.spacedBy(9.scaler)
             ) {
                 (rowStart until rowStart + COLUMN_COUNT).forEach { month ->
+                    val imageUrl = imageUrlOf(month)
+                    val hasContent = !imageUrl.isNullOrEmpty()
                     MonthlyCurationItem(
                         month = month,
-                        imageUrl = imageUrlOf(month),
+                        imageUrl = imageUrl,
                         modifier = Modifier
                             .weight(1f)
-                            .noRippleClickable { onMonthClick(month) }
+                            .let { modifier ->
+                                if (hasContent) {
+                                    modifier.noRippleClickable { onMonthClick(month) }
+                                } else {
+                                    modifier
+                                }
+                            }
                     )
                 }
             }
