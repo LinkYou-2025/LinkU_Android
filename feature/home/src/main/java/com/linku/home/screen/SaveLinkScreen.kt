@@ -29,7 +29,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -49,6 +48,7 @@ import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
 import com.linku.home.component.TimedCustomToastMessage
+import com.linku.home.component.ToastType
 import com.linku.home.util.UrlValidationResult
 import com.linku.home.util.validateUrlInput
 import java.io.File
@@ -92,12 +92,13 @@ fun SaveLinkScreen(
     var isUrlToastVisible by remember { mutableStateOf(false) }
     var urlToastMessage by remember { mutableStateOf("") }
     var isUrlToastSuccess by remember { mutableStateOf(false) }
+    val isValidUrlFormat = urlValidationResult == UrlValidationResult.Valid
 
     val isButtonEnabled =
-        urlValidationResult == UrlValidationResult.Valid &&
+        isValidUrlFormat &&
                 !isCheckingUrl &&
                 !isInvalidLink &&
-                (isDuplicateUrl != true)
+                isDuplicateUrl != true
 
     fun showUrlToast(result: UrlValidationResult) {
         urlToastMessage = result.toToastMessage()
@@ -412,7 +413,7 @@ fun SaveLinkScreen(
             SituationSelect(
                 jobType = jobType,
                 selectedSituationId = selectedSituationId,
-                onSituationSelect = onSituationSelect
+                onSituationClick = onSituationSelect
             )
 
             Spacer(modifier = Modifier.height(70.dp))
@@ -429,10 +430,6 @@ fun SaveLinkScreen(
                     .clip(RoundedCornerShape(18.dp))
                     .noRippleClickable {
                         showUrlToast(urlValidationResult)
-
-                        if (urlValidationResult != UrlValidationResult.Valid) {
-                            return@noRippleClickable
-                        }
 
                         if (isButtonEnabled) {
                             onSaveClick()
@@ -460,22 +457,16 @@ fun SaveLinkScreen(
 
         TimedCustomToastMessage(
             visible = isUrlToastVisible,
-            backgroundColor = if (isUrlToastSuccess) {
-                Color(0xFFE0FBEB)
-            } else {
-                Color(0xFFFFDADA)
-            },
-            textColor = if (isUrlToastSuccess) {
-                colors.positive
-            } else {
-                colors.negative
-            },
             toastMessage = urlToastMessage,
+            toastType = if (isUrlToastSuccess) {
+                ToastType.SUCCESS
+            } else {
+                ToastType.ERROR
+            },
             onDismiss = { isUrlToastVisible = false },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 86.dp),
-            delayMillis = 3_000L
+                .padding(top = 86.dp)
         )
     }
 }
