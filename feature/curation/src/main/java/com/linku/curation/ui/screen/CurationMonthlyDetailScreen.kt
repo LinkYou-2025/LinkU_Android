@@ -134,7 +134,6 @@ fun CurationMonthlyDetailScreen(
                     inactiveGradient = colorTheme.inactiveColor,
                     onClick = onGoHome,
                     label = "이번 달은 선택하신 상황/감정이 없네요!"
-                    // bottomPaddingOverride 안 줌: EmailVerificationScreen과 동일하게 기본 ime/네비바 반응형 여백 사용
                 )
             }
         }
