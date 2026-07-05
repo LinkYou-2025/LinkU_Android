@@ -65,9 +65,9 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.file.ui.item.CategoryItemLayout
-import com.linku.file.ui.item.EmptyFolderItemLayout
-import com.linku.file.ui.item.MyFolderItemLayout
+import com.linku.file.ui.item.items.CategoryItemLayout
+import com.linku.file.ui.item.items.EmptyFolderItemLayout
+import com.linku.file.ui.item.items.MyFolderItemLayout
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 

@@ -42,9 +42,9 @@ import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.ui.item.EmptyFolderItemLayout
 import com.linku.file.ui.item.LinkItemLayout
-import com.linku.file.ui.item.MyFolderItemLayout
+import com.linku.file.ui.item.items.EmptyFolderItemLayout
+import com.linku.file.ui.item.items.MyFolderItemLayout
 
 /**
  * 폴더/링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.

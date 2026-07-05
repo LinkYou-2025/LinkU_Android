@@ -1,7 +1,3 @@
-/**
- * 폴더 카드 계열 UI를 구성하는 공통 레이아웃과 파생 컴포저블을 정의합니다.
- */
-
 package com.linku.file.ui.item
 
 import androidx.compose.foundation.Image
@@ -9,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
@@ -41,16 +36,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modifier.innerRingShadow
-import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
 
@@ -92,7 +83,7 @@ fun FolderItemLayout(
     // 디자인 원본 기준 사이즈입니다. 카드 비율과 내부 요소 스케일 계산의 기준값으로 사용합니다.
     val baseW = 165.3.dp
     val baseH = 145.8535.dp
-    val aspect = baseW / baseH // ≈ 1.1327
+    val aspect = baseW / baseH
 
     // 외부에서 전달한 modifier가 크기를 정하고, aspectRatio가 폴더 카드의 원본 비율을 유지합니다.
     Surface(
@@ -109,11 +100,6 @@ fun FolderItemLayout(
          * 모든 기준 dp/sp 값을 같은 scale 값으로 변환합니다.
          */
         BoxWithConstraints(Modifier.fillMaxSize()) {
-
-            // BoxWithConstraintsScope 참조를 보관해 스코프 사용 경고를 피하기 위한 값입니다.
-            val tmp = this
-
-            // 현재 실제 너비/높이에 맞춰 디자인 기준 크기 대비 스케일을 계산합니다.
             val scaleW = maxWidth / baseW
             val scaleH = maxHeight / baseH
             val scale = minOf(scaleW, scaleH)
@@ -157,7 +143,6 @@ fun FolderItemLayout(
                         .width(s(size))
                         .height(s(height))
                         .shadow(
-                            // elevation은 스케일하지 않음: 시각적 깊이 유지
                             elevation = 4.dp,
                             ambientColor = Color.Black.copy(alpha = 0.5f),
                             spotColor = Color.Black.copy(alpha = 0.5f),
@@ -219,7 +204,7 @@ fun FolderItemLayout(
                                 }
                             }
                             .shadow(
-                                elevation = 9.5.dp, // elevation은 고정
+                                elevation = 9.5.dp,
                                 ambientColor = Color.Black.copy(alpha = 0.5f),
                                 spotColor = Color.Black.copy(alpha = 0.5f),
                             )
@@ -291,209 +276,3 @@ fun FolderItemLayout(
         }
     }
 }
-
-/**
- * 비어 있는 폴더 카드 형태를 표시합니다.
- *
- * 폴더 추가 카드나 placeholder처럼 실제 폴더 색상이 필요 없는 상황에서 사용합니다.
- *
- * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
- * @param folderName 카드 하단에 표시할 폴더명입니다. 기본값은 빈 문자열입니다.
- */
-@Composable
-fun EmptyFolderItemLayout(
-    modifier: Modifier = Modifier,
-    folderName: String = ""
-){
-    /** 비어 있는 폴더 카드에 사용할 회색 계열 테마 색상입니다. */
-    val colors = MaterialTheme.linkuColors
-
-    // 실제 폴더 데이터가 없는 추가/빈 상태에서도 공통 폴더 카드 구조를 재사용합니다.
-    FolderItemLayout(
-        backgroundColor = colors.gray[200],
-        color1 = colors.gray[300],
-        color2 = colors.gray[200],
-        color3 = colors.white,
-        folderMaskBrush = Brush.verticalGradient(
-            colorStops = arrayOf(
-                1.0f to colors.gray[100].copy(alpha = 0.7f),
-                0.2f to colors.gray[200].copy(alpha = 1.0f),
-            )
-        ),
-        // 빈 폴더 카드는 상태/액션 아이콘이 없으므로 좌우 슬롯을 비워 둡니다.
-        leftIcon = {},
-        rightIcon = {},
-        textBackgroundColor = colors.gray[500],
-        folderName = folderName,
-        modifier = modifier
-    )
-}
-
-/**
- * 최상위 카테고리 폴더 카드를 표시합니다.
- *
- * 카테고리 색상 스타일을 폴더 레이어와 배지 색상에 반영하고, 일반 모드에서는 북마크
- * 아이콘을, 편집 모드에서는 연필 아이콘을 오른쪽 상단에 표시합니다.
- *
- * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
- * @param colorStyle 카테고리 카드에 적용할 색상 스타일입니다.
- * @param folder 표시할 폴더 정보입니다.
- * @param visibleBookmarked 북마크/편집 아이콘 영역을 표시할지 여부입니다.
- * @param isEditMode 편집 모드 활성화 여부입니다.
- * @param onBookmark 북마크 아이콘을 눌렀을 때 실행할 동작입니다.
- */
-@Composable
-fun CategoryItemLayout(
-    modifier: Modifier = Modifier,
-    colorStyle: CategoryColorStyle,
-    folder: FolderSimpleInfo,
-    visibleBookmarked: Boolean = true,
-    isEditMode: Boolean = false,
-    onBookmark: () -> Unit
-){
-    /** 카테고리 카드의 기본 배경과 마스크 색상을 가져오기 위한 테마 색상입니다. */
-    val colors = MaterialTheme.linkuColors
-
-    // 카테고리 색상 스타일을 공통 폴더 카드의 레이어 색상으로 매핑합니다.
-    FolderItemLayout(
-        backgroundColor = colors.gray[200],
-        color1 = colorStyle.color3,
-        color2 = colorStyle.color2,
-        color3 = colorStyle.color1,
-        folderMaskBrush = Brush.verticalGradient(
-            colorStops = arrayOf(
-                1.0f to colors.gray[100].copy(alpha = 0.7f),
-                0.2f to colors.gray[200].copy(alpha = 1.0f),
-            )
-        ),
-        leftIcon = {},
-        rightIcon = {
-            // 화면 요구에 따라 북마크/편집 아이콘 영역 자체를 숨길 수 있습니다.
-            if(visibleBookmarked){
-                if (isEditMode) {
-                    // 편집 모드에서는 북마크 대신 수정 가능 상태를 나타내는 연필 아이콘을 표시합니다.
-                    Box(
-                        modifier = Modifier
-                    ) {
-                        PencilIcon(colorStyle.color2)
-                    }
-                } else {
-                    // 일반 모드에서는 북마크 아이콘을 눌러 즐겨찾기 상태를 변경합니다.
-                    Box(
-                        modifier = Modifier
-                            .noRippleClickable {
-                                onBookmark()
-                            }
-                    ) {
-                        BookMarkStar(folder.isBookmarked)
-                    }
-                }
-            }
-        },
-        textBackgroundColor = colorStyle.color4,
-        folderName = folder.folderName,
-        modifier = modifier
-    )
-}
-
-/**
- * 선택된 카테고리 아래의 하위 폴더 카드를 표시합니다.
- *
- * 공유 상태에 따라 왼쪽 상단에 공유/잠금 아이콘을 표시하고, 편집 모드에서는 해당 아이콘을
- * 눌러 공유 상태를 변경할 수 있습니다. 편집 모드에서는 오른쪽 상단에 폴더 수정 아이콘도
- * 표시합니다.
- *
- * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
- * @param colorStyle 하위 폴더 카드에 적용할 색상 스타일입니다.
- * @param folder 표시할 하위 폴더 정보입니다.
- * @param isEditMode 편집 모드 활성화 여부입니다.
- * @param onEdit 편집 아이콘을 눌렀을 때 실행할 동작입니다.
- * @param onChangeSharing 공유 상태 아이콘을 눌렀을 때 실행할 동작입니다.
- */
-@Composable
-fun MyFolderItemLayout(
-    modifier: Modifier = Modifier,
-    colorStyle: CategoryColorStyle,
-    folder: FolderSimpleInfo,
-    isEditMode: Boolean = false,
-    onEdit: ()-> Unit = {},
-    onChangeSharing: () -> Unit = {}
-){
-    /** 하위 폴더 카드의 앞쪽 레이어와 마스크에 사용할 테마 색상입니다. */
-    val colors = MaterialTheme.linkuColors
-
-    // 선택된 카테고리 색상 스타일을 하위 폴더 카드의 레이어 색상으로 매핑합니다.
-    FolderItemLayout(
-        backgroundColor = colorStyle.color1,
-        color1 = colorStyle.color2,
-        color2 = colorStyle.color1,
-        color3 = colors.white,
-        folderMaskBrush = colorStyle.verticalGradient(),
-        leftIcon = {
-            // 왼쪽 슬롯에는 공유 상태 아이콘을 표시하고, 편집 모드에서만 클릭 액션을 허용합니다.
-            Box(
-                modifier = Modifier.noRippleClickable{
-                    if (isEditMode) {
-                        onChangeSharing()
-                    }
-                }
-            ){
-                folder.isSharing?.let{
-                    // 서버에서 내려온 공유 상태 문자열에 따라 공유/개인 폴더 아이콘을 선택합니다.
-                    when(it){
-                        "share" -> ShareFolderIcon(colorStyle.color2)
-                        "personal" -> LockFolderIcon(colorStyle.color2)
-                        else -> {}
-                    }
-                }
-            }
-        },
-        rightIcon = {
-            // 오른쪽 슬롯에는 편집 모드에서만 폴더 수정 아이콘을 표시합니다.
-            if (isEditMode) {
-                Box(
-                    modifier = Modifier.noRippleClickable{
-                        onEdit()
-                    }
-                ) {
-                    PencilIcon(colorStyle.color2)
-                }
-            }
-        },
-        textBackgroundColor = colorStyle.color4,
-        folderName = folder.folderName,
-        modifier = modifier
-    )
-}
-
-/**
- * 폴더 카드 계열 컴포저블의 기본 상태를 확인하기 위한 Compose Preview입니다.
- */
-@Preview(showBackground = true)
-@Composable
-private fun FolderItemTest() {
-    Column{
-        EmptyFolderItemLayout()
-        CategoryItemLayout(
-            colorStyle = CategoryColorStyle.categoryStyleList[0],
-            folder = FolderSimpleInfo(
-                folderId = 0,
-                folderName = "기본skskskskskskskksksks",
-                parentFolderId = 0,
-                isBookmarked = false,
-                isSharing = null
-            )
-        ){}
-        MyFolderItemLayout(
-            folder = FolderSimpleInfo(
-                folderId = 0,
-                folderName = "기본",
-                parentFolderId = 0,
-                isBookmarked = false,
-                isSharing = "share"
-            ),
-            colorStyle = CategoryColorStyle.categoryStyleList[0],
-        )
-    }
-}
-

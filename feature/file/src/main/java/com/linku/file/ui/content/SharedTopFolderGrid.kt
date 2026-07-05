@@ -12,9 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.cheonjaeung.compose.grid.SimpleGridCells
 import com.cheonjaeung.compose.grid.VerticalGrid
-import com.linku.file.FileViewModel
 import com.linku.design.modifier.noRippleClickable
-import com.linku.file.ui.item.EmptyFolderItemLayout
+import com.linku.file.FileViewModel
+import com.linku.file.ui.item.items.EmptyFolderItemLayout
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
