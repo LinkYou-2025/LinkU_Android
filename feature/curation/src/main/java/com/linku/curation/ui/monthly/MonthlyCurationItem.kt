@@ -12,9 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.AsyncImage
 import com.linku.curation.ui.resolveMonthNumberIcon
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -52,7 +51,7 @@ fun MonthlyCurationItem(
         contentAlignment = Alignment.Center
     ) {
         if (hasContent) {
-            SubcomposeAsyncImage(
+            AsyncImage(
                 model = resolvedImageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
@@ -60,7 +59,7 @@ fun MonthlyCurationItem(
             )
 
             Image(
-                painter = painterResource(id = resolveMonthNumberIcon(month)),
+                painter = resolveMonthNumberIcon(month),
                 contentDescription = "${month}월",
                 modifier = Modifier.height(31.11111f.scaler)
             )
