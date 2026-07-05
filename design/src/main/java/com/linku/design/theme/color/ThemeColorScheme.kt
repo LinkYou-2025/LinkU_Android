@@ -73,6 +73,9 @@ sealed class ThemeColorScheme(
     //큐레이션 캘린더 박스 컬러
     val curationCalendarBoxColor: Color = Color(0xFFEFF4FF),
 
+    //큐레이션 보러가기 버튼 배경 컬러
+    val curationCheckOutButtonBackground: Color = Color(0x4DFFFFFF),
+
     //큐레이션 카드 배경 (이미지 로딩 전 fallback)
     val curationCardBackground: Color = Color(0xFFF2F2F2),
 
