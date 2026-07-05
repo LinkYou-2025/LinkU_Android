@@ -29,7 +29,7 @@ import com.linku.design.theme.linkuColors
 fun SituationSelect(
     jobType: JobType,
     selectedSituationId: Long?,
-    onSituationSelect: (Long?) -> Unit,
+    onSituationClick: (Long) -> Unit,
     modifier: Modifier = Modifier
 ) {
     FlowRow(
@@ -47,9 +47,7 @@ fun SituationSelect(
                 situation = situation,
                 selected = selected,
                 onClick = {
-                    onSituationSelect(
-                        if (selected) null else situationId
-                    )
+                    onSituationClick(situationId)
                 }
             )
         }
@@ -105,7 +103,7 @@ fun PreviewSituationSelect() {
         SituationSelect(
             jobType = JobType.OFFICE_WORKER,
             selectedSituationId = 18L,
-            onSituationSelect = { }
+            onSituationClick = { }
         )
     }
 }
