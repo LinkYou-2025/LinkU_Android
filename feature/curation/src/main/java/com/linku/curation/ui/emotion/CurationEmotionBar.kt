@@ -8,6 +8,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.takeOrElse
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.lerp
@@ -24,20 +26,24 @@ private val BAR_HEIGHT = 45.dp // 높이는 모두 동일함.
  *
  * @param progress 0.0(최소) ~ 1.0(최대) 비율. 백엔드에서 수신
  * @param rank 순위 (0 = 1위, 1 = 2위, 2 = 3위). 색상 자동 결정: blue[300] / blue[200] / blue[100]
+ * @param color 지정하면 [rank] 기반 기본 색상 대신 이 색을 사용함 (데이터 없는 플레이스홀더 바 등에서 사용)
  */
 @Composable
 fun CurationEmotionBar(
     modifier: Modifier = Modifier,
     progress: Float = 0.75f,
     rank: Int = 0, //0,1,2 (혹시 마음에 안 들면 1번부터 하게 편하게 수정해주세요~!)
+    color: Color = Color.Unspecified, // 지정 안 하면 rank 기반 기본 색상 사용, 예외 상태 대응을 위해 사용하는 파라미터 입니다.
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
     // 연동해주는데 귀찮게 언제 컬러 지정하게 하면 안됨. 귀찮은건 미리 다 했습니다~!
-    val barColor = when (rank) {
-        0 -> colorTheme.blue[300]
-        1 -> colorTheme.blue[200]
-        else -> colorTheme.blue[100]
+    val barColor = color.takeOrElse {
+        when (rank) {
+            0 -> colorTheme.blue[300]
+            1 -> colorTheme.blue[200]
+            else -> colorTheme.blue[100]
+        }
     }
     val barWidth = lerp(BAR_MIN_WIDTH, BAR_MAX_WIDTH, progress.coerceIn(0f, 1f))
 

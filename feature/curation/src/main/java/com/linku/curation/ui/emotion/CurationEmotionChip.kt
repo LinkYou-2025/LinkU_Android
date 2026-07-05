@@ -2,7 +2,6 @@ package com.linku.curation.ui.emotion
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,21 +32,23 @@ fun CurationEmotionChip(
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .wrapContentWidth()
-            .height(26.dp)
+            // unbounded = true로 둬야 부모(Row)가 좁게 줄 때도 글자 너비만큼 그대로 확장됨
+            .wrapContentWidth(unbounded = true)
             .border(
                 width = 1.dp,
                 color = colorTheme.blue[200],
                 shape = RoundedCornerShape(10.dp)
             )
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 10.dp)
     ) {
         Text(
             text = text,
             fontSize = 13.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight(400),
-            color = colorTheme.blue[200]
+            color = colorTheme.blue[200],
+            maxLines = 1,
+            softWrap = false
         )
     }
 }
