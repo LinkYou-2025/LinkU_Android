@@ -62,16 +62,15 @@ internal fun CurationEmotionSection(
         if (items.isEmpty()) {
             // 데이터 없는 경우: 칩 없이 플레이스홀더 바 3개만 (색상: blue[100]/blue[30]/blue[20])
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                val placeholderColors = listOf(
-                    colorTheme.blue[100],
-                    colorTheme.blue[30],
-                    colorTheme.blue[20]
+                val placeholderItems = listOf(
+                    colorTheme.blue[100] to 1f,
+                    colorTheme.blue[30] to 0.6f,
+                    colorTheme.blue[20] to 0.25f
                 )
-                val placeholderProgress = listOf(1f, 0.6f, 0.25f)
 
-                placeholderColors.forEachIndexed { index, color ->
+                placeholderItems.forEach { (color, progress) ->
                     CurationEmotionBar(
-                        progress = placeholderProgress[index],
+                        progress = progress,
                         color = color
                     )
                 }
