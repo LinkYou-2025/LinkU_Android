@@ -87,16 +87,17 @@ fun SaveLinkScreen(
     val jobType = JobType.fromId(jobId)
 
     val scrollState = rememberScrollState()
-    val urlValidationResult = validateUrlInput(url)
+    val urlValidationResult = remember(url) { validateUrlInput(url) }
+
     var isUrlToastVisible by remember { mutableStateOf(false) }
     var urlToastMessage by remember { mutableStateOf("") }
     var isUrlToastSuccess by remember { mutableStateOf(false) }
 
     val isButtonEnabled =
         urlValidationResult == UrlValidationResult.Valid &&
-        !isCheckingUrl &&
-        !isInvalidLink &&
-        (isDuplicateUrl != true)
+                !isCheckingUrl &&
+                !isInvalidLink &&
+                (isDuplicateUrl != true)
 
     fun showUrlToast(result: UrlValidationResult) {
         urlToastMessage = result.toToastMessage()
@@ -427,11 +428,9 @@ fun SaveLinkScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
                     .noRippleClickable {
-                        val currentUrlValidationResult = validateUrlInput(url)
+                        showUrlToast(urlValidationResult)
 
-                        showUrlToast(currentUrlValidationResult)
-
-                        if (currentUrlValidationResult != UrlValidationResult.Valid) {
+                        if (urlValidationResult != UrlValidationResult.Valid) {
                             return@noRippleClickable
                         }
 
