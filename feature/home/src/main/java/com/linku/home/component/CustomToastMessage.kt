@@ -21,6 +21,15 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import kotlinx.coroutines.delay
 
+/**
+ * 토스트 메시지의 UI만 담당하는 컴포넌트입니다.
+ *
+ * 배경색, 텍스트 색상, 메시지를 외부에서 전달받아
+ * 둥근 배경 안에 텍스트를 표시합니다.
+ *
+ * 노출 여부나 자동 dismiss 처리는 담당하지 않기 때문에,
+ * 항상 화면에 보여줄 토스트 UI가 필요할 때 사용합니다.
+ */
 @Composable
 fun CustomToastMessage(
     backgroundColor: Color,
@@ -44,6 +53,15 @@ fun CustomToastMessage(
     }
 }
 
+/**
+ * 일정 시간이 지나면 자동으로 사라지는 토스트 메시지 컴포넌트입니다.
+ *
+ * [visible] 값이 true가 되면 [CustomToastMessage]를 표시하고,
+ * [delayMillis] 시간이 지난 뒤 [onDismiss]를 호출해 외부 상태를 false로 변경하도록 합니다.
+ *
+ * 잠깐 보여주고 사라지는 안내 메시지에 사용합니다.
+ * 실제 사용 예시는 링크 유효성 검사를 참고해주세요!
+ */
 @Composable
 fun TimedCustomToastMessage(
     visible: Boolean,
