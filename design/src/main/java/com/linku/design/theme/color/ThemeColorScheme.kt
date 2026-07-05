@@ -88,4 +88,9 @@ sealed class ThemeColorScheme(
     val emotionTitleGradient: Brush = Brush.horizontalGradient(
         listOf(Color(0xFF2C6FFF), Color(0xFF000208))
     ),
+
+    //큐레이션 1번 카드 상세 그라데이션
+    val curationFirstCardBackground: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFFFFFFFF), Color(0xFFE5EDFF))
+    ),
 )

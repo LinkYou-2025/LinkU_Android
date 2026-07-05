@@ -18,13 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
 fun CalendarBox(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
@@ -36,6 +38,7 @@ fun CalendarBox(
                 color = colorTheme.curationCalendarBoxColor,
                 shape = RoundedCornerShape(size = 22.scaler)
             )
+            .noRippleClickable(onClick = onClick)
             .padding(horizontal = 20.scaler),
 
         verticalAlignment = Alignment.CenterVertically
