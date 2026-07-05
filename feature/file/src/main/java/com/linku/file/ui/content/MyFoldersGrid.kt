@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -149,7 +147,7 @@ internal fun MyFoldersGrid(
                 AddBottomFolderItem(
                     modifier = Modifier
                         // 실제 폴더 카드와 동일한 셀 점유율을 사용해 그리드 정렬을 맞춥니다.
-                        .fillMaxSize(164f / 174f)
+                        .fillMaxSize()
                         .noRippleClickable {
                             // 편집 모드에서는 카드 내부 편집 액션과 충돌하지 않도록 추가 동작을 막습니다.
                             if (!isEditMode) {
@@ -162,6 +160,7 @@ internal fun MyFoldersGrid(
             /** 선택된 최상위 폴더에 속한 하위 폴더 목록을 렌더링합니다. */
             items(folders, key = {it.folderId}) { folder ->
                 MyFolderItem(
+                    modifier = Modifier.fillMaxSize(),
                     folder = folder,
                     colorStyle = selectedTopFolderColorStyle,
                     isEditMode = isEditMode,
@@ -204,7 +203,7 @@ internal fun MyFoldersGrid(
                 /** 미분류 링크 목록을 폴더 카드 다음 셀부터 이어서 배치합니다. */
                 items(notCategorizationLinks, key = {it.linkuId}) { link ->
                     LinkItemLayout(
-                        modifier = Modifier.fillMaxSize(164f / 174f),
+                        modifier = Modifier.fillMaxSize(),
                         link = link,
                         onClick = {
                             // 미분류 링크도 일반 링크와 동일하게 상세 화면 이동 콜백으로 위임합니다.
@@ -264,34 +263,29 @@ private fun AddBottomFolderItem(
     /** 폴더 추가 아이템의 라벨 색상을 가져오기 위한 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
-    /** 카드 폭은 상위 modifier가 결정하고, Row는 그리드 셀 안에서 가로 기준선을 맞춥니다. */
-    Row(
-        modifier = Modifier.fillMaxWidth()
+    /** 빈 폴더 카드 위에 아이콘과 텍스트를 겹쳐 올리는 오버레이 컨테이너입니다. */
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
     ) {
-        /** 빈 폴더 카드 위에 아이콘과 텍스트를 겹쳐 올리는 오버레이 컨테이너입니다. */
-        Box(
-            modifier = modifier,
-            contentAlignment = Alignment.Center
-        ) {
-            /** 실제 폴더 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
-            EmptyFolderItemLayout()
+        /** 실제 폴더 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
+        EmptyFolderItemLayout()
 
-            /** 폴더 추가를 나타내는 아이콘을 카드 중앙 기준 위치에 배치합니다. */
-            Image(
-                modifier = Modifier.padding(top = 71.dp),
-                painter = painterResource(R.drawable.add_folder_icon),
-                contentDescription = null
-            )
+        /** 폴더 추가를 나타내는 아이콘을 카드 중앙 기준 위치에 배치합니다. */
+        Image(
+            modifier = Modifier.padding(top = 71.dp),
+            painter = painterResource(R.drawable.add_folder_icon),
+            contentDescription = null
+        )
 
-            /** 추가 아이콘과 함께 표시되는 폴더 추가 라벨입니다. */
-            Text(
-                text = "폴더 추가하기",
-                fontSize = 15.sp,
-                fontWeight = FontWeight(500),
-                color = colors.black,
-                textAlign = TextAlign.Center,
-            )
-        }
+        /** 추가 아이콘과 함께 표시되는 폴더 추가 라벨입니다. */
+        Text(
+            text = "폴더 추가하기",
+            fontSize = 15.sp,
+            fontWeight = FontWeight(500),
+            color = colors.black,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
@@ -312,6 +306,7 @@ private fun AddBottomFolderItem(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MyFolderItem(
+    modifier: Modifier,
     folder: FolderSimpleInfo,
     colorStyle: CategoryColorStyle,
     isEditMode: Boolean,
@@ -329,8 +324,8 @@ private fun MyFolderItem(
     /** 하위 폴더를 길게 눌렀을 때 표시되는 삭제 확인 모달 상태입니다. */
     var deleteModalWindowVisible by remember { mutableStateOf(false) }
 
-    /** 카드 전체에 일반 클릭과 long click을 함께 연결하는 터치 영역입니다. */
-    Box(
+    /** 실제 폴더 카드 UI는 공통 카드 레이아웃 컴포저블에 위임합니다. */
+    MyFolderItemLayout(
         modifier = Modifier.combinedClickable(
             indication = null,
             interactionSource = interactionSource,
@@ -345,18 +340,13 @@ private fun MyFolderItem(
                 deleteModalWindowVisible = true
             }
         ),
-        contentAlignment = Alignment.Center
-    ) {
-        /** 실제 폴더 카드 UI는 공통 카드 레이아웃 컴포저블에 위임합니다. */
-        MyFolderItemLayout(
-            modifier = Modifier.fillMaxSize(164f / 174f),
-            colorStyle = colorStyle,
-            folder = folder,
-            isEditMode = isEditMode,
-            onEdit = onEdit,
-            onChangeSharing = onChangeSharing
-        )
-    }
+        colorStyle = colorStyle,
+        folder = folder,
+        isEditMode = isEditMode,
+        onEdit = onEdit,
+        onChangeSharing = onChangeSharing
+    )
+
 
     // 하위 폴더 long click 이후 실제 삭제를 한 번 더 확인하는 모달창입니다.
     ModalWindow(

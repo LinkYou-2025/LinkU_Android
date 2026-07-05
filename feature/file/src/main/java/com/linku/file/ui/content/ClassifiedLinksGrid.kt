@@ -6,11 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -123,7 +121,7 @@ internal fun ClassifiedLinksGrid(
                 AddLinkItem(
                     modifier = Modifier
                         // 실제 링크 카드와 동일한 셀 점유율을 사용해 그리드 정렬을 맞춥니다.
-                        .fillMaxSize(164f / 174f)
+                        .fillMaxSize()
                         .noRippleClickable {
                             Log.d("LinksGrid", "링크 추가하기 클릭")
                             // 미분류 링크가 있으면 분류 바텀시트를 열고, 없으면 안내 모달을 띄웁니다.
@@ -139,7 +137,7 @@ internal fun ClassifiedLinksGrid(
             /** 분류된 링크 목록을 링크 카드 레이아웃으로 렌더링합니다. */
             items(links, key = {it.linkuId}) { link ->
                 LinkItemLayout(
-                    modifier = Modifier.fillMaxSize(164f / 174f),
+                    modifier = Modifier.fillMaxSize(),
                     link = link,
                     onClick = {
                         // 상세 화면 이동은 상위에서 전달받은 링크 클릭 콜백으로 위임합니다.
@@ -216,41 +214,36 @@ private fun AddLinkItem(
     /** 링크 추가 아이템의 라벨 색상을 가져오기 위한 테마 색상입니다. */
     val colors = MaterialTheme.linkuColors
 
-    /** 카드 폭은 상위 modifier가 결정하고, Row는 그리드 셀 안에서 가로 기준선을 맞춥니다. */
-    Row(
-        modifier = Modifier.fillMaxWidth(),
+    /** 빈 링크 카드 위에 아이콘과 텍스트를 겹쳐 올리는 오버레이 컨테이너입니다. */
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.TopCenter
     ) {
-        /** 빈 링크 카드 위에 아이콘과 텍스트를 겹쳐 올리는 오버레이 컨테이너입니다. */
+        /** 실제 링크 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
         Box(
-            modifier = modifier,
-            contentAlignment = Alignment.TopCenter
+            modifier = Modifier.alpha(1f),
         ) {
-            /** 실제 링크 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
-            Box(
-                modifier = Modifier.alpha(1f),
-            ) {
-                LinkItemLayout(
-                    link = null
-                )
-            }
-
-            /** 링크 추가를 나타내는 아이콘을 카드 상단 기준 위치에 배치합니다. */
-            Image(
-                modifier = Modifier.padding(top = 103.dp),
-                painter = painterResource(R.drawable.add_folder_icon),
-                contentDescription = null
-            )
-
-            /** 추가 아이콘 아래에 표시되는 링크 추가 라벨입니다. */
-            Text(
-                modifier = Modifier.padding(top = 147.dp),
-                text = "링크 추가하기",
-                fontSize = 15.sp,
-                fontWeight = FontWeight(500),
-                color = colors.black,
-                textAlign = TextAlign.Center,
+            LinkItemLayout(
+                link = null
             )
         }
+
+        /** 링크 추가를 나타내는 아이콘을 카드 상단 기준 위치에 배치합니다. */
+        Image(
+            modifier = Modifier.padding(top = 103.dp),
+            painter = painterResource(R.drawable.add_folder_icon),
+            contentDescription = null
+        )
+
+        /** 추가 아이콘 아래에 표시되는 링크 추가 라벨입니다. */
+        Text(
+            modifier = Modifier.padding(top = 147.dp),
+            text = "링크 추가하기",
+            fontSize = 15.sp,
+            fontWeight = FontWeight(500),
+            color = colors.black,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
