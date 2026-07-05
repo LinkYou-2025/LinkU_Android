@@ -363,10 +363,10 @@ sealed class ApiError(
      * 알림 조회, 권한, 전송 관련 에러를 포함한다.
      */
     sealed class Alarm(message: String) : ApiError(message) {
-        /** ALARM_NOT_FOUND - 알람을 찾을 수 없음 */
+        /** ALARM404 - 알람을 찾을 수 없음 */
         class NotFound(message: String) : Alarm(message)
 
-        /** ALARM_PERMISSION_DENIED - 알람 권한 없음 */
+        /** ALARM403 - 알람 권한 없음 */
         class PermissionDenied(message: String) : Alarm(message)
 
         /** ALARM5001 - 알림 주제 구독 상태 변경 실패 */

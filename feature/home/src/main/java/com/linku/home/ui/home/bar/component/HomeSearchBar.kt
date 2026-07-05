@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.theme.White
 
-
 @Composable
 fun HomeSearchBar() {
+    val colors = MaterialTheme.linkuColors
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -38,7 +40,7 @@ fun HomeSearchBar() {
             modifier = Modifier
                 .fillMaxSize()
                 .clip(RoundedCornerShape(18.dp))
-                .background(brush = LocalColorTheme.current.maincolor),
+                .background(brush = colors.maincolor),
             horizontalArrangement = Arrangement.spacedBy(13.dp, Alignment.Start),
             verticalAlignment = Alignment.CenterVertically,
         ) {

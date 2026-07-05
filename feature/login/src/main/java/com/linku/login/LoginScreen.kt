@@ -40,8 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.kakao.sdk.auth.model.OAuthToken
 import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
@@ -55,6 +53,7 @@ import com.linku.login.auth.GoogleAuthHelper
 import com.linku.login.auth.findActivity
 import com.linku.login.ui.item.SocialLoginButton
 import com.linku.login.viewmodel.SocialAuthViewModel
+import com.linku.login.viewmodel.state.SocialAuthUiEffect
 import kotlinx.coroutines.launch
 
 
@@ -113,7 +112,8 @@ private fun handleKakaoLogin(
 
 @Composable
 fun LoginScreen(
-    navigator: NavHostController,
+    onNavigateToEmailLogin: () -> Unit,
+    onNavigateToSocialOnboarding: (accessToken: String) -> Unit,
     viewModel: SocialAuthViewModel,
     onLoginSuccess: () -> Unit = {},
     logoOffsetY: Float = 0f,
@@ -130,63 +130,62 @@ fun LoginScreen(
         GoogleAuthHelper(webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID)
     }
 
-    //카카오 로그인 state 수집
-    val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
 
-    // 구글 로그인 state 수집
-    val googleLoginState by viewModel.googleLoginState.collectAsStateWithLifecycle()
+//    //카카오 로그인 state 수집
+//    val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
+//
+//    // 구글 로그인 state 수집
+//    val googleLoginState by viewModel.googleLoginState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(kakaoLoginState) {
-        when (val state = kakaoLoginState) {
-            is SocialAuthViewModel.SocialLoginState.Success -> {
-                val result = state.result
-                when (result.status) {
-                    "ACTIVE" -> onLoginSuccess()  // 기존 유저 → 홈
-                    "TEMP" -> {
-                        navigator.navigate("social_login_gate")
-                        // navigate 후 social_auth_graph의 savedStateHandle에 토큰 저장
-                        navigator.getBackStackEntry("social_auth_graph")
-                            .savedStateHandle["socialToken"] = result.accessToken
-                    }
+    LaunchedEffect(viewModel.sideEffect) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SocialAuthUiEffect.NavigateToHome -> {
+                    onLoginSuccess()
                 }
-                viewModel.resetKakaoLoginState() // 로그인 성공 후 -> 뒤로 가기시 재실행되는 중복 호출 문제 방지. rest 하면 idle로 돌아감.
-            }
 
-            is SocialAuthViewModel.SocialLoginState.Error -> {
-                // TODO: 에러 메시지 표시
-                viewModel.resetKakaoLoginState()
-            }
+                is SocialAuthUiEffect.NavigateToAdditionalInfo -> {
+                    Log.d(TAG, "MVI Effect 수령: TEMP 유저 -> 온보딩 위임 콜백 트리거")
+                    onNavigateToSocialOnboarding(effect.loginResult.accessToken)
+                }
 
-            else -> {}
+                is SocialAuthUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                }
+
+                else -> {}
+            }
         }
     }
-    // 구글 로그인 상태 처리 추가함.
-    LaunchedEffect(googleLoginState) {
-        when (val state = googleLoginState) {
-            is SocialAuthViewModel.SocialLoginState.Success -> {
-                val result = state.result
-                when (result.status) {
-                    "ACTIVE" -> onLoginSuccess()
-                    "TEMP" -> {
-                        navigator.navigate("social_login_gate")
-                        navigator.getBackStackEntry("social_auth_graph")
-                            .savedStateHandle["socialToken"] = result.accessToken
-                    }
-                }
-                viewModel.resetGoogleLoginState()
-            }
-
-            is SocialAuthViewModel.SocialLoginState.Error -> {
-                Log.e(
-                    "GoogleLogin",
-                    "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}"
-                )
-                viewModel.resetGoogleLoginState() // 리셋 추가.
-            }
-
-            else -> {}
-        }
-    }
+//
+//    // 구글 로그인 상태 처리 추가함.
+//    LaunchedEffect(googleLoginState) {
+//        when (val state = googleLoginState) {
+//            is SocialAuthViewModel.SocialLoginState.Success -> {
+//                val result = state.result
+//                when (result.status) {
+//                    "ACTIVE" -> onLoginSuccess()
+//                    "TEMP" -> {
+//                        navigator.navigate("social_login_gate")
+//                        navigator.getBackStackEntry("social_auth_graph")
+//                            .savedStateHandle["socialToken"] = result.accessToken
+//                    }
+//                }
+//                viewModel.resetGoogleLoginState()
+//            }
+//
+//            is SocialAuthViewModel.SocialLoginState.Error -> {
+//                Log.e(
+//                    "GoogleLogin",
+//                    "구글 로그인 에러: ${(googleLoginState as SocialAuthViewModel.SocialLoginState.Error).message}"
+//                )
+//                viewModel.resetGoogleLoginState() // 리셋 추가.
+//            }
+//
+//            else -> {}
+//        }
+//    }
 
     // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
     DesignSystemBars(
@@ -319,7 +318,7 @@ fun LoginScreen(
                 onClick = {
                     //navigator.navigate("email_login")
                     if (buttonsEnabled) {
-                        navigator.navigate("email_login")
+                        onNavigateToEmailLogin()
                     }
                 }
             )
@@ -330,12 +329,11 @@ fun LoginScreen(
 @Preview(showBackground = true, device = Devices.PIXEL_6)
 @Composable
 fun LoginScreenPreview() {
-    val navController = rememberNavController()
-
     LinkuPreview {
         LoginScreen(
-            navigator = navController,
-            viewModel = viewModel() // 프리뷰용
+            onNavigateToEmailLogin = {},
+            onNavigateToSocialOnboarding = {},
+            viewModel = viewModel()
         )
     }
 }

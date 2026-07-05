@@ -8,7 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,8 +28,6 @@ class MainActivity : ComponentActivity(), SystemBarController {
         setContent {
             MainApp(
                 viewModel = hiltViewModel(),
-
-
             )
         }
     }
@@ -43,7 +41,6 @@ class MainActivity : ComponentActivity(), SystemBarController {
 
     override fun onResume() {
         super.onResume()
-        // TODO: BaseViewModel 리팩토링 후 세션 갱신 로직 추가
     }
 
 

@@ -1,110 +1,131 @@
 package com.linku.data.implementation.preference
 
-
 import android.content.Context
-import android.util.Log
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.preferencesDataStore
+import com.linku.core.model.auth.LoginType
+import com.linku.core.model.auth.UserSession
 import com.linku.data.preference.AuthPreference
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/*
-* 아 수정해야함...
-* */
-class AuthPreferenceImpl(context: Context) : AuthPreference {
-    companion object {
-        // SharedPreferences 파일 이름
-        private const val PREF_NAME = "auth"
-        private const val ACCESS_TOKEN_KEY = "access_token"
-        private const val REFRESH_TOKEN_KEY = "refresh_token"
-        //EncryptedSharedPreferences을 적용을 고민했으나, coderabbitai에 피드백이 있어서 주석 남깁니다.
-        // 암호화로 나중에 오류 발생시 찾기 어려워 보이는데,어떻게 할지?
-        private const val USER_ID_KEY = "user_id"
+private val Context.authDataStore by preferencesDataStore(name = "auth_prefs")
 
-        private const val SOCIAL_TOKEN_KEY = "social_token"
+@Singleton
+class AuthPreferenceImpl @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) : AuthPreference {
 
-        private const val TAG = "AuthPreferenceImpl" //태그 상수 정의
+    private object Keys {
+        val LOGGED_IN = booleanPreferencesKey("logged_in")
+        val ACCESS_TOKEN = stringPreferencesKey("access_token")
+        val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        val USER_ID = longPreferencesKey("user_id")
+        val LOGIN_TYPE = stringPreferencesKey("login_type")
+        val DEVICE_ID = stringPreferencesKey("device_id")
+        val DEVICE_TYPE = stringPreferencesKey("device_type")
+        val NICKNAME = stringPreferencesKey("nickname")
     }
-    // 실제 저장소.
-    private val pref = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
 
-    // 모든 인증 api 요청에 사용하는 토큰, OkHttp NetworkInterceptor 읽고 Authorization 헤더에 붙음.
-    override var accessToken: String
-        get() = pref.getString(ACCESS_TOKEN_KEY, "") ?: ""
-        set(value) {
-            pref.edit().apply {
-                if (value == null) remove(ACCESS_TOKEN_KEY)
-                else putString(ACCESS_TOKEN_KEY, value)
-            }.apply()
-        }
-    // 엑세스 토큰은 수명이 짧음. 재발급에 사용함. 스플래쉬에서 자동 로그인 가능 여부 판단의 기준임.
-    // 여기 값이 있음 -> 로그인 상태임 , 값이 없으면 로그인 화면임.
-    override var refreshToken: String?
-        get() = pref.getString(REFRESH_TOKEN_KEY, null)
-            ?.takeIf { it.isNotBlank() }
-        set(value) {
-            pref.edit().apply {
-                //로그아웃 시 리프래쉬 토큰 제거함. -> 자동 로그인 깨짐.
-                if (value == null) remove(REFRESH_TOKEN_KEY)
-                else putString(REFRESH_TOKEN_KEY, value)
-            }.apply()
-        }
-
-    override var userId: Long?
-        get() {
-            // 키 자체가 없으면 → 유저 없음
-            if (!pref.contains(USER_ID_KEY)) {
-                return null
+    override suspend fun initDeviceInfo(deviceId: String, deviceType: String) {
+        context.authDataStore.edit { prefs ->
+            if (prefs[Keys.DEVICE_ID] == null) {
+                prefs[Keys.DEVICE_ID] = deviceId
+                prefs[Keys.DEVICE_TYPE] = deviceType
             }
-
-            // 키가 있으면 값 가져오기
-            val value = pref.getLong(USER_ID_KEY, -1L)
-
-            // -1L이면 유효하지 않은 값 → null
-            return if (value == -1L) null else value
         }
-        set(value) {
-            pref.edit().apply {
-                if (value == null) {
-                    remove(USER_ID_KEY)
-                } else {
-                    putLong(USER_ID_KEY, value)
-                }
-            }.apply()
-        }
-
-    // 모든 인증 정보 삭제(로그가웃, 회원탈퇴시 사용)
-    override fun clear() {
-        pref.edit()
-            .remove(ACCESS_TOKEN_KEY)
-            .remove(REFRESH_TOKEN_KEY)
-            .remove(USER_ID_KEY)
-            .remove(SOCIAL_TOKEN_KEY)
-            .apply()
-
-        Log.d(TAG, "인증 정보 삭제 완료")
     }
 
-    // 토큰 저장(로그인 성공시)
-    override fun saveTokens(
+    override val isLoggedIn: Flow<Boolean> = context.authDataStore.data.map { prefs ->
+        prefs[Keys.LOGGED_IN] ?: false
+    }
+
+    override val sessionState: Flow<UserSession> = context.authDataStore.data.map { prefs ->
+        val typeName = prefs[Keys.LOGIN_TYPE]
+        val savedType = if (typeName != null) {
+            runCatching { LoginType.valueOf(typeName) }.getOrElse { LoginType.NONE }
+        } else {
+            LoginType.NONE
+        }
+
+        UserSession(
+            isLoggedIn = prefs[Keys.LOGGED_IN] ?: false,
+            userId = prefs[Keys.USER_ID],
+            accessToken = prefs[Keys.ACCESS_TOKEN],
+            refreshToken = prefs[Keys.REFRESH_TOKEN],
+            loginType = savedType
+        )
+    }
+
+    override suspend fun getAccessToken(): String? =
+        context.authDataStore.data.map { it[Keys.ACCESS_TOKEN] }.first()
+
+    override suspend fun getRefreshToken(): String? =
+        context.authDataStore.data.map { it[Keys.REFRESH_TOKEN] }.first()
+
+    override suspend fun getUserId(): Long? =
+        context.authDataStore.data.map { it[Keys.USER_ID] }.first()
+
+    override suspend fun getDeviceId(): String =
+        context.authDataStore.data.map { it[Keys.DEVICE_ID] ?: "android-default" }.first()
+
+    override suspend fun getDeviceType(): String =
+        context.authDataStore.data.map { it[Keys.DEVICE_TYPE] ?: "PHONE" }.first()
+
+    override suspend fun getLoginType(): LoginType {
+        val name =
+            context.authDataStore.data.map { it[Keys.LOGIN_TYPE] }.first() ?: return LoginType.NONE
+        return runCatching { LoginType.valueOf(name) }.getOrElse { LoginType.NONE }
+    }
+
+    override suspend fun saveTokens(
         accessToken: String,
-        refreshToken: String?, //TODO : 수정하기.
-        userId: Long
+        refreshToken: String?,
+        userId: Long,
+        loginType: LoginType
     ) {
-        pref.edit()
-            .putString(ACCESS_TOKEN_KEY, accessToken)
-            .putString(REFRESH_TOKEN_KEY, refreshToken)
-            .putLong(USER_ID_KEY, userId)
-            .apply()
-
-        Log.d(TAG, "토큰 저장 완료")
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.LOGGED_IN] = true
+            prefs[Keys.ACCESS_TOKEN] = accessToken
+            refreshToken?.let { prefs[Keys.REFRESH_TOKEN] = it }
+            prefs[Keys.USER_ID] = userId
+            prefs[Keys.LOGIN_TYPE] = loginType.name
+        }
     }
 
-    // socialToken 구현 추가
-    override var socialToken: String?
-        get() = pref.getString(SOCIAL_TOKEN_KEY, null)
-        set(value) {
-            pref.edit().apply {
-                if (value == null) remove(SOCIAL_TOKEN_KEY)
-                else putString(SOCIAL_TOKEN_KEY, value)
-            }.apply()
+    override suspend fun updateLoginType(loginType: LoginType) {
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.LOGIN_TYPE] = loginType.name
         }
+    }
 
+    override suspend fun updateAccessToken(accessToken: String, refreshToken: String?) {
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.ACCESS_TOKEN] = accessToken
+            refreshToken?.let { prefs[Keys.REFRESH_TOKEN] = it }
+        }
+    }
+
+    override suspend fun clear() {
+        context.authDataStore.edit { prefs ->
+            prefs.clear()
+            prefs[Keys.LOGGED_IN] = false
+        }
+    }
+
+    override suspend fun getCachedNickname(): String? =
+        context.authDataStore.data.map { it[Keys.NICKNAME] }.first()
+
+    override suspend fun saveNickname(nickname: String) {
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.NICKNAME] = nickname
+        }
+    }
 }

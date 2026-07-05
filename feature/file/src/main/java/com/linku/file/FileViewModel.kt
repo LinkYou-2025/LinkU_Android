@@ -302,7 +302,7 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "상세 요청 -> linkuId = $linkuId")
 
-                val userId = authPreference.userId
+                val userId = authPreference.getUserId()
 
                 if(userId == null){
                     throw UserIdNullException()
@@ -339,11 +339,10 @@ class FileViewModel @Inject constructor(
             _errorMessage.value = null
 
             try{
-                val userId = authPreference.userId!!
+                val userId = authPreference.getUserId() ?: throw UserIdNullException()
 
                 val userInfo = userRepository.getUserInfo(userId).getOrThrow()
                 _nickname.value = userInfo.nickname
-                //지민아 너가 판단해서 fold 패턴이 맞다고 생각하면 그거로 변경하는 것도 좋을듯?
             }catch (e: Exception){
                 Log.d("FileViewModel", "loadNickname catch: $e.message")
 
@@ -1104,7 +1103,7 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "receiveSharedFolder try")
 
-                val userId = authPreference.userId
+                val userId = authPreference.getUserId()
 
                 if(userId == null){
                     throw UserIdNullException()

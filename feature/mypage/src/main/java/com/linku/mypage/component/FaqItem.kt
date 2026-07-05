@@ -18,12 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,8 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -46,6 +44,8 @@ fun FaqItem(
     expanded: Boolean,
     onToggle: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val rotation by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
         label = "faq_arrow_rotation"
@@ -62,7 +62,7 @@ fun FaqItem(
                 clip = true
             }
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -86,7 +86,7 @@ fun FaqItem(
                 text = question,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.weight(1f)
             )
 
@@ -116,7 +116,7 @@ fun FaqItem(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(1.dp)
-                        .background(LocalColorTheme.current.gray[200])
+                        .background(colors.gray[200])
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -125,7 +125,7 @@ fun FaqItem(
                     text = answer,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[700],
+                    color = colors.gray[700],
                     lineHeight = 22.sp,
                     modifier = Modifier.padding(horizontal = 1.dp)
                 )

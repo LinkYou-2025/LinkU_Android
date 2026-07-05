@@ -12,9 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,8 +20,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.design.R as DesignR
@@ -50,66 +50,101 @@ internal fun AgreementItem(
             .fillMaxWidth()
             .clickable { onRowClick() }
     ) {
-
-        // 체크박스
-        Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .size((22.scaler))
-                .border(
-                    width = 1.dp,
-                    color = if (checked) colorTheme.purple[200] else colorTheme.gray[300],
-                    shape = RoundedCornerShape((6.scaler))
-                )
-                .background(
-                    color = if (checked) colorTheme.purple[200] else colorTheme.white,
-                    shape = RoundedCornerShape((6.scaler))
-                )
-                .clickable { onCheckedChange(!checked) },
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .clickable { onRowClick() }
         ) {
+
+
             if (checked) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = colorTheme.white,
-                    modifier = Modifier.size((14.scaler))
+                CheckIndicator(
+                    checked = true,
+                    modifier = Modifier.noRippleClickable { onCheckedChange(false) }
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(18.dp)
+                        .border(
+                            width = 1.dp,
+                            color = colorTheme.gray[300],
+                            shape = RoundedCornerShape(5.dp)
+                        )
+                        .background(
+                            color = colorTheme.white,
+                            shape = RoundedCornerShape(5.dp)
+                        )
+                        .noRippleClickable { onCheckedChange(true) }
                 )
             }
-        }
 
-        Spacer(Modifier.width((15.scaler)))
+            Spacer(Modifier.width(15.scaler))
 
-        // 텍스트 영역 (아이콘을 밀어내는 핵심)
-        Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = title,
-                fontSize = 16.sp,
-                lineHeight = 22.sp,
-                fontWeight = FontWeight.Normal,
-                color = colorTheme.black
+            // 텍스트 영역 (아이콘을 밀어내는 핵심)
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = title,
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = colorTheme.black
+                )
+
+                Spacer(Modifier.width((5.scaler)))
+
+                Text(
+                    text = suffix,
+                    fontSize = 12.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight(400),
+                    color = suffixColor
+                )
+            }
+
+            //  항상 우측, 부모 padding(32dp) 기준으로 위치
+            Image(
+                painter = painterResource(id = DesignR.drawable.ic_right),
+                contentDescription = null,
+                modifier = Modifier
+                    .width((8.scaler))
+                    .height((13.scaler))
             )
-
-            Spacer(Modifier.width((5.scaler)))
-
-            Text(
-                text = suffix,
-                fontSize = 12.sp,
-                lineHeight = 14.sp,
-                fontWeight = FontWeight(400),
-                color = suffixColor
-            )
         }
+    }
+}
 
-        //  항상 우측, 부모 padding(32dp) 기준으로 위치
-        Image(
-            painter = painterResource(id = DesignR.drawable.ic_right),
-            contentDescription = null,
-            modifier = Modifier
-                .width((8.scaler))
-                .height((13.scaler))
+@Preview(showBackground = true)
+@Composable
+fun AgreementItemPreview() {
+    ThemeProvider {
+        val colorTheme = MaterialTheme.linkuColors
+        AgreementItem(
+            title = "이용약관",
+            suffix = "(필수)",
+            suffixColor = colorTheme.purple[200],
+            checked = false,
+            onCheckedChange = {},
+            onRowClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AgreementItemCheckedPreview() {
+    ThemeProvider {
+        AgreementItem(
+            title = "개인정보 처리방침",
+            suffix = "(필수)",
+            suffixColor = MaterialTheme.linkuColors.blue[200],
+            checked = true,
+            onCheckedChange = {},
+            onRowClick = {}
         )
     }
 }

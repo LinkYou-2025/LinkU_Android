@@ -9,6 +9,11 @@
         <include .../>
         <exclude .../>
         -->
+        <!-- 리프레시 토큰 등 인증 정보가 클라우드 백업에 포함되면 앱 삭제 후 재설치해도 자동 로그인되는 버그 발생 -->
+        <exclude domain="file" path="datastore/auth_prefs.preferences_pb"/>
+
+        <!-- FCM 토큰, 토큰 등록 여부, 권한 요청 여부 등 기기 종속 정보는 클라우드 백업 제외 -->
+        <exclude domain="file" path="datastore/notification_prefs.preferences_pb"/>
     </cloud-backup>
     <!--
     <device-transfer>

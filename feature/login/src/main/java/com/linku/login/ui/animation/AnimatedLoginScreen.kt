@@ -25,7 +25,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
 import com.linku.design.util.scaler
@@ -37,8 +36,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun AnimatedLoginScreen(
-    navigator: NavHostController,
-    onSignUpClick: () -> Unit,
+    onNavigateToEmailLogin: () -> Unit,
+    onNavigateToSocialOnboarding: (accessToken: String) -> Unit,
+    onAnimationSkipHandled: () -> Unit,
     skipAnimation: Boolean = false,
     viewModel: SocialAuthViewModel,
     onLoginSuccess: () -> Unit = {}
@@ -78,11 +78,7 @@ fun AnimatedLoginScreen(
             logoAlpha.snapTo(1f)
             contentAlpha.snapTo(1f)
 
-            // 한 번 쓰고 바로 제거함.
-            navigator.currentBackStackEntry
-                ?.savedStateHandle
-                ?.remove<Boolean>("skip_login_animation")
-
+            onAnimationSkipHandled()
             return@LaunchedEffect
         }
 
@@ -126,10 +122,11 @@ fun AnimatedLoginScreen(
     }
 
     LoginScreen(
-        navigator = navigator,
         viewModel = viewModel,
         onLoginSuccess = onLoginSuccess,
         contentAlpha = contentAlpha.value,
+        onNavigateToEmailLogin = onNavigateToEmailLogin,
+        onNavigateToSocialOnboarding = onNavigateToSocialOnboarding,
         logoSlot = {
             Box(
                 modifier = Modifier

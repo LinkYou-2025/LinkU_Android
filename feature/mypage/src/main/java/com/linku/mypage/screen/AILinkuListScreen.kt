@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,8 +40,8 @@ import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 import com.linku.mypage.component.AILinkuItem
 import com.linku.mypage.component.DeleteLinkuModal
@@ -60,6 +61,8 @@ fun AILinkuListScreen(
     navController: NavController,
     links: List<AILinkuUiModel>
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
     var deleteTarget by remember { mutableStateOf<AILinkuUiModel?>(null) }
@@ -84,7 +87,7 @@ fun AILinkuListScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LocalColorTheme.current.gray[100])
+                .background(colors.gray[100])
                 .padding(horizontal = 20.dp)
         ) {
             Box(
@@ -120,7 +123,7 @@ fun AILinkuListScreen(
                         text = "AI 요약 링크",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
                 }
             }
@@ -173,7 +176,7 @@ fun AILinkuListScreen(
                             text = "아직 생성된 AI 요약 링크가 없어요.",
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium,
-                            color = LocalColorTheme.current.gray[800]
+                            color = colors.gray[800]
                         )
 
                         Spacer(modifier = Modifier.height(5.dp))
@@ -182,7 +185,7 @@ fun AILinkuListScreen(
                             text = "링크를 저장하고 AI 요약을 생성해보세요.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = LocalColorTheme.current.gray[600]
+                            color = colors.gray[600]
                         )
                     }
                 }
@@ -245,10 +248,12 @@ private fun FilterChip(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .background(
-                color = if (selected) LocalColorTheme.current.black else LocalColorTheme.current.white,
+                color = if (selected) colors.black else colors.white,
                 shape = RoundedCornerShape(10.dp)
             )
             .noRippleClickable { onClick() }
@@ -259,7 +264,7 @@ private fun FilterChip(
             text = text,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = if (selected) LocalColorTheme.current.white else LocalColorTheme.current.gray[800]
+            color = if (selected) colors.white else colors.gray[800]
         )
     }
 }
@@ -273,6 +278,8 @@ private fun CategoryDropdownChip(
     categories: List<String>,
     onCategorySelected: (String) -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .noRippleClickable { onClick() }
@@ -280,10 +287,10 @@ private fun CategoryDropdownChip(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(color = LocalColorTheme.current.white)
+                .background(color = colors.white)
                 .border(
                     width = 1.dp,
-                    color = LocalColorTheme.current.gray[200],
+                    color = colors.gray[200],
                     shape = RoundedCornerShape(10.dp)
                 )
                 .padding(horizontal = 15.dp, vertical = 10.dp),
@@ -293,7 +300,7 @@ private fun CategoryDropdownChip(
                 text = text,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = LocalColorTheme.current.gray[800]
+                color = colors.gray[800]
             )
 
             Spacer(modifier = Modifier.width(10.dp))
@@ -315,13 +322,13 @@ private fun CategoryDropdownChip(
             tonalElevation = 0.dp,
             modifier = Modifier
                 .width(180.dp)
-                .background(LocalColorTheme.current.white)
+                .background(colors.white)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(LocalColorTheme.current.white)
+                    .background(colors.white)
                     .padding(horizontal = 18.dp, vertical = 12.dp)
             ) {
                 Column {
@@ -355,7 +362,7 @@ private fun CategoryDropdownChip(
                                 text = category,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.gray[800]
+                                color = colors.gray[800]
                             )
                         }
                     }

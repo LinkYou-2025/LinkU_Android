@@ -107,19 +107,19 @@ fun AlarmItem(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-private fun AlarmItemPreview() {
-    LinkuPreview {
-        AlarmItem(
-            alarm = AlarmSummary(
-                id = 1,
-                alarmType = AlarmType.CURATION,
-                whenSubmitted = "10분 전",
-                message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
-                isRead = false
-            ),
-            modifier = Modifier.padding(16.dp)
-        )
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//private fun AlarmItemPreview() {
+//    LinkuPreview {
+//        AlarmItem(
+//            alarm = AlarmSummary(
+//                id = 1,
+//                alarmType = AlarmType.CURATION,
+//                whenSubmitted = "10분 전",
+//                message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
+//                isRead = false
+//            ),
+//            modifier = Modifier.padding(16.dp)
+//        )
+//    }
+//}

@@ -48,7 +48,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     // =========================================================
     "USERS4001" -> ApiError.User.AlreadyActiveUser(message)
     "USERS4002" -> ApiError.User.InvalidGender(message)
-    "USERS4004" -> ApiError.Folder.InvitationExpired(message)
+    "USERS4004" -> ApiError.User.ExpiredVerificationCode(message)
     "USERS4005" -> ApiError.User.InvalidPassword(message)
     "USERS4006" -> ApiError.User.PasswordMismatch(message)
     "USERS4011" -> ApiError.User.VerificationFailed(message)
@@ -138,8 +138,8 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     // =========================================================
     // 알림 에러 (ALARM)
     // =========================================================
-    "ALARM_NOT_FOUND" -> ApiError.Alarm.NotFound(message)
-    "ALARM_PERMISSION_DENIED" -> ApiError.Alarm.PermissionDenied(message)
+    "ALARM404" -> ApiError.Alarm.NotFound(message)
+    "ALARM403" -> ApiError.Alarm.PermissionDenied(message)
     "ALARM5001" -> ApiError.Alarm.TopicSubscriptionFailed(message)
     "ALARM5002" -> ApiError.Alarm.SendFailed(message)
 

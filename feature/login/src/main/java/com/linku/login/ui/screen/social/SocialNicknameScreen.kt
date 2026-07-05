@@ -1,6 +1,7 @@
 package com.linku.login.ui.screen.social
 
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -10,7 +11,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavHostController
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
@@ -23,35 +23,36 @@ import com.linku.login.viewmodel.SocialAuthViewModel
 
 @Composable
 fun SocialNicknameScreen(
-    navigator: NavHostController,
+    onBackClick: () -> Unit,
+    onNavigateToGender: () -> Unit,
     viewModel: SocialAuthViewModel
 ) {
 
-    // 🔹 SocialAuthViewModel 상태 수집
-    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
-    val nicknameState by viewModel.nicknameCheckState.collectAsStateWithLifecycle()
+    BackHandler { onBackClick() }
 
+    val uiState by viewModel.state.collectAsStateWithLifecycle()
+    val nicknameForm = uiState.socialLoginForm.nickname
+    val nicknameState = uiState.nicknameCheckState
 
-    // 닉네임 유효성 (기존 로직 그대로)
-    val isNicknameValid =
-        nickname.isNotBlank() && nickname.length <= 6 && nickname.matches(Regex("^[가-힣a-zA-Z]+$"))  // 국문/영문만 허용
+    val isNicknameValid = nicknameForm.isNotBlank() &&
+            nicknameForm.length in 1..6 &&
+            nicknameForm.matches(Regex("^[가-힣a-zA-Z]+$"))
 
-    val isButtonEnabled =
-        isNicknameValid && nicknameState == NicknameCheckState.Available
+    val isButtonEnabled = isNicknameValid && nicknameState == NicknameCheckState.Available
 
     SignUpStepLayout(
         currentStep = 2,
         title = "사용하실 닉네임을\n입력해주세요",
         buttonEnabled = isButtonEnabled,
         onNextClick = {
-            navigator.navigate("social_gender") { launchSingleTop = true }
+            onNavigateToGender()
         }
     ) {
         Spacer(Modifier.height(8.scaler)) // layout 내부 32 + 여기 8 = 기존 40과 동일
 
         LoginTextField(
-            value = nickname,
-            onValueChange = { viewModel.updateNickname(it) },
+            value = nicknameForm,
+            onValueChange = { viewModel.onNicknameChanged(it) },
             hint = "닉네임을 입력해주세요.",
             modifier = Modifier.fillMaxWidth()
         )

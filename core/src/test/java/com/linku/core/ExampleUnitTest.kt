@@ -1,8 +1,5 @@
-<<<<<<<< HEAD:core/src/test/java/com/linku/core/ExampleUnitTest.kt
-package com.linku.core
-========
+
 package com.linku.link
->>>>>>>> fd1304faab6b86e04c17e31a0786ce151290d292:app/src/test/java/com/linku/link/ExampleUnitTest.kt
 
 import org.junit.Test
 

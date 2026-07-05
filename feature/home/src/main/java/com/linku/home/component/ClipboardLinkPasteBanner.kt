@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -41,8 +42,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.linkuColors
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -54,6 +55,7 @@ fun rememberClipboardUrl(
     schemes: List<String> = listOf("https://", "http://")
 ): State<String?> {
     val context = LocalContext.current
+
     val clipboard =
         remember(context) { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
 
@@ -109,6 +111,7 @@ fun ClipboardLinkPasteBanner(
     onPasteClick: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
+    val colors = MaterialTheme.linkuColors
     val scope = rememberCoroutineScope()
 
     // 드래그 오프셋(px)
@@ -165,7 +168,7 @@ fun ClipboardLinkPasteBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(50))
-                    .background(LocalColorTheme.current.maincolor)
+                    .background(colors.maincolor)
                     .draggable(
                         orientation = Orientation.Vertical,
                         state = rememberDraggableState { delta ->
@@ -187,7 +190,7 @@ fun ClipboardLinkPasteBanner(
                     text = "$displayLink 링크를 붙여넣을까요?",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.white,
+                    color = colors.white,
                     fontFamily = LocalFontTheme.current.font,
                     maxLines = 1,
                     textAlign = TextAlign.Center,

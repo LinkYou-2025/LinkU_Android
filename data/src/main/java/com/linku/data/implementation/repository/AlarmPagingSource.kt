@@ -4,38 +4,46 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
-import com.linku.core.repository.AlarmRepository
-import javax.inject.Inject
+import com.linku.data.api.alarm.AlarmApi
+import com.linku.data.api.safeApiCall
+import com.linku.data.mapper.AlarmMapper.toDomain
 
-class AlarmPagingSource @Inject constructor(
-    private val alarmRepository: AlarmRepository,
-    private val type: AlarmType
-): PagingSource<Long, AlarmSummary>() {
+/**
+ * [AlarmApi]를 통해 [AlarmSummary] 데이터를 페이징하여 가져오기 위한 [PagingSource] 구현체입니다.
+ *
+ * 특정 [AlarmType]에 대한 커서(Cursor) 기반 페이징을 처리하며, API 응답 데이터를
+ * 도메인 모델로 매핑하고 네트워크 및 서버 에러에 대한 예외 처리를 수행합니다.
+ *
+ * @property alarmApi 알람 데이터를 요청하기 위한 API 인터페이스
+ * @property type 조회하고자 하는 알람의 종류
+ */
+class AlarmPagingSource(
+    val alarmApi: AlarmApi,
+    val type: AlarmType
+) : PagingSource<Long, AlarmSummary>() {
 
-    override suspend fun load(
-        params: LoadParams<Long>
-    ): LoadResult<Long, AlarmSummary> {
+    override suspend fun load(params: LoadParams<Long>): LoadResult<Long, AlarmSummary> {
+        val result = safeApiCall {
+            alarmApi.getAlarms(
+                alarmType = type.name,
+                cursor = params.key,
+                size = params.loadSize
+            )
+        }
 
-        val cursor = params.key
-        val size = params.loadSize
-
-        return alarmRepository.fetchAlarms(
-            type = type,
-            cursor = cursor,
-            size = size
-        ).fold(
-            onSuccess = { alarmList ->
+        return result.fold(
+            onSuccess = { dto ->
+                val alarmList = dto.toDomain()
                 LoadResult.Page(
                     data = alarmList.alarms,
                     prevKey = null,
                     nextKey = alarmList.nextCursor
                 )
             },
-            onFailure = { e ->
-                LoadResult.Error(e)
+            onFailure = { exception ->
+                LoadResult.Error(exception)
             }
         )
-
     }
 
     override fun getRefreshKey(state: PagingState<Long, AlarmSummary>): Long? = null

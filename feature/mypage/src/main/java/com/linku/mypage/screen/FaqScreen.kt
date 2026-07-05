@@ -3,7 +3,6 @@ package com.linku.mypage.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -44,7 +43,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -63,12 +61,14 @@ data class Faq(
 fun FaqScreen(
     navController: NavController
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var keyword by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
     var selectedFilter by remember { mutableStateOf("전체") }
     var expandedFaqId by remember { mutableStateOf<Int?>(null) }
 
-    var feedbackRowHeightPx by remember { mutableStateOf(0) }
+    var feedbackRowHeightPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
     val feedbackRowHeightDp = with(density) { feedbackRowHeightPx.toDp() }
 
@@ -148,7 +148,7 @@ fun FaqScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100])
+            .background(colors.gray[100])
     ) {
         Box(
             modifier = Modifier
@@ -162,7 +162,7 @@ fun FaqScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .clickable { navController.popBackStack() }
+                    .noRippleClickable { navController.popBackStack() }
             )
 
             Text(
@@ -170,7 +170,7 @@ fun FaqScreen(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = LocalFontTheme.current.font,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -182,12 +182,12 @@ fun FaqScreen(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .clip(RoundedCornerShape(18.dp))
-                .background(LocalColorTheme.current.white)
+                .background(colors.white)
                 .then(
                     if (isFocused) {
                         Modifier.border(
                             width = 1.dp,
-                            brush = LocalColorTheme.current.maincolor,
+                            brush = colors.maincolor,
                             shape = RoundedCornerShape(18.dp)
                         )
                     } else {
@@ -214,7 +214,7 @@ fun FaqScreen(
                         text = "궁금한 내용을 검색해보세요.",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.gray[400],
+                        color = colors.gray[400],
                     )
                 }
 
@@ -225,7 +225,7 @@ fun FaqScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         fontFamily = MaterialTheme.linkuFont.font,
-                        color = LocalColorTheme.current.black,
+                        color = colors.black,
                     ),
                     maxLines = 1,
                     modifier = Modifier
@@ -248,14 +248,14 @@ fun FaqScreen(
                         .then(
                             if (selectedFilter == filter) {
                                 Modifier
-                                    .background(LocalColorTheme.current.gray[800])
+                                    .background(colors.gray[800])
                                     .border(
                                         1.dp,
                                         MaterialTheme.linkuColors.gray[200],
                                         RoundedCornerShape(10.dp)
                                     )
                             } else {
-                                Modifier.background(LocalColorTheme.current.white)
+                                Modifier.background(colors.white)
                             }
                         )
                         .noRippleClickable { selectedFilter = filter }
@@ -267,9 +267,9 @@ fun FaqScreen(
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         color = if (selectedFilter == filter) {
-                            LocalColorTheme.current.white
+                            colors.white
                         } else {
-                            LocalColorTheme.current.gray[800]
+                            colors.gray[800]
                         }
                     )
                 }
@@ -333,21 +333,21 @@ fun FaqScreen(
                     text = "찾으시는 질문이 없으신가요?",
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[700]
+                    color = colors.gray[700]
 
                 )
 
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(18.dp))
-                        .background(LocalColorTheme.current.maincolor)
+                        .background(colors.maincolor)
                         .padding(top = 13.dp, start = 23.5.dp, end = 28.5.dp, bottom = 13.dp)
                 ) {
                     Text(
                         text = "피드백 보내기",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        color = LocalColorTheme.current.white
+                        color = colors.white
                     )
                 }
             }

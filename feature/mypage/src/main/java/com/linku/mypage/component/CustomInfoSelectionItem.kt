@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,8 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -33,18 +34,20 @@ fun CustomInfoSelectionItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .border(
                 width = 1.dp,
-                color = if (isSelected) LocalColorTheme.current.blue[100] else LocalColorTheme.current.gray[200],
+                color = if (isSelected) colors.blue[100] else colors.gray[200],
                 shape = RoundedCornerShape(18.dp)
             )
             .background(
                 if (isSelected) Color(0xFFF5F8FF)
-                else LocalColorTheme.current.white
+                else colors.white
             )
             .noRippleClickable { onClick() }
             .padding(horizontal = 18.dp, vertical = 15.dp),
@@ -54,7 +57,7 @@ fun CustomInfoSelectionItem(
             modifier = Modifier
                 .size(18.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(LocalColorTheme.current.gray[600])
+                .background(colors.gray[600])
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -63,7 +66,7 @@ fun CustomInfoSelectionItem(
             text = text,
             fontSize = 15.sp,
             fontWeight = FontWeight.Normal,
-            color = LocalColorTheme.current.black,
+            color = colors.black,
             modifier = Modifier.weight(1f)
         )
 

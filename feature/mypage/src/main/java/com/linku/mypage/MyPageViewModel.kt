@@ -3,32 +3,64 @@ package com.linku.mypage
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.model.UserInfo
+import com.linku.core.model.auth.UserSession
 import com.linku.core.repository.UserRepository
-import com.linku.core.datastore.session.LoginSessionStore
-import com.linku.core.repository.AuthRepository
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
-    private val authRepository: AuthRepository, //레포지토리 분활로 추가함.
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference
 ): ViewModel() {
 
-    // 별도 로딩(api 호출 없이) 로컬에 저장된 데이터 바로 보여줌.
-    val sessionState = authRepository.sessionState
+    val sessionState: StateFlow<UserSession> = authPreference.sessionState
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = LoginSessionStore.SessionSnapshot(false, null,
-                null, null, null, null, null, null, null, null,
-                emptyList(), emptyList() )
+            initialValue = UserSession()
         )
+
+    // 마이페이지 ui 상태
+    data class MyPageUiState(
+        val isLoading: Boolean = false,
+        val userInfo: UserInfo? = null,
+        val error: String? = null
+    )
+
+    private val _uiState = MutableStateFlow(MyPageUiState())
+    val uiState: StateFlow<MyPageUiState> = _uiState.asStateFlow()
+
+    // 마이페이지 진입 시, api 로든
+    fun loadUserInfo() {
+        viewModelScope.launch {
+            val id = authPreference.getUserId()
+            if (id == null || id <= 0L) {
+                _uiState.value = MyPageUiState(error = "로그인이 필요합니다.")
+                return@launch
+            }
+
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+            userRepository.getUserInfo(id).fold(
+                onSuccess = { info ->
+                    _uiState.value = MyPageUiState(isLoading = false, userInfo = info)
+                },
+                onFailure = { e ->
+                    _uiState.value =
+                        MyPageUiState(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
+                }
+            )
+        }
+    }
 
 //    data class UiState(
 //        val isLoading: Boolean = false,
@@ -80,44 +112,32 @@ class MyPageViewModel @Inject constructor(
 //        }
 //    }
 
-    // 마이페이지 진입 시 최신 정보 갱신 용도로 사용함.
-    fun refreshUserInfo() {
-        val id = authPreference.userId ?: return
-        viewModelScope.launch {
-            runCatching {
-                userRepository.refreshUserInfo(id)
-            }.onFailure { e ->
-                Log.e("MyPageViewModel", "데이터 동기화 실패: ${e.message}")
-            }
-            // 따로 상태를 업데이트할 필요가X.
-            // UserRepositoryImpl 내부의 .also 블록이 세션을 업데이트하면
-            // 위 1번의 sessionState가 자동으로 UI를 갱신합니다.
-        }
-    }
 
     // 마이페이지 계정 정보 수정
     fun updateUserInfo(
         nickname: String,
         jobId: Long,
-        jobName: String,  //UI 즉시 반영을 위해 추가
+        jobName: String,
         purposes: List<String>,
         interests: List<String>,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
-            try {
-                userRepository.updateUserProfile(
-                    nickname = nickname,
-                    jobId = jobId,
-                    jobName = jobName,
-                    purposes = purposes,
-                    interests = interests
-                )
-                onSuccess()
-            } catch (e: Exception) {
-                onError("변경에 실패했습니다: ${e.message}")
-            }
+            userRepository.updateUserInfo(
+                nickname = nickname,
+                jobId = jobId,
+                purposes = purposes,
+                interests = interests
+            ).fold(
+                onSuccess = {
+                    onSuccess()
+                    loadUserInfo()
+                },
+                onFailure = { e ->
+                    onError("변경에 실패했습니다: ${e.message}")
+                }
+            )
         }
     }
 
@@ -143,25 +163,17 @@ class MyPageViewModel @Inject constructor(
     }
 
     // 로그아웃 */
+    // TODO: FCM토큰 삭제 API호출
     fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 userRepository.logout()
+                _uiState.value = MyPageUiState()
                 onSuccess()
             } catch (e: Exception) {
                 onError("로그아웃에 실패했습니다.")
             }
         }
     }
-//        fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
-//            viewModelScope.launch {
-//                try {
-//                    userRepository.logout() // 서버 로그아웃 + 토큰/유저ID 정리까지 Repository에서 처리
-//                    _uiState.value = UiState() // 마이페이지 상태 초기화
-//                    onSuccess()
-//                } catch (e: Exception) {
-//                    onError("로그아웃에 실패했습니다.")
-//                }
-//            }
-//        }
+
 }

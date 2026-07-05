@@ -17,7 +17,7 @@ data class SignUpEmailRequestDTO (
     val password: String,
 
     @field:Json(name = "gender")
-    val gender: Int,
+    val gender: String,
 
     @field:Json(name = "jobId")
     val jobId: Int,
@@ -26,6 +26,9 @@ data class SignUpEmailRequestDTO (
     val purposeList: List<String>,
 
     @field:Json(name = "interestList")
-    val interestList: List<String>
+    val interestList: List<String>,
+
+    @field:Json(name = "termsMap")
+    val termsMap: Map<String, Boolean>
 
 )

@@ -53,8 +53,8 @@ class HomeViewModel @Inject constructor(
     }
 
     // 사용자 닉네임
-    private val userNameState = mutableStateOf<String?>(null)
-    val userName get() = userNameState.value
+//    private val userNameState = mutableStateOf<String?>(null)
+//    val userName get() = userNameState.value
 
     // 직업 ID 보관
     private val jobIdState = mutableStateOf<Long?>(null)
@@ -83,7 +83,7 @@ class HomeViewModel @Inject constructor(
     // 여기는 토큰 사용이 없음.
     fun loadUserBasics() {
         viewModelScope.launch {
-            val userId = authPreference.userId
+            val userId = authPreference.getUserId()
             if (userId == null || userId <= 0L) {
                 // 로그인 전이므로 조용히 무시. (재진입에서 다시 호출할 것)
                 return@launch
@@ -91,7 +91,7 @@ class HomeViewModel @Inject constructor(
 
             userRepository.getUserInfo(userId)
                 .onSuccess { userInfo ->
-                    userNameState.value = userInfo.nickname
+//                    userNameState.value = userInfo.nickname
                     jobIdState.value = userInfo.jobId
                 }
                 .onFailure { e ->
@@ -110,7 +110,7 @@ class HomeViewModel @Inject constructor(
     //로그아웃 시 모든 데이터 비워주는 기능
     fun clearData() {
         // 모든 상태값 초기화
-        userNameState.value = null
+//        userNameState.value = null
         jobIdState.value = null
         _recentLinks.value = emptyList()
         linkDetailState.value = null
@@ -152,8 +152,10 @@ class HomeViewModel @Inject constructor(
     // 새로운 링크 저장
     private val imageState = mutableStateOf<File?>(null)
     private val urlState = mutableStateOf("")
+    private val titleState = mutableStateOf("")
     private val memoState = mutableStateOf("")
     private val emotionIdState = mutableStateOf<Long?>(null)
+    private val situationIdState = mutableStateOf<Long?>(null)
     private val isSavingState = mutableStateOf(false)
 
     // URL 유효성 검사
@@ -163,8 +165,10 @@ class HomeViewModel @Inject constructor(
 
     val image get() = imageState.value
     val url get() = urlState.value
+    val title get() = titleState.value
     val memo get() = memoState.value
     val selectedEmotionId get() = emotionIdState.value
+    val selectedSituationId get() = situationIdState.value
     val isSaving get() = isSavingState.value
 
     val isCheckingUrl get() = isCheckingUrlState.value
@@ -211,17 +215,20 @@ class HomeViewModel @Inject constructor(
             isCheckingUrlState.value = false
         }
     }
+    fun setTitle(newTitle: String) { titleState.value = newTitle }
     fun setMemo(newMemo: String) { memoState.value = newMemo }
     fun selectEmotion(id: Long?) { emotionIdState.value = id }
-
+    fun selectSituation(id: Long?) { situationIdState.value = id }
 
 
     // 저장 폼 초기화
     fun resetForm() {
         imageState.value = null
         urlState.value = ""
+        titleState.value = ""
         memoState.value = ""
         emotionIdState.value = null
+        situationIdState.value = null
     }
 
     // 최근 조회 링크 상태
@@ -269,7 +276,8 @@ class HomeViewModel @Inject constructor(
                     image = imageState.value,
                     url = currentUrl,
                     memo = memoState.value.ifBlank { null },
-                    emotionId = emotionIdState.value
+                    emotionId = emotionIdState.value,
+                    // situationId = situationIdState.value
                 )
 
                 // 낙관적 업데이트: 메모리의 최근 목록 즉시 갱신
@@ -506,6 +514,7 @@ class HomeViewModel @Inject constructor(
         memo: String?,
         categoryId: Long?,
         emotionId: Long?,
+        situationId: Long?,
         onSucceed: (LinkResultInfo) -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
@@ -513,13 +522,12 @@ class HomeViewModel @Inject constructor(
             onFailed(IllegalStateException("링크 상세가 없습니다."))
             return
         }
+
         if (isUpdatingLinkState.value) return
 
-        // 서버에서 내려준 값으로 고정
         val fixedLinkuId = current.linkuId
-        val fixedLinku   = current.linku
+        val fixedLinku = current.linku
 
-        // domainId 매핑
         val computedDomainId = DomainIdMapper.resolve(
             url = fixedLinku,
             domain = current.domain
@@ -527,23 +535,29 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch {
             isUpdatingLinkState.value = true
+
             runCatching {
                 linkuRepository.updateLink(
-                    linkuId   = fixedLinkuId,
-                    categoryId= categoryId ?: current.categoryId ?: 0L,
-                    linku     = fixedLinku, // 고정
-                    memo      = memo,       // null/"" 그대로 전달
+                    linkuId = fixedLinkuId,
+                    categoryId = categoryId ?: current.categoryId ?: 0L,
+                    linku = fixedLinku,
+                    memo = memo,
                     emotionId = emotionId ?: current.emotionId ?: 0L,
-                    domainId  = computedDomainId,
-                    title     = title.ifBlank { current.title }
+                    domainId = computedDomainId,
+                    title = title.ifBlank { current.title }
+
+                    // TODO: API 연동 시 아래 값도 함께 전달
+                    // situationId = situationId ?: current.situationId ?: 0L
                 )
             }.onSuccess { updated ->
                 linkDetailState.value = updated
-                loadRecentLinks()  // 최근 조회 목록 갱신
+                linkCache[fixedLinkuId] = Cached(updated)
+                loadRecentLinks()
                 onSucceed(updated)
             }.onFailure { e ->
                 onFailed(e)
             }
+
             isUpdatingLinkState.value = false
         }
     }

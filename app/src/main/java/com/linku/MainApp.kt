@@ -1,13 +1,10 @@
 package com.linku
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -21,6 +18,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -38,35 +36,54 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.linku.core.model.auth.LoginState
+import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
+import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
-import com.linku.home.screen.SaveLinkResultScreen
+import com.linku.home.component.LinkCategoryOption
+import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
+import com.linku.home.viewmodel.AlarmViewModel
 import com.linku.linku_android.curation.curationGraph
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
 import com.linku.mypage.MyPageViewModel
+import com.linku.mypage.NotificationViewModel
+import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
-import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
-    ) {
-
+) {
     val context = LocalContext.current
+    val app = LocalContext.current.applicationContext
+
+    var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
+
+    // 채널 사이드 이펙트 수신
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SideEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
+            }
+        }
+    }
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -77,11 +94,18 @@ fun MainApp(
         }
     }
 
+    // 닉네임 최상단 뒤치(사용하는 스크린)
+    val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+
+
     // 앱 실행 시 실행하여 이전 계정 기록 삭제
     // FIXME : 지민님한테 여쭈어보기. 매번 앱 실행할 때마다 최근 기록을 지우는 것보다는 로그아웃 때 지우는건 어떤지
     LaunchedEffect(Unit) {
         viewModel.clearRecentQuery()
-        // TODO: onResume 기반 세션 갱신으로 변경 예정, mypageViewModel.refreshUserInfo()
+
+        val smallestWidth = app.resources.configuration.smallestScreenWidthDp
+        val deviceType = if (smallestWidth >= 600) "TABLET" else "PHONE"
+        viewModel.initDeviceInfo(deviceType)
     }
 
     val navigator = rememberNavController()
@@ -111,19 +135,7 @@ fun MainApp(
 
     // TODO : 로그인 뷰모델에서 Success 상태로 바꾸기 전에 세션 갱신하게 수정해야함.
     // 기기가 3대라 이렇게 되면 사용자 정보가 따로 놀 수 있음.
-    val loginState by loginViewModel.loginState.collectAsStateWithLifecycle()
-    LaunchedEffect(loginState) {
-        if (loginState is LoginState.Success) {
-            Log.d("SOCIAL_VM", "LoginState.Success 감지 → 홈 이동")
-            homeViewModel.refreshAfterLogin()
-            //mypageViewModel.refreshUserInfo() //로그인시 세션을 주기에 불필요함.
-            showNavBar = true
-            navigator.navigate(NavigationRoute.Home.route) {
-                popUpTo(0) { inclusive = true }
-                launchSingleTop = true
-            }
-        }
-    }
+
 
     // FIXME : 변수를 거쳐서 네비게이션에 가야 하는지 궁금합니다. 변수를 제거하는건?
     var saveLinkEntryTriggered by remember { mutableStateOf(false) }
@@ -131,6 +143,14 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(currentRoute) {
+        if (currentRoute == NavigationRoute.Home.route ||
+            currentRoute == "curation_list"
+        ) {
+            viewModel.fetchNickname()
+        }
+    }
 
     fun isTabRoute(current: String?, root: String): Boolean =
         current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
@@ -160,33 +180,21 @@ fun MainApp(
         }
     }
 
-    // 알람 권한 요청 트리거 플래그
-    var requestNotificationPermission by remember { mutableStateOf(false) }
-
-    // 권한 요청 런쳐
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted -> // 시스템 권한 요청 결과를 로컬에 저장
-        viewModel.setNotificationEnabled(isGranted)
-        Log.d("MainApp", "알림 권한 요청 결과: $isGranted")
-        Log.d("MainApp", "시스템 권한 상태: ${ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED}")
-    }
-
-
-    // 플래그 감지 시 권한 요청 런쳐 실행
-    LaunchedEffect(requestNotificationPermission) {
-        if (requestNotificationPermission) {
-
-            // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-            requestNotificationPermission = false // 한 번만 요청하도록 처리
-        }
-    }
     // NOTE : 이게 App에 있어야 할까..? MainActivity에 있는게 맞을 것 같은데, 리펙 가능한 부분인가..? 고민이 듬
     ThemeProvider {
         DoubleBackToExitIfTop(navigator = navigator)
+
+        // 다이알로그를 보여줘야 하면 출력.
+        if (showPushAlarmDialog) {
+            AlarmAllowDialog(
+                onDismissRequest = { showPushAlarmDialog = false },
+                onConfirmation = {
+                    showPushAlarmDialog = false
+                    viewModel.allowPushAlarm() // 성공/실패 토스트는 VM이 쏨
+                }
+            )
+        }
+
         MainScreen(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
@@ -232,14 +240,6 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true }
         ) {
-
-            val app = LocalContext.current.applicationContext
-            val deps = remember {
-                EntryPointAccessors.fromApplication(app, SplashDeps::class.java)
-            }
-
-
-
             NavHost(
                 navController = navigator,
                 startDestination = NavigationRoute.Splash.route,
@@ -258,53 +258,47 @@ fun MainApp(
                             mutableStateOf(false)
                         }
 
+                        val splashScope = rememberCoroutineScope()
+
+                        val autoLoginState by loginViewModel.autoLoginState.collectAsStateWithLifecycle()
+
+                        LaunchedEffect(autoLoginState) {
+                            when (autoLoginState) {
+                                is AutoLoginState.Success -> {
+                                    homeViewModel.refreshAfterLogin()
+                                    navigator.navigate(NavigationRoute.Home.route) {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                }
+
+                                is AutoLoginState.Failed -> {
+                                    navigator.navigate("login_root") {
+                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                    }
+                                }
+
+                                else -> Unit
+                            }
+                        }
+
                         Splash(
-                            // NOTE: AuthPreference 체크, autoLoginTried 관리는
-                            // LoginViewModel.tryAutoLogin()으로 이동 예정
-                            // TODO: 자동 로그인 리팩토링 후 수정
-
                             onResult = {
-                                val auth = deps.authPreference()
-                                //스플래쉬에서 자동 로그인 조건 = refresh 토큰 존재 여부 확인
-                                //자동 로그인 판단을 여기서 한다고 생각하면 됨.
+                                splashScope.launch {
+                                    val hasRefresh = viewModel.hasValidRefreshToken()
 
-
-                                val hasRefresh = !auth.refreshToken.isNullOrBlank()
-
-                                //  이미 자동 로그인 시도했으면 강제 로그인
-                                if (autoLoginTried) {
-                                    navigator.navigate("login_root") {
-                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                    }
-                                    return@Splash
-                                }
-
-                                if (!hasRefresh) {
-                                    // refresh 없음 → 로그인 화면으로 이동
-                                    navigator.navigate("login_root") {
-                                        popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                    }
-
-                                    return@Splash
-                                }
-
-
-                                // refresh 있음 → 자동로그인 시도
-                                loginViewModel.tryAutoLogin(
-                                    onSuccess = {
-                                        homeViewModel.refreshAfterLogin()
-                                        navigator.navigate(NavigationRoute.Home.route) {
-                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                            launchSingleTop = true
-                                        }
-                                    },
-                                    onFail = {
+                                    if (autoLoginTried || !hasRefresh) {
                                         navigator.navigate("login_root") {
-                                            popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                            popUpTo(NavigationRoute.Splash.route) {
+                                                inclusive = true
+                                            }
                                         }
-
+                                        return@launch
                                     }
-                                )
+
+                                    loginViewModel.tryAutoLogin()
+                                    autoLoginTried = true
+                                }
                             }
                         )
                     }
@@ -317,10 +311,9 @@ fun MainApp(
                         loginViewModel = loginViewModel,
                         onLoginSuccess = {
                             showNavBar = true
-                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
-                            // 로그인 성공 후 알림 권한 요청 트리거
-                            requestNotificationPermission = true
+
+                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
@@ -339,6 +332,19 @@ fun MainApp(
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
                             }
+                        },
+                        onAutoLoginSuccess = {
+                            showNavBar = true
+                            homeViewModel.refreshAfterLogin()
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        },
+                        onAutoLoginFail = {
+                            navigator.navigate("login_root") {
+                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
+                            }
                         }
                     )
                 }
@@ -348,21 +354,21 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-
+                            viewModel.checkAndShowPushAlarmDialog()
                         }
-
 
                         HomeApp(
                             viewModel = homeViewModel,
-                            onNavigateToMyPage = {  // TODO: 추후 알림 설정 페이지로 이동
-                                navigator.navigate(NavigationRoute.MyPage.route) {
-                                    popUpTo(navigator.graph.findStartDestination().id) {
-                                        saveState = true
-                                        inclusive = false
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                            nickname = nickname.orEmpty().ifBlank { "링큐" },
+                            onNavigateToSetting = {
+                                navigator.navigate(NavigationRoute.AlarmSetting.route)
+                            },
+                            onNavigateToSaveLink = { url ->
+                                homeViewModel.setUrl(url)
+                                navigator.navigate("savelink")
+                            },
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
                             },
                             onShowNavBar = { showNavBar = it }
                         )
@@ -386,7 +392,8 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
-                    showNavBar = { showNavBar = it }
+                    showNavBar = { showNavBar = it },
+                    nickname = nickname.orEmpty().ifBlank { "링큐" }
                 )
 
 
@@ -395,9 +402,7 @@ fun MainApp(
                         LaunchedEffect(Unit) {
                             showNavBar = true
 
-                            // 화면 진입 시 최신 정보 로드
-                            mypageViewModel.refreshUserInfo()
-                            //mypageViewModel.loadUserInfo()
+                            mypageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
 
@@ -412,6 +417,7 @@ fun MainApp(
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
+                                viewModel.clearNickname()
                                 navigator.navigate("login_root") {
                                     // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
                                     popUpTo(navigator.graph.findStartDestination().id) {
@@ -425,6 +431,19 @@ fun MainApp(
 //                                    launchSingleTop = true
 //                                }
                             }
+                        )
+                    }
+                }
+
+                with(NavigationRoute.AlarmSetting) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
+                        val notificationViewModel: NotificationViewModel = hiltViewModel()
+
+                        AlarmSettingScreen(
+                            navController = navigator,
+                            viewModel = notificationViewModel
                         )
                     }
                 }
@@ -449,18 +468,29 @@ fun MainApp(
                     SaveLinkScreen(
                         image = vm.image,
                         url = vm.url,
+                        title = vm.title,
                         memo = vm.memo,
                         selectedEmotionId = vm.selectedEmotionId,
+                        selectedSituationId = vm.selectedSituationId,
+                        jobId = vm.jobId ?: 3L,
                         onPickImage = { imagePicker.launch("image/*") },
                         onUrlChange = vm::setUrl,
+                        onTitleChange = vm::setTitle,
                         onMemoChange = vm::setMemo,
                         onEmotionSelect = vm::selectEmotion,
+                        onSituationSelect = vm::selectSituation,
                         onSaveClick = {
-                            // 저장 버튼 로그 + API 호출
-                            Log.d("SaveLink", "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, image=${vm.image?.name}")
+                            Log.d(
+                                "SaveLink",
+                                "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, situationId=${vm.selectedSituationId}, image=${vm.image?.name}"
+                            )
+
                             vm.saveLink(
                                 onSucceed = { saved ->
-                                    Log.d("SaveLink", "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}")
+                                    Log.d(
+                                        "SaveLink",
+                                        "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
+                                    )
                                     vm.loadLinkDetail(saved.linkuId)
                                     vm.resetForm()
                                     navigator.navigate("savelinkresult/${saved.linkuId}")
@@ -492,48 +522,115 @@ fun MainApp(
                         vm.loadCategoryColors()
                     }
 
+                    fun emotionNameOf(id: Long?): String {
+                        return when (id) {
+                            1L -> "즐거움"
+                            2L -> "평온"
+                            3L -> "설렘"
+                            4L -> "슬픔"
+                            5L -> "짜증"
+                            6L -> "분노"
+                            else -> "감정"
+                        }
+                    }
+
+                    // TODO: 카테고리 API 연동 후 categoryId 기준 실제 카테고리명/색상 매핑으로 교체
+                    val CATEGORY_MAP = linkedMapOf(
+                        1L to "어학",
+                        2L to "뉴스",
+                        3L to "공부법",
+                        4L to "IT·개발",
+                        5L to "자기계발",
+                        6L to "취업·이직",
+                        7L to "비즈니스 인사이트",
+                        8L to "생산성·툴",
+                        9L to "라이프스타일",
+                        10L to "심리·자기이해",
+                        11L to "에세이·칼럼",
+                        12L to "트렌드",
+                        13L to "디자인·예술",
+                        14L to "영상·뮤직",
+                        15L to "맛집·여행",
+                        16L to "기타"
+                    )
+
+                    fun categoryNameOf(id: Long?): String {
+                        return CATEGORY_MAP[id] ?: "카테고리"
+                    }
+
+                    fun categoryIdOf(name: String): Long? {
+                        return CATEGORY_MAP.entries
+                            .firstOrNull { it.value == name }
+                            ?.key
+                    }
+
+                    fun keywordToTags(keyword: String?): List<String> {
+                        return keyword
+                            .orEmpty()
+                            .split(",", " ", "#")
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                            .take(4)
+                    }
+
                     // 진행률/색상 맵 수집
                     val aiProgress = vm.aiProgress.collectAsState().value
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
+                    val categoryOptions = categoryColorMap.mapNotNull { (name, style) ->
+                        val id = categoryIdOf(name) ?: return@mapNotNull null
+
+                        LinkCategoryOption(
+                            id = id,
+                            name = name,
+                            color = style.color4
+                        )
+                    }
+
                     // 외부 브라우저 열기
                     fun openUrl(url: String) {
                         runCatching {
-                            val fixed = if (url.startsWith("http")) url else "https://$url"
+                            val fixed = if (
+                                url.startsWith("http://") || url.startsWith("https://")
+                            ) {
+                                url
+                            } else {
+                                "https://$url"
+                            }
+
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
                                 fixed.toUri()
                             )
+
                             context.startActivity(intent)
                         }.onFailure {
                             Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
                         }
                     }
 
-                    SaveLinkResultScreen(
-                        link = vm.linkDetail,
-                        aiArticle = vm.aiArticleDetail,
-                        isLoading = vm.isLoadingLinkDetail || vm.isLoadingAiArticle,
-                        isAiLoading = vm.isLoadingAiArticle,
-                        onBack = { navigator.popBackStack() },
-                        onOpenLink = { url -> openUrl(url) },
-                        categoryColorMap = categoryColorMap,
-                        onSubmitEdit = { title, memo, categoryId, emotionId ->
-                            vm.updateLink(
-                                title = title,
-                                memo = memo,
-                                categoryId = categoryId,
-                                emotionId = emotionId,
-                                onSucceed = { Toast.makeText(context, "수정 완료", Toast.LENGTH_SHORT).show() },
-                                onFailed = { e ->
-                                    Log.e("SaveLinkResult", "수정 실패", e)
-                                    Toast.makeText(context, e.message ?: "수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        },
-                        onRequestAiSummary = { vm.loadAiArticle(linkuId) },
-                        aiProgress = aiProgress,
-                        onCancelAi = { vm.cancelAiArticleJob() }
+                    val linkDetail = vm.linkDetail
+                    val aiArticle = vm.aiArticleDetail
+
+                    val displayKeyword = aiArticle?.keyword?.trim().orEmpty()
+                        .ifEmpty { linkDetail?.keyword.orEmpty() }
+
+                    val displaySummary = aiArticle?.summary?.trim().orEmpty()
+                        .ifEmpty { linkDetail?.summary.orEmpty() }
+
+                    LinkDetailScreen(
+                        linkTitle = linkDetail?.title.orEmpty(),
+                        category = categoryNameOf(linkDetail?.categoryId),
+                        emotion = emotionNameOf(linkDetail?.emotionId),
+                        situationId = null, // TODO: 상세 API에 situationId 생기면 linkDetail?.situationId로 변경
+                        linkUrl = linkDetail?.linku.orEmpty(),
+                        memo = linkDetail?.memo.orEmpty(),
+                        tags = keywordToTags(displayKeyword),
+                        aiSummary = displaySummary,
+                        categoryOptions = categoryOptions,
+                        onBack = {
+                            navigator.popBackStack()
+                        }
                     )
                 }
 

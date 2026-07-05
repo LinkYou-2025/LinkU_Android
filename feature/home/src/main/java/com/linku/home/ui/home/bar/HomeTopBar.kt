@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -39,15 +39,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.font.Taebaek
+import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
 import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
 import com.linku.home.screen.Situation
-import com.linku.home.ui.home.bar.component.EmotionSelector
+import com.linku.home.ui.home.bar.component.EmotionIconSelector
 import com.linku.home.ui.home.bar.component.HomeSearchBar
 import com.linku.home.ui.home.bar.component.SelectedSummaryRow
 import com.linku.home.ui.home.bar.component.TaskSelector
@@ -68,6 +69,7 @@ fun HomeTopBar(
     hasRequestedRecommend: Boolean,
     onAlarmClick: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
 
     val buttonBrush =
         if (recommendEnabled) Basic.maincolor
@@ -84,7 +86,7 @@ fun HomeTopBar(
             .clip(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 13.5.dp)
     ) {
         Row(
@@ -122,7 +124,7 @@ fun HomeTopBar(
             Box(
                 modifier = Modifier
                     .size(30.dp)
-                    .clickable { onAlarmClick() }
+                    .noRippleClickable { onAlarmClick() }
             ) {
                 AlarmButton(
                     isNoticeExist = isNoticeExist,
@@ -148,7 +150,7 @@ fun HomeTopBar(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.black,
+                    color = colors.black,
                     modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
                 )
 
@@ -157,11 +159,11 @@ fun HomeTopBar(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.gray[700],
+                    color = colors.gray[700],
                     modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
                 )
 
-                EmotionSelector(
+                EmotionIconSelector(
                     selectedEmotionId = selectedEmotionId,
                     onEmotionChange = onEmotionChange
                 )
@@ -173,7 +175,7 @@ fun HomeTopBar(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Medium,
                     fontFamily = LocalFontTheme.current.font,
-                    color = LocalColorTheme.current.gray[700],
+                    color = colors.gray[700],
                     modifier = Modifier.padding(start = 8.dp, bottom = 10.dp)
                 )
 
@@ -199,13 +201,13 @@ fun HomeTopBar(
                             .height(48.dp)
                             .clip(RoundedCornerShape(16.dp))
                             .background(brush = buttonBrush)
-                            .clickable(enabled = recommendEnabled) { onRecommendClick() },
+                            .noRippleClickable(enabled = recommendEnabled) { onRecommendClick() },
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "링크 추천해줘!",
                             style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
-                            color = LocalColorTheme.current.white
+                            color = colors.white
                         )
                     }
 
@@ -236,7 +238,7 @@ fun HomeTopBar(
                     modifier = Modifier
                         .width(44.dp)
                         .align(Alignment.CenterHorizontally)
-                        .clickable { onExpandClick() }
+                        .noRippleClickable { onExpandClick() }
                 )
             }
         }

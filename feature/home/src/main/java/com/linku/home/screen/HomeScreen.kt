@@ -3,7 +3,6 @@ package com.linku.home.screen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -48,8 +48,9 @@ import coil3.compose.AsyncImage
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
-import com.linku.design.theme.LocalColorTheme
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.linkuColors
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.home.HomeViewModel
 import com.linku.home.R
@@ -57,15 +58,6 @@ import com.linku.home.component.ClipboardLinkPasteBanner
 import com.linku.home.component.rememberClipboardUrl
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.launch
-
-data class LinkItem(
-    val imageResId: Int?,  // 링크 대표 이미지
-    val title: String,  // 링크 제목
-    val tags: List<String>,  // 태그 2개
-    val siteIconResId: Int,  // 사이트 아이콘 (예: 네이버, 유튜브 등)
-    val siteName: String,  // 사이트 이름
-    val aiSummarized: Boolean  // AI 요약 여부
-)
 
 data class Situation(val id: Long, val name: String)
 
@@ -97,16 +89,6 @@ fun situationsFor(jobId: Long): List<Situation> = when (jobId) {
     else -> situationsFor(3L) // 혹시 모를 기본값(직장인 세트)
 }
 
-private fun emotionName(id: Long?): String? = when (id) {
-    1L -> "즐거움"
-    2L -> "평온"
-    3L -> "설렘"
-    4L -> "슬픔"
-    5L -> "짜증"
-    6L -> "분노"
-    else -> null
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
@@ -124,6 +106,8 @@ fun HomeScreen(
     onNavigateToSaveLink: (url: String) -> Unit,
     onAlarmClick: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
     val systemBarController =
         LocalContext.current as? SystemBarController
@@ -229,12 +213,12 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.gray[100])
+            .background(colors.gray[100])
     ) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LocalColorTheme.current.gray[100]),
+                .background(colors.gray[100]),
             state = listState
         ) {
             stickyHeader {
@@ -280,7 +264,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(LocalColorTheme.current.gray[100])
+                                    .background(colors.gray[100])
                                     .padding(top = 65.dp, bottom = 195.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -299,7 +283,7 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Medium,
                                         fontFamily = LocalFontTheme.current.font
                                     ),
-                                    color = LocalColorTheme.current.gray[700]
+                                    color = colors.gray[700]
                                 )
                             }
                         }
@@ -309,7 +293,7 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(LocalColorTheme.current.gray[100])
+                                    .background(colors.gray[100])
                                     .padding(top = 65.dp, bottom = 195.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
@@ -329,7 +313,7 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Medium,
                                         fontFamily = LocalFontTheme.current.font
                                     ),
-                                    color = LocalColorTheme.current.gray[800]
+                                    color = colors.gray[800]
                                 )
 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -342,7 +326,7 @@ fun HomeScreen(
                                         textAlign = TextAlign.Center,
                                         fontFamily = LocalFontTheme.current.font
                                     ),
-                                    color = LocalColorTheme.current.gray[600]
+                                    color = colors.gray[600]
                                 )
                             }
                         }
@@ -352,14 +336,14 @@ fun HomeScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clip(RoundedCornerShape(12.dp))
-                                    .background(LocalColorTheme.current.gray[100])
+                                    .background(colors.gray[100])
                                     .padding(top = 65.dp, bottom = 195.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
 //                            Text(
 //                                text = "${userName}님이 최근에 열람한 링크",
 //                                style = TextStyle(fontSize = 20.sp, fontWeight = FontWeight.Bold, textAlign = TextAlign.Start),
-//                                color = LocalColorTheme.current.black
+//                                color = colors.black
 //                            )
 //
 //                            Spacer(modifier = Modifier.height(65.dp))
@@ -379,7 +363,7 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Medium,
                                         fontFamily = LocalFontTheme.current.font
                                     ),
-                                    color = LocalColorTheme.current.gray[800]
+                                    color = colors.gray[800]
                                 )
 
                                 Spacer(modifier = Modifier.height(12.dp))
@@ -391,7 +375,7 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Normal,
                                         fontFamily = LocalFontTheme.current.font
                                     ),
-                                    color = LocalColorTheme.current.gray[600]
+                                    color = colors.gray[600]
                                 )
                             }
                         }
@@ -405,7 +389,7 @@ fun HomeScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(12.dp))
-                                        .background(LocalColorTheme.current.gray[100])
+                                        .background(colors.gray[100])
                                         .padding(top = 150.dp, bottom = 217.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -417,7 +401,7 @@ fun HomeScreen(
                                             textAlign = TextAlign.Center,
                                             fontFamily = LocalFontTheme.current.font
                                         ),
-                                        color = LocalColorTheme.current.gray[600]
+                                        color = colors.gray[600]
                                     )
                                 }
                             } else {
@@ -428,7 +412,7 @@ fun HomeScreen(
                                         fontWeight = FontWeight.Bold,
                                         fontFamily = LocalFontTheme.current.font
                                     ),
-                                    color = LocalColorTheme.current.black
+                                    color = colors.black
                                 )
 
                                 Spacer(modifier = Modifier.height(20.dp))
@@ -511,18 +495,20 @@ fun HomeScreen(
 
 @Composable
 private fun EmptyRecentBox() {
+    val colors = MaterialTheme.linkuColors
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(LocalColorTheme.current.gray[100])
+            .background(colors.gray[100])
             .padding(top = 150.dp, bottom = 217.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = "최근에 열람한 링크가 없어요!",
             style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-            color = LocalColorTheme.current.gray[600]
+            color = colors.gray[600]
         )
     }
 }
@@ -532,13 +518,15 @@ private fun LinkCard(
     link: LinkSimpleInfo,
     onClick: () -> Unit,
 ) {
+    val colors = MaterialTheme.linkuColors
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
             .padding(10.dp)
-            .clickable { onClick() }
+            .noRippleClickable { onClick() }
     ) {
         Box() {
 //            Image(
@@ -581,7 +569,7 @@ private fun LinkCard(
                 Text(
                     text = link.title,
                     style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium, fontFamily = LocalFontTheme.current.font),
-                    color = LocalColorTheme.current.black
+                    color = colors.black
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -598,7 +586,7 @@ private fun LinkCard(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        LocalColorTheme.current.gray[100],
+                                        colors.gray[100],
                                         RoundedCornerShape(6.dp)
                                     )
                                     .padding(horizontal = 6.dp, vertical = 3.dp)
@@ -608,7 +596,7 @@ private fun LinkCard(
                                     style = TextStyle(
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.Medium,
-                                        color = LocalColorTheme.current.gray[600],
+                                        color = colors.gray[600],
                                         fontFamily = LocalFontTheme.current.font
                                     )
                                 )
@@ -642,7 +630,7 @@ private fun LinkCard(
 
                     Text(
                         text = link.domain,
-                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = LocalColorTheme.current.gray[800], fontFamily = LocalFontTheme.current.font)
+                        style = TextStyle(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = colors.gray[800], fontFamily = LocalFontTheme.current.font)
                     )
                 }
             }

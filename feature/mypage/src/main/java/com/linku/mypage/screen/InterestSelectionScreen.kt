@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -20,9 +21,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.BrushText
-import com.linku.design.theme.LocalColorTheme
-import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
+import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.mypage.component.CustomInfoSelectionItem
 
 private val interestItems = listOf(
@@ -42,6 +43,8 @@ fun InterestSelectionScreen(
     navController: NavController,
     onFinishClick: () -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     val selectedItems = remember { mutableStateListOf<String>() }
 
     CustomInfoSelectionContent(
@@ -52,7 +55,7 @@ fun InterestSelectionScreen(
                 ) {
                     BrushText(
                         text = "어떤 분야의 콘텐츠",
-                        brush = LocalColorTheme.current.maincolor,
+                        brush = colors.maincolor,
                         style = TextStyle(
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Medium,
@@ -63,7 +66,7 @@ fun InterestSelectionScreen(
                         text = "에",
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Medium,
-                        color = LocalColorTheme.current.black
+                        color = colors.black
                     )
                 }
 
@@ -71,7 +74,7 @@ fun InterestSelectionScreen(
                     text = "관심 있으신가요?\n모두 선택해주세요.",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Medium,
-                    color = LocalColorTheme.current.black
+                    color = colors.black
                 )
             }
         },

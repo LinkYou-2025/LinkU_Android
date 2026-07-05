@@ -105,4 +105,7 @@ dependencies {
 
     // paging3
     implementation(libs.paging.runtime)
+
+    //fcm
+    implementation(libs.kotlinx.coroutines.play.services)
 }

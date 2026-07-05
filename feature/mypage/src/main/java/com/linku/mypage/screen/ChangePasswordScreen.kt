@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -38,9 +39,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
@@ -49,6 +50,8 @@ fun ChangePasswordScreen(
     userEmail: String,
     onClickFinish: (String) -> Unit
 ) {
+    val colors = MaterialTheme.linkuColors
+
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
@@ -67,7 +70,7 @@ fun ChangePasswordScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LocalColorTheme.current.white)
+            .background(colors.white)
     ) {
         Box(
             modifier = Modifier
@@ -89,7 +92,7 @@ fun ChangePasswordScreen(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 fontFamily = LocalFontTheme.current.font,
-                color = LocalColorTheme.current.black,
+                color = colors.black,
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -106,7 +109,7 @@ fun ChangePasswordScreen(
                 text = "이메일",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = LocalColorTheme.current.gray[600],
+                color = colors.gray[600],
                 modifier = Modifier.padding(start = 4.dp)
             )
 
@@ -117,8 +120,8 @@ fun ChangePasswordScreen(
                     .fillMaxWidth()
                     .heightIn(min = 52.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .border( width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
-                    .background(LocalColorTheme.current.gray[100])
+                    .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                    .background(colors.gray[100])
                     .padding(horizontal = 22.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -126,7 +129,7 @@ fun ChangePasswordScreen(
                     text = userEmail,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
-                    color = LocalColorTheme.current.gray[600]
+                    color = colors.gray[600]
                 )
             }
         }
@@ -143,7 +146,7 @@ fun ChangePasswordScreen(
                 text = "새 비밀번호",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium,
-                color = LocalColorTheme.current.gray[600],
+                color = colors.gray[600],
                 modifier = Modifier.padding(start = 4.dp)
             )
 
@@ -154,8 +157,8 @@ fun ChangePasswordScreen(
                     .fillMaxWidth()
                     .heightIn(min = 52.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .border( width = 1.dp, color = LocalColorTheme.current.gray[200], shape = RoundedCornerShape(18.dp))
-                    .background(LocalColorTheme.current.white)
+                    .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                    .background(colors.white)
                     .padding(horizontal = 22.dp, vertical = 10.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -174,7 +177,7 @@ fun ChangePasswordScreen(
                                 text = "새로운 비밀번호를 입력해주세요",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.gray[500]
+                                color = colors.gray[500]
                             )
                         }
 
@@ -186,13 +189,13 @@ fun ChangePasswordScreen(
                                 TextStyle(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.black
+                                    color = colors.black
                                 )
                             } else {
                                 TextStyle(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.black
+                                    color = colors.black
                                 )
                             },
                             visualTransformation = if (isPasswordVisible) {
@@ -243,7 +246,7 @@ fun ChangePasswordScreen(
                         text = "영문, 숫자, 특수기호 조합",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[600]
+                        color = colors.gray[600]
                     )
                 }
 
@@ -267,7 +270,7 @@ fun ChangePasswordScreen(
                         text = "8~20자",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Normal,
-                        color = LocalColorTheme.current.gray[600]
+                        color = colors.gray[600]
                     )
                 }
             }
@@ -280,10 +283,10 @@ fun ChangePasswordScreen(
                     .clip(RoundedCornerShape(18.dp))
                     .border(
                         width = 1.dp,
-                        color = LocalColorTheme.current.gray[200],
+                        color = colors.gray[200],
                         shape = RoundedCornerShape(18.dp)
                     )
-                    .background(LocalColorTheme.current.white)
+                    .background(colors.white)
                     .padding(horizontal = 22.dp, vertical = 10.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -302,7 +305,7 @@ fun ChangePasswordScreen(
                                 text = "비밀번호를 확인해주세요",
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Normal,
-                                color = LocalColorTheme.current.gray[500]
+                                color = colors.gray[500]
                             )
                         }
 
@@ -314,13 +317,13 @@ fun ChangePasswordScreen(
                                 TextStyle(
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.black
+                                    color = colors.black
                                 )
                             } else {
                                 TextStyle(
                                     fontSize = 10.sp,
                                     fontWeight = FontWeight.Normal,
-                                    color = LocalColorTheme.current.black
+                                    color = colors.black
                                 )
                             },
                             visualTransformation = if (isConfirmPasswordVisible) {
@@ -374,9 +377,9 @@ fun ChangePasswordScreen(
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         color = if (isPasswordMatched) {
-                            LocalColorTheme.current.positive
+                            colors.positive
                         } else {
-                            LocalColorTheme.current.negative
+                            colors.negative
                         }
                     )
                 }
@@ -394,12 +397,12 @@ fun ChangePasswordScreen(
                 .then(
                     if (isChangePasswordEnabled) {
                         Modifier.background(
-                            brush = LocalColorTheme.current.maincolor,
+                            brush = colors.maincolor,
                             shape = RoundedCornerShape(18.dp)
                         )
                     } else {
                         Modifier.background(
-                            color = LocalColorTheme.current.gray[300],
+                            color = colors.gray[300],
                             shape = RoundedCornerShape(18.dp)
                         )
                     }
@@ -414,7 +417,7 @@ fun ChangePasswordScreen(
                 text = "완료",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = LocalColorTheme.current.white
+                color = colors.white
             )
         }
     }

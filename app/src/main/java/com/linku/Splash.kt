@@ -1,47 +1,45 @@
 package com.linku
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.flow.first
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.linku.core.model.SystemBarMode
-import com.linku.core.datastore.session.LoginSessionStore
 import com.linku.core.system.SystemBarController
-import com.linku.data.preference.AuthPreference
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import com.linku.data.preference.NotificationPreference
 import com.linku.design.util.PixelScaler
-import com.linku.R
+import kotlinx.coroutines.delay
 
-
-@EntryPoint
-@InstallIn(SingletonComponent::class)
-interface SplashDeps {
-    fun sessionStore(): LoginSessionStore
-    fun authPreference(): AuthPreference
-}
-
-//Boolean = 자동 로그인 성공 여부를 판단하기 위해 추가함.
 @Composable
-fun Splash(onResult: (Boolean) -> Unit) {
+fun Splash(onResult: () -> Unit) {
 
     //바텀바 숨김
     val systemBarController =
@@ -58,17 +56,40 @@ fun Splash(onResult: (Boolean) -> Unit) {
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
 
-    // deps 준비 (프리뷰/런타임 모두에서 안전하게)
-    val appContext = LocalContext.current.applicationContext
-    val isInPreview = LocalInspectionMode.current
-    val deps = remember {
-        // 프리뷰 모드에서는 Hilt가 없으므로 null 반환
-        if (isInPreview) null
-        else EntryPointAccessors.fromApplication(appContext, SplashDeps::class.java)
+    // 시스템 알림 권한 요청 팝업이 끝났는지 여부
+    var permissionFinished by rememberSaveable { mutableStateOf(false) }
+
+    // 권한 요청 런쳐
+    val notificationPermissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission() // 단일 권한 요청 계약
+        ) {
+            permissionFinished = true // 허용&거부 상관없이 팝업 끝나면 true
+        }
+
+    // 알림 설정 저장소
+    // 스플래시에서만 일회성으로 사용하는 값이라 Hilt & ViewModel 없이 직접 생성.
+    val context = LocalContext.current
+    val notificationPreference = remember {
+        NotificationPreference(context)
     }
 
-
     LaunchedEffect(Unit) {
+        // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !notificationPreference.isSystemPermissionRequested()
+        ) {
+            notificationPreference.setSystemPermissionRequested(true)
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else { // 이미 시스템 팝업 띄운 전적이 있으면 permissionFinished를 true로 세팅하고 넘김.
+            permissionFinished = true
+        }
+    }
+
+    LaunchedEffect(permissionFinished) {
+        if (!permissionFinished) return@LaunchedEffect // 알람 팝업 작업이 완료되기 전까지 대기
+
         println(" Splash 시작됨")
         rotationAnim.animateTo(
             targetValue = 180f,
@@ -79,27 +100,9 @@ fun Splash(onResult: (Boolean) -> Unit) {
         isGlowPhase = true
         delay(700)
 
-        //  이전 로그인 정보 하이드레이션 (프리뷰 제외 + deps 존재 시)
-        if (!isInPreview && deps != null) {
-            runCatching {
-                val authPref = deps.authPreference()   // ← 로컬 변수에 담아서 대입 (Variable expected 방지)
-                if (authPref.userId == null) {
-                    val snap = deps.sessionStore().session.first() // 1회 스냅샷
-                    if (snap.loggedIn && snap.userId != null) {
-                        authPref.userId = snap.userId             // 핵심 대입
-                        // 필요하면 토큰도 복구:
-                        // authPref.accessToken = ...
-                        // authPref.refreshToken = ...
-                    }
-                }
-            }.onFailure { e ->
-                println("⚠️ Splash hydration failed: $e")
-            }
-        }
-
         delay(800)
         println("Splash onResult 호출")
-        onResult(false) //스플래쉬는 자동로그인 판단할 수 없음. MainApp에서 자동로그인을 확인하도록 함.
+        onResult() //애니메이션 끝났음
     }
 
     // 배경 색상 보간용 progress

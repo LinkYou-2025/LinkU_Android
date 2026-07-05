@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,13 +30,18 @@ fun MyPageApp(
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    // 세션 구독
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val session by viewModel.sessionState.collectAsStateWithLifecycle()
+
+    // 알림 설정 창에서 사용할 뷰모델
+    // 마이페이지에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
+    // MyPageApp에서 만들어 주입한다.
+    val notificationViewModel: NotificationViewModel = hiltViewModel()
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
     // 화면 진입 시 최신 데이터 한 번 긁어오기
     LaunchedEffect(Unit) {
-        viewModel.refreshUserInfo()
+        viewModel.loadUserInfo()
     }
     //기존
 //    LaunchedEffect(Unit) {
@@ -49,13 +55,15 @@ fun MyPageApp(
         startDestination = "mypage"
     ) {
         composable("mypage") {
-            // 3. sessionSnapshot 데이터를 직접 넘겨줌
+
+            val user = uiState.userInfo
+
             MyPageScreen(
-                nickname = session.nickname ?: "",
-                email = session.email ?: "",
-                myLinku = session.myLinku ?: 0L,
-                myFolder = session.myFolder ?: 0L,
-                myAiLinku = session.myAiLinku ?: 0L,
+                nickname = user?.nickname ?: "",
+                email = user?.email ?: "",
+                myLinku = user?.myLinku ?: 0L,
+                myFolder = user?.myFolder ?: 0L,
+                myAiLinku = user?.myAiLinku ?: 0L,
                 onNavigateAccount = { navController.navigate("account") },
                 onNavigateAlarm = { navController.navigate("alarm") },
                 onNavigateAlarmSetting = { navController.navigate("alarmSetting") },
@@ -114,12 +122,10 @@ fun MyPageApp(
 //            }
 //        }
         composable("account") {
-            // nickname이나 purposes가 로드될 때까지 기다립니다.
-            android.util.Log.d("MyPageApp", "태그 데이터 확인 - Purposes: ${session.purposes}, Interests: ${session.interests}")
-            if (session.nickname != null) {
+            if (uiState.userInfo != null) {
                 AccountSettingScreen(
                     navController = navController,
-                    isSocialLogin = session.loggedIn,  // TODO: 세션에서 소셜 로그인 여부 가져오기(일단 지금은 로그인 여부로 대체)
+                    isSocialLogin = session.isLoggedIn, // TODO: 세션에서 소셜 로그인 여부 가져오기(일단 지금은 로그인 여부로 대체)
                     onEditProfileClick = { navController.navigate("editProfile") },
                     onChangePasswordClick = { navController.navigate("changePassword") },
                     onCustomInfoSettingClick = { navController.navigate("customInfoSetting") }
@@ -282,10 +288,11 @@ fun MyPageApp(
 //            }
 
         composable("changePassword") {
-            if (session.email != null) {
+            val user = uiState.userInfo
+            if (user != null) {
                 ChangePasswordScreen(
                     navController = navController,
-                    userEmail = session.email ?: "",
+                    userEmail = user.email,
                     onClickFinish = { newPassword ->
                         // TODO: 새로운 비밀번호 변경 API 연결
                         Toast.makeText(context, "비밀번호가 변경되었습니다.", Toast.LENGTH_SHORT).show()
@@ -321,7 +328,10 @@ fun MyPageApp(
         }
 
         composable("alarmSetting") {
-            AlarmSettingScreen(navController = navController)
+            AlarmSettingScreen(
+                navController = navController,
+                viewModel = notificationViewModel
+            )
         }
 
         composable("quit") {
