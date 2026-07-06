@@ -1,4 +1,4 @@
-package com.linku.file.ui.content
+package com.linku.file.ui.item
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Icon
@@ -56,14 +56,14 @@ internal fun BookMarkStar(
     isBookmarked: Boolean
 ) {
     val colors = MaterialTheme.linkuColors
-    val modifier = if(isBookmarked) Modifier
+    val modifier = if(isBookmarked) Modifier.Companion
         .graphicsLayer(alpha = 0.99f)
         .drawWithCache {
             onDrawWithContent {
                 drawContent()
-                drawRect(colors.maincolor, blendMode = BlendMode.SrcAtop)
+                drawRect(colors.maincolor, blendMode = BlendMode.Companion.SrcAtop)
             }
-        } else Modifier
+        } else Modifier.Companion
     Icon(
         tint = colors.white,
         painter = painterResource(R.drawable.bookmark_star_icon),

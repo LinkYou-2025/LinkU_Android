@@ -23,12 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.component.GradientButtonCore
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.AgreementItem
 import com.linku.login.ui.item.CheckIndicator
-import com.linku.login.ui.item.GradientButtonCore
 import com.linku.login.ui.model.TermsAgreementEvent
 import com.linku.login.ui.model.TermsAgreementState
 

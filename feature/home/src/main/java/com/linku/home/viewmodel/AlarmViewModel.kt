@@ -7,8 +7,9 @@ import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,9 +18,13 @@ class AlarmViewModel @Inject constructor(
     private val notificationPreference: NotificationPreference
 ) : ViewModel() {
 
-    // 알람 활성화 여부
-    private val _pushAlarmEnabled = MutableStateFlow(notificationPreference.isMasterNotificationEnabled())
-    val pushAlarmEnabled = _pushAlarmEnabled.asStateFlow()
+    // 알람 활성화 여부 — DataStore Flow를 StateFlow로 변환하여 자동 갱신
+    val pushAlarmEnabled: StateFlow<Boolean> = notificationPreference.masterNotificationEnabled
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = true
+        )
 
     /**
      * Map<AlarmType, Flow<PagingData<AlarmSummary>>>
@@ -44,7 +49,6 @@ class AlarmViewModel @Inject constructor(
             .getAlarms(type)
             .cachedIn(viewModelScope)
     }
-
 
     /**
      * 지정된 [AlarmType]에 해당하는 페이징된 알람 데이터 Flow를 반환합니다.

@@ -35,9 +35,8 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             Log.d("FCM Token", token)
         }
 
-        notificationPreference.setFcmToken(token)
-
         externalScope.launch {
+            notificationPreference.setFcmToken(token)
             alarmRepository.registerFCMToken(token)
         }
     }
@@ -46,46 +45,51 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
 
-        // 푸시알림 활성화 안되어있으면 종료
-        if (!notificationPreference.isMasterNotificationEnabled()) return
+        externalScope.launch {
+            // 푸시알림 활성화 안되어있으면 종료
+            if (!notificationPreference.isMasterNotificationEnabled()) return@launch
 
-        // FCM 메시지 타입에 따라 title/body 추출
-        // Notification Message: message.notification에서 추출
-        // Data Message: message.data에서 추출
-        // 둘 다 없으면 처리 불필요로 판단하여 종료
-        val title = message.notification?.title ?: message.data["title"] ?: return
-        val body = message.notification?.body ?: message.data["message"] ?: return
-        val targetId = message.data["targetId"] ?: "null"
+            // FCM 메시지 타입에 따라 title/body 추출
+            // Notification Message: message.notification에서 추출
+            // Data Message: message.data에서 추출
+            // 둘 다 없으면 처리 불필요로 판단하여 종료
+            val title = message.notification?.title ?: message.data["title"] ?: return@launch
+            val body = message.notification?.body ?: message.data["message"] ?: return@launch
+            val targetId = message.data["targetId"] ?: "null"
 
-        Log.d("FCM", """
-            FCM 수신
-            title: $title
-            body: $body
-            targetId: $targetId
-            """.trimIndent()
-        )
+            Log.d("FCM", """
+                FCM 수신
+                title: $title
+                body: $body
+                targetId: $targetId
+                """.trimIndent()
+            )
 
-        // 일단은 액티비티로의 이동처리만 구현. 추후 수정 예정
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            packageManager.getLaunchIntentForPackage(packageName),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+                ?: return@launch // null이면 알림 생략하고 종료
 
-        // 알림 제작
-        val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_logo)
-            .setContentTitle(title)
-            .setContentText(body)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .build()
+            // 일단은 액티비티로의 이동처리만 구현. 추후 수정 예정
+            val pendingIntent = PendingIntent.getActivity(
+                this@LinkUFireBaseMessageService,
+                0,
+                launchIntent,
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            )
 
-        // 알림 출력
-        getSystemService(NotificationManager::class.java)
-            .notify(System.currentTimeMillis().toInt(), notification)
+            // 알림 제작
+            val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_logo)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setAutoCancel(true)
+                .setContentIntent(pendingIntent)
+                .build()
+
+            // 알림 출력
+            getSystemService(NotificationManager::class.java)
+                .notify(System.currentTimeMillis().toInt(), notification)
+        }
     }
 
     companion object {

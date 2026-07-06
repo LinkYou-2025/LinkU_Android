@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -25,7 +25,6 @@ import com.linku.mypage.screen.ServiceQuitScreen
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
-    notificationViewModel: NotificationViewModel = hiltViewModel(),
     onLogoutToLogin: () -> Unit
 ) {
     val navController = rememberNavController()
@@ -33,6 +32,11 @@ fun MyPageApp(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val session by viewModel.sessionState.collectAsStateWithLifecycle()
+
+    // 알림 설정 창에서 사용할 뷰모델
+    // 마이페이지에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
+    // MyPageApp에서 만들어 주입한다.
+    val notificationViewModel: NotificationViewModel = hiltViewModel()
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
     // 화면 진입 시 최신 데이터 한 번 긁어오기

@@ -165,21 +165,22 @@ fun FileTopBar(
         }
 
         // 5. 알람 아이콘 (오른쪽 위)
-        Icon(
-            // 오른쪽 위에 정렬
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                // 오른쪽 29.8dp, 위 50.38dp 여백
-                .padding(end = 29.8.dp, top = 50.38.dp)
-                // 아이콘 크기 (22.26 x 27.18 dp)
-                .size(width = 22.25668.dp, height = 27.17871.dp),
-            // 아이콘 색상 (흰색)
-            tint = colors.white,
-            // 사용할 아이콘 이미지 리소스
-            painter = painterResource(id = com.linku.design.R.drawable.ic_alarm),
-            // 이미지 설명 ("알람")
-            contentDescription = "알람",
-        )
+        // 다인누나의 요구사항에 맞춰 제거함.
+//        Icon(
+//            // 오른쪽 위에 정렬
+//            modifier = Modifier
+//                .align(Alignment.TopEnd)
+//                // 오른쪽 29.8dp, 위 50.38dp 여백
+//                .padding(end = 29.8.dp, top = 50.38.dp)
+//                // 아이콘 크기 (22.26 x 27.18 dp)
+//                .size(width = 22.25668.dp, height = 27.17871.dp),
+//            // 아이콘 색상 (흰색)
+//            tint = colors.white,
+//            // 사용할 아이콘 이미지 리소스
+//            painter = painterResource(id = com.linku.design.R.drawable.ic_alarm),
+//            // 이미지 설명 ("알람")
+//            contentDescription = "알람",
+//        )
 
         // 6. 수정 버튼 (오른쪽 아래)
         if(folderStateViewModel.isEditable){

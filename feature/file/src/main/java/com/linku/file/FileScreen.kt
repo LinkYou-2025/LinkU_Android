@@ -27,21 +27,23 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.error.SameNameException
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
-import com.linku.file.ui.content.BottomFolderGrid
-import com.linku.file.ui.content.LinksGrid
+import com.linku.file.ui.content.CategoryGrid
+import com.linku.file.ui.content.ClassifiedLinksGrid
+import com.linku.file.ui.content.MyFoldersGrid
 import com.linku.file.ui.content.SharedBottomFolderGrid
 import com.linku.file.ui.content.SharedTopFolderGrid
-import com.linku.file.ui.content.TopFolderGrid
 import com.linku.file.ui.top.bar.FileTopBar
 import com.linku.file.ui.top.bar.component.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
@@ -78,6 +80,14 @@ fun FileScreen(
     Log.d("FileScreen", "FileScreen")
 
     val scope = rememberCoroutineScope()
+    val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
+    val parentFolders by fileViewModel.parentFolders.collectAsStateWithLifecycle()
+    val subFolders by fileViewModel.subFolders.collectAsStateWithLifecycle()
+    val links by fileViewModel.links.collectAsStateWithLifecycle()
+    val notCategorizationLinks by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
+    val selectedTopFolderColorStyle =
+        categoryColorMap[folderStateViewModel.selectedTopFolder?.folderName]
+            ?: CategoryColorStyle.categoryStyleList[0]
 
     // 뒤로가기 핸들러
     BackHandler(enabled = folderStateViewModel.currentFolderState in listOf(FolderState.BOTTOM, FolderState.LINKS)) {
@@ -121,12 +131,27 @@ fun FileScreen(
             when(folderStateViewModel.currentFolderState) {
                 FolderState.TOP -> {
                     if(!folderStateViewModel.isSharedFolders){
-                        TopFolderGrid(
+                        CategoryGrid(
                             modifier = Modifier.fillMaxWidth(),
                             contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-                            fileViewModel = fileViewModel,
-                            folderStateViewModel = folderStateViewModel,
-                            editStateViewModel = editStateViewModel
+                            categories = parentFolders,
+                            categoryColorMap = categoryColorMap,
+                            isEditMode = editStateViewModel.isEditMode,
+                            onFolderClick = { folder ->
+                                fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
+                                folderStateViewModel.updateSelectedTopFolder(folder)
+                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                            },
+                            onFolderEditClick = { folder ->
+                                folderStateViewModel.updateReadyToUpdateTopFolder(folder)
+                                folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
+                            },
+                            onBookmarkClick = { folder ->
+                                fileViewModel.updateBookmark(
+                                    folderId = folder.folderId,
+                                    updateBookmarked = !folder.isBookmarked
+                                )
+                            }
                         )
                     }else{
                         SharedTopFolderGrid(
@@ -138,12 +163,34 @@ fun FileScreen(
                 }
                 FolderState.BOTTOM -> {
                     if(!folderStateViewModel.isSharedFolders){
-                        BottomFolderGrid(
-                            fileViewModel = fileViewModel,
-                            editStateViewModel = editStateViewModel,
-                            folderStateViewModel = folderStateViewModel,
-                            onFolderAdd = {
+                        MyFoldersGrid(
+                            folders = subFolders,
+                            notCategorizationLinks = notCategorizationLinks,
+                            selectedTopFolderColorStyle = selectedTopFolderColorStyle,
+                            isEditMode = editStateViewModel.isEditMode,
+                            onAddFolderClick = {
                                 folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                            },
+                            onFolderClick = { folder ->
+                                fileViewModel.getLinks(folder.folderId)
+                                folderStateViewModel.updateSelectedBottomFolder(folder)
+                                folderStateViewModel.updateFolderState(FolderState.LINKS)
+                            },
+                            onFolderEditClick = { folder ->
+                                folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
+                                folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
+                            },
+                            onChangeSharingClick = { folder ->
+                                fileViewModel.folderToPrivate(folder)
+                            },
+                            onDeleteFolder = { folder ->
+                                fileViewModel.deleteSubfolder(folder.folderId)
+                            },
+                            onLinkClick = { linkId ->
+                                fileViewModel.onLinkClick?.invoke(linkId)
+                            },
+                            onDeleteNotCategorizationLink = { linkId ->
+                                fileViewModel.deleteNotCategorizationLink(linkId)
                             }
                         )
                     }else{
@@ -155,9 +202,18 @@ fun FileScreen(
                     }
                 }
                 FolderState.LINKS -> {
-                    LinksGrid(
-                        fileViewModel = fileViewModel,
-                        folderStateViewModel = folderStateViewModel,
+                    ClassifiedLinksGrid(
+                        links = links,
+                        hasNotCategorizationLinks = notCategorizationLinks.isNotEmpty(),
+                        onLinkCategorizationClick = {
+                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
+                        },
+                        onLinkClick = { linkId ->
+                            fileViewModel.onLinkClick?.invoke(linkId)
+                        },
+                        onDeleteLink = { linkId ->
+                            fileViewModel.deleteLink(linkId)
+                        },
                     )
                 }
             }

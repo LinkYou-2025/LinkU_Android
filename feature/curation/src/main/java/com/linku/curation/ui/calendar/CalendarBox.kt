@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -16,26 +17,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-fun CalendarBox(
-    modifier: Modifier = Modifier
+internal fun CalendarBox(
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
     Row(
         modifier = modifier
-            .width(372.scaler)
+            .fillMaxWidth()
             .height(80.scaler)
             .background(
                 color = colorTheme.curationCalendarBoxColor,
                 shape = RoundedCornerShape(size = 22.scaler)
             )
+            .noRippleClickable(onClick = onClick)
             .padding(horizontal = 20.scaler),
 
         verticalAlignment = Alignment.CenterVertically
@@ -60,7 +63,7 @@ fun CalendarBox(
                 modifier = Modifier.padding(top = 2.scaler)
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.scaler))
 
             Text(
                 text = "월간 큐레이션 모아보기",

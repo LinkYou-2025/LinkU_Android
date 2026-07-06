@@ -30,7 +30,7 @@ import com.linku.design.util.scaler
  * @param fallbackImage imageUrl이 없을 때 표시할 기본 이미지 리소스 (기본값: img_curation_example)
  */
 @Composable
-fun CurationMainCard(
+internal fun CurationMainCard(
     modifier: Modifier = Modifier,
     imageUrl: String,
     @DrawableRes fallbackImage: Int = R.drawable.img_curation_example, //이건 프리뷰 확인 용이라 나중에 지워주세요:)

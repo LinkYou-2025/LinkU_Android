@@ -23,6 +23,8 @@ sealed class ThemeColorScheme(
     ),
 
     val blue: ColorMap = ColorMap(
+        20 to Color(0xFFE5EDFF), // 큐레이션 감정 프로그래스바에 사용
+        30 to Color(0xFFC7D9FF), // 큐레이션 감정 프로그래스바에 사용
         50 to Color(0xFFE5EDFF),
         100 to Color(0xFF95B6FF),
         200 to Color(0xFF2C6FFF),
@@ -76,7 +78,10 @@ sealed class ThemeColorScheme(
     // 큐레이션 캘린더 박스 컬러
     val curationCalendarBoxColor: Color = Color(0xFFEFF4FF),
 
-    // 큐레이션 카드 배경 (이미지 로딩 전 fallback)
+    //큐레이션 보러가기 버튼 배경 컬러
+    val curationCheckOutButtonBackground: Color = Color(0x4DFFFFFF),
+
+    //큐레이션 카드 배경 (이미지 로딩 전 fallback)
     val curationCardBackground: Color = Color(0xFFF2F2F2),
 
     // 큐레이션 카드 이미지 위 오버레이 그라데이션
@@ -91,4 +96,10 @@ sealed class ThemeColorScheme(
     val emotionTitleGradient: Brush = Brush.horizontalGradient(
         listOf(Color(0xFF2C6FFF), Color(0xFF000208))
     ),
-)
+
+    //큐레이션 1번 카드 상세 그라데이션
+    val curationFirstCardBackground: Brush = Brush.verticalGradient(
+        listOf(Color(0xFFFFFFFF), Color(0xFFE5EDFF))
+    ),
+
+    )

@@ -1,13 +1,10 @@
 package com.linku
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -26,7 +23,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,8 +37,10 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.CurationViewModel
+import com.linku.curation.curationGraph
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
+import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
@@ -52,11 +50,12 @@ import com.linku.home.HomeViewModel
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
-import com.linku.linku_android.curation.curationGraph
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
 import com.linku.mypage.MyPageViewModel
+import com.linku.mypage.NotificationViewModel
+import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
 import kotlinx.coroutines.launch
@@ -67,9 +66,22 @@ import java.io.FileOutputStream
 fun MainApp(
     viewModel: MainViewModel,
 ) {
-
     val context = LocalContext.current
     val app = LocalContext.current.applicationContext
+
+    var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
+
+    // 채널 사이드 이펙트 수신
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SideEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
+            }
+        }
+    }
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -166,34 +178,21 @@ fun MainApp(
         }
     }
 
-    // 알람 권한 요청 트리거 플래그
-    var requestNotificationPermission by remember { mutableStateOf(false) }
-
-    // 권한 요청 런쳐
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        viewModel.setNotificationEnabled(isGranted)
-        Log.d("MainApp", "알림 권한 요청 결과: $isGranted")
-    }
-
-
-    // 플래그 감지 시 권한 요청 런쳐 실행
-    LaunchedEffect(requestNotificationPermission) {
-        if (requestNotificationPermission) {
-
-            // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                viewModel.setNotificationEnabled(true)
-            }
-            requestNotificationPermission = false // 한 번만 요청하도록 처리
-        }
-    }
     // NOTE : 이게 App에 있어야 할까..? MainActivity에 있는게 맞을 것 같은데, 리펙 가능한 부분인가..? 고민이 듬
     ThemeProvider {
         DoubleBackToExitIfTop(navigator = navigator)
+
+        // 다이알로그를 보여줘야 하면 출력.
+        if (showPushAlarmDialog) {
+            AlarmAllowDialog(
+                onDismissRequest = { showPushAlarmDialog = false },
+                onConfirmation = {
+                    showPushAlarmDialog = false
+                    viewModel.allowPushAlarm() // 성공/실패 토스트는 VM이 쏨
+                }
+            )
+        }
+
         MainScreen(
             navigationBarProp = if (showNavBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
@@ -239,11 +238,6 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true }
         ) {
-
-
-
-
-
             NavHost(
                 navController = navigator,
                 startDestination = NavigationRoute.Splash.route,
@@ -315,10 +309,9 @@ fun MainApp(
                         loginViewModel = loginViewModel,
                         onLoginSuccess = {
                             showNavBar = true
-                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
-                            // 로그인 성공 후 알림 권한 요청 트리거
-                            requestNotificationPermission = true
+
+                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
@@ -359,20 +352,14 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
+                            viewModel.checkAndShowPushAlarmDialog()
                         }
 
                         HomeApp(
                             viewModel = homeViewModel,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
-                            onNavigateToMyPage = {
-                                navigator.navigate(NavigationRoute.MyPage.route) {
-                                    popUpTo(navigator.graph.findStartDestination().id) {
-                                        saveState = true
-                                        inclusive = false
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                            onNavigateToSetting = {
+                                navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onNavigateToSaveLink = { url ->
                                 homeViewModel.setUrl(url)
@@ -403,6 +390,7 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
+                    curationViewModel = curationViewModel,
                     showNavBar = { showNavBar = it },
                     nickname = nickname.orEmpty().ifBlank { "링큐" }
                 )
@@ -442,6 +430,19 @@ fun MainApp(
 //                                    launchSingleTop = true
 //                                }
                             }
+                        )
+                    }
+                }
+
+                with(NavigationRoute.AlarmSetting) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) { showNavBar = false }
+
+                        val notificationViewModel: NotificationViewModel = hiltViewModel()
+
+                        AlarmSettingScreen(
+                            navController = navigator,
+                            viewModel = notificationViewModel
                         )
                     }
                 }

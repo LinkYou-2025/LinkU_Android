@@ -2,7 +2,6 @@ package com.linku.curation.ui.emotion
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +23,7 @@ import com.linku.design.theme.linkuColors
  * @param text 표시할 키워드 (예: "#짜증")
  */
 @Composable
-fun CurationEmotionChip(
+internal fun CurationEmotionChip(
     modifier: Modifier = Modifier,
     text: String = "짜증",
 ) {
@@ -34,20 +33,21 @@ fun CurationEmotionChip(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .wrapContentWidth()
-            .height(26.dp)
             .border(
                 width = 1.dp,
                 color = colorTheme.blue[200],
                 shape = RoundedCornerShape(10.dp)
             )
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 10.dp)
     ) {
         Text(
             text = text,
             fontSize = 13.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight(400),
-            color = colorTheme.blue[200]
+            color = colorTheme.blue[200],
+            maxLines = 1,
+            softWrap = false
         )
     }
 }

@@ -18,6 +18,8 @@ data object Basic: ThemeColorScheme(
         )
     ),
     blue = ColorMap(
+        20 to Color(0xFFE5EDFF), // 큐레이션 감정 프로그래스바에 사용
+        30 to Color(0xFFC7D9FF), // 큐레이션 감정 프로그래스바에 사용
         50 to Color(0xFFE5EDFF),
         100 to Color(0xFF95B6FF),
         200 to Color(0xFF2C6FFF),

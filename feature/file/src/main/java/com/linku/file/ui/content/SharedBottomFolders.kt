@@ -26,7 +26,7 @@ import com.cheonjaeung.compose.grid.VerticalGrid
 import com.linku.design.modal.ModalWindow
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
-import com.linku.file.ui.item.EmptyFolderItemLayout
+import com.linku.file.ui.item.items.EmptyFolderItemLayout
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
