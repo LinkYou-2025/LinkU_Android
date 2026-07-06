@@ -83,6 +83,8 @@ private fun CurationRemindScreenContent(
                     onBackClick = onBack,
                     contentTopOffset = 105.scaler,
                     title = "${remindMonthText()},\n저장만 하고 열어보지 않은 링크예요",
+                    // TODO: itemCount는 지금까지 페이징으로 불러온 개수라 스크롤할수록 값이 커짐.
+                    // API 연동 후엔 서버가 내려주는 "전체 저장 링크 수" 필드로 교체해야 함(페이징 상태와 무관한 고정값).
                     description = "총 ${remindLinkItems.itemCount}개의 링크가 쌓여있네요!",
                     titleDescriptionGap = 12.scaler,
                 )
