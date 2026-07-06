@@ -86,7 +86,7 @@ internal fun CurationEmotionSection(
                             // 화면이 좁을 때 칩이 밀려나지 않도록, 공간 부족하면 바가 대신 줄어들게 함
                             modifier = Modifier.weight(1f, fill = false),
                             progress = item.progress,
-                            rank = index
+                            rank = CurationEmotionRank.entries[index]
                         )
                         CurationEmotionChip(text = item.keyword)
                     }
