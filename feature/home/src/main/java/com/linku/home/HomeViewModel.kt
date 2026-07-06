@@ -166,7 +166,7 @@ class HomeViewModel @Inject constructor(
     private val isSavingState = mutableStateOf(false)
 
     // 토스트 메시지
-    private val _toastEvent = Channel<ToastEvent>(Channel.CONFLATED)
+    private val _toastEvent = Channel<ToastEvent>(Channel.BUFFERED)
     val toastEvent = _toastEvent.receiveAsFlow()
 
     // URL 유효성 검사
@@ -184,8 +184,6 @@ class HomeViewModel @Inject constructor(
 
     val isCheckingUrl get() = isCheckingUrlState.value
     val isDuplicateUrl get() = isDuplicateUrlState.value
-    private val isInvalidUrlState = mutableStateOf(false)
-    val isInvalidUrl get() = isInvalidUrlState.value
 
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
@@ -206,23 +204,29 @@ class HomeViewModel @Inject constructor(
     fun setUrl(newUrl: String) {
         urlState.value = newUrl
 
-        // invalid 판정
-        isInvalidUrlState.value =
-            newUrl.isNotBlank() && !android.webkit.URLUtil.isValidUrl(newUrl)
-
         // 디바운스 검사
         checkJob?.cancel()
         isDuplicateUrlState.value = null
-        if (newUrl.isBlank()) {
+
+        val urlValidationResult = validateUrlInput(newUrl)
+
+        if (urlValidationResult != UrlValidationResult.Valid) {
             isCheckingUrlState.value = false
             return
         }
+
         checkJob = viewModelScope.launch {
             isCheckingUrlState.value = true
             delay(300)
+
             runCatching { linkuRepository.checkLink(newUrl) }
-                .onSuccess { exists -> isDuplicateUrlState.value = exists }
-                .onFailure { isDuplicateUrlState.value = null }
+                .onSuccess { exists ->
+                    isDuplicateUrlState.value = exists
+                }
+                .onFailure {
+                    isDuplicateUrlState.value = null
+                }
+
             isCheckingUrlState.value = false
         }
     }
@@ -275,7 +279,6 @@ class HomeViewModel @Inject constructor(
 
             return urlValidationResult == UrlValidationResult.Valid &&
                     !isCheckingUrlState.value &&
-                    !isInvalidUrlState.value &&
                     isDuplicateUrlState.value != true &&
                     !isSavingState.value
         }
@@ -294,10 +297,6 @@ class HomeViewModel @Inject constructor(
 
             isCheckingUrlState.value -> {
                 "링크를 확인하고 있어요."
-            }
-
-            isInvalidUrlState.value -> {
-                "유효하지 않은 링크입니다!"
             }
 
             isDuplicateUrlState.value == true -> {
