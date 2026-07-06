@@ -87,4 +87,8 @@ dependencies {
     implementation(libs.coil.svg)
 
     implementation(libs.accompanist.systemuicontroller)
+
+    // paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 }
