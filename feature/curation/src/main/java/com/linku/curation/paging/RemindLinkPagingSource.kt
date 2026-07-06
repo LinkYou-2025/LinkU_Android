@@ -5,6 +5,7 @@ import androidx.paging.PagingState
 import com.linku.core.model.CategoryType
 import com.linku.core.model.EmotionType
 import com.linku.core.model.LinkSimpleInfo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 
 /**
@@ -52,6 +53,10 @@ internal class RemindLinkPagingSource : PagingSource<Int, LinkSimpleInfo>() {
                 prevKey = if (page == 0) null else page - 1, // 0페이지면 이전 페이지가 없음
                 nextKey = nextKey
             )
+        } catch (e: CancellationException) {
+            // 코루틴 취소는 정상적인 흐름이라 Error로 감싸면 안 되고 그대로 다시 던져야 함
+            // (delay(300)이 진짜 suspension point라 화면 이탈 등으로 실제 취소될 수 있음)
+            throw e
         } catch (e: Exception) {
             // 지금은 더미 생성이라 실질적으로 예외가 안 나지만, 실제 API 호출로 바뀌면
             // 네트워크 실패 시 여기로 들어와서 LazyPagingItems.loadState가 Error로 바뀜
