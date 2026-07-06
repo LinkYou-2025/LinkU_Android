@@ -35,8 +35,8 @@ import com.linku.design.util.scaler
 internal fun CurationScreen(
     nickname: String,
     viewModel: CurationViewModel = hiltViewModel(), //TODO princehw가 구현해줄거임!
-    onCard1Click: () -> Unit = {}, // TODO 다음 PR에서 구현..
-    onCard3Click: () -> Unit = {}, // TODO 다음 PR에서 구현..
+    onMonthlyDetailClick: () -> Unit = {}, // 1번 카드 -> CurationMonthlyDetailScreen
+    onRemindClick: () -> Unit = {}, // 3번 카드 -> CurationRemindScreen
     onMonthlyCurationClick: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
@@ -56,9 +56,9 @@ internal fun CurationScreen(
                 pagerState = pagerState,
                 onCardClick = { index, _ ->
                     when (index) {
-                        0 -> onCard1Click()
+                        0 -> onMonthlyDetailClick()
                         1 -> showKeywordDetail = true
-                        2 -> onCard3Click()
+                        2 -> onRemindClick()
                     }
                 },
                 onMonthlyCurationClick = onMonthlyCurationClick

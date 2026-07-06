@@ -26,8 +26,8 @@ fun NavGraphBuilder.curationGraph(
             CurationScreen(
                 nickname = nickname,
                 viewModel = curationViewModel,
-                onCard1Click = { navigator.navigate("curation_card1") },
-                onCard3Click = { navigator.navigate("curation_card3") },
+                onMonthlyDetailClick = { navigator.navigate("curation_card1") },
+                onRemindClick = { navigator.navigate("curation_card3") },
                 onMonthlyCurationClick = { navigator.navigate("curation_monthly") }
             )
         }
