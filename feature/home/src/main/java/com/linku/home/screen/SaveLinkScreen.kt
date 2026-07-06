@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.core.model.JobType
 import com.linku.core.model.link.ToastEvent
-import com.linku.core.model.link.ToastType
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -51,8 +51,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
-import com.linku.home.component.TimedCustomToastMessage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
@@ -81,13 +79,13 @@ fun SaveLinkScreen(
     val colors = MaterialTheme.linkuColors
     val jobType = JobType.fromId(jobId)
 
-    var currentToastEvent by remember { mutableStateOf<ToastEvent?>(null) }
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         toastEvent.collect { event ->
-            currentToastEvent = event
-            delay(3000)
-            currentToastEvent = null
+            toastMessage = event.message
+            isToastVisible = true
         }
     }
 
@@ -454,10 +452,9 @@ fun SaveLinkScreen(
         }
 
         TimedCustomToastMessage(
-            visible = currentToastEvent != null,
-            toastMessage = currentToastEvent?.message.orEmpty(),
-            toastType = currentToastEvent?.toastType ?: ToastType.ERROR,
-            onDismiss = { currentToastEvent = null },
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 86.dp)

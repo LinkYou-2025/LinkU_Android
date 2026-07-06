@@ -9,8 +9,6 @@ import androidx.lifecycle.viewModelScope
 import com.linku.core.model.AiArticle
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
-import com.linku.core.model.link.ToastEvent
-import com.linku.core.model.link.ToastType
 import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
@@ -22,23 +20,17 @@ import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.top.search.FastSearchItem
-import com.linku.home.util.UrlValidationResult
-import com.linku.home.util.toToastMessage
-import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -156,31 +148,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // 새로운 링크 저장
-    private val imageState = mutableStateOf<File?>(null)
-    private val urlState = mutableStateOf("")
-    private val titleState = mutableStateOf("")
-    private val memoState = mutableStateOf("")
-    private val emotionIdState = mutableStateOf<Long?>(null)
-    private val situationIdState = mutableStateOf<Long?>(null)
-    private val isSavingState = mutableStateOf(false)
-
-    // 토스트 메시지
-    private val _toastEvent = Channel<ToastEvent>(Channel.BUFFERED)
-    val toastEvent = _toastEvent.receiveAsFlow()
-
-    // URL 유효성 검사
-    private val isCheckingUrlState = mutableStateOf(false)
-    private val isDuplicateUrlState = mutableStateOf<Boolean?>(null)
-    private var checkJob: Job? = null
-
-    val image get() = imageState.value
-    val url get() = urlState.value
-    val title get() = titleState.value
-    val memo get() = memoState.value
-    val selectedEmotionId get() = emotionIdState.value
-    val selectedSituationId get() = situationIdState.value
-
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
     val needMoreForRecommendation get() = needMoreForRecommendationState.value
@@ -195,58 +162,6 @@ class HomeViewModel @Inject constructor(
 
     private val showRecommendationsState = mutableStateOf(false)
     val showRecommendations get() = showRecommendationsState.value
-
-    fun setImage(file: File?) { imageState.value = file }
-    fun deleteImage() { imageState.value = null }
-    fun setUrl(newUrl: String) {
-        urlState.value = newUrl
-
-        // 디바운스 검사
-        checkJob?.cancel()
-        isDuplicateUrlState.value = null
-
-        val urlValidationResult = validateUrlInput(newUrl)
-
-        if (urlValidationResult != UrlValidationResult.Valid) {
-            isCheckingUrlState.value = false
-            return
-        }
-
-        checkJob = viewModelScope.launch {
-            isCheckingUrlState.value = true
-            delay(300)
-
-            runCatching { linkuRepository.checkLink(newUrl) }
-                .onSuccess { exists ->
-                    isDuplicateUrlState.value = exists
-                }
-                .onFailure {
-                    isDuplicateUrlState.value = null
-                }
-
-            isCheckingUrlState.value = false
-        }
-    }
-    fun setTitle(newTitle: String) { titleState.value = newTitle }
-    fun setMemo(newMemo: String) { memoState.value = newMemo }
-    fun selectEmotion(id: Long?) { emotionIdState.value = id }
-    fun onSituationClick(id: Long) {
-        situationIdState.value = if (situationIdState.value == id) {
-            null
-        } else {
-            id
-        }
-    }
-
-    // 저장 폼 초기화
-    fun resetForm() {
-        imageState.value = null
-        urlState.value = ""
-        titleState.value = ""
-        memoState.value = ""
-        emotionIdState.value = null
-        situationIdState.value = null
-    }
 
     // 최근 조회 링크 상태
     private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
@@ -265,132 +180,6 @@ class HomeViewModel @Inject constructor(
 
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
-
-    val isSaveButtonEnabled: Boolean
-        get() {
-            val urlValidationResult = validateUrlInput(urlState.value)
-
-            return urlValidationResult == UrlValidationResult.Valid &&
-                    !isCheckingUrlState.value &&
-                    isDuplicateUrlState.value != true &&
-                    !isSavingState.value
-        }
-
-    fun onSaveButtonClick(
-        onSucceed: (saved: LinkSimpleInfo) -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        val currentUrl = urlState.value
-        val urlValidationResult = validateUrlInput(currentUrl)
-
-        val blockReason = when {
-            urlValidationResult != UrlValidationResult.Valid -> {
-                urlValidationResult.toToastMessage()
-            }
-
-            isCheckingUrlState.value -> {
-                "링크를 확인하고 있어요."
-            }
-
-            isDuplicateUrlState.value == true -> {
-                "이미 저장된 링크예요."
-            }
-
-            else -> null
-        }
-
-        if (blockReason != null) {
-            viewModelScope.launch {
-                _toastEvent.send(
-                    ToastEvent(
-                        message = blockReason,
-                        toastType = ToastType.ERROR
-                    )
-                )
-            }
-            return
-        }
-
-        saveLink(
-            onSucceed = { saved ->
-                viewModelScope.launch {
-                    _toastEvent.send(
-                        ToastEvent(
-                            message = "링크가 저장되었어요.",
-                            toastType = ToastType.SUCCESS
-                        )
-                    )
-                }
-
-                onSucceed(saved)
-            },
-            onFailed = { e ->
-                viewModelScope.launch {
-                    _toastEvent.send(
-                        ToastEvent(
-                            message = e.message ?: "링크 저장에 실패했어요.",
-                            toastType = ToastType.ERROR
-                        )
-                    )
-                }
-
-                onFailed(e)
-            }
-        )
-    }
-
-    // 링크 저장
-    fun saveLink(
-        onSucceed: (saved: LinkSimpleInfo) -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        if (isSavingState.value) return // 중복 클릭 방지
-
-        val currentUrl = urlState.value
-        if (currentUrl.isBlank()) {
-            onFailed(IllegalArgumentException("URL을 입력해 주세요."))
-            return
-        }
-        if (isDuplicateUrlState.value == true) {
-            onFailed(IllegalStateException("이미 저장된 링크입니다."))
-            return
-        }
-
-        isSavingState.value = true
-        viewModelScope.launch {
-            try {
-                val saved = linkuRepository.saveNewLink(
-                    image = imageState.value,
-                    url = currentUrl,
-                    memo = memoState.value.ifBlank { null },
-                    emotionId = emotionIdState.value,
-                    // situationId = situationIdState.value
-                )
-
-                // 낙관적 업데이트: 메모리의 최근 목록 즉시 갱신
-                _recentLinks.value = buildList {
-                    add(saved)
-                    addAll(
-                        _recentLinks.value
-                            .filter { it.linkuId != saved.linkuId } // 중복 제거
-                            .take(9) // 최대 10개 유지
-                    )
-                }
-
-                onSucceed(saved)
-
-                // 서버에서 실제 최근 목록 재조회(정렬/정책 싱크)
-                loadRecentLinks()
-            } catch (e: Exception) {
-                onFailed(e)
-            } finally {
-                isSavingState.value = false
-            }
-        }
-    }
-
-    // 링크 유효성 검사
-
 
     // 링크 추천
     fun fetchRecommendations(
