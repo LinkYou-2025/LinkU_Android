@@ -10,6 +10,15 @@ sealed interface UrlValidationResult {
     data object VideoFormat : UrlValidationResult
 }
 
+fun UrlValidationResult.toToastMessage(): String {
+    return when (this) {
+        UrlValidationResult.InvalidFormat,
+        UrlValidationResult.MultipleLinks -> "유효하지 않은 링크입니다!"
+        UrlValidationResult.VideoFormat -> "영상 콘텐츠는 지원하지 않아요!"
+        UrlValidationResult.Valid -> "유효한 링크입니다!"
+    }
+}
+
 /**
  * 링크 입력 필드의 URL 형식을 1차 검증한다.
  *

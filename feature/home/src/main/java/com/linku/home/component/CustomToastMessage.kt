@@ -16,14 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.link.ToastType
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import kotlinx.coroutines.delay
-
-enum class ToastType {
-    SUCCESS,
-    ERROR
-}
 
 /**
  * 토스트 메시지의 UI만 담당하는 컴포넌트입니다.

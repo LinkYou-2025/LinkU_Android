@@ -9,6 +9,8 @@ import androidx.lifecycle.viewModelScope
 import com.linku.core.model.AiArticle
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.link.ToastEvent
+import com.linku.core.model.link.ToastType
 import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
@@ -20,13 +22,18 @@ import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.top.search.FastSearchItem
+import com.linku.home.util.UrlValidationResult
+import com.linku.home.util.toToastMessage
+import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -158,6 +165,10 @@ class HomeViewModel @Inject constructor(
     private val situationIdState = mutableStateOf<Long?>(null)
     private val isSavingState = mutableStateOf(false)
 
+    // 토스트 메시지
+    private val _toastEvent = Channel<ToastEvent>(Channel.CONFLATED)
+    val toastEvent = _toastEvent.receiveAsFlow()
+
     // URL 유효성 검사
     private val isCheckingUrlState = mutableStateOf(false)
     private val isDuplicateUrlState = mutableStateOf<Boolean?>(null)
@@ -257,6 +268,84 @@ class HomeViewModel @Inject constructor(
 
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
+
+    val isSaveButtonEnabled: Boolean
+        get() {
+            val urlValidationResult = validateUrlInput(urlState.value)
+
+            return urlValidationResult == UrlValidationResult.Valid &&
+                    !isCheckingUrlState.value &&
+                    !isInvalidUrlState.value &&
+                    isDuplicateUrlState.value != true &&
+                    !isSavingState.value
+        }
+
+    fun onSaveButtonClick(
+        onSucceed: (saved: LinkSimpleInfo) -> Unit = {},
+        onFailed: (e: Exception) -> Unit = {},
+    ) {
+        val currentUrl = urlState.value
+        val urlValidationResult = validateUrlInput(currentUrl)
+
+        val blockReason = when {
+            urlValidationResult != UrlValidationResult.Valid -> {
+                urlValidationResult.toToastMessage()
+            }
+
+            isCheckingUrlState.value -> {
+                "링크를 확인하고 있어요."
+            }
+
+            isInvalidUrlState.value -> {
+                "유효하지 않은 링크입니다!"
+            }
+
+            isDuplicateUrlState.value == true -> {
+                "이미 저장된 링크예요."
+            }
+
+            else -> null
+        }
+
+        if (blockReason != null) {
+            viewModelScope.launch {
+                _toastEvent.send(
+                    ToastEvent(
+                        message = blockReason,
+                        toastType = ToastType.ERROR
+                    )
+                )
+            }
+            return
+        }
+
+        saveLink(
+            onSucceed = { saved ->
+                viewModelScope.launch {
+                    _toastEvent.send(
+                        ToastEvent(
+                            message = "링크가 저장되었어요.",
+                            toastType = ToastType.SUCCESS
+                        )
+                    )
+                }
+
+                onSucceed(saved)
+            },
+            onFailed = { e ->
+                viewModelScope.launch {
+                    _toastEvent.send(
+                        ToastEvent(
+                            message = e.message ?: "링크 저장에 실패했어요.",
+                            toastType = ToastType.ERROR
+                        )
+                    )
+                }
+
+                onFailed(e)
+            }
+        )
+    }
 
     // 링크 저장
     fun saveLink(

@@ -22,6 +22,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.core.model.JobType
+import com.linku.core.model.link.ToastEvent
+import com.linku.core.model.link.ToastType
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -48,19 +51,9 @@ import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
 import com.linku.home.component.TimedCustomToastMessage
-import com.linku.home.component.ToastType
-import com.linku.home.util.UrlValidationResult
-import com.linku.home.util.validateUrlInput
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
-
-private fun UrlValidationResult.toToastMessage(): String {
-    return when (this) {
-        UrlValidationResult.InvalidFormat,
-        UrlValidationResult.MultipleLinks -> "유효하지 않은 링크입니다!"
-        UrlValidationResult.VideoFormat -> "영상 콘텐츠는 지원하지 않아요!"
-        UrlValidationResult.Valid -> "유효한 링크입니다!"
-    }
-}
 
 @Composable
 fun SaveLinkScreen(
@@ -77,31 +70,21 @@ fun SaveLinkScreen(
     onMemoChange: (String) -> Unit,
     onEmotionSelect: (Long?) -> Unit,
     onSituationClick: (Long) -> Unit,
-    onSaveClick: () -> Unit,
     onBack: () -> Unit,
-    isCheckingUrl: Boolean,
-    isDuplicateUrl: Boolean?,
-    isInvalidLink: Boolean,
+    isSaveButtonEnabled: Boolean,
+    onSaveButtonClick: () -> Unit,
+    toastEvent: Flow<ToastEvent>,
 ) {
     val colors = MaterialTheme.linkuColors
     val jobType = JobType.fromId(jobId)
 
-    val scrollState = rememberScrollState()
-    val urlValidationResult = remember(url) { validateUrlInput(url) }
+    var currentToastEvent by remember { mutableStateOf<ToastEvent?>(null) }
 
-    var isUrlToastVisible by remember { mutableStateOf(false) }
-    var urlToastMessage by remember { mutableStateOf("") }
-    var isUrlToastSuccess by remember { mutableStateOf(false) }
-
-    val blockReason: String? = when {
-        urlValidationResult != UrlValidationResult.Valid -> urlValidationResult.toToastMessage()
-        isCheckingUrl -> "링크를 확인하고 있어요."
-        isInvalidLink -> "유효하지 않은 링크입니다!"
-        isDuplicateUrl == true -> "이미 저장된 링크예요."
-        else -> null
+    LaunchedEffect(Unit) {
+        toastEvent.collect { event ->
+            currentToastEvent = event
+        }
     }
-
-    val isButtonEnabled = blockReason == null
 
     Box(
         modifier = Modifier
@@ -112,7 +95,7 @@ fun SaveLinkScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 70.dp)
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
         ) {
             Box(
                 modifier = Modifier
@@ -426,16 +409,10 @@ fun SaveLinkScreen(
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
                     .noRippleClickable {
-                        urlToastMessage = blockReason ?: "유효한 링크입니다!"
-                        isUrlToastSuccess = blockReason == null
-                        isUrlToastVisible = true
-
-                        if (blockReason == null) {
-                            onSaveClick()
-                        }
+                        onSaveButtonClick()
                     }
-                    .then (
-                        if (isButtonEnabled) {
+                    .then(
+                        if (isSaveButtonEnabled) {
                             Modifier.background(Basic.maincolor)
                         } else {
                             Modifier.background(colors.gray[300])
@@ -455,14 +432,10 @@ fun SaveLinkScreen(
         }
 
         TimedCustomToastMessage(
-            visible = isUrlToastVisible,
-            toastMessage = urlToastMessage,
-            toastType = if (isUrlToastSuccess) {
-                ToastType.SUCCESS
-            } else {
-                ToastType.ERROR
-            },
-            onDismiss = { isUrlToastVisible = false },
+            visible = currentToastEvent != null,
+            toastMessage = currentToastEvent?.message.orEmpty(),
+            toastType = currentToastEvent?.toastType ?: ToastType.ERROR,
+            onDismiss = { currentToastEvent = null },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 86.dp)
@@ -488,11 +461,10 @@ fun PreviewSaveLinkScreen() {
             onMemoChange = { },
             onEmotionSelect = { },
             onSituationClick = { },
-            onSaveClick = { },
             onBack = { },
-            isCheckingUrl = false,
-            isDuplicateUrl = null,
-            isInvalidLink = false
+            isSaveButtonEnabled = false,
+            onSaveButtonClick = { },
+            toastEvent = emptyFlow()
         )
     }
 }

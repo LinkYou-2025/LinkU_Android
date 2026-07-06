@@ -477,13 +477,15 @@ fun MainApp(
                         onMemoChange = vm::setMemo,
                         onEmotionSelect = vm::selectEmotion,
                         onSituationClick  = vm::onSituationClick,
-                        onSaveClick = {
+                        onBack = { navigator.popBackStack() },
+                        isSaveButtonEnabled = vm.isSaveButtonEnabled,
+                        onSaveButtonClick = {
                             Log.d(
                                 "SaveLink",
                                 "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, situationId=${vm.selectedSituationId}, image=${vm.image?.name}"
                             )
 
-                            vm.saveLink(
+                            vm.onSaveButtonClick(
                                 onSucceed = { saved ->
                                     Log.d(
                                         "SaveLink",
@@ -495,14 +497,10 @@ fun MainApp(
                                 },
                                 onFailed = { e ->
                                     Log.e("SaveLink", "failed: ${e.message}", e)
-                                    Toast.makeText(context, e.message ?: "저장에 실패했습니다.", Toast.LENGTH_SHORT).show()
                                 }
                             )
                         },
-                        onBack = { navigator.popBackStack() },
-                        isCheckingUrl = vm.isCheckingUrl,
-                        isDuplicateUrl = vm.isDuplicateUrl,
-                        isInvalidLink = vm.isInvalidUrl
+                        toastEvent = vm.toastEvent
                     )
                 }
 
