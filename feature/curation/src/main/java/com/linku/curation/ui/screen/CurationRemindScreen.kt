@@ -58,6 +58,21 @@ private fun remindMonthText(): String {
     return "${lastMonth.year}년 ${lastMonth.monthValue}월"
 }
 
+/**
+ * 링크가 0개일 때 노출되는 헤더. Paging 상태와 무관하게 별도 컴포저블로 분리해서,
+ * 프리뷰에서 [collectAsLazyPagingItems]를 거치지 않고 이 상태를 바로 확인할 수 있게 함.
+ */
+@Composable
+private fun CurationRemindEmptyHeader(onBack: () -> Unit) {
+    CurationTopHeader(
+        onBackClick = onBack,
+        contentTopOffset = 406.scaler,
+        title = "지난 달 저장한 링크를\n잘 보고 있어요",
+        description = "저장해둔 링크들을 꾸준히 소비하고 있네요!",
+        titleDescriptionGap = 12.scaler,
+    )
+}
+
 @Composable
 private fun CurationRemindScreenContent(
     remindLinkItems: LazyPagingItems<LinkSimpleInfo>,
@@ -69,15 +84,8 @@ private fun CurationRemindScreenContent(
     CurationGradientCircleBackground {
         Column(modifier = Modifier.fillMaxWidth()) {
 
-            // 반복이 많기는 한데, 가독성을 위해서...
             if (isEmpty) {
-                CurationTopHeader(
-                    onBackClick = onBack,
-                    contentTopOffset = 406.scaler,
-                    title = "지난 달 저장한 링크를\n잘 보고 있어요",
-                    description = "저장해둔 링크들을 꾸준히 소비하고 있네요!",
-                    titleDescriptionGap = 12.scaler,
-                )
+                CurationRemindEmptyHeader(onBack = onBack)
             } else {
                 CurationTopHeader(
                     onBackClick = onBack,
@@ -168,15 +176,23 @@ private fun CurationRemindScreenPreview() {
     }
 }
 
+/**
+ * 링크가 0개일 때 [CurationTopHeader]가 contentTopOffset = 406.scaler 위치까지
+ * 내려간 채로 단독 노출되는지 확인하기 위한 프리뷰.
+ *
+ * [collectAsLazyPagingItems]는 LaunchedEffect로 비동기 수집되는데, 정적 프리뷰는
+ * 첫 프레임만 캡처해서 그 수집이 끝나기 전(로딩 중) 상태로 고정돼버림 -> isEmpty가 항상
+ * false로 잡혀서 빈 상태 분기를 볼 수 없었음. 그래서 Paging을 아예 거치지 않고
+ * [CurationRemindEmptyHeader]를 직접 그려서 확인함.
+ */
 @Preview(name = "큐레이션 리마인드 - 빈 상태 (#44-1)", showBackground = true)
 @Composable
 private fun CurationRemindScreenEmptyPreview() {
-    val remindLinkItems = flowOf(PagingData.empty<LinkSimpleInfo>()).collectAsLazyPagingItems()
-
     LinkuPreview {
-        CurationRemindScreenContent(
-            remindLinkItems = remindLinkItems,
-            onBack = {},
-        )
+        CurationGradientCircleBackground {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                CurationRemindEmptyHeader(onBack = {})
+            }
+        }
     }
 }
