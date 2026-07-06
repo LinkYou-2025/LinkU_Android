@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
@@ -85,12 +87,14 @@ private fun CurationRemindScreenContent(
                     titleDescriptionGap = 12.scaler,
                 )
 
+                // 헤더와 리스트 사이 44 간격은 스크롤되지 않는 고정 여백이라 LazyColumn 밖에 둠
+                Spacer(modifier = Modifier.height(44.scaler))
+
                 LazyColumn(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
                     contentPadding = PaddingValues(
-                        top = 44.scaler,
                         start = 20.scaler,
                         end = 20.scaler,
                         bottom = 20.scaler,
