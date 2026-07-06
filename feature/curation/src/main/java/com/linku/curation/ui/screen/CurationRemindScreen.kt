@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -78,69 +80,79 @@ private fun CurationRemindScreenContent(
     remindLinkItems: LazyPagingItems<LinkSimpleInfo>,
     onBack: () -> Unit,
 ) {
+    val remindMonth = remember { remindMonthText() }
+    val refreshState = remindLinkItems.loadState.refresh
     val isEmpty = remindLinkItems.loadState.refresh is LoadState.NotLoading &&
             remindLinkItems.itemCount == 0
 
     CurationGradientCircleBackground {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        if (refreshState is LoadState.Loading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.linkuColors.accentColor)
+            }
+        } else {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                if (isEmpty) {
+                    CurationRemindEmptyHeader(onBack = onBack)
+                } else {
+                    CurationTopHeader(
+                        onBackClick = onBack,
+                        contentTopOffset = 105.scaler,
+                        title = "$remindMonth,\n저장만 하고 열어보지 않은 링크예요",
+                        // TODO: itemCount는 지금까지 페이징으로 불러온 개수라 스크롤할수록 값이 커짐.
+                        // API 연동 후엔 서버가 내려주는 "전체 저장 링크 수" 필드로 교체해야 함(페이징 상태와 무관한 고정값).
+                        description = "총 ${remindLinkItems.itemCount}개의 링크가 쌓여있네요!",
+                        titleDescriptionGap = 12.scaler,
+                    )
 
-            if (isEmpty) {
-                CurationRemindEmptyHeader(onBack = onBack)
-            } else {
-                CurationTopHeader(
-                    onBackClick = onBack,
-                    contentTopOffset = 105.scaler,
-                    title = "${remindMonthText()},\n저장만 하고 열어보지 않은 링크예요",
-                    // TODO: itemCount는 지금까지 페이징으로 불러온 개수라 스크롤할수록 값이 커짐.
-                    // API 연동 후엔 서버가 내려주는 "전체 저장 링크 수" 필드로 교체해야 함(페이징 상태와 무관한 고정값).
-                    description = "총 ${remindLinkItems.itemCount}개의 링크가 쌓여있네요!",
-                    titleDescriptionGap = 12.scaler,
-                )
+                    // 헤더와 리스트 사이 44 간격은 스크롤되지 않는 고정 여백이라 LazyColumn 밖에 둠
+                    Spacer(modifier = Modifier.height(44.scaler))
 
-                // 헤더와 리스트 사이 44 간격은 스크롤되지 않는 고정 여백이라 LazyColumn 밖에 둠
-                Spacer(modifier = Modifier.height(44.scaler))
-
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentPadding = PaddingValues(
-                        start = 20.scaler,
-                        end = 20.scaler,
-                        bottom = 20.scaler,
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(10.scaler),
-                ) {
-                    items(
-                        count = remindLinkItems.itemCount,
-                        key = remindLinkItems.itemKey { it.linkuId }
-                    ) { index ->
-                        remindLinkItems[index]?.let { link ->
-                            LinkCardItem(
-                                hasAiSummary = link.aiArticleExists,
-                                linkTitle = link.title,
-                                tags = listOfNotNull(
-                                    link.categoryType?.tagName,
-                                    link.emotionType?.tagName
-                                ),
-                                domainName = link.domain,
-                                isExternalLink = false, // 보통 정해진 도메인일거라 false로 기본값을 둠
-                                linkImageUrl = link.linkuImageUrl ?: "",
-                                domainImageUrl = link.domainImageUrl ?: "",
-                                onDeleteClick = { /* TODO: 삭제 API 연동 전까지는 no-op */ }
-                            )
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentPadding = PaddingValues(
+                            start = 20.scaler,
+                            end = 20.scaler,
+                            bottom = 20.scaler,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(10.scaler),
+                    ) {
+                        items(
+                            count = remindLinkItems.itemCount,
+                            key = remindLinkItems.itemKey { it.linkuId }
+                        ) { index ->
+                            remindLinkItems[index]?.let { link ->
+                                LinkCardItem(
+                                    hasAiSummary = link.aiArticleExists,
+                                    linkTitle = link.title,
+                                    tags = listOfNotNull(
+                                        link.categoryType?.tagName,
+                                        link.emotionType?.tagName
+                                    ),
+                                    domainName = link.domain,
+                                    isExternalLink = false, // 보통 정해진 도메인일거라 false로 기본값을 둠
+                                    linkImageUrl = link.linkuImageUrl ?: "",
+                                    domainImageUrl = link.domainImageUrl ?: "",
+                                    onDeleteClick = { /* TODO: 삭제 API 연동 전까지는 no-op */ }
+                                )
+                            }
                         }
-                    }
 
-                    if (remindLinkItems.loadState.append is LoadState.Loading) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 16.scaler),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator(color = MaterialTheme.linkuColors.accentColor)
+                        if (remindLinkItems.loadState.append is LoadState.Loading) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.scaler),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(color = MaterialTheme.linkuColors.accentColor)
+                                }
                             }
                         }
                     }
