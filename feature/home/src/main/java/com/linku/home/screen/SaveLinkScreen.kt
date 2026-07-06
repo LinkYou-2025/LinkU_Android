@@ -51,6 +51,7 @@ import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
 import com.linku.home.component.TimedCustomToastMessage
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
@@ -83,6 +84,8 @@ fun SaveLinkScreen(
     LaunchedEffect(Unit) {
         toastEvent.collect { event ->
             currentToastEvent = event
+            delay(3000)
+            currentToastEvent = null
         }
     }
 

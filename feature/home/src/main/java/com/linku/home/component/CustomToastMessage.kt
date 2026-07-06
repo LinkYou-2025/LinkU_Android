@@ -66,7 +66,7 @@ fun CustomToastMessage(
  * 일정 시간이 지나면 자동으로 사라지는 토스트 메시지 컴포넌트입니다.
  *
  * [visible] 값이 true가 되면 [CustomToastMessage]를 표시하고,
- * [delayMillis] 시간이 지난 뒤 [onDismiss]를 호출해 외부 상태를 false로 변경하도록 합니다.
+ * 3000ms 시간이 지난 뒤 [onDismiss]를 호출해 외부 상태를 false로 변경하도록 합니다.
  *
  * 잠깐 보여주고 사라지는 성공/실패 안내 메시지에 사용합니다.
  * 실제 사용 예시는 링크 유효성 검사를 참고해주세요!
@@ -78,11 +78,10 @@ fun TimedCustomToastMessage(
     toastType: ToastType,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
-    delayMillis: Long = 3_000L,
 ) {
     LaunchedEffect(visible, toastMessage) {
         if (visible) {
-            delay(delayMillis)
+            delay(3000)
             onDismiss()
         }
     }
