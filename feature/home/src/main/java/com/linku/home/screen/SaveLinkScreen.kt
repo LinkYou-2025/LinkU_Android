@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -60,12 +61,13 @@ import java.io.File
 fun SaveLinkScreen(
     image: File?,
     url: String,
-    title: String = "",
+    title: String,
     memo: String,
     selectedEmotionId: Long?,
     selectedSituationId: Long?,
     jobId: Long,
     onPickImage: () -> Unit,
+    onDeleteImage: () -> Unit,
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
@@ -230,16 +232,33 @@ fun SaveLinkScreen(
                 horizontalAlignment = Alignment.Start
             ) {
                 if (image != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = image),
-                        contentDescription = "선택된 이미지",
-                        contentScale = ContentScale.Crop,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(18.dp))
                             .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
-                    )
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = image),
+                            contentDescription = "선택된 이미지",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(18.dp))
+                                .noRippleClickable { onPickImage() }
+                        )
+
+                        Image(
+                            painter = painterResource(R.drawable.ic_delete_gray),
+                            contentDescription = "사진 삭제",
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 16.dp, end = 16.dp)
+                                .size(30.dp)
+                                .noRippleClickable { onDeleteImage() }
+                        )
+                    }
                 } else {
                     Column(
                         modifier = Modifier
@@ -459,6 +478,7 @@ fun PreviewSaveLinkScreen() {
             selectedSituationId = null,
             jobId = 2L,
             onPickImage = { },
+            onDeleteImage = { },
             onUrlChange = { },
             onTitleChange = { },
             onMemoChange = { },

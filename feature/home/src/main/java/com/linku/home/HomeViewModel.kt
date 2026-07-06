@@ -180,10 +180,6 @@ class HomeViewModel @Inject constructor(
     val memo get() = memoState.value
     val selectedEmotionId get() = emotionIdState.value
     val selectedSituationId get() = situationIdState.value
-    val isSaving get() = isSavingState.value
-
-    val isCheckingUrl get() = isCheckingUrlState.value
-    val isDuplicateUrl get() = isDuplicateUrlState.value
 
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
@@ -201,6 +197,7 @@ class HomeViewModel @Inject constructor(
     val showRecommendations get() = showRecommendationsState.value
 
     fun setImage(file: File?) { imageState.value = file }
+    fun deleteImage() { imageState.value = null }
     fun setUrl(newUrl: String) {
         urlState.value = newUrl
 
@@ -241,7 +238,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-
     // 저장 폼 초기화
     fun resetForm() {
         imageState.value = null
@@ -255,9 +251,6 @@ class HomeViewModel @Inject constructor(
     // 최근 조회 링크 상태
     private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
     val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
-//    private val recentLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
-//    val recentLinks get() = recentLinksState.value
-
 
     // AI 요약
     private val aiArticleDetailState = mutableStateOf<AiArticle?>(null)

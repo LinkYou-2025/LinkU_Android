@@ -473,6 +473,7 @@ fun MainApp(
                         selectedSituationId = vm.selectedSituationId,
                         jobId = vm.jobId ?: 3L,
                         onPickImage = { imagePicker.launch("image/*") },
+                        onDeleteImage = vm::deleteImage,
                         onUrlChange = vm::setUrl,
                         onTitleChange = vm::setTitle,
                         onMemoChange = vm::setMemo,
