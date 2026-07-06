@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.JobType
 import com.linku.core.model.Situation
-import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
@@ -30,9 +29,16 @@ import com.linku.design.theme.linkuColors
 fun SituationSelect(
     jobType: JobType,
     selectedSituationId: Long?,
-    onSituationSelect: (Long?) -> Unit,
+    onSituationClick: (Long) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    FlowRow {
+    FlowRow(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 13.dp, start = 20.dp, end = 20.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         jobType.situations.forEach { situation ->
             val situationId = situation.id.value
             val selected = selectedSituationId == situationId
@@ -41,9 +47,7 @@ fun SituationSelect(
                 situation = situation,
                 selected = selected,
                 onClick = {
-                    onSituationSelect(
-                        if (selected) null else situationId
-                    )
+                    onSituationClick(situationId)
                 }
             )
         }
@@ -99,7 +103,7 @@ fun PreviewSituationSelect() {
         SituationSelect(
             jobType = JobType.OFFICE_WORKER,
             selectedSituationId = 18L,
-            onSituationSelect = { }
+            onSituationClick = { }
         )
     }
 }

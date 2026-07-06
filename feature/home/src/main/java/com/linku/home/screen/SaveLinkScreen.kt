@@ -22,6 +22,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.core.model.JobType
+import com.linku.core.model.link.ToastEvent
+import com.linku.core.model.link.ToastType
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -43,6 +50,10 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
+import com.linku.home.component.TimedCustomToastMessage
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
 
 @Composable
@@ -59,25 +70,24 @@ fun SaveLinkScreen(
     onTitleChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
     onEmotionSelect: (Long?) -> Unit,
-    onSituationSelect: (Long?) -> Unit,
-    onSaveClick: () -> Unit,
+    onSituationClick: (Long) -> Unit,
     onBack: () -> Unit,
-    isCheckingUrl: Boolean,
-    isDuplicateUrl: Boolean?,
-    isInvalidLink: Boolean,
+    isSaveButtonEnabled: Boolean,
+    onSaveButtonClick: () -> Unit,
+    toastEvent: Flow<ToastEvent>,
 ) {
     val colors = MaterialTheme.linkuColors
     val jobType = JobType.fromId(jobId)
 
-    val scrollState = rememberScrollState()
-    val bannedDomains = listOf("youtube.com", "youtu.be")
-    val showVideoWarning = bannedDomains.any { url.contains(it, ignoreCase = true) }
-    val isButtonEnabled =
-        url.isNotBlank() &&
-        !isCheckingUrl &&
-        !showVideoWarning &&
-        !isInvalidLink &&
-        (isDuplicateUrl != true)
+    var currentToastEvent by remember { mutableStateOf<ToastEvent?>(null) }
+
+    LaunchedEffect(Unit) {
+        toastEvent.collect { event ->
+            currentToastEvent = event
+            delay(3000)
+            currentToastEvent = null
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -88,7 +98,7 @@ fun SaveLinkScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 70.dp)
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
         ) {
             Box(
                 modifier = Modifier
@@ -212,42 +222,6 @@ fun SaveLinkScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
-//            // URL 검사 결과 메시지
-//            when {
-//                url.isBlank() -> Unit
-//                showVideoWarning -> WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
-//                isCheckingUrl -> Text(
-//                    text = "링크를 확인 중입니다…",
-//                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
-//                    color = colors.gray[600],
-//                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
-//                )
-//                isInvalidLink -> {
-//                    WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
-//                }
-//                isDuplicateUrl == true -> WarningText("이미 저장된 링크예요.")
-//                isDuplicateUrl == false -> Text(
-//                    text = "저장 가능한 링크예요.",
-//                    style = TextStyle(fontSize = 13.sp, fontFamily = LocalFontTheme.current.font),
-//                    color = colors.blue[200],
-//                    modifier = Modifier.padding(start = 32.dp, top = 4.dp)
-//                )
-//                else -> Unit
-//            }
-//
-////            if (isInvalidLink) {
-////                WarningText("유효하지 않은 링크입니다! 다시 입력해주세요.")
-////            }
-////
-////            if (showVideoWarning) {
-////                WarningText("현재 링큐에서는 영상 콘텐츠를 지원하지 않아요!")
-////            }
-//
-//            // 둘 다 false일 때만 Spacer 추가
-//            if (!isInvalidLink && !showVideoWarning) {
-//                Spacer(modifier = Modifier.height(12.dp))
-//            }
 
             Column(
                 modifier = Modifier
@@ -422,7 +396,7 @@ fun SaveLinkScreen(
             SituationSelect(
                 jobType = jobType,
                 selectedSituationId = selectedSituationId,
-                onSituationSelect = onSituationSelect
+                onSituationClick = onSituationClick
             )
 
             Spacer(modifier = Modifier.height(70.dp))
@@ -437,9 +411,11 @@ fun SaveLinkScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .noRippleClickable(enabled = isButtonEnabled) { onSaveClick() }
-                    .then (
-                        if (isButtonEnabled) {
+                    .noRippleClickable {
+                        onSaveButtonClick()
+                    }
+                    .then(
+                        if (isSaveButtonEnabled) {
                             Modifier.background(Basic.maincolor)
                         } else {
                             Modifier.background(colors.gray[300])
@@ -457,6 +433,16 @@ fun SaveLinkScreen(
                 )
             }
         }
+
+        TimedCustomToastMessage(
+            visible = currentToastEvent != null,
+            toastMessage = currentToastEvent?.message.orEmpty(),
+            toastType = currentToastEvent?.toastType ?: ToastType.ERROR,
+            onDismiss = { currentToastEvent = null },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 86.dp)
+        )
     }
 }
 
@@ -477,12 +463,11 @@ fun PreviewSaveLinkScreen() {
             onTitleChange = { },
             onMemoChange = { },
             onEmotionSelect = { },
-            onSituationSelect = { },
-            onSaveClick = { },
+            onSituationClick = { },
             onBack = { },
-            isCheckingUrl = false,
-            isDuplicateUrl = null,
-            isInvalidLink = false
+            isSaveButtonEnabled = false,
+            onSaveButtonClick = { },
+            toastEvent = emptyFlow()
         )
     }
 }

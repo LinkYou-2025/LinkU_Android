@@ -12,11 +12,11 @@ sealed class ThemeColorScheme(
     val maincolor: Brush,
     val backgroundmaincolor: Brush,
 
-    val verticalMainColor: Brush = Brush.verticalGradient(  //웰컴 스크린 사용
+    val verticalMainColor: Brush = Brush.verticalGradient(  // 웰컴 스크린 사용
         listOf(Color(0xFF2C6FFF), Color(0xFFC800FF))
     ),
 
-    val linearMainColor: Brush = Brush.linearGradient(  //로그인 스크린 사용
+    val linearMainColor: Brush = Brush.linearGradient(  // 로그인 스크린 사용
         colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
         start = Offset(0f, 0f),
         end = Offset.Infinite
@@ -58,21 +58,24 @@ sealed class ThemeColorScheme(
     val positive: Color = Color(0xFF35DF79),
     val negative: Color = Color(0xFFFF5E5E),
 
+    val positiveBg: Color = Color(0xFFE0FBEB),
+    val negativeBg: Color = Color(0xFFFFDADA),
+
     val accentColor: Color = Color(0xFFC800FF),
     // 회원가입 그림자용
     val shadowColor: Color = Color(0x1A7C7C7C),
 
-    //구글 로그인 버튼 컬러용
+    // 구글 로그인 버튼 컬러용
     val googleLoginColor: Color = Color(0xFF1F1F1F),
-    //구글 로그인 보더 컬러용
+    // 구글 로그인 보더 컬러용
     val googleLoginBorderColor: Color = Color(0xFF747775),
 
-    //큐레이션 전용 그라데이션
+    // 큐레이션 전용 그라데이션
     val curationGradient: Brush = Brush.horizontalGradient(
         listOf(Color(0xFF1451D5), Color(0xFF000208))
     ),
 
-    //큐레이션 캘린더 박스 컬러
+    // 큐레이션 캘린더 박스 컬러
     val curationCalendarBoxColor: Color = Color(0xFFEFF4FF),
 
     //큐레이션 보러가기 버튼 배경 컬러
@@ -81,7 +84,7 @@ sealed class ThemeColorScheme(
     //큐레이션 카드 배경 (이미지 로딩 전 fallback)
     val curationCardBackground: Color = Color(0xFFF2F2F2),
 
-    //큐레이션 카드 이미지 위 오버레이 그라데이션
+    // 큐레이션 카드 이미지 위 오버레이 그라데이션
     val curationCardOverlayGradient: Brush = Brush.verticalGradient(
         colorStops = arrayOf(
             0.0f to Color(0x00000000),
@@ -89,7 +92,7 @@ sealed class ThemeColorScheme(
         )
     ),
 
-    //큐레이션 감정 분석 섹션 타이틀 그라데이션
+    // 큐레이션 감정 분석 섹션 타이틀 그라데이션
     val emotionTitleGradient: Brush = Brush.horizontalGradient(
         listOf(Color(0xFF2C6FFF), Color(0xFF000208))
     ),
