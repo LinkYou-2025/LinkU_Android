@@ -1,13 +1,14 @@
 package com.linku.curation
 
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import com.linku.curation.ui.CurationScreen
 import com.linku.curation.ui.monthly.MonthlyCurationScreen
-import com.linku.curation.ui.screen.CurationCard1Screen
-import com.linku.curation.ui.screen.CurationCard3Screen
+import com.linku.curation.ui.screen.CurationMonthlyDetailScreen
+import com.linku.curation.ui.screen.CurationRemindScreen
 
 fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,
@@ -33,12 +34,24 @@ fun NavGraphBuilder.curationGraph(
 
         composable("curation_card1") {
             showNavBar(false)
-            CurationCard1Screen(onBack = { navigator.popBackStack() })
+            CurationMonthlyDetailScreen(
+                onBack = { navigator.popBackStack() },
+                onGoHome = {
+                    navigator.navigate("home") {
+                        popUpTo(navigator.graph.findStartDestination().id) {
+                            saveState = true
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            )
         }
 
         composable("curation_card3") {
             showNavBar(false)
-            CurationCard3Screen(onBack = { navigator.popBackStack() })
+            CurationRemindScreen(onBack = { navigator.popBackStack() })
         }
 
         composable("curation_monthly") {

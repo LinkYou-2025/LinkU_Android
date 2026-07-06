@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 
 //TODO : 다음 PR에서 구현할거예요....
 @Composable
-fun CurationCard3Screen(
+fun CurationRemindScreen(
     onBack: () -> Unit
 ) {
     BackHandler { onBack() }

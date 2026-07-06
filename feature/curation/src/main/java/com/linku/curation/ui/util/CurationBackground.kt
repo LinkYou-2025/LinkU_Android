@@ -19,7 +19,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-fun CurationBackground(
+internal fun CurationBackground(
     modifier: Modifier = Modifier,
     showLogo: Boolean = false,
 ) {

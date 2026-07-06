@@ -24,7 +24,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-fun CalendarBox(
+internal fun CalendarBox(
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {

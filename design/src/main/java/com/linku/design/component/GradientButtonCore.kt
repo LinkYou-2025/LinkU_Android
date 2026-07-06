@@ -1,4 +1,4 @@
-package com.linku.login.ui.item
+package com.linku.design.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,13 +26,13 @@ import com.linku.design.util.scaler
 
 //여백 없는 순수 로그인 버튼 코어
 @Composable
-internal fun GradientButtonCore(
+fun GradientButtonCore(
+    modifier: Modifier = Modifier,
     text: String,
     enabled: Boolean,
     activeGradient: Brush,
     inactiveGradient: Brush,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
     val colorTheme = MaterialTheme.linkuColors
 

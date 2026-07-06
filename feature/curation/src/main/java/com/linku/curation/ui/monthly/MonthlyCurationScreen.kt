@@ -26,7 +26,7 @@ import com.linku.design.util.scaler
  * @param imageUrlOf 월(1~12)에 해당하는 카드 배경 이미지 URL을 반환하는 함수. 없으면 null 반환
  */
 @Composable
-fun MonthlyCurationScreen(
+internal fun MonthlyCurationScreen(
     modifier: Modifier = Modifier,
     year: String = "2026", // 이거 api 연동할 때 삭제해주세요
     onBackClick: () -> Unit = {},

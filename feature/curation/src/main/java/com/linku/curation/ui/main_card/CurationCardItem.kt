@@ -43,7 +43,7 @@ data class CurationCardContent(
 )
 
 // 카드별 고정 컨텐츠 (1번은 동적으로 연도/월 계산) -> 이건 멘트 고정이라고 합니다!(돈 워리)
-fun getCurationCardContents(): List<CurationCardContent> {
+internal fun getCurationCardContents(): List<CurationCardContent> {
     val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
     val year = cal.get(Calendar.YEAR).toString()
     val month = cal.get(Calendar.MONTH) + 1
@@ -75,7 +75,7 @@ fun getCurationCardContents(): List<CurationCardContent> {
  * @param fallbackImage imageUrl이 유효하지 않을 때 표시할 기본 이미지 리소스
  */
 @Composable
-fun CurationCardItem(
+internal fun CurationCardItem(
     modifier: Modifier = Modifier,
     imageUrl: String,
     page: Int = 0,
