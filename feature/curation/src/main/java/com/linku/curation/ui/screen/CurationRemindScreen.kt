@@ -1,6 +1,7 @@
 package com.linku.curation.ui.screen
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,9 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,9 +31,9 @@ import androidx.paging.compose.itemKey
 import com.linku.core.model.CategoryType
 import com.linku.core.model.EmotionType
 import com.linku.core.model.LinkSimpleInfo
-import com.linku.curation.CurationViewModel
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
+import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -98,9 +102,21 @@ private fun CurationRemindScreenContent(
                 if (isEmpty) {
                     CurationRemindEmptyHeader(onBack = onBack)
                 } else {
+                    val listState = rememberLazyListState()
+                    // 스크롤을 시작하면 헤더를 위로 붙여서(105 -> 59) 리스트가 더 많이 보이게 함
+                    val isScrolled by remember {
+                        derivedStateOf {
+                            listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0
+                        }
+                    }
+                    val headerContentTopOffset by animateDpAsState(
+                        targetValue = if (isScrolled) 59.scaler else 105.scaler,
+                        label = "curationRemindHeaderOffset"
+                    )
+
                     CurationTopHeader(
                         onBackClick = onBack,
-                        contentTopOffset = 105.scaler,
+                        contentTopOffset = headerContentTopOffset,
                         title = "$remindMonth,\n저장만 하고 열어보지 않은 링크예요",
                         // TODO: itemCount는 지금까지 페이징으로 불러온 개수라 스크롤할수록 값이 커짐.
                         // API 연동 후엔 서버가 내려주는 "전체 저장 링크 수" 필드로 교체해야 함(페이징 상태와 무관한 고정값).
@@ -112,6 +128,7 @@ private fun CurationRemindScreenContent(
                     Spacer(modifier = Modifier.height(44.scaler))
 
                     LazyColumn(
+                        state = listState,
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxWidth(),

@@ -4,154 +4,175 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.design.theme.font.Paperlogy
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.color.ThemeColorScheme
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
-import androidx.compose.ui.text.style.TextOverflow
 
 /**
  * 키워드 칩의 우선순위 레벨
- *
- * TODO: API 연동 시 백엔드에서 priority(Int) 필드를 응답받아 아래와 같이 변환 요청하기
- *  - 1~4  → HIGH
- *  - 5~8  → MIDDLE
- *  - 9 이상 → LOW
- *  ex) KeywordDto(text = "#오픽", priority = 3) → priority.toChipLevel() → HIGH
  */
-enum class KeywordChipLevel { // TODO : 백엔드와 받을 응답 상의 후, 나중에 core 모듈로 옮기기.
+enum class KeywordChipLevel { // TODO : api 연동자 편한대로 파일 분리해주세요:)
     HIGH,
     MIDDLE,
     LOW
 }
 
 /**
- * TODO: API 연동 시 서버 응답 DTO의 priority 필드로 변환
- *  fun Int.toChipLevel(): KeywordChipLevel = when (this) {
- *      in 1..4 -> KeywordChipLevel.HIGH
- *      in 5..8 -> KeywordChipLevel.MIDDLE
- *      else    -> KeywordChipLevel.LOW
- *  }
+ * [KeywordChipLevel]별로 필요한 값을 모두 묶은 스타일
+ *
+ * @param horizontalPadding 칩 좌우 내부 여백
+ * @param minHeight 칩 최소 높이. 평소엔 이 값대로 렌더되지만, 접근성 글자 크기 확대로 텍스트가
+ * 더 커지면 [androidx.compose.foundation.layout.heightIn]이 잘리지 않게 자동으로 늘려준다.
+ * @param cornerRadius 칩 모서리 반경
+ * @param textStyle 키워드 텍스트 스타일 (폰트/색상까지 전부 포함)
+ * @param extraModifier 레벨별 부가 효과 (HIGH는 그림자, MIDDLE/LOW는 투명도)
  */
+private data class KeywordChipStyle(
+    val horizontalPadding: Dp,
+    val minHeight: Dp,
+    val cornerRadius: Dp,
+    val textStyle: TextStyle,
+    val extraModifier: Modifier,
+)
 
+/**
+ * [KeywordChipLevel]에 맞는 [KeywordChipStyle]을 반환한다.
+ *
+ * @param colorTheme 칩 색상을 가져올 테마
+ * @param baseTextStyle 전역 텍스트 스타일(Paperlogy 등)을 상속하기 위한 베이스 스타일. [LocalTextStyle.current]를 전달.
+ */
 @Composable
-fun KeywordChip(
-    text: String,
-    level: KeywordChipLevel,
-    modifier: Modifier = Modifier
-) {
-    val horizontalPadding = when (level) {
-        KeywordChipLevel.HIGH   -> 24.scaler
-        KeywordChipLevel.MIDDLE -> 22.scaler
-        KeywordChipLevel.LOW    -> 20.scaler
-    }
-
-    val chipHeight = when (level) {
-        KeywordChipLevel.HIGH,
-        KeywordChipLevel.MIDDLE -> 54.scaler
-        KeywordChipLevel.LOW    -> 42.scaler
-    }
-
-    val cornerRadius = when (level) {
-        KeywordChipLevel.HIGH,
-        KeywordChipLevel.MIDDLE -> 20.scaler
-        KeywordChipLevel.LOW    -> 18.scaler
-    }
-
-    val fontSize = when (level) {
-        KeywordChipLevel.HIGH,
-        KeywordChipLevel.MIDDLE -> 20.sp
-        KeywordChipLevel.LOW    -> 16.sp
-    }
-
-    val fontWeight = when (level) {
-        KeywordChipLevel.HIGH   -> FontWeight(600)
-        KeywordChipLevel.MIDDLE -> FontWeight(500)
-        KeywordChipLevel.LOW    -> FontWeight(500)
-    }
-
-    val textColor = when (level) {
-        KeywordChipLevel.HIGH,
-        KeywordChipLevel.MIDDLE -> Color(0xFF313C5C)
-        KeywordChipLevel.LOW    -> Color(0xFF4E5877)
-    }
-
-    // wrapContentWidth()를 가장 앞에 배치
-    val baseModifier = when (level) {
-        KeywordChipLevel.HIGH -> modifier
-            .wrapContentWidth(unbounded = true) // 너비 고정을 해지함.
-            .shadow(
-                elevation = 20.scaler,
-                shape = RoundedCornerShape(cornerRadius),
-                spotColor = Color(0x14000000),
-                ambientColor = Color(0x14000000)
+private fun KeywordChipLevel.toStyle(
+    colorTheme: ThemeColorScheme,
+    baseTextStyle: TextStyle,
+): KeywordChipStyle {
+    return when (this) {
+        KeywordChipLevel.HIGH -> {
+            KeywordChipStyle(
+                horizontalPadding = 24.scaler,
+                minHeight = 54.scaler,
+                cornerRadius = 20.scaler,
+                textStyle = baseTextStyle.copy(
+                    fontSize = 20.sp,
+                    lineHeight = 25.sp,
+                    fontWeight = FontWeight(600),
+                    color = colorTheme.curationKeywordChipTextColor,
+                    textAlign = TextAlign.Center,
+                ),
+                extraModifier = Modifier.shadow(
+                    elevation = 20.scaler,
+                    shape = RoundedCornerShape(20.scaler),
+                    spotColor = colorTheme.curationKeywordChipShadowColor,
+                    ambientColor = colorTheme.curationKeywordChipShadowColor
+                ),
             )
-        KeywordChipLevel.MIDDLE -> modifier
-            .wrapContentWidth(unbounded = true)
-            .alpha(0.9f)
-        KeywordChipLevel.LOW -> modifier
-            .wrapContentWidth(unbounded = true)
-            .alpha(0.65f)
+        }
+
+        KeywordChipLevel.MIDDLE -> KeywordChipStyle(
+            horizontalPadding = 22.scaler,
+            minHeight = 54.scaler,
+            cornerRadius = 20.scaler,
+            textStyle = baseTextStyle.copy(
+                fontSize = 20.sp,
+                lineHeight = 25.sp,
+                fontWeight = FontWeight(500),
+                color = colorTheme.curationKeywordChipTextColor,
+                textAlign = TextAlign.Center,
+            ),
+            extraModifier = Modifier.alpha(0.9f),
+        )
+
+        KeywordChipLevel.LOW -> KeywordChipStyle(
+            horizontalPadding = 20.scaler,
+            minHeight = 42.scaler,
+            cornerRadius = 18.scaler,
+            textStyle = baseTextStyle.copy(
+                fontSize = 16.sp,
+                lineHeight = 25.sp,
+                fontWeight = FontWeight(500),
+                color = colorTheme.curationKeywordChipTextColorLow,
+                textAlign = TextAlign.Center,
+            ),
+            extraModifier = Modifier.alpha(0.65f),
+        )
     }
+}
+
+/**
+ * 큐레이션 키워드 칩
+ *
+ * @param level 칩의 우선순위 레벨. [KeywordChipLevel]에 따라 크기/색상/그림자가 달라진다.
+ * @param text 표시할 키워드. 한 줄로만 표시되며 줄바꿈·말줄임 없이 전체 텍스트가 노출된다.
+ */
+@Composable
+internal fun KeywordChip(
+    modifier: Modifier = Modifier,
+    level: KeywordChipLevel,
+    text: String = "",
+) {
+    val colorTheme = MaterialTheme.linkuColors
+    val baseTextStyle = LocalTextStyle.current
+    val style = level.toStyle(colorTheme, baseTextStyle)
 
     Box(
-        modifier = baseModifier
-            .height(chipHeight)
+        modifier = modifier
+            .wrapContentWidth(unbounded = true) // 너비 고정을 해지함. 키워드 글자가 모두 보이기 위함.
+            .then(style.extraModifier)
             .background(
-                color = Color(0xFFFFFFFF),
-                shape = RoundedCornerShape(cornerRadius)
+                color = colorTheme.white,
+                shape = RoundedCornerShape(style.cornerRadius)
             )
-            .padding(horizontal = horizontalPadding),
+            // 최소 높이만 지정 -> 평소엔 피그마 값대로, 글자 크기 확대 시엔 안 잘리게 자동으로 늘어남 -> 과한가?
+            .heightIn(min = style.minHeight)
+            .padding(horizontal = style.horizontalPadding),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
             maxLines = 1,
             softWrap = false,
-            overflow = TextOverflow.Ellipsis,
-            style = TextStyle(
-                fontSize = fontSize,
-                lineHeight = 25.sp,
-                fontFamily = Paperlogy.font,
-                fontWeight = fontWeight,
-                color = textColor,
-                textAlign = TextAlign.Center,
-            )
+            overflow = TextOverflow.Visible,
+            style = style.textStyle
         )
     }
 }
 
-// ─────────────────────────────────────────
-// Preview
-// ─────────────────────────────────────────
 
-@Preview(showBackground = true, backgroundColor = 0xFFCCCCCC, name = "All Levels",widthDp = 500)
+@Preview(showBackground = true, backgroundColor = 0xFFCCCCCC, name = "All Levels", widthDp = 500)
 @Composable
 private fun KeywordChipAllPreview() {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .wrapContentWidth()
-            .padding(16.dp)
-    ) {
-        KeywordChip(text = "#영어공부", level = KeywordChipLevel.HIGH)
-        KeywordChip(text = "#엑셀꿀팁", level = KeywordChipLevel.MIDDLE)
-        KeywordChip(text = "#이직",    level = KeywordChipLevel.LOW)
+    LinkuPreview {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .wrapContentWidth()
+                .padding(16.dp)
+        ) {
+            KeywordChip(text = "#영어공부", level = KeywordChipLevel.HIGH)
+            KeywordChip(text = "#엑셀꿀팁", level = KeywordChipLevel.MIDDLE)
+            KeywordChip(text = "#이직", level = KeywordChipLevel.LOW)
+        }
     }
 }
