@@ -178,10 +178,10 @@ class SaveLinkViewModel @Inject constructor(
         val saved = linkuRepository.saveNewLink(
             image = imageState.value,
             url = url,
+            title = titleState.value.ifBlank { null },
             memo = memoState.value.ifBlank { null },
             emotionId = emotionIdState.value,
-            // TODO: 저장 API에 situationId가 연결되면 아래 값도 전달
-            // situationId = situationIdState.value
+            situationId = situationIdState.value
         )
 
         sendToast("링크가 저장되었어요.")
