@@ -1196,12 +1196,16 @@ private fun PreviewSaveLinkResultScreen() {
     SaveLinkResultScreen(
         link = LinkResultInfo(
             userId = 1L,
+            userLinkuId = 1L,
             linkuId = 2L,
             linkuFolderId = 2L,
             categoryId = 16L,
             linku = "https://blog.naver.com/s2ethan/223941554164",
             memo = "프리뷰 메모",
             emotionId = 3L,
+            situationId = 9L,
+            isEmotionAi = false,
+            isSituationAi = false,
             domain = "blog.naver",
             title = "프리뷰 제목",
             domainImageUrl = null,

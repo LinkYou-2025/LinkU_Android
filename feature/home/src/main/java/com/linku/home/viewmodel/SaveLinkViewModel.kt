@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.link.ToastEvent
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
@@ -12,9 +13,7 @@ import com.linku.home.util.UrlValidationResult
 import com.linku.home.util.toToastMessage
 import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -36,10 +35,6 @@ class SaveLinkViewModel @Inject constructor(
     private val jobIdState = mutableStateOf<Long?>(null)
     private val isSavingState = mutableStateOf(false)
 
-    private val isCheckingUrlState = mutableStateOf(false)
-    private val isDuplicateUrlState = mutableStateOf<Boolean?>(null)
-    private var checkJob: Job? = null
-
     private val _toastEvent = Channel<ToastEvent>(Channel.BUFFERED)
     val toastEvent = _toastEvent.receiveAsFlow()
 
@@ -51,18 +46,14 @@ class SaveLinkViewModel @Inject constructor(
     val selectedSituationId get() = situationIdState.value
     val jobId get() = jobIdState.value
     val isSaving get() = isSavingState.value
-    val isCheckingUrl get() = isCheckingUrlState.value
-    val isDuplicateUrl get() = isDuplicateUrlState.value
 
+    /**
+     * 저장 버튼은 URL이 비어 있지 않고 저장 중이 아닐 때만 활성화합니다.
+     *
+     * 실제 링크 유효성 검사는 저장 버튼 클릭 시 진행합니다.
+     */
     val isSaveButtonEnabled: Boolean
-        get() {
-            val urlValidationResult = validateUrlInput(urlState.value)
-
-            return urlValidationResult == UrlValidationResult.Valid &&
-                    !isCheckingUrlState.value &&
-                    isDuplicateUrlState.value != true &&
-                    !isSavingState.value
-        }
+        get() = urlState.value.isNotBlank() && !isSavingState.value
 
     init {
         loadUserBasics()
@@ -93,31 +84,6 @@ class SaveLinkViewModel @Inject constructor(
 
     fun setUrl(newUrl: String) {
         urlState.value = newUrl
-
-        checkJob?.cancel()
-        isDuplicateUrlState.value = null
-
-        val urlValidationResult = validateUrlInput(newUrl)
-
-        if (urlValidationResult != UrlValidationResult.Valid) {
-            isCheckingUrlState.value = false
-            return
-        }
-
-        checkJob = viewModelScope.launch {
-            isCheckingUrlState.value = true
-            delay(300)
-
-            runCatching {
-                linkuRepository.checkLink(newUrl)
-            }.onSuccess { exists ->
-                isDuplicateUrlState.value = exists
-            }.onFailure {
-                isDuplicateUrlState.value = null
-            }
-
-            isCheckingUrlState.value = false
-        }
     }
 
     fun setTitle(newTitle: String) {
@@ -147,89 +113,54 @@ class SaveLinkViewModel @Inject constructor(
         memoState.value = ""
         emotionIdState.value = null
         situationIdState.value = null
-        isDuplicateUrlState.value = null
-        isCheckingUrlState.value = false
         isSavingState.value = false
-        checkJob?.cancel()
     }
 
+    /**
+     * 저장 버튼 클릭 시 실행됩니다.
+     *
+     * 처리 순서:
+     * 1. 프론트 URL 형식 검사
+     * 2. 백엔드 링크 검사 API 호출
+     * 3. 이미 저장한 링크인지 확인
+     * 4. 통과 시 링크 저장
+     */
     fun onSaveButtonClick(
         onSucceed: (saved: LinkSimpleInfo) -> Unit = {},
         onFailed: (e: Exception) -> Unit = {},
     ) {
-        val currentUrl = urlState.value
-        val urlValidationResult = validateUrlInput(currentUrl)
-
-        val blockReason = when {
-            urlValidationResult != UrlValidationResult.Valid -> {
-                urlValidationResult.toToastMessage()
-            }
-
-            isCheckingUrlState.value -> {
-                "링크를 확인하고 있어요."
-            }
-
-            isDuplicateUrlState.value == true -> {
-                "이미 저장된 링크예요."
-            }
-
-            isSavingState.value -> {
-                "링크를 저장하고 있어요."
-            }
-
-            else -> null
-        }
-
-        if (blockReason != null) {
-            sendToast(message = blockReason)
+        if (isSavingState.value) {
+            sendToast("링크를 저장하고 있어요.")
             return
         }
 
-        saveLink(
-            onSucceed = { saved ->
-                sendToast(message = "링크가 저장되었어요.")
-                onSucceed(saved)
-            },
-            onFailed = { e ->
-                sendToast(message = e.message ?: "링크 저장에 실패했어요.")
-                onFailed(e)
-            }
-        )
-    }
+        val currentUrl = urlState.value.trim()
 
-    private fun saveLink(
-        onSucceed: (saved: LinkSimpleInfo) -> Unit = {},
-        onFailed: (e: Exception) -> Unit = {},
-    ) {
-        if (isSavingState.value) return
+        val frontValidationResult = validateUrlInput(currentUrl)
 
-        val currentUrl = urlState.value
-
-        if (currentUrl.isBlank()) {
-            onFailed(IllegalArgumentException("URL을 입력해 주세요."))
+        if (frontValidationResult != UrlValidationResult.Valid) {
+            sendToast(frontValidationResult.toToastMessage())
             return
         }
-
-        if (isDuplicateUrlState.value == true) {
-            onFailed(IllegalStateException("이미 저장된 링크입니다."))
-            return
-        }
-
-        isSavingState.value = true
 
         viewModelScope.launch {
-            try {
-                val saved = linkuRepository.saveNewLink(
-                    image = imageState.value,
-                    url = currentUrl,
-                    memo = memoState.value.ifBlank { null },
-                    emotionId = emotionIdState.value,
-                    // TODO: 저장 API에 situationId가 연결되면 아래 값도 전달
-                    // situationId = situationIdState.value
-                )
+            isSavingState.value = true
 
-                onSucceed(saved)
+            try {
+                when (linkuRepository.checkLink(currentUrl)) {
+                    LinkCheckResult.Available -> {
+                        saveLink(
+                            url = currentUrl,
+                            onSucceed = onSucceed
+                        )
+                    }
+
+                    LinkCheckResult.AlreadySaved -> {
+                        sendToast("이미 저장된 링크예요.")
+                    }
+                }
             } catch (e: Exception) {
+                sendToast(e.toLinkCheckToastMessage())
                 onFailed(e)
             } finally {
                 isSavingState.value = false
@@ -237,13 +168,51 @@ class SaveLinkViewModel @Inject constructor(
         }
     }
 
-    private fun sendToast(
-        message: String
+    /**
+     * 프론트 검증과 백엔드 링크 검사를 모두 통과한 뒤 실제 링크 저장을 수행합니다.
+     */
+    private suspend fun saveLink(
+        url: String,
+        onSucceed: (saved: LinkSimpleInfo) -> Unit,
     ) {
+        val saved = linkuRepository.saveNewLink(
+            image = imageState.value,
+            url = url,
+            memo = memoState.value.ifBlank { null },
+            emotionId = emotionIdState.value,
+            // TODO: 저장 API에 situationId가 연결되면 아래 값도 전달
+            // situationId = situationIdState.value
+        )
+
+        sendToast("링크가 저장되었어요.")
+        onSucceed(saved)
+    }
+
+    private fun sendToast(message: String) {
         viewModelScope.launch {
             _toastEvent.send(
                 ToastEvent(message = message)
             )
+        }
+    }
+}
+
+private fun Throwable.toLinkCheckToastMessage(): String {
+    val rawMessage = message.orEmpty()
+
+    return when {
+        rawMessage.contains("LINKU4001", ignoreCase = true) ||
+                rawMessage.contains("영상", ignoreCase = true) -> {
+            "영상 콘텐츠는 지원하지 않아요!"
+        }
+
+        rawMessage.contains("LINKU4002", ignoreCase = true) ||
+                rawMessage.contains("유효하지 않은 링크", ignoreCase = true) -> {
+            "유효하지 않은 링크입니다!"
+        }
+
+        else -> {
+            "유효하지 않은 링크입니다!"
         }
     }
 }

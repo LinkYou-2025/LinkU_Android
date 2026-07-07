@@ -4,12 +4,16 @@ import java.time.OffsetDateTime
 
 data class LinkResultInfo(
     val userId: Long,
+    val userLinkuId: Long?,
     val linkuId: Long,
     val linkuFolderId: Long?,
-    val categoryId: Long,
+    val categoryId: Long?,
     val linku: String,
     val memo: String?,
     val emotionId: Long?,
+    val situationId: Long?,
+    val isEmotionAi: Boolean?,
+    val isSituationAi: Boolean?,
     val domain: String,
     val title: String,
     val domainImageUrl: String?,

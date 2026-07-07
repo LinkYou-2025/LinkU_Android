@@ -3,6 +3,7 @@ package com.linku.data.implementation.repository
 import android.util.Log
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.FastSearchLinkInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
@@ -34,8 +35,10 @@ class LinkuRepositoryImpl @Inject constructor(
     override suspend fun saveNewLink(
         image: File?,
         url: String,
+        title: String?,
         memo: String?,
-        emotionId: Long?
+        emotionId: Long?,
+        situationId: Long?,
     ): LinkSimpleInfo {
         // 이미지 파트: 있을 때만 첨부
         val imagePart: MultipartBody.Part? = image?.let { file ->
@@ -60,6 +63,14 @@ class LinkuRepositoryImpl @Inject constructor(
             emotionId?.toString()
                 ?.toRequestBody("text/plain".toMediaTypeOrNull())
 
+        val titleBody: RequestBody? =
+            title.nullIfBlank()
+                ?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        val situationBody: RequestBody? =
+            situationId?.toString()
+                ?.toRequestBody("text/plain".toMediaTypeOrNull())
+
         // --- API 호출 ---
         // addLink 의 반환 타입이 BaseResponse<LinkuSimpleDTO> 인 경우와
         // LinkuSimpleDTO 자체를 반환하는 경우 둘 다 대응할 수 있게 주석 남깁니다.
@@ -71,16 +82,19 @@ class LinkuRepositoryImpl @Inject constructor(
                     image = imagePart,
                     linku = linkuBody,
                     memo = memoBody,
-                    emotionId = emotionBody
+                    emotionId = emotionBody,
+                    situationId = situationBody,
+                    title = titleBody
                 )
             }
         ).onSuccess {
             result = LinkSimpleInfo(
-                linkuId = it.linkuId ?: 0L,
+                linkuId = it.linkuId,
                 categoryId = it.categoryId,
                 memo = it.memo?.nullIfBlank(),
                 emotionId = it.emotionId,
-                title = it.title.orEmpty(),
+                situationId = it.situationId,
+                title = it.title,
                 domain = it.domain.orEmpty(),
                 domainImageUrl = it.domainImageUrl,
                 linkuImageUrl = it.linkuImageUrl,
@@ -94,13 +108,17 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // 링크 유효성 검사
-    override suspend fun checkLink(url: String): Boolean {
-        var result = false
+    override suspend fun checkLink(url: String): LinkCheckResult {
+        lateinit var result: LinkCheckResult
 
         safeApiCall(
             apiCall = { serverApi.checkLink(url = url) }
-        ).onSuccess {
-            result = it.exist == true
+        ).onSuccess { dto ->
+            result = if (dto.exist == true) {
+                LinkCheckResult.AlreadySaved
+            } else {
+                LinkCheckResult.Available
+            }
         }.onFailure {
             throw it
         }
@@ -146,7 +164,6 @@ class LinkuRepositoryImpl @Inject constructor(
 
         return result
     }
-
 
     // 최근 열람 링크 조회
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> {
@@ -196,22 +213,25 @@ class LinkuRepositoryImpl @Inject constructor(
         safeApiCall(
             apiCall = { serverApi.viewDetailLink(linkuid = linkuId) }
         ).onSuccess {
-            // safeApiCall 내부에서 null 검증이 끝나고 논널(it)로 오기 때문에, requireNotNull 코드를 onSuccess 안에서 녹여내는 형식으로 규격을 맞췄습니다.
             result = LinkResultInfo(
                 userId = it.userId,
+                userLinkuId = it.userLinkuId,
                 linkuId = it.linkuId,
                 linkuFolderId = it.linkuFolderId,
                 categoryId = it.categoryId,
                 linku = it.linku,
-                memo = it.memo?.takeIf { it.isNotBlank() },
+                memo = it.memo?.takeIf { memo -> memo.isNotBlank() },
                 emotionId = it.emotionId,
-                domain = it.domain ?: "",
+                situationId = it.situationId,
+                isEmotionAi = it.isEmotionAi,
+                isSituationAi = it.isSituationAi,
+                domain = it.domain.orEmpty(),
                 title = it.title,
                 domainImageUrl = it.domainImageUrl,
                 linkuImageUrl = it.linkuImageUrl,
                 aiArticleExists = it.aiArticleExists == true,
-                keyword = it.keyword?.takeIf { it.isNotBlank() },
-                summary = it.summary?.takeIf { it.isNotBlank() },
+                keyword = it.keyword?.takeIf { keyword -> keyword.isNotBlank() },
+                summary = it.summary?.takeIf { summary -> summary.isNotBlank() },
                 createdAt = it.createdAt,
                 updatedAt = it.updatedAt
             )
@@ -233,20 +253,40 @@ class LinkuRepositoryImpl @Inject constructor(
             apiCall = { serverApi.viewDetailLink(userId = userId, linkuid = linkuId) }
         ).onSuccess {
             result = LinkResultInfo(
+//                userId = it.userId,
+//                linkuId = it.linkuId,
+//                linkuFolderId = it.linkuFolderId,
+//                categoryId = it.categoryId,
+//                linku = it.linku,
+//                memo = it.memo?.takeIf { it.isNotBlank() },
+//                emotionId = it.emotionId,
+//                domain = it.domain ?: "",
+//                title = it.title,
+//                domainImageUrl = it.domainImageUrl,
+//                linkuImageUrl = it.linkuImageUrl,
+//                aiArticleExists = it.aiArticleExists == true,
+//                keyword = it.keyword?.takeIf { it.isNotBlank() },
+//                summary = it.summary?.takeIf { it.isNotBlank() },
+//                createdAt = it.createdAt,
+//                updatedAt = it.updatedAt
                 userId = it.userId,
+                userLinkuId = it.userLinkuId,
                 linkuId = it.linkuId,
                 linkuFolderId = it.linkuFolderId,
                 categoryId = it.categoryId,
                 linku = it.linku,
-                memo = it.memo?.takeIf { it.isNotBlank() },
+                memo = it.memo?.takeIf { memo -> memo.isNotBlank() },
                 emotionId = it.emotionId,
-                domain = it.domain ?: "",
+                situationId = it.situationId,
+                isEmotionAi = it.isEmotionAi,
+                isSituationAi = it.isSituationAi,
+                domain = it.domain.orEmpty(),
                 title = it.title,
                 domainImageUrl = it.domainImageUrl,
                 linkuImageUrl = it.linkuImageUrl,
                 aiArticleExists = it.aiArticleExists == true,
-                keyword = it.keyword?.takeIf { it.isNotBlank() },
-                summary = it.summary?.takeIf { it.isNotBlank() },
+                keyword = it.keyword?.takeIf { keyword -> keyword.isNotBlank() },
+                summary = it.summary?.takeIf { summary -> summary.isNotBlank() },
                 createdAt = it.createdAt,
                 updatedAt = it.updatedAt
             )
@@ -316,19 +356,23 @@ class LinkuRepositoryImpl @Inject constructor(
         ).onSuccess {
             result = LinkResultInfo(
                 userId = it.userId,
+                userLinkuId = it.userLinkuId,
                 linkuId = it.linkuId,
                 linkuFolderId = it.linkuFolderId,
                 categoryId = it.categoryId,
                 linku = it.linku,
-                memo = it.memo?.takeIf { it.isNotBlank() },
+                memo = it.memo?.takeIf { memo -> memo.isNotBlank() },
                 emotionId = it.emotionId,
-                domain = it.domain ?: "",
+                situationId = it.situationId,
+                isEmotionAi = it.isEmotionAi,
+                isSituationAi = it.isSituationAi,
+                domain = it.domain.orEmpty(),
                 title = it.title,
                 domainImageUrl = it.domainImageUrl,
                 linkuImageUrl = it.linkuImageUrl,
                 aiArticleExists = it.aiArticleExists == true,
-                keyword = it.keyword?.takeIf { it.isNotBlank() },
-                summary = it.summary?.takeIf { it.isNotBlank() },
+                keyword = it.keyword?.takeIf { keyword -> keyword.isNotBlank() },
+                summary = it.summary?.takeIf { summary -> summary.isNotBlank() },
                 createdAt = it.createdAt,
                 updatedAt = it.updatedAt
             )
