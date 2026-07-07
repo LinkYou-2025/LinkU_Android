@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -112,8 +111,8 @@ fun LinkCardItem(
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         // 폰트 기본 여백 때문에 아이콘이랑 세로 중앙이 안 맞아서 제거함
-                        style = LocalTextStyle.current.merge(
-                            TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))
+                        style = LocalTextStyle.current.copy(
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
                         ),
                         modifier = Modifier.weight(1f)
                     )
