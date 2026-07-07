@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.design.modifier.noRippleClickable
@@ -58,13 +59,17 @@ internal fun CurationKeywordCloud(
                 in 3..5 -> KeywordChipLevel.MIDDLE
                 else -> KeywordChipLevel.LOW
             }
+            // 람다를 매번 새로 만들면 modifier가 매번 "바뀐 것"으로 잡혀서 KeywordChip이 스킵되지 않음 -> remember로 고정
+            val onClick = remember(index, keyword, onKeywordClick) {
+                { onKeywordClick(index, keyword) }
+            }
 
             KeywordChip(
                 text = "#$keyword", //백엔드에서 #를 안 붙여서 주지 않을 것까지 고려했습니다. 만약 #까지 값을 포함해서 주면 #빼주세요!
                 level = level,
                 modifier = Modifier
                     .offset(x = slot.left.scaler, y = slot.top.scaler)
-                    .noRippleClickable { onKeywordClick(index, keyword) }
+                    .noRippleClickable(onClick = onClick)
             )
         }
     }

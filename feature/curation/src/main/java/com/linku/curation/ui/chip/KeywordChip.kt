@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.color.ThemeColorScheme
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
@@ -56,15 +57,16 @@ private data class KeywordChipStyle(
 )
 
 /**
- * [KeywordChipLevel]에 맞는 [KeywordChipStyle]을 반환한다. 색상은 [MaterialTheme.linkuColors]에서 직접 가져온다.
+ * [KeywordChipLevel]에 맞는 [KeywordChipStyle]을 반환한다.
+ *
+ * @param colorTheme 칩 색상을 가져올 테마
+ * @param baseTextStyle 전역 텍스트 스타일(Paperlogy 등)을 상속하기 위한 베이스 스타일. [LocalTextStyle.current]를 전달.
  */
 @Composable
-private fun KeywordChipLevel.toStyle(): KeywordChipStyle {
-
-    val colorTheme = MaterialTheme.linkuColors
-    val baseTextStyle =
-        LocalTextStyle.current // Paperlogy 전역 스타일 -> TextStyle 대신 Text 쓰면 KeywordChipStyle 요소가 늘어나서 부득이하게...
-
+private fun KeywordChipLevel.toStyle(
+    colorTheme: ThemeColorScheme,
+    baseTextStyle: TextStyle,
+): KeywordChipStyle {
     return when (this) {
         KeywordChipLevel.HIGH -> {
             KeywordChipStyle(
@@ -130,7 +132,8 @@ internal fun KeywordChip(
     text: String = "",
 ) {
     val colorTheme = MaterialTheme.linkuColors
-    val style = level.toStyle() // 변수로 분리한 이유는 한 번의 캐싱을 위해서 입니다!
+    val baseTextStyle = LocalTextStyle.current
+    val style = level.toStyle(colorTheme, baseTextStyle)
 
     Box(
         modifier = modifier
