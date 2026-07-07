@@ -102,4 +102,11 @@ sealed class ThemeColorScheme(
         listOf(Color(0xFFFFFFFF), Color(0xFFE5EDFF))
     ),
 
+    // 큐레이션 키워드 칩 텍스트 컬러 (HIGH, MIDDLE)
+    val curationKeywordChipTextColor: Color = Color(0xFF313C5C),
+    // 큐레이션 키워드 칩 텍스트 컬러 (LOW)
+    val curationKeywordChipTextColorLow: Color = Color(0xFF4E5877),
+    // 큐레이션 키워드 칩 그림자 컬러 (HIGH)
+    val curationKeywordChipShadowColor: Color = Color(0x14000000),
+
     )
