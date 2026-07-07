@@ -73,7 +73,7 @@ private fun KeywordChipLevel.toStyle(
                 horizontalPadding = 24.scaler,
                 minHeight = 54.scaler,
                 cornerRadius = 20.scaler,
-                textStyle = baseTextStyle.merge(
+                textStyle = baseTextStyle.copy(
                     fontSize = 20.sp,
                     lineHeight = 25.sp,
                     fontWeight = FontWeight(600),
@@ -93,7 +93,7 @@ private fun KeywordChipLevel.toStyle(
             horizontalPadding = 22.scaler,
             minHeight = 54.scaler,
             cornerRadius = 20.scaler,
-            textStyle = baseTextStyle.merge(
+            textStyle = baseTextStyle.copy(
                 fontSize = 20.sp,
                 lineHeight = 25.sp,
                 fontWeight = FontWeight(500),
@@ -107,7 +107,7 @@ private fun KeywordChipLevel.toStyle(
             horizontalPadding = 20.scaler,
             minHeight = 42.scaler,
             cornerRadius = 18.scaler,
-            textStyle = baseTextStyle.merge(
+            textStyle = baseTextStyle.copy(
                 fontSize = 16.sp,
                 lineHeight = 25.sp,
                 fontWeight = FontWeight(500),

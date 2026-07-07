@@ -33,7 +33,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -202,7 +201,7 @@ internal fun WelcomeScreen(
                     text = "로그인 하러가기",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    style = LocalTextStyle.current.merge(TextStyle(brush = colorTheme.maincolor)),
+                    style = LocalTextStyle.current.copy(brush = colorTheme.maincolor),
                 )
             }
         }

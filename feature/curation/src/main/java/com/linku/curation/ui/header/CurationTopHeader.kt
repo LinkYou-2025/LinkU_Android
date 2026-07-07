@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -92,8 +91,7 @@ internal fun CurationTopHeader(
                     lineHeight = 25.sp,
                     fontWeight = FontWeight(600),
                     textAlign = TextAlign.Center,
-                    style = LocalTextStyle.current.merge
-                        (TextStyle(brush = colorTheme.curationGradient)),
+                    style = LocalTextStyle.current.copy(brush = colorTheme.curationGradient),
                 )
             }
 
