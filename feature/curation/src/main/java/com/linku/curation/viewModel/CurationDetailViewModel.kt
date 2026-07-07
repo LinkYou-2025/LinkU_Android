@@ -1,4 +1,4 @@
-package com.linku.curation
+package com.linku.curation.viewModel
 
 import androidx.lifecycle.ViewModel
 import com.linku.core.repository.CurationRepository
