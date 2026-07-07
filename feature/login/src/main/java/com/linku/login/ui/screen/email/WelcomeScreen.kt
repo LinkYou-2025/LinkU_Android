@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -201,7 +202,7 @@ internal fun WelcomeScreen(
                     text = "로그인 하러가기",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    style = TextStyle(brush = colorTheme.maincolor),
+                    style = LocalTextStyle.current.merge(TextStyle(brush = colorTheme.maincolor)),
                 )
             }
         }
