@@ -64,8 +64,8 @@ private fun CurationKeywordLinksEmptyHeader(keyword: String, onBack: () -> Unit)
     CurationTopHeader(
         onBackClick = onBack,
         contentTopOffset = 406.scaler,
-        title = "이번달 관심 키워드를\n도출하지 못했어요",
-        description = "더 많은 링크를 저장해주세요!",
+        title = "\"$keyword\"\n관련된 링크가 없어요",
+        description = "이 키워드로 링크를 더 저장해보세요!",
         titleDescriptionGap = 12.scaler,
     )
 }
@@ -99,7 +99,7 @@ private fun CurationKeywordLinksScreenContent(
                 CurationTopHeader(
                     onBackClick = onBack,
                     contentTopOffset = headerContentTopOffset,
-                    title = "\" $keyword \"\n관련된 링크예요",
+                    title = "\"$keyword\"\n관련된 링크예요",
                     description = "${nickname}님이 저장한 링크를 모아봤어요!",
                     titleDescriptionGap = 12.scaler,
                 )
