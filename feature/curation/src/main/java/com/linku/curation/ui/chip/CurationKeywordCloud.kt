@@ -45,7 +45,7 @@ private val keywordCloudSlots = listOf(
  * @param onKeywordClick 키워드 칩 클릭 콜백. (인덱스, "#" 없는 키워드 텍스트)
  */
 @Composable
-fun CurationKeywordCloud(
+internal fun CurationKeywordCloud(
     modifier: Modifier = Modifier,
     keywords: List<String>,
     onKeywordClick: (index: Int, keyword: String) -> Unit = { _, _ -> },

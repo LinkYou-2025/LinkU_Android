@@ -124,7 +124,7 @@ private fun KeywordChipLevel.toStyle(): KeywordChipStyle {
  * @param text 표시할 키워드. 한 줄로만 표시되며 줄바꿈·말줄임 없이 전체 텍스트가 노출된다.
  */
 @Composable
-fun KeywordChip(
+internal fun KeywordChip(
     modifier: Modifier = Modifier,
     level: KeywordChipLevel,
     text: String = "",
