@@ -11,21 +11,16 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.linku.curation.CurationViewModel
 import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.header.CurationHeader
 import com.linku.curation.ui.main_card.CurationMainCardPager
-import com.linku.curation.ui.screen.CurationKeywordDetailScreen
 import com.linku.curation.ui.util.CurationBackground
+import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.TopBar
@@ -36,11 +31,11 @@ internal fun CurationScreen(
     nickname: String,
     viewModel: CurationViewModel = hiltViewModel(), //TODO princehw가 구현해줄거임!
     onMonthlyDetailClick: () -> Unit = {}, // 1번 카드 -> CurationMonthlyDetailScreen
+    onKeywordDetailClick: () -> Unit = {}, // 2번 카드 -> CurationKeywordDetailScreen
     onRemindClick: () -> Unit = {}, // 3번 카드 -> CurationRemindScreen
     onMonthlyCurationClick: () -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
-    var showKeywordDetail by remember { mutableStateOf(false) }
     val displayNickname = nickname.ifBlank { "세나" }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -57,19 +52,11 @@ internal fun CurationScreen(
                 onCardClick = { index, _ ->
                     when (index) {
                         0 -> onMonthlyDetailClick()
-                        1 -> showKeywordDetail = true
+                        1 -> onKeywordDetailClick()
                         2 -> onRemindClick()
                     }
                 },
                 onMonthlyCurationClick = onMonthlyCurationClick
-            )
-        }
-
-        if (showKeywordDetail) {
-            CurationKeywordDetailScreen(
-                nickname = displayNickname,
-                onBack = { showKeywordDetail = false },
-                onHome = { showKeywordDetail = false }
             )
         }
     }
