@@ -200,13 +200,11 @@ class LinkDetailViewModel @Inject constructor(
                     linkuId = fixedLinkuId,
                     categoryId = categoryId ?: current.categoryId ?: 0L,
                     linku = fixedLinku,
-                    memo = memo,
+                    memo = memo ?: current.memo.orEmpty(),
                     emotionId = emotionId ?: current.emotionId ?: 0L,
+                    situationId = situationId ?: current.situationId ?: 0L,
                     domainId = computedDomainId,
                     title = title.ifBlank { current.title },
-
-                    // TODO: API 연동 시 situationId도 함께 전달
-                    // situationId = situationId ?: current.situationId ?: 0L
                 )
             }.onSuccess { updated ->
                 linkDetailState.value = updated

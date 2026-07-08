@@ -522,6 +522,16 @@ fun MainApp(
                     val context = LocalContext.current
                     val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
 
+                    var selectedDetailImageUri by remember(linkuId) {
+                        mutableStateOf<Uri?>(null)
+                    }
+
+                    val detailImagePicker = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()
+                    ) { uri: Uri? ->
+                        selectedDetailImageUri = uri
+                    }
+
                     LaunchedEffect(linkuId) {
                         linkDetailViewModel.loadLinkDetail(linkuId)
                         vm.loadCategoryColors()
@@ -630,12 +640,33 @@ fun MainApp(
                         situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
                         imageUrl = linkDetail?.linkuImageUrl,
+                        selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
                         aiSummary = displaySummary,
                         categoryOptions = categoryOptions,
                         onBack = {
                             navigator.popBackStack()
+                        },
+                        onPickImage = {
+                            detailImagePicker.launch("image/*")
+                        },
+                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
+                            linkDetailViewModel.updateLink(
+                                title = title,
+                                memo = memo,
+                                categoryId = categoryId,
+                                emotionId = emotionId,
+                                situationId = situationId,
+                                onSucceed = {
+                                    homeViewModel.loadRecentLinks()
+                                    onSuccess()
+                                },
+                                onFailed = { e ->
+                                    Log.e("LinkDetail", "update failed", e)
+                                    onFailed()
+                                }
+                            )
                         }
                     )
                 }

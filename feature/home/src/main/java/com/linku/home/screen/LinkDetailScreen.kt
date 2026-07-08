@@ -2,6 +2,7 @@ package com.linku.home.screen
 
 import android.content.ClipData
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -51,6 +52,7 @@ import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.linku.core.model.EmotionType
 import com.linku.core.model.SituationOptions
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -66,12 +68,15 @@ import com.linku.home.component.LinkDetailSituationDropdown
 import com.linku.home.ui.home.bar.LinkDetailTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 private enum class LinkDetailDropdownType {
     CATEGORY,
     EMOTION,
     SITUATION
 }
+
+private const val MAX_MEMO_LENGTH = 200
 
 @Composable
 fun LinkDetailScreen(
@@ -81,11 +86,22 @@ fun LinkDetailScreen(
     situationId: Long?,
     linkUrl: String,
     imageUrl: String? = "",
+    selectedImageUri: Uri? = null,
     memo: String,
     tags: List<String>,
     aiSummary: String,
     categoryOptions: List<LinkCategoryOption>,
     onBack: () -> Unit,
+    onPickImage: () -> Unit,
+    onSubmitEdit: (
+        title: String,
+        memo: String?,
+        categoryId: Long?,
+        emotionId: Long?,
+        situationId: Long?,
+        onSuccess: () -> Unit,
+        onFailed: () -> Unit,
+    ) -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -103,6 +119,9 @@ fun LinkDetailScreen(
     var isAiArticleProcessing by rememberSaveable { mutableStateOf(false) }
     var aiArticleProgress by rememberSaveable { mutableFloatStateOf(0f) }
 
+    var editToastMessage by rememberSaveable { mutableStateOf("") }
+    var isEditToastVisible by rememberSaveable { mutableStateOf(false) }
+
     val emotionOptions = EmotionType.entries
     val situationOptions = SituationOptions.allSituations
 
@@ -113,9 +132,16 @@ fun LinkDetailScreen(
             categoryOptions.firstOrNull { it.name == category }?.id
         )
     }
-    var selectedEmotion by rememberSaveable { mutableStateOf(emotion) }
+    var selectedEmotion by rememberSaveable {
+        mutableStateOf(
+            EmotionType.entries.firstOrNull { it.tagName == emotion }
+        )
+    }
     var selectedSituationId by rememberSaveable { mutableStateOf(situationId) }
     var selectedMemo by rememberSaveable { mutableStateOf(memo) }
+
+    val isTitleValid = selectedTitle.isNotBlank()
+    val isSaveButtonEnabled = !isEditMode || isTitleValid
 
     val selectedSituation = situationOptions.firstOrNull {
         it.id.value == selectedSituationId
@@ -137,7 +163,7 @@ fun LinkDetailScreen(
             selectedTitle = linkTitle
             selectedCategory = category
             selectedCategoryId = categoryOptions.firstOrNull { it.name == category }?.id
-            selectedEmotion = emotion
+            selectedEmotion = EmotionType.entries.firstOrNull { it.tagName == emotion }
             selectedSituationId = situationId
             selectedMemo = memo
         }
@@ -148,11 +174,11 @@ fun LinkDetailScreen(
             aiArticleProgress = 0f
 
             while (aiArticleProgress < 1f) {
-                delay(80)
+                delay(80.milliseconds)
                 aiArticleProgress = (aiArticleProgress + 0.02f).coerceAtMost(1f)
             }
 
-            delay(300)
+            delay(300.milliseconds)
 
             isAiArticleProcessing = false
             isAiArticleModalVisible = false
@@ -171,8 +197,9 @@ fun LinkDetailScreen(
         ) {
             LinkDetailTopBar(
                 linkTitle = selectedTitle,
+                originalLinkTitle = linkTitle,
                 category = selectedCategory,
-                emotion = selectedEmotion,
+                emotion = selectedEmotion?.tagName ?: "감정",
                 situation = selectedSituation?.tagName ?: "상황",
                 isEditMode = isEditMode,
                 isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
@@ -198,6 +225,9 @@ fun LinkDetailScreen(
                         if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
                         else LinkDetailDropdownType.SITUATION
                 },
+                onTitleChange = { newTitle ->
+                    selectedTitle = newTitle
+                },
                 onTitleClearClick = {
                     selectedTitle = ""
                 }
@@ -211,7 +241,7 @@ fun LinkDetailScreen(
             ) {
                 Box {
                     AsyncImage(
-                        model = imageUrl,
+                        model = selectedImageUri ?: imageUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.img_link_detail_default),
@@ -233,7 +263,7 @@ fun LinkDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .aspectRatio(1f)
-                                .noRippleClickable {},
+                                .noRippleClickable(onClick = onPickImage),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(
@@ -435,8 +465,8 @@ fun LinkDetailScreen(
                     if (isEditMode) {
                         BasicTextField(
                             value = selectedMemo,
-                            onValueChange = {
-                                selectedMemo = it
+                            onValueChange = { newMemo ->
+                                selectedMemo = newMemo.take(MAX_MEMO_LENGTH)
                             },
                             textStyle = TextStyle(
                                 fontSize = 14.sp,
@@ -608,9 +638,9 @@ fun LinkDetailScreen(
                 LinkDetailDropdownType.EMOTION -> {
                     LinkDetailEmotionDropdown(
                         emotions = emotionOptions,
-                        selectedEmotion = selectedEmotion,
+                        selectedEmotion = selectedEmotion?.tagName.orEmpty(),
                         onEmotionClick = {
-                            selectedEmotion = it.tagName
+                            selectedEmotion = it
                             openedDropdownType = null
                         },
                         modifier = Modifier
@@ -644,13 +674,35 @@ fun LinkDetailScreen(
                     .padding(horizontal = 20.dp)
                     .align(Alignment.BottomCenter)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(colors.maincolor)
+                    .background(
+                        if (isEditMode && !isSaveButtonEnabled) {
+                            colors.inactiveColor
+                        } else {
+                            colors.maincolor
+                        }
+                    )
                     .padding(vertical = 15.dp)
-                    .noRippleClickable {
+                    .noRippleClickable(enabled = isSaveButtonEnabled) {
                         if (isEditMode) {
-                            isEditMode = false
-                            openedDropdownType = null
-                            // 수정 API 불러오기
+                            onSubmitEdit(
+                                selectedTitle.trim(),
+                                selectedMemo,
+                                selectedCategoryId,
+                                selectedEmotion?.id?.value,
+                                selectedSituationId,
+                                {
+                                    editToastMessage = "저장 완료!"
+                                    isEditToastVisible = true
+
+                                    isEditMode = false
+                                    openedDropdownType = null
+                                },
+                                {
+                                    // 실패 시 수정 모드 유지 + 입력값도 그대로 유지
+                                    editToastMessage = "수정에 실패했어요. 다시 시도해 주세요."
+                                    isEditToastVisible = true
+                                },
+                            )
                         } else {
                             isAiArticleModalVisible = true
                             openedDropdownType = null
@@ -689,6 +741,18 @@ fun LinkDetailScreen(
                 }
             }
         }
+
+        TimedCustomToastMessage(
+            visible = isEditToastVisible,
+            toastMessage = editToastMessage,
+            onDismiss = {
+                isEditToastVisible = false
+            },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 86.dp)
+                .zIndex(3f)
+        )
     }
 }
 
@@ -717,6 +781,8 @@ fun PreviewLinkDetailScreen() {
             aiSummary = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",
             categoryOptions = categoryOptions,
             onBack = { },
+            onPickImage = { },
+            onSubmitEdit = { _, _, _, _, _, _, _ -> },
         )
     }
 }

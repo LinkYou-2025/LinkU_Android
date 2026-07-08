@@ -48,8 +48,9 @@ interface LinkuRepository {
         linku: String,
         memo: String?,
         emotionId: Long,
+        situationId: Long,
         domainId: Long,
-        title: String
+        title: String,
     ): LinkResultInfo
 
     // 빠른 링크 검색
