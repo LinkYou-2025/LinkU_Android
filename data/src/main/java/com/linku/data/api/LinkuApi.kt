@@ -8,6 +8,7 @@ import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.LinkuUpdateDTO
 import com.linku.data.api.dto.server.QuickSearchResult
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
+import com.linku.data.api.dto.server.LinkCheckDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -29,7 +30,9 @@ interface LinkuApi {
         @Part image: MultipartBody.Part?,
         @Part("linku") linku: RequestBody,
         @Part("memo") memo: RequestBody?,
-        @Part("emotionId") emotionId: RequestBody?
+        @Part("emotionId") emotionId: RequestBody?,
+        @Part("situationId") situationId: RequestBody?,
+        @Part("title") title: RequestBody?,
     ): BaseResponse<LinkuResultDTO>
 
     // 링크 상세보기
@@ -48,7 +51,7 @@ interface LinkuApi {
     @GET("linku/exist")
     suspend fun checkLink(
         @Query("url") url: String
-    ): BaseResponse<LinkuIsExistDTO>
+    ): BaseResponse<LinkCheckDTO>
 
     // 링크 수정
     @PATCH("linku/{linkuId}")

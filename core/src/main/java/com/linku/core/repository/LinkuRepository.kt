@@ -2,6 +2,7 @@ package com.linku.core.repository
 
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.FastSearchLinkInfo
 import java.io.File
 
@@ -10,12 +11,14 @@ interface LinkuRepository {
     suspend fun saveNewLink(
         image: File?,
         url: String,
+        title: String?,
         memo: String?,
-        emotionId: Long?
+        emotionId: Long?,
+        situationId: Long?,
     ): LinkSimpleInfo
 
     // 링크 체크
-    suspend fun checkLink(url: String): Boolean
+    suspend fun checkLink(url: String): LinkCheckResult
 
     // 링크 추천
     suspend fun recommendLinks(

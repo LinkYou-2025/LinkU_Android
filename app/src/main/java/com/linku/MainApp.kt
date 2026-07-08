@@ -50,6 +50,7 @@ import com.linku.home.HomeViewModel
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
+import com.linku.home.viewmodel.SaveLinkViewModel
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
@@ -114,6 +115,9 @@ fun MainApp(
     // 홈 화면에서 사용할 뷰모델
     val homeViewModel: HomeViewModel = hiltViewModel()
     // 로그인 혹은 자동 로그인 성공 후 생성함. 여기서는 이미 AuthPreference 주입 끝.
+
+    // 링크 저장에서 사용할 뷰모델
+    val saveLinkViewModel: SaveLinkViewModel = hiltViewModel()
 
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
@@ -362,7 +366,7 @@ fun MainApp(
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onNavigateToSaveLink = { url ->
-                                homeViewModel.setUrl(url)
+                                saveLinkViewModel.setUrl(url)
                                 navigator.navigate("savelink")
                             },
                             onNavigateToLinkDetail = { linkuId ->
@@ -449,7 +453,6 @@ fun MainApp(
 
                 composable("savelink") {
                     val context = LocalContext.current
-                    val vm: HomeViewModel = homeViewModel
 
                     // 갤러리 런처: Uri -> 임시 File 로 복사해서 뷰모델에 전달
                     val imagePicker = rememberLauncherForActivityResult(
@@ -457,7 +460,7 @@ fun MainApp(
                     ) { uri: Uri? ->
                         if (uri != null) {
                             runCatching { uri.toTempFile(context) }
-                                .onSuccess { file -> vm.setImage(file) }
+                                .onSuccess { file -> saveLinkViewModel.setImage(file) }
                                 .onFailure {
                                     Toast.makeText(context, "이미지 로드에 실패했습니다.", Toast.LENGTH_SHORT).show()
                                 }
@@ -465,35 +468,36 @@ fun MainApp(
                     }
 
                     SaveLinkScreen(
-                        image = vm.image,
-                        url = vm.url,
-                        title = vm.title,
-                        memo = vm.memo,
-                        selectedEmotionId = vm.selectedEmotionId,
-                        selectedSituationId = vm.selectedSituationId,
-                        jobId = vm.jobId ?: 3L,
+                        image = saveLinkViewModel.image,
+                        url = saveLinkViewModel.url,
+                        title = saveLinkViewModel.title,
+                        memo = saveLinkViewModel.memo,
+                        selectedEmotionId = saveLinkViewModel.selectedEmotionId,
+                        selectedSituationId = saveLinkViewModel.selectedSituationId,
+                        jobId = saveLinkViewModel.jobId ?: 3L,
                         onPickImage = { imagePicker.launch("image/*") },
-                        onUrlChange = vm::setUrl,
-                        onTitleChange = vm::setTitle,
-                        onMemoChange = vm::setMemo,
-                        onEmotionSelect = vm::selectEmotion,
-                        onSituationClick  = vm::onSituationClick,
+                        onDeleteImage = saveLinkViewModel::deleteImage,
+                        onUrlChange = saveLinkViewModel::setUrl,
+                        onTitleChange = saveLinkViewModel::setTitle,
+                        onMemoChange = saveLinkViewModel::setMemo,
+                        onEmotionSelect = saveLinkViewModel::selectEmotion,
+                        onSituationClick  = saveLinkViewModel::onSituationClick,
                         onBack = { navigator.popBackStack() },
-                        isSaveButtonEnabled = vm.isSaveButtonEnabled,
+                        isSaveButtonEnabled = saveLinkViewModel.isSaveButtonEnabled,
                         onSaveButtonClick = {
                             Log.d(
                                 "SaveLink",
-                                "try save -> url=${vm.url}, memo=${vm.memo}, emotionId=${vm.selectedEmotionId}, situationId=${vm.selectedSituationId}, image=${vm.image?.name}"
+                                "try save -> url=${saveLinkViewModel.url}, memo=${saveLinkViewModel.memo}, emotionId=${saveLinkViewModel.selectedEmotionId}, situationId=${saveLinkViewModel.selectedSituationId}, image=${saveLinkViewModel.image?.name}"
                             )
 
-                            vm.onSaveButtonClick(
+                            saveLinkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
                                     Log.d(
                                         "SaveLink",
                                         "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
                                     )
-                                    vm.loadLinkDetail(saved.linkuId)
-                                    vm.resetForm()
+                                    homeViewModel.loadLinkDetail(saved.linkuId)
+                                    saveLinkViewModel.resetForm()
                                     navigator.navigate("savelinkresult/${saved.linkuId}")
                                 },
                                 onFailed = { e ->
@@ -501,7 +505,7 @@ fun MainApp(
                                 }
                             )
                         },
-                        toastEvent = vm.toastEvent
+                        toastEvent = saveLinkViewModel.toastEvent
                     )
                 }
 

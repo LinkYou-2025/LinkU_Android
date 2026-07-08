@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -41,7 +42,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.core.model.JobType
 import com.linku.core.model.link.ToastEvent
-import com.linku.core.model.link.ToastType
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -50,8 +51,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.R
 import com.linku.home.component.EmotionSelect
 import com.linku.home.component.SituationSelect
-import com.linku.home.component.TimedCustomToastMessage
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
@@ -60,12 +59,13 @@ import java.io.File
 fun SaveLinkScreen(
     image: File?,
     url: String,
-    title: String = "",
+    title: String,
     memo: String,
     selectedEmotionId: Long?,
     selectedSituationId: Long?,
     jobId: Long,
     onPickImage: () -> Unit,
+    onDeleteImage: () -> Unit,
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
     onMemoChange: (String) -> Unit,
@@ -79,13 +79,13 @@ fun SaveLinkScreen(
     val colors = MaterialTheme.linkuColors
     val jobType = JobType.fromId(jobId)
 
-    var currentToastEvent by remember { mutableStateOf<ToastEvent?>(null) }
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         toastEvent.collect { event ->
-            currentToastEvent = event
-            delay(3000)
-            currentToastEvent = null
+            toastMessage = event.message
+            isToastVisible = true
         }
     }
 
@@ -230,16 +230,33 @@ fun SaveLinkScreen(
                 horizontalAlignment = Alignment.Start
             ) {
                 if (image != null) {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = image),
-                        contentDescription = "선택된 이미지",
-                        contentScale = ContentScale.Crop,
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(18.dp))
                             .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
-                    )
+                    ) {
+                        Image(
+                            painter = rememberAsyncImagePainter(model = image),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(18.dp))
+                                .noRippleClickable(onClick = onPickImage)
+                        )
+
+                        Image(
+                            painter = painterResource(R.drawable.ic_delete_gray),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 16.dp, end = 16.dp)
+                                .size(30.dp)
+                                .noRippleClickable(onClick = onDeleteImage)
+                        )
+                    }
                 } else {
                     Column(
                         modifier = Modifier
@@ -435,10 +452,9 @@ fun SaveLinkScreen(
         }
 
         TimedCustomToastMessage(
-            visible = currentToastEvent != null,
-            toastMessage = currentToastEvent?.message.orEmpty(),
-            toastType = currentToastEvent?.toastType ?: ToastType.ERROR,
-            onDismiss = { currentToastEvent = null },
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 86.dp)
@@ -459,6 +475,7 @@ fun PreviewSaveLinkScreen() {
             selectedSituationId = null,
             jobId = 2L,
             onPickImage = { },
+            onDeleteImage = { },
             onUrlChange = { },
             onTitleChange = { },
             onMemoChange = { },
