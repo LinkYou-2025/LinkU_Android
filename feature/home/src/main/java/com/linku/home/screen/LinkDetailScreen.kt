@@ -48,6 +48,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil3.compose.AsyncImage
 import com.linku.core.model.EmotionType
 import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
@@ -79,6 +80,7 @@ fun LinkDetailScreen(
     emotion: String,
     situationId: Long?,
     linkUrl: String,
+    imageUrl: String? = "",
     memo: String,
     tags: List<String>,
     aiSummary: String,
@@ -208,10 +210,12 @@ fun LinkDetailScreen(
                     .padding(top = 25.dp, start = 20.dp, end = 20.dp)
             ) {
                 Box {
-                    Image(
-                        painter = painterResource(R.drawable.img_default),
+                    AsyncImage(
+                        model = imageUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
+                        placeholder = painterResource(R.drawable.img_link_detail_default),
+                        error = painterResource(R.drawable.img_link_detail_default),
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
@@ -274,48 +278,53 @@ fun LinkDetailScreen(
                             shape = RoundedCornerShape(18.dp)
                         )
                         .background(colors.white)
-                        .padding(top = 7.5.dp, start = 22.dp, end = 8.5.dp, bottom = 7.5.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                        .padding(top = 7.5.dp, start = 22.dp, end = 8.5.dp, bottom = 7.5.dp)
                 ) {
-                    Text(
-                        text = linkUrl,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        lineHeight = 20.sp,
-                        color = if (isEditMode) colors.gray[400] else colors.black,
-                        modifier = Modifier
-                            .then(
-                                if (isEditMode) {
-                                    Modifier.padding(vertical = 7.5.dp)
-                                } else {
-                                    Modifier.padding(0.dp)
-                                }
-                            )
-                    )
-
-                    if (!isEditMode) {
-                        Spacer(modifier = Modifier.width(10.dp))
-
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
                         Text(
-                            text = "복사",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = colors.gray[600],
+                            text = linkUrl,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 24.sp,
+                            color = if (isEditMode) colors.gray[400] else colors.black,
                             modifier = Modifier
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(colors.gray[200])
-                                .noRippleClickable {
-                                    coroutineScope.launch {
-                                        clipboard.setClipEntry(
-                                            ClipEntry(
-                                                ClipData.newPlainText("linkUrl", linkUrl)
-                                            )
-                                        )
+                                .weight(1f)
+                                .then(
+                                    if (isEditMode) {
+                                        Modifier.padding(vertical = 7.5.dp)
+                                    } else {
+                                        Modifier.padding(0.dp)
                                     }
-                                }
-                                .padding(horizontal = 13.5.dp, vertical = 7.dp)
+                                )
                         )
+
+                        if (!isEditMode) {
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Text(
+                                text = "복사",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.gray[600],
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(colors.gray[200])
+                                    .noRippleClickable {
+                                        coroutineScope.launch {
+                                            clipboard.setClipEntry(
+                                                ClipEntry(
+                                                    ClipData.newPlainText("linkUrl", linkUrl)
+                                                )
+                                            )
+                                        }
+                                    }
+                                    .padding(horizontal = 13.5.dp, vertical = 7.dp)
+                            )
+                        }
                     }
                 }
 
@@ -412,7 +421,7 @@ fun LinkDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 22.dp, bottom = 50.dp)
+                        .padding(top = 22.dp)
                 ) {
                     Text(
                         text = "메모",
@@ -474,6 +483,10 @@ fun LinkDetailScreen(
                     }
 
                     Spacer(modifier = Modifier.height(40.dp))
+
+                    if (!isAiSummaryMode) {
+                        Spacer(modifier = Modifier.height(50.dp))
+                    }
                 }
             }
         }
@@ -698,7 +711,7 @@ fun PreviewLinkDetailScreen() {
             category = "카테고리2",
             emotion = "평온",
             situationId = 10L,
-            linkUrl = "https://blog.naver.com/linkU/1234",
+            linkUrl = "https://blog.naver.com/linkU/1234567890",
             memo = "오픽 시험 준비시 도움이 되는 내용 정리, AI 활용한 공부법 정리 및 다양한 내용이 포함된 링크!!",
             tags = listOf("오픽", "AL", "영어회화", "자격증"),
             aiSummary = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",

@@ -629,6 +629,7 @@ fun MainApp(
                         emotion = emotionNameOf(linkDetail?.emotionId),
                         situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
+                        imageUrl = linkDetail?.linkuImageUrl,
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
                         aiSummary = displaySummary,
