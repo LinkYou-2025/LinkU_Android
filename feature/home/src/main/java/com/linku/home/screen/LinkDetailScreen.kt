@@ -455,7 +455,7 @@ fun LinkDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 22.dp)
+                        .padding(top = 22.dp, bottom = 50.dp)
                 ) {
                     Text(
                         text = "메모",
