@@ -627,7 +627,7 @@ fun MainApp(
                         linkTitle = linkDetail?.title.orEmpty(),
                         category = categoryNameOf(linkDetail?.categoryId),
                         emotion = emotionNameOf(linkDetail?.emotionId),
-                        situationId = null, // TODO: 상세 API에 situationId 생기면 linkDetail?.situationId로 변경
+                        situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
