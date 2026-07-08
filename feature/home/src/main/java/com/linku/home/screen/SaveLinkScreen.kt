@@ -239,22 +239,22 @@ fun SaveLinkScreen(
                     ) {
                         Image(
                             painter = rememberAsyncImagePainter(model = image),
-                            contentDescription = "선택된 이미지",
+                            contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(18.dp))
-                                .noRippleClickable { onPickImage() }
+                                .noRippleClickable(onClick = onPickImage)
                         )
 
                         Image(
                             painter = painterResource(R.drawable.ic_delete_gray),
-                            contentDescription = "사진 삭제",
+                            contentDescription = null,
                             modifier = Modifier
                                 .align(Alignment.TopEnd)
                                 .padding(top = 16.dp, end = 16.dp)
                                 .size(30.dp)
-                                .noRippleClickable { onDeleteImage() }
+                                .noRippleClickable(onClick = onDeleteImage)
                         )
                     }
                 } else {
