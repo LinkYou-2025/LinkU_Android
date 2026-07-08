@@ -50,6 +50,7 @@ import com.linku.home.HomeViewModel
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
+import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
@@ -118,6 +119,9 @@ fun MainApp(
 
     // 링크 저장에서 사용할 뷰모델
     val saveLinkViewModel: SaveLinkViewModel = hiltViewModel()
+
+    // 링크 상세에서 사용할 뷰모델
+     val linkDetailViewModel: LinkDetailViewModel = hiltViewModel()
 
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
@@ -496,7 +500,7 @@ fun MainApp(
                                         "SaveLink",
                                         "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
                                     )
-                                    homeViewModel.loadLinkDetail(saved.linkuId)
+                                    linkDetailViewModel.loadLinkDetail(saved.linkuId)
                                     saveLinkViewModel.resetForm()
                                     navigator.navigate("savelinkresult/${saved.linkuId}")
                                 },
@@ -519,7 +523,7 @@ fun MainApp(
                     val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
 
                     LaunchedEffect(linkuId) {
-                        vm.loadLinkDetail(linkuId)
+                        linkDetailViewModel.loadLinkDetail(linkuId)
                         vm.loadCategoryColors()
                     }
 
@@ -575,7 +579,7 @@ fun MainApp(
                     }
 
                     // 진행률/색상 맵 수집
-                    val aiProgress = vm.aiProgress.collectAsState().value
+                    val aiProgress = linkDetailViewModel.aiProgress.collectAsState().value
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
                     val categoryOptions = categoryColorMap.mapNotNull { (name, style) ->
@@ -610,8 +614,8 @@ fun MainApp(
                         }
                     }
 
-                    val linkDetail = vm.linkDetail
-                    val aiArticle = vm.aiArticleDetail
+                    val linkDetail = linkDetailViewModel.linkDetail
+                    val aiArticle = linkDetailViewModel.aiArticleDetail
 
                     val displayKeyword = aiArticle?.keyword?.trim().orEmpty()
                         .ifEmpty { linkDetail?.keyword.orEmpty() }
