@@ -1,7 +1,9 @@
 package com.linku.data.api.dto.server
 
 import com.google.gson.annotations.SerializedName
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class LinkCheckDTO(
     @SerializedName("userId")
     val userId: Long?,
