@@ -389,4 +389,13 @@ class LinkuRepositoryImpl @Inject constructor(
 
         return result
     }
+
+    // 링크 삭제
+    override suspend fun deleteLink(userLinkuId: Long) {
+        val response = serverApi.deleteLink(userLinkuId = userLinkuId)
+
+        if (!response.isSuccessful) {
+            throw IllegalStateException("링크 삭제에 실패했습니다. code=${response.code()}")
+        }
+    }
 }

@@ -667,6 +667,12 @@ fun MainApp(
                                     onFailed()
                                 }
                             )
+                        },
+                        onDeleteLink = { onSuccess, onFailed ->
+                            linkDetailViewModel.deleteLink(
+                                onSucceed = onSuccess,
+                                onFailed = { onFailed() }
+                            )
                         }
                     )
                 }

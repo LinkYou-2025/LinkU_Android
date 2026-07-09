@@ -102,6 +102,10 @@ fun LinkDetailScreen(
         onSuccess: () -> Unit,
         onFailed: () -> Unit,
     ) -> Unit,
+    onDeleteLink: (
+        onSuccess: () -> Unit,
+        onFailed: () -> Unit,
+    ) -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -582,9 +586,17 @@ fun LinkDetailScreen(
                             isDeleteModalVisible = false
                         },
                         onConfirm = {
-                            isDeleteModalVisible = false
-                            // TODO: 삭제 API 호출 -> 삭제 성공 후 어디로 이동하는지 물어보기
-                            onBack()
+                            onDeleteLink(
+                                {
+                                    isDeleteModalVisible = false
+                                    onBack()
+                                },
+                                {
+                                    isDeleteModalVisible = false
+                                    editToastMessage = "삭제에 실패했어요. 다시 시도해 주세요."
+                                    isEditToastVisible = true
+                                }
+                            )
                         }
                     )
                 }
@@ -783,6 +795,7 @@ fun PreviewLinkDetailScreen() {
             onBack = { },
             onPickImage = { },
             onSubmitEdit = { _, _, _, _, _, _, _ -> },
+            onDeleteLink = { _, _ -> }
         )
     }
 }
