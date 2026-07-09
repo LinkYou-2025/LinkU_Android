@@ -1,61 +1,119 @@
 package com.linku.file.ui.content
 
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.cheonjaeung.compose.grid.SimpleGridCells
-import com.cheonjaeung.compose.grid.VerticalGrid
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.ui.item.items.EmptyFolderItemLayout
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
+private const val INTER_LAYER_PADDING = 18.51
+private const val ITEM_RATIO = 10f / 174f
+private const val SECTION_TITLE_TOP_PADDING = 21.49
+private const val SECTION_TITLE_BOTTOM_PADDING = 1.49
+
+@Suppress("UNUSED_PARAMETER")
 @Composable
 fun SharedTopFolderGrid(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
-    editStateViewModel: EditStateViewModel
+    editStateViewModel: EditStateViewModel,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp)
 ) {
-    val folderList = fileViewModel.sharedTopFolders.collectAsState().value
+    val colors = MaterialTheme.linkuColors
+    val folderList by fileViewModel.sharedTopFolders.collectAsStateWithLifecycle()
+    val layoutDirection = LocalLayoutDirection.current
 
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    * 스크롤은 compose 전 자식 요소에게 크기를 물어보고 최종 크기를 결정하는 방식.   *
-    * SequentialGrid 기반인 VerticalGrid는 SubcomposeLayout임.                       *
-    * 이는 자식에게 묻는 과정에서 compose가 다시 발생하는 문제로 최신부턴 사용 불가. *
-    * 그러므로 꼭 LazyVertical 그리드로 변경 예정.                                   *
-    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-    VerticalGrid(
-        modifier = Modifier
-            .fillMaxWidth(),
-        columns = SimpleGridCells.Fixed(2),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalArrangement = Arrangement.spacedBy(18.51.dp),
+    BoxWithConstraints(
+        modifier = modifier
     ) {
-        for ((i, folder) in folderList.withIndex()) {
-            Log.d("SharedTopFolderGrid", "folder: $folder")
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .noRippleClickable {
-                        folderStateViewModel.updateSelectedSharedFolder(folder)
-                        fileViewModel.getSharedBottomFolders(folder)
-                        folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                    },
-                contentAlignment = if(i%2==0) Alignment.TopStart else Alignment.TopEnd
-            ){
+        val horizontalPadding =
+            contentPadding.calculateStartPadding(layoutDirection) +
+                    contentPadding.calculateEndPadding(layoutDirection)
+        val availableWidth = maxWidth - horizontalPadding
+        val horizontalSpacing = availableWidth * ITEM_RATIO
+
+        LazyVerticalGrid(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = contentPadding,
+            columns = GridCells.Fixed(2),
+            verticalArrangement = Arrangement.spacedBy(INTER_LAYER_PADDING.dp),
+            horizontalArrangement = Arrangement.spacedBy(horizontalSpacing)
+        ) {
+            item {
                 EmptyFolderItemLayout(
-                    modifier = Modifier.fillMaxSize(164f/174f),
-                    folderName = "${folder.nickname}의 폴더",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .noRippleClickable {
+                            folderStateViewModel.updateIsSharedFolders(false)
+                            folderStateViewModel.updateSelectedSharedFolder(null)
+                            folderStateViewModel.updateFolderState(FolderState.TOP)
+                        },
+                    folderName = "\uB098\uC758 \uD3F4\uB354"
+                )
+            }
+
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                Row(
+                    modifier = Modifier.padding(
+                        top = SECTION_TITLE_TOP_PADDING.dp,
+                        bottom = SECTION_TITLE_BOTTOM_PADDING.dp
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "\uACF5\uC720\uBC1B\uC740 \uD3F4\uB354",
+                        fontSize = 20.sp,
+                        lineHeight = 30.sp,
+                        fontWeight = FontWeight(700),
+                        color = colors.black
+                    )
+                    Text(
+                        text = folderList.size.toString(),
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight(500),
+                        color = colors.gray[600]
+                    )
+                }
+            }
+
+            items(folderList, key = { it.userId }) { folder ->
+                EmptyFolderItemLayout(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .noRippleClickable {
+                            folderStateViewModel.updateSelectedSharedFolder(folder)
+                            fileViewModel.getSharedBottomFolders(folder)
+                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                        },
+                    folderName = "${folder.nickname}\uC758 \uD3F4\uB354"
                 )
             }
         }

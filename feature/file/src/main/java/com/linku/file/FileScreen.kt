@@ -39,6 +39,7 @@ import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
+import com.linku.file.ui.bottom.sheet._ShareBottomSheet
 import com.linku.file.ui.content.CategoryGrid
 import com.linku.file.ui.content.ClassifiedLinksGrid
 import com.linku.file.ui.content.MyFoldersGrid
@@ -95,11 +96,19 @@ fun FileScreen(
         when (folderStateViewModel.currentFolderState) {
             FolderState.BOTTOM -> {
                 folderStateViewModel.updateFolderState(FolderState.TOP)
-                folderStateViewModel.updateSelectedTopFolder(null)
+                if (folderStateViewModel.isSharedFolders) {
+                    folderStateViewModel.updateSelectedSharedFolder(null)
+                } else {
+                    folderStateViewModel.updateSelectedTopFolder(null)
+                }
             }
             FolderState.LINKS -> {
                 folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                folderStateViewModel.updateSelectedBottomFolder(null)
+                if (folderStateViewModel.isSharedFolders) {
+                    folderStateViewModel.updateSelectedBottomSharedFolder(null)
+                } else {
+                    folderStateViewModel.updateSelectedBottomFolder(null)
+                }
             }
             else -> {}
         }
@@ -218,14 +227,16 @@ fun FileScreen(
                 }
             }
 
-            ShareButton(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 19.dp, bottom = 8.dp)
-                    .noRippleClickable {
-                        folderStateViewModel.updateShareBottomSheetVisible(true)
-                    }
-            )
+            if (!folderStateViewModel.isSharedFolders) {
+                ShareButton(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(end = 19.dp, bottom = 8.dp)
+                        .noRippleClickable {
+                            folderStateViewModel.updateShareBottomSheetVisible(true)
+                        }
+                )
+            }
         }
 
         if (
@@ -325,12 +336,11 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    //ShareBottomSheetLayout(){}
-    /*ShareBottomSheet(
-        userName = fileViewModel.nickname.collectAsState().value?:"",
-        folderStateViewModel = folderStateViewModel,
+    _ShareBottomSheet(
+        modifier = Modifier.fillMaxWidth(),
         fileViewModel = fileViewModel,
-    )*/
+        folderStateViewModel = folderStateViewModel,
+    )
 
     // ---------- bottom sheets ----------
 
