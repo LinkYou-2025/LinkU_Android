@@ -187,8 +187,6 @@ fun EmailLoginScreen(
                 GradientButtonCore(
                     text = "로그인하기",
                     enabled = isFormValid && loginState !is LoginState.Loading, //로딩 중 비활성화.
-                    activeGradient = colorTheme.maincolor,
-                    inactiveGradient = colorTheme.inactiveColor,
                     onClick = { loginViewModel?.login() }
                 )
             }

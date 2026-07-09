@@ -14,8 +14,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
@@ -24,43 +24,36 @@ import com.linku.design.util.scaler
 import com.linku.login.ui.item.StepIndicator
 
 /**
- * 회원가입에서 공통적으로 사용하는
- *  - StepIndicator, Title, BottomGradientButton 공통 처리
- *  - bottomSlot: 버튼 영역 커스텀 필요 시 사용 (ex. EmailVerificationScreen)
- *  - backgroundColor: 다크모드 확장 대비, 기본값은 ThemeColorScheme.white
- * 추후 기능 확장 혹은 ui 변경시 유연하게 대처가 가능합니다.
- * 다크모드 기능 확장까지 고려했습니다.
- * SignUpNicknameScreen, SocialNicknameScreen, SignUpGenderScreen, SocialGenderScreen
- * SignUpJobScreen, SocialJobScreen, SignUpPasswordScreen, EmailInputScreen
- * 수정 완.
+ * 회원가입 단계 화면에서 공통으로 사용하는 레이아웃.
  *
- * 흥미, 목적은 ui 나오는대로 이거 적용해서 수정할 예정.
- * */
-
-
+ * StepIndicator, Title, BottomGradientButton을 공통 처리하며
+ * SignUpNicknameScreen, SocialNicknameScreen, SignUpGenderScreen, SocialGenderScreen,
+ * SignUpJobScreen, SocialJobScreen, SignUpPasswordScreen, EmailInputScreen 에서 사용된다.
+ *
+ * @param currentStep 현재 진행 중인 회원가입 단계
+ * @param title 화면 상단에 표시할 제목
+ * @param buttonEnabled 하단 버튼(BottomGradientButton) 활성화 여부
+ * @param onNextClick 하단 버튼 클릭 시 실행할 콜백
+ * @param modifier 최상위 Box에 적용할 Modifier
+ * @param bottomSlot 버튼 영역을 커스텀해야 할 때 사용 (ex. EmailVerificationScreen). null이면 기본 BottomGradientButton 사용
+ * @param content 제목 아래에 표시할 화면별 콘텐츠
+ */
 @Composable
 internal fun SignUpStepLayout(
     currentStep: Int,
     title: String,
-    buttonText: String = "다음",
     buttonEnabled: Boolean,
     onNextClick: () -> Unit,
-    backgroundColor: Color = Color.Unspecified,          // null이면 colorTheme.white 자동 사용
-    bottomSlot: (@Composable BoxScope.() -> Unit)? = null, // EmailVerification 예외 대응
+    modifier: Modifier = Modifier,
+    bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
-    val bgColor = if (backgroundColor == Color.Unspecified) {
-        colorTheme.white
-    } else {
-        backgroundColor
-    }
-
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
-            .background(bgColor)
+            .background(colorTheme.white)
     ) {
         Column(
             modifier = Modifier
@@ -95,10 +88,8 @@ internal fun SignUpStepLayout(
             bottomSlot()
         } else {
             BottomGradientButton(
-                text = buttonText,
+                text = "다음",
                 enabled = buttonEnabled,
-                activeGradient = colorTheme.maincolor,
-                inactiveGradient = colorTheme.inactiveColor,
                 onClick = onNextClick,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
@@ -106,14 +97,14 @@ internal fun SignUpStepLayout(
     }
 }
 
-// 프리뷰 전용 래퍼 - ThemeProvider 감싸서 폰트/컬러 정상 적용
+/** 프리뷰 전용 래퍼. ThemeProvider(LinkuPreview)로 감싸 폰트/컬러가 정상 적용되도록 한다. */
 @Composable
 fun SignUpStepLayoutPreview(
     currentStep: Int,
     title: String,
-    buttonText: String = "다음",
     buttonEnabled: Boolean,
     onNextClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -121,11 +112,27 @@ fun SignUpStepLayoutPreview(
         SignUpStepLayout(
             currentStep = currentStep,
             title = title,
-            buttonText = buttonText,
             buttonEnabled = buttonEnabled,
             onNextClick = onNextClick,
+            modifier = modifier,
             bottomSlot = bottomSlot,
             content = content
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SignUpStepLayoutSamplePreview() {
+    SignUpStepLayoutPreview(
+        currentStep = 2,
+        title = "성별을\n선택해주세요",
+        buttonEnabled = true
+    ) {
+        Text(
+            text = "Preview Content",
+            fontSize = 16.sp,
+            color = MaterialTheme.linkuColors.black
         )
     }
 }

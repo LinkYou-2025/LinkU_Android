@@ -227,8 +227,6 @@ internal fun EmailVerificationScreenContent(
             BottomGradientButton(
                 text = if (emailUiState.isCodeSent) "인증하기" else "인증메일 발송",
                 enabled = isButtonEnabled,
-                activeGradient = colorTheme.maincolor,
-                inactiveGradient = colorTheme.inactiveColor,
                 onClick = {
                     if (emailUiState.isCodeSent) {
                         onEmailEvent(EmailUiEvent.VerifyCodeClicked)

@@ -4,16 +4,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -73,7 +71,7 @@ internal fun PasswordLoginTextField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height((56.scaler))
+            .widthIn(max = (372.scaler)) // 너비 반응형 적용
             .drawBehind {
                 val inset = strokeWidthPx / 2
                 drawRoundRect(
@@ -88,16 +86,22 @@ internal fun PasswordLoginTextField(
                 )
             }
             .padding(strokeWidth) //  stroke 공간 확보
+            .background(colorTheme.white, shape)
     ) {
         Box {
-            OutlinedTextField(
-                value = fieldValue,
-                onValueChange = { newValue: TextFieldValue ->
-                    fieldValue = newValue
-                    onValueChange(newValue.text)
-                },
-
-                placeholder = {
+            // 텍스트 자체에 패딩을 줘서 높이가 콘텐츠에 맞춰 보장되도록 함 (고정 height 제거)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = 22.scaler,
+                        end = 22.scaler,
+                        top = 21.scaler,
+                        bottom = 21.scaler
+                    ),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (fieldValue.text.isEmpty()) {
                     Text(
                         text = hint,
                         fontSize = 14.sp,
@@ -105,50 +109,46 @@ internal fun PasswordLoginTextField(
                         fontWeight = FontWeight.Medium,
                         color = colorTheme.gray[400]
                     )
-                },
+                }
 
-                textStyle =
-                    if (isPasswordVisible) {
-                        TextStyle(
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = colorTheme.black,
-                            letterSpacing = 0.sp
-                        )
-                    } else {
-                        TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp,
-                            color = colorTheme.black
-                        )
+                BasicTextField(
+                    value = fieldValue,
+                    onValueChange = { newValue: TextFieldValue ->
+                        fieldValue = newValue
+                        onValueChange(newValue.text)
                     },
 
-                singleLine = true,
-                enabled = enabled,
+                    textStyle =
+                        if (isPasswordVisible) {
+                            TextStyle(
+                                fontSize = 14.sp,
+                                lineHeight = 16.sp,
+                                fontWeight = FontWeight(500),
+                                color = colorTheme.black,
+                                letterSpacing = 0.sp
+                            )
+                        } else {
+                            TextStyle(
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 2.sp,
+                                color = colorTheme.black
+                            )
+                        },
 
-                visualTransformation =
-                    if (isPasswordVisible)
-                        VisualTransformation.None
-                    else
-                        DotPasswordVisualTransformation(),
+                    singleLine = true,
+                    enabled = enabled,
+                    cursorBrush = SolidColor(colorTheme.black),
 
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorTheme.white, shape),
-                //.padding(end = (40.scaler)),// 👁 아이콘 공간
+                    visualTransformation =
+                        if (isPasswordVisible)
+                            VisualTransformation.None
+                        else
+                            DotPasswordVisualTransformation(),
 
-                shape = shape,
-
-                colors = TextFieldDefaults.colors(
-                    cursorColor = colorTheme.black,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
+                    modifier = Modifier.fillMaxWidth()
                 )
-            )
+            }
 
             // 👁 눈 아이콘
             Image(

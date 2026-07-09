@@ -6,12 +6,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +20,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
@@ -34,11 +30,10 @@ import com.linku.design.util.scaler
 //젠더, 직업 선택 버튼
 @Composable
 internal fun OptionButton(
+    modifier: Modifier = Modifier,
     text: String,
     selected: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    height: Dp = 54.dp
 ) {
 
     val colorTheme = MaterialTheme.linkuColors
@@ -52,17 +47,7 @@ internal fun OptionButton(
 
     Box(
         modifier = modifier
-            .then(
-                if (selected) {
-                    Modifier
-                        .fillMaxWidth()
-                        .height((54.scaler))
-                } else {
-                    Modifier
-                        .width((372.scaler))
-                        .height((54.scaler))
-                }
-            )
+            .fillMaxWidth()
             .clip(shape)
             .then(
                 if (selected) {
@@ -85,11 +70,17 @@ internal fun OptionButton(
                 shape = shape
             )
             .clickable(onClick = onClick)
-            .padding(horizontal = (22.scaler)),
+            // 높이를 고정하지 않고 텍스트 위아래 패딩으로 보장 (글씨 크기 반응형, LoginTextField와 동일 스펙)
+            .padding(
+                start = (22.scaler),
+                end = (22.scaler),
+                top = (21.scaler),
+                bottom = (21.scaler)
+            ),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {

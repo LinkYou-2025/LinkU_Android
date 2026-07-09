@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +15,6 @@ import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 // TODO: 백엔드 topTags 응답으로 교체 (랭킹 순서 그대로, 최대 9개) -> ui 확인용 임.
@@ -58,7 +56,6 @@ private fun CurationKeywordDetailContent(
     onGoHome: () -> Unit = {},
     onKeywordClick: (String) -> Unit = {},
 ) {
-    val colorTheme = MaterialTheme.linkuColors
     val isEmpty = keywords.isEmpty()
 
     BackHandler { onBack() }
@@ -96,8 +93,6 @@ private fun CurationKeywordDetailContent(
             BottomGradientButton(
                 text = "링크 저장하러 가기",
                 enabled = true,
-                activeGradient = colorTheme.maincolor,
-                inactiveGradient = colorTheme.inactiveColor,
                 onClick = onGoHome,
             )
         }

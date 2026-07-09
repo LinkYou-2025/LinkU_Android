@@ -77,8 +77,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 BottomGradientButton(
                     text = buttonText,
                     enabled = canProceed,
-                    activeGradient = colorTheme.maincolor,
-                    inactiveGradient = colorTheme.inactiveColor,
                     onClick = onButtonClick
                 )
             }

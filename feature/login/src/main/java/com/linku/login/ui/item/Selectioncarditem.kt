@@ -61,8 +61,8 @@ internal fun SelectionCardItem(
 
     Box(
         modifier = cardModifier
-            .width(140.dp)
-            .height(140.dp)
+            .width(130.dp)
+            .height(130.dp) // TODO : 박스 크기
             .clip(RoundedCornerShape(22.dp))
             .background(colorTheme.white)
             .toggleable(
@@ -70,7 +70,7 @@ internal fun SelectionCardItem(
                 role = Role.Checkbox,
                 onValueChange = { onClick() }
             )
-            .padding(start = 20.dp, top = 25.dp, end = 20.dp, bottom = 25.dp)
+            .padding(start = 18.dp, top = 25.dp, end = 18.dp, bottom = 25.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -85,7 +85,7 @@ internal fun SelectionCardItem(
             )
             Text(
                 text = text,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colorTheme.black
@@ -128,7 +128,7 @@ fun SelectionCardItemComparePreview() {
                 onClick = {}
             )
             SelectionCardItem(
-                text = "인사이트 모으기",
+                text = "인사이트\n모으기",
                 isSelected = true,
                 iconRes = R.drawable.ic_purpose_insights,
                 onClick = {}
