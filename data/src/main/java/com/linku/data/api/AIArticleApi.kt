@@ -8,7 +8,7 @@ import retrofit2.http.Path
 interface AIArticleApi {
     // AI 요약 보기
     @POST("aiarticle/{linkuid}")
-    suspend fun getAiarticle(
+    suspend fun getAiArticle(
         @Path("linkuid") linkuid: Long
     ): BaseResponse<AiArticleResultDTO>
 }
