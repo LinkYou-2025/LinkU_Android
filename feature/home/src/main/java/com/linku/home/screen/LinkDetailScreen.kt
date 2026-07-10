@@ -593,7 +593,7 @@ fun LinkDetailScreen(
                                 },
                                 {
                                     isDeleteModalVisible = false
-                                    editToastMessage = "삭제에 실패했어요. 다시 시도해 주세요."
+                                    editToastMessage = "링크를 삭제하지 못했어요. 다시 시도해 주세요."
                                     isEditToastVisible = true
                                 }
                             )
