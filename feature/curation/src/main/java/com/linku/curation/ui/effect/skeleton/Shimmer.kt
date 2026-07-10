@@ -11,7 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -46,16 +46,13 @@ fun Modifier.shimmer(
 
     return this
         .clip(shape)
-        .drawWithCache {
+        .drawBehind {
             val brush = Brush.linearGradient(
                 colors = colors,
                 start = Offset(shift - size.width, 0f),
                 end = Offset(shift, size.height)
             )
-
-            onDrawBehind {
-                drawRect(brush)
-            }
+            drawRect(brush)
         }
 }
 
