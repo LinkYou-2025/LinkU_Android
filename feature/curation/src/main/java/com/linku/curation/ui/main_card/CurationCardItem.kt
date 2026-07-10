@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.linku.curation.R
 import com.linku.curation.ui.item.CurationCheckOutButton
+import com.linku.curation.ui.mapper.resolveMonthlyCurationImage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -41,6 +42,12 @@ data class CurationCardContent(
     val title: String,
     val description: String
 )
+
+// 큐레이션은 항상 "지난달" 기준으로 보여준다 (1번 카드 멘트 + 이미지가 공유하는 기준월)
+private fun getPreviousMonth(): Int {
+    val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
+    return cal.get(Calendar.MONTH) + 1
+}
 
 // 카드별 고정 컨텐츠 (1번은 동적으로 연도/월 계산) -> 이건 멘트 고정이라고 합니다!(돈 워리)
 internal fun getCurationCardContents(): List<CurationCardContent> {
@@ -69,7 +76,7 @@ internal fun getCurationCardContents(): List<CurationCardContent> {
  *
  * @param modifier 외부에서 전달하는 Modifier (기본값: Modifier)
  * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨.
- *                 단, page가 1(키워드) 또는 2(리마인드)인 경우 이 값과 무관하게 고정 이미지가 표시됨 (추후 API 확장을 위해 파라미터는 유지)
+ *                 단, page가 0(월간, 지난달 기준)/1(키워드)/2(리마인드)인 경우 이 값과 무관하게 고정 이미지가 표시됨 (추후 API 확장을 위해 파라미터는 유지)
  * @param page 현재 카드의 0-based 페이지 인덱스. getCurationCardContents()에서 해당 인덱스의 콘텐츠를 가져오는 데도 사용됨
  * @param totalPage 전체 카드 페이지 수 (페이지 인디케이터 표시용, 기본값: 3)
  * @param onCheckOutClick 카드 우측 하단 체크아웃 버튼 클릭 콜백
@@ -89,10 +96,12 @@ internal fun CurationCardItem(
     val contents = getCurationCardContents()
     val content = contents.getOrNull(page) ?: contents[0]
 
-    // 2, 3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
-    val fixedImage = when (page) {
-        1 -> R.drawable.img_curation_keyword
-        2 -> R.drawable.img_curation_remind
+    // 1~3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
+    // 1번(월간)은 큐레이션이 항상 보여주는 "지난달" 기준 이미지
+    val fixedImagePainter = when (page) {
+        0 -> resolveMonthlyCurationImage(getPreviousMonth())
+        1 -> painterResource(R.drawable.img_curation_keyword)
+        2 -> painterResource(R.drawable.img_curation_remind)
         else -> null
     }
 
@@ -106,9 +115,9 @@ internal fun CurationCardItem(
             .clip(RoundedCornerShape(24.scaler))
             .background(colorTheme.curationCardBackground)
     ) {
-        if (fixedImage != null) {
+        if (fixedImagePainter != null) {
             Image(
-                painter = painterResource(id = fixedImage),
+                painter = fixedImagePainter,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
