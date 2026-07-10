@@ -140,25 +140,37 @@ fun HomeScreen(
     val density = LocalDensity.current
     val collapseThresholdDp = remember { 20.dp }
 
-    // firstVisibleItemIndex>0 이면 이미 헤더가 올라간 상태라 무조건 접힘
+    var hasRequestedRecommend by remember { mutableStateOf(false) }
+
     LaunchedEffect(
         listState.firstVisibleItemIndex,
-        listState.firstVisibleItemScrollOffset,
-        density
+        listState.firstVisibleItemScrollOffset
     ) {
-        val scrollOffsetDp = with(density) { listState.firstVisibleItemScrollOffset.toDp() }
+        val isAtTop =
+            listState.firstVisibleItemIndex == 0 &&
+                    listState.firstVisibleItemScrollOffset == 0
 
-        val shouldCollapse =
-            listState.firstVisibleItemIndex > 0 || scrollOffsetDp > collapseThresholdDp
+        if (isAtTop && isTopBarLockedCollapsed) {
+            isTopBarLockedCollapsed = false
+            hasRequestedRecommend = false
+            showRecs = false
+            onClearNeedMoreNotice()
+        } else if (!isAtTop) {
+            val scrollOffsetDp = with(density) {
+                listState.firstVisibleItemScrollOffset.toDp()
+            }
 
-        // "접힘 고정" 상태에 스크롤 접힘을 누적
-        isTopBarLockedCollapsed = isTopBarLockedCollapsed || shouldCollapse
+            val shouldCollapse =
+                listState.firstVisibleItemIndex > 0 ||
+                        scrollOffsetDp > collapseThresholdDp
+
+            if (shouldCollapse) {
+                isTopBarLockedCollapsed = true
+            }
+        }
     }
 
-    // 고정 접힘이 우선 (collapsedByScroll 변수 삭제)
     val topBarCollapsed = isTopBarLockedCollapsed
-
-    var hasRequestedRecommend by remember { mutableStateOf(false) }
 
     val onRecommendClick: () -> Unit = {
         hasRequestedRecommend = true // 클릭 기록

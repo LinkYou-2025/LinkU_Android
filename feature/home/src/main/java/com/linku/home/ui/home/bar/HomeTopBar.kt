@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -70,6 +74,8 @@ fun HomeTopBar(
     onAlarmClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val density = LocalDensity.current
+    val expandDragThreshold = with(density) { 20.dp.toPx() }
 
     val buttonBrush =
         if (recommendEnabled) Basic.maincolor
@@ -79,6 +85,8 @@ fun HomeTopBar(
                 Color(0xFFC800FF).copy(alpha = 0.2f)
             )
         )
+
+    var draggedDistance by remember { mutableFloatStateOf(0f) }
 
     Column(
         modifier = Modifier
@@ -95,24 +103,16 @@ fun HomeTopBar(
                 .padding(start = 19.dp, end = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 로고
             Text(
-                // 텍스트(그라데이션 및 스타일 지정)
                 text = buildAnnotatedString {
                     withStyle(
                         SpanStyle(
                             fontSize = 24.sp,
-
-                            // 사용할 폰트 (태백 폰트)
                             fontFamily = Taebaek.font,
-
                             fontWeight = FontWeight.Normal,
-
-                            // 텍스트 그라데이션 색상(링큐 메인 색상)
                             brush = MainColor,
                         )
                     ) {
-                        // 실제 표시할 텍스트
                         append("링큐")
                     }
                 }
@@ -120,7 +120,6 @@ fun HomeTopBar(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // 알림
             Box(
                 modifier = Modifier
                     .size(30.dp)
@@ -135,7 +134,7 @@ fun HomeTopBar(
 
         Spacer(modifier = Modifier.height(13.44.dp))
 
-        HomeSearchBar()  // 검색창
+        HomeSearchBar()
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -187,7 +186,6 @@ fun HomeTopBar(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
-                // 링크 추천 버튼
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,7 +236,34 @@ fun HomeTopBar(
                     modifier = Modifier
                         .width(44.dp)
                         .align(Alignment.CenterHorizontally)
-                        .noRippleClickable { onExpandClick() }
+                        .pointerInput(expandDragThreshold) {
+                            detectVerticalDragGestures(
+                                onDragStart = {
+                                    draggedDistance = 0f
+                                },
+                                onVerticalDrag = { change, dragAmount ->
+                                    change.consume()
+
+                                    // 아래 방향 드래그만 누적
+                                    if (dragAmount > 0f) {
+                                        draggedDistance += dragAmount
+                                    }
+                                },
+                                onDragEnd = {
+                                    if (draggedDistance >= expandDragThreshold) {
+                                        onExpandClick()
+                                    }
+
+                                    draggedDistance = 0f
+                                },
+                                onDragCancel = {
+                                    draggedDistance = 0f
+                                }
+                            )
+                        }
+                        .noRippleClickable {
+                            onExpandClick()
+                        }
                 )
             }
         }
