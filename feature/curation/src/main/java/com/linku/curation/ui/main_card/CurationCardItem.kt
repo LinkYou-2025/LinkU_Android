@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -98,8 +99,9 @@ internal fun CurationCardItem(
 
     // 1~3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
     // 1번(월간)은 큐레이션이 항상 보여주는 "지난달" 기준 이미지
+    val previousMonth = remember { getPreviousMonth() }
     val fixedImagePainter = when (page) {
-        0 -> resolveMonthlyCurationImage(getPreviousMonth())
+        0 -> resolveMonthlyCurationImage(previousMonth)
         1 -> painterResource(R.drawable.img_curation_keyword)
         2 -> painterResource(R.drawable.img_curation_remind)
         else -> null
