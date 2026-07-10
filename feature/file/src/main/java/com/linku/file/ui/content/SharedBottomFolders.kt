@@ -25,30 +25,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.theme.linkuColors
-import com.linku.file.FileViewModel
 import com.linku.file.ui.item.items.EmptyFolderItemLayout
-import com.linku.file.viewmodel.edit.state.EditStateViewModel
-import com.linku.file.viewmodel.folder.state.FolderState
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 private const val INTER_LAYER_PADDING = 18.51
 private const val ITEM_RATIO = 10f / 174f
 
-@Suppress("UNUSED_PARAMETER")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SharedBottomFolderGrid(
-    fileViewModel: FileViewModel,
-    folderStateViewModel: FolderStateViewModel,
-    editStateViewModel: EditStateViewModel,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp)
+    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
+    folderList: List<FolderSimpleInfo>,
+    onFolderClick: (FolderSimpleInfo) -> Unit,
+    onDeleteFolder: (FolderSimpleInfo) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
-    val folderList by fileViewModel.sharedBottomFolders.collectAsStateWithLifecycle()
     val layoutDirection = LocalLayoutDirection.current
 
     BoxWithConstraints(
@@ -78,9 +72,7 @@ fun SharedBottomFolderGrid(
                             indication = null,
                             interactionSource = interactionSource,
                             onClick = {
-                                fileViewModel.getLinks(folder.folderId)
-                                folderStateViewModel.updateSelectedBottomSharedFolder(folder)
-                                folderStateViewModel.updateFolderState(FolderState.LINKS)
+                                onFolderClick(folder)
                             },
                             onLongClick = {
                                 deleteModalVisible = true
@@ -92,7 +84,7 @@ fun SharedBottomFolderGrid(
                 ModalWindow(
                     visible = deleteModalVisible,
                     onOkay = {
-                        fileViewModel.deleteSharedFolder(folder.folderId)
+                        onDeleteFolder(folder)
                         deleteModalVisible = false
                     },
                     onDismiss = { deleteModalVisible = false },

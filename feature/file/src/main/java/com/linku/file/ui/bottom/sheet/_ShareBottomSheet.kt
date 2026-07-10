@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +59,6 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.ThemeColorScheme
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.OuterShadowResourceImage
-import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Before
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Done
@@ -68,7 +66,6 @@ import com.linku.file.ui.bottom.sheet.LinkGenerateState.Error
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Loading
 import com.linku.file.ui.bottom.sheet.ScreenState.Main
 import com.linku.file.ui.bottom.sheet.ScreenState.Select
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 // 전체 화면 높이
 private const val FULL_HEIGHT = 917f
@@ -260,21 +257,22 @@ private enum class LinkGenerateState {
 @Composable
 internal fun _ShareBottomSheet(
     modifier: Modifier,
-    fileViewModel: FileViewModel,
-    folderStateViewModel: FolderStateViewModel
+    visible: Boolean,
+    folderTree: List<FolderSimpleInfo>,
+    onLoadFolderTree: () -> Unit,
+    onDismissRequest: () -> Unit,
+    onLinkGenerate: (Long) -> String?
 ){
-    if(folderStateViewModel.shareBottomSheetVisible){
+    if(visible){
         LaunchedEffect(Unit) {
-            fileViewModel.getFolderTree()
+            onLoadFolderTree()
         }
 
         ShareBottomSheetLayout(
             modifier = modifier,
-            folderTree = fileViewModel.folderTree.collectAsState().value,
-            onDismissRequest = {
-                folderStateViewModel.updateShareBottomSheetVisible(false)
-            },
-            onLinkGenerate = fileViewModel::shareFolder
+            folderTree = folderTree,
+            onDismissRequest = onDismissRequest,
+            onLinkGenerate = onLinkGenerate
         )
     }
 }

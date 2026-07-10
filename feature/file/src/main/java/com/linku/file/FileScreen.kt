@@ -86,6 +86,9 @@ fun FileScreen(
     val subFolders by fileViewModel.subFolders.collectAsStateWithLifecycle()
     val links by fileViewModel.links.collectAsStateWithLifecycle()
     val notCategorizationLinks by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
+    val sharedTopFolders by fileViewModel.sharedTopFolders.collectAsStateWithLifecycle()
+    val sharedBottomFolders by fileViewModel.sharedBottomFolders.collectAsStateWithLifecycle()
+    val folderTree by fileViewModel.folderTree.collectAsStateWithLifecycle()
     val selectedTopFolderColorStyle =
         categoryColorMap[folderStateViewModel.selectedTopFolder?.folderName]
             ?: CategoryColorStyle.categoryStyleList[0]
@@ -164,9 +167,17 @@ fun FileScreen(
                         )
                     }else{
                         SharedTopFolderGrid(
-                            fileViewModel = fileViewModel,
-                            folderStateViewModel = folderStateViewModel,
-                            editStateViewModel = editStateViewModel
+                            folderList = sharedTopFolders,
+                            onMyFoldersClick = {
+                                folderStateViewModel.updateIsSharedFolders(false)
+                                folderStateViewModel.updateSelectedSharedFolder(null)
+                                folderStateViewModel.updateFolderState(FolderState.TOP)
+                            },
+                            onSharedFolderClick = { folder ->
+                                folderStateViewModel.updateSelectedSharedFolder(folder)
+                                fileViewModel.getSharedBottomFolders(folder)
+                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                            }
                         )
                     }
                 }
@@ -204,9 +215,15 @@ fun FileScreen(
                         )
                     }else{
                         SharedBottomFolderGrid(
-                            fileViewModel = fileViewModel,
-                            editStateViewModel = editStateViewModel,
-                            folderStateViewModel = folderStateViewModel
+                            folderList = sharedBottomFolders,
+                            onFolderClick = { folder ->
+                                fileViewModel.getLinks(folder.folderId)
+                                folderStateViewModel.updateSelectedBottomSharedFolder(folder)
+                                folderStateViewModel.updateFolderState(FolderState.LINKS)
+                            },
+                            onDeleteFolder = { folder ->
+                                fileViewModel.deleteSharedFolder(folder.folderId)
+                            }
                         )
                     }
                 }
@@ -338,8 +355,13 @@ fun FileScreen(
     // 폴더 공유 바텀 시트
     _ShareBottomSheet(
         modifier = Modifier.fillMaxWidth(),
-        fileViewModel = fileViewModel,
-        folderStateViewModel = folderStateViewModel,
+        visible = folderStateViewModel.shareBottomSheetVisible,
+        folderTree = folderTree,
+        onLoadFolderTree = fileViewModel::getFolderTree,
+        onDismissRequest = {
+            folderStateViewModel.updateShareBottomSheetVisible(false)
+        },
+        onLinkGenerate = fileViewModel::shareFolder
     )
 
     // ---------- bottom sheets ----------

@@ -15,38 +15,31 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.SharedFolderInfo
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
-import com.linku.file.FileViewModel
 import com.linku.file.ui.item.items.EmptyFolderItemLayout
-import com.linku.file.viewmodel.edit.state.EditStateViewModel
-import com.linku.file.viewmodel.folder.state.FolderState
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 private const val INTER_LAYER_PADDING = 18.51
 private const val ITEM_RATIO = 10f / 174f
 private const val SECTION_TITLE_TOP_PADDING = 21.49
 private const val SECTION_TITLE_BOTTOM_PADDING = 1.49
 
-@Suppress("UNUSED_PARAMETER")
 @Composable
 fun SharedTopFolderGrid(
-    fileViewModel: FileViewModel,
-    folderStateViewModel: FolderStateViewModel,
-    editStateViewModel: EditStateViewModel,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp)
+    contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
+    folderList: List<SharedFolderInfo>,
+    onMyFoldersClick: () -> Unit,
+    onSharedFolderClick: (SharedFolderInfo) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
-    val folderList by fileViewModel.sharedTopFolders.collectAsStateWithLifecycle()
     val layoutDirection = LocalLayoutDirection.current
 
     BoxWithConstraints(
@@ -70,9 +63,7 @@ fun SharedTopFolderGrid(
                     modifier = Modifier
                         .fillMaxSize()
                         .noRippleClickable {
-                            folderStateViewModel.updateIsSharedFolders(false)
-                            folderStateViewModel.updateSelectedSharedFolder(null)
-                            folderStateViewModel.updateFolderState(FolderState.TOP)
+                            onMyFoldersClick()
                         },
                     folderName = "\uB098\uC758 \uD3F4\uB354"
                 )
@@ -109,9 +100,7 @@ fun SharedTopFolderGrid(
                     modifier = Modifier
                         .fillMaxSize()
                         .noRippleClickable {
-                            folderStateViewModel.updateSelectedSharedFolder(folder)
-                            fileViewModel.getSharedBottomFolders(folder)
-                            folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                            onSharedFolderClick(folder)
                         },
                     folderName = "${folder.nickname}\uC758 \uD3F4\uB354"
                 )
