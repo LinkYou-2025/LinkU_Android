@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.SituationOptions
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
 import com.linku.design.modifier.noRippleClickable
@@ -58,36 +59,6 @@ import com.linku.home.component.ClipboardLinkPasteBanner
 import com.linku.home.component.rememberClipboardUrl
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.launch
-
-data class Situation(val id: Long, val name: String)
-
-fun situationsFor(jobId: Long): List<Situation> = when (jobId) {
-    1L -> listOf( // 고등학생 1~8
-        Situation(1, "통학 중"), Situation(2, "공부 중"), Situation(3, "식사 중"), Situation(4, "시험 준비"),
-        Situation(5, "친구랑"), Situation(6, "쇼핑 중"), Situation(7, "휴식 중"), Situation(8, "자기 전")
-    )
-    2L -> listOf( // 대학생 9~16
-        Situation(9, "과제 중"), Situation(10, "통학 중"), Situation(11, "쇼핑 중"), Situation(12, "알바 중"),
-        Situation(13, "트렌드 확인"), Situation(14, "데이트 중"), Situation(15, "휴식 중"), Situation(16, "자기 전")
-    )
-    3L -> listOf( // 직장인 17~24
-        Situation(17, "출퇴근"), Situation(18, "트렌드 확인"), Situation(19, "업무 중"), Situation(20, "커리어 고민"),
-        Situation(21, "쇼핑 중"), Situation(22, "데이트 중"), Situation(23, "휴식 중"), Situation(24, "자기 전")
-    )
-    4L -> listOf( // 자영업자 25~32
-        Situation(25, "출퇴근"), Situation(26, "업무 준비 중"), Situation(27, "데이트 중"), Situation(28, "식사"),
-        Situation(29, "쇼핑 중"), Situation(30, "트렌드 확인"), Situation(31, "휴식 중"), Situation(32, "자기 전")
-    )
-    5L -> listOf( // 프리랜서 33~40
-        Situation(33, "작업 중"), Situation(34, "쇼핑 중"), Situation(35, "트렌드 확인"), Situation(36, "데이트 중"),
-        Situation(37, "운동 중"), Situation(38, "식사"), Situation(39, "휴식 중"), Situation(40, "자기 전")
-    )
-    6L -> listOf( // 취준생 41~48
-        Situation(41, "자소서 작성"), Situation(42, "면접 준비"), Situation(43, "요리 중"), Situation(44, "트렌드 확인"),
-        Situation(45, "쇼핑 중"), Situation(46, "운동 중"), Situation(47, "휴식 중"), Situation(48, "자기 전")
-    )
-    else -> situationsFor(3L) // 혹시 모를 기본값(직장인 세트)
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -135,7 +106,7 @@ fun HomeScreen(
     var isTopBarLockedCollapsed by remember { mutableStateOf(false) }
 
     // 직업별 상황 리스트
-    val jobSituations = remember(jobId) { situationsFor(jobId) }
+    val jobSituations = remember(jobId) { SituationOptions.situationsFor(jobId) }
 
     val density = LocalDensity.current
     val collapseThresholdDp = remember { 20.dp }

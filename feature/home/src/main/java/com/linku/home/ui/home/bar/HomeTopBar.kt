@@ -43,6 +43,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.Situation
+import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
@@ -51,7 +53,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
 import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
-import com.linku.home.screen.Situation
 import com.linku.home.ui.home.bar.component.EmotionIconSelector
 import com.linku.home.ui.home.bar.component.HomeSearchBar
 import com.linku.home.ui.home.bar.component.SelectedSummaryRow
@@ -276,16 +277,7 @@ fun PreviewHomeTopBar() {
     var selectedEmotion by remember { mutableStateOf<Long?>(1L) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
 
-    val sampleSituations = listOf(
-        Situation(9, "트렌드 확인"),
-        Situation(10, "과제 중"),
-        Situation(11, "쇼핑 중"),
-        Situation(12, "데이트 중"),
-        Situation(13, "통학 중"),
-        Situation(14, "알바 중"),
-        Situation(15, "휴식 중"),
-        Situation(16, "자기 전"),
-    )
+    val sampleSituations = SituationOptions.situationsFor(jobId = 2L)
 
     HomeTopBar(
         isNoticeExist = true,
@@ -296,10 +288,10 @@ fun PreviewHomeTopBar() {
         onTaskChange = { selectedTask = it },
         situations = sampleSituations,
         recommendEnabled = (selectedEmotion != null && selectedTask != null),
-        onRecommendClick = { /* preview no-op */ },
+        onRecommendClick = { },
         isCollapsed = false,
         onExpandClick = { },
         hasRequestedRecommend = false,
-        onAlarmClick = {}
+        onAlarmClick = { }
     )
 }
