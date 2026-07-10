@@ -68,7 +68,8 @@ internal fun getCurationCardContents(): List<CurationCardContent> {
  * 큐레이션 메인 카드 아이템 (이미지 + 타이틀 + 설명 + 페이지 인디케이터 + 체크아웃 버튼)
  *
  * @param modifier 외부에서 전달하는 Modifier (기본값: Modifier)
- * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨
+ * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨.
+ *                 단, page가 1(키워드) 또는 2(리마인드)인 경우 이 값과 무관하게 고정 이미지가 표시됨 (추후 API 확장을 위해 파라미터는 유지)
  * @param page 현재 카드의 0-based 페이지 인덱스. getCurationCardContents()에서 해당 인덱스의 콘텐츠를 가져오는 데도 사용됨
  * @param totalPage 전체 카드 페이지 수 (페이지 인디케이터 표시용, 기본값: 3)
  * @param onCheckOutClick 카드 우측 하단 체크아웃 버튼 클릭 콜백
@@ -88,6 +89,13 @@ internal fun CurationCardItem(
     val contents = getCurationCardContents()
     val content = contents.getOrNull(page) ?: contents[0]
 
+    // 2, 3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
+    val fixedImage = when (page) {
+        1 -> R.drawable.img_curation_keyword
+        2 -> R.drawable.img_curation_remind
+        else -> null
+    }
+
     Box(
         modifier = modifier
             .shadow(
@@ -98,7 +106,14 @@ internal fun CurationCardItem(
             .clip(RoundedCornerShape(24.scaler))
             .background(colorTheme.curationCardBackground)
     ) {
-        if (resolvedImageUrl == null) {
+        if (fixedImage != null) {
+            Image(
+                painter = painterResource(id = fixedImage),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        } else if (resolvedImageUrl == null) {
             Image(
                 painter = painterResource(id = fallbackImage),
                 contentDescription = null,
