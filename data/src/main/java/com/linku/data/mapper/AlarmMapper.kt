@@ -1,9 +1,11 @@
 package com.linku.data.mapper
 
+import com.linku.core.model.alarm.AlarmDetail
 import com.linku.core.model.alarm.AlarmList
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
+import com.linku.data.api.dto.alarm.AlarmDetailDTO
 import com.linku.data.api.dto.alarm.AlarmSettingDTO
 import com.linku.data.api.dto.alarm.AlarmSummaryDTO
 import com.linku.data.api.dto.alarm.AlarmsDTO
@@ -36,4 +38,11 @@ object AlarmMapper {
         isCurationEnabled = isCurationEnabled,
         isNoticeEnabled = isNoticeEnabled
     )
+
+    fun AlarmDetailDTO.toDomain(): AlarmDetail = AlarmDetail(
+        title = title,
+        content = content,
+        noticeDate = createdAt.toDate()
+    )
+
 }

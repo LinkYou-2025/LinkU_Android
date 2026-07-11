@@ -1,6 +1,7 @@
 package com.linku.core.repository
 
 import androidx.paging.PagingData
+import com.linku.core.model.alarm.AlarmDetail
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
@@ -20,4 +21,9 @@ interface AlarmRepository {
     suspend fun getFCMTokenFromFCM(): Result<String>
 
     suspend fun registerFCMToken(token: String): Result<Unit>
+
+    suspend fun getAlarmDetail(alarmId: Long): Result<AlarmDetail>
+
+    suspend fun readAlarm(alarmId: Long): Result<Unit>
+
 }

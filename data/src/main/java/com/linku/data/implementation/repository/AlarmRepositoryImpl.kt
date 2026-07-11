@@ -5,6 +5,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.google.firebase.messaging.FirebaseMessaging
+import com.linku.core.model.alarm.AlarmDetail
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
@@ -86,6 +87,20 @@ class AlarmRepositoryImpl @Inject constructor(
             Log.d("FCM", "fcm 토큰 서버 전송 완료")
         }.onFailure { e ->
             Log.e("FCM", "fcm 토큰 서버 전송 실패: ${e::class.simpleName} - ${e.message}")
+        }
+    }
+
+    override suspend fun getAlarmDetail(alarmId: Long): Result<AlarmDetail> {
+        return safeApiCall {
+            alarmApi.getAlarmDetail(alarmId)
+        }.map {
+            it.toDomain()
+        }
+    }
+
+    override suspend fun readAlarm(alarmId: Long): Result<Unit> {
+        return safeApiCallUnit {
+            alarmApi.readAlarm(alarmId)
         }
     }
 
