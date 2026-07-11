@@ -4,9 +4,9 @@ import com.linku.core.model.alarm.AlarmList
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
-import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
-import com.linku.data.api.dto.server.alarm.AlarmSummaryDTO
-import com.linku.data.api.dto.server.alarm.AlarmsDTO
+import com.linku.data.api.dto.alarm.AlarmSettingDTO
+import com.linku.data.api.dto.alarm.AlarmSummaryDTO
+import com.linku.data.api.dto.alarm.AlarmsDTO
 
 /**
  * 서버 계층의 알람 관련 데이터 전송 객체(DTO)를 도메인 모델로 변환하는 유틸리티 객체입니다.

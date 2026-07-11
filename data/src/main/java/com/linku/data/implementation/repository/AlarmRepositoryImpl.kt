@@ -11,8 +11,8 @@ import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
 import com.linku.data.api.alarm.AlarmApi
-import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
-import com.linku.data.api.dto.server.alarm.FcmTokenRequest
+import com.linku.data.api.dto.alarm.AlarmSettingRequest
+import com.linku.data.api.dto.alarm.FcmTokenRequest
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.AlarmMapper.toDomain

@@ -1,14 +1,16 @@
 package com.linku.data.api.alarm
 
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.alarm.AlarmSettingDTO
-import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
-import com.linku.data.api.dto.server.alarm.AlarmsDTO
-import com.linku.data.api.dto.server.alarm.FcmTokenRequest
+import com.linku.data.api.dto.alarm.AlarmDetailDTO
+import com.linku.data.api.dto.alarm.AlarmSettingDTO
+import com.linku.data.api.dto.alarm.AlarmSettingRequest
+import com.linku.data.api.dto.alarm.AlarmsDTO
+import com.linku.data.api.dto.alarm.FcmTokenRequest
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface AlarmApi {
@@ -32,6 +34,16 @@ interface AlarmApi {
     @POST("alarm/fcmtoken")
     suspend fun registerFcmToken(
         @Body body: FcmTokenRequest
+    ): BaseResponse<Any?>
+
+    @GET("alarm/detail")
+    suspend fun getAlarmDetail(
+        @Query("alarmId") alarmId: Long
+    ): BaseResponse<AlarmDetailDTO>
+
+    @PATCH("alarm/{alarmId}/read")
+    suspend fun readAlarm(
+        @Path("alarmId") alarmId: Long,
     ): BaseResponse<Any?>
 
 }
