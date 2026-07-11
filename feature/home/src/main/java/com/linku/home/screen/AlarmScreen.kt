@@ -119,7 +119,8 @@ private fun AlarmScreenContent(
     ) {
         AlarmTopBar(
             onBack = onBack,
-            onHomeClick = onNavigateToHome
+            onHomeClick = onNavigateToHome,
+            topText = "알림함"
         )
 
         Spacer(modifier = Modifier.height(30.dp))
