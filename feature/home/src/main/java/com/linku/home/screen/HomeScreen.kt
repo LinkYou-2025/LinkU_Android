@@ -111,27 +111,16 @@ fun HomeScreen(
         listState.firstVisibleItemIndex,
         listState.firstVisibleItemScrollOffset
     ) {
-        val isAtTop =
-            listState.firstVisibleItemIndex == 0 &&
-                    listState.firstVisibleItemScrollOffset == 0
+        val scrollOffsetDp = with(density) {
+            listState.firstVisibleItemScrollOffset.toDp()
+        }
 
-        if (isAtTop && isTopBarLockedCollapsed) {
-            isTopBarLockedCollapsed = false
-            hasRequestedRecommend = false
-            isRecommendMode = false
-            onClearNeedMoreNotice()
-        } else if (!isAtTop) {
-            val scrollOffsetDp = with(density) {
-                listState.firstVisibleItemScrollOffset.toDp()
-            }
+        val shouldCollapse =
+            listState.firstVisibleItemIndex > 0 ||
+                    scrollOffsetDp > collapseThresholdDp
 
-            val shouldCollapse =
-                listState.firstVisibleItemIndex > 0 ||
-                        scrollOffsetDp > collapseThresholdDp
-
-            if (shouldCollapse) {
-                isTopBarLockedCollapsed = true
-            }
+        if (shouldCollapse) {
+            isTopBarLockedCollapsed = true
         }
     }
 
