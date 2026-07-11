@@ -24,8 +24,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -52,6 +50,7 @@ fun AlarmScreen(
     onBack: () -> Unit,
     onNavigateToSetting: () -> Unit,
     onNavigateToHome: () -> Unit,
+    onNavigateToNotice: (alarmId: Long) -> Unit,
     viewModel: AlarmViewModel
 ) {
     val pushAlarmEnabled by viewModel.pushAlarmEnabled.collectAsStateWithLifecycle()
@@ -93,7 +92,8 @@ fun AlarmScreen(
         pullToRefreshState = pullToRefreshState,
         onBack = onBack,
         onNavigateToMyPage = onNavigateToSetting,
-        onNavigateToHome = onNavigateToHome
+        onNavigateToHome = onNavigateToHome,
+        onNavigateToNotice = onNavigateToNotice
     )
 }
 
@@ -109,6 +109,7 @@ private fun AlarmScreenContent(
     onBack: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToHome: () -> Unit,
+    onNavigateToNotice: (alarmId: Long) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -248,7 +249,8 @@ private fun AlarmScreenContentPreview() {
             pullToRefreshState = rememberPullToRefreshState(),
             onBack = {},
             onNavigateToMyPage = {},
-            onNavigateToHome = {}
+            onNavigateToHome = {},
+            onNavigateToNotice = {}
         )
     }
 }

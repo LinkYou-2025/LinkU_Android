@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.design.util.WhiteSystemBars
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
+import com.linku.home.screen.NoticeScreen
 import com.linku.home.viewmodel.AlarmViewModel
 
 @Composable
@@ -122,7 +123,16 @@ fun HomeApp(
                         launchSingleTop = true
                     }
                 },
-                viewModel = alarmViewModel
+                viewModel = alarmViewModel,
+                onNavigateToNotice = { alarmID ->
+                    navController.navigate("notice/$alarmID")
+                },
+            )
+        }
+
+        composable("notice") {
+            NoticeScreen(
+                onBack = { navController.popBackStack() }
             )
         }
     }

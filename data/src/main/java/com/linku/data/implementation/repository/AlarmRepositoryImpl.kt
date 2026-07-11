@@ -100,6 +100,7 @@ class AlarmRepositoryImpl @Inject constructor(
 
     override suspend fun readAlarm(alarmId: Long): Result<Unit> {
         return safeApiCallUnit {
+            Log.d("AlarmList","알람 읽음 처리 완료")
             alarmApi.readAlarm(alarmId)
         }
     }

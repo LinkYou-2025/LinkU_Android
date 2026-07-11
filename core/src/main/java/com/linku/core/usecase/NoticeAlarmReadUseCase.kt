@@ -17,15 +17,16 @@ class NoticeAlarmReadUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(alarmId: Long): Result<AlarmDetail> = runCatching {
 
+        // 노션 정책짐을 참고. 클릭 시 즉시 알람 처리를 우리 다인눈나가 원하시기 때문에
+        // 상세조회보다 먼저 호출
         alarmRepository.readAlarm(alarmId)
-            .getOrThrow()
 
         alarmRepository.getAlarmDetail(alarmId)
             .getOrThrow()
 
     }.onFailure{
         // 사용자가 화면을 나가는 등의 이유로 발생하는 CancellationException는
-        // 정상 흐름이므로 Result로 감싸지 않고 그대로 전파
+        // 정상 흐름이므로 Result로 감싸지 않고 그대로 전파ㄷ
         if (it is CancellationException) throw it
     }
 }
