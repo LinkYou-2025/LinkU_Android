@@ -16,11 +16,13 @@ class NoticeAlarmReadUseCase @Inject constructor(
     private val alarmRepository: AlarmRepository
 ) {
     suspend operator fun invoke(alarmId: Long): Result<AlarmDetail> = runCatching {
+
         alarmRepository.readAlarm(alarmId)
             .getOrThrow()
 
         alarmRepository.getAlarmDetail(alarmId)
             .getOrThrow()
+
     }.onFailure{
         // 사용자가 화면을 나가는 등의 이유로 발생하는 CancellationException는
         // 정상 흐름이므로 Result로 감싸지 않고 그대로 전파
