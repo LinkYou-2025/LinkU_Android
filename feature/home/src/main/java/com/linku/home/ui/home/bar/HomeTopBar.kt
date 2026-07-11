@@ -96,7 +96,7 @@ fun HomeTopBar(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
             .background(colors.white)
-            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 13.5.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 49.dp, bottom = 13.5.dp)
     ) {
         Row(
             modifier = Modifier
