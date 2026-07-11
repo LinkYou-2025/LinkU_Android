@@ -1,4 +1,4 @@
-package com.linku.curation.ui
+package com.linku.curation.ui.mapper
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color

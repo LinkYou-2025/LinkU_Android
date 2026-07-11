@@ -36,8 +36,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.auth.AutoLoginState
-import com.linku.curation.CurationViewModel
-import com.linku.curation.curationGraph
+import com.linku.curation.navigation.curationGraph
+import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.appLinkRoute
 import com.linku.design.AlarmAllowDialog

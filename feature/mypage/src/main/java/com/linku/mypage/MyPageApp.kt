@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.util.WhiteSystemBars
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
@@ -37,6 +38,8 @@ fun MyPageApp(
     // 마이페이지에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
     // MyPageApp에서 만들어 주입한다.
     val notificationViewModel: NotificationViewModel = hiltViewModel()
+
+    WhiteSystemBars()
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
     // 화면 진입 시 최신 데이터 한 번 긁어오기

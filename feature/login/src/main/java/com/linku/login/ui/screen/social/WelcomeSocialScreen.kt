@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +35,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +45,6 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
 import com.linku.design.theme.LinkuPreview
-import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.BuildConfig
@@ -255,8 +254,7 @@ internal fun WelcomeSocialScreen(
                         text = "링큐 시작하기",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
-                        style = TextStyle(brush = colorTheme.maincolor),
-                        fontFamily = Paperlogy.font
+                        style = LocalTextStyle.current.copy(brush = colorTheme.maincolor),
                     )
                 }
             }

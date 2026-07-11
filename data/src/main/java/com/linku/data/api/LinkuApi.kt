@@ -8,6 +8,8 @@ import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.LinkuUpdateDTO
 import com.linku.data.api.dto.server.QuickSearchResult
+import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
+import com.linku.data.api.dto.server.LinkCheckDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
