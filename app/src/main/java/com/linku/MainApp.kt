@@ -372,6 +372,9 @@ fun MainApp(
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
                             },
+                            onNavigateToCuration = {
+                                navigator.navigate("curation_card1")
+                            },
                             onShowNavBar = { showNavBar = it }
                         )
                     }

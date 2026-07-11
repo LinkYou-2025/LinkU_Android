@@ -2,7 +2,6 @@ package com.linku.core.di
 
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
-import com.linku.core.usecase.NoticeAlarmReadUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,14 +34,6 @@ object UseCaseModule {
         alarmRepository: AlarmRepository
     ): FirstPushAlarmAllowedUseCase {
         return FirstPushAlarmAllowedUseCase(alarmRepository)
-    }
-
-    @Provides
-    @Singleton
-    fun provideNoticeAlarmReadUseCase(
-        alarmRepository: AlarmRepository
-    ): NoticeAlarmReadUseCase {
-        return NoticeAlarmReadUseCase(alarmRepository)
     }
 
 }

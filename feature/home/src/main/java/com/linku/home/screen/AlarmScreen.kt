@@ -1,5 +1,6 @@
 package com.linku.home.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +45,8 @@ import com.linku.home.ui.alarm.component.AlarmErrorLayout
 import com.linku.home.ui.alarm.component.AlarmLoadingContent
 import com.linku.home.viewmodel.AlarmViewModel
 import com.linku.design.theme.LinkuPreview
+import com.linku.home.model.AlarmIntent
+import com.linku.home.model.AlarmSideEffect
 import kotlinx.coroutines.flow.flowOf
 
 @Composable
@@ -50,9 +54,14 @@ fun AlarmScreen(
     onBack: () -> Unit,
     onNavigateToSetting: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToNotice: (alarmId: Long) -> Unit,
+    onNavigateToLinkDetail: (targetId: Long) -> Unit,
+    onNavigateToFolder: (targetId: Long) -> Unit,
+    onNavigateToCuration: (targetId: Long) -> Unit,
+    onNavigateToNotice: (targetId: Long) -> Unit,
     viewModel: AlarmViewModel
 ) {
+    val context = LocalContext.current
+
     val pushAlarmEnabled by viewModel.pushAlarmEnabled.collectAsStateWithLifecycle()
 
     //탭 선택 상태
@@ -79,6 +88,20 @@ fun AlarmScreen(
         }
     }
 
+    // 사이드이펙트 채널 구독
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is AlarmSideEffect.NavigateToLinkDetail -> onNavigateToLinkDetail(effect.targetId)
+                is AlarmSideEffect.NavigateToSharedFolder -> onNavigateToFolder(effect.targetId)
+                is AlarmSideEffect.NavigateToCuration -> onNavigateToCuration(effect.targetId)
+                is AlarmSideEffect.NavigateToNotice -> onNavigateToNotice(effect.targetId) // 또는 alarmId — 아래 참고
+                is AlarmSideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     AlarmScreenContent(
         isAlarmAllowed = pushAlarmEnabled,
         selectedTab = selectedTab,
@@ -93,7 +116,7 @@ fun AlarmScreen(
         onBack = onBack,
         onNavigateToMyPage = onNavigateToSetting,
         onNavigateToHome = onNavigateToHome,
-        onNavigateToNotice = onNavigateToNotice
+        onIntent = viewModel::handleIntent
     )
 }
 
@@ -109,7 +132,7 @@ private fun AlarmScreenContent(
     onBack: () -> Unit,
     onNavigateToMyPage: () -> Unit,
     onNavigateToHome: () -> Unit,
-    onNavigateToNotice: (alarmId: Long) -> Unit
+    onIntent: (AlarmIntent) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -192,7 +215,12 @@ private fun AlarmScreenContent(
                                     count = alarmPagingItems.itemCount,
                                     key = alarmPagingItems.itemKey { it.id }
                                 ) { index ->
-                                    alarmPagingItems[index]?.let { AlarmItem(it) }
+                                    alarmPagingItems[index]?.let { alarm ->
+                                        AlarmItem(
+                                            alarm = alarm,
+                                            onClick = { onIntent(AlarmIntent.ClickAlarm(alarm)) }
+                                        )
+                                    }
                                 }
 
                                 item {
@@ -250,7 +278,7 @@ private fun AlarmScreenContentPreview() {
             onBack = {},
             onNavigateToMyPage = {},
             onNavigateToHome = {},
-            onNavigateToNotice = {}
+            onIntent = {}
         )
     }
 }

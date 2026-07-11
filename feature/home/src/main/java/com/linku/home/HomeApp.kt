@@ -1,5 +1,7 @@
 package com.linku.home
 
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
@@ -8,9 +10,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.linku.design.util.WhiteSystemBars
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
@@ -24,6 +28,7 @@ fun HomeApp(
     onNavigateToSetting: () -> Unit,
     onNavigateToSaveLink: (String) -> Unit,
     onNavigateToLinkDetail: (Long) -> Unit,
+    onNavigateToCuration: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
     val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
@@ -63,7 +68,7 @@ fun HomeApp(
     fun openUrl(url: String) {
         runCatching {
             val fixed = if (url.startsWith("http://") || url.startsWith("https://")) url else "https://$url"
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(fixed))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(fixed))
             context.startActivity(intent)
         }.onFailure {
             Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
@@ -124,13 +129,19 @@ fun HomeApp(
                     }
                 },
                 viewModel = alarmViewModel,
-                onNavigateToNotice = { alarmID ->
-                    navController.navigate("notice/$alarmID")
+                onNavigateToNotice = { targetId ->
+                    navController.navigate("notice/$targetId")
                 },
+                onNavigateToLinkDetail = onNavigateToLinkDetail,
+                onNavigateToFolder = {}, // TODO: 지민오빠가 나중에 이동 함수 준다고 했씀!
+                onNavigateToCuration = {}, // TODO: 아직 curation_card1 라우트에 파라미터가 없어서 일단은 빈 람다 처리
             )
         }
 
-        composable("notice") {
+        composable(
+            route = "notice/{targetId}",
+            arguments = listOf(navArgument("targetId") { type = NavType.LongType })
+        ) {
             NoticeScreen(
                 onBack = { navController.popBackStack() }
             )
