@@ -8,7 +8,7 @@ package com.linku.core.model.alarm
  * @property noticeDate 알람이 생성된 날짜
  */
 data class AlarmDetail(
-    val title: String,
-    val content: String,
-    val noticeDate: String
+    val title: String = "",
+    val content: String = "",
+    val noticeDate: String = ""
 )

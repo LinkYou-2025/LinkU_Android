@@ -40,7 +40,8 @@ fun AlarmItem(
     Card(
         modifier = modifier
             .fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp)
+        shape = RoundedCornerShape(18.dp),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier

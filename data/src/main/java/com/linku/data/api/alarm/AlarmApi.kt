@@ -1,5 +1,6 @@
 package com.linku.data.api.alarm
 
+import com.linku.core.model.alarm.AlarmDetail
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.alarm.AlarmDetailDTO
 import com.linku.data.api.dto.alarm.AlarmSettingDTO
@@ -36,9 +37,9 @@ interface AlarmApi {
         @Body body: FcmTokenRequest
     ): BaseResponse<Any?>
 
-    @GET("alarm/detail")
+    @GET("alarm/detail/{alarmId}")
     suspend fun getAlarmDetail(
-        @Query("alarmId") alarmId: Long
+        @Path("alarmId") alarmId: Long
     ): BaseResponse<AlarmDetailDTO>
 
     @PATCH("alarm/{alarmId}/read")

@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -19,25 +20,33 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.alarm.AlarmDetail
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.theme.LinkuPreview
 import com.linku.home.component.NoticeTitleSection
+import com.linku.home.model.NoticeUiState
 import com.linku.home.ui.alarm.component.AlarmTopBar
 import com.linku.home.viewmodel.NoticeViewModel
 
 @Composable
 fun NoticeScreen(
     onBack: () -> Unit,
-    //viewModel: NoticeViewModel = hiltViewModel()
+    viewModel: NoticeViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     NoticeScreenContent(
-        onBack = onBack
+        onBack = onBack,
+        uiState = uiState
     )
 }
 
 @Composable
 fun NoticeScreenContent(
     modifier: Modifier = Modifier,
+    uiState: NoticeUiState,
     onBack: () -> Unit
 ) {
     Column(
@@ -45,7 +54,7 @@ fun NoticeScreenContent(
             .fillMaxSize()
             .background(LocalColorTheme.current.white)
             .verticalScroll(rememberScrollState())
-            .padding(start = 20.dp, end = 20.dp, top = 56.dp, bottom = 15.dp),
+            .padding(start = 20.dp, end = 20.dp, top = 48.dp, bottom = 15.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         AlarmTopBar(
@@ -55,10 +64,9 @@ fun NoticeScreenContent(
 
         Spacer(Modifier.height(40.dp))
 
-        // TODO: api연동 시 뷰모델에서 상태 호이스팅
         NoticeTitleSection(
-            title = "개인정보 이용제공·내역 안내",
-            noticeDate = "26.03.31"
+            title = uiState.detail.title,
+            noticeDate = uiState.detail.noticeDate
         )
 
         Spacer(Modifier.height(20.dp))
@@ -67,10 +75,9 @@ fun NoticeScreenContent(
 
         Spacer(Modifier.height(32.dp))
 
-        // TODO: api연동 시 뷰모델에서 상태 호이스팅
         // TODO: 피그마에서 보니 공지 content가 길던데, 스웨거에서 확인해보니 응답값은 짧게 옴. 다인 누나와 백엔드에게 물어보기
         Text(
-            text = "새로운 기능이 추가됐어요, 지금 확인해보세요",
+            text = uiState.detail.content,
             modifier = Modifier
                 .fillMaxSize(),
             textAlign = TextAlign.Start,
@@ -84,7 +91,15 @@ fun NoticeScreenContent(
 @Preview(showBackground = true)
 @Composable
 private fun NoticeScreenPreview() {
-    ThemeProvider {
-        NoticeScreen(onBack = {})
+    LinkuPreview {
+        NoticeScreenContent(
+            uiState = NoticeUiState(
+                detail = AlarmDetail(
+                    title = "링큐 서비스 점검 안내",
+                    noticeDate = "2024.03.15"
+                )
+            ),
+            onBack = {}
+        )
     }
 }
