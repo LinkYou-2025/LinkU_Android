@@ -4,25 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Text
+import com.linku.design.markdown.LinkUMarkdownText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.alarm.AlarmDetail
-import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LinkuPreview
 import com.linku.home.component.NoticeTitleSection
@@ -75,12 +72,9 @@ fun NoticeScreenContent(
 
         Spacer(Modifier.height(32.dp))
 
-        // TODO: 피그마에서 보니 공지 content가 길던데, 스웨거에서 확인해보니 응답값은 짧게 옴. 다인 누나와 백엔드에게 물어보기
-        Text(
+        LinkUMarkdownText(
             text = uiState.detail.content,
-            modifier = Modifier
-                .fillMaxSize(),
-            textAlign = TextAlign.Start,
+            modifier = Modifier.fillMaxSize(),
             color = LocalColorTheme.current.gray[800],
             fontSize = 15.sp
         )
