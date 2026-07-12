@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,7 +24,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -148,8 +148,7 @@ internal fun CurationCardItem(
 
         Column(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 248.scaler) // TODO : 피그마 대로 구현하니 너무 내려감... 임의로 262 -> 248로 수정함. 디자이너가 괜찮으면 좋겠음...
+                .align(Alignment.BottomStart) // 하단 고정 앵커: 폰마다 카드 높이/글자 비율이 달라져도 잘리지 않도록 상단 offset 대신 하단 여백으로 배치. 실제 하단 간격은 인디케이터/버튼이 각자 지정
         ) {
             Text(
                 text = content.title,
@@ -178,7 +177,7 @@ internal fun CurationCardItem(
                     .fillMaxWidth()
                     .padding(horizontal = 35.scaler)
             ) {
-                val pageIndicatorStyle = TextStyle(
+                val pageIndicatorStyle = LocalTextStyle.current.copy(
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
                     fontWeight = FontWeight(500),
@@ -187,7 +186,9 @@ internal fun CurationCardItem(
                 )
 
                 Row(
-                    modifier = Modifier.align(Alignment.CenterStart),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(bottom = 35.scaler),
                     horizontalArrangement = Arrangement.spacedBy(12.scaler),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -198,7 +199,9 @@ internal fun CurationCardItem(
 
                 CurationCheckOutButton(
                     onClick = onCheckOutClick,
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 33.scaler)
                 )
             }
         }
