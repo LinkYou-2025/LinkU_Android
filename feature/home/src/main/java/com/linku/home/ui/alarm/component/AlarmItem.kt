@@ -34,6 +34,7 @@ import com.linku.home.ui.alarm.util.iconRes
 @Composable
 fun AlarmItem(
     alarm: AlarmSummary,
+    isRead: Boolean = alarm.isRead,
     modifier: Modifier = Modifier,
     onClick: () -> Unit = {}
 ) {
@@ -78,7 +79,7 @@ fun AlarmItem(
                         fontSize = 13.sp,
                         color = LocalColorTheme.current.gray[400],
                     )
-                    if (!alarm.isRead) {
+                    if (!isRead) {
                         Box(
                             modifier = Modifier
                                 .size(7.dp)

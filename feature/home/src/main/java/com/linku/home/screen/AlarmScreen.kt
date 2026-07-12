@@ -1,5 +1,6 @@
 package com.linku.home.screen
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
 import androidx.paging.PagingData
@@ -63,6 +65,7 @@ fun AlarmScreen(
     val context = LocalContext.current
 
     val pushAlarmEnabled by viewModel.pushAlarmEnabled.collectAsStateWithLifecycle()
+    val readAlarmIds by viewModel.readAlarmIds.collectAsStateWithLifecycle()
 
     //탭 선택 상태
     var selectedTab by rememberSaveable { mutableStateOf(AlarmType.ALL) }
@@ -78,7 +81,6 @@ fun AlarmScreen(
     // PagingData와 LoadState(로딩/에러 상태)를 함께 관리한다
     val alarmPagingItems = viewModel.getAlarms(selectedTab)
         .collectAsLazyPagingItems()
-
 
     // 새로고침이 완료되면 인디케이터 해제
     LaunchedEffect(alarmPagingItems.loadState.refresh) {
@@ -107,9 +109,11 @@ fun AlarmScreen(
         selectedTab = selectedTab,
         onSelectedChange = { selectedTab = it },
         alarmPagingItems = alarmPagingItems,
+        readAlarmIds = readAlarmIds,
         isUserRefreshing = isUserRefreshing,
         onRefresh = {
             isUserRefreshing = true
+            viewModel.handleIntent(AlarmIntent.Refresh)
             alarmPagingItems.refresh()
         },
         pullToRefreshState = pullToRefreshState,
@@ -126,6 +130,7 @@ private fun AlarmScreenContent(
     selectedTab: AlarmType,
     onSelectedChange: (AlarmType) -> Unit,
     alarmPagingItems: LazyPagingItems<AlarmSummary>,
+    readAlarmIds: Set<Long>,
     isUserRefreshing: Boolean,
     onRefresh: () -> Unit,
     pullToRefreshState: PullToRefreshState,
@@ -218,6 +223,7 @@ private fun AlarmScreenContent(
                                     alarmPagingItems[index]?.let { alarm ->
                                         AlarmItem(
                                             alarm = alarm,
+                                            isRead = alarm.isRead || alarm.id in readAlarmIds,
                                             onClick = { onIntent(AlarmIntent.ClickAlarm(alarm)) }
                                         )
                                     }
@@ -272,6 +278,7 @@ private fun AlarmScreenContentPreview() {
             selectedTab = AlarmType.ALL,
             onSelectedChange = {},
             alarmPagingItems = alarmPagingItems,
+            readAlarmIds = emptySet(),
             isUserRefreshing = false,
             onRefresh = {},
             pullToRefreshState = rememberPullToRefreshState(),

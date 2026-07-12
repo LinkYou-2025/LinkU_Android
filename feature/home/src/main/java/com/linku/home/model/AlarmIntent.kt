@@ -10,4 +10,5 @@ import com.linku.core.model.alarm.AlarmSummary
  */
 sealed interface AlarmIntent {
     data class ClickAlarm(val alarm: AlarmSummary) : AlarmIntent
+    data object Refresh : AlarmIntent
 }
