@@ -19,6 +19,8 @@ class MainActivity : ComponentActivity(), SystemBarController {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("_MainActivity", "onCreate")
+        handleIntent(intent)
 
         intent?.data?.let { Log.d("DEEPLINK", "onCreate uri = $it") }
         // 앱이 꺼진 상태에서 딥링크로 실행된 경우
@@ -36,7 +38,20 @@ class MainActivity : ComponentActivity(), SystemBarController {
         super.onNewIntent(intent)
         setIntent(intent)
 
+        Log.d("_MainActivity", "onNewIntent")
+        handleIntent(intent)
+    }
 
+    private fun handleIntent(intent: Intent?) {
+        Log.d("FCM", "intent = $intent")
+        Log.d("FCM", "extras = ${intent?.extras}")
+
+        intent?.extras?.keySet()?.forEach { key ->
+            Log.d("FCM", "$key = ${intent.extras?.get(key)}")
+        }
+
+        val targetId = intent?.extras?.getString("targetId")
+        Log.d("FCM", "targetId = $targetId")
     }
 
     override fun onResume() {

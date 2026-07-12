@@ -37,6 +37,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <intent-filter>
+                <action android:name="notice_icon_click"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
             <!-- 폴더 공유 앱링크 -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
