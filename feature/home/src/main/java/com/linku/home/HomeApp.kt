@@ -38,7 +38,7 @@ fun HomeApp(
     // 일림 목록창에서 사용할 뷰모델
     // 홈 화면에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
     // HomeApp에서 만들어 주입한다.
-    val alarmViewModel: AlarmViewModel = hiltViewModel()
+    //val alarmViewModel: AlarmViewModel = hiltViewModel()
 
     WhiteSystemBars()
 
@@ -128,7 +128,6 @@ fun HomeApp(
                         launchSingleTop = true
                     }
                 },
-                viewModel = alarmViewModel,
                 onNavigateToNotice = { targetId ->
                     navController.navigate("notice/$targetId")
                 },
@@ -143,7 +142,14 @@ fun HomeApp(
             arguments = listOf(navArgument("targetId") { type = NavType.LongType })
         ) {
             NoticeScreen(
-                onBack = { navController.popBackStack() }
+                onBack = {
+                    navController.popBackStack(
+                        route = "alarm",
+                        inclusive = true
+                    )
+
+                    navController.navigate("alarm")
+                }
             )
         }
     }

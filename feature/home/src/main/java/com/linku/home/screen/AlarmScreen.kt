@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
@@ -60,7 +61,7 @@ fun AlarmScreen(
     onNavigateToFolder: (targetId: Long) -> Unit,
     onNavigateToCuration: (targetId: Long) -> Unit,
     onNavigateToNotice: (targetId: Long) -> Unit,
-    viewModel: AlarmViewModel
+    viewModel: AlarmViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
 

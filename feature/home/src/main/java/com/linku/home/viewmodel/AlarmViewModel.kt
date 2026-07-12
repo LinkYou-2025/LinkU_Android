@@ -28,6 +28,10 @@ class AlarmViewModel @Inject constructor(
     private val notificationPreference: NotificationPreference,
 ) : ViewModel() {
 
+    init {
+        Log.d("AlarmList", "AlarmViewModel 인스턴스 생성")
+    }
+
     // 사이드 이펙트용 채널
     private val _sideEffect = Channel<AlarmSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
@@ -85,7 +89,6 @@ class AlarmViewModel @Inject constructor(
                             Log.e("AlarmList", "알람 읽음 처리 실패", it)
                         }
                     )
-                Log.d("AlarmList", "알람 읽음 처리 완료")
             }
 
             when (alarm.alarmType) {

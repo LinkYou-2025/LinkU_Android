@@ -1,5 +1,6 @@
 package com.linku.home.screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -33,6 +34,10 @@ fun NoticeScreen(
     viewModel: NoticeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    BackHandler {
+        onBack()
+    }
 
     NoticeScreenContent(
         onBack = onBack,
