@@ -132,7 +132,7 @@ fun HomeApp(
                     navController.navigate("notice/$targetId")
                 },
                 onNavigateToLinkDetail = onNavigateToLinkDetail,
-                onNavigateToFolder = {}, // TODO: 지민오빠가 나중에 이동 함수 준다고 했씀!
+                onNavigateToFolder = {}, // TODO: 지민오빠가 나중에 이동 함수 준다고 했씀!(근데 걍 라우트만 주면 내가 할수 있을 듯?)
                 onNavigateToCuration = {}, // TODO: 아직 curation_card1 라우트에 파라미터가 없어서 일단은 빈 람다 처리
             )
         }
@@ -143,6 +143,9 @@ fun HomeApp(
         ) {
             NoticeScreen(
                 onBack = {
+                    // Notice 화면에서 뒤로 돌아올 때 Alarm 화면를 백스택에서 제거한 뒤
+                    // 다시 생성하여 AlarmViewModel과 Paging 캐시를 초기화.
+                    // 알람 목록의 읽음 상태를 철저하게 최신화하기 위함.
                     navController.popBackStack(
                         route = "alarm",
                         inclusive = true
