@@ -11,11 +11,13 @@ import com.linku.data.preference.NotificationPreference
 import com.linku.home.model.AlarmIntent
 import com.linku.home.model.AlarmSideEffect
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -47,6 +49,8 @@ class AlarmViewModel @Inject constructor(
     private val _readAlarmIds = MutableStateFlow<Set<Long>>(emptySet())
     val readAlarmIds: StateFlow<Set<Long>> = _readAlarmIds.asStateFlow()
 
+    private val refreshTrigger = MutableStateFlow(0)
+
     /**
      *
      *[AlarmType]별로 구성된 페이징된 알람 Flow
@@ -54,10 +58,17 @@ class AlarmViewModel @Inject constructor(
      *[viewModelScope]에서 캐싱하여 화면 회전 등의 상황에서도 데이터를 재사용한다.
      *
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     private val alarmFlows = AlarmType.entries.associateWith { type ->
-        alarmRepository
-            .getAlarms(type)
+        refreshTrigger
+            .flatMapLatest {
+                alarmRepository.getAlarms(type)
+            }
             .cachedIn(viewModelScope)
+    }
+
+    private fun refreshPaging() {
+        refreshTrigger.update { it + 1 }
     }
 
     //지정된 [AlarmType]에 해당하는 페이징된 알람 데이터 Flow를 반환.
@@ -66,7 +77,10 @@ class AlarmViewModel @Inject constructor(
     fun handleIntent(intent: AlarmIntent) {
         when (intent) {
             is AlarmIntent.ClickAlarm -> onClickAlarm(intent.alarm)
-            AlarmIntent.Refresh -> _readAlarmIds.value = emptySet()
+            AlarmIntent.Refresh -> {
+                _readAlarmIds.value = emptySet()
+                refreshPaging()
+            }
         }
     }
 
