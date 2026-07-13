@@ -2,6 +2,7 @@ package com.linku
 
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -78,7 +79,13 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
             // 알림 제작
             val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_logo)
+                .setSmallIcon(R.drawable.ic_noti_logo) // 상태바 표시용 단색 아이콘
+                .setLargeIcon( // 알림 확장 영역 표시용 앱 로고
+                    BitmapFactory.decodeResource(
+                        resources,
+                        R.drawable.ic_logo
+                    )
+                )
                 .setContentTitle(title)
                 .setContentText(body)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

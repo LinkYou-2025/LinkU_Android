@@ -88,6 +88,11 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="default_channel" />
 
+        <!--   상태바 표시용 단색 아이콘   -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_noti_logo" />
+
         <!--    FCM Service    -->
         <service
             android:name="com.linku.LinkUFireBaseMessageService"
