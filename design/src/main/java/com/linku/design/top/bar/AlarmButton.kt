@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.linku.design.R
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.PixelScaler
 
@@ -22,17 +23,22 @@ import com.linku.design.util.PixelScaler
 @Composable
 fun AlarmButton(
     isNoticeExist: Boolean,  // 알림 존재 여부
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints() {
-        var ps = PixelScaler(
+    BoxWithConstraints(
+        modifier = modifier
+            .size(30.dp)
+            .noRippleClickable { onClick() }
+    ) {
+        val ps = PixelScaler(
             maxWidth = this.maxWidth,
             maxHeight = this.maxHeight,
             baseWidth = 22.93.dp, // 피그마에서 보이는 너비
             baseHeight = 28.73.dp // 피그마에서 보이는 높이
         )
 
-        Box(modifier = modifier) {
+        Box(modifier = Modifier.size(26.dp, 29.dp)) {
             with(ps) {
                 // 알림 아이콘
                 Icon(
@@ -71,6 +77,6 @@ fun AlarmButton(
 fun PreviewAlarmButton() {
     AlarmButton(
         isNoticeExist = true,
-        modifier = Modifier.size(26.dp, 29.dp)
+        onClick = {}
     )
 }

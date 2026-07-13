@@ -48,6 +48,7 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
 import com.linku.home.component.LinkCategoryOption
+import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
 import com.linku.home.viewmodel.LinkDetailViewModel
@@ -440,6 +441,9 @@ fun MainApp(
 //                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
 //                                    launchSingleTop = true
 //                                }
+                            },
+                            onNavigateToAlarm = {
+                                navigator.navigate(NavigationRoute.Alarm.route)
                             }
                         )
                     }
@@ -454,6 +458,25 @@ fun MainApp(
                         AlarmSettingScreen(
                             navController = navigator,
                             viewModel = notificationViewModel
+                        )
+                    }
+                }
+
+                with(NavigationRoute.Alarm) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) { showNavBar = false }
+                        AlarmScreen(
+                            onBack = { navigator.popBackStack() },
+                            onNavigateToSetting = { navigator.navigate(NavigationRoute.AlarmSetting.route) },
+                            onNavigateToHome = {
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                                }
+                            },
+                            onNavigateToLinkDetail = { id -> navigator.navigate("savelinkresult/$id") },
+                            onNavigateToFolder = { /* TODO */ },
+                            onNavigateToCuration = { /* TODO */ },
+                            onNavigateToNotice = { /* TODO */ }
                         )
                     }
                 }

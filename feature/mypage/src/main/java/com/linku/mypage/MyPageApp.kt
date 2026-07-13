@@ -26,7 +26,8 @@ import com.linku.mypage.screen.ServiceQuitScreen
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
-    onLogoutToLogin: () -> Unit
+    onLogoutToLogin: () -> Unit,
+    onNavigateToAlarm: () -> Unit
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -68,7 +69,7 @@ fun MyPageApp(
                 myFolder = user?.myFolder ?: 0L,
                 myAiLinku = user?.myAiLinku ?: 0L,
                 onNavigateAccount = { navController.navigate("account") },
-                onNavigateAlarm = { navController.navigate("alarm") },
+                onNavigateAlarm = { onNavigateToAlarm() },
                 onNavigateAlarmSetting = { navController.navigate("alarmSetting") },
                 onNavigateQuit = { navController.navigate("quit") },
                 onNavigateFAQ = { navController.navigate("faq") },
@@ -326,9 +327,9 @@ fun MyPageApp(
             )
         }
 
-        composable("alarm") {
-            // TODO: 알림 화면 연결
-        }
+//        composable("alarm") {
+//            // TODO: 알림 화면 연결
+//        }
 
         composable("alarmSetting") {
             AlarmSettingScreen(
