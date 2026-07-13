@@ -244,17 +244,12 @@ fun HomeTopBar(
                                 },
                                 onVerticalDrag = { change, dragAmount ->
                                     change.consume()
-
-                                    // 아래 방향 드래그만 누적
-                                    if (dragAmount > 0f) {
-                                        draggedDistance += dragAmount
-                                    }
+                                    draggedDistance += dragAmount
                                 },
                                 onDragEnd = {
                                     if (draggedDistance >= expandDragThreshold) {
                                         onExpandClick()
                                     }
-
                                     draggedDistance = 0f
                                 },
                                 onDragCancel = {
