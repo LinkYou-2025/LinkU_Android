@@ -16,11 +16,11 @@ val localProperties = Properties().apply {
     load(FileInputStream(rootProject.file("local.properties")))
 }
 
-val serverDomain =
-    localProperties.getProperty("SERVER_DOMAIN") ?: "https://linkuserver.store"
+val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
+    ?: throw GradleException("SERVER_DOMAIN is not set in local.properties")
 
-val apiVersion =
-    localProperties.getProperty("API_VERSION") ?: "api/v1"
+val apiVersion = localProperties.getProperty("API_VERSION")
+    ?: throw GradleException("API_VERSION is not set in local.properties")
 
 val serverBaseUrl = "$serverDomain/$apiVersion/"
 
