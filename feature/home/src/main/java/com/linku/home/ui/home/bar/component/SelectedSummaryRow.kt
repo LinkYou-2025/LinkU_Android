@@ -25,9 +25,7 @@ import com.linku.core.model.EmotionType
 import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
 import com.linku.design.BrushText
-import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
-import com.linku.design.theme.linkuFont
 import com.linku.home.util.imgRes
 
 @Composable
@@ -37,7 +35,6 @@ fun SelectedSummaryRow(
     situations: List<Situation>,
 ) {
     val colors = MaterialTheme.linkuColors
-    val fonts = MaterialTheme.linkuFont
 
     val selectedEmotion = requireNotNull(
         EmotionType.fromValue(selectedEmotionId)
@@ -98,11 +95,10 @@ fun SelectedSummaryRow(
         ) {
             BrushText(
                 text = selectedSituation.tagName,
-                brush = Basic.maincolor,
+                brush = colors.maincolor,
                 style = TextStyle(
                     fontSize = 14.sp,
-                    fontWeight = FontWeight.Normal,
-                    fontFamily = fonts.font
+                    fontWeight = FontWeight.Normal
                 ),
             )
         }
