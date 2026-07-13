@@ -79,7 +79,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
             // 알림 제작
             val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
-                .setSmallIcon(R.drawable.img_noti_ex)
+                .setSmallIcon(R.drawable.img_noti_ex_2)
                 .setLargeIcon( // 알림 확장 영역 표시용 앱 로고
                     BitmapFactory.decodeResource(
                         resources,

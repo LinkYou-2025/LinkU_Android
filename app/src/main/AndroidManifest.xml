@@ -93,7 +93,7 @@
         <!--   호애앵!! 너 때문에 몇 시간을 쓴 거지...  -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/img_noti_ex" />
+            android:resource="@drawable/img_noti_ex_2"/>
 
         <!--    FCM Service    -->
         <service
