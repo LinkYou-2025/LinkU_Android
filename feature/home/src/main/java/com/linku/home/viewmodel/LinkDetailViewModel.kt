@@ -221,41 +221,6 @@ class LinkDetailViewModel @Inject constructor(
         }
     }
 
-    // userLinkuId를 Long으로 바꿀 경우
-//    fun deleteLink(
-//        onSucceed: () -> Unit = {},
-//        onFailed: (Throwable) -> Unit = {},
-//    ) {
-//        val current = linkDetailState.value ?: run {
-//            onFailed(IllegalStateException("링크 상세가 없습니다."))
-//            return
-//        }
-//
-//        if (isDeletingLinkState.value) return
-//
-//        val userLinkuId = current.userLinkuId
-//        val linkuId = current.linkuId
-//
-//        viewModelScope.launch {
-//            isDeletingLinkState.value = true
-//
-//            runCatching {
-//                linkuRepository.deleteLink(userLinkuId = userLinkuId)
-//            }.onSuccess {
-//                linkCache.remove(linkuId)
-//                linkDetailState.value = null
-//                aiArticleDetailState.value = null
-//                onSucceed()
-//            }.onFailure { e ->
-//                Log.e("LinkDetailVM", "delete link failed", e)
-//                onFailed(e)
-//            }
-//
-//            isDeletingLinkState.value = false
-//        }
-//    }
-
-    // userLinkuId를 Long?으로 유지할 경우
     fun deleteLink(
         onSucceed: () -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
