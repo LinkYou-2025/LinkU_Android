@@ -57,7 +57,6 @@ fun LinkDetailTopBar(
     onTitleClearClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
-    val fonts = MaterialTheme.linkuFont
 
     val isTitleEmpty = linkTitle.isBlank()
     val isTitleChanged = linkTitle != originalLinkTitle
@@ -152,7 +151,7 @@ fun LinkDetailTopBar(
                                 textStyle = TextStyle(
                                     fontSize = 22.sp,
                                     fontWeight = FontWeight.Bold,
-                                    fontFamily = fonts.font,
+                                    fontFamily = MaterialTheme.linkuFont.font,
                                     color = colors.white.copy(alpha = titleAlpha)
                                 ),
                                 modifier = Modifier.widthIn(min = 1.dp, max = 220.dp),
@@ -173,7 +172,6 @@ fun LinkDetailTopBar(
                                                     text = "링크 제목을 입력하세요",
                                                     fontSize = 22.sp,
                                                     fontWeight = FontWeight.Bold,
-                                                    fontFamily = fonts.font,
                                                     color = colors.white,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis
