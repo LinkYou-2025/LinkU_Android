@@ -522,7 +522,7 @@ fun MainApp(
                     val context = LocalContext.current
                     val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
 
-                    var selectedDetailImageUri by remember(linkuId) {
+                    var selectedDetailImageUri by rememberSaveable(linkuId) {
                         mutableStateOf<Uri?>(null)
                     }
 
