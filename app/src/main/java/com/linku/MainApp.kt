@@ -588,8 +588,7 @@ fun MainApp(
                             .take(4)
                     }
 
-                    // 진행률/색상 맵 수집
-                    val aiProgress = linkDetailViewModel.aiProgress.collectAsState().value
+                    // 색상 맵 수집
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
                     val categoryOptions = categoryColorMap.mapNotNull { (name, style) ->
