@@ -128,7 +128,7 @@ fun HomeTopBar(
             ) {
                 AlarmButton(
                     isNoticeExist = isNoticeExist,
-                    modifier = Modifier
+                    modifier = Modifier.size(26.dp, 29.dp)
                 )
             }
         }
