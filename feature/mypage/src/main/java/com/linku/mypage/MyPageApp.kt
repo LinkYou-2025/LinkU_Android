@@ -46,6 +46,7 @@ fun MyPageApp(
     // 화면 진입 시 최신 데이터 한 번 긁어오기
     LaunchedEffect(Unit) {
         viewModel.loadUserInfo()
+        viewModel.checkUnreadAlarm()
     }
     //기존
 //    LaunchedEffect(Unit) {
@@ -61,10 +62,12 @@ fun MyPageApp(
         composable("mypage") {
 
             val user = uiState.userInfo
+            val isUnreadAlarmExists = uiState.isUnreadAlarmExists
 
             MyPageScreen(
                 nickname = user?.nickname ?: "",
                 email = user?.email ?: "",
+                isUnreadAlarmExists = isUnreadAlarmExists,
                 myLinku = user?.myLinku ?: 0L,
                 myFolder = user?.myFolder ?: 0L,
                 myAiLinku = user?.myAiLinku ?: 0L,
