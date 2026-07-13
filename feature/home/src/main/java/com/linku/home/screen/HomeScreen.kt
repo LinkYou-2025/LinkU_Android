@@ -109,7 +109,8 @@ fun HomeScreen(
 
     LaunchedEffect(
         listState.firstVisibleItemIndex,
-        listState.firstVisibleItemScrollOffset
+        listState.firstVisibleItemScrollOffset,
+        density
     ) {
         val scrollOffsetDp = with(density) {
             listState.firstVisibleItemScrollOffset.toDp()
