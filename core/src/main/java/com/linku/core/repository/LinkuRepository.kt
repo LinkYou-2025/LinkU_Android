@@ -48,9 +48,13 @@ interface LinkuRepository {
         linku: String,
         memo: String?,
         emotionId: Long,
+        situationId: Long,
         domainId: Long,
-        title: String
+        title: String,
     ): LinkResultInfo
+
+    // 링크 삭제
+    suspend fun deleteLink(userLinkuId: Long)
 
     // 빠른 링크 검색
     suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo>

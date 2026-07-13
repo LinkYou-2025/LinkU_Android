@@ -22,6 +22,9 @@ data class LinkuUpdateDTO(
     @field:Json(name = "emotionId")
     val emotionId: Long,
 
+    @field:Json(name = "situationId")
+    val situationId: Long,
+
     @field:Json(name = "domainId")
     val domainId: Long,
 

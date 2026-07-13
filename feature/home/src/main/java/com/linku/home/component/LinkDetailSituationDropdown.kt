@@ -4,7 +4,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,8 +35,9 @@ fun LinkDetailSituationDropdown(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 38.dp)
             .heightIn(max = 264.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 38.dp)
     ) {
         situations.forEach { situation ->
             val isSelected = situation.id == selectedSituation?.id

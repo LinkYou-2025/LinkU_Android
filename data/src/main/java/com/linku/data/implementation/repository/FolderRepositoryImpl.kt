@@ -567,8 +567,8 @@ class FolderRepositoryImpl @Inject constructor(
                 throw it
             }
 
-            safeApiCall204 { serverApi.deleteLink(userLinkuId) }
-                .onFailure { throw it }
+//            safeApiCall204 { serverApi.deleteLink(userLinkuId) }
+//                .onFailure { throw it }   // 메인 앱에 링크 조회 화면 올리면 이 함수 안쓸 거라고 생각해서 일단 주석처리 해놨습니다.
 
             Log.d("FolderRepositoryImpl", "deleteLink well done")
         } catch (e: Exception) {
