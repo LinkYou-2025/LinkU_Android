@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.search.RecentQuery
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.RecentSearchRepository
@@ -33,6 +34,7 @@ class HomeViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val recentRepository: RecentSearchRepository,
+    private val alarmRepository: AlarmRepository
 ) : ViewModel() {
 
     // 자돌 로그인 하고 이 함수가 가장 먼저 실행함.
@@ -327,5 +329,17 @@ class HomeViewModel @Inject constructor(
         }
         Log.d("HomeViewModel", "clearRecentQuery return")
     }
+
+    private val _isUnreadAlarmExists = MutableStateFlow(false)
+    val isUnreadAlarmExists = _isUnreadAlarmExists.asStateFlow()
+
+    fun refreshUnreadAlarm() {
+        viewModelScope.launch {
+            alarmRepository.getUnreadAlarmExists()
+                .onSuccess { _isUnreadAlarmExists.value = it }
+        }
+    }
+
+
     // ---------- search method ----------
 }

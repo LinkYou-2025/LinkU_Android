@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.core.model.SystemBarMode
@@ -86,6 +87,11 @@ fun HomeScreen(
         onDispose {
             // 이 화면을 나갈 때의 동작이 필요 없다면 비움..
         }
+    }
+
+    // 알림 읽지 않음 여부 갱신
+    LaunchedEffect(Unit) {
+        homeViewModel.refreshUnreadAlarm()
     }
 
     val listState = rememberLazyListState()
@@ -177,6 +183,8 @@ fun HomeScreen(
     val shouldShowClipboardBanner =
         clipboardUrl != null && clipboardUrl != dismissedClipboardUrl
 
+    val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -190,7 +198,7 @@ fun HomeScreen(
         ) {
             stickyHeader {
                 HomeTopBar(
-                    isNoticeExist = false, // TODO: 실제 알림 여부 연결
+                    isNoticeExist = isUnreadAlarmExists,
                     userName = userName,
                     selectedEmotionId = selectedEmotion,
                     onEmotionChange = { id -> selectedEmotion = id },
