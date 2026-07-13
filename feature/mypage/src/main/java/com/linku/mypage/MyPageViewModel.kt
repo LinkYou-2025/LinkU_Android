@@ -63,11 +63,11 @@ class MyPageViewModel @Inject constructor(
 
             userRepository.getUserInfo(id).fold(
                 onSuccess = { info ->
-                    _uiState.value = MyPageUiState(isLoading = false, userInfo = info)
+                    _uiState.value = _uiState.value.copy(isLoading = false, userInfo = info, error = null)
                 },
                 onFailure = { e ->
                     _uiState.value =
-                        MyPageUiState(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
+                        _uiState.value.copy(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
                 }
             )
         }
