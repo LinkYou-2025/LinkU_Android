@@ -49,6 +49,7 @@ import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.screen.AlarmScreen
+import com.linku.home.screen.NoticeScreen
 import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
 import com.linku.home.viewmodel.LinkDetailViewModel
@@ -473,12 +474,22 @@ fun MainApp(
                                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                                 }
                             },
-                            onNavigateToLinkDetail = { id -> navigator.navigate("savelinkresult/$id") },
+                            onNavigateToLinkDetail = { targetId -> navigator.navigate("savelinkresult/$targetId") },
                             onNavigateToFolder = { /* TODO */ },
                             onNavigateToCuration = { /* TODO */ },
-                            onNavigateToNotice = { /* TODO */ }
+                            onNavigateToNotice = { targetId -> navigator.navigate("notice_screen/$targetId") }
                         )
                     }
+                }
+
+                composable(
+                    route = NavigationRoute.Notice.route,
+                    arguments = listOf(navArgument("targetId") { type = NavType.LongType })
+                ) {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    NoticeScreen(
+                        onBack = { navigator.popBackStack() }
+                    )
                 }
 
                 composable("savelink") {
