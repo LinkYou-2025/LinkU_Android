@@ -248,6 +248,7 @@ class FileViewModel @Inject constructor(
         memo: String?,
         categoryId: Long?,
         emotionId: Long?,
+        situationId: Long? = null,  // TODO: 도메인 모델과 DTO 수정하면서 상황이 추가가 되어 넣었습니다. 지민님께서 확인 후 수정 부탁드립니다.
         onSucceed: (LinkResultInfo) -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
@@ -275,6 +276,7 @@ class FileViewModel @Inject constructor(
                     linku      = fixedLinku,                     // 서버 URL 고정
                     memo       = memo,                           // null/"" 그대로
                     emotionId  = emotionId ?: (current.emotionId ?: 0L),
+                    situationId = situationId ?: current.situationId ?: 0L,    // TODO: 도메인 모델과 DTO 수정하면서 상황이 추가가 되어 넣었습니다. 지민님께서 확인 후 수정 부탁드립니다.
                     domainId   = computedDomainId,
                     title      = title.ifBlank { current.title } // 빈 제목이면 기존 유지
                 )

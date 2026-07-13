@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,8 +46,9 @@ fun LinkDetailCategoryDropdown(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .padding(start = 12.dp, top = 13.dp, bottom = 13.dp, end = 56.dp)
-            .heightIn(max = 264.dp),
+            .heightIn(max = 264.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(start = 12.dp, top = 13.dp, bottom = 13.dp, end = 56.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         categories.forEach { category ->
@@ -97,7 +100,10 @@ fun PreviewLinkDetailCategoryDropdown() {
                 LinkCategoryOption(3L, "카테고리4", Color(0xFF2FB4E9)),
                 LinkCategoryOption(4L, "카테고리5", Color(0xFFFF5757)),
                 LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
-                LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
+                LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6)),
+                LinkCategoryOption(7L, "카테고리8", Color(0xFFD9DEE6)),
+                LinkCategoryOption(8L, "카테고리9", Color(0xFFD9DEE6)),
+                LinkCategoryOption(9L, "카테고리10", Color(0xFFD9DEE6))
             ),
             selectedCategoryId = 1L,
             onCategoryClick = { }
