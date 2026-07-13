@@ -38,9 +38,10 @@ fun TaskSelector(
     selectedTask: Long?,
     onTaskChange: (Long?) -> Unit,
     situations: List<Situation>,
+    modifier: Modifier = Modifier,
 ) {
     FlowRow(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(
             space = 10.dp,
             alignment = Alignment.CenterHorizontally
