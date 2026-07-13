@@ -26,4 +26,6 @@ interface AlarmRepository {
 
     suspend fun readAlarm(alarmId: Long): Result<Unit>
 
+    suspend fun getUnreadAlarmExists(): Result<Boolean>
+
 }

@@ -105,6 +105,12 @@ class AlarmRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getUnreadAlarmExists(): Result<Boolean> {
+        return safeApiCall {
+            alarmApi.getUnreadAlarmExists()
+        }.map { it.hasUnread }
+    }
+
 }
 
 

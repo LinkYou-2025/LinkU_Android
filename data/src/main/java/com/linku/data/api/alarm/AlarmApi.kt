@@ -7,6 +7,7 @@ import com.linku.data.api.dto.alarm.AlarmSettingDTO
 import com.linku.data.api.dto.alarm.AlarmSettingRequest
 import com.linku.data.api.dto.alarm.AlarmsDTO
 import com.linku.data.api.dto.alarm.FcmTokenRequest
+import com.linku.data.api.dto.alarm.UnreadAlarmExistDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
@@ -46,5 +47,9 @@ interface AlarmApi {
     suspend fun readAlarm(
         @Path("alarmId") alarmId: Long,
     ): BaseResponse<Any?>
+
+    @GET("alarm/unread")
+    suspend fun getUnreadAlarmExists(): BaseResponse<UnreadAlarmExistDTO>
+
 
 }
