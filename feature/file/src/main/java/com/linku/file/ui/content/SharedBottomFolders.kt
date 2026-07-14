@@ -90,11 +90,13 @@ fun SharedBottomFolderGrid(
                         deleteModalVisible = false
                     },
                     onDismiss = { deleteModalVisible = false },
-                    positiveText = "\uC0AD\uC81C\uD558\uAE30",
-                    title = "\uACF5\uC720\uBC1B\uC740 \uD3F4\uB354\uB97C \uC0AD\uC81C\uD558\uC2DC\uACA0\uC2B5\uB2C8\uAE4C?"
+                    positiveText = "삭제하기",
+                    negativeText = "취소하기",
+                    title = "해당 폴더를 삭제하시겠습니까?"
                 ) {
                     Text(
-                        text = "\uC0AD\uC81C \uC2DC \uACF5\uC720\uBC1B\uC740 \uD3F4\uB354 \uBAA9\uB85D\uC5D0\uC11C \uC81C\uAC70\uB429\uB2C8\uB2E4.",
+                        text = "삭제 시 폴더 내 모든 링크가 영구적으로\n" +
+                                "제거되며 복구가 불가능합니다.",
                         fontSize = 15.sp,
                         lineHeight = 22.sp,
                         fontWeight = FontWeight(400),
