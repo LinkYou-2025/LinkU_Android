@@ -249,9 +249,17 @@ internal fun ShareBottomSheet(
         isReady = state == FolderState.LINKS,
         onOkay = {
             if(state == FolderState.LINKS){
-                link = fileViewModel.shareFolder(selectedBottomFolder!!.folderId)
-                linkCopyToClipboard()
-                modalOpen = true
+                fileViewModel.createInvitationLink(
+                    folderId = selectedBottomFolder!!.folderId,
+                    onSuccess = { generatedLink ->
+                        link = generatedLink
+                        linkCopyToClipboard()
+                        modalOpen = true
+                    },
+                    onFailure = {
+                        Toast.makeText(context, "링크 생성을 실패했습니다", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
         },
         onDismiss = {
