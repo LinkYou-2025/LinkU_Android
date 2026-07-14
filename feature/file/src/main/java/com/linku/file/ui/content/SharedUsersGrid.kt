@@ -34,7 +34,7 @@ private const val SECTION_TITLE_TOP_PADDING = 21.49
 private const val SECTION_TITLE_BOTTOM_PADDING = 1.49
 
 @Composable
-fun SharedTopFolderGrid(
+fun SharedUsersGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
     folderList: List<SharedFolderInfo>,
@@ -113,9 +113,9 @@ fun SharedTopFolderGrid(
 
 @Preview(showBackground = true)
 @Composable
-private fun SharedTopFolderGridPreview() {
+private fun SharedUsersGridPreview() {
     LinkuPreview {
-        SharedTopFolderGrid(
+        SharedUsersGrid(
             folderList = listOf(
                 SharedFolderInfo(1L, "User 1", emptyList()),
                 SharedFolderInfo(2L, "User 2", emptyList()),

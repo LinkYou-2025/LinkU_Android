@@ -43,8 +43,7 @@ import com.linku.file.ui.bottom.sheet._ShareBottomSheet
 import com.linku.file.ui.content.CategoryGrid
 import com.linku.file.ui.content.ClassifiedLinksGrid
 import com.linku.file.ui.content.MyFoldersGrid
-import com.linku.file.ui.content.SharedBottomFolderGrid
-import com.linku.file.ui.content.SharedTopFolderGrid
+import com.linku.file.ui.content.SharedUsersGrid
 import com.linku.file.ui.top.bar.FileTopBar
 import com.linku.file.ui.top.bar.component.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
@@ -166,7 +165,7 @@ fun FileScreen(
                             }
                         )
                     }else{
-                        SharedTopFolderGrid(
+                        SharedUsersGrid(
                             folderList = sharedTopFolders,
                             onMyFoldersClick = {
                                 folderStateViewModel.updateIsSharedFolders(false)
@@ -214,7 +213,7 @@ fun FileScreen(
                             }
                         )
                     }else{
-                        SharedBottomFolderGrid(
+                        SharedUsersGrid(
                             folderList = sharedBottomFolders,
                             onFolderClick = { folder ->
                                 fileViewModel.getLinks(folder.folderId)

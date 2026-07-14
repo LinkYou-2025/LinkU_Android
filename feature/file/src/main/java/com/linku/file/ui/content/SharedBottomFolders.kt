@@ -37,7 +37,7 @@ private const val ITEM_RATIO = 10f / 174f
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun SharedBottomFolderGrid(
+fun SharedFoldersGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
     folderList: List<FolderSimpleInfo>,
@@ -118,9 +118,9 @@ private val sampleSharedFolders = listOf(
 
 @Preview(showBackground = true)
 @Composable
-private fun SharedBottomFolderGridPreview() {
+private fun SharedFoldersGridPreview() {
     LinkuPreview {
-        SharedBottomFolderGrid(
+        SharedFoldersGrid(
             folderList = sampleSharedFolders,
             onFolderClick = {},
             onDeleteFolder = {}
