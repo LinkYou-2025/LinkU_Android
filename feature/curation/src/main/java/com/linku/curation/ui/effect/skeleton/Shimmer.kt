@@ -26,12 +26,12 @@ import com.linku.design.theme.linkuColors
  * 라운드 사각형(RoundedCornerShape), 사각형(RectangleShape) 등 어디에나 적용할 수 있다.
  *
  * @param shape 스켈레톤 영역의 모양 (기본값: RectangleShape)
- * @param colors 쉬머 그라데이션 색상 목록. [grayShimmerColors]/[pinkShimmerColors]로 교체 가능 (기본값: 회색 계열)
+ * @param colors 쉬머 그라데이션 색상 목록. [MaterialTheme.grayShimmerColors]/[MaterialTheme.pinkShimmerColors]로 교체 가능 (기본값: 회색 계열)
  */
 @Composable
 fun Modifier.shimmer(
     shape: Shape = RectangleShape,
-    colors: List<Color> = grayShimmerColors()
+    colors: List<Color> = MaterialTheme.grayShimmerColors
 ): Modifier {
     val transition = rememberInfiniteTransition(label = "shimmer")
     val shift by transition.animateFloat(
@@ -57,15 +57,13 @@ fun Modifier.shimmer(
 }
 
 /** 기본 그레이 쉬머 색상 (카드, 텍스트 라인 등 범용) */
-@Composable
-fun grayShimmerColors(): List<Color> {
-    val colorTheme = MaterialTheme.linkuColors
-    return listOf(colorTheme.gray[100], colorTheme.gray[200], colorTheme.gray[100])
-}
+internal val MaterialTheme.grayShimmerColors: List<Color>
+    @Composable get() = listOf(linkuColors.gray[100], linkuColors.gray[200], linkuColors.gray[100])
 
 /** 밝은 핑크 쉬머 색상 (큐레이션 디테일 화면용) */
-@Composable
-fun pinkShimmerColors(): List<Color> {
-    val colorTheme = MaterialTheme.linkuColors
-    return listOf(colorTheme.purple[50], colorTheme.purple[100], colorTheme.purple[50])
-}
+internal val MaterialTheme.pinkShimmerColors: List<Color>
+    @Composable get() = listOf(
+        linkuColors.purple[50],
+        linkuColors.purple[100],
+        linkuColors.purple[50]
+    )
