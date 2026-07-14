@@ -322,6 +322,17 @@ fun MainApp(
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
+                            deepLinkViewModel.consumePendingInvitation()?.let { token ->
+                                fileViewModel.receiveSharedFolderInvitation(token)
+                                folderStateViewModel.updateIsSharedFolders(true)
+
+                                navigator.navigate(NavigationRoute.File.route) {
+                                    popUpTo("login_root") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                return@LoginApp
+                            }
+
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
                                 fileViewModel.receiveSharedFolder(folderId)
                                 folderStateViewModel.updateIsSharedFolders(true)
@@ -706,9 +717,12 @@ fun MainApp(
                         appLinkRoute(
                             action = action,
                             folderId = folderId,
+                            token = null,
                             onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
+                            onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
                             onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
                             onSetPendingShare = deepLinkViewModel::setPendingShare,
+                            onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
                             navigator = navigator
                         )
 
@@ -756,6 +770,71 @@ fun MainApp(
 ////                                }
 //                            }
 //                        }
+                    }
+                }
+
+                composable(
+                    route = "open?action={action}&token={token}",
+                    arguments = listOf(
+                        navArgument("action") { type = NavType.StringType; nullable = true },
+                        navArgument("token") { type = NavType.StringType; nullable = false },
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "https://linkuserver.store/open?action={action}&token={token}"
+                        },
+                        navDeepLink {
+                            uriPattern = "https://linkuserver.store/open?token={token}&action={action}"
+                        }
+                    )
+                ) { backStackEntry ->
+                    val action = backStackEntry.arguments?.getString("action")
+                    val token = backStackEntry.arguments?.getString("token")
+
+                    Log.d("MainApp", "route: appLink action: $action, token: $token")
+
+                    LaunchedEffect(action, token) {
+                        appLinkRoute(
+                            action = action,
+                            folderId = null,
+                            token = token,
+                            onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
+                            onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                            onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
+                            onSetPendingShare = deepLinkViewModel::setPendingShare,
+                            onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
+                            navigator = navigator
+                        )
+                    }
+                }
+
+                composable(
+                    route = "invitations/{token}",
+                    arguments = listOf(
+                        navArgument("token") { type = NavType.StringType; nullable = false },
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "https://linkuserver.store/invitations/{token}"
+                        }
+                    )
+                ) { backStackEntry ->
+                    val token = backStackEntry.arguments?.getString("token")
+
+                    Log.d("MainApp", "route: invitation token: $token")
+
+                    LaunchedEffect(token) {
+                        appLinkRoute(
+                            action = "share",
+                            folderId = null,
+                            token = token,
+                            onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
+                            onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                            onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
+                            onSetPendingShare = deepLinkViewModel::setPendingShare,
+                            onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
+                            navigator = navigator
+                        )
                     }
                 }
 
