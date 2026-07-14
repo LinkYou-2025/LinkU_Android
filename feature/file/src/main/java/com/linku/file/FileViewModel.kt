@@ -11,6 +11,7 @@ import com.linku.core.error.UserIdNullException
 import com.linku.core.model.AiArticle
 import com.linku.core.model.CategoryColorList
 import com.linku.core.model.FolderSimpleInfo
+import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.SharedFolderInfo
@@ -18,6 +19,7 @@ import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.FolderRepository
+import com.linku.core.repository.InvitationRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
@@ -46,6 +48,7 @@ import javax.inject.Inject
 class FileViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
     private val folderRepository: FolderRepository,
+    private val invitationRepository: InvitationRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
 
@@ -66,6 +69,9 @@ class FileViewModel @Inject constructor(
 
     private val _sharedBottomFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val sharedBottomFolders: StateFlow<List<FolderSimpleInfo>> = _sharedBottomFolders.asStateFlow()
+
+    private val _invitationInfo = MutableStateFlow<InvitationInfo?>(null)
+    val invitationInfo: StateFlow<InvitationInfo?> = _invitationInfo.asStateFlow()
 
     // 카테고리 리스트
     private val _categoryList = MutableStateFlow<List<CategoryColorList>>(emptyList())
@@ -1092,6 +1098,76 @@ class FileViewModel @Inject constructor(
         return link
     }
 
+    fun createInvitationLink(
+        folderId: Long,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit = {}
+    ) {
+        Log.d("FileViewModel", "createInvitationLink")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "createInvitationLink launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                val link = folderRepository.makeInvitationLink(folderId)
+                onSuccess(link)
+
+                Log.d("FileViewModel", "createInvitationLink result: $link")
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "createInvitationLink catch: $e")
+                _errorMessage.value = e.message
+                onFailure(e)
+            } finally {
+                stopLoading()
+            }
+        }
+    }
+
+    fun deactivateInvitationLink(folderId: Long) {
+        Log.d("FileViewModel", "deactivateInvitationLink")
+
+        viewModelScope.launch {
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                folderRepository.deactivateInvitationLink(folderId)
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "deactivateInvitationLink catch: $e")
+                _errorMessage.value = e.message
+            } finally {
+                stopLoading()
+            }
+        }
+    }
+
+    fun getInvitationInfo(token: String) {
+        Log.d("FileViewModel", "getInvitationInfo")
+
+        viewModelScope.launch {
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                val userId = authPreference.getUserId()
+
+                if (userId == null) {
+                    throw UserIdNullException()
+                }
+
+                _invitationInfo.value = invitationRepository.getInvitationInfo(token)
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "getInvitationInfo catch: $e")
+                _errorMessage.value = e.message
+            } finally {
+                stopLoading()
+            }
+        }
+    }
+
     // 폴더 공유 받기
     fun receiveSharedFolder(folderId: Long){
         Log.d("FileViewModel", "receiveSharedFolder")
@@ -1127,6 +1203,35 @@ class FileViewModel @Inject constructor(
             }
         }
         Log.d("FileViewModel", "receiveSharedFolder return")
+    }
+
+    fun receiveSharedFolderInvitation(token: String) {
+        Log.d("FileViewModel", "receiveSharedFolderInvitation")
+
+        viewModelScope.launch {
+            Log.d("FileViewModel", "receiveSharedFolderInvitation launch")
+
+            startLoading()
+            _errorMessage.value = null
+
+            try {
+                val userId = authPreference.getUserId()
+
+                if (userId == null) {
+                    throw UserIdNullException()
+                }
+
+                invitationRepository.acceptInvitation(token)
+                _sharedTopFolders.value = folderRepository.getSharedFolders()
+
+                Log.d("FileViewModel", "receiveSharedFolderInvitation well done")
+            } catch (e: Exception) {
+                Log.d("FileViewModel", "receiveSharedFolderInvitation catch: $e")
+                _errorMessage.value = e.message
+            } finally {
+                stopLoading()
+            }
+        }
     }
     // 공개 전환
     fun folderToShare(folder: FolderSimpleInfo){
