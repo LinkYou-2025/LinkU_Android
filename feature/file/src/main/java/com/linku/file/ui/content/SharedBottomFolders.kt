@@ -23,10 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modal.ModalWindow
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.file.ui.item.items.EmptyFolderItemLayout
 
@@ -102,5 +104,24 @@ fun SharedBottomFolderGrid(
                 }
             }
         }
+    }
+}
+
+private val sampleSharedFolders = listOf(
+    FolderSimpleInfo(1, "Shared Folder 1", 0, false),
+    FolderSimpleInfo(2, "Shared Folder 2", 0, true),
+    FolderSimpleInfo(3, "Shared Folder 3", 0, false),
+    FolderSimpleInfo(4, "Shared Folder 4", 0, false)
+)
+
+@Preview(showBackground = true)
+@Composable
+private fun SharedBottomFolderGridPreview() {
+    LinkuPreview {
+        SharedBottomFolderGrid(
+            folderList = sampleSharedFolders,
+            onFolderClick = {},
+            onDeleteFolder = {}
+        )
     }
 }

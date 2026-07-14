@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.SharedFolderInfo
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.file.ui.item.items.EmptyFolderItemLayout
 
@@ -65,7 +67,7 @@ fun SharedTopFolderGrid(
                         .noRippleClickable {
                             onMyFoldersClick()
                         },
-                    folderName = "\uB098\uC758 \uD3F4\uB354"
+                    folderName = "나의 폴더"
                 )
             }
 
@@ -102,9 +104,25 @@ fun SharedTopFolderGrid(
                         .noRippleClickable {
                             onSharedFolderClick(folder)
                         },
-                    folderName = "${folder.nickname}\uC758 \uD3F4\uB354"
+                    folderName = "${folder.nickname}의 폴더"
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SharedTopFolderGridPreview() {
+    LinkuPreview {
+        SharedTopFolderGrid(
+            folderList = listOf(
+                SharedFolderInfo(1L, "User 1", emptyList()),
+                SharedFolderInfo(2L, "User 2", emptyList()),
+                SharedFolderInfo(3L, "User 3", emptyList())
+            ),
+            onMyFoldersClick = {},
+            onSharedFolderClick = {}
+        )
     }
 }
