@@ -7,6 +7,7 @@ import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.folder.UpdateCategoryColorRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
+import com.linku.data.mapper.toDomain
 import javax.inject.Inject
 
 class CategoryRepositoryImpl @Inject constructor(
@@ -26,17 +27,7 @@ class CategoryRepositoryImpl @Inject constructor(
             safeApiCall(
                 apiCall = { serverApi.getCategoryColor() }
             ).onSuccess { dtoList ->
-                categoryColorList = dtoList.map { dto ->
-                    CategoryColorList(
-                        categoryId = dto.categoryId,
-                        categoryName = dto.categoryName,
-                        colorName = dto.colorName,
-                        colorCode1 = dto.colorCode1,
-                        colorCode2 = dto.colorCode2,
-                        colorCode3 = dto.colorCode3,
-                        colorCode4 = dto.colorCode4
-                    )
-                }
+                categoryColorList = dtoList.map { it.toDomain() }
                 Log.d("CategoryRepositoryImpl", "try result: $categoryColorList")
             }.onFailure {
                 throw it
