@@ -337,22 +337,29 @@ class LinkuRepositoryImpl @Inject constructor(
         linku: String,
         memo: String?,
         emotionId: Long,
+        situationId: Long,
         domainId: Long,
-        title: String
+        title: String,
     ): LinkResultInfo {
         val body = LinkuUpdateDTO(
             categoryId = categoryId,
             linku = linku,
             memo = memo?.trim().orEmpty(),
             emotionId = emotionId,
+            situationId = situationId,
             domainId = domainId,
-            title = title
+            title = title.trim(),
         )
 
         lateinit var result: LinkResultInfo
 
         safeApiCall(
-            apiCall = { serverApi.updateLink(linkuId = linkuId, body = body) }
+            apiCall = {
+                serverApi.updateLink(
+                    linkuId = linkuId,
+                    body = body,
+                )
+            }
         ).onSuccess {
             result = LinkResultInfo(
                 userId = it.userId,
@@ -374,12 +381,21 @@ class LinkuRepositoryImpl @Inject constructor(
                 keyword = it.keyword?.takeIf { keyword -> keyword.isNotBlank() },
                 summary = it.summary?.takeIf { summary -> summary.isNotBlank() },
                 createdAt = it.createdAt,
-                updatedAt = it.updatedAt
+                updatedAt = it.updatedAt,
             )
         }.onFailure {
             throw it
         }
 
         return result
+    }
+
+    // 링크 삭제
+    override suspend fun deleteLink(userLinkuId: Long) {
+        val response = serverApi.deleteLink(userLinkuId = userLinkuId)
+
+        if (!response.isSuccessful) {
+            throw IllegalStateException("링크 삭제에 실패했습니다. code=${response.code()}")
+        }
     }
 }

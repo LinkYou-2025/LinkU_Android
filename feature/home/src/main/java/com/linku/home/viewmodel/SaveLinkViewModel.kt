@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 import java.io.File
 import javax.inject.Inject
 
@@ -198,16 +199,25 @@ class SaveLinkViewModel @Inject constructor(
 }
 
 private fun Throwable.toLinkCheckToastMessage(): String {
-    val rawMessage = message.orEmpty()
+    val errorMessage = message.orEmpty()
+
+    val errorBody = runCatching {
+        (this as? HttpException)
+            ?.response()
+            ?.errorBody()
+            ?.string()
+    }.getOrNull().orEmpty()
+
+    val errorContent = "$errorMessage $errorBody"
 
     return when {
-        rawMessage.contains("LINKU4001", ignoreCase = true) ||
-                rawMessage.contains("영상", ignoreCase = true) -> {
+        errorContent.contains("LINKU4001", ignoreCase = true) ||
+                errorContent.contains("영상", ignoreCase = true) -> {
             "영상 콘텐츠는 지원하지 않아요!"
         }
 
-        rawMessage.contains("LINKU4002", ignoreCase = true) ||
-                rawMessage.contains("유효하지 않은 링크", ignoreCase = true) -> {
+        errorContent.contains("LINKU4002", ignoreCase = true) ||
+                errorContent.contains("유효하지 않은 링크", ignoreCase = true) -> {
             "유효하지 않은 링크입니다!"
         }
 

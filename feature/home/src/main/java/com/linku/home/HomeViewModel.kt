@@ -6,29 +6,22 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.model.AiArticle
-import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.search.RecentQuery
-import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
-import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -38,7 +31,6 @@ class HomeViewModel @Inject constructor(
     private val linkuRepository: LinkuRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
-    private val aiArticleRepository: AIArticleRepository,
     private val categoryRepository: CategoryRepository,
     private val recentRepository: RecentSearchRepository,
 ) : ViewModel() {
@@ -112,8 +104,6 @@ class HomeViewModel @Inject constructor(
 //        userNameState.value = null
         jobIdState.value = null
         _recentLinks.value = emptyList()
-        linkDetailState.value = null
-        linkCache.clear() // 상세 정보 캐시도 삭제
         _categoryColorMap.value = emptyMap()
         categoryLoaded = false
     }
@@ -166,20 +156,6 @@ class HomeViewModel @Inject constructor(
     // 최근 조회 링크 상태
     private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
     val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
-
-    // AI 요약
-    private val aiArticleDetailState = mutableStateOf<AiArticle?>(null)
-    val aiArticleDetail get() = aiArticleDetailState.value
-
-    private val isLoadingAiArticleState = mutableStateOf(false)
-    val isLoadingAiArticle get() = isLoadingAiArticleState.value
-
-    // 진행률
-    private val _aiProgress = MutableStateFlow(0f)
-    val aiProgress: StateFlow<Float> = _aiProgress.asStateFlow()
-
-    private var aiJob: Job? = null
-    private var aiProgressJob: Job? = null
 
     // 링크 추천
     fun fetchRecommendations(
@@ -239,205 +215,6 @@ class HomeViewModel @Inject constructor(
                 }
         }
     }
-
-    // 상세 불러오기
-    private val linkDetailState = mutableStateOf<LinkResultInfo?>(null)
-    val linkDetail get() = linkDetailState.value
-
-    private val isLoadingLinkDetailState = mutableStateOf(false)
-    val isLoadingLinkDetail get() = isLoadingLinkDetailState.value
-
-//    fun loadLinkDetail(linkuId: Long) {
-//        viewModelScope.launch {
-//            isLoadingLinkDetailState.value = true
-//
-//            // 상세 요청 전에 요청 파라미터 로깅
-//            Log.d("SaveLinkFlow", "상세 요청 -> linkuId = $linkuId")
-//
-//            runCatching { linkuRepository.getLinkDetail(linkuId) }
-//                .onSuccess { info ->
-//                    // 상세 응답(도메인 모델) 로깅
-//                    Log.d("SaveLinkFlow", "상세 응답 -> LinkResultInfo = $info")
-//                    linkDetailState.value = info
-//
-//                    // 자동 생성은 하지 않고, 항상 초기화만 수행
-//                    aiArticleDetailState.value = null
-//                }
-//                .onFailure { e ->
-//                    Log.e("SaveLinkFlow", "상세 응답 실패", e)
-//                    linkDetailState.value = null
-//                }
-//
-//            isLoadingLinkDetailState.value = false
-//        }
-//    }
-    private data class Cached<T>(val value: T, val ts: Long = System.currentTimeMillis())
-    private val linkCache = mutableMapOf<Long, Cached<LinkResultInfo>>()
-    private val DETAIL_TTL = 60_000L // 60초
-
-    fun loadLinkDetail(linkuId: Long, forceRefresh: Boolean = false) {
-        val now = System.currentTimeMillis()
-        val cached = linkCache[linkuId]
-        if (!forceRefresh && cached != null && now - cached.ts < DETAIL_TTL) {
-            // ✅ 캐시 즉시 노출(스피너 최소화)
-            linkDetailState.value = cached.value
-            isLoadingLinkDetailState.value = false
-            // 백그라운드 갱신 (선택)
-            viewModelScope.launch {
-                runCatching { linkuRepository.getLinkDetail(linkuId) }
-                    .onSuccess {
-                        linkCache[linkuId] = Cached(it)
-                        linkDetailState.value = it
-                        aiArticleDetailState.value = null
-                    }
-                    .onFailure { Log.e("SaveLinkFlow", "refresh failed", it) }
-            }
-            return
-        }
-
-        viewModelScope.launch {
-            isLoadingLinkDetailState.value = cached == null // 캐시 없을 때만 스피너
-            runCatching { linkuRepository.getLinkDetail(linkuId) }
-                .onSuccess {
-                    linkCache[linkuId] = Cached(it)
-                    linkDetailState.value = it
-                    aiArticleDetailState.value = null
-                }
-                .onFailure {
-                    Log.e("SaveLinkFlow", "상세 실패", it)
-                    if (cached == null) linkDetailState.value = null
-                }
-            isLoadingLinkDetailState.value = false
-        }
-    }
-
-    // AI 요약
-    fun loadAiArticle(linkuId: Long) {
-//        viewModelScope.launch {
-//            isLoadingAiArticleState.value = true
-//            runCatching { aiArticleRepository.getAiArticle(linkuId) }
-//                .onSuccess { aiArticleDetailState.value = it }
-//                .onFailure { e ->
-//                    Log.e("SaveLinkFlow", "AI 요약 불러오기 실패", e)
-//                    aiArticleDetailState.value = null
-//                }
-//            isLoadingAiArticleState.value = false
-//        }
-
-        Log.d("HomeVM", "loadAiArticle 진입: linkuId=$linkuId, 현재 isLoading=${isLoadingAiArticleState.value}")
-        if (isLoadingAiArticleState.value) {
-            Log.d("HomeVM", "이미 로딩중 → 조기 리턴")
-            return
-        }
-
-        isLoadingAiArticleState.value = true
-        Log.d("HomeVM", "isLoadingAiArticle = true 로 세팅 완료")
-        _aiProgress.value = 0.1f
-
-        // 진행률을 0.85f까지 서서히 끌어올리는 타이머
-        aiProgressJob?.cancel()
-        aiProgressJob = viewModelScope.launch {
-            Log.d("HomeVM", "aiProgressJob 시작")
-            val cap = 0.85f
-            while (isActive && _aiProgress.value < cap) {
-                delay(100)
-                _aiProgress.value = (_aiProgress.value + 0.02f).coerceAtMost(cap)
-            }
-            Log.d("HomeVM", "aiProgressJob 종료")
-        }
-
-        aiJob?.cancel()
-        aiJob = viewModelScope.launch {
-            Log.d("HomeVM", "AI API 호출 시작")
-            runCatching { aiArticleRepository.getAiArticle(linkuId) }
-                .onSuccess {
-                    Log.d("HomeVM", "AI API 성공: $it")
-                    aiArticleDetailState.value = it
-                }
-                .onFailure { e ->
-                    Log.e("HomeVM", "AI API 실패", e)
-                    aiArticleDetailState.value = null
-                }
-
-            // 완료 처리
-            aiProgressJob?.cancel()
-            _aiProgress.value = 1f
-            isLoadingAiArticleState.value = false
-            Log.d("HomeVM", "isLoadingAiArticle = false 로 세팅 완료")
-
-            // (선택) 잠깐 100% 보여준 뒤 초기화
-            launch {
-                delay(300)
-                _aiProgress.value = 0f
-                Log.d("HomeVM", "aiProgress 0으로 초기화")
-            }
-        }
-    }
-
-    fun cancelAiArticleJob() {
-        aiJob?.cancel()
-        aiProgressJob?.cancel()
-        isLoadingAiArticleState.value = false
-        _aiProgress.value = 0f
-    }
-
-    // 링크 수정
-    private val isUpdatingLinkState = mutableStateOf(false)
-    val isUpdatingLink get() = isUpdatingLinkState.value
-
-    fun updateLink(
-        title: String,
-        memo: String?,
-        categoryId: Long?,
-        emotionId: Long?,
-        situationId: Long?,
-        onSucceed: (LinkResultInfo) -> Unit = {},
-        onFailed: (Throwable) -> Unit = {},
-    ) {
-        val current = linkDetailState.value ?: run {
-            onFailed(IllegalStateException("링크 상세가 없습니다."))
-            return
-        }
-
-        if (isUpdatingLinkState.value) return
-
-        val fixedLinkuId = current.linkuId
-        val fixedLinku = current.linku
-
-        val computedDomainId = DomainIdMapper.resolve(
-            url = fixedLinku,
-            domain = current.domain
-        )
-
-        viewModelScope.launch {
-            isUpdatingLinkState.value = true
-
-            runCatching {
-                linkuRepository.updateLink(
-                    linkuId = fixedLinkuId,
-                    categoryId = categoryId ?: current.categoryId ?: 0L,
-                    linku = fixedLinku,
-                    memo = memo,
-                    emotionId = emotionId ?: current.emotionId ?: 0L,
-                    domainId = computedDomainId,
-                    title = title.ifBlank { current.title }
-
-                    // TODO: API 연동 시 아래 값도 함께 전달
-                    // situationId = situationId ?: current.situationId ?: 0L
-                )
-            }.onSuccess { updated ->
-                linkDetailState.value = updated
-                linkCache[fixedLinkuId] = Cached(updated)
-                loadRecentLinks()
-                onSucceed(updated)
-            }.onFailure { e ->
-                onFailed(e)
-            }
-
-            isUpdatingLinkState.value = false
-        }
-    }
-
 
     // ---------- search method ----------
     // 검색창 탑 시트 가시성 상태

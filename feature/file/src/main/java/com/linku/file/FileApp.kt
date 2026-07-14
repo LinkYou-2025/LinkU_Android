@@ -14,6 +14,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.util.WhiteSystemBars
 import com.linku.file.ui.link.SaveLinkResultScreen
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -31,6 +32,8 @@ fun FileApp(
         fileViewModel.setLinkDetail(id)
         navController.navigate("savelinkresult/${id}")
     }
+
+    WhiteSystemBars()
 
     NavHost(
         navController = navController,

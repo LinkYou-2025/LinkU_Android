@@ -11,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.linku.design.util.WhiteSystemBars
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
 import com.linku.home.viewmodel.AlarmViewModel
@@ -32,6 +33,8 @@ fun HomeApp(
     // 홈 화면에 귀속되는 UI이므로, MainApp에서부터 주입하지 않고
     // HomeApp에서 만들어 주입한다.
     val alarmViewModel: AlarmViewModel = hiltViewModel()
+
+    WhiteSystemBars()
 
 //    // === 감정/상황 키 → 서버 ID 매핑 ===
 //    fun emotionKeyToId(key: String): Long = when (key) {

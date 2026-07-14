@@ -50,6 +50,7 @@ import com.linku.home.HomeViewModel
 import com.linku.home.component.LinkCategoryOption
 import com.linku.home.screen.LinkDetailScreen
 import com.linku.home.screen.SaveLinkScreen
+import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
@@ -118,6 +119,9 @@ fun MainApp(
 
     // 링크 저장에서 사용할 뷰모델
     val saveLinkViewModel: SaveLinkViewModel = hiltViewModel()
+
+    // 링크 상세에서 사용할 뷰모델
+     val linkDetailViewModel: LinkDetailViewModel = hiltViewModel()
 
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
@@ -496,7 +500,7 @@ fun MainApp(
                                         "SaveLink",
                                         "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
                                     )
-                                    homeViewModel.loadLinkDetail(saved.linkuId)
+                                    linkDetailViewModel.loadLinkDetail(saved.linkuId)
                                     saveLinkViewModel.resetForm()
                                     navigator.navigate("savelinkresult/${saved.linkuId}")
                                 },
@@ -518,8 +522,18 @@ fun MainApp(
                     val context = LocalContext.current
                     val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
 
+                    var selectedDetailImageUri by rememberSaveable(linkuId) {
+                        mutableStateOf<Uri?>(null)
+                    }
+
+                    val detailImagePicker = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.GetContent()
+                    ) { uri: Uri? ->
+                        selectedDetailImageUri = uri
+                    }
+
                     LaunchedEffect(linkuId) {
-                        vm.loadLinkDetail(linkuId)
+                        linkDetailViewModel.loadLinkDetail(linkuId)
                         vm.loadCategoryColors()
                     }
 
@@ -574,8 +588,7 @@ fun MainApp(
                             .take(4)
                     }
 
-                    // 진행률/색상 맵 수집
-                    val aiProgress = vm.aiProgress.collectAsState().value
+                    // 색상 맵 수집
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
                     val categoryOptions = categoryColorMap.mapNotNull { (name, style) ->
@@ -610,8 +623,8 @@ fun MainApp(
                         }
                     }
 
-                    val linkDetail = vm.linkDetail
-                    val aiArticle = vm.aiArticleDetail
+                    val linkDetail = linkDetailViewModel.linkDetail
+                    val aiArticle = linkDetailViewModel.aiArticleDetail
 
                     val displayKeyword = aiArticle?.keyword?.trim().orEmpty()
                         .ifEmpty { linkDetail?.keyword.orEmpty() }
@@ -623,14 +636,42 @@ fun MainApp(
                         linkTitle = linkDetail?.title.orEmpty(),
                         category = categoryNameOf(linkDetail?.categoryId),
                         emotion = emotionNameOf(linkDetail?.emotionId),
-                        situationId = null, // TODO: 상세 API에 situationId 생기면 linkDetail?.situationId로 변경
+                        situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
+                        imageUrl = linkDetail?.linkuImageUrl,
+                        selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
                         aiSummary = displaySummary,
                         categoryOptions = categoryOptions,
                         onBack = {
                             navigator.popBackStack()
+                        },
+                        onPickImage = {
+                            detailImagePicker.launch("image/*")
+                        },
+                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
+                            linkDetailViewModel.updateLink(
+                                title = title,
+                                memo = memo,
+                                categoryId = categoryId,
+                                emotionId = emotionId,
+                                situationId = situationId,
+                                onSucceed = {
+                                    homeViewModel.loadRecentLinks()
+                                    onSuccess()
+                                },
+                                onFailed = { e ->
+                                    Log.e("LinkDetail", "update failed", e)
+                                    onFailed()
+                                }
+                            )
+                        },
+                        onDeleteLink = { onSuccess, onFailed ->
+                            linkDetailViewModel.deleteLink(
+                                onSucceed = onSuccess,
+                                onFailed = { onFailed() }
+                            )
                         }
                     )
                 }

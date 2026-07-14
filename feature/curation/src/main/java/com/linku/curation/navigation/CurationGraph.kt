@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.linku.curation.ui.CurationScreen
+import com.linku.design.util.WhiteSystemBars
 import com.linku.curation.ui.monthly.MonthlyCurationScreen
 import com.linku.curation.ui.screen.CurationKeywordDetailScreen
 import com.linku.curation.ui.screen.CurationKeywordLinksScreen
@@ -39,6 +40,7 @@ fun NavGraphBuilder.curationGraph(
     ) {
         composable("curation_list") {
             showNavBar(true)
+            WhiteSystemBars()
 
             CurationScreen(
                 nickname = nickname,
