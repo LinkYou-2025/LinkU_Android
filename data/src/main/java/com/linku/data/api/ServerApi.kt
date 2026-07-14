@@ -7,6 +7,7 @@ interface ServerApi :
     CurationApi,
     AIArticleApi,
     FolderApi,
-    CategoryApi
+    CategoryApi,
+    InvitationApi
 
 
