@@ -33,6 +33,15 @@ private const val baseW = 165.3f
 private const val baseH = 145.8535f
 private const val aspect = baseW / baseH
 
+/**
+ * 폴더 아이템의 로딩 상태를 표시하는 스켈레톤 로더 컴포넌트입니다.
+ *
+ * 여러 개의 레이어를 회전시키고 겹쳐서 폴더 내부의 종이 뭉치를 표현하며,
+ * 하단 마스크를 통해 폴더의 외형을 완성합니다. 지정된 종횡비([aspect])를 유지하며
+ * 전달된 [modifier]의 크기에 맞춰 내부 요소들이 동적으로 스케일링됩니다.
+ *
+ * @param modifier 컨테이너 레이아웃에 적용할 [Modifier]
+ */
 @Composable
 internal fun SkeletonFolderItem(
     modifier: Modifier
@@ -46,7 +55,7 @@ internal fun SkeletonFolderItem(
         val scaleH = maxHeight / baseH.dp
         val scale = minOf(scaleW, scaleH)
 
-        // 디자인 기준 dp, sp를 현재 카드 크기에 맞게 변환하는 헬퍼입니다.
+        /** 디자인 기준 dp, sp를 현재 카드 크기에 맞게 변환하는 헬퍼입니다. */
         fun s(dp: Dp) = dp * scale
 
         /**
@@ -91,6 +100,7 @@ internal fun SkeletonFolderItem(
             Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
+            // 배경면. SkeletonFolderItem 자체가 갖는 크기를 가짐.
             Surface(
                 modifier = Modifier
                     .fillMaxSize()
@@ -120,6 +130,7 @@ internal fun SkeletonFolderItem(
                 rotation = 0f
             )
 
+            // 하단 폴더 마스크.
             Image(
                 painter = painterResource(R.drawable.folder_mask),
                 contentScale = ContentScale.FillWidth,
