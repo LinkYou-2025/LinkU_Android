@@ -81,7 +81,7 @@ fun SharedUsersGrid(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "\uACF5\uC720\uBC1B\uC740 \uD3F4\uB354",
+                        text = "공유받은 폴더",
                         fontSize = 20.sp,
                         lineHeight = 30.sp,
                         fontWeight = FontWeight(700),
