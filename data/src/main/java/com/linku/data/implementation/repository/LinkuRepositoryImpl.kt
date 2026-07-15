@@ -206,7 +206,6 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // 링크 상세 보기 구현
-    // * 수정 전 *
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
         lateinit var result: LinkResultInfo
 
@@ -242,7 +241,7 @@ class LinkuRepositoryImpl @Inject constructor(
         return result
     }
 
-    // * 수정 후 *
+    // 공유받은 링크 상세 보기
     override suspend fun getLinkDetailWithShared(
         userId: Long,
         linkuId: Long
