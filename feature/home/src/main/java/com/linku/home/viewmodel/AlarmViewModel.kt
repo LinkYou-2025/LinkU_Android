@@ -73,7 +73,7 @@ class AlarmViewModel @Inject constructor(
     }
 
     // 갱신 트리거 값을 변경하여 모든 알람 타입의 Pager를 다시 생성
-    private fun refreshPaging() {
+    fun refreshPaging() {
         refreshTrigger.update { it + 1 }
     }
 

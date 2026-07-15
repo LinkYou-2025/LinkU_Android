@@ -91,6 +91,12 @@ fun AlarmScreen(
         }
     }
 
+    // 리컴포지션 시 알림 목록 갱신
+    LaunchedEffect(Unit) {
+        viewModel.refreshPaging()
+        Log.d("AlarmScreen", "리컴포지션 시 알람 목록 갱신")
+    }
+
     // 사이드이펙트 채널 구독
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
