@@ -3,6 +3,7 @@ package com.linku.home.screen
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -250,6 +251,25 @@ fun LinkDetailScreen(
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.img_link_detail_default),
                         error = painterResource(R.drawable.img_link_detail_default),
+                        onLoading = {
+                            Log.d(
+                                "LinkDetailImage",
+                                "loading: ${selectedImageUri ?: imageUrl}"
+                            )
+                        },
+                        onSuccess = {
+                            Log.d(
+                                "LinkDetailImage",
+                                "success: ${selectedImageUri ?: imageUrl}"
+                            )
+                        },
+                        onError = { state ->
+                            Log.e(
+                                "LinkDetailImage",
+                                "error: ${selectedImageUri ?: imageUrl}",
+                                state.result.throwable
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)

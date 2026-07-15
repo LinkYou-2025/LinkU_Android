@@ -638,7 +638,7 @@ fun MainApp(
                         emotion = emotionNameOf(linkDetail?.emotionId),
                         situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
-                        imageUrl = linkDetail?.linkuImageUrl,
+                        imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
                         selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
@@ -822,7 +822,20 @@ fun MainApp(
 
 }
 
+/**
+ * 이미지 URL에 스킴이 없으면 HTTPS 스킴을 추가한다.
+ *
+ * 빈 문자열이나 null은 null로 반환하며,
+ * 이미 HTTP 또는 HTTPS 스킴이 포함된 경우 원본 값을 유지한다.
+ */
+private fun String?.toImageUrl(): String? {
+    val value = this?.trim()?.takeIf { it.isNotEmpty() } ?: return null
 
+    return when {
+        value.startsWith("http://") || value.startsWith("https://") -> value
+        else -> "https://$value"
+    }
+}
 
 // 확장 함수: Context -> Activity
 fun Context.findActivity(): Activity? {
