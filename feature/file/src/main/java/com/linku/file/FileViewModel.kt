@@ -311,7 +311,7 @@ class FileViewModel @Inject constructor(
                 }
 
                 // 상세만 로드 (AI 자동 호출 제거)
-                val detail = linkuRepository.getLinkDetail(userId, linkuId)
+                val detail = linkuRepository.getLinkDetailWithShared(userId, linkuId)
                 Log.d("FileViewModel", "상세 응답 -> $detail")
                 _linkDetail.value = detail
 
