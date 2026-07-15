@@ -243,7 +243,7 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // * 수정 후 *
-    override suspend fun getLinkDetail(
+    override suspend fun getLinkDetailWithShared(
         userId: Long,
         linkuId: Long
     ): LinkResultInfo {
