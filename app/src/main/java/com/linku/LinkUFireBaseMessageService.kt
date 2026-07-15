@@ -50,12 +50,10 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             // 푸시알림 활성화 안되어있으면 종료
             if (!notificationPreference.isMasterNotificationEnabled()) return@launch
 
-            // FCM 메시지 타입에 따라 title/body 추출
-            // Notification Message: message.notification에서 추출
-            // Data Message: message.data에서 추출
-            // 둘 다 없으면 처리 불필요로 판단하여 종료
-            val title = message.notification?.title ?: message.data["title"] ?: return@launch
-            val body = message.notification?.body ?: message.data["message"] ?: return@launch
+            val title = message.notification?.title ?: return@launch
+            val body = message.notification?.body ?: return@launch
+
+            val type = message.data["type"] ?: "null"
             val targetId = message.data["targetId"] ?: "null"
 
             Log.d("FCM", """
@@ -66,10 +64,14 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
                 """.trimIndent()
             )
 
+            // // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
             val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-                ?: return@launch // null이면 알림 생략하고 종료
+                ?.apply {
+                    putExtra("type", type)
+                    putExtra("targetId", targetId)
+                }
+                ?: return@launch
 
-            // 일단은 액티비티로의 이동처리만 구현. 추후 수정 예정
             val pendingIntent = PendingIntent.getActivity(
                 this@LinkUFireBaseMessageService,
                 0,
@@ -79,7 +81,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
             // 알림 제작
             val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
-                .setSmallIcon(R.drawable.img_noti_ex_2)
+                .setSmallIcon(R.drawable.img_noti_ex_2) // 상태바 표시 아이콘
                 .setLargeIcon( // 알림 확장 영역 표시용 앱 로고
                     BitmapFactory.decodeResource(
                         resources,

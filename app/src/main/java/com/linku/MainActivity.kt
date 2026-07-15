@@ -5,17 +5,20 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.linku.core.model.SystemBarMode
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.system.SystemBarController
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity(), SystemBarController {
     private var currentSystemBarMode: SystemBarMode? = null
+    private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,16 +45,25 @@ class MainActivity : ComponentActivity(), SystemBarController {
         handleIntent(intent)
     }
 
-    private fun handleIntent(intent: Intent?) {
-        Log.d("FCM", "intent = $intent")
-        Log.d("FCM", "extras = ${intent?.extras}")
+    /**
+     * 전달된 [Intent]를 분석하여 알림 처리를 수행합니다.
+     *
+     * Intent의 extra 데이터에서 "type"과 "targetId"를 추출하며,
+     * 유효한 데이터가 존재할 경우 [MainViewModel]을 통해 알림 처리 로직을 실행합니다.
+     *
+     * @param intent 처리를 수행할 인텐트 객체
+     */
+    private fun handleIntent(intent: Intent) {
 
-        intent?.extras?.keySet()?.forEach { key ->
-            Log.d("FCM", "$key = ${intent.extras?.get(key)}")
+        val type = intent.getStringExtra("type")
+        val targetId = intent.getStringExtra("targetId")?.toLongOrNull()
+
+        if (type != null && targetId != null) {
+            viewModel.handleNotification(
+                AlarmType.valueOf(type),
+                targetId
+            )
         }
-
-        val targetId = intent?.extras?.getString("targetId")
-        Log.d("FCM", "targetId = $targetId")
     }
 
     override fun onResume() {

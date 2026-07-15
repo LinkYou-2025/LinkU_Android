@@ -163,6 +163,14 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun handleNotification(type: AlarmType, targetId: Long) {
+        viewModelScope.launch {
+            _sideEffect.send(
+                SideEffect.NavigateByNotification(type, targetId)
+            )
+        }
+    }
+
     fun allowPushAlarm() {
         viewModelScope.launch {
             firstPushAlarmAllowedUseCase()
@@ -186,4 +194,9 @@ class MainViewModel @Inject constructor(
 sealed interface SideEffect {
     data object ShowPushAlarmDialog: SideEffect
     data class ShowToast(val message: String) : SideEffect
+
+    data class NavigateByNotification(
+        val type: AlarmType,
+        val targetId: Long
+    ) : SideEffect
 }

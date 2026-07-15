@@ -35,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
@@ -74,18 +75,6 @@ fun MainApp(
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
-
-    // 채널 사이드 이펙트 수신
-    LaunchedEffect(Unit) {
-        viewModel.sideEffect.collect { effect ->
-            when (effect) {
-                is SideEffect.ShowToast ->
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                is SideEffect.ShowPushAlarmDialog ->
-                    showPushAlarmDialog = true
-            }
-        }
-    }
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -157,6 +146,34 @@ fun MainApp(
             currentRoute == "curation_list"
         ) {
             viewModel.fetchNickname()
+        }
+    }
+
+    // 채널 사이드 이펙트 수신
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SideEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
+
+                is SideEffect.NavigateByNotification -> {
+                    when (effect.type) {
+                        AlarmType.NOTICE ->
+                            navigator.navigate("notice_screen/${effect.targetId}")
+
+                        AlarmType.LINK ->
+                            navigator.navigate("savelinkresult/${effect.targetId}")
+
+                        AlarmType.FOLDER -> { /* TODO */ }
+
+                        AlarmType.CURATION -> { /* TODO */  }
+
+                        AlarmType.ALL -> Unit
+                    }
+                }
+            }
         }
     }
 
