@@ -60,7 +60,7 @@ interface LinkuApi {
     ): BaseResponse<LinkuResultDTO>
 
     // 링크의 폴더 바꾸기
-    @PATCH("linku/{linkuid}")
+    @PATCH("linku/{linkuid}/folder")
     suspend fun updateLinkFolder(
         @Path("linkuid") linkuId: Long,
         @Body body: UpdateLinkFolderDTO
