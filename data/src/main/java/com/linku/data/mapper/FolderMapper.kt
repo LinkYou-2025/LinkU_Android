@@ -18,7 +18,7 @@ import com.linku.data.api.dto.folder.LinkDTO
 import com.linku.data.api.dto.folder.ShareFolderResponseDTO
 import com.linku.data.api.dto.folder.ViewerResponseDTO
 
-fun FolderPermission.toApiValue(): String = name
+fun FolderPermission.toApiValue(): String = name.lowercase()
 
 fun String.toFolderPermission(): FolderPermission = when (uppercase()) {
     "VIEWER" -> FolderPermission.VIEWER

@@ -12,7 +12,7 @@ class FolderMapperTest {
     fun `folder permission maps to swagger request value`() {
         val dto = FolderPermission.WRITER.toRequestDto()
 
-        assertEquals("WRITER", dto.permission)
+        assertEquals("writer", dto.permission)
     }
 
     @Test
