@@ -322,7 +322,7 @@ fun MainApp(
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
-                            deepLinkViewModel.consumePendingInvitation()?.let { token ->
+                            deepLinkViewModel.consumePendingInvitation().let { token ->
                                 fileViewModel.receiveSharedFolderInvitation(token)
                                 folderStateViewModel.updateIsSharedFolders(true)
 
