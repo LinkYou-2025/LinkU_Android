@@ -14,20 +14,23 @@ import androidx.compose.ui.graphics.Shape
  * 현우 왕자님 사용법
  *
  * 카드 스켈레톤(라운드)
+ * ``` kotlin
  * SkeletonBox(
  *     modifier = Modifier.size(346.scaler, 432.scaler),
  *     shape = RoundedCornerShape(24.scaler)
  * )
- *
+ * ```
  *
  * 원형 스켈레톤(프로필 등)
+  * ``` kotlin
  * SkeletonBox(
  *     modifier = Modifier.size(48.scaler),
  *     shape = CircleShape
  * )
- *
+ * ```
  *
  * 핑크 쉬머(큐레이션 디테일 화면)
+ * ``` kotlin
  * SkeletonBox(
  *     modifier = Modifier
  *         .fillMaxWidth()
@@ -35,15 +38,17 @@ import androidx.compose.ui.graphics.Shape
  *     shape = RoundedCornerShape(20.scaler),
  *     colors = MaterialTheme.pinkShimmerColors
  * )
- *
+ * ```
  *
  * 텍스트 라인
+ * ``` kotlin
  * SkeletonBox(
  *     modifier = Modifier
  *         .height(14.scaler)
  *         .fillMaxWidth(0.6f),
  *     shape = RoundedCornerShape(4.scaler)
  * )
+ 
  *
  * @param shape 스켈레톤 영역의 모양 (원형, 라운드, 사각형 등 자유롭게 지정)
  * @param colors 쉬머 그라데이션 색상 목록 (기본값: [MaterialTheme.grayShimmerColors])
@@ -56,40 +61,3 @@ fun SkeletonBox(
 ) {
     Box(modifier = modifier.shimmer(shape = shape, colors = colors))
 }
-
-/**
- * 사용법
- *
- * 카드 스켈레톤(라운드)
- * SkeletonBox(
- *     modifier = Modifier.size(346.scaler, 432.scaler),
- *     shape = RoundedCornerShape(24.scaler)
- * )
- *
- *
- * 원형 스켈레톤(프로필 등)
- * SkeletonBox(
- *     modifier = Modifier.size(48.scaler),
- *     shape = CircleShape
- * )
- *
- *
- * 핑크 쉬머(큐레이션 디테일 화면)
- * SkeletonBox(
- *     modifier = Modifier
- *         .fillMaxWidth()
- *         .height(180.scaler),
- *     shape = RoundedCornerShape(20.scaler),
- *     colors = MaterialTheme.pinkShimmerColors
- * )
- *
- *
- * 텍스트 라인
- * SkeletonBox(
- *     modifier = Modifier
- *         .height(14.scaler)
- *         .fillMaxWidth(0.6f),
- *     shape = RoundedCornerShape(4.scaler)
- * )
- *
- * */
