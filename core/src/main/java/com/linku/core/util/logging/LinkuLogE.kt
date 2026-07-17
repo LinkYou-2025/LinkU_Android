@@ -69,7 +69,7 @@ inline fun LinkuLog.e(
     caller: StackTraceElement,
     msg: () -> String,
 ) = debugOnly {
-    Log.e(caller.fileName, "${msg()} in ${caller.methodName}")
+    Log.e(caller.getTag, caller.getMsg(msg))
 }
 
 /**
@@ -101,5 +101,5 @@ inline fun LinkuLog.e(
     tr: Throwable,
     msg: () -> String,
 ) = debugOnly {
-    Log.e(caller.fileName, "${msg()} in ${caller.methodName}", tr)
+    Log.e(caller.getTag, caller.getMsg(msg), tr)
 }

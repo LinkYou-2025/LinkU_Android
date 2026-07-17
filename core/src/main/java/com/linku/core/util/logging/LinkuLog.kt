@@ -9,4 +9,11 @@ object LinkuLog {
             block()
         }
     }
+
+    @PublishedApi
+    internal val StackTraceElement.getTag: String
+        get() = fileName
+
+    @PublishedApi
+    internal inline fun StackTraceElement.getMsg(msg: () -> String) = "${methodName}: ${msg()}"
 }

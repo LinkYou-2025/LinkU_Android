@@ -82,7 +82,7 @@ inline fun LinkuLog.wtf(
     caller: StackTraceElement,
     msg: () -> String,
 ) = debugOnly {
-    Log.wtf(caller.fileName, "${msg()} in ${caller.methodName}")
+    Log.wtf(caller.getTag, caller.getMsg(msg))
 }
 
 /**
@@ -114,5 +114,5 @@ inline fun LinkuLog.wtf(
     tr: Throwable,
     msg: () -> String,
 ) = debugOnly {
-    Log.wtf(caller.fileName, "${msg()} in ${caller.methodName}", tr)
+    Log.wtf(caller.getTag, caller.getMsg(msg), tr)
 }
