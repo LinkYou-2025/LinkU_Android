@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -84,8 +85,16 @@ internal fun SignUpStepLayout(
         }
 
         // bottomSlot 있으면 커스텀, 없으면 기본 버튼
+        // BottomGradientButton은 자체적으로 fillMaxWidth+좌우 여백을 처리하지만,
+        // bottomSlot은 그런 처리가 없어 여기서 좌우 20.scaler 여백 + 가로 꽉 채움을 직접 보장해준다.
         if (bottomSlot != null) {
-            bottomSlot()
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.scaler),
+                content = bottomSlot
+            )
         } else {
             BottomGradientButton(
                 text = "다음",
