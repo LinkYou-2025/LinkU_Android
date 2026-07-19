@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
@@ -36,6 +38,8 @@ import com.linku.login.ui.item.StepIndicator
  * @param buttonEnabled 하단 버튼(BottomGradientButton) 활성화 여부
  * @param onNextClick 하단 버튼 클릭 시 실행할 콜백
  * @param modifier 최상위 Box에 적용할 Modifier
+ * @param extraTopGap StepIndicator-Title 간격(기본 36.scaler)에 추가로 더할 여백. 기본값 0이며,
+ *   콘텐츠 필드 개수가 상태에 따라 늘어나는 화면(닉네임, 비밀번호)에서만 값을 조정해 사용한다.
  * @param bottomSlot 버튼 영역을 커스텀해야 할 때 사용 (ex. EmailVerificationScreen). null이면 기본 BottomGradientButton 사용
  * @param content 제목 아래에 표시할 화면별 콘텐츠
  */
@@ -47,6 +51,7 @@ internal fun SignUpStepLayout(
     buttonText: String = "다음",
     buttonEnabled: Boolean,
     onNextClick: () -> Unit,
+    extraTopGap: Dp = 0.dp,
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -70,7 +75,7 @@ internal fun SignUpStepLayout(
         ) {
             StepIndicator(currentStep)
 
-            Spacer(Modifier.height(32.scaler))
+            Spacer(Modifier.height(36.scaler + extraTopGap))
 
             Text(
                 text = title,
@@ -80,7 +85,7 @@ internal fun SignUpStepLayout(
                 color = colorTheme.black // 다크모드 시 ThemeColorScheme에 darkText 추가하면 됨
             )
 
-            Spacer(Modifier.height(32.scaler))
+            Spacer(Modifier.height(40.scaler))
 
             content()
         }
@@ -115,6 +120,7 @@ fun SignUpStepLayoutPreview(
     title: String,
     buttonEnabled: Boolean,
     onNextClick: () -> Unit = {},
+    extraTopGap: Dp = 0.dp,
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -125,6 +131,7 @@ fun SignUpStepLayoutPreview(
             buttonEnabled = buttonEnabled,
             onNextClick = onNextClick,
             modifier = modifier,
+            extraTopGap = extraTopGap,
             bottomSlot = bottomSlot,
             content = content
         )
