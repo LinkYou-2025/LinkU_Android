@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -197,7 +198,7 @@ fun EmailLoginScreen(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
-                    .height((30.scaler)), // 클릭 영역 확보를 위한 높이
+                    .heightIn(min = 30.scaler), // 클릭 영역 확보를 위한 최소 높이 (폰트 확대 시 자연스럽게 늘어남)
                 horizontalArrangement = Arrangement.spacedBy(
                     25.dp,
                     alignment = Alignment.CenterHorizontally
