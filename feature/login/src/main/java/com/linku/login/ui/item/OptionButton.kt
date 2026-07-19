@@ -86,8 +86,8 @@ internal fun OptionButton(
         ) {
             Text(
                 text = text,
-                fontSize = 15.sp,
-                lineHeight = 22.sp, // 요구사항 반영
+                fontSize = 14.sp,
+                lineHeight = 20.sp, // 요구사항 반영
                 fontWeight = FontWeight.Normal,
                 color = if (selected) colorTheme.black else colorTheme.gray[500]
             )

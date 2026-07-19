@@ -130,6 +130,7 @@ internal fun PasswordLoginTextField(
                         } else {
                             TextStyle(
                                 fontSize = 14.sp,
+                                lineHeight = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp,
                                 color = colorTheme.black
