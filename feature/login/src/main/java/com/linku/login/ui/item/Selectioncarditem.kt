@@ -61,8 +61,6 @@ internal fun SelectionCardItem(
 
     Box(
         modifier = cardModifier
-            .width(130.dp)
-            .height(130.dp) // TODO : 박스 크기
             .clip(RoundedCornerShape(22.dp))
             .background(colorTheme.white)
             .toggleable(
@@ -125,13 +123,15 @@ fun SelectionCardItemComparePreview() {
                 text = "사이드 프로젝트\n& 창업",
                 isSelected = false,
                 iconRes = R.drawable.ic_purpose_side_project,
-                onClick = {}
+                onClick = {},
+                modifier = Modifier.size(130.dp)
             )
             SelectionCardItem(
                 text = "인사이트\n모으기",
                 isSelected = true,
                 iconRes = R.drawable.ic_purpose_insights,
-                onClick = {}
+                onClick = {},
+                modifier = Modifier.size(130.dp)
             )
         }
     }
