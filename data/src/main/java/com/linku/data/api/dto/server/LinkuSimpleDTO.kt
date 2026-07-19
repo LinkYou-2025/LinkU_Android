@@ -7,8 +7,8 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class LinkuSimpleDTO(
 
-    @field:Json(name = "userLinkuId")
-    val userLinkuId: Long,
+    @field:Json(name = "userLinkuId")  // TODO: 추후 nullable 제거 예정
+    val userLinkuId: Long?,
 
     @field:Json(name = "linkuId")
     val linkuId: Long,

@@ -403,7 +403,11 @@ private fun LinkList(
                     onCardClick(link.linkuId)
                 },
                 onDeleteClick = {
-                    onDeleteClick(link.linkuId)
+//                    onDeleteClick(link.userLinkuId)  // nullable 제거 이후 사용
+                    // TODO: nullable 제거 전까지는 아래 코드로 사용하므로 nullable 제거 후 삭제할 예정
+                    link.userLinkuId?.let { userLinkuId ->
+                        onDeleteClick(userLinkuId)
+                    }
                 }
             )
 
