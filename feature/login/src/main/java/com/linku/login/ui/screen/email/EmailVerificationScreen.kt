@@ -168,7 +168,6 @@ internal fun EmailVerificationScreenContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.scaler)
                         .background(colorTheme.white, shape = RoundedCornerShape(16.dp))
                         .border(
                             width = 1.dp,
