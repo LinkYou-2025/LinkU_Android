@@ -7,11 +7,20 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class LinkuSimpleDTO(
 
+    @field:Json(name = "userLinkuId")
+    val userLinkuId: Long,
+
     @field:Json(name = "linkuId")
     val linkuId: Long,
 
     @field:Json(name = "categoryId")
     val categoryId: Long,
+
+    @field:Json(name = "folderName")
+    val folderName: String?,
+
+    @field:Json(name = "linku")
+    val linku: String,
 
     @field:Json(name = "memo")
     val memo: String?,
@@ -32,5 +41,9 @@ data class LinkuSimpleDTO(
     val linkuImageUrl: String?,
 
     @field:Json(name = "aiArticleExists")
-    val aiArticleExists: Boolean
+    val aiArticleExists: Boolean,
+
+    @field:Json(name = "lastViewedAt")
+    val lastViewedAt: String?,
+
 )

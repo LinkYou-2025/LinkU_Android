@@ -35,17 +35,17 @@ class HomeViewModel @Inject constructor(
     private val recentRepository: RecentSearchRepository,
 ) : ViewModel() {
 
+    companion object {
+        private const val MIN_RECOMMENDATION_LINK_COUNT = 3L
+    }
+
     // 자돌 로그인 하고 이 함수가 가장 먼저 실행함.
     // 최초 진입 시 프로필 로드 (유지 가능)
     init {
         loadRecentLinks()
-        loadUserBasics() // userId 없으면 조용히 리턴하게 바꿉니다
+        loadUserBasics()  // userId 없으면 조용히 리턴하게 바꿉니다
         loadCategoryColors()
     }
-
-    // 사용자 닉네임
-//    private val userNameState = mutableStateOf<String?>(null)
-//    val userName get() = userNameState.value
 
     // 직업 ID 보관
     private val jobIdState = mutableStateOf<Long?>(null)
@@ -84,6 +84,9 @@ class HomeViewModel @Inject constructor(
                 .onSuccess { userInfo ->
 //                    userNameState.value = userInfo.nickname
                     jobIdState.value = userInfo.jobId
+                    myLinkuCount = userInfo.myLinku
+                    needMoreForRecommendationState.value =
+                        userInfo.myLinku < MIN_RECOMMENDATION_LINK_COUNT
                 }
                 .onFailure { e ->
                     Log.e("HomeVM", "loadUserBasics failed", e)
@@ -98,7 +101,7 @@ class HomeViewModel @Inject constructor(
         loadRecentLinks()
     }
 
-    //로그아웃 시 모든 데이터 비워주는 기능
+    // 로그아웃 시 모든 데이터 비워주는 기능
     fun clearData() {
         // 모든 상태값 초기화
 //        userNameState.value = null
@@ -107,22 +110,6 @@ class HomeViewModel @Inject constructor(
         _categoryColorMap.value = emptyMap()
         categoryLoaded = false
     }
-
-
-//    private fun loadUserBasics() {
-//        viewModelScope.launch {
-//            runCatching {
-//                val userId = authPreference.userId ?: error("userId is null")
-//                require(userId > 0L) { "invalid userId=$userId" }   // ✅ 음수/0 차단
-//                userRepository.getUserInfo(userId)                  // ✅ 파라미터 전달
-//            }.onSuccess { info ->
-//                userNameState.value = info.nickname
-//                jobIdState.value = info.jobId.toLong()
-//            }.onFailure { e ->
-//                Log.e("HomeVM", "loadUserBasics failed", e)
-//            }
-//        }
-//    }
 
     private fun Throwable.isLinku4003(): Boolean {
         // 예외 메시지에 코드가 섞여 오는 경우
@@ -137,6 +124,9 @@ class HomeViewModel @Inject constructor(
             false
         }
     }
+
+    // 사용자가 저장한 링크 개수
+    private var myLinkuCount = 0L
 
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
@@ -161,10 +151,19 @@ class HomeViewModel @Inject constructor(
     fun fetchRecommendations(
         situationId: Long,
         emotionId: Long,
-        size: Int = 10,
+        size: Int = 5,
         onDone: () -> Unit = {}
     ) {
         if (isRecommendingState.value) return
+
+        if (myLinkuCount < MIN_RECOMMENDATION_LINK_COUNT) {
+            needMoreForRecommendationState.value = true
+            recommendedLinksState.value = emptyList()
+            showRecommendationsState.value = true
+            onDone()
+            return
+        }
+
         viewModelScope.launch {
             isRecommendingState.value = true
             needMoreForRecommendationState.value = false
@@ -174,22 +173,20 @@ class HomeViewModel @Inject constructor(
                     situationId = situationId,
                     emotionId = emotionId,
                     page = 0,
-                    size = size
+                    size = size,
                 )
-            }.onSuccess {
-                recommendedLinksState.value = it
+            }.onSuccess { links ->
+                recommendedLinksState.value = links
                 showRecommendationsState.value = true
-            }.onFailure { e ->
-                if (e.isLinku4003()) {
-                    // 3개 미만 케이스
-                    needMoreForRecommendationState.value = true
-                    recommendedLinksState.value = emptyList()
-                    showRecommendationsState.value = true
-                } else {
-                    // 그 외 실패
-                    needMoreForRecommendationState.value = false
-                    recommendedLinksState.value = emptyList()
-                    showRecommendationsState.value = true
+            }.onFailure { error ->
+                val needMoreLinks = error.isLinku4003()
+
+                needMoreForRecommendationState.value = needMoreLinks
+                recommendedLinksState.value = emptyList()
+                showRecommendationsState.value = true
+
+                if (!needMoreLinks) {
+                    Log.e("HomeVM", "fetchRecommendations failed", error)
                 }
             }
 
@@ -197,11 +194,6 @@ class HomeViewModel @Inject constructor(
             onDone()
         }
     }
-
-//    // ‘최근’으로 되돌리기
-//    fun showRecent() {
-//        showRecommendationsState.value = false
-//    }
 
     // 최근 조회 링크 로딩
     // 가장 먼저 호출되는 api? 토큰 달고 요청을 함.

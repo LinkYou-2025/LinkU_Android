@@ -132,11 +132,9 @@ fun HomeScreen(
         // 선택 없어도 접히는건 스크롤이 담당
         // 추천 요청은 선택이 있어야만
         if (selectedEmotion != null && selectedTask != null) {
-            onClearNeedMoreNotice()
-            onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
-            isRecommendMode = true
+            onRecommendRequest(selectedEmotion!!, selectedTask!!, 5)
 
-            // 추천 눌렀으면 강제 접힘(스크롤 상관 없이)
+            isRecommendMode = true
             isTopBarLockedCollapsed = true
 
             coroutineScope.launch { listState.animateScrollToItem(1) }

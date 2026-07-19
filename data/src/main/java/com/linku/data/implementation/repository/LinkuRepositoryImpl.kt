@@ -145,17 +145,17 @@ class LinkuRepositoryImpl @Inject constructor(
                 )
             }
         ).onSuccess { dtoList ->
-            result = dtoList.map {
+            result = dtoList.map { dto ->
                 LinkSimpleInfo(
-                    linkuId = it.linkuId ?: 0L,
-                    categoryId = it.categoryId,
-                    memo = it.memo,
-                    emotionId = it.emotionId,
-                    title = it.title.orEmpty(),
-                    domain = it.domain.orEmpty(),
-                    domainImageUrl = it.domainImageUrl,
-                    linkuImageUrl = it.linkuImageUrl,
-                    aiArticleExists = it.aiArticleExists == true
+                    linkuId = dto.linkuId,
+                    categoryId = dto.categoryId,
+                    memo = dto.memo,
+                    emotionId = dto.emotionId,
+                    title = dto.title,
+                    domain = dto.domain.orEmpty(),
+                    domainImageUrl = dto.domainImageUrl,
+                    linkuImageUrl = dto.linkuImageUrl,
+                    aiArticleExists = dto.aiArticleExists,
                 )
             }
         }.onFailure {
