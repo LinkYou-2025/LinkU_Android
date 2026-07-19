@@ -41,11 +41,12 @@ import com.linku.login.ui.item.StepIndicator
  */
 @Composable
 internal fun SignUpStepLayout(
+    modifier: Modifier = Modifier,
     currentStep: Int,
     title: String,
+    buttonText: String = "다음",
     buttonEnabled: Boolean,
     onNextClick: () -> Unit,
-    modifier: Modifier = Modifier,
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -97,7 +98,7 @@ internal fun SignUpStepLayout(
             )
         } else {
             BottomGradientButton(
-                text = "다음",
+                text = buttonText,
                 enabled = buttonEnabled,
                 onClick = onNextClick,
                 modifier = Modifier.align(Alignment.BottomCenter)
@@ -109,11 +110,11 @@ internal fun SignUpStepLayout(
 /** 프리뷰 전용 래퍼. ThemeProvider(LinkuPreview)로 감싸 폰트/컬러가 정상 적용되도록 한다. */
 @Composable
 fun SignUpStepLayoutPreview(
+    modifier: Modifier = Modifier,
     currentStep: Int,
     title: String,
     buttonEnabled: Boolean,
     onNextClick: () -> Unit = {},
-    modifier: Modifier = Modifier,
     bottomSlot: (@Composable BoxScope.() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
