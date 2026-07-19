@@ -6,9 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,8 +25,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
 import com.linku.login.R
 
 @Composable
@@ -35,11 +39,16 @@ fun PasswordResetAlert(
     // 현재 디자인 테마의 컬러 스킴 가져오기
     val colorTheme = MaterialTheme.linkuColors
 
-    Dialog(onDismissRequest = onDismissRequest) {
+    // usePlatformDefaultWidth = false: 다이얼로그 창 너비 제한을 풀어서 아래 fillMaxWidth가 실제 화면 폭 기준으로 동작하게 함
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Column(
             modifier = Modifier
-                .width(372.dp)
-                .height(246.dp)
+                .fillMaxWidth()
+                .padding(horizontal = 20.scaler) // Figma: 화면 좌우 20px 여백
+                .widthIn(max = 372.scaler) // 태블릿 등 큰 화면에서 카드가 과도하게 넓어지지 않도록 상한
                 .background(
                     color = colorTheme.white,
                     shape = RoundedCornerShape(22.dp)
@@ -88,18 +97,19 @@ fun PasswordResetAlert(
 
             )
 
-            Spacer(modifier = Modifier.weight(1f))
+            // 🔹 설명 ↔ 버튼 간격 24 (다이얼로그 높이를 고정하지 않으므로 weight(1f) 대신 고정 간격 사용)
+            Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔹 버튼
+            // 🔹 버튼 (높이를 고정하지 않고 텍스트 위아래 패딩으로 보장, 폰트 확대 시에도 안전)
             Box(
                 modifier = Modifier
                     .width(316.dp)
-                    .height(50.dp)
                     .background(
                         brush = colorTheme.maincolor,
                         shape = RoundedCornerShape(14.dp)
                     )
-                    .clickable { onConfirmClick() },
+                    .clickable { onConfirmClick() }
+                    .padding(vertical = 15.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
