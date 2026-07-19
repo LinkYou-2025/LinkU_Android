@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,13 +22,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
@@ -50,6 +51,7 @@ internal fun PasswordLoginTextField(
     modifier: Modifier = Modifier,
     hint: String = "비밀번호",
     enabled: Boolean = true,
+    onFocusChanged: (Boolean) -> Unit = {},
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val shape = RoundedCornerShape(16.dp)
@@ -96,8 +98,8 @@ internal fun PasswordLoginTextField(
                     .padding(
                         start = 22.scaler,
                         end = 22.scaler,
-                        top = 21.scaler,
-                        bottom = 21.scaler
+                        top = 18.scaler,
+                        bottom = 18.scaler
                     ),
                 contentAlignment = Alignment.CenterStart
             ) {
@@ -120,17 +122,17 @@ internal fun PasswordLoginTextField(
 
                     textStyle =
                         if (isPasswordVisible) {
-                            TextStyle(
+                            LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
-                                lineHeight = 16.sp,
+                                lineHeight = 20.sp,
                                 fontWeight = FontWeight(500),
                                 color = colorTheme.black,
                                 letterSpacing = 0.sp
                             )
                         } else {
-                            TextStyle(
+                            LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
-                                lineHeight = 16.sp,
+                                lineHeight = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 letterSpacing = 2.sp,
                                 color = colorTheme.black
@@ -147,7 +149,9 @@ internal fun PasswordLoginTextField(
                         else
                             DotPasswordVisualTransformation(),
 
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { onFocusChanged(it.isFocused) }
                 )
             }
 

@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -41,6 +42,7 @@ internal fun LoginTextField(
     modifier: Modifier = Modifier,
     hint: String,
     enabled: Boolean = true,
+    onFocusChanged: (Boolean) -> Unit = {},
 ) {
 
     val colorTheme = MaterialTheme.linkuColors
@@ -71,7 +73,7 @@ internal fun LoginTextField(
             .padding(strokeWidth) // stroke 공간 확보
             .background(colorTheme.white, shape)
             // 텍스트 자체에 패딩을 줘서 높이가 콘텐츠에 맞춰 보장되도록 함 (고정 height 제거)
-            .padding(start = 22.scaler, end = 21.scaler, top = 21.scaler, bottom = 21.scaler),
+            .padding(start = 22.scaler, end = 21.scaler, top = 18.scaler, bottom = 18.scaler),
         contentAlignment = Alignment.CenterStart
     ) {
         if (value.isEmpty()) {
@@ -89,13 +91,16 @@ internal fun LoginTextField(
             onValueChange = onValueChange,
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 14.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.black
             ),
             singleLine = true,
             enabled = enabled,
             cursorBrush = SolidColor(colorTheme.black),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { onFocusChanged(it.isFocused) }
         )
     }
 }
