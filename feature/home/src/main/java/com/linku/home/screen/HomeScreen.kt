@@ -219,7 +219,7 @@ fun HomeScreen(
 
             item {
                 Column(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     val itemsToRender = if (isRecommendMode) recommendedLinks else recentLinks
 
@@ -227,7 +227,8 @@ fun HomeScreen(
                         text = titleText,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = colors.black
+                        color = colors.black,
+                        modifier = Modifier.padding(start = 4.dp)
                     )
 
                     when {
