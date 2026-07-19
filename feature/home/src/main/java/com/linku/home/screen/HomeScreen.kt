@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.core.model.SystemBarMode
@@ -72,6 +74,10 @@ fun HomeScreen(
     onAlarmClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        homeViewModel.refreshHomeData()
+    }
 
     //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
     val systemBarController =

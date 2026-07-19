@@ -39,11 +39,12 @@ class HomeViewModel @Inject constructor(
         private const val MIN_RECOMMENDATION_LINK_COUNT = 3L
     }
 
-    // 자돌 로그인 하고 이 함수가 가장 먼저 실행함.
-    // 최초 진입 시 프로필 로드 (유지 가능)
-    init {
+    fun refreshHomeData() {
+        loadUserBasics()
         loadRecentLinks()
-        loadUserBasics()  // userId 없으면 조용히 리턴하게 바꿉니다
+    }
+
+    init {
         loadCategoryColors()
     }
 
@@ -97,8 +98,7 @@ class HomeViewModel @Inject constructor(
     // 🔧 2) 로그인 직후 한 번에 리프레시할 진입점
     fun refreshAfterLogin() {
         // userId/토큰이 저장된 '로그인 직후' 다시 호출
-        loadUserBasics()
-        loadRecentLinks()
+        refreshHomeData()
     }
 
     // 로그아웃 시 모든 데이터 비워주는 기능
