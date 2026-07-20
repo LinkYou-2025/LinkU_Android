@@ -69,6 +69,7 @@ fun MainApp(
     viewModel: MainViewModel,
 ) {
     val context = LocalContext.current
+    val deepLinkDomain = BuildConfig.SERVER_DOMAIN.trimEnd('/')
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
@@ -781,10 +782,10 @@ fun MainApp(
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = "https://linkuserver.store/open?action={action}&token={token}"
+                            uriPattern = "$deepLinkDomain/open?action={action}&token={token}"
                         },
                         navDeepLink {
-                            uriPattern = "https://linkuserver.store/open?token={token}&action={action}"
+                            uriPattern = "$deepLinkDomain/open?token={token}&action={action}"
                         }
                     )
                 ) { backStackEntry ->
