@@ -235,7 +235,7 @@ internal fun EmailVerificationScreenContent(
         ) {
             Text(
                 text = "인증번호가 오지 않는다면?",
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = colorTheme.gray[400],
