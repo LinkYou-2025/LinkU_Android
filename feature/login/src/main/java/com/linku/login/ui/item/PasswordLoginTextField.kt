@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,6 +31,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
@@ -133,7 +135,7 @@ internal fun PasswordLoginTextField(
                             LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
                                 lineHeight = 20.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight(500),
                                 letterSpacing = 2.sp,
                                 color = colorTheme.black
                             )
@@ -142,6 +144,8 @@ internal fun PasswordLoginTextField(
                     singleLine = true,
                     enabled = enabled,
                     cursorBrush = SolidColor(colorTheme.black),
+                    // Password 타입 미지정 시 IME 자동완성/맞춤법 검사 밑줄이 표시됨
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 
                     visualTransformation =
                         if (isPasswordVisible)

@@ -92,7 +92,7 @@ internal fun LoginTextField(
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight(500),
                 color = colorTheme.black
             ),
             singleLine = true,
