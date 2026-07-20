@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.login.R
@@ -48,6 +47,9 @@ internal fun StepIndicator(
     val density = LocalDensity.current
     // 30dp 원 배지 안 숫자는 시스템 폰트 크기 설정과 무관하게 고정 시각 크기 유지 (원 크기가 하드코딩된 간격/오프셋 레이아웃과 연동되어 있어, 숫자가 커지면 전체 정렬이 깨짐)
     val stepNumberFontSize = with(density) { 18.dp.toSp() }
+    // 단계 라벨도 하드코딩된 위치(labelStartPadding)에 맞춰져 있어 시스템 폰트 크기와 무관하게 고정 시각 크기 유지
+    val stepLabelFontSize = with(density) { 13.dp.toSp() }
+    val stepLabelLineHeight = with(density) { 15.dp.toSp() }
 
     val backgrounds = when (currentStep) {
         1 -> listOf(activeColor, colorTheme.white, colorTheme.white)
@@ -121,8 +123,8 @@ internal fun StepIndicator(
         Text(
             text = stepLabel(currentStep),
             modifier = Modifier.padding(start = labelStartPadding, top = 6.dp),
-            fontSize = 13.sp,
-            lineHeight = 15.sp,
+            fontSize = stepLabelFontSize,
+            lineHeight = stepLabelLineHeight,
             fontWeight = FontWeight.Light,
             color = activeColor,
             textAlign = TextAlign.Center
