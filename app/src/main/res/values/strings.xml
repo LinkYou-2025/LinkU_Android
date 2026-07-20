@@ -1,3 +1,5 @@
 <resources>
+    <string name="invalid_share_link">유효하지 않은 공유 링크입니다.</string>
+    <string name="undefined_behavior">예상치 못한 오류가 발생했습니다.</string>
     <string name="app_name">링큐</string>
 </resources>
