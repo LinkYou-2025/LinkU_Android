@@ -14,7 +14,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.linku.design.util.WhiteSystemBars
 import com.linku.file.ui.link.SaveLinkResultScreen
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -23,7 +22,10 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 fun FileApp(
     fileViewModel: FileViewModel = hiltViewModel(),
     editStateViewModel:EditStateViewModel = viewModel(),
-    folderStateViewModel: FolderStateViewModel = viewModel()
+    folderStateViewModel: FolderStateViewModel = viewModel(),
+    // FileScreen의 그라데이션 상단바가 상태바까지 이어져 보이는 동안 true를 넘겨서
+    // 상태바 글자/아이콘을 흰색으로 바꿈. 다른 화면(상세 등)으로 넘어가면 자동으로 false.
+    onLightStatusBarIconsChange: (Boolean) -> Unit = {}
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -33,7 +35,7 @@ fun FileApp(
         navController.navigate("savelinkresult/${id}")
     }
 
-    WhiteSystemBars()
+    // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
     NavHost(
         navController = navController,
@@ -45,7 +47,8 @@ fun FileApp(
             FileScreen(
                 fileViewModel = fileViewModel,
                 editStateViewModel = editStateViewModel,
-                folderStateViewModel = folderStateViewModel
+                folderStateViewModel = folderStateViewModel,
+                onLightStatusBarIconsChange = onLightStatusBarIconsChange
             )
         }
 
