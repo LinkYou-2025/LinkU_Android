@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +47,7 @@ import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 import com.linku.design.util.scaler
+import com.linku.login.ui.alert.CodeNotReceivedAlert
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.viewmodel.EmailAuthViewModel
@@ -119,6 +121,7 @@ internal fun EmailVerificationScreenContent(
 
     var isEmailFocused by remember { mutableStateOf(false) }
     var isCodeFocused by remember { mutableStateOf(false) }
+    var showCodeNotReceivedAlert by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -245,7 +248,7 @@ internal fun EmailVerificationScreenContent(
                     .padding(bottom = 21.scaler)
                     .noRippleClickable {
                         if (!emailUiState.isLoading) {
-                            onEmailEvent(EmailUiEvent.SendCodeClicked)
+                            showCodeNotReceivedAlert = true
                         }
                     }
             )
@@ -260,6 +263,21 @@ internal fun EmailVerificationScreenContent(
                         onEmailEvent(EmailUiEvent.SendCodeClicked)
                     }
                 }
+            )
+        }
+
+        // 인증번호가 오지 않을 때 안내하는 딤처리 alert
+        if (showCodeNotReceivedAlert) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorTheme.black.copy(alpha = 0.5f))
+                    .clickable(enabled = true, onClick = {})
+            )
+
+            CodeNotReceivedAlert(
+                onDismissRequest = { showCodeNotReceivedAlert = false },
+                onConfirmClick = { showCodeNotReceivedAlert = false }
             )
         }
     }
