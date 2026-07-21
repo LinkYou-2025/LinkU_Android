@@ -33,6 +33,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.R
 
+// TODO : 모달 윈도우 수정되면 지우기
 @Composable
 fun CodeNotReceivedAlert(
     onDismissRequest: () -> Unit = {},
