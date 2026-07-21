@@ -22,10 +22,7 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 fun FileApp(
     fileViewModel: FileViewModel = hiltViewModel(),
     editStateViewModel:EditStateViewModel = viewModel(),
-    folderStateViewModel: FolderStateViewModel = viewModel(),
-    // FileScreen의 그라데이션 상단바가 상태바까지 이어져 보이는 동안 true를 넘겨서
-    // 상태바 글자/아이콘을 흰색으로 바꿈. 다른 화면(상세 등)으로 넘어가면 자동으로 false.
-    onLightStatusBarIconsChange: (Boolean) -> Unit = {}
+    folderStateViewModel: FolderStateViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -47,8 +44,7 @@ fun FileApp(
             FileScreen(
                 fileViewModel = fileViewModel,
                 editStateViewModel = editStateViewModel,
-                folderStateViewModel = folderStateViewModel,
-                onLightStatusBarIconsChange = onLightStatusBarIconsChange
+                folderStateViewModel = folderStateViewModel
             )
         }
 
