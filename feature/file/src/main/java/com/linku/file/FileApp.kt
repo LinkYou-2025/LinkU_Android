@@ -14,7 +14,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.linku.design.util.WhiteSystemBars
 import com.linku.file.ui.link.SaveLinkResultScreen
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -33,7 +32,7 @@ fun FileApp(
         navController.navigate("savelinkresult/${id}")
     }
 
-    WhiteSystemBars()
+    // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
     NavHost(
         navController = navController,
