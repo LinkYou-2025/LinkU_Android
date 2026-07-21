@@ -1,9 +1,11 @@
 package com.linku.design.util
 
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.os.Build
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -11,6 +13,20 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+
+/**
+ * [Context]가 (테마가 적용된 [ContextWrapper] 등으로) 감싸져 있어도 그 안의 실제
+ * [Activity]를 찾아냄. 바로 `as Activity`로 캐스팅하면 감싸진 Context일 때
+ * [ClassCastException]으로 크래시할 수 있어 안전하게 언래핑함.
+ */
+internal fun Context.findActivityOrNull(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return context as? Activity
+}
 
 /**
  * Design module – Android System Bars controller
@@ -37,8 +53,14 @@ fun DesignSystemBars(
     val isPreview = LocalInspectionMode.current
     if (isPreview) return
 
-    SideEffect {
-        val window = (view.context as Activity).window
+    // 매 리컴포지션마다가 아니라 실제로 값이 바뀔 때만 Window/시스템 서버와 통신하도록 함.
+    DisposableEffect(statusBarColor, navigationBarColor, darkIcons, immersive) {
+        val activity = view.context.findActivityOrNull()
+        if (activity == null) {
+            return@DisposableEffect onDispose {}
+        }
+
+        val window = activity.window
         val controller = WindowInsetsControllerCompat(window, view)
 
         WindowCompat.setDecorFitsSystemWindows(window, !immersive)
@@ -76,5 +98,7 @@ fun DesignSystemBars(
             window.isStatusBarContrastEnforced = false
             window.isNavigationBarContrastEnforced = false
         }
+
+        onDispose {}
     }
 }

@@ -1,9 +1,8 @@
 package com.linku.design.util
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -36,8 +35,15 @@ fun EdgeToEdgeSystemBars(darkIcons: Boolean = true) {
     val isPreview = LocalInspectionMode.current
     if (isPreview) return
 
-    SideEffect {
-        val window = (view.context as Activity).window
+    // SideEffect는 리컴포지션마다 실행되는데, Window/시스템 서버와 통신하는 호출들이라
+    // darkIcons가 실제로 바뀔 때(+최초 진입)만 실행되도록 key로 제한함.
+    DisposableEffect(darkIcons) {
+        val activity = view.context.findActivityOrNull()
+        if (activity == null) {
+            return@DisposableEffect onDispose {}
+        }
+
+        val window = activity.window
         val controller = WindowInsetsControllerCompat(window, view)
 
         // 항상 edge-to-edge: 화면 콘텐츠 색이 상태바/내비게이션 바 배경으로 그대로 확장됨.
@@ -58,6 +64,8 @@ fun EdgeToEdgeSystemBars(darkIcons: Boolean = true) {
             window.isStatusBarContrastEnforced = false
             window.isNavigationBarContrastEnforced = false
         }
+
+        onDispose {}
     }
 }
 
