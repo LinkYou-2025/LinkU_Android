@@ -136,17 +136,16 @@ fun MainApp(
     // 마이페이지에서 사용할 뷰모델
     val mypageViewModel: MyPageViewModel = hiltViewModel()
 
-    // TODO : 안드로이드 팀원들에게 물어보기. 이거 rememberSaveable로 변경을 해야하는 건 아닌지.
-    var showNavBar by remember { mutableStateOf(false) }
+    var showNavBar by rememberSaveable { mutableStateOf(false) }
 
     // 스플래시 애니메이션, 로그인 그라데이션 화면처럼 상태바 뒤로 콘텐츠가 그대로 비쳐야 하는
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
     // Splash가 시작 화면이라 초기값만 true.
-    var edgeToEdgeSystemBars by remember { mutableStateOf(true) }
+    var edgeToEdgeSystemBars by rememberSaveable { mutableStateOf(true) }
 
     // File 탭처럼 상태바 뒤로 어두운 색(그라데이션)이 비치는 화면이 떠 있는 동안만 true로 바뀜.
     // 그동안은 상태바 글자/아이콘을 흰색으로 보여줌.
-    var statusBarLightIcons by remember { mutableStateOf(false) }
+    var statusBarLightIcons by rememberSaveable { mutableStateOf(false) }
 
     // TODO : 로그인 뷰모델에서 Success 상태로 바꾸기 전에 세션 갱신하게 수정해야함.
     // 기기가 3대라 이렇게 되면 사용자 정보가 따로 놀 수 있음.
