@@ -12,6 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
@@ -58,18 +61,24 @@ internal fun SignUpPasswordScreen(
         }
     }
 
+    var isPasswordFocused by remember { mutableStateOf(false) }
+    var isConfirmFocused by remember { mutableStateOf(false) }
+
     SignUpStepLayout(
         currentStep = 1,
         title = "사용하실 비밀번호를\n입력해주세요",
         buttonEnabled = passwordState.canProceed,
         onNextClick = {
             signUpViewModel.onPasswordNextClicked()
-        }
+        },
+        // 입력 전엔 여유 있게(72), 필드에 커서가 활성화되면(포커스) 바로 좁힘(36)
+        extraTopGap = if (isPasswordFocused || isConfirmFocused) 0.scaler else 36.scaler
     ) {
         PasswordLoginTextField(
             value = passwordUiState.signUpForm.password,
             onValueChange = { signUpViewModel.onPasswordChanged(it) },
-            hint = "비밀번호를 입력해주세요."
+            hint = "비밀번호를 입력해주세요.",
+            onFocusChanged = { isPasswordFocused = it }
         )
 
         Spacer(Modifier.height(10.scaler))
@@ -98,7 +107,8 @@ internal fun SignUpPasswordScreen(
             PasswordLoginTextField(
                 value = passwordState.confirmPassword,
                 onValueChange = { signUpViewModel.onConfirmPasswordChanged(it) },
-                hint = "비밀번호를 확인해주세요."
+                hint = "비밀번호를 확인해주세요.",
+                onFocusChanged = { isConfirmFocused = it }
             )
 
             if (passwordState.confirmPassword.isNotEmpty() && !passwordState.doPasswordsMatch) {
@@ -124,6 +134,7 @@ fun SignUpPasswordScreenPreview() {
             currentStep = 1,
             title = "사용하실 비밀번호를\n입력해주세요",
             buttonEnabled = true,
+            extraTopGap = 0.scaler
         ) {
             PasswordLoginTextField(
                 value = "Test@1234",

@@ -17,10 +17,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,7 +35,7 @@ import com.linku.login.R
 
 // TODO : 모달 윈도우 수정되면 지우기
 @Composable
-fun PasswordResetAlert(
+fun CodeNotReceivedAlert(
     onDismissRequest: () -> Unit = {},
     onConfirmClick: () -> Unit = {}
 ) {
@@ -59,47 +61,51 @@ fun PasswordResetAlert(
         ) {
 
             // 🔹 상단 간격 22
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(19.dp))
 
             // 🔹 로고
             Image(
-                painter = painterResource(id = R.drawable.ic_logo_color),
+                painter = painterResource(id = R.drawable.ic_login_alert_logo),
                 contentDescription = null,
                 modifier = Modifier
-                    .width(35.25864.dp)
-                    .height(25.00011.dp)
-                    .alpha(0.5f)
+                    .width(36.dp)
+                    .height(21.dp)
             )
 
             // 🔹 로고 ↔ 타이틀 간격 23
-            Spacer(modifier = Modifier.height(23.dp))
+            Spacer(modifier = Modifier.height(12.5.dp))
 
             // 타이틀
             Text(
-                text = "비밀번호 재설정 메일 전송 완료!",
+                text = "인증번호가 오지 않았나요?",
                 fontSize = 18.sp,
                 lineHeight = 22.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight(500),
                 color = colorTheme.black,
                 textAlign = TextAlign.Center
-
             )
+
             // 🔹 타이틀 ↔ 설명 간격 20
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // 설명 텍스트
             Text(
-                text = "비밀번호 재설정 메일을 발송했습니다.\n메일함을 확인해주세요!",
+                text = buildAnnotatedString {
+                    append("스팸 메일함 또는 프로모션 메일함도 확인해 보세요.\n메일이 도착하기까지 ")
+                    withStyle(SpanStyle(color = colorTheme.gray[800])) {
+                        append("최대 3분")
+                    }
+                    append(" 정도 소요될 수 있어요.")
+                },
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.Normal,
                 color = colorTheme.gray[600],
                 textAlign = TextAlign.Center
-
             )
 
             // 🔹 설명 ↔ 버튼 간격 24 (다이얼로그 높이를 고정하지 않으므로 weight(1f) 대신 고정 간격 사용)
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // 🔹 버튼 (높이를 고정하지 않고 텍스트 위아래 패딩으로 보장, 폰트 확대 시에도 안전)
             Box(
@@ -114,7 +120,7 @@ fun PasswordResetAlert(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "로그인 하러가기",
+                    text = "확인",
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight.Bold,
@@ -130,8 +136,8 @@ fun PasswordResetAlert(
 
 @Preview
 @Composable
-private fun PasswordResetAlertPreview() {
+private fun CodeNotReceivedAlertPreview() {
     LinkuPreview {
-        PasswordResetAlert()
+        CodeNotReceivedAlert()
     }
 }

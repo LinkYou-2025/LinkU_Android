@@ -1,25 +1,26 @@
 package com.linku.login.ui.layout
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowColumn
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
@@ -64,6 +65,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
     onToggle: (T) -> Unit,
 ) {
     val colorTheme = MaterialTheme.linkuColors
+    val captionTopGap = 42.scaler // 그리드 마지막 행과 캡션(복수 선택 안내 문구) 사이 여백
 
     Scaffold(
         containerColor = colorTheme.white,
@@ -77,8 +79,6 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 BottomGradientButton(
                     text = buttonText,
                     enabled = canProceed,
-                    activeGradient = colorTheme.maincolor,
-                    inactiveGradient = colorTheme.inactiveColor,
                     onClick = onButtonClick
                 )
             }
@@ -124,26 +124,27 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
 
             Spacer(modifier = Modifier.height(28.scaler)) //TODO :프리뷰상 40인거 아는데 그러면 화면이 부족해요... 일단 28로 해놓기는 했습니다..
 
-            // FlowColumn: 열당 3개 고정, 가로 스크롤
-            // 참고 : https://developer.android.com/develop/ui/compose/layouts/flow?hl=ko
-            // Box(weight(1f))로 감싸서 FlowColumn이 부모 높이 제약을 받도록 함
-            // → maxItemsInEachColumn = 3 이 정상 작동하려면 높이 제약 필수
-            Box(modifier = Modifier.weight(1f)) {
-                FlowColumn(
-                    maxItemsInEachColumn = 3,
+            // 3행 고정 그리드: 카드 크기는 지정하지 않고, 가용 세로 공간 ÷ 3으로 자동 계산됨
+            // → 캡션 텍스트는 Column의 다음 자식으로 배치해 실제 측정된 높이만큼만 공간을 차지하므로,
+            //   그리드가 4행으로 넘어가거나 캡션/버튼 영역을 침범할 일이 없음
+            // 열이 화면 폭을 넘치면 가로 스크롤(피크) 발생 — 참고: https://developer.android.com/develop/ui/compose/lists/lazy-grid-lists
+            Column(modifier = Modifier.weight(1f)) {
+                LazyHorizontalGrid(
+                    rows = GridCells.Fixed(3),
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .horizontalScroll(rememberScrollState())
-                        .padding(horizontal = 20.scaler)
+                    contentPadding = PaddingValues(horizontal = 20.scaler),
+                    modifier = Modifier.weight(1f)
                 ) {
-                    items.forEach { item ->
+                    items(items) { item ->
                         SelectionCardItem(
                             text = item.displayName,
                             isSelected = selectedItems.contains(item),
                             iconRes = iconRes(item),
-                            onClick = { onToggle(item) }
+                            onClick = { onToggle(item) },
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .aspectRatio(1f)
                         )
                     }
                 }
@@ -155,10 +156,9 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                     color = colorTheme.gray[500],
                     textAlign = TextAlign.Center,
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .padding(horizontal = 20.scaler)
-                        .padding(bottom = 15.scaler)
+                        .padding(top = captionTopGap, bottom = 15.scaler)
                 )
             }
 

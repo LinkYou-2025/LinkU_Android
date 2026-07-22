@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -83,21 +82,21 @@ internal fun SocialLoginButton(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .widthIn(max = (372.scaler)) // 너비 반응형 적용
-            .height((50.scaler)),
+            .widthIn(max = (372.scaler)), // 너비 반응형 적용
         color = backgroundColor,
         shape = RoundedCornerShape(18.dp),
         border = borderColor?.let { BorderStroke(1.dp, it) }
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .clickable(
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() },
                     onClick = onClick
                 )
-                .padding(horizontal = (18.scaler)),
+                // 높이를 고정하지 않고 텍스트 위아래 패딩으로 보장 (글씨 크기 반응형)
+                .padding(horizontal = (18.scaler), vertical = (19.scaler)),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {

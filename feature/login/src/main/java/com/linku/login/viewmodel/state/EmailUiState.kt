@@ -13,6 +13,7 @@ import com.linku.login.mvi.UiState
  * @property isLoading 네트워크 통신 중 여부. (프로그레스 바 노출 및 버튼 중복 클릭 방지)
  * @property emailError 이메일 유효성 및 전송 실패 에러 문구. (이메일 필드 하단 에러 텍스트)
  * @property codeError 인증 코드 검증 실패 및 시간 만료 에러 문구. (인증 필드 하단 에러 텍스트)
+ * @property isCodeExpired [codeError]가 "시간 만료"로 인해 발생했는지 여부. (재요청 버튼 문구를 "다시요청"/"재요청"으로 구분하는 데 사용)
  * @property isVerifySuccess 이메일 최종 인증 성공 여부. (true일 때 다음 단계 화면 전환 트리거)
  * @property failureToastMessage 인증 실패 안내 및 횟수 초과 경고 메시지. (스낵바/토스트 노출용)
  * @property verificationFailCount 인증 코드 누적 실패 횟수. (5회 제한 조건 검증용)
@@ -25,6 +26,7 @@ internal data class EmailUiState(
     val isLoading: Boolean = false,
     val emailError: String? = null,
     val codeError: String? = null,
+    val isCodeExpired: Boolean = false,
     val isVerifySuccess: Boolean = false,
     val failureToastMessage: String? = null,
     val verificationFailCount: Int = 0
