@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.color.ThemeColorScheme
 import com.linku.design.theme.font.Paperlogy
@@ -42,10 +44,17 @@ fun ThemeProvider(
         )
     }
 
+    // 기기의 시스템 글자 크기 설정(접근성 폰트 확대 등)을 무시하고, 앱이 지정한 sp 값 그대로 렌더링되도록 고정
+    val currentDensity = LocalDensity.current
+    val fixedFontScaleDensity = remember(currentDensity) {
+        Density(density = currentDensity.density, fontScale = 1f)
+    }
+
     CompositionLocalProvider(
         LocalColorTheme provides colorScheme,
         LocalFontTheme provides fontScheme,
-        LocalFigmaDimens provides figmaScale
+        LocalFigmaDimens provides figmaScale,
+        LocalDensity provides fixedFontScaleDensity
     ) {
         MaterialTheme(
             typography = typography,

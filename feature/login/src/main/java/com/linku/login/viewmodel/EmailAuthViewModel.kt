@@ -46,7 +46,7 @@ internal class EmailAuthViewModel @Inject constructor(
 
     private fun handleCodeChanged(newCode: String) {
         if (newCode.length <= 6) {
-            updateState { copy(code = newCode, codeError = null) }
+            updateState { copy(code = newCode, codeError = null, isCodeExpired = false) }
         }
     }
 
@@ -55,7 +55,13 @@ internal class EmailAuthViewModel @Inject constructor(
         timerJob = viewModelScope.launch {
             var currentTimer = 180
             updateState {
-                copy(timer = currentTimer, isCodeSent = true, verificationFailCount = 0)
+                copy(
+                    timer = currentTimer,
+                    isCodeSent = true,
+                    verificationFailCount = 0,
+                    codeError = null,
+                    isCodeExpired = false
+                )
             }
 
             while (currentTimer > 0) {
@@ -63,7 +69,12 @@ internal class EmailAuthViewModel @Inject constructor(
                 currentTimer--
                 updateState { copy(timer = currentTimer) }
             }
-            updateState { copy(codeError = "인증 시간이 만료되었습니다.") }
+            updateState {
+                copy(
+                    codeError = "인증 시간이 만료되었어요. 인증번호를 다시 요청해주세요.",
+                    isCodeExpired = true
+                )
+            }
         }
     }
 
@@ -94,6 +105,7 @@ internal class EmailAuthViewModel @Inject constructor(
                     emailError = null,
                     code = "",
                     codeError = null,
+                    isCodeExpired = false,
                     verificationFailCount = 0
                 )
             }
@@ -126,18 +138,23 @@ internal class EmailAuthViewModel @Inject constructor(
 
         // 인증 코드 누락 방어
         if (code.isBlank()) {
-            updateState { copy(codeError = "코드를 입력해주세요.") }
+            updateState { copy(codeError = "코드를 입력해주세요.", isCodeExpired = false) }
             return
         }
 
         // 타이머 만료시 서버 요청 차단
         if (state.value.timer <= 0) {
-            updateState { copy(codeError = "인증 시간이 초과되었습니다. 다시 발송해주세요.") }
+            updateState {
+                copy(
+                    codeError = "인증 시간이 만료되었어요. 인증번호를 다시 요청해주세요.",
+                    isCodeExpired = true
+                )
+            }
             return
         }
 
         viewModelScope.launch {
-            updateState { copy(isLoading = true, codeError = null) }
+            updateState { copy(isLoading = true, codeError = null, isCodeExpired = false) }
 
             authRepository.verifyEmailCode(email, code).foldApp(
                 onSuccess = {
@@ -152,6 +169,7 @@ internal class EmailAuthViewModel @Inject constructor(
                         copy(
                             isLoading = false,
                             codeError = error.displayMessage,
+                            isCodeExpired = false,
                             verificationFailCount = emailFailCount
                         )
                     }

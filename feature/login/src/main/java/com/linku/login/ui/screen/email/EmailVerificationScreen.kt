@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -22,9 +24,13 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -39,7 +45,9 @@ import com.linku.design.component.BottomGradientButton
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.design.util.scaler
+import com.linku.login.ui.alert.CodeNotReceivedAlert
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.viewmodel.EmailAuthViewModel
@@ -111,6 +119,10 @@ internal fun EmailVerificationScreenContent(
 
     val colorTheme = MaterialTheme.linkuColors
 
+    var isEmailFocused by remember { mutableStateOf(false) }
+    var isCodeFocused by remember { mutableStateOf(false) }
+    var showCodeNotReceivedAlert by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -119,7 +131,8 @@ internal fun EmailVerificationScreenContent(
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator(currentStep = 1)
-            Spacer(modifier = Modifier.height(36.scaler))
+            // 입력 전엔 여유 있게(72), 필드에 커서가 활성화되면(포커스) 바로 좁힘(36)
+            Spacer(modifier = Modifier.height(if (isEmailFocused || isCodeFocused) 36.scaler else 72.scaler))
             Text(
                 text = "가입을 위한 이메일 주소를\n인증해주세요",
                 fontSize = 22.sp,
@@ -137,6 +150,7 @@ internal fun EmailVerificationScreenContent(
                     hint = "이메일 주소를 입력해주세요",
                     enabled = !emailUiState.isLoading,
                     modifier = Modifier.fillMaxWidth(),
+                    onFocusChanged = { isEmailFocused = it },
                 )
 
                 emailUiState.emailError?.let {
@@ -151,13 +165,27 @@ internal fun EmailVerificationScreenContent(
                 }
             } else {
                 // 2단계: 코드 입력 화면
-                LoginTextField(
-                    value = emailUiState.email,
-                    onValueChange = {},
-                    hint = "이메일 주소를 입력해주세요",
-                    enabled = false,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    LoginTextField(
+                        value = emailUiState.email,
+                        onValueChange = {},
+                        hint = "이메일 주소를 입력해주세요",
+                        enabled = false,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+
+                    // 인증번호 오류/만료 시, 이메일 필드 위에 재요청 버튼 노출 (인증 코드 재발송)
+                    if (emailUiState.codeError != null) {
+                        ResendCodeButton(
+                            isTimeExpired = emailUiState.isCodeExpired,
+                            enabled = !emailUiState.isLoading,
+                            onClick = { onEmailEvent(EmailUiEvent.SendCodeClicked) },
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(end = 9.scaler)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.scaler))
 
                 OutlinedTextField(
@@ -168,13 +196,14 @@ internal fun EmailVerificationScreenContent(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.scaler)
                         .background(colorTheme.white, shape = RoundedCornerShape(16.dp))
                         .border(
                             width = 1.dp,
                             brush = colorTheme.maincolor,
                             shape = RoundedCornerShape(16.dp)
-                        ),
+                        )
+                        .onFocusChanged { isCodeFocused = it.hasFocus },
+                    textStyle = LocalTextStyle.current.copy(fontFamily = MaterialTheme.linkuFont.font),
                     shape = RoundedCornerShape(16.dp),
                     singleLine = true,
                     enabled = !emailUiState.isLoading,
@@ -209,7 +238,7 @@ internal fun EmailVerificationScreenContent(
         ) {
             Text(
                 text = "인증번호가 오지 않는다면?",
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.Medium,
                 color = colorTheme.gray[400],
@@ -219,7 +248,7 @@ internal fun EmailVerificationScreenContent(
                     .padding(bottom = 21.scaler)
                     .noRippleClickable {
                         if (!emailUiState.isLoading) {
-                            onEmailEvent(EmailUiEvent.SendCodeClicked)
+                            showCodeNotReceivedAlert = true
                         }
                     }
             )
@@ -227,8 +256,6 @@ internal fun EmailVerificationScreenContent(
             BottomGradientButton(
                 text = if (emailUiState.isCodeSent) "인증하기" else "인증메일 발송",
                 enabled = isButtonEnabled,
-                activeGradient = colorTheme.maincolor,
-                inactiveGradient = colorTheme.inactiveColor,
                 onClick = {
                     if (emailUiState.isCodeSent) {
                         onEmailEvent(EmailUiEvent.VerifyCodeClicked)
@@ -236,6 +263,21 @@ internal fun EmailVerificationScreenContent(
                         onEmailEvent(EmailUiEvent.SendCodeClicked)
                     }
                 }
+            )
+        }
+
+        // 인증번호가 오지 않을 때 안내하는 딤처리 alert
+        if (showCodeNotReceivedAlert) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorTheme.black.copy(alpha = 0.5f))
+                    .clickable(enabled = true, onClick = {})
+            )
+
+            CodeNotReceivedAlert(
+                onDismissRequest = { showCodeNotReceivedAlert = false },
+                onConfirmClick = { showCodeNotReceivedAlert = false }
             )
         }
     }
@@ -258,6 +300,43 @@ fun EmailVerificationScreen_TimerPreview() {
     }
 }
 
+@Preview(showBackground = true, name = "인증번호 오류")
+@Composable
+fun EmailVerificationScreen_CodeErrorPreview() {
+    LinkuPreview {
+        EmailVerificationScreenContent(
+            emailUiState = EmailUiState(
+                email = "linkU2025@gmail.com",
+                code = "230800",
+                isCodeSent = true,
+                timer = 179,
+                codeError = "인증번호가 올바르지 않습니다! 다시 시도해주세요."
+            ),
+            timerProvider = { 179 },
+            onEmailEvent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "인증 시간 만료")
+@Composable
+fun EmailVerificationScreen_TimeExpiredPreview() {
+    LinkuPreview {
+        EmailVerificationScreenContent(
+            emailUiState = EmailUiState(
+                email = "linkU2025@gmail.com",
+                code = "230800",
+                isCodeSent = true,
+                timer = 0,
+                codeError = "인증 시간이 만료되었어요. 인증번호를 다시 요청해주세요.",
+                isCodeExpired = true
+            ),
+            timerProvider = { 0 },
+            onEmailEvent = {}
+        )
+    }
+}
+
 @Composable
 private fun TimerText(timerProvider: () -> Int) {
     val seconds = timerProvider()
@@ -266,6 +345,36 @@ private fun TimerText(timerProvider: () -> Int) {
         text = timerText,
         color = MaterialTheme.linkuColors.negative,
         fontSize = 13.sp,
-        modifier = Modifier.padding(end = 12.dp)
+        modifier = Modifier.padding(end = 22.dp)
+    )
+}
+
+/**
+ * 인증번호 오류/만료 시 노출되는 재요청 버튼.
+ *
+ * @param isTimeExpired true면 "재요청"(시간 만료), false면 "다시요청"(코드 불일치) 문구를 표시.
+ * @param enabled 로딩 중 등 중복 클릭을 막아야 할 때 false.
+ * @param onClick 클릭 시 실행할 콜백 (인증 코드 재발송 이벤트를 트리거).
+ */
+@Composable
+private fun ResendCodeButton(
+    isTimeExpired: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val colorTheme = MaterialTheme.linkuColors
+    Text(
+        text = if (isTimeExpired) "재요청" else "다시요청",
+        fontSize = 13.sp,
+        lineHeight = 15.sp,
+        fontWeight = FontWeight.Medium,
+        letterSpacing = (-0.3).sp,
+        color = colorTheme.gray[600],
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .background(colorTheme.gray[200])
+            .noRippleClickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 12.scaler, vertical = 9.scaler)
     )
 }

@@ -76,9 +76,9 @@ class MainActivity : ComponentActivity(), SystemBarController {
      * 앱 전역 시스템 바 단일 제어 지점
      */
     override fun setSystemBarMode(mode: SystemBarMode) {
-        if (currentSystemBarMode == mode) return
-        currentSystemBarMode = mode
-
+        // DesignSystemBars(Compose SideEffect)가 같은 Window를 별도로 직접 제어하기 때문에
+        // 이전 호출 결과를 캐시해서 조기 반환하면 실제 상태와 어긋나 복구 호출이 무시될 수 있음.
+        // 그래서 매번 무조건 반영함(hide/show는 반복 호출해도 안전함).
         WindowCompat.setDecorFitsSystemWindows(
             window,
             mode == SystemBarMode.VISIBLE

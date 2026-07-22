@@ -8,18 +8,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.linku.design.util.WhiteSystemBars
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
 import com.linku.home.screen.NoticeScreen
-import com.linku.home.viewmodel.AlarmViewModel
 
 @Composable
 fun HomeApp(
@@ -40,7 +37,7 @@ fun HomeApp(
     // HomeApp에서 만들어 주입한다.
     //val alarmViewModel: AlarmViewModel = hiltViewModel()
 
-    WhiteSystemBars()
+    // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
 //    // === 감정/상황 키 → 서버 ID 매핑 ===
 //    fun emotionKeyToId(key: String): Long = when (key) {

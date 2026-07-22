@@ -7,6 +7,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -56,7 +57,10 @@ fun LoginApp(
     onLoginSuccess: () -> Unit,
     onAutoLoginSuccess: () -> Unit,
     onAutoLoginFail: () -> Unit,
-    loginViewModel: LoginViewModel
+    loginViewModel: LoginViewModel,
+    // 그라데이션 배경(AnimatedLoginScreen/LoginScreen)이 보이는 동안에만 true를 전달해서
+    // 상위(MainScreen)의 흰색 상태바 스크림을 끔. 그 외 로그인 하위 화면은 흰 상태바가 기본.
+    onEdgeToEdgeChange: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
 
@@ -112,6 +116,13 @@ fun LoginApp(
 
                 LaunchedEffect(skipAnimation) {
                     if (skipAnimation) parentEntry.savedStateHandle["skip_login_animation"] = false
+                }
+
+                // AnimatedLoginScreen/LoginScreen은 그라데이션 배경이 상태바까지 비치는
+                // edge-to-edge 화면. 이 화면을 벗어나면(email_login 등으로 이동) 자동으로 꺼짐.
+                DisposableEffect(Unit) {
+                    onEdgeToEdgeChange(true)
+                    onDispose { onEdgeToEdgeChange(false) }
                 }
 
                 AnimatedLoginScreen(
@@ -398,6 +409,12 @@ fun LoginApp(
 
                 BackHandler(enabled = showTermsSheet) {
                     entry.savedStateHandle["show_terms_sheet"] = false
+                }
+
+                // 이 화면도 그라데이션 배경이 상태바까지 비치는 edge-to-edge 화면.
+                DisposableEffect(Unit) {
+                    onEdgeToEdgeChange(true)
+                    onDispose { onEdgeToEdgeChange(false) }
                 }
 
                 LoginScreen(

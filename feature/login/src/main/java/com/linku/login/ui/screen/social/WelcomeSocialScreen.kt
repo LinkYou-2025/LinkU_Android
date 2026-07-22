@@ -228,19 +228,19 @@ internal fun WelcomeSocialScreen(
                 )
             }
 
-            // 2. 하단 버튼 레이어
+            // 2. 하단 버튼 레이어 (높이를 고정하지 않고 텍스트 위아래 패딩으로 보장, 폰트 확대 시에도 안전)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(start = 20.scaler, end = 20.scaler, bottom = bottomPadding)
-                    .height(50.scaler)
                     .background(colorTheme.white, shape = RoundedCornerShape(18.dp))
                     .clickable(
                         enabled = !isFormLoading && runtimeError == null
                     ) {
                         // 정상일 떄는 더블 클릭 되지 않도록 함.
-                    },
+                    }
+                    .padding(vertical = 15.scaler),
                 contentAlignment = Alignment.Center
             ) {
                 if (isFormLoading) {
