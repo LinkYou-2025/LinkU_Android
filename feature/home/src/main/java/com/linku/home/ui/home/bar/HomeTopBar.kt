@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,6 +31,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -39,6 +43,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.Situation
+import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
@@ -47,7 +53,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
 import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
-import com.linku.home.screen.Situation
 import com.linku.home.ui.home.bar.component.EmotionIconSelector
 import com.linku.home.ui.home.bar.component.HomeSearchBar
 import com.linku.home.ui.home.bar.component.SelectedSummaryRow
@@ -70,6 +75,8 @@ fun HomeTopBar(
     onAlarmClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val density = LocalDensity.current
+    val expandDragThreshold = with(density) { 20.dp.toPx() }
 
     val buttonBrush =
         if (recommendEnabled) Basic.maincolor
@@ -80,6 +87,8 @@ fun HomeTopBar(
             )
         )
 
+    var draggedDistance by remember { mutableFloatStateOf(0f) }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -87,7 +96,7 @@ fun HomeTopBar(
                 RoundedCornerShape(bottomStart = 30.dp, bottomEnd = 30.dp)
             )
             .background(colors.white)
-            .padding(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 13.5.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 49.dp, bottom = 13.5.dp)
     ) {
         Row(
             modifier = Modifier
@@ -95,24 +104,16 @@ fun HomeTopBar(
                 .padding(start = 19.dp, end = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 로고
             Text(
-                // 텍스트(그라데이션 및 스타일 지정)
                 text = buildAnnotatedString {
                     withStyle(
                         SpanStyle(
                             fontSize = 24.sp,
-
-                            // 사용할 폰트 (태백 폰트)
                             fontFamily = Taebaek.font,
-
                             fontWeight = FontWeight.Normal,
-
-                            // 텍스트 그라데이션 색상(링큐 메인 색상)
                             brush = MainColor,
                         )
                     ) {
-                        // 실제 표시할 텍스트
                         append("링큐")
                     }
                 }
@@ -120,7 +121,6 @@ fun HomeTopBar(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // 알림
             Box(
                 modifier = Modifier
                     .size(30.dp)
@@ -135,7 +135,7 @@ fun HomeTopBar(
 
         Spacer(modifier = Modifier.height(13.44.dp))
 
-        HomeSearchBar()  // 검색창
+        HomeSearchBar()
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -187,7 +187,6 @@ fun HomeTopBar(
 
                 Spacer(modifier = Modifier.height(15.dp))
 
-                // 링크 추천 버튼
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,7 +237,29 @@ fun HomeTopBar(
                     modifier = Modifier
                         .width(44.dp)
                         .align(Alignment.CenterHorizontally)
-                        .noRippleClickable { onExpandClick() }
+                        .pointerInput(expandDragThreshold) {
+                            detectVerticalDragGestures(
+                                onDragStart = {
+                                    draggedDistance = 0f
+                                },
+                                onVerticalDrag = { change, dragAmount ->
+                                    change.consume()
+                                    draggedDistance += dragAmount
+                                },
+                                onDragEnd = {
+                                    if (draggedDistance >= expandDragThreshold) {
+                                        onExpandClick()
+                                    }
+                                    draggedDistance = 0f
+                                },
+                                onDragCancel = {
+                                    draggedDistance = 0f
+                                }
+                            )
+                        }
+                        .noRippleClickable {
+                            onExpandClick()
+                        }
                 )
             }
         }
@@ -251,16 +272,7 @@ fun PreviewHomeTopBar() {
     var selectedEmotion by remember { mutableStateOf<Long?>(1L) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
 
-    val sampleSituations = listOf(
-        Situation(9, "트렌드 확인"),
-        Situation(10, "과제 중"),
-        Situation(11, "쇼핑 중"),
-        Situation(12, "데이트 중"),
-        Situation(13, "통학 중"),
-        Situation(14, "알바 중"),
-        Situation(15, "휴식 중"),
-        Situation(16, "자기 전"),
-    )
+    val sampleSituations = SituationOptions.situationsFor(jobId = 2L)
 
     HomeTopBar(
         isNoticeExist = true,
@@ -271,10 +283,10 @@ fun PreviewHomeTopBar() {
         onTaskChange = { selectedTask = it },
         situations = sampleSituations,
         recommendEnabled = (selectedEmotion != null && selectedTask != null),
-        onRecommendClick = { /* preview no-op */ },
+        onRecommendClick = { },
         isCollapsed = false,
         onExpandClick = { },
         hasRequestedRecommend = false,
-        onAlarmClick = {}
+        onAlarmClick = { }
     )
 }

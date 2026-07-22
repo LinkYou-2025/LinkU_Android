@@ -12,7 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,18 +24,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.home.R
 
 @Composable
 fun LinkDetailTopBar(
     linkTitle: String,
+    originalLinkTitle: String,
     category: String,
     emotion: String,
     situation: String,
@@ -47,9 +53,14 @@ fun LinkDetailTopBar(
     onCategoryClick: () -> Unit,
     onEmotionClick: () -> Unit,
     onSituationClick: () -> Unit,
+    onTitleChange: (String) -> Unit,
     onTitleClearClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+
+    val isTitleEmpty = linkTitle.isBlank()
+    val isTitleChanged = linkTitle != originalLinkTitle
+    val titleAlpha = if (isEditMode && !isTitleChanged && !isTitleEmpty) 0.3f else 1f
 
     Box(
         modifier = Modifier
@@ -117,37 +128,86 @@ fun LinkDetailTopBar(
                     modifier = Modifier
                         .then(
                             if (isEditMode) {
-                                Modifier
-                                    .padding(bottom = 11.dp)
-                                    .clip(RoundedCornerShape(13.dp))
-                                    .border(1.dp, colors.white, RoundedCornerShape(13.dp))
-                                    .padding(horizontal = 15.dp, vertical = 4.dp)
+                                Modifier.padding(bottom = 11.dp)
                             } else {
                                 Modifier.padding(bottom = 12.dp)
                             }
                         ),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(
-                        text = linkTitle,
-                        fontSize = if (isEditMode) 22.sp else 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.white
-                    )
-
                     if (isEditMode) {
-                        Box(
+                        Row(
                             modifier = Modifier
-                                .size(18.dp)
-                                .noRippleClickable { onTitleClearClick() }
+                                .widthIn(min = 1.dp, max = 280.dp)
+                                .clip(RoundedCornerShape(13.dp))
+                                .border(1.dp, colors.white, RoundedCornerShape(13.dp))
+                                .padding(horizontal = 15.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
-                            Image(
-                                painter = painterResource(R.drawable.ic_delete_blue),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                            BasicTextField(
+                                value = linkTitle,
+                                onValueChange = onTitleChange,
+                                textStyle = TextStyle(
+                                    fontSize = 22.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    fontFamily = MaterialTheme.linkuFont.font,
+                                    color = colors.white.copy(alpha = titleAlpha)
+                                ),
+                                modifier = Modifier.widthIn(min = 1.dp, max = 220.dp),
+                                decorationBox = { innerTextField ->
+                                    Box {
+                                        if (isTitleEmpty) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                            ) {
+                                                Image(
+                                                    painter = painterResource(R.drawable.ic_warning),
+                                                    contentDescription = null,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+
+                                                Text(
+                                                    text = "링크 제목을 입력하세요",
+                                                    fontSize = 22.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = colors.white,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+                                        }
+
+                                        innerTextField()
+                                    }
+                                }
                             )
+
+                            if (!isTitleEmpty) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(18.dp)
+                                        .noRippleClickable { onTitleClearClick() }
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_delete_blue),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
                         }
+                    } else {
+                        Text(
+                            text = linkTitle,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.white,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
                 }
 
@@ -172,7 +232,7 @@ fun LinkDetailTopBar(
                                 )  // 추후 카테고리 API 연동 후 실제 색상으로 변경 예정
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.white, RoundedCornerShape(10.dp))
+                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
                                     } else {
                                         Modifier
                                     }
@@ -218,7 +278,7 @@ fun LinkDetailTopBar(
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.white, RoundedCornerShape(10.dp))
+                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
                                     } else {
                                         Modifier
                                     }
@@ -264,7 +324,7 @@ fun LinkDetailTopBar(
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.white, RoundedCornerShape(10.dp))
+                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
                                     } else {
                                         Modifier
                                     }
@@ -326,10 +386,11 @@ fun PreviewLinkDetailTopBar() {
     ThemeProvider {
         LinkDetailTopBar(
             linkTitle = "3일만에 오픽 AL 꿀팁",
+            originalLinkTitle = "3일만에 오픽 AL 꿀팁",
             category = "어학",
             emotion = "평온",
             situation = "통학 중",
-            isEditMode = false,
+            isEditMode = true,
             isCategoryDropdownOpen = false,
             isEmotionDropdownOpen = false,
             isSituationDropdownOpen = false,
@@ -339,6 +400,7 @@ fun PreviewLinkDetailTopBar() {
             onEmotionClick = { },
             onCategoryClick = { },
             onSituationClick = { },
+            onTitleChange = { },
             onTitleClearClick = { }
         )
     }

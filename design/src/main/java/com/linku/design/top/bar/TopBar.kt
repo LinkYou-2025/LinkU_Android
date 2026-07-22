@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -47,7 +46,7 @@ import com.linku.design.R as Res
  * @param onClickAlarm 알림 아이콘 클릭 콜백
  */
 
-private const val TOPBAR_SIMPLE_HEIGHT = 80f   // 로고 + 알림만
+private const val TOPBAR_SIMPLE_HEIGHT = 96f   // 로고 + 알림만(큐레이션에서 사용)
 private const val TOPBAR_SEARCH_HEIGHT = 139f    // 검색바 포함 //기존 파일은 206f
 
 private val DEFAULT_BACKGROUND = Color.White // 기본 배경 흰색

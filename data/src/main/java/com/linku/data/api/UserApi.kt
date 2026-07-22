@@ -13,7 +13,8 @@ import retrofit2.http.POST
 
 interface UserApi {
 
-    @GET("users/nickname")
+    // 닉네임 조회
+    @GET("auth/nickname")
     suspend fun checkNickname(
     ): BaseResponse<NicknameResponseDTO>
 

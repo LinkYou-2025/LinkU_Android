@@ -13,6 +13,9 @@ data class FolderResponseDTO(
     @field:Json(name = "folderName")
     val folderName: String,
 
+    @field:Json(name = "isBookmarked")
+    val isBookmarked: Boolean = false,
+
     @field:Json(name = "categoryId")
     val categoryId: Long,
 

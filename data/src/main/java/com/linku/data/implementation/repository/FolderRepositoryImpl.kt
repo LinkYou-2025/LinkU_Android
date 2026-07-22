@@ -13,11 +13,12 @@ import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.folder.FolderCreateRequestDTO
 import com.linku.data.api.dto.folder.FolderTreeResponseDTO
 import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
-import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
 import com.linku.data.api.safeApiCall
-import com.linku.data.api.safeApiCall204
+import com.linku.data.api.safeApiCallUnit
+import com.linku.data.mapper.toDomain
+import com.linku.data.mapper.toRequestDto
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
@@ -61,7 +62,7 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     // 중분류 폴더 조회
-    override suspend fun getParentfolders(): List<FolderSimpleInfo> {
+    override suspend fun getParentfolders(sort: String?): List<FolderSimpleInfo> {
         Log.d("FolderRepositoryImpl", "getParentfolders")
 
         var folderList: List<FolderSimpleInfo> = emptyList()
@@ -70,16 +71,9 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getParentfolders try")
 
             safeApiCall(
-                apiCall = { serverApi.getParentfolders() }
+                apiCall = { serverApi.getParentfolders(sort) }
             ).onSuccess { dtoList ->
-                folderList = dtoList.map { dto ->
-                    FolderSimpleInfo(
-                        folderId = dto.folderId,
-                        folderName = dto.folderName,
-                        parentFolderId = 0,
-                        isBookmarked = dto.isBookmarked
-                    )
-                }
+                folderList = dtoList.map { it.toDomain() }
             }.onFailure {
                 throw it
             }
@@ -107,17 +101,9 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getSubfolders try")
 
             safeApiCall(
-                apiCall = { serverApi.getLinksFolders(parentFolderId) }
+                apiCall = { serverApi.getSubfolders(parentFolderId) }
             ).onSuccess { dto ->
-                folderList = dto.folders.map {
-                    FolderSimpleInfo(
-                        folderId = it.folderId,
-                        folderName = it.folderName,
-                        parentFolderId = parentFolderId,
-                        isBookmarked = false,
-                        isSharing = it.isSharing
-                    )
-                }
+                folderList = dto.map { it.toDomain(parentFolderIdFallback = parentFolderId) }
             }.onFailure {
                 throw it
             }
@@ -138,6 +124,7 @@ class FolderRepositoryImpl @Inject constructor(
         parentFolderId: Long,
         limit: Int?,
         cursor: String?,
+        sort: String?,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String? {
@@ -149,33 +136,15 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getLinksFolders try")
 
             safeApiCall(
-                apiCall = { serverApi.getLinksFolders(parentFolderId, limit, cursor) }
+                apiCall = { serverApi.getLinksFolders(parentFolderId, limit, cursor, sort) }
             ).onSuccess { response ->
                 Log.d("FolderRepositoryImpl", "getLinksFolders response: $response")
 
-                onGetFolders(response.folders.map {
-                    FolderSimpleInfo(
-                        folderId = it.folderId,
-                        folderName = it.folderName,
-                        parentFolderId = parentFolderId,
-                        isBookmarked = false,
-                        isSharing = it.isSharing,
-                    )
-                })
+                onGetFolders(response.folders.map { it.toDomain(parentFolderId) })
 
                 Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetFolders(${response.folders})")
 
-                onGetLinks(response.links.map {
-                    LinkItemInfo(
-                        linkuId = it.linkuId,
-                        parentFolderId = parentFolderId,
-                        title = it.title,
-                        tags = it.keyword?.let { keyword -> keyword.split(",").map { it.trim() } } ?: emptyList(),
-                        url = it.url,
-                        linkuImageUrl = it.linkuImageUrl,
-                        createdAt = it.createdAt,
-                    )
-                })
+                onGetLinks(response.links.map { it.toDomain(parentFolderId) })
 
                 Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetLinks(${response.links})")
 
@@ -215,15 +184,7 @@ class FolderRepositoryImpl @Inject constructor(
                     )
                 }
             ).onSuccess {
-                response = FolderInfo(
-                    folderId = it.folderId,
-                    folderName = it.folderName,
-                    categoryId = it.categoryId,
-                    categoryName = it.categoryName,
-                    parentFolderId = it.parentFolderId,
-                    createdAt = it.createdAt,
-                    updatedAt = it.updatedAt,
-                )
+                response = it.toDomain()
                 Log.d("FolderRepositoryImpl", "createSubfolder response: $response")
             }.onFailure {
                 throw it
@@ -258,15 +219,7 @@ class FolderRepositoryImpl @Inject constructor(
                     )
                 }
             ).onSuccess {
-                response = FolderInfo(
-                    folderId = it.folderId,
-                    folderName = it.folderName,
-                    categoryId = it.categoryId,
-                    categoryName = it.categoryName,
-                    parentFolderId = it.parentFolderId,
-                    createdAt = it.createdAt,
-                    updatedAt = it.updatedAt,
-                )
+                response = it.toDomain()
                 Log.d("FolderRepositoryImpl", "updateSubfolder response: $response")
             }.onFailure {
                 throw it
@@ -288,7 +241,7 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "deleteSubfolder try")
 
-            safeApiCall204 { serverApi.deleteSubfolder(folderId) }
+            safeApiCallUnit { serverApi.deleteSubfolder(folderId) }
                 .onFailure { throw it }
 
             Log.d("FolderRepositoryImpl", "deleteSubfolder well done")
@@ -312,20 +265,7 @@ class FolderRepositoryImpl @Inject constructor(
             safeApiCall(
                 apiCall = { serverApi.getSharedFolders() }
             ).onSuccess { dtoList ->
-                folderList = dtoList.map { res ->
-                    SharedFolderInfo(
-                        userId = res.userId,
-                        nickname = res.nickname,
-                        folders = res.folders.map {
-                            FolderSimpleInfo(
-                                folderId = it.folderId,
-                                folderName = it.folderName,
-                                parentFolderId = it.categoryId,
-                                isBookmarked = false
-                            )
-                        }
-                    )
-                }
+                folderList = dtoList.map { it.toDomain() }
                 Log.d("FolderRepositoryImpl", "getSharedFolders response: $folderList")
             }.onFailure {
                 throw it
@@ -347,7 +287,7 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "deleteSharedFolder try")
 
-            safeApiCall204 { serverApi.deleteSharedFolder(folderId) }
+            safeApiCallUnit { serverApi.deleteSharedFolder(folderId) }
                 .onFailure { throw it }
 
             Log.d("FolderRepositoryImpl", "deleteSharedFolder well done")
@@ -371,18 +311,7 @@ class FolderRepositoryImpl @Inject constructor(
             safeApiCall(
                 apiCall = { serverApi.setFolderViewerPermission(folderId) }
             ).onSuccess {
-                response = SharedFolderSimpleInfo(
-                    folderId = it.folderId,
-                    userId = it.userId,
-                    permission = when (it.permission) {
-                        "viewer" -> FolderPermission.VIEWER
-                        "writer" -> FolderPermission.WRITER
-                        "owner" -> FolderPermission.OWNER
-                        "none" -> FolderPermission.NONE
-                        else -> FolderPermission.NONE
-                    },
-                    sharedAt = it.sharedAt
-                )
+                response = it.toDomain()
                 Log.d("FolderRepositoryImpl", "setFolderViewerPermission response: $response")
             }.onFailure {
                 throw it
@@ -409,18 +338,7 @@ class FolderRepositoryImpl @Inject constructor(
             safeApiCall(
                 apiCall = { serverApi.setFolderPrivate(folderId) }
             ).onSuccess {
-                response = SharedFolderSimpleInfo(
-                    folderId = it.folderId,
-                    userId = it.userId,
-                    permission = when (it.permission) {
-                        "viewer" -> FolderPermission.VIEWER
-                        "writer" -> FolderPermission.WRITER
-                        "owner" -> FolderPermission.OWNER
-                        "none" -> FolderPermission.NONE
-                        else -> FolderPermission.NONE
-                    },
-                    sharedAt = it.sharedAt
-                )
+                response = it.toDomain()
                 Log.d("FolderRepositoryImpl", "setFolderPrivatePermission response: $response")
             }.onFailure {
                 throw it
@@ -447,18 +365,7 @@ class FolderRepositoryImpl @Inject constructor(
             safeApiCall(
                 apiCall = { serverApi.getFolderViewers(folderId) }
             ).onSuccess { dtoList ->
-                response = dtoList.map {
-                    FolderPermissionInfo(
-                        userId = it.userId,
-                        userName = it.userName,
-                        permission = when (it.permission) {
-                            "viewer" -> FolderPermission.VIEWER
-                            "writer" -> FolderPermission.WRITER
-                            "owner" -> FolderPermission.OWNER
-                            else -> FolderPermission.NONE
-                        }
-                    )
-                }
+                response = dtoList.map { it.toDomain() }
                 Log.d("FolderRepositoryImpl", "getFolderViewers response: $response")
             }.onFailure {
                 throw it
@@ -488,12 +395,7 @@ class FolderRepositoryImpl @Inject constructor(
                 apiCall = {
                     serverApi.updateViewerPermission(
                         folderId, userFolderId,
-                        when (body) {
-                            FolderPermission.VIEWER -> "viewer"
-                            FolderPermission.WRITER -> "writer"
-                            FolderPermission.OWNER -> "owner"
-                            FolderPermission.NONE -> "none"
-                        }
+                        body.toRequestDto()
                     )
                 }
             ).onSuccess {
@@ -567,8 +469,8 @@ class FolderRepositoryImpl @Inject constructor(
                 throw it
             }
 
-            safeApiCall204 { serverApi.deleteLink(userLinkuId) }
-                .onFailure { throw it }
+//            safeApiCall204 { serverApi.deleteLink(userLinkuId) }
+//                .onFailure { throw it }   // 메인 앱에 링크 조회 화면 올리면 이 함수 안쓸 거라고 생각해서 일단 주석처리 해놨습니다.
 
             Log.d("FolderRepositoryImpl", "deleteLink well done")
         } catch (e: Exception) {
@@ -647,5 +549,23 @@ class FolderRepositoryImpl @Inject constructor(
         Log.d("FolderRepositoryImpl", "makeInvitationLink return: $link")
 
         return link
+    }
+
+    override suspend fun deactivateInvitationLink(folderId: Long) {
+        Log.d("FolderRepositoryImpl", "deactivateInvitationLink folderId: $folderId")
+
+        try {
+            Log.d("FolderRepositoryImpl", "deactivateInvitationLink try")
+
+            safeApiCallUnit { serverApi.deactivateInvitationLink(folderId) }
+                .onFailure { throw it }
+
+            Log.d("FolderRepositoryImpl", "deactivateInvitationLink well done")
+        } catch (e: Exception) {
+            Log.e("FolderRepositoryImpl", "deactivateInvitationLink error: $e")
+            throw e
+        }
+
+        Log.d("FolderRepositoryImpl", "deactivateInvitationLink return")
     }
 }

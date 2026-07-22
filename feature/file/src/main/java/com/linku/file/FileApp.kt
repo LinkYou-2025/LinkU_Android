@@ -32,6 +32,8 @@ fun FileApp(
         navController.navigate("savelinkresult/${id}")
     }
 
+    // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
+
     NavHost(
         navController = navController,
         startDestination = "onboarding",
@@ -46,7 +48,7 @@ fun FileApp(
             )
         }
 
-        composable("savelinkresult/{linkuId}") { backStackEntry ->
+/*        composable("savelinkresult/{linkuId}") { backStackEntry ->
             val raw = backStackEntry.arguments?.getString("linkuId")
             val linkuId = backStackEntry.arguments?.getString("linkuId")?.toLongOrNull()
 
@@ -73,7 +75,7 @@ fun FileApp(
                 val isLoadingLink = fileViewModel.isLoadingLinkDetail.collectAsState().value
                 val isLoadingAi = fileViewModel.isLoadingAiArticle.collectAsState().value
                 val categoryColorMap = fileViewModel.categoryColorMap.collectAsState().value
-
+*//*
                 // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
                 SaveLinkResultScreen(
                     link = link,
@@ -122,8 +124,8 @@ fun FileApp(
                     },
                     aiProgress = aiProgress,
                     onCancelAi = { fileViewModel.cancelAiArticleJob() },
-                )
+                )*//*
             }
-        }
+        }*/
     }
 }

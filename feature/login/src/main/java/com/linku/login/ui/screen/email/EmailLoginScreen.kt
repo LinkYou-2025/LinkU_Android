@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -78,6 +79,7 @@ fun EmailLoginScreen(
     val isPreview = LocalInspectionMode.current
 
     // 로그인 입력 화면 진입 시 시스템 바 복구
+    // (색상/아이콘 밝기는 MainScreen이 edgeToEdgeSystemBars 상태를 보고 공통 처리함)
     DisposableEffect(Unit) {
         if (!isPreview && systemBarController != null) {
             systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
@@ -187,8 +189,6 @@ fun EmailLoginScreen(
                 GradientButtonCore(
                     text = "로그인하기",
                     enabled = isFormValid && loginState !is LoginState.Loading, //로딩 중 비활성화.
-                    activeGradient = colorTheme.maincolor,
-                    inactiveGradient = colorTheme.inactiveColor,
                     onClick = { loginViewModel?.login() }
                 )
             }
@@ -199,7 +199,7 @@ fun EmailLoginScreen(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .fillMaxWidth()
-                    .height((30.scaler)), // 클릭 영역 확보를 위한 높이
+                    .heightIn(min = 30.scaler), // 클릭 영역 확보를 위한 최소 높이 (폰트 확대 시 자연스럽게 늘어남)
                 horizontalArrangement = Arrangement.spacedBy(
                     25.dp,
                     alignment = Alignment.CenterHorizontally

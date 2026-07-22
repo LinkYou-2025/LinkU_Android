@@ -130,8 +130,6 @@ internal fun CurationMonthlyDetailScreen(
                 BottomGradientButton(
                     text = "링크 저장하러 가기",
                     enabled = true,
-                    activeGradient = colorTheme.maincolor,
-                    inactiveGradient = colorTheme.inactiveColor,
                     onClick = onGoHome,
                     label = "이번 달은 선택하신 상황/감정이 없네요!"
                 )

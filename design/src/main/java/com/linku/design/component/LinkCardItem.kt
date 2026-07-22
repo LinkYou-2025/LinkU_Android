@@ -48,6 +48,7 @@ fun LinkCardItem(
     isExternalLink: Boolean,
     linkImageUrl: String = "",
     domainImageUrl: String = "",
+    onCardClick: () -> Unit = { },  // TODO: 머지 이후 기본값 제거 예정
     onDeleteClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
@@ -59,6 +60,7 @@ fun LinkCardItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
+            .noRippleClickable(onClick = onCardClick)
     ) {
         Row(
             modifier = Modifier
@@ -259,6 +261,7 @@ fun PreviewLinkCardItem_HasOutLink() {
             linkImageUrl = "",
             domainImageUrl = "",
             domainName = "BLOG",
+            onCardClick = { },
             onDeleteClick = { }
         )
     }

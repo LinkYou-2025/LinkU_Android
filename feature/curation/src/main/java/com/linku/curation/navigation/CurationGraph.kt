@@ -39,6 +39,7 @@ fun NavGraphBuilder.curationGraph(
     ) {
         composable("curation_list") {
             showNavBar(true)
+            // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
             CurationScreen(
                 nickname = nickname,
