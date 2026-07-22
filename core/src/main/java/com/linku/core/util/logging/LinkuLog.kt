@@ -1,6 +1,6 @@
 package com.linku.core.util.logging
 
-import com.google.android.datatransport.BuildConfig
+import com.linku.core.BuildConfig
 
 object LinkuLog {
     @PublishedApi
