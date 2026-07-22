@@ -243,8 +243,8 @@ class AuthRepositoryImpl @Inject constructor(
 
             // 완성 응답에 포함된 토큰으로 곧바로 로그인 세션을 저장(자동 로그인).
             authPreference.saveTokens(
-                accessToken = response.accessToken,
-                refreshToken = response.refreshToken,
+                accessToken = response.tokenResponse.accessToken,
+                refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
                 loginType = loginType
             )
