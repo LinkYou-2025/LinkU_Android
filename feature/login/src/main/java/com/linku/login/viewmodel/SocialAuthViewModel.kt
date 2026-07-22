@@ -238,6 +238,12 @@ class SocialAuthViewModel @Inject constructor(
             updateState { copy(isLoading = true, error = null) }
             Log.d(TAG, "[소셜 온보딩 프로필 폼 주머니 기반 서버 동기화 트랜잭션 개시]")
 
+            val termsMap = mapOf(
+                "TERMS_OF_USE" to form.agreeTerms,
+                "PRIVACY_POLICY" to form.agreePrivacy,
+                "MARKETING" to form.agreeMarketing
+            )
+
             authRepository.completeSocialProfile(
                 socialToken = socialToken,
                 nickName = form.nickname,
@@ -245,6 +251,7 @@ class SocialAuthViewModel @Inject constructor(
                 job = form.job,
                 purposes = form.purposes,
                 interests = form.interests,
+                termsMap = termsMap,
                 loginType = currentSocialProvider
             ).foldApp(
                 onSuccess = { isSuccess ->
