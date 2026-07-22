@@ -13,7 +13,7 @@ data class SocialLoginResponseDTO(
     val accessToken: String,
 
     @field:Json(name = "refreshToken")
-    val refreshToken: String,
+    val refreshToken: String?,
 
     @field:Json(name = "status")
     val status: String?,
