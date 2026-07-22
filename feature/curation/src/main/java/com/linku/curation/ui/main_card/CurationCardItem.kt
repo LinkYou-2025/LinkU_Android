@@ -13,16 +13,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.linku.curation.R
 import com.linku.curation.ui.item.CurationCheckOutButton
+import com.linku.curation.ui.mapper.resolveMonthlyCurationImage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -41,6 +43,12 @@ data class CurationCardContent(
     val title: String,
     val description: String
 )
+
+// 큐레이션은 항상 "지난달" 기준으로 보여준다 (1번 카드 멘트 + 이미지가 공유하는 기준월)
+private fun getPreviousMonth(): Int {
+    val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
+    return cal.get(Calendar.MONTH) + 1
+}
 
 // 카드별 고정 컨텐츠 (1번은 동적으로 연도/월 계산) -> 이건 멘트 고정이라고 합니다!(돈 워리)
 internal fun getCurationCardContents(): List<CurationCardContent> {
@@ -68,7 +76,8 @@ internal fun getCurationCardContents(): List<CurationCardContent> {
  * 큐레이션 메인 카드 아이템 (이미지 + 타이틀 + 설명 + 페이지 인디케이터 + 체크아웃 버튼)
  *
  * @param modifier 외부에서 전달하는 Modifier (기본값: Modifier)
- * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨
+ * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨.
+ *                 단, page가 0(월간, 지난달 기준)/1(키워드)/2(리마인드)인 경우 이 값과 무관하게 고정 이미지가 표시됨 (추후 API 확장을 위해 파라미터는 유지)
  * @param page 현재 카드의 0-based 페이지 인덱스. getCurationCardContents()에서 해당 인덱스의 콘텐츠를 가져오는 데도 사용됨
  * @param totalPage 전체 카드 페이지 수 (페이지 인디케이터 표시용, 기본값: 3)
  * @param onCheckOutClick 카드 우측 하단 체크아웃 버튼 클릭 콜백
@@ -88,6 +97,16 @@ internal fun CurationCardItem(
     val contents = getCurationCardContents()
     val content = contents.getOrNull(page) ?: contents[0]
 
+    // 1~3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
+    // 1번(월간)은 큐레이션이 항상 보여주는 "지난달" 기준 이미지
+    val previousMonth = remember { getPreviousMonth() }
+    val fixedImagePainter = when (page) {
+        0 -> resolveMonthlyCurationImage(previousMonth)
+        1 -> painterResource(R.drawable.img_curation_keyword)
+        2 -> painterResource(R.drawable.img_curation_remind)
+        else -> null
+    }
+
     Box(
         modifier = modifier
             .shadow(
@@ -98,7 +117,14 @@ internal fun CurationCardItem(
             .clip(RoundedCornerShape(24.scaler))
             .background(colorTheme.curationCardBackground)
     ) {
-        if (resolvedImageUrl == null) {
+        if (fixedImagePainter != null) {
+            Image(
+                painter = fixedImagePainter,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        } else if (resolvedImageUrl == null) {
             Image(
                 painter = painterResource(id = fallbackImage),
                 contentDescription = null,
@@ -122,8 +148,7 @@ internal fun CurationCardItem(
 
         Column(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 248.scaler) // TODO : 피그마 대로 구현하니 너무 내려감... 임의로 262 -> 248로 수정함. 디자이너가 괜찮으면 좋겠음...
+                .align(Alignment.BottomStart) // 하단 고정 앵커: 폰마다 카드 높이/글자 비율이 달라져도 잘리지 않도록 상단 offset 대신 하단 여백으로 배치. 실제 하단 간격은 인디케이터/버튼이 각자 지정
         ) {
             Text(
                 text = content.title,
@@ -152,7 +177,7 @@ internal fun CurationCardItem(
                     .fillMaxWidth()
                     .padding(horizontal = 35.scaler)
             ) {
-                val pageIndicatorStyle = TextStyle(
+                val pageIndicatorStyle = LocalTextStyle.current.copy(
                     fontSize = 14.sp,
                     lineHeight = 16.sp,
                     fontWeight = FontWeight(500),
@@ -161,7 +186,9 @@ internal fun CurationCardItem(
                 )
 
                 Row(
-                    modifier = Modifier.align(Alignment.CenterStart),
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(bottom = 35.scaler),
                     horizontalArrangement = Arrangement.spacedBy(12.scaler),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -172,7 +199,9 @@ internal fun CurationCardItem(
 
                 CurationCheckOutButton(
                     onClick = onCheckOutClick,
-                    modifier = Modifier.align(Alignment.CenterEnd)
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 33.scaler)
                 )
             }
         }

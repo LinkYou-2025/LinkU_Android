@@ -26,6 +26,13 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.TopBar
 import com.linku.design.util.scaler
 
+// 큐레이션 메인 카드 개수 (pm이 나중에 3개 이상으로 확장될 수도 있다고 함)
+private const val CURATION_CARD_COUNT = 3
+
+// 1번 <-> 3번 카드가 서로 이어지는 양방향(무한) 스와이프를 흉내내기 위한 가상 페이지 수.
+// 실제 카드는 CURATION_CARD_COUNT개뿐이라 page % CURATION_CARD_COUNT로 실제 인덱스를 구한다.
+private const val PAGER_VIRTUAL_PAGE_COUNT = Int.MAX_VALUE
+
 @Composable
 internal fun CurationScreen(
     nickname: String,
@@ -35,7 +42,12 @@ internal fun CurationScreen(
     onRemindClick: () -> Unit = {}, // 3번 카드 -> CurationRemindScreen
     onMonthlyCurationClick: () -> Unit = {},
 ) {
-    val pagerState = rememberPagerState(initialPage = 0, pageCount = { 3 })
+    val pagerState = rememberPagerState(
+        initialPage = PAGER_VIRTUAL_PAGE_COUNT / 2 - (PAGER_VIRTUAL_PAGE_COUNT / 2).mod(
+            CURATION_CARD_COUNT
+        ),
+        pageCount = { PAGER_VIRTUAL_PAGE_COUNT }
+    )
     val displayNickname = nickname.ifBlank { "세나" }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -44,7 +56,7 @@ internal fun CurationScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             TopBar(showSearchBar = false, backgroundColor = null)
 
-            Spacer(modifier = Modifier.height(28.scaler))
+            Spacer(modifier = Modifier.height(12.scaler))
 
             CurationScreenContent(
                 nickname = displayNickname,
@@ -76,12 +88,12 @@ private fun CurationScreenContent(
         Spacer(modifier = Modifier.height(26.scaler))
 
         CurationMainCardPager(
-            imageUrls = List(3) { "" }, //아 pm이 나중에 3개 이상으로 확장될 수도 있대요. 그래서 이렇게 했어요
+            imageUrls = List(CURATION_CARD_COUNT) { "" },
             pagerState = pagerState,
             onCardClick = onCardClick
         )
 
-        Spacer(modifier = Modifier.height(33.scaler))
+        Spacer(modifier = Modifier.height(26.scaler))
 
         Text(
             text = "지난 큐레이션",
@@ -95,7 +107,7 @@ private fun CurationScreenContent(
         Spacer(modifier = Modifier.height(18.scaler))
 
         CalendarBox(
-            modifier = Modifier.padding(horizontal = 18.scaler),
+            modifier = Modifier.padding(horizontal = 20.scaler),
             onClick = onMonthlyCurationClick
         )
     }
