@@ -109,7 +109,11 @@ class SocialAuthViewModel @Inject constructor(
                     handleLoginRoute(result)
                 },
                 onFailure = { error ->
-                    Log.e(TAG, "구글 로그인 실패: ${error.displayMessage}", error)
+                    Log.e(
+                        TAG,
+                        "구글 로그인 실패: ${error.displayMessage}",
+                        error
+                    ) //TODO : sha-1키부터 안 먹혔다 샤갈
                     updateState { copy(isLoading = false, error = error.displayMessage) }
                     postSideEffect(SocialAuthUiEffect.ShowToast(error.displayMessage))
                 }

@@ -219,6 +219,9 @@ class AuthRepositoryImpl @Inject constructor(
     ): Result<Boolean> {
         Log.d(TAG, "[소셜 프로필 완성 시도]")
 
+        val savedDeviceId = authPreference.getDeviceId()
+        val savedDeviceType = authPreference.getDeviceType()
+
         return safeApiCall(
             apiCall = {
                 authApi.completeSocialProfile(
@@ -229,7 +232,9 @@ class AuthRepositoryImpl @Inject constructor(
                         job = job,
                         purposes = purposes,
                         interests = interests,
-                        termsMap = termsMap
+                        termsMap = termsMap,
+                        deviceId = savedDeviceId,
+                        deviceType = savedDeviceType
                     )
                 )
             }
