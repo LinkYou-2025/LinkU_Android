@@ -48,6 +48,7 @@ interface AuthRepository {
         job: Job,
         purposes: List<Purpose>,
         interests: List<Interest>,
+        termsMap: Map<String, Boolean>,
         loginType: LoginType
     ): Result<Boolean>
 

@@ -214,6 +214,7 @@ class AuthRepositoryImpl @Inject constructor(
         job: Job,
         purposes: List<Purpose>,
         interests: List<Interest>,
+        termsMap: Map<String, Boolean>,
         loginType: LoginType
     ): Result<Boolean> {
         Log.d(TAG, "[소셜 프로필 완성 시도]")
@@ -227,7 +228,8 @@ class AuthRepositoryImpl @Inject constructor(
                         gender = gender,
                         job = job,
                         purposes = purposes,
-                        interests = interests
+                        interests = interests,
+                        termsMap = termsMap
                     )
                 )
             }
