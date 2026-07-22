@@ -36,13 +36,11 @@ import com.linku.login.ui.screen.email.SignUpGenderScreen
 import com.linku.login.ui.screen.email.SignUpJobScreen
 import com.linku.login.ui.screen.email.SignUpNicknameScreen
 import com.linku.login.ui.screen.email.SignUpPasswordScreen
-import com.linku.login.ui.screen.email.WelcomeScreen
 import com.linku.login.ui.screen.social.SocialGenderScreen
 import com.linku.login.ui.screen.social.SocialInterestScreen
 import com.linku.login.ui.screen.social.SocialJobScreen
 import com.linku.login.ui.screen.social.SocialNicknameScreen
 import com.linku.login.ui.screen.social.SocialPurposeScreen
-import com.linku.login.ui.screen.social.WelcomeSocialScreen
 import com.linku.login.ui.terms.MarketingTermsScreenComposable
 import com.linku.login.ui.terms.PrivacyTermsScreenFixed
 import com.linku.login.ui.terms.ServiceTermsScreen
@@ -342,25 +340,9 @@ fun LoginApp(
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onNavigateToWelcome = {
-                        navController.navigate("welcome") { launchSingleTop = true }
-                    },
-                    signUpViewModel = signUpVm
-                )
-            }
-
-            authComposable("welcome") { parentEntry ->
-                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
-
-                WelcomeScreen(
-                    onNavigateToLogin = {
-                        navController.navigate("email_login") {
-                            popUpTo("auth_graph") { inclusive = true }
-                        }
-                    },
-                    onNavigateBackOnError = {
-                        navController.popBackStack()
-                    },
+                    // 회원가입 API 성공 시 토큰 저장(자동 로그인)까지 리포지토리에서 이미 끝난 상태.
+                    // 소셜 회원가입(sign_up_interest 아래 social_interest)과 동일하게 상위의 로그인 성공 콜백을 그대로 재사용해서 홈으로 이동.
+                    onSignUpSuccess = onLoginSuccess,
                     signUpViewModel = signUpVm
                 )
             }
@@ -577,28 +559,13 @@ fun LoginApp(
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
                 val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
 
+                // 완료 버튼 클릭 시 completeSocialProfile API를 직접 호출하고, 응답 토큰으로
+                // 자동 로그인 세션 저장까지 끝난 뒤 onComplete(=onLoginSuccess)로 바로 홈 이동.
                 SocialInterestScreen(
                     onBackClick = { navController.popBackStack() },
                     viewModel = vm,
-                    onComplete = {
-                        navController.navigate("social_welcome") {
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-
-            socialComposable("social_welcome") { parentEntry, _ ->
-                val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
-
-                WelcomeSocialScreen(
                     socialToken = socialToken,
-                    onNavigateToHome = onLoginSuccess,
-                    onNavigateBackOnError = {
-                        navController.popBackStack()
-                    },
-                    viewModel = vm
+                    onComplete = onLoginSuccess
                 )
             }
         }
