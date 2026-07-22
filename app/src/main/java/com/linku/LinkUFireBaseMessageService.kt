@@ -44,14 +44,28 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
     // FireBase로부터 메세지를 받았을 때 호출되는 콜백
     override fun onMessageReceived(message: RemoteMessage) {
+        Log.e("FCM", "onMessageReceived() 진입")
+
         super.onMessageReceived(message)
 
         externalScope.launch {
-            // 푸시알림 활성화 안되어있으면 종료
-            if (!notificationPreference.isMasterNotificationEnabled()) return@launch
+            Log.e("FCM", "launch 진입")
 
-            val title = message.notification?.title ?: return@launch
-            val body = message.notification?.body ?: return@launch
+            Log.e("FCM", "notification = ${message.notification}")
+            Log.e("FCM", "data = ${message.data}")
+
+            // 푸시알림 활성화 안되어있으면 종료
+            if (!notificationPreference.isMasterNotificationEnabled()) {
+                Log.e("FCM", "master notification off")
+
+                return@launch
+            }
+
+            val title = message.notification?.title
+            Log.e("FCM", "title = $title")
+
+            val body = message.notification?.body
+            Log.e("FCM", "body = $body")
 
             val type = message.data["type"] ?: "null"
             val targetId = message.data["targetId"] ?: "null"
@@ -64,13 +78,12 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
                 """.trimIndent()
             )
 
-            // // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
+            // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
             val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
                 ?.apply {
                     putExtra("type", type)
                     putExtra("targetId", targetId)
                 }
-                ?: return@launch
 
             val pendingIntent = PendingIntent.getActivity(
                 this@LinkUFireBaseMessageService,

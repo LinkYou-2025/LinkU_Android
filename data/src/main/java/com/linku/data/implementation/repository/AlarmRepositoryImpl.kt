@@ -54,6 +54,7 @@ class AlarmRepositoryImpl @Inject constructor(
         }.onSuccess { dto ->
             // isAllEnabled만 캐싱
             notificationPreference.setMasterNotificationEnabled(dto.isAllEnabled)
+            Log.d("FCM", "푸시 활성화 여부 ${dto.isAllEnabled}")
         }.map {
             it.toDomain()
         }
