@@ -14,14 +14,18 @@ object SocialProfileMapper {
         job: Job,
         purposes: List<Purpose>,
         interests: List<Interest>,
-        termsMap: Map<String, Boolean>
+        termsMap: Map<String, Boolean>,
+        deviceId: String,
+        deviceType: String
     ) = SocialProfileRequestDTO(
             nickName = nickName,
             gender = gender.name,
             jobId = job.id,
             purposeList = purposes.map { it.serverKey },
         interestList = interests.map { it.serverKey },
-        termsMap = termsMap
+        termsMap = termsMap,
+        deviceId = deviceId,
+        deviceType = deviceType
         )
 
 }
