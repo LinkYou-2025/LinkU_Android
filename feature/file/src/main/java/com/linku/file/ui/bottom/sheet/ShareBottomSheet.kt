@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -96,6 +97,8 @@ internal fun ShareBottomSheet(
 
     // 복사할 앱링크
     var link by remember { mutableStateOf("") }
+
+    var isCreatingInvitationLink by remember { mutableStateOf(false) }
 
     // 클립보드에 복사를 위한 객체
     val clipboardManager = LocalClipboardManager.current
@@ -193,6 +196,7 @@ internal fun ShareBottomSheet(
                 for ((i, folder) in folderList.withIndex()) {
                     val categoryColorStyle =
                         fileViewModel.categoryColorMap.collectAsState().value[folder.folderName]
+                    val fallbackColorStyle = CategoryColorStyle.categoryStyleList[0]
 
                     DropdownMenuItem(
                         leadingIcon = {
@@ -202,12 +206,14 @@ internal fun ShareBottomSheet(
                                     .clip(CircleShape)
                                     .background(
                                         color = colorStyle?.color1
-                                            ?: categoryColorStyle!!.color4
+                                            ?: categoryColorStyle?.color4
+                                            ?: fallbackColorStyle.color4
                                     )
                                     .border(
                                         width = 1.dp,
                                         color = colorStyle?.color4
-                                            ?: categoryColorStyle!!.color4,
+                                            ?: categoryColorStyle?.color4
+                                            ?: fallbackColorStyle.color4,
                                         shape = CircleShape
                                     )
                             )
@@ -237,6 +243,9 @@ internal fun ShareBottomSheet(
     val sheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = true // 바로 Expanded 상태
     )
+    val linkCreateFailedMessage = stringResource(R.string.share_link_create_failed)
+    val canCreateInvitationLink =
+        state == FolderState.LINKS && selectedBottomFolder != null && !isCreatingInvitationLink
 
     FileBottomSheet(
         sheetState = sheetState,
@@ -244,12 +253,28 @@ internal fun ShareBottomSheet(
         body = "공유하실 파일의 카테고리와 폴더를 선택해주세요!",
         buttonText = "공유 링크 생성",
         visible = folderStateViewModel.shareBottomSheetVisible,
-        isReady = state == FolderState.LINKS,
+        isReady = canCreateInvitationLink,
         onOkay = {
-            if(state == FolderState.LINKS){
-                link = fileViewModel.shareFolder(selectedBottomFolder!!.folderId)
-                linkCopyToClipboard()
-                modalOpen = true
+            val folder = selectedBottomFolder
+            if (state == FolderState.LINKS && folder != null && !isCreatingInvitationLink) {
+                isCreatingInvitationLink = true
+                fileViewModel.createInvitationLink(
+                    folderId = folder.folderId,
+                    onSuccess = { generatedLink ->
+                        isCreatingInvitationLink = false
+                        link = generatedLink
+                        linkCopyToClipboard()
+                        modalOpen = true
+                    },
+                    onFailure = { error ->
+                        isCreatingInvitationLink = false
+                        Toast.makeText(
+                            context,
+                            error.message ?: linkCreateFailedMessage,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                )
             }
         },
         onDismiss = {
@@ -273,18 +298,22 @@ internal fun ShareBottomSheet(
                     )
                 }
                 FolderState.BOTTOM -> {
-                    CategoryItemLayout(
-                        modifier = Modifier.fillMaxSize(201.10968f/412f),
-                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        folder = selectedTopFolder!!
-                    ) { }
+                    selectedTopFolder?.let { folder ->
+                        CategoryItemLayout(
+                            modifier = Modifier.fillMaxSize(201.10968f/412f),
+                            colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                            folder = folder
+                        ) { }
+                    }
                 }
                 FolderState.LINKS -> {
-                    MyFolderItemLayout(
-                        modifier = Modifier.fillMaxSize(201.10968f/412f),
-                        colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
-                        folder = selectedBottomFolder!!
-                    )
+                    selectedBottomFolder?.let { folder ->
+                        MyFolderItemLayout(
+                            modifier = Modifier.fillMaxSize(201.10968f/412f),
+                            colorStyle = categoryColorStyle?:CategoryColorStyle.categoryStyleList[0],
+                            folder = folder
+                        )
+                    }
                 }
             }
 

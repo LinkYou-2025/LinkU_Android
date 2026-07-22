@@ -20,7 +20,7 @@ interface FolderRepository {
 //    suspend fun getMyFolders(): List<FolderTreeResponseDTO>
 
     // (중분류) 중분류 폴더 조회
-    suspend fun getParentfolders(): List<FolderSimpleInfo>
+    suspend fun getParentfolders(sort: String? = "name"): List<FolderSimpleInfo>
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
     suspend fun getSubfolders(
@@ -32,6 +32,7 @@ interface FolderRepository {
         folderId: Long,
         limit: Int? = 20,
         cursor: String? = null,
+        sort: String? = "name",
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String?
@@ -88,4 +89,6 @@ interface FolderRepository {
 
     // 공유 링크 생성
     suspend fun makeInvitationLink(folderId: Long): String
+
+    suspend fun deactivateInvitationLink(folderId: Long)
 }

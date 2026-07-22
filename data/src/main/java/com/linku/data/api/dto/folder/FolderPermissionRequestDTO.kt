@@ -1,6 +1,5 @@
 package com.linku.data.api.dto.folder
 
-import com.linku.core.model.FolderPermission
 import com.squareup.moshi.Json
 
 import com.squareup.moshi.JsonClass
@@ -9,6 +8,6 @@ import com.squareup.moshi.JsonClass
 data class FolderPermissionRequestDTO(
 
     @field:Json(name = "permission")
-    val permission: FolderPermission
+    val permission: String
 
 )

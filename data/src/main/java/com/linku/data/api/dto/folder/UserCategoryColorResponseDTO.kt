@@ -10,8 +10,11 @@ data class UserCategoryColorResponseDTO(
     @field:Json(name = "categoryId")
     val categoryId: Long,
 
+    @field:Json(name = "fcolorId")
+    val fcolorId: Long = 0,
+
     @field:Json(name = "categoryName")
-    val categoryName: String,
+    val categoryName: String? = null,
 
     @field:Json(name = "colorName")
     val colorName: String,
