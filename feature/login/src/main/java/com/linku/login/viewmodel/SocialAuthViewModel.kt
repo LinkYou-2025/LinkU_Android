@@ -244,13 +244,14 @@ class SocialAuthViewModel @Inject constructor(
                 gender = form.gender,
                 job = form.job,
                 purposes = form.purposes,
-                interests = form.interests
+                interests = form.interests,
+                loginType = currentSocialProvider
             ).foldApp(
                 onSuccess = { isSuccess ->
                     updateState { copy(isLoading = false) }
                     if (isSuccess) {
-                        Log.d(TAG, "소셜 프로필 동기화 전면 성공 - 로그인 메커니즘 고정 갱신")
-                        authPreference.updateLoginType(currentSocialProvider)
+                        // 응답 토큰으로 로그인 세션 저장(자동 로그인)까지 리포지토리에서 이미 끝난 상태.
+                        Log.d(TAG, "소셜 프로필 동기화 전면 성공 - 자동 로그인 완료")
                         postSideEffect(SocialAuthUiEffect.CompleteProfileSuccess)
                     } else {
                         updateState { copy(error = "프로필 저장 처리에 실패하였습니다.") }
