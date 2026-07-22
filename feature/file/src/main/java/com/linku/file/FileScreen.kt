@@ -214,6 +214,14 @@ fun FileScreen(
                         )
                     }else{
                         SharedUsersGrid(
+                            folderList = emptyList(),   // TODO
+                            onMyFoldersClick = {
+                            // TODO
+                            },
+                            onSharedFolderClick = {
+                            // TODO
+                            }
+                            /*
                             folderList = sharedBottomFolders,
                             onFolderClick = { folder ->
                                 fileViewModel.getLinks(folder.folderId)
@@ -222,7 +230,7 @@ fun FileScreen(
                             },
                             onDeleteFolder = { folder ->
                                 fileViewModel.deleteSharedFolder(folder.folderId)
-                            }
+                            }*/
                         )
                     }
                 }
