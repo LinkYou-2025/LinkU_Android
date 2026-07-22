@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -21,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.linku.design.theme.linkuColors
@@ -46,6 +48,8 @@ internal fun CurationMainCardPager(
     imageUrls: List<String>,
     onCardClick: (index: Int, imageUrl: String) -> Unit = { _, _ -> },
 ) {
+    val totalPages = imageUrls.size
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -53,11 +57,15 @@ internal fun CurationMainCardPager(
         HorizontalPager(
             state = pagerState,
             contentPadding = PaddingValues(horizontal = 33.scaler),
-            pageSpacing = 12.scaler,
+            pageSpacing = 11.67f.scaler, // 피그마 카드 사이 간격 실측값
             modifier = Modifier
                 .fillMaxWidth()
                 .height(432.scaler)
         ) { page ->
+            // pagerState는 1번<->3번이 이어지는 양방향 스와이프를 위해 가상 페이지 수(Int.MAX_VALUE)로 만들어져 있어서,
+            // 실제 카드 인덱스는 나머지 연산으로 구한다
+            val actualPage = page.mod(totalPages)
+
             // 현재 페이지 기준으로 이 카드가 얼마나 떨어져 있는지 (0 = 중앙, 1 = 한 칸 옆)
             val pageOffset = (
                     (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
@@ -83,16 +91,22 @@ internal fun CurationMainCardPager(
                 contentAlignment = Alignment.Center
             ) {
                 CurationCardItem(
-                    imageUrl = imageUrls[page],
-                    page = page,
-                    totalPage = imageUrls.size,
-                    onCheckOutClick = { onCardClick(page, imageUrls[page]) },
+                    imageUrl = imageUrls[actualPage],
+                    page = actualPage,
+                    totalPage = totalPages,
+                    onCheckOutClick = { onCardClick(actualPage, imageUrls[actualPage]) },
                     modifier = Modifier
-                        .width(346.scaler)
-                        .height(432.scaler)
+                        .fillMaxSize()
                         .graphicsLayer {
                             scaleX = scale
                             scaleY = scale
+                            // 축소축을 화면 중앙에 가까운 모서리로 둬서, 옆 카드가 작아져도
+                            // 피킹 영역(contentPadding) 밖으로 밀려나 안 보이지 않게 함
+                            transformOrigin = when {
+                                page < pagerState.currentPage -> TransformOrigin(1f, 0.5f)
+                                page > pagerState.currentPage -> TransformOrigin(0f, 0.5f)
+                                else -> TransformOrigin.Center
+                            }
                         }
                 )
             }
@@ -101,8 +115,8 @@ internal fun CurationMainCardPager(
         Spacer(modifier = Modifier.height(18.scaler))
 
         CurationPagerIndicator(
-            pageCount = imageUrls.size,
-            currentPage = pagerState.currentPage
+            pageCount = totalPages,
+            currentPage = pagerState.currentPage.mod(totalPages)
         )
     }
 }

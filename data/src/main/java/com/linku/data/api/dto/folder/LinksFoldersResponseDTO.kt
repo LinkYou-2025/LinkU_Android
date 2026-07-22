@@ -14,8 +14,11 @@ data class FolderDTO(
     @field:Json(name = "folderName")
     val folderName: String, // 폴더 이름
 
+    @field:Json(name = "isBookmarked")
+    val isBookmarked: Boolean = false,
+
     @field:Json(name = "isSharing")
-    val isSharing: String // 공유 여부 (null 가능)
+    val isSharing: String? = null // 공유 여부
 )
 
 // 링크 정보
@@ -33,6 +36,9 @@ data class LinkDTO(
 
     @field:Json(name = "keyword")
     val keyword: String?,  // 링크 도메인
+
+    @field:Json(name = "userLinkuId")
+    val userLinkuId: Long? = null,
 
     @field:Json(name = "linkuImageUrl")
     val linkuImageUrl: String?,  // 링크 도메인
