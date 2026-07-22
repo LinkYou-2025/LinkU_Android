@@ -34,18 +34,12 @@ import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
 
 /**
- * 사용자에게 중요한 정보를 알리거나 특정 동작에 대한 확인을 받기 위한 모달 다이얼로그 창입니다.
- *
- * 이 컴포넌트는 화면 중앙에 배치되며, 상단 로고와 제목, 본문 콘텐츠, 그리고 최대 2개의 버튼(확인/취소)을 제공합니다.
- * [negativeText]가 비어있지 않은 경우에만 취소 버튼이 활성화되며, 비어있을 경우 확인 버튼이 가로로 꽉 차게 확장됩니다.
- * 버튼 높이와 각 요소 사이 간격은 고정값이 아닌 콘텐츠 크기에 맞춰 결정되므로, 기기의 글자 크기 설정이 커져도
- * 텍스트가 잘리지 않고 모달 전체 크기가 함께 늘어납니다.
+ * 확인 버튼 하나만 제공하는 모달 다이얼로그 창입니다. 확인 버튼이 가로로 꽉 차게 표시됩니다.
  *
  * @param visible 모달 창의 표시 여부. true일 때 화면에 나타납니다.
- * @param onOkay '확인' 성격의 버튼을 클릭했을 때 실행될 콜백 함수.
- * @param onDismiss 모달을 닫아야 할 때(취소 버튼 클릭 또는 외부 영역 클릭 시) 실행될 콜백 함수.
+ * @param onOkay '확인' 버튼을 클릭했을 때 실행될 콜백 함수.
+ * @param onDismiss 모달을 닫아야 할 때(외부 영역 클릭 시) 실행될 콜백 함수.
  * @param positiveText 확인 버튼에 표시될 텍스트.
- * @param negativeText 취소 버튼에 표시될 텍스트. 빈 문자열일 경우 취소 버튼은 표시되지 않고 확인 버튼이 전체 너비로 확장됩니다.
  * @param title 모달 상단에 표시될 강조된 제목 텍스트.
  * @param isLogoDimmed 상단 로고를 연한 이미지로 표시할지 여부. 기본값은 false이며, 이 경우 진한 로고 이미지가 표시됩니다.
  * @param textBody 모달 중앙에 배치될 사용자 정의 Composable 본문 내용.
@@ -58,10 +52,97 @@ fun ModalWindow(
     onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
     positiveText: String,
-    negativeText: String = "",
     title: String,
     isLogoDimmed: Boolean = false,
     textBody: @Composable () -> Unit
+) {
+    ModalWindowScaffold(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = title,
+        isLogoDimmed = isLogoDimmed,
+        textBody = textBody
+    ) {
+        // 버튼이 확인 하나뿐이므로 전체 너비로 확장
+        ModalPrimaryButton(
+            modifier = Modifier.fillMaxWidth(),
+            text = positiveText,
+            onClick = {
+                onOkay()
+                onDismiss()
+            }
+        )
+    }
+}
+
+/**
+ * 확인/취소 버튼 두 개를 제공하는 모달 다이얼로그 창입니다.
+ *
+ * @param visible 모달 창의 표시 여부. true일 때 화면에 나타납니다.
+ * @param onOkay '확인' 버튼을 클릭했을 때 실행될 콜백 함수.
+ * @param onDismiss 모달을 닫아야 할 때(취소 버튼 클릭 또는 외부 영역 클릭 시) 실행될 콜백 함수.
+ * @param positiveText 확인 버튼에 표시될 텍스트.
+ * @param negativeText 취소 버튼에 표시될 텍스트.
+ * @param title 모달 상단에 표시될 강조된 제목 텍스트.
+ * @param isLogoDimmed 상단 로고를 연한 이미지로 표시할지 여부. 기본값은 false이며, 이 경우 진한 로고 이미지가 표시됩니다.
+ * @param textBody 모달 중앙에 배치될 사용자 정의 Composable 본문 내용.
+ *
+ * @see Dialog
+ */
+@Composable
+fun ModalWindow(
+    visible: Boolean,
+    onOkay: () -> Unit = {},
+    onDismiss: () -> Unit,
+    positiveText: String,
+    negativeText: String,
+    title: String,
+    isLogoDimmed: Boolean = false,
+    textBody: @Composable () -> Unit
+) {
+    ModalWindowScaffold(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = title,
+        isLogoDimmed = isLogoDimmed,
+        textBody = textBody
+    ) {
+        // 취소/확인 버튼 두 개를 절반씩 나란히 배치
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ModalSecondaryButton(
+                modifier = Modifier.weight(1f),
+                text = negativeText,
+                onClick = onDismiss
+            )
+            ModalPrimaryButton(
+                modifier = Modifier.weight(1f),
+                text = positiveText,
+                onClick = {
+                    onOkay()
+                    onDismiss()
+                }
+            )
+        }
+    }
+}
+
+/**
+ * [ModalWindow] 두 오버로드가 공유하는 뼈대(다이얼로그, 카드, 로고, 제목, 본문)입니다.
+ * 버튼 영역([buttons])은 각 오버로드가 직접 구성하므로 이 함수는 분기 없이 공통 레이아웃만 담당합니다.
+ * 각 요소 사이 간격은 고정값이 아닌 콘텐츠 크기에 맞춰 결정되므로, 폰트 크기가 커져도
+ * 텍스트가 잘리지 않고 모달 전체 크기가 함께 늘어납니다.
+ */
+@Composable
+private fun ModalWindowScaffold(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+    title: String,
+    isLogoDimmed: Boolean,
+    textBody: @Composable () -> Unit,
+    buttons: @Composable () -> Unit
 ) {
     if (visible) {
         Dialog(onDismissRequest = { onDismiss() }) {
@@ -104,80 +185,91 @@ fun ModalWindow(
                     Spacer(modifier = Modifier.height(28.dp))
 
                     // 버튼 높이를 고정하지 않고 텍스트 위아래 패딩으로 보장하여 폰트 확대 시에도 잘리지 않도록 함
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ){
-                        if(negativeText.isNotEmpty()){
-                            Box(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .border(
-                                        width = 1.dp,
-                                        brush = Basic.maincolor,
-                                        shape = RoundedCornerShape(size = 14.dp)
-                                    )
-                                    .background(
-                                        color = Basic.white,
-                                        shape = RoundedCornerShape(size = 14.dp)
-                                    )
-                                    .noRippleClickable { onDismiss() }
-                                    .padding(vertical = 18.dp),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    // 텍스트(그라데이션 및 스타일 지정)
-                                    text = buildAnnotatedString {
-                                        withStyle(
-                                            SpanStyle(
-                                                // 폰트 크기 (16sp)
-                                                fontSize = 16.sp,
-
-                                                // 사용할 폰트 (paperlogy 폰트)
-                                                fontFamily = LocalFontTheme.current.font,
-
-                                                // 폰트 굵기 (500)
-                                                fontWeight = FontWeight(500),
-
-                                                // 텍스트 그라데이션 색상(링큐 메인 색상)
-                                                brush = Basic.maincolor,
-                                            )
-                                        ) {
-                                            // 실제 표시할 텍스트
-                                            append(negativeText)
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .background(
-                                    brush = Basic.maincolor,
-                                    shape = RoundedCornerShape(size = 14.dp)
-                                )
-                                .noRippleClickable {
-                                    onOkay()
-                                    onDismiss()
-                                }
-                                .padding(vertical = 18.dp),
-                            contentAlignment = Alignment.Center
-                        ){
-                            Text(
-                                text = positiveText,
-                                fontSize = 16.sp,
-                                fontFamily = LocalFontTheme.current.font,
-                                fontWeight = FontWeight(500),
-                                color = Basic.white,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
+                    buttons()
                 }
             }
 
         }
+    }
+}
+
+/**
+ * 그라데이션이 채워진 확인(주요 동작) 버튼입니다.
+ */
+@Composable
+private fun ModalPrimaryButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .background(
+                brush = Basic.maincolor,
+                shape = RoundedCornerShape(size = 14.dp)
+            )
+            .noRippleClickable(onClick = onClick)
+            .padding(vertical = 18.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 16.sp,
+            fontFamily = LocalFontTheme.current.font,
+            fontWeight = FontWeight(500),
+            color = Basic.white,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/**
+ * 테두리만 있는 취소(보조 동작) 버튼입니다. 텍스트에 메인 컬러 그라데이션이 적용됩니다.
+ */
+@Composable
+private fun ModalSecondaryButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .border(
+                width = 1.dp,
+                brush = Basic.maincolor,
+                shape = RoundedCornerShape(size = 14.dp)
+            )
+            .background(
+                color = Basic.white,
+                shape = RoundedCornerShape(size = 14.dp)
+            )
+            .noRippleClickable(onClick = onClick)
+            .padding(vertical = 18.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            // 텍스트(그라데이션 및 스타일 지정)
+            text = buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        // 폰트 크기 (16sp)
+                        fontSize = 16.sp,
+
+                        // 사용할 폰트 (paperlogy 폰트)
+                        fontFamily = LocalFontTheme.current.font,
+
+                        // 폰트 굵기 (500)
+                        fontWeight = FontWeight(500),
+
+                        // 텍스트 그라데이션 색상(링큐 메인 색상)
+                        brush = Basic.maincolor,
+                    )
+                ) {
+                    // 실제 표시할 텍스트
+                    append(text)
+                }
+            }
+        )
     }
 }
 
