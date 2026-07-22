@@ -53,11 +53,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
@@ -375,14 +373,4 @@ internal fun ShareBottomSheet(
             textAlign = TextAlign.Center,
         )
     }
-}
-
-@Preview(showBackground = true, heightDp = 2000)
-@Composable
-private fun ShareBottomSheetPreview(){
-    ShareBottomSheet(
-        "세나의 폴더",
-        viewModel(),
-        viewModel()
-    )
 }
