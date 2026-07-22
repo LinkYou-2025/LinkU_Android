@@ -41,7 +41,7 @@ import com.linku.core.util.logging.d
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
-import com.linku.deeplink.DeepLinkType
+import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.deeplink.invitationLinkRoute
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
