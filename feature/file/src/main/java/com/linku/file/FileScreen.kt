@@ -371,7 +371,7 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    _ShareBottomSheet(
+    /*_ShareBottomSheet(
         modifier = Modifier.fillMaxWidth(),
         visible = folderStateViewModel.shareBottomSheetVisible,
         folderTree = folderTree,
@@ -380,7 +380,7 @@ fun FileScreen(
             folderStateViewModel.updateShareBottomSheetVisible(false)
         },
         onLinkGenerate = fileViewModel::shareFolder
-    )
+    )*/
 
     // ---------- bottom sheets ----------
 
