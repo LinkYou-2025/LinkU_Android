@@ -7,5 +7,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class SocialProfileResponseDTO(
     @field:Json(name = "userId") val userId: Long,
-    @field:Json(name = "createdAt") val createdAt: String
+    @field:Json(name = "accessToken") val accessToken: String,
+    @field:Json(name = "refreshToken") val refreshToken: String,
+    @field:Json(name = "status") val status: String
 )
