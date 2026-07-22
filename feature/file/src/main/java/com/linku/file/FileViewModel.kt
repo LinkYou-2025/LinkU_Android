@@ -30,6 +30,7 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -1057,12 +1058,6 @@ class FileViewModel @Inject constructor(
 
     // ---------- share method ----------
     // 폴더 공유하기
-    fun shareFolder(folderId: Long):String{
-        Log.d("FileViewModel", "shareFolder")
-
-        return "https://linkuserver.store/open?action=share&folderId=$folderId"
-    }
-
     fun makeInvitationLink(folderId: Long): String? {
         Log.d("FileViewModel", "makeInvitationLink")
 
@@ -1116,6 +1111,8 @@ class FileViewModel @Inject constructor(
                 onSuccess(link)
 
                 Log.d("FileViewModel", "createInvitationLink result: $link")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.e("FileViewModel", "createInvitationLink catch: $e")
                 _errorMessage.value = e.message
