@@ -140,7 +140,7 @@ fun HomeApp(
         ) {
             NoticeScreen(
                 onBack = {
-                    navController.navigate("alarm")
+                    navController.popBackStack()
                 }
             )
         }
