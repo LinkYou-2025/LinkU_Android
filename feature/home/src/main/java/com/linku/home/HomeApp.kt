@@ -33,6 +33,8 @@ fun HomeApp(
     // HomeApp에서 만들어 주입한다.
     val alarmViewModel: AlarmViewModel = hiltViewModel()
 
+    // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
+
 //    // === 감정/상황 키 → 서버 ID 매핑 ===
 //    fun emotionKeyToId(key: String): Long = when (key) {
 //        "joy" -> 1L

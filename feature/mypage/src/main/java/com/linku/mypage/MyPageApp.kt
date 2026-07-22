@@ -38,6 +38,8 @@ fun MyPageApp(
     // MyPageApp에서 만들어 주입한다.
     val notificationViewModel: NotificationViewModel = hiltViewModel()
 
+    // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
+
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
     // 화면 진입 시 최신 데이터 한 번 긁어오기
     LaunchedEffect(Unit) {

@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,8 +40,9 @@ fun LinkDetailEmotionDropdown(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .padding(top = 14.dp, start = 16.dp, end = 56.dp, bottom = 14.dp)
-            .heightIn(max = 264.dp),
+            .heightIn(max = 264.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(top = 14.dp, start = 16.dp, end = 56.dp, bottom = 14.dp),
         verticalArrangement = Arrangement.spacedBy(1.dp)
     ) {
         emotions.forEach { emotion ->

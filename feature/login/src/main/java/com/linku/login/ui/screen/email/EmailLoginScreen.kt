@@ -79,6 +79,7 @@ fun EmailLoginScreen(
     val isPreview = LocalInspectionMode.current
 
     // 로그인 입력 화면 진입 시 시스템 바 복구
+    // (색상/아이콘 밝기는 MainScreen이 edgeToEdgeSystemBars 상태를 보고 공통 처리함)
     DisposableEffect(Unit) {
         if (!isPreview && systemBarController != null) {
             systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)

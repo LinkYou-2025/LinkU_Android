@@ -11,32 +11,33 @@ class AIArticleRepositoryImpl @Inject constructor(
 ): AIArticleRepository {
 
     override suspend fun getAiArticle(linkuId: Long): AiArticle {
-        lateinit var result: AiArticle
-
-        safeApiCall(
-            apiCall = { serverApi.getAiarticle(linkuid = linkuId) }
-        ).onSuccess { dto ->
-            result = AiArticle(
-                id = dto.id,
-                linkuId = dto.linkuId,
-                situationId = dto.situationId,
-                situationName = dto.situationName,
-                emotionId = dto.emotionId,
-                emotionName = dto.emotionName,
-                title = dto.title,
-                aiFeelingName = dto.aiFeelingName,
-                aiFeelingId = dto.aiFeelingId,
-                aiCategoryId = dto.aiCategoryId,
-                categoryName = dto.categoryName,
-                summary = dto.summary,
-                imgUrl = dto.imgUrl,
-                memo = dto.memo,
-                keyword = dto.keyword
-            )
-        }.onFailure {
-            throw it
-        }
-
-        return result
+        return safeApiCall(
+            apiCall = {
+                serverApi.getAiArticle(linkuid = linkuId)
+            }
+        ).fold(
+            onSuccess = { dto ->
+                AiArticle(
+                    id = dto.id,
+                    linkuId = dto.linkuId,
+                    situationId = dto.situationId,
+                    situationName = dto.situationName,
+                    emotionId = dto.emotionId,
+                    emotionName = dto.emotionName,
+                    title = dto.title,
+                    aiFeelingName = dto.aiFeelingName,
+                    aiFeelingId = dto.aiFeelingId,
+                    aiCategoryId = dto.aiCategoryId,
+                    categoryName = dto.categoryName,
+                    summary = dto.summary,
+                    imgUrl = dto.imgUrl,
+                    memo = dto.memo,
+                    keyword = dto.keyword
+                )
+            },
+            onFailure = { throwable ->
+                throw throwable
+            }
+        )
     }
 }
