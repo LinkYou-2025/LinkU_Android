@@ -1,5 +1,6 @@
 package com.linku.login.navigation
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -147,6 +148,7 @@ fun LoginApp(
 
             // 2. 이메일 로그인 + 약관 바텀시트
             authComposable("email_login") { parentEntry ->
+                Log.d("LoginApp", "email_login: $parentEntry")
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
                 val signUpUiState by signUpVm.state.collectAsStateWithLifecycle()
                 val showTermsSheet by parentEntry.savedStateHandle
@@ -382,9 +384,8 @@ fun LoginApp(
 
             // 약관 게이트
             socialComposable("social_login_gate") { parentEntry, entry ->
-                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
                 val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                val signUpUiState by signUpVm.state.collectAsStateWithLifecycle()
+                val socialAuthUiState by socialAuthVm.state.collectAsStateWithLifecycle()
                 val showTermsSheet by entry.savedStateHandle
                     .getStateFlow("show_terms_sheet", true)
                     .collectAsStateWithLifecycle()
@@ -431,14 +432,14 @@ fun LoginApp(
                 TermsAgreementSheet(
                     visible = showTermsSheet,
                     state = TermsAgreementState(
-                        agreeTerms = signUpUiState.signUpForm.agreeTerms,
-                        agreePrivacy = signUpUiState.signUpForm.agreePrivacy,
-                        agreeMarketing = signUpUiState.signUpForm.agreeMarketing,
+                        agreeTerms = socialAuthUiState.socialLoginForm.agreeTerms,
+                        agreePrivacy = socialAuthUiState.socialLoginForm.agreePrivacy,
+                        agreeMarketing = socialAuthUiState.socialLoginForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
-                        onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
-                        onAgreePrivacyChange = { signUpVm.setAgreePrivacy(it) },
-                        onAgreeMarketingChange = { signUpVm.setAgreeMarketing(it) },
+                        onAgreeTermsChange = { socialAuthVm.setAgreeTerms(it) },
+                        onAgreePrivacyChange = { socialAuthVm.setAgreePrivacy(it) },
+                        onAgreeMarketingChange = { socialAuthVm.setAgreeMarketing(it) },
                         onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
@@ -463,15 +464,15 @@ fun LoginApp(
 
             // 소셜 약관 상세 (auth_graph의 termsSteps와 동일한 패턴으로 반복 제거)
             val socialTermsSteps = listOf(
-                "social_terms/service" to { vm: SignUpViewModel -> vm.setAgreeTerms(true) },
-                "social_terms/privacy" to { vm: SignUpViewModel -> vm.setAgreePrivacy(true) },
-                "social_terms/marketing" to { vm: SignUpViewModel -> vm.setAgreeMarketing(true) }
+                "social_terms/service" to { vm: SocialAuthViewModel -> vm.setAgreeTerms(true) },
+                "social_terms/privacy" to { vm: SocialAuthViewModel -> vm.setAgreePrivacy(true) },
+                "social_terms/marketing" to { vm: SocialAuthViewModel -> vm.setAgreeMarketing(true) }
             )
 
             socialTermsSteps.forEach { (route, agreeAction) ->
                 socialComposable(route) { parentEntry, _ ->
-                    val vm: SignUpViewModel = hiltViewModel(parentEntry)
-                    val signUpUiState by vm.state.collectAsStateWithLifecycle()
+                    val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
+                    val socialAuthUiState by vm.state.collectAsStateWithLifecycle()
                     val onBack: () -> Unit = {
                         navController.popBackStack()
                         navController.currentBackStackEntry
@@ -482,19 +483,19 @@ fun LoginApp(
 
                     when (route) {
                         "social_terms/service" -> ServiceTermsScreen(
-                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
+                            alreadyAgreed = socialAuthUiState.socialLoginForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/privacy" -> PrivacyTermsScreenFixed(
-                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
+                            alreadyAgreed = socialAuthUiState.socialLoginForm.agreePrivacy,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/marketing" -> MarketingTermsScreenComposable(
-                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
+                            alreadyAgreed = socialAuthUiState.socialLoginForm.agreeMarketing,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )

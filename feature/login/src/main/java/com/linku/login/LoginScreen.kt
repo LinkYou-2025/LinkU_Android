@@ -54,6 +54,7 @@ import com.linku.login.auth.findActivity
 import com.linku.login.ui.item.SocialLoginButton
 import com.linku.login.viewmodel.SocialAuthViewModel
 import com.linku.login.viewmodel.state.SocialAuthUiEffect
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 
@@ -305,6 +306,8 @@ fun LoginScreen(
                         try {
                             val idToken = googleAuthHelper.getGoogleIdToken(activity)
                             viewModel.loginWithGoogle(idToken)
+                        } catch (e: CancellationException) {
+                            throw e  // 화면 이탈 등으로 인한 정상 취소, 에러 아님
                         } catch (e: Exception) {
                             Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")
                         }
