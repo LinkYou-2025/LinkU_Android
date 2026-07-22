@@ -1,11 +1,13 @@
 package com.linku.login.ui.screen.social
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -20,10 +22,12 @@ import com.linku.login.viewmodel.state.SocialAuthUiEffect
 fun SocialInterestScreen(
     onBackClick: () -> Unit,
     viewModel: SocialAuthViewModel,
+    socialToken: String,
     onComplete: () -> Unit
 ) {
     BackHandler { onBackClick() }
 
+    val context = LocalContext.current
     val uiState by viewModel.state.collectAsStateWithLifecycle()
     val selectedInterests = uiState.socialLoginForm.interests
 
@@ -31,6 +35,12 @@ fun SocialInterestScreen(
         viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is SocialAuthUiEffect.CompleteProfileSuccess -> {
+                    // 응답 토큰으로 자동 로그인 세션 저장까지 리포지토리에서 이미 끝난 상태 -> 바로 홈으로.
+                    onComplete()
+                }
+
+                is SocialAuthUiEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
 
                 else -> { /* 음 딱히 할게 없네용 */
@@ -38,15 +48,6 @@ fun SocialInterestScreen(
             }
         }
     }
-
-
-//    val savedInterests by viewModel.interests.collectAsStateWithLifecycle()
-//
-//    val selectedInterests = remember {
-//        mutableStateListOf<Interest>().apply {
-//            addAll(savedInterests)
-//        }
-//    }
 
     SignUpSelectionLayout(
         currentStep = 3,
@@ -58,10 +59,9 @@ fun SocialInterestScreen(
         iconRes = { it.iconRes },
         selectedItems = selectedInterests,
         buttonText = "완료",
-        canProceed = selectedInterests.isNotEmpty(),
+        canProceed = selectedInterests.isNotEmpty() && !uiState.isLoading,
         onButtonClick = {
-            if (selectedInterests.isEmpty()) return@SignUpSelectionLayout
-            onComplete()
+            viewModel.completeSocialProfile(socialToken)
         },
         onToggle = { interest ->
             viewModel.toggleInterest(interest)
