@@ -4,16 +4,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,14 +23,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.TransformedText
@@ -52,6 +53,7 @@ internal fun PasswordLoginTextField(
     modifier: Modifier = Modifier,
     hint: String = "비밀번호",
     enabled: Boolean = true,
+    onFocusChanged: (Boolean) -> Unit = {},
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val shape = RoundedCornerShape(16.dp)
@@ -73,7 +75,7 @@ internal fun PasswordLoginTextField(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height((56.scaler))
+            .widthIn(max = (372.scaler)) // 너비 반응형 적용
             .drawBehind {
                 val inset = strokeWidthPx / 2
                 drawRoundRect(
@@ -88,16 +90,22 @@ internal fun PasswordLoginTextField(
                 )
             }
             .padding(strokeWidth) //  stroke 공간 확보
+            .background(colorTheme.white, shape)
     ) {
         Box {
-            OutlinedTextField(
-                value = fieldValue,
-                onValueChange = { newValue: TextFieldValue ->
-                    fieldValue = newValue
-                    onValueChange(newValue.text)
-                },
-
-                placeholder = {
+            // 텍스트 자체에 패딩을 줘서 높이가 콘텐츠에 맞춰 보장되도록 함 (고정 height 제거)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = 22.scaler,
+                        end = 22.scaler,
+                        top = 18.scaler,
+                        bottom = 18.scaler
+                    ),
+                contentAlignment = Alignment.CenterStart
+            ) {
+                if (fieldValue.text.isEmpty()) {
                     Text(
                         text = hint,
                         fontSize = 14.sp,
@@ -105,50 +113,51 @@ internal fun PasswordLoginTextField(
                         fontWeight = FontWeight.Medium,
                         color = colorTheme.gray[400]
                     )
-                },
+                }
 
-                textStyle =
-                    if (isPasswordVisible) {
-                        TextStyle(
-                            fontSize = 14.sp,
-                            lineHeight = 16.sp,
-                            fontWeight = FontWeight(500),
-                            color = colorTheme.black,
-                            letterSpacing = 0.sp
-                        )
-                    } else {
-                        TextStyle(
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 2.sp,
-                            color = colorTheme.black
-                        )
+                BasicTextField(
+                    value = fieldValue,
+                    onValueChange = { newValue: TextFieldValue ->
+                        fieldValue = newValue
+                        onValueChange(newValue.text)
                     },
 
-                singleLine = true,
-                enabled = enabled,
+                    textStyle =
+                        if (isPasswordVisible) {
+                            LocalTextStyle.current.copy(
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                color = colorTheme.black,
+                                letterSpacing = 0.sp
+                            )
+                        } else {
+                            LocalTextStyle.current.copy(
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                                fontWeight = FontWeight(500),
+                                letterSpacing = 2.sp,
+                                color = colorTheme.black
+                            )
+                        },
 
-                visualTransformation =
-                    if (isPasswordVisible)
-                        VisualTransformation.None
-                    else
-                        DotPasswordVisualTransformation(),
+                    singleLine = true,
+                    enabled = enabled,
+                    cursorBrush = SolidColor(colorTheme.black),
+                    // Password 타입 미지정 시 IME 자동완성/맞춤법 검사 밑줄이 표시됨
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
 
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorTheme.white, shape),
-                //.padding(end = (40.scaler)),// 👁 아이콘 공간
+                    visualTransformation =
+                        if (isPasswordVisible)
+                            VisualTransformation.None
+                        else
+                            DotPasswordVisualTransformation(),
 
-                shape = shape,
-
-                colors = TextFieldDefaults.colors(
-                    cursorColor = colorTheme.black,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .onFocusChanged { onFocusChanged(it.isFocused) }
                 )
-            )
+            }
 
             // 👁 눈 아이콘
             Image(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -69,7 +70,7 @@ fun ServiceTermsScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp) // 상단바 여백 확보를 위한 높이
+                    .heightIn(min = 100.dp) // 상단바 여백 확보를 위한 최소 높이 (폰트 확대 시 자연스럽게 늘어남)
                     .background(colorTheme.white)
             ) {
                 // 뒤로가기 버튼
