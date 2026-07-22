@@ -55,21 +55,24 @@ internal fun SignUpNicknameScreen(
         }
     }
 
+    var isNicknameFocused by remember { mutableStateOf(false) }
+
     SignUpStepLayout(
         currentStep = 2,
         title = "사용하실 닉네임을\n입력해주세요",
         buttonEnabled = isButtonEnabled,
         onNextClick = {
             signUpViewModel.onNicknameNextClicked()
-        }
+        },
+        // 입력 전엔 여유 있게(72), 필드에 커서가 활성화되면(포커스) 바로 좁힘(36)
+        extraTopGap = if (isNicknameFocused) 0.scaler else 36.scaler
     ) {
-        Spacer(Modifier.height(8.scaler)) // layout 내부 32 + 여기 8 = 기존 40과 동일
-
         LoginTextField(
             value = nicknameForm,
             onValueChange = { signUpViewModel.onNicknameChanged(it) },
             hint = "닉네임을 입력해주세요.",
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            onFocusChanged = { isNicknameFocused = it }
         )
 
         Spacer(Modifier.height(10.scaler))
@@ -105,10 +108,9 @@ fun SignUpNicknameScreenPreview() {
             currentStep = 2,
             title = "사용하실 닉네임을\n입력해주세요",
             buttonEnabled = isNicknameValid,
-            onNextClick = {}
+            onNextClick = {},
+            extraTopGap = if (nickname.isNotEmpty()) 0.scaler else 36.scaler
         ) {
-            Spacer(Modifier.height(8.scaler))
-
             LoginTextField(
                 value = nickname,
                 onValueChange = { nickname = it },

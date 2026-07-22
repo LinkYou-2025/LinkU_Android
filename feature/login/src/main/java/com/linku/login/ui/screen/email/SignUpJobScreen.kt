@@ -2,7 +2,6 @@ package com.linku.login.ui.screen.email
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -63,8 +62,7 @@ internal fun SignUpJobScreen(
             OptionButton(
                 text = job.displayName,
                 selected = selectedJobId == job.id,
-                onClick = { signUpViewModel.onJobSelected(job.id) },
-                modifier = Modifier.fillMaxWidth()
+                onClick = { signUpViewModel.onJobSelected(job.id) }
             )
             Spacer(Modifier.height(12.scaler))
         }
@@ -92,8 +90,7 @@ fun SignUpJobScreenPreview() {
                 OptionButton(
                     text = job.displayName,
                     selected = selectedJobId == job.id,
-                    onClick = { selectedJobId = job.id },
-                    modifier = Modifier.fillMaxWidth()
+                    onClick = { selectedJobId = job.id }
                 )
                 Spacer(Modifier.height(12.scaler))
             }

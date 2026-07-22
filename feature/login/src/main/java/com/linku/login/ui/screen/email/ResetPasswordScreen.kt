@@ -174,8 +174,6 @@ fun ResetPasswordScreen(
         BottomGradientButton(
             text = "메일 보내기",
             enabled = ui.isEmailValid && !ui.isLoading,
-            activeGradient = colorTheme.maincolor,
-            inactiveGradient = colorTheme.inactiveColor,
             onClick = {
                 if (!ui.showSuccessDialog) {
                     keyboardController?.hide()

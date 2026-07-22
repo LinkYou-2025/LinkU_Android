@@ -150,8 +150,6 @@ internal fun TermsAgreementContent(
             GradientButtonCore(
                 text = "다음",
                 enabled = nextEnabled,
-                activeGradient = colorTheme.maincolor,
-                inactiveGradient = colorTheme.inactiveColor,
                 onClick = event.onNext,
                 modifier = Modifier
                     .fillMaxWidth()
