@@ -166,26 +166,38 @@ class MainViewModel @Inject constructor(
 
     fun handleNotification(type: AlarmType, targetId: Long, alarmId: Long?) {
         viewModelScope.launch {
-            // alarmId가 있을 때 읽음 처리 (fire-and-forget, 실패해도 네비게이션은 진행)
-            alarmId?.let { alarmRepository.readAlarm(it) }
+
             _sideEffect.send(
-                SideEffect.NavigateByNotification(type, targetId)
+                SideEffect.NavigateByNotification(type, targetId, alarmId)
             )
         }
     }
 
     // 푸시 알림 클릭 시 앱이 죽어있던 경우, auth 완료 전까지 목적지를 임시 보관
-    private var pendingNotificationNav: Pair<AlarmType, Long>? = null
+    private var pendingNotification: PendingNotification? = null
 
 
     // auth 플로우 중 수신된 알림 목적지 저장 (login/auto-login 성공 후 consume)
-    fun setPendingNotificationNav(type: AlarmType, targetId: Long) {
-        pendingNotificationNav = type to targetId
+    fun setPendingNotification(
+        type: AlarmType,
+        targetId: Long,
+        alarmId: Long?
+    ) {
+        pendingNotification = PendingNotification(
+            type = type,
+            targetId = targetId,
+            alarmId = alarmId
+        )
     }
 
-    // 저장된 알림 목적지를 꺼내고 초기화 (1회용)
-    fun consumePendingNotificationNav(): Pair<AlarmType, Long>? {
-        return pendingNotificationNav.also { pendingNotificationNav = null }
+    // 저장된 알림 목적지를 꺼내고 초기화 (1회용).
+    // alarmId가 있으면 이 시점(인증 완료 후)에 readAlarm 호출 → 인증 전 콜드스타트에서도 안전하게 처리됨.
+    fun consumePendingNotification(): PendingNotification? {
+        val pending = pendingNotification.also { pendingNotification = null }
+        pending?.alarmId?.let { id ->
+            viewModelScope.launch { alarmRepository.readAlarm(id) }
+        }
+        return pending
     }
 
     fun allowPushAlarm() {
@@ -214,6 +226,13 @@ sealed interface SideEffect {
 
     data class NavigateByNotification(
         val type: AlarmType,
-        val targetId: Long
+        val targetId: Long,
+        val alarmId: Long?
     ) : SideEffect
 }
+
+data class PendingNotification(
+    val type: AlarmType,
+    val targetId: Long,
+    val alarmId: Long?
+)

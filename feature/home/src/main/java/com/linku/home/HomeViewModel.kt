@@ -107,6 +107,7 @@ class HomeViewModel @Inject constructor(
         jobIdState.value = null
         _recentLinks.value = emptyList()
         _categoryColorMap.value = emptyMap()
+        _isUnreadAlarmExists.value = false
         categoryLoaded = false
     }
 

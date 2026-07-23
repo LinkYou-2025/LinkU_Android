@@ -52,7 +52,7 @@ fun NoticeScreenContent(
     onBack: () -> Unit
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(LocalColorTheme.current.white)
             .verticalScroll(rememberScrollState())

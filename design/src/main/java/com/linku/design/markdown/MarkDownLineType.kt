@@ -14,6 +14,20 @@ internal enum class MarkdownLineType {
     companion object {
 
         /**
+         * Markdown 순서 목록(`1. `, `2. ` 등) 형식을 판별하는 정규식입니다.
+         *
+         * 줄의 시작(`^`)이 숫자 하나 이상(`\d+`), 마침표(`.`), 공백 하나 이상(`\s+`)으로
+         * 시작하는 경우에만 순서 목록으로 인식합니다.
+         *
+         * 예시:
+         * - `1. Android` → 매칭
+         * - `12. Kotlin` → 매칭
+         * - `2026년 안내. 내용` → 매칭되지 않음
+         */
+        private val orderedListPattern = Regex("""^\d+\.\s+.*$""")
+
+
+        /**
          * 문자열 한 줄의 접두사를 검사하여 Markdown 라인 타입을 판별합니다.
          *
          * 판별 규칙:
@@ -28,7 +42,7 @@ internal enum class MarkdownLineType {
          */
         fun from(line: String): MarkdownLineType = when {
             line.startsWith("* ") -> BulletPoint
-            line.firstOrNull()?.isDigit() == true && line.contains(". ") -> OrderedList
+            orderedListPattern.matches(line) -> OrderedList
             else -> Body
         }
     }

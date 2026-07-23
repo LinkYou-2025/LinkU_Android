@@ -66,6 +66,13 @@ class MainActivity : ComponentActivity(), SystemBarController {
         val alarmId = intent.getStringExtra("alarmId")?.toLongOrNull()
 
         viewModel.handleNotification(type, targetId, alarmId)
+
+        // 처리 완료한 알림 Intent는 소비 처리.
+        // Activity 재생성(예: 화면 회전) 시 동일 Intent가 다시 전달되어
+        // 중복 읽음 처리 및 중복 네비게이션이 발생하는 것을 방지
+        intent.removeExtra("type")
+        intent.removeExtra("targetId")
+        intent.removeExtra("alarmId")
     }
 
     override fun onResume() {

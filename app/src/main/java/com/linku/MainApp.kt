@@ -186,14 +186,14 @@ fun MainApp(
                     showPushAlarmDialog = true
 
                 is SideEffect.NavigateByNotification -> {
-                    // pending으로 저장해 두고
-                    viewModel.setPendingNotificationNav(effect.type, effect.targetId)
+                    // alarmId 포함해서 저장 → consume 시점(인증 완료 후)에 readAlarm 호출됨
+                    viewModel.setPendingNotification(effect.type, effect.targetId, effect.alarmId)
 
                     // showNavBar = true이면 이미 로그인 상태 (앱이 살아있던 경우) → 즉시 이동
                     // showNavBar = false이면 auth 플로우 중 → auth 완료 후 consume
                     if (showNavBar) {
-                        viewModel.consumePendingNotificationNav()?.let { (type, targetId) ->
-                            navigateByNotification(type, targetId)
+                        viewModel.consumePendingNotification()?.let {
+                            navigateByNotification(it.type, it.targetId)
                         }
                     }
                 }
@@ -325,8 +325,8 @@ fun MainApp(
                                         launchSingleTop = true
                                     }
                                     // 자동 로그인 성공 후 pending 알림 처리
-                                    viewModel.consumePendingNotificationNav()?.let { (type, targetId) ->
-                                        navigateByNotification(type, targetId)
+                                    viewModel.consumePendingNotification()?.let {
+                                        navigateByNotification(it.type, it.targetId)
                                     }
                                 }
 
@@ -398,12 +398,12 @@ fun MainApp(
                             }
 
                             // 수동 로그인 성공 후 pending 알림 처리
-                            viewModel.consumePendingNotificationNav()?.let { (type, targetId) ->
+                            viewModel.consumePendingNotification()?.let {
                                 navigator.navigate(NavigationRoute.Home.route) {
                                     popUpTo("login_root") { inclusive = true }
                                     launchSingleTop = true
                                 }
-                                navigateByNotification(type, targetId)
+                                navigateByNotification(it.type, it.targetId)
                                 return@LoginApp
                             }
 
@@ -420,6 +420,9 @@ fun MainApp(
                             navigator.navigate(NavigationRoute.Home.route) {
                                 popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                 launchSingleTop = true
+                            }
+                            viewModel.consumePendingNotification()?.let {
+                                navigateByNotification(it.type, it.targetId)
                             }
                         },
                         onAutoLoginFail = {

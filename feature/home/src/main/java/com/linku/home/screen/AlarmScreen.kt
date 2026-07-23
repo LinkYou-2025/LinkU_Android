@@ -121,7 +121,6 @@ fun AlarmScreen(
         onRefresh = {
             isUserRefreshing = true
             viewModel.handleIntent(AlarmIntent.Refresh)
-            alarmPagingItems.refresh()
         },
         pullToRefreshState = pullToRefreshState,
         onBack = onBack,
