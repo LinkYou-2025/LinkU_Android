@@ -3,6 +3,7 @@ package com.linku.core.usecase
 import com.linku.core.model.curation.MonthlyCurationDetail
 import com.linku.core.repository.CurationRepository
 import com.linku.core.repository.UserRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import javax.inject.Inject
@@ -33,6 +34,16 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
         month: String
     ): Result<MonthlyCurationDetail> = runCatching {
 
+        /**
+         * 지정한 월간 큐레이션의 상세 화면에 필요한 데이터를 조회합니다.
+         *
+         * [curationId]와 [month]를 기준으로 필요한 API를 병렬 호출한 뒤,
+         * 조회된 결과를 하나의 [MonthlyCurationDetail]로 조합하여 반환합니다.
+         *
+         * @param curationId 조회할 월간 큐레이션의 식별자입니다.
+         * @param month 상위 태그 조회에 사용할 월(`yyyy-MM`)입니다.
+         * @return 조회 결과를 담은 [MonthlyCurationDetail] 또는 실패 정보를 포함한 [Result]입니다.
+         */
         coroutineScope {
             val detailDeferred = async { curationRepository.getCurationDetail(curationId) }
             val nicknameDeferred = async { userRepository.getNickname() }
@@ -46,6 +57,10 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
                 topTags = topTagsDeferred.await().getOrThrow()
             )
         }
+    }.onFailure{
+        // 사용자가 화면을 나가는 등의 이유로 발생하는 CancellationException는
+        // 정상 흐름이므로 Result로 감싸지 않고 그대로 전파
+        if (it is CancellationException) throw it
     }
 
 }
