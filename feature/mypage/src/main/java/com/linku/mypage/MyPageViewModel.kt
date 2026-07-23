@@ -149,14 +149,16 @@ class MyPageViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             Log.d("MyPageViewModel", "🚀 회원 탈퇴 중...")
-            val success = userRepository.deleteUser(reason)
-            if (success) {
-                Log.d("MyPageViewModel", "✅ 회원 탈퇴 성공")
-                onSuccess()
-            } else {
-                Log.e("MyPageViewModel", "❌ 회원 탈퇴 실패")
-                onError("회원 탈퇴에 실패했습니다.")
-            }
+            userRepository.deleteUser(reason).fold(
+                onSuccess = {
+                    Log.d("MyPageViewModel", "✅ 회원 탈퇴 성공")
+                    onSuccess()
+                },
+                onFailure = { e ->
+                    Log.e("MyPageViewModel", "❌ 회원 탈퇴 실패")
+                    onError("회원 탈퇴에 실패했습니다: ${e.message}")
+                }
+            )
         }
     }
 

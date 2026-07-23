@@ -62,18 +62,14 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deleteUser(reason: String): Boolean {
-        return try {
-            // BaseResponse.isSuccess까지 확인. HTTP 2xx여도 응답 바디상 실패일 수 있어 getOrThrow()로 걸러냄.
-            safeApiCallUnit { serverApi.deleteUser(DeleteUserRequestDTO(reason)) }.getOrThrow()
+    override suspend fun deleteUser(reason: String): Result<Unit> {
+        return safeApiCallUnit {
+            serverApi.deleteUser(DeleteUserRequestDTO(reason))
+        }.onSuccess {
             // 탈퇴 성공 시에만 로컬 세션 제거. 실패하면 계정은 그대로라 로그인 상태를 유지해야 함.
             authPreference.clear()
-            true
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Log.e(TAG, "[회원 탈퇴 실패] ${e.message}")
-            false
+        }.onFailure {
+            Log.e(TAG, "[회원 탈퇴 실패] ${it.message}")
         }
     }
 

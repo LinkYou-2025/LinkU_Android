@@ -5,7 +5,7 @@ import com.linku.core.model.UserInfo
 
 interface UserRepository {
 
-    suspend fun deleteUser(reason: String): Boolean
+    suspend fun deleteUser(reason: String): Result<Unit>
 
     // 회원 탈퇴 복구 (탈퇴 유예기간 14일 이내 재로그인 시). 성공(서버 호출 성공)했을 때만 true.
     suspend fun recoverUser(): Boolean
