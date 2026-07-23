@@ -1,12 +1,12 @@
 package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.curation.DetailDTO
+import com.linku.data.api.dto.server.curation.CurationDetailDTO
 import com.linku.data.api.dto.server.curation.HistoryDTO
 import com.linku.data.api.dto.server.curation.JobKeywordDTO
-import com.linku.data.api.dto.server.curation.LatestDTO
+import com.linku.data.api.dto.server.curation.MyLatestCurationDTO
 import com.linku.data.api.dto.server.curation.MyTopTagDTO
-import com.linku.data.api.dto.server.curation.RecommendDTO
+import com.linku.data.api.dto.server.curation.RecommendLinkDTO
 import com.linku.data.api.dto.server.curation.SectionDTO
 import com.linku.data.api.dto.server.curation.UnreadLinkDTO
 import retrofit2.http.GET
@@ -25,10 +25,10 @@ interface CurationApi {
     @GET("curations/recommend-links")
     suspend fun getRecommendLinks(
         @Query("curationId") curationId: Long
-    ): BaseResponse<List<RecommendDTO>>
+    ): BaseResponse<List<RecommendLinkDTO>>
 
     @GET("curations/latest")
-    suspend fun getLatestCuration(): BaseResponse<LatestDTO>
+    suspend fun getLatestCuration(): BaseResponse<MyLatestCurationDTO>
 
     @GET("curations/history")
     suspend fun getHistory(
@@ -38,7 +38,7 @@ interface CurationApi {
     @GET("curations/detail/{curationId}")
     suspend fun getCurationDetail(
         @Path("curationId") curationId: Long
-    ): BaseResponse<DetailDTO>
+    ): BaseResponse<CurationDetailDTO>
 
     // 저번 달 미열람 링크 조회
     @GET("linku/unread")

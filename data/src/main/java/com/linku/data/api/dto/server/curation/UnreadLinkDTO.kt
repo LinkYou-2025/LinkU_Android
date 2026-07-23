@@ -3,6 +3,7 @@ package com.linku.data.api.dto.server.curation
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
 
+// 필요 없는 필드는 그냥 무시. 심플 이즈 베스트
 @JsonClass(generateAdapter = true)
 data class UnreadLinkDTO(
     @field:Json(name = "title")
