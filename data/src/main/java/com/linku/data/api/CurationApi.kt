@@ -42,7 +42,7 @@ interface CurationApi {
 
     // 저번 달 미열람 링크 조회
     @GET("linku/unread")
-    suspend fun getUnreadLink(): BaseResponse<UnreadLinkDTO>
+    suspend fun getUnreadLink(): BaseResponse<List<UnreadLinkDTO>>
 
     // 월별 상위 태그 조회
     @GET("tags/my")

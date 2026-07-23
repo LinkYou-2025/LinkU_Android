@@ -1,8 +1,9 @@
 package com.linku.core.model.curation
 
-// 월간 큐레이션 그리드 화면에 사용
+// 3섹션에 사용
 data class SectionItem(
-    val id: Long,
-    val month: String,
-    val thumbnailUrl: String
+    val section: Int,
+    val title: String,
+    val description: String,
+    val imageUrl: String
 )

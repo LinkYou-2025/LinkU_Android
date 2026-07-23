@@ -50,8 +50,7 @@ import com.linku.design.util.scaler
 internal fun CurationMonthlyDetailScreen(
     onBack: () -> Unit,
     nickname: String = "",
-    year: String = "2026",
-    monthTitle: String = "월간 큐레이션",
+    title: String = "2026\n월간 큐레이션 5월호",
     emotionItems: List<EmotionItem> = emptyList(),
     recommendedLinks: List<RecommendedLink> = emptyList(),
     onLinkClick: (String) -> Unit = {},
@@ -72,7 +71,7 @@ internal fun CurationMonthlyDetailScreen(
             CurationTopHeader(
                 onBackClick = onBack,
                 contentTopOffset = 92.scaler,
-                title = "$year\n$monthTitle",
+                title = title,
                 titleDescriptionGap = 12.scaler, // 피그마상 18.49f인데 아무리 봐도 피그마랑 다른데? 12로 했는데 디자이너와 조정해주세용
                 description = "${nickname}님의 이번 달을 링큐가 분석했어요!"
             )
@@ -183,7 +182,7 @@ private fun CurationMonthlyDetailScreenPreview() {
         CurationMonthlyDetailScreen(
             onBack = {},
             nickname = "세나",
-            monthTitle = "월간 큐레이션 5월호",
+            title = "2026\n월간 큐레이션 5월호",
             emotionItems = emotions,
             recommendedLinks = links
         )
@@ -197,7 +196,7 @@ private fun CurationMonthlyDetailScreenEmptyPreview() {
         CurationMonthlyDetailScreen(
             onBack = {},
             nickname = "세나",
-            monthTitle = "월간 큐레이션 5월호",
+            title = "2026\n월간 큐레이션 5월호",
             emotionItems = emptyList(),
             recommendedLinks = emptyList()
         )

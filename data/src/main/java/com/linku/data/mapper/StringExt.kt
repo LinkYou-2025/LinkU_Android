@@ -46,3 +46,32 @@ fun String.toRelativeTime(
         else           -> "${diff / (60 * 24)}일 전"
     }
 }
+
+/**
+ * "yyyy-MM" 형식의 문자열을 큐레이션 제목 형식으로 변환합니다.
+ *
+ * @receiver "yyyy-MM" 형식의 문자열 (예: "2026-01")
+ * @return 큐레이션 제목 문자열 (예: "2026\n월간 큐레이션 1월호"), 파싱 실패 시 원본 반환
+ */
+fun String.toCurationTitle(): String {
+    val parts = this.split("-")
+
+    if (parts.size != 2) return this
+
+    val year = parts[0].toIntOrNull() ?: return this
+    val month = parts[1].toIntOrNull() ?: return this
+
+    return "$year\n월간 큐레이션 ${month}월호"
+}
+
+/**
+ * "yyyy-MM" 형식의 문자열에서 연도만 추출합니다.
+ *
+ * @receiver "yyyy-MM" 형식의 문자열 (예: "2026-01")
+ * @return 연도 문자열 (예: "2026"), 파싱 실패 시 원본 반환
+ */
+fun String.toCurationYear(): String {
+    return this.split("-").firstOrNull()?.takeIf { it.toIntOrNull() != null } ?: this
+}
+
+
