@@ -28,9 +28,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
+import androidx.paging.LoadStates
 import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -255,7 +255,7 @@ private fun AlarmScreenContentPreview() {
         AlarmSummary(
             id = 1L,
             alarmType = AlarmType.LINK,
-            whenSubmitted = "2023-10-27 10:00:00",
+            whenSubmitted = "1일 전",
             message = "새로운 링크가 추가되었습니다.",
             targetId = 101L,
             isRead = false
@@ -263,7 +263,7 @@ private fun AlarmScreenContentPreview() {
         AlarmSummary(
             id = 2L,
             alarmType = AlarmType.FOLDER,
-            whenSubmitted = "2023-10-27 11:00:00",
+            whenSubmitted = "3일 전",
             message = "폴더에 초대되었습니다.",
             targetId = 102L,
             isRead = true
@@ -271,17 +271,30 @@ private fun AlarmScreenContentPreview() {
         AlarmSummary(
             id = 3L,
             alarmType = AlarmType.CURATION,
-            whenSubmitted = "2023-10-27 12:00:00",
+            whenSubmitted = "29일 전",
             message = "큐레이션이 업데이트되었습니다.",
             targetId = 103L,
             isRead = false
         )
     )
-    val alarmPagingItems = flowOf(PagingData.from(sampleAlarms)).collectAsLazyPagingItems()
+
+    // PagingData.from()에 sourceLoadStates를 명시하지 않으면 프리뷰에서
+    // loadState.refresh가 Loading으로 고정되어 아이템이 보이지 않음
+    val notLoading = LoadState.NotLoading(endOfPaginationReached = false)
+    val alarmPagingItems = flowOf(
+        PagingData.from(
+            data = sampleAlarms,
+            sourceLoadStates = LoadStates(
+                refresh = notLoading,
+                prepend = notLoading,
+                append = notLoading
+            )
+        )
+    ).collectAsLazyPagingItems()
 
     LinkuPreview {
         AlarmScreenContent(
-            isAlarmAllowed = false,
+            isAlarmAllowed = true,
             selectedTab = AlarmType.ALL,
             onSelectedChange = {},
             alarmPagingItems = alarmPagingItems,

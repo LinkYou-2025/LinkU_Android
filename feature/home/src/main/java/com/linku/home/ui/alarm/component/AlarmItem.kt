@@ -98,7 +98,7 @@ fun AlarmItem(
             Text(
                 text = alarm.message,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight(500),
                 color = LocalColorTheme.current.black,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
