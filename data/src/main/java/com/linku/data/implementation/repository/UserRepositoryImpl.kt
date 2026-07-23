@@ -64,6 +64,8 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun deleteUser(reason: String): Boolean {
         return try {
             serverApi.deleteUser(DeleteUserRequestDTO(reason))
+            // 탈퇴 성공 시에만 로컬 세션 제거. 실패하면 계정은 그대로라 로그인 상태를 유지해야 함.
+            authPreference.clear()
             true
         } catch (e: Exception) {
             false
@@ -90,19 +92,20 @@ class UserRepositoryImpl @Inject constructor(
         }.getOrNull()?.nickname
     }
 
-    // logout
-    override suspend fun logout() {
+    // logout. deleteUser()와 동일하게 서버 호출이 성공했을 때만 로컬 세션을 지움.
+    override suspend fun logout(): Boolean {
         val deviceId = authPreference.getDeviceId()
         Log.d(TAG, "[로그아웃 시도] deviceId=$deviceId")
 
-        safeApiCallUnit {
-            serverApi.logout(deviceId)
-        }.onFailure { e ->
-            Log.e(TAG, "[로그아웃 API 실패] ${e.message}")
+        return try {
+            safeApiCallUnit { serverApi.logout(deviceId) }.getOrThrow()
+            authPreference.clear()
+            Log.d(TAG, "로그아웃 완료")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "[로그아웃 실패] ${e.message}")
+            false
         }
-
-        authPreference.clear()
-        Log.d(TAG, "로그아웃 완료")
     }
 
     companion object {
