@@ -67,8 +67,12 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
             val body = message.notification?.body
             Log.e("FCM", "body = $body")
 
-            val type = message.data["type"] ?: "null"
-            val targetId = message.data["targetId"] ?: "null"
+            val type = message.data["type"]
+            val targetId = message.data["targetId"]
+            val alarmId = message.data["alarmId"]
+
+            // type, targetId 없으면 얼리 리턴
+            if (type == null || targetId == null) return@launch
 
             Log.d("FCM", """
                 FCM 수신
@@ -83,6 +87,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
                 ?.apply {
                     putExtra("type", type)
                     putExtra("targetId", targetId)
+                    alarmId?.let { putExtra("alarmId", it) }  // alarmId는 있을 때만
                 }
 
             val pendingIntent = PendingIntent.getActivity(

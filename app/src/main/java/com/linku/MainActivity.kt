@@ -59,14 +59,13 @@ class MainActivity : ComponentActivity(), SystemBarController {
     private fun handleIntent(intent: Intent) {
 
         val type = intent.getStringExtra("type")
-        val targetId = intent.getStringExtra("targetId")?.toLongOrNull()
+            ?.let { runCatching { AlarmType.valueOf(it) }.getOrNull() }
+            ?: return
 
-        if (type != null && targetId != null) {
-            viewModel.handleNotification(
-                AlarmType.valueOf(type),
-                targetId
-            )
-        }
+        val targetId = intent.getStringExtra("targetId")?.toLongOrNull() ?: return
+        val alarmId = intent.getStringExtra("alarmId")?.toLongOrNull()
+
+        viewModel.handleNotification(type, targetId, alarmId)
     }
 
     override fun onResume() {

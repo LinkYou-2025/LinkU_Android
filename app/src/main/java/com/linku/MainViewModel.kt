@@ -37,7 +37,8 @@ class MainViewModel @Inject constructor(
     private val notificationPreference: NotificationPreference,
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
-    private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase
+    private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase,
+    private val alarmRepository: AlarmRepository,
 ) : AndroidViewModel(application) {
 
     private val _sideEffect = Channel<SideEffect>(Channel.BUFFERED)
@@ -163,8 +164,10 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun handleNotification(type: AlarmType, targetId: Long) {
+    fun handleNotification(type: AlarmType, targetId: Long, alarmId: Long?) {
         viewModelScope.launch {
+            // alarmId가 있을 때 읽음 처리 (fire-and-forget, 실패해도 네비게이션은 진행)
+            alarmId?.let { alarmRepository.readAlarm(it) }
             _sideEffect.send(
                 SideEffect.NavigateByNotification(type, targetId)
             )
