@@ -18,6 +18,9 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : ComponentActivity(), SystemBarController {
     private var currentSystemBarMode: SystemBarMode? = null
+
+    // 푸시 알림 수신은 Activity 또는 FCM 서비스에서 호출되므로
+    // Composable 범위가 아닌 Activity 생명주기에 묶여야 한다.
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {

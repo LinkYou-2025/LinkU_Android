@@ -158,6 +158,24 @@ fun MainApp(
         }
     }
 
+    // 푸시 알림 네비게이션 공통 함수.
+    // Home이 백스택에 있어야 뒤로가기 시 Home으로 복귀하므로 popUpTo 사용.
+    fun navigateByNotification(type: AlarmType, targetId: Long) {
+        when (type) {
+            AlarmType.NOTICE ->
+                navigator.navigate("notice_screen/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            AlarmType.LINK ->
+                navigator.navigate("savelinkresult/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            AlarmType.FOLDER -> { /* TODO */ }
+            AlarmType.CURATION -> { /* TODO */ }
+            AlarmType.ALL -> Unit
+        }
+    }
+
     // 채널 사이드 이펙트 수신
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
@@ -168,18 +186,15 @@ fun MainApp(
                     showPushAlarmDialog = true
 
                 is SideEffect.NavigateByNotification -> {
-                    when (effect.type) {
-                        AlarmType.NOTICE ->
-                            navigator.navigate("notice_screen/${effect.targetId}")
+                    // pending으로 저장해 두고
+                    viewModel.setPendingNotificationNav(effect.type, effect.targetId)
 
-                        AlarmType.LINK ->
-                            navigator.navigate("savelinkresult/${effect.targetId}")
-
-                        AlarmType.FOLDER -> { /* TODO */ }
-
-                        AlarmType.CURATION -> { /* TODO */  }
-
-                        AlarmType.ALL -> Unit
+                    // showNavBar = true이면 이미 로그인 상태 (앱이 살아있던 경우) → 즉시 이동
+                    // showNavBar = false이면 auth 플로우 중 → auth 완료 후 consume
+                    if (showNavBar) {
+                        viewModel.consumePendingNotificationNav()?.let { (type, targetId) ->
+                            navigateByNotification(type, targetId)
+                        }
                     }
                 }
             }
@@ -309,6 +324,10 @@ fun MainApp(
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         launchSingleTop = true
                                     }
+                                    // 자동 로그인 성공 후 pending 알림 처리
+                                    viewModel.consumePendingNotificationNav()?.let { (type, targetId) ->
+                                        navigateByNotification(type, targetId)
+                                    }
                                 }
 
                                 is AutoLoginState.Failed -> {
@@ -353,11 +372,10 @@ fun MainApp(
                             showNavBar = true
                             edgeToEdgeSystemBars = false
 
-
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
-                            deepLinkViewModel.consumePendingInvitation().let { token ->
+                            deepLinkViewModel.consumePendingInvitation()?.let { token ->
                                 fileViewModel.receiveSharedFolderInvitation(token)
                                 folderStateViewModel.updateIsSharedFolders(true)
 
@@ -379,7 +397,17 @@ fun MainApp(
                                 return@LoginApp
                             }
 
+                            // 수동 로그인 성공 후 pending 알림 처리
+                            viewModel.consumePendingNotificationNav()?.let { (type, targetId) ->
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo("login_root") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                navigateByNotification(type, targetId)
+                                return@LoginApp
+                            }
 
+                            // pending 알림이 없는 경우의 기본 동작
                             navigator.navigate(NavigationRoute.Home.route) {
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true

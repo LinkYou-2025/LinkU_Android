@@ -171,6 +171,20 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    // 푸시 알림 클릭 시 앱이 죽어있던 경우, auth 완료 전까지 목적지를 임시 보관
+    private var pendingNotificationNav: Pair<AlarmType, Long>? = null
+
+
+    // auth 플로우 중 수신된 알림 목적지 저장 (login/auto-login 성공 후 consume)
+    fun setPendingNotificationNav(type: AlarmType, targetId: Long) {
+        pendingNotificationNav = type to targetId
+    }
+
+    // 저장된 알림 목적지를 꺼내고 초기화 (1회용)
+    fun consumePendingNotificationNav(): Pair<AlarmType, Long>? {
+        return pendingNotificationNav.also { pendingNotificationNav = null }
+    }
+
     fun allowPushAlarm() {
         viewModelScope.launch {
             firstPushAlarmAllowedUseCase()
