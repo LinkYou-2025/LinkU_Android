@@ -94,11 +94,11 @@ open class LoginViewModel @Inject constructor(
                     updateState {
                         copy(
                             loginState = LoginState.Idle,
-                            showRecoverModal = true,
                             email = "",
                             password = ""
                         )
                     }
+                    postSideEffect(LoginUiEffect.ShowRecoverModal)
                 } else {
                     // 성공 상태 -> MainApp에서 isLoggedIn Flow 변화를 감지해 홈으로 이동하게 함.
                     // 인증에 사용한 이메일/비밀번호도 화면에서 지움 (재진입 시 이전 입력값 노출 방지).
@@ -131,18 +131,12 @@ open class LoginViewModel @Inject constructor(
             val recovered = userRepository.recoverUser()
             if (recovered) {
                 Log.d(TAG, "계정 복구 성공")
-                updateState { copy(showRecoverModal = false) }
                 postSideEffect(LoginUiEffect.LoginSuccess)
             } else {
                 Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)")
                 // 복구 실패 시 계정은 여전히 비활성 상태이므로 임시 저장된 세션을 정리함.
                 authPreference.clear()
-                updateState {
-                    copy(
-                        showRecoverModal = false,
-                        loginState = LoginState.Error(LoginErrorType.INACTIVE_User_Error)
-                    )
-                }
+                updateState { copy(loginState = LoginState.Error(LoginErrorType.INACTIVE_User_Error)) }
             }
         }
     }
@@ -154,13 +148,7 @@ open class LoginViewModel @Inject constructor(
     fun keepWithdrawn() {
         viewModelScope.launch {
             authPreference.clear()
-            updateState { copy(showRecoverModal = false) }
         }
-    }
-
-    /** 복구 모달을 순수 UI적으로만 닫음(외부 영역 클릭 등). 세션은 건드리지 않음. */
-    fun dismissRecoverModal() {
-        updateState { copy(showRecoverModal = false) }
     }
 
     fun tryAutoLogin() {

@@ -10,6 +10,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -62,6 +65,10 @@ fun LoginApp(
 ) {
     val navController = rememberNavController()
 
+    // 탈퇴 유예기간(INACTIVE) 계정 복구 모달 표시 여부. 단순 1회성 이벤트라 uiState가 아닌
+    // sideEffect(ShowRecoverModal)로 받아서 여기서 remember 상태로만 관리함.
+    var showRecoverModal by remember { mutableStateOf(false) }
+
     // 채널 effect는 오직 LoginApp에서만.
     // 자동 로그인 성공/실패는 Splash가 loginViewModel.autoLoginState(StateFlow)를 직접 관찰해 라우팅하므로
     // 여기서는 다루지 않음 - LoginApp은 자동 로그인 시점엔 아직 컴포즈되지 않아 이 채널로 보내면
@@ -71,6 +78,7 @@ fun LoginApp(
         loginViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is LoginUiEffect.LoginSuccess -> onLoginSuccess()
+                is LoginUiEffect.ShowRecoverModal -> showRecoverModal = true
             }
         }
     }
@@ -161,6 +169,8 @@ fun LoginApp(
 
                 EmailLoginScreen(
                     loginViewModel = loginViewModel,
+                    showRecoverModal = showRecoverModal,
+                    onDismissRecoverModal = { showRecoverModal = false },
                     onSignUpClick = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                     },

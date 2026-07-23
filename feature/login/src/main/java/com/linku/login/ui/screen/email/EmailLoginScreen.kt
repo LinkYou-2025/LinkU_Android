@@ -58,6 +58,8 @@ import com.linku.login.viewmodel.state.LoginUiState
 @Composable
 fun EmailLoginScreen(
     loginViewModel: LoginViewModel? = null,
+    showRecoverModal: Boolean = false,
+    onDismissRecoverModal: () -> Unit = {},
     onSignUpClick: () -> Unit,
     onResetPasswordClick: () -> Unit,
     onLoginSuccess: () -> Unit = {}
@@ -241,10 +243,16 @@ fun EmailLoginScreen(
 
         // 탈퇴 유예기간(INACTIVE) 계정으로 로그인 시도 시 노출되는 복구 확인 모달
         ModalWindow(
-            visible = uiState.showRecoverModal,
-            onOkay = { loginViewModel?.keepWithdrawn() },
-            onNegativeClick = { loginViewModel?.recoverAccount() },
-            onDismiss = { loginViewModel?.dismissRecoverModal() },
+            visible = showRecoverModal,
+            onOkay = {
+                loginViewModel?.keepWithdrawn()
+                onDismissRecoverModal()
+            },
+            onNegativeClick = {
+                loginViewModel?.recoverAccount()
+                onDismissRecoverModal()
+            },
+            onDismiss = { onDismissRecoverModal() },
             positiveText = "탈퇴 유지",
             negativeText = "계정 복구",
             title = "탈퇴 처리 중인 계정입니다.",
