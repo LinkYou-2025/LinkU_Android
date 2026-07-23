@@ -11,6 +11,7 @@ import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.preference.AuthPreference
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -63,11 +64,15 @@ class UserRepositoryImpl @Inject constructor(
 
     override suspend fun deleteUser(reason: String): Boolean {
         return try {
-            serverApi.deleteUser(DeleteUserRequestDTO(reason))
+            // BaseResponse.isSuccess까지 확인. HTTP 2xx여도 응답 바디상 실패일 수 있어 getOrThrow()로 걸러냄.
+            safeApiCallUnit { serverApi.deleteUser(DeleteUserRequestDTO(reason)) }.getOrThrow()
             // 탈퇴 성공 시에만 로컬 세션 제거. 실패하면 계정은 그대로라 로그인 상태를 유지해야 함.
             authPreference.clear()
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            Log.e(TAG, "[회원 탈퇴 실패] ${e.message}")
             false
         }
     }
@@ -94,14 +99,17 @@ class UserRepositoryImpl @Inject constructor(
 
     // logout. deleteUser()와 동일하게 서버 호출이 성공했을 때만 로컬 세션을 지움.
     override suspend fun logout(): Boolean {
-        val deviceId = authPreference.getDeviceId()
-        Log.d(TAG, "[로그아웃 시도] deviceId=$deviceId")
-
         return try {
+            // getDeviceId() 실패도 try 안에서 잡아야 false로 이어져 onError 처리가 정상 동작함.
+            val deviceId = authPreference.getDeviceId()
+            Log.d(TAG, "[로그아웃 시도] deviceId=$deviceId")
+
             safeApiCallUnit { serverApi.logout(deviceId) }.getOrThrow()
             authPreference.clear()
             Log.d(TAG, "로그아웃 완료")
             true
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.e(TAG, "[로그아웃 실패] ${e.message}")
             false

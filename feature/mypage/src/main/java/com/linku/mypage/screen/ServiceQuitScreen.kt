@@ -69,7 +69,9 @@ fun ServiceQuitScreen(
     var isAgreeChecked by remember { mutableStateOf(false) }
 
     val isEtcSelected = selectedReason == "기타"
-    val isQuitEnabled = selectedReason != null && isAgreeChecked
+    // "기타"는 직접 입력한 reasonText를, 그 외엔 선택한 사유 문구 자체를 실제 전송값으로 사용.
+    val effectiveReason = if (isEtcSelected) reasonText else selectedReason.orEmpty()
+    val isQuitEnabled = selectedReason != null && effectiveReason.isNotBlank() && isAgreeChecked
 
     val reasonFocusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -315,7 +317,7 @@ fun ServiceQuitScreen(
                     onConfirm = {
                         showDialog = false
                         // 실제 탈퇴 로직 호출
-                        onRequestQuit(reasonText)
+                        onRequestQuit(effectiveReason)
                     }
                 )
             }
