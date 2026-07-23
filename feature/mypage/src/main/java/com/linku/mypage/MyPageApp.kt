@@ -353,10 +353,11 @@ fun MyPageApp(
                                 .makeText(context, "탈퇴 처리가 완료되었습니다.", android.widget.Toast.LENGTH_SHORT)
                                 .show()
 
-                            // 1) 내부(MyPageApp) 스택 정리
-                            navController.popBackStack(route = "mypage", inclusive = true)
-
-                            // 2) 상위 네비게이터로 로그인 이동 요청
+                            // 상위 네비게이터로 로그인 이동 요청.
+                            // onLogoutToLogin()이 외부 백스택 전체(MyPage 탭 포함)를 지우기 때문에
+                            // 이 내부 NavHost도 함께 사라짐 - 별도로 popBackStack("mypage")를 호출하면
+                            // 시작 목적지를 inclusive하게 지우려다 내부 백스택이 비어 예외가 나서
+                            // 바로 아래의 onLogoutToLogin() 호출 자체가 실행되지 못하는 문제가 있었음.
                             onLogoutToLogin()
                         },
                         onError = { msg ->

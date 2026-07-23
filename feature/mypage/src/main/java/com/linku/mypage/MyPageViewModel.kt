@@ -148,15 +148,13 @@ class MyPageViewModel @Inject constructor(
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
-            try {
-                Log.d("MyPageViewModel", "🚀 회원 탈퇴 중...")
-                userRepository.deleteUser(reason)
+            Log.d("MyPageViewModel", "🚀 회원 탈퇴 중...")
+            val success = userRepository.deleteUser(reason)
+            if (success) {
                 Log.d("MyPageViewModel", "✅ 회원 탈퇴 성공")
-
-
                 onSuccess()
-            } catch (e: Exception) {
-                Log.e("MyPageViewModel", "❌ 회원 탈퇴 실패: ${e.message}")
+            } else {
+                Log.e("MyPageViewModel", "❌ 회원 탈퇴 실패")
                 onError("회원 탈퇴에 실패했습니다.")
             }
         }
@@ -166,11 +164,11 @@ class MyPageViewModel @Inject constructor(
     // TODO: FCM토큰 삭제 API호출
     fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
-            try {
-                userRepository.logout()
+            val success = userRepository.logout()
+            if (success) {
                 _uiState.value = MyPageUiState()
                 onSuccess()
-            } catch (e: Exception) {
+            } else {
                 onError("로그아웃에 실패했습니다.")
             }
         }
