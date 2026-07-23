@@ -21,7 +21,7 @@ object CurationMapper {
 
     fun CurationDetailDTO.toDomain(): CurationDetail = CurationDetail(
         curationId = curationId,
-        month = month,
+        title = month.toCurationTitle(),
         topTags = emptyList(), // 아직 백엔드 DTO에 미포함
         headerMent = headerMent,
         footerMent = footerMent
@@ -46,7 +46,7 @@ object CurationMapper {
 
     fun HistoryDTO.toDomain(): History = History(
         curationId = curationId,
-        month = month,
+        title = month.toCurationYear(),
         thumbnailUrl = thumbnailUrl
     )
 
