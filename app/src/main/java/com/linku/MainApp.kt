@@ -365,20 +365,6 @@ fun MainApp(
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
                             }
-                        },
-                        onAutoLoginSuccess = {
-                            showNavBar = true
-                            edgeToEdgeSystemBars = false
-                            homeViewModel.refreshAfterLogin()
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        onAutoLoginFail = {
-                            navigator.navigate("login_root") {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                            }
                         }
                     )
                 }
