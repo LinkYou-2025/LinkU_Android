@@ -50,6 +50,7 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import com.linku.core.model.auth.LoginType
+import com.linku.design.modal.ModalWindow
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
@@ -329,6 +330,27 @@ fun LoginScreen(
                         onNavigateToEmailLogin()
                     }
                 }
+            )
+        }
+
+        // 탈퇴 유예기간(INACTIVE) 계정으로 소셜 로그인 시도 시 노출되는 복구 확인 모달
+        ModalWindow(
+            visible = uiState.showRecoverModal,
+            onOkay = { viewModel.keepWithdrawn() },
+            onNegativeClick = { viewModel.recoverAccount() },
+            onDismiss = { viewModel.dismissRecoverModal() },
+            positiveText = "탈퇴 유지",
+            negativeText = "계정 복구",
+            title = "탈퇴 처리 중인 계정입니다.",
+            isLogoDimmed = true
+        ) {
+            Text(
+                text = "지금 로그인하면 계정이 즉시 복구됩니다.\n14일이 지나면 모든 정보가 삭제돼요.",
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight(400),
+                color = colorTheme.gray[600],
+                textAlign = TextAlign.Center
             )
         }
     }

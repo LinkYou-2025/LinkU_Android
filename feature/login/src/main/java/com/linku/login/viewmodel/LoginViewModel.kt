@@ -10,6 +10,7 @@ import com.linku.core.model.auth.LoginErrorType
 import com.linku.core.model.auth.LoginState
 import com.linku.core.model.auth.LoginType
 import com.linku.core.repository.AuthRepository
+import com.linku.core.repository.UserRepository
 import com.linku.data.api.toLoginErrorType
 import com.linku.data.preference.AuthPreference
 import com.linku.login.mvi.MviContainer
@@ -28,6 +29,7 @@ import kotlin.coroutines.cancellation.CancellationException
 open class LoginViewModel @Inject constructor(
     application: Application,
     private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
 ) : AndroidViewModel(application),
     MviContainer<LoginUiState, LoginUiEffect> by mviContainer(LoginUiState()) {
@@ -84,9 +86,31 @@ open class LoginViewModel @Inject constructor(
                 )
                 Log.d(TAG, "인증 토큰 및 유저 ID 저장 완료 (ID: ${loginResult.userId})")
 
-                // 성공 상태 -> MainApp에서 isLoggedIn Flow 변화를 감지해 홈으로 이동하게 함.
-                updateState { copy(loginState = LoginState.Success(loginResult)) }
-                postSideEffect(LoginUiEffect.LoginSuccess)
+                if (loginResult.status == "INACTIVE") {
+                    // 탈퇴 유예기간 계정 -> 홈으로 보내지 않고 복구 여부를 묻는 모달을 띄움.
+                    Log.d(TAG, "탈퇴 유예기간 계정 감지 - 복구 모달 노출")
+                    // 인증 자체는 이미 끝났으므로 입력해둔 이메일/비밀번호는 화면에 남겨두지 않음
+                    // (로그아웃 후 다시 이 화면에 들어와도 이전 입력값이 남아있지 않도록).
+                    updateState {
+                        copy(
+                            loginState = LoginState.Idle,
+                            showRecoverModal = true,
+                            email = "",
+                            password = ""
+                        )
+                    }
+                } else {
+                    // 성공 상태 -> MainApp에서 isLoggedIn Flow 변화를 감지해 홈으로 이동하게 함.
+                    // 인증에 사용한 이메일/비밀번호도 화면에서 지움 (재진입 시 이전 입력값 노출 방지).
+                    updateState {
+                        copy(
+                            loginState = LoginState.Success(loginResult),
+                            email = "",
+                            password = ""
+                        )
+                    }
+                    postSideEffect(LoginUiEffect.LoginSuccess)
+                }
 
             } catch (exception: CancellationException) {
                 throw exception
@@ -95,6 +119,48 @@ open class LoginViewModel @Inject constructor(
                 updateState { copy(loginState = LoginState.Error(exception.toLoginErrorType())) }
             }
         }
+    }
+
+    /**
+     * 복구 모달에서 "계정 복구"를 선택했을 때 호출됨. 로그인 응답으로 이미 저장된
+     * 복구 전용 accessToken을 이용해 `users/recover`를 호출하고, 성공하면 정상 로그인과
+     * 동일하게 홈으로 이동시킴.
+     */
+    fun recoverAccount() {
+        viewModelScope.launch {
+            val recovered = userRepository.recoverUser()
+            if (recovered) {
+                Log.d(TAG, "계정 복구 성공")
+                updateState { copy(showRecoverModal = false) }
+                postSideEffect(LoginUiEffect.LoginSuccess)
+            } else {
+                Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)")
+                // 복구 실패 시 계정은 여전히 비활성 상태이므로 임시 저장된 세션을 정리함.
+                authPreference.clear()
+                updateState {
+                    copy(
+                        showRecoverModal = false,
+                        loginState = LoginState.Error(LoginErrorType.INACTIVE_User_Error)
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * 복구 모달에서 "탈퇴 유지"를 선택했을 때 호출됨. 로그인 응답으로 임시 저장해둔
+     * 세션(복구 전용 토큰)을 지우고 로그인 화면에 그대로 남김.
+     */
+    fun keepWithdrawn() {
+        viewModelScope.launch {
+            authPreference.clear()
+            updateState { copy(showRecoverModal = false) }
+        }
+    }
+
+    /** 복구 모달을 순수 UI적으로만 닫음(외부 영역 클릭 등). 세션은 건드리지 않음. */
+    fun dismissRecoverModal() {
+        updateState { copy(showRecoverModal = false) }
     }
 
     fun tryAutoLogin() {
@@ -107,26 +173,22 @@ open class LoginViewModel @Inject constructor(
 
                 if (!isAlreadyLoggedIn) {
                     _autoLoginState.value = AutoLoginState.Failed
-                    postSideEffect(LoginUiEffect.AutoLoginFail)
                     return@launch
                 }
 
                 Log.d(TAG, "자동 로그인 성공")
                 _autoLoginState.value = AutoLoginState.Success
-                postSideEffect(LoginUiEffect.AutoLoginSuccess)
 
             } catch (e: ApiError.Auth.TokenExpired) {
                 // 이 경우만 logout
                 Log.e(TAG, "자동 로그인 실패: 토큰 만료")
                 authPreference.clear()
                 _autoLoginState.value = AutoLoginState.Failed
-                postSideEffect(LoginUiEffect.AutoLoginFail)
 
             } catch (e: Exception) {
                 // 나머지는 절대 logout 하지 않음
                 Log.e(TAG, "자동 로그인 실패: ${e.message}")
                 _autoLoginState.value = AutoLoginState.Failed
-                postSideEffect(LoginUiEffect.AutoLoginFail)
             }
         }
     }
