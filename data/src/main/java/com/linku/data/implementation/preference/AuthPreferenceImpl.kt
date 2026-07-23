@@ -32,6 +32,9 @@ class AuthPreferenceImpl @Inject constructor(
         val DEVICE_ID = stringPreferencesKey("device_id")
         val DEVICE_TYPE = stringPreferencesKey("device_type")
         val NICKNAME = stringPreferencesKey("nickname")
+
+        // 로그아웃(clear) 시에도 남겨둘 키. 디바이스 정보와 마지막 로그인 수단은 유저 세션이 아니라 기기/이력 정보라 보존함.
+        val PRESERVED_ON_CLEAR = setOf(DEVICE_ID, DEVICE_TYPE, LOGIN_TYPE)
     }
 
     override suspend fun initDeviceInfo(deviceId: String, deviceType: String) {
@@ -113,9 +116,13 @@ class AuthPreferenceImpl @Inject constructor(
         }
     }
 
+    // 로그아웃 시 토큰/유저ID/닉네임 등 세션 정보만 지우고,
+    // 디바이스 정보와 마지막으로 로그인한 수단(카카오/구글/이메일)은 남겨 다음 로그인 화면에서 "최근 로그인" 표시에 사용함.
     override suspend fun clear() {
         context.authDataStore.edit { prefs ->
-            prefs.clear()
+            prefs.asMap().keys
+                .filterNot { it in Keys.PRESERVED_ON_CLEAR }
+                .forEach { prefs.remove(it) }
             prefs[Keys.LOGGED_IN] = false
         }
     }
