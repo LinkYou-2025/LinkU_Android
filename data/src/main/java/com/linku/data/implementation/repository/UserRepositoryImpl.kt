@@ -77,6 +77,19 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun recoverUser(): Boolean {
+        return try {
+            // BaseResponse.isSuccess까지 확인. HTTP 2xx여도 응답 바디상 실패일 수 있어 getOrThrow()로 걸러냄.
+            safeApiCallUnit { serverApi.recoverUser() }.getOrThrow()
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "[계정 복구 실패] ${e.message}")
+            false
+        }
+    }
+
 //    // BaseResponse<UserInfoDTO> 반환 → withAuth
 //    override suspend fun getNickname(userId: Long): String? {
 //        return try {
