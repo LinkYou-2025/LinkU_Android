@@ -4,6 +4,7 @@ import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.dto.user.DeleteUserResponseDTO
 import com.linku.data.api.dto.user.NicknameResponseDTO
+import com.linku.data.api.dto.user.RecoverUserResponseDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.dto.user.UserInfoResponseDTO
 import retrofit2.http.Body
@@ -48,6 +49,11 @@ interface UserApi {
     suspend fun logout(
         @Query("deviceId") deviceId: String
     ): BaseResponse<*> // result {}
+
+    // 회원 탈퇴 복구 (계정 활성화) - 탈퇴 유예기간(14일) 내 재로그인 시 호출.
+    // 로그인 응답의 accessToken(purpose=RECOVER)이 Authorization 헤더로 자동 첨부됨.
+    @POST("users/recover")
+    suspend fun recoverUser(): BaseResponse<RecoverUserResponseDTO>
 
 //    // 로그인
 //    @POST("users/login")
