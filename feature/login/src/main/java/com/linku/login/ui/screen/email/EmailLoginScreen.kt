@@ -252,7 +252,10 @@ fun EmailLoginScreen(
                 loginViewModel?.recoverAccount()
                 onDismissRecoverModal()
             },
-            onDismiss = { onDismissRecoverModal() },
+            onDismiss = {
+                loginViewModel?.dismissRecoverModal()
+                onDismissRecoverModal()
+            },
             positiveText = "탈퇴 유지",
             negativeText = "계정 복구",
             title = "탈퇴 처리 중인 계정입니다.",
