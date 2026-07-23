@@ -68,7 +68,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="linkuserver.store"
+                    android:host="${SERVER_HOST}"
                     android:path="/open"/>
             </intent-filter>
 

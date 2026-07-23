@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +59,6 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.ThemeColorScheme
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.OuterShadowResourceImage
-import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Before
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Done
@@ -68,7 +66,6 @@ import com.linku.file.ui.bottom.sheet.LinkGenerateState.Error
 import com.linku.file.ui.bottom.sheet.LinkGenerateState.Loading
 import com.linku.file.ui.bottom.sheet.ScreenState.Main
 import com.linku.file.ui.bottom.sheet.ScreenState.Select
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 // 전체 화면 높이
 private const val FULL_HEIGHT = 917f
@@ -260,19 +257,22 @@ private enum class LinkGenerateState {
 @Composable
 internal fun _ShareBottomSheet(
     modifier: Modifier,
-    fileViewModel: FileViewModel,
-    folderStateViewModel: FolderStateViewModel
+    visible: Boolean,
+    folderTree: List<FolderSimpleInfo>,
+    onLoadFolderTree: () -> Unit,
+    onDismissRequest: () -> Unit,
+    onLinkGenerate: (Long) -> String?
 ){
-    fileViewModel.getFolderTree()
+    if(visible){
+        LaunchedEffect(Unit) {
+            onLoadFolderTree()
+        }
 
-    if(folderStateViewModel.shareBottomSheetVisible){
         ShareBottomSheetLayout(
             modifier = modifier,
-            folderTree = fileViewModel.folderTree.collectAsState().value,
-            onDismissRequest = {
-                folderStateViewModel.updateShareBottomSheetVisible(false)
-            },
-            onLinkGenerate = fileViewModel::makeInvitationLink
+            folderTree = folderTree,
+            onDismissRequest = onDismissRequest,
+            onLinkGenerate = onLinkGenerate
         )
     }
 }
@@ -348,6 +348,10 @@ internal fun ShareBottomSheetLayout(
                 colors = colors,
                 preSelectDepth = selectDepth,
                 categories = folderTree,
+                onSelectDepthChange = {
+                    selectDepth = it
+                    screenState = Main
+                },
             )
         }
     }
@@ -395,6 +399,11 @@ private fun ShareBottomSheetMainScreen(
      * - [Error]: "링크 생성 실패"
      */
     var link: String by remember { mutableStateOf("링크 생성 전") }
+
+    LaunchedEffect(selectDepth) {
+        linkGenerateState = Before
+        link = "링크 생성 전"
+    }
 
     /**
      * 선택된 폴더의 경로와 상태에 따라 메뉴 바에 표시될 텍스트.
@@ -849,13 +858,13 @@ private fun LinkCopyButton(
                 shape = RoundedCornerShape(size = 18.dp)
             )
             .noRippleClickable(onClick = onCopy),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             contentDescription = "링크 복사 이미지",
             modifier = Modifier
-                .fillMaxWidth(COPY_ICON_WIDTH_RATIO),
+                .size(20.dp),
             painter = painterResource(R.drawable.icon_copy),
             colorFilter = ColorFilter.tint(colors.gray[800])
         )
@@ -893,14 +902,14 @@ private fun LinkShareButton(
                 shape = RoundedCornerShape(size = 18.dp)
             )
             .noRippleClickable(onClick = onShare),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             contentDescription = "링크 공유 이미지",
             modifier = Modifier
-                .fillMaxWidth(SHARE_ICON_WIDTH_RATIO),
-            painter = painterResource(R.drawable.icon_copy),
+                .size(20.dp),
+            painter = painterResource(R.drawable.icon_share),
             colorFilter = ColorFilter.tint(colors.white)
         )
 
@@ -923,26 +932,41 @@ private fun SelectFolderToShareScreen(
     modifier: Modifier,
     colors: ThemeColorScheme,
     preSelectDepth: SelectDepth,
-    categories: List<FolderSimpleInfo>
+    categories: List<FolderSimpleInfo>,
+    onSelectDepthChange: (SelectDepth) -> Unit,
 ){
-    var _newSelectDepth: SelectDepth by remember { mutableStateOf(preSelectDepth) }
+    var newSelectDepth: SelectDepth by remember(preSelectDepth) {
+        mutableStateOf(preSelectDepth)
+    }
+    val selectedCategory = when (val depth = newSelectDepth) {
+        is Category -> depth.category
+        is Folder -> depth.category
+        None -> null
+    }
+    val selectedFolder = (newSelectDepth as? Folder)?.folder
 
     Column(
         modifier = modifier.padding(horizontal = 20.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ){
+        Text(
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            text = "폴더 선택하기",
+            fontSize = 16.sp,
+            fontWeight = FontWeight(500),
+            color = colors.black,
+        )
+
         Row(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            /** newSelectDepth의 스냅샷 */
-            val newSelectDepth = _newSelectDepth
-
             // 카테고리 리스트
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
             ) {
                 items(categories) { category ->
+                    val isSelected = selectedCategory == category
 
                     Text(
                         modifier = Modifier
@@ -950,28 +974,28 @@ private fun SelectFolderToShareScreen(
                             .height(46.dp)
                             .padding(start = 15.dp)
                             .then(
-                                if (newSelectDepth is Category && newSelectDepth.category == category)
+                                if (isSelected)
                                     Modifier
                                         .background(
                                             color = colors.gray[100],
                                             shape = RoundedCornerShape(size = 16.dp)
                                         )
-                                        .noRippleClickable { _newSelectDepth = None }
+                                        .noRippleClickable { newSelectDepth = None }
                                 else Modifier.noRippleClickable {
-                                    _newSelectDepth = Category(category)
+                                    newSelectDepth = Category(category)
                                 }
                             ),
                         text = category.folderName,
                         textAlign = TextAlign.Center,
                         fontSize = 16.sp,
-                        color = if (newSelectDepth is Category && newSelectDepth.category == category) colors.gray[800] else colors.gray[600]
+                        color = if (isSelected) colors.gray[800] else colors.gray[600]
                     )
                 }
             }
 
-            if (newSelectDepth is Category) {
+            if (selectedCategory != null) {
 
-                val folders = newSelectDepth.category.children
+                val folders = selectedCategory.children
 
                 // 폴더 리스트
                 LazyColumn(
@@ -979,21 +1003,25 @@ private fun SelectFolderToShareScreen(
                         .weight(1f)
                 ) {
                     items(folders) { folder ->
+                        val isSelected = selectedFolder == folder
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(46.dp)
                                 .padding(start = 15.dp)
                                 .then(
-                                    if (newSelectDepth is Folder && newSelectDepth.folder == folders)
+                                    if (isSelected)
                                         Modifier
                                             .background(
                                                 color = colors.gray[100],
                                                 shape = RoundedCornerShape(size = 16.dp)
                                             )
-                                            .noRippleClickable { _newSelectDepth = None }
+                                            .noRippleClickable { newSelectDepth = Category(selectedCategory) }
                                     else Modifier.noRippleClickable {
-                                        _newSelectDepth = Folder(newSelectDepth.category, folder)
+                                        val selected = Folder(selectedCategory, folder)
+                                        newSelectDepth = selected
+                                        onSelectDepthChange(selected)
                                     }
                                 ),
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -1002,14 +1030,14 @@ private fun SelectFolderToShareScreen(
                             Icon(
                                 painter = painterResource(R.drawable.ic_shared_bottom_sheet_folder_select),
                                 contentDescription = "폴더 아이콘",
-                                tint = if (newSelectDepth is Folder && newSelectDepth.folder == folder) colors.blue[200] else colors.gray[400]
+                                tint = if (isSelected) colors.blue[200] else colors.gray[400]
                             )
 
                             Text(
                                 text = folder.folderName,
                                 textAlign = TextAlign.Center,
                                 fontSize = 16.sp,
-                                color = if (newSelectDepth is Folder && newSelectDepth.folder == folder) colors.gray[800] else colors.gray[600]
+                                color = if (isSelected) colors.gray[800] else colors.gray[600]
                             )
                         }
                     }

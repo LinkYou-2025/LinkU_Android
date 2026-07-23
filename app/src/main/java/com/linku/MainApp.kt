@@ -37,10 +37,13 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.d
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
-import com.linku.deeplink.appLinkRoute
+import com.linku.core.model.deeplink.DeepLinkType
+import com.linku.deeplink.invitationLinkRoute
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
@@ -72,6 +75,7 @@ fun MainApp(
     viewModel: MainViewModel,
 ) {
     val context = LocalContext.current
+    val deepLinkDomain = BuildConfig.SERVER_DOMAIN.trimEnd('/')
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
@@ -353,6 +357,17 @@ fun MainApp(
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
                             // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
+                            deepLinkViewModel.consumePendingInvitation().let { token ->
+                                fileViewModel.receiveSharedFolderInvitation(token)
+                                folderStateViewModel.updateIsSharedFolders(true)
+
+                                navigator.navigate(NavigationRoute.File.route) {
+                                    popUpTo("login_root") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                return@LoginApp
+                            }
+
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
                                 fileViewModel.receiveSharedFolder(folderId)
                                 folderStateViewModel.updateIsSharedFolders(true)
@@ -743,125 +758,56 @@ fun MainApp(
                     )
                 }
 
-                // 링크 공유 앱링크
                 composable(
-                    route = "open?action={action}&folderId={folderId}",
+                    route = "open?action={action}&token={token}",
                     arguments = listOf(
-                        navArgument("action") { type = NavType.StringType; nullable = true },
-                        navArgument("folderId") { type = NavType.LongType; nullable = false },
+                        navArgument("action") { type = NavType.StringType; nullable = false },
+                        navArgument("token") { type = NavType.StringType; nullable = false },
                     ),
                     deepLinks = listOf(
-                        // 앱링크
                         navDeepLink {
-                            uriPattern = "https://linkuserver.store/open?action={action}&folderId={folderId}"
+                            uriPattern = "$deepLinkDomain/open?action={action}&token={token}"
                         },
-                        // 쿼리 순서가 바뀌는 경우까지 허용
                         navDeepLink {
-                            uriPattern = "https://linkuserver.store/open?folderId={folderId}&action={action}"
+                            uriPattern = "$deepLinkDomain/open?token={token}&action={action}"
                         }
                     )
-                ) /*content = */ { backStackEntry ->
-                    val action = backStackEntry.arguments?.getString("action")
-                    val folderId = backStackEntry.arguments?.getLong("folderId")
+                ) { backStackEntry ->
+                    val arguments = checkNotNull(backStackEntry.arguments) {
+                        // 추후 공통 토스트 메시지로 변경
+                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
+                    }
 
-                    Log.d("MainApp", "route: appLink action: $action, folderId: $folderId")
+                    val action = checkNotNull(arguments.getString("action")) {
+                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
+                    }
 
-                    // 딱 한 번만 실행되게 LaunchedEffect 사용
-                    LaunchedEffect(action, folderId) {
-                        Log.d("MainApp", "route: appLink LaunchedEffect 실행")
+                    val token = checkNotNull(arguments.getString("token")) {
+                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
+                    }
 
-                        appLinkRoute(
-                            action = action,
-                            folderId = folderId,
-                            onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
-                            onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
-                            onSetPendingShare = deepLinkViewModel::setPendingShare,
-                            navigator = navigator
-                        )
+                    LinkuLog.d("MainApp") { "route: appLink action: $action, token: $token" }
 
-//                        if (action == "share" && folderId != null) {
-//                            Log.d("MainApp", "route: appLink 파일 화면으로 이동")
-//
-//                            // FileViewModel로 진입 폴더 설정 등 필요한 로직 실행
-//                            try{
-//                                Log.d("MainApp", "route: appLink try 진입")
-//
-//                                // 공유 받는 폴더 처리, UI 업데이트 전 api 결과 우선을 위해 동기 처리.
-//                                async{ fileViewModel.receiveSharedFolder(folderId) }.await()
-//
-//                                Log.d("MainApp", "route: appLink 공유 받는 폴더 처리 완료")
-//
-//                                // UI 업데이트
-//                                folderStateViewModel.updateIsSharedFolders(true)
-//
-//                                Log.d("MainApp", "route: appLink 공유 받은 폴더 UI 갱신 완료")
-//
-//                                // 파일 화면으로 이동
-//                                navigator.navigate(NavigationRoute.File.route) {
-//                                    Log.d("MainApp", "route: appLink 파일 화면으로 이동")
-//
-//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-//                                    launchSingleTop = true
-//
-//                                    Log.d("MainApp", "route: appLink 파일 화면으로 이동 완료")
-//                                }
-//                            }catch (e: Exception/*UserIdNullException*/) {
-//                                Log.e("MainApp", "Exception 발생: $e")
-//                                // (A) 미로그인: 대기 작업 저장 후 로그인 화면으로
-//                                deepLinkViewModel.setPendingShare(folderId)
-//                                navigator.navigate("${NavigationRoute.Login.route}?showModal=true") {
-//                                    Log.d("MainApp", "route: appLink 미로그인. 대기 작업 저장 후 로그인 화면으로")
-//
-//                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-//                                    launchSingleTop = true
-//
-//                                    Log.d("MainApp", "route: appLink 로그인 화면으로 이동 완료")
-//                                }
-////                                navigator.navigate(NavigationRoute.Login.route) {
-////                                    popUpTo(NavigationRoute.Splash.route) { inclusive = false }
-////                                    launchSingleTop = true
-////                                }
-//                            }
-//                        }
+                    LaunchedEffect(action, token) {
+                        val isLoggedIn = viewModel.hasValidRefreshToken()
+
+                        when(DeepLinkType.valueOf(action.uppercase())){
+                            DeepLinkType.SHARE ->{
+                                invitationLinkRoute(
+                                    token = token,
+                                    isLoggedIn = isLoggedIn,
+                                    onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                                    onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
+                                    onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
+                                    onInvalidLink = {
+                                        Toast.makeText(context, R.string.invalid_share_link, Toast.LENGTH_SHORT).show()
+                                    },
+                                    navigator = navigator
+                                )
+                            }
+                        }
                     }
                 }
-
-//                composable(
-//                    route = "open?action={action}&folderId={folderId}",
-//                    arguments = listOf(
-//                        navArgument("action") { type = NavType.StringType; nullable = true },
-//                        navArgument("folderId") { type = NavType.LongType; nullable = false },
-//                    ),
-//                    deepLinks = listOf(
-//                        // 앱링크
-//                        navDeepLink {
-//                            uriPattern = "linku://open?action={action}&folderId={folderId}"
-//                        },
-//
-//                        navDeepLink {
-//                            uriPattern = "linku://open?folderId={folderId}&action={action}"
-//                        }
-//                    )
-//                ) /*content = */ { backStackEntry ->
-//                    val action = backStackEntry.arguments?.getString("action")
-//                    val folderId = backStackEntry.arguments?.getLong("folderId")
-//
-//                    Log.d("MainApp", "action: $action, folderId: $folderId")
-//
-//                    // 딱 한 번만 실행되게 LaunchedEffect 사용
-//                    LaunchedEffect(action, folderId) {
-//                        Log.d("MainApp", "LaunchedEffect 실행")
-//
-//                        appLinkRoute(
-//                            action = action,
-//                            folderId = folderId,
-//                            onReceiveSharedFolder = fileViewModel::receiveSharedFolder,
-//                            onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
-//                            onSetPendingShare = deepLinkViewModel::setPendingShare,
-//                            navigator = navigator
-//                        )
-//                    }
-//                }
             }
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
