@@ -3,6 +3,7 @@ package com.linku.login.viewmodel.state
 import com.linku.core.model.auth.Gender
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.model.auth.Purpose
 import com.linku.login.mvi.UiState
@@ -14,12 +15,14 @@ import com.linku.login.mvi.UiState
  * @property socialLoginForm 온보딩 전 과정의 데이터가 누적되는 폼 주머니 객체입니다. (★에러 해결의 핵심)
  * @property nicknameCheckState 닉네임 실시간 중복 검증 상태(Idle, Checking, Available, Error)를 나타냅니다.
  * @property error 화면에 표시할 예외 상황 메시지 또는 서버 에러 문구입니다.
+ * @property recentLoginType 가장 최근에 로그인했던 수단. 로그인 화면에서 "최근 로그인" 말풍선을 표시하는 데 사용합니다.
  */
 internal data class SocialAuthUiState(
     val isLoading: Boolean = false,
     val socialLoginForm: SocialLoginForm = SocialLoginForm(),
     val nicknameCheckState: NicknameCheckState = NicknameCheckState.Idle,
-    val error: String? = null
+    val error: String? = null,
+    val recentLoginType: LoginType = LoginType.NONE
 ) : UiState
 
 internal data class SocialLoginForm(
