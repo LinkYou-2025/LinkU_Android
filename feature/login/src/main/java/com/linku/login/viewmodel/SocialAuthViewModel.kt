@@ -56,6 +56,17 @@ class SocialAuthViewModel @Inject constructor(
 
     init {
         observeNicknameQuery()
+        loadRecentLoginType()
+    }
+
+    /**
+     * 로그인 화면에 "최근 로그인" 말풍선을 표시하기 위해 마지막으로 로그인했던 수단을 불러옵니다.
+     */
+    private fun loadRecentLoginType() {
+        viewModelScope.launch {
+            val recentLoginType = authPreference.getLoginType()
+            updateState { copy(recentLoginType = recentLoginType) }
+        }
     }
 
     private fun updateForm(update: (SocialLoginForm) -> SocialLoginForm) {

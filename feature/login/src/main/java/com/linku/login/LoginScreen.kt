@@ -6,6 +6,7 @@ package com.linku.login
 import android.content.Context
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,11 +15,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +36,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -283,8 +288,9 @@ fun LoginScreen(
         ) {
 
             // 카카오
-            SocialLoginButton(
+            SocialLoginButtonWithRecentBadge(
                 type = LoginType.KAKAO,
+                recentLoginType = uiState.recentLoginType,
                 onClick = {
                     if (buttonsEnabled) handleKakaoLogin(context, viewModel)
                     //약관 화면에서 중복 로그인 방지.
@@ -293,13 +299,14 @@ fun LoginScreen(
 
 
             // 구글
-            SocialLoginButton(
+            SocialLoginButtonWithRecentBadge(
                 type = LoginType.GOOGLE,
+                recentLoginType = uiState.recentLoginType,
                 onClick = {
-                    if (!buttonsEnabled) return@SocialLoginButton
+                    if (!buttonsEnabled) return@SocialLoginButtonWithRecentBadge
                     val activity = context.findActivity() ?: run {
                         Toast.makeText(context, "간편 로그인 실패. 다시 시도해주세요!", Toast.LENGTH_SHORT).show()
-                        return@SocialLoginButton
+                        return@SocialLoginButtonWithRecentBadge
                     }
                     scope.launch {
                         try {
@@ -313,14 +320,44 @@ fun LoginScreen(
             )
 
             // 이메일 기존 그대로 유지.
-            SocialLoginButton(
+            SocialLoginButtonWithRecentBadge(
                 type = LoginType.EMAIL,
+                recentLoginType = uiState.recentLoginType,
                 onClick = {
                     //navigator.navigate("email_login")
                     if (buttonsEnabled) {
                         onNavigateToEmailLogin()
                     }
                 }
+            )
+        }
+    }
+}
+
+/**
+ * 소셜 로그인 버튼 위에 마지막으로 로그인했던 수단을 알려주는 "최근 로그인" 말풍선을 겹쳐 보여줍니다.
+ *
+ * @param type 이 버튼이 나타내는 로그인 수단.
+ * @param recentLoginType 사용자가 마지막으로 로그인했던 수단. [type]과 일치할 때만 말풍선이 노출됩니다.
+ */
+@Composable
+private fun SocialLoginButtonWithRecentBadge(
+    type: LoginType,
+    recentLoginType: LoginType,
+    onClick: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        SocialLoginButton(type = type, onClick = onClick)
+
+        if (recentLoginType == type) {
+            Image(
+                painter = painterResource(id = R.drawable.img_recent_login),
+                contentDescription = "최근 로그인",
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-7).scaler, y = (-20).scaler)
+                    .width(100.scaler)
+                    .height(42.scaler)
             )
         }
     }
