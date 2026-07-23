@@ -10,6 +10,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface UserApi {
 
@@ -41,6 +42,12 @@ interface UserApi {
     suspend fun deleteUser(
         @Body body: DeleteUserRequestDTO
     ): BaseResponse<DeleteUserResponseDTO>
+
+    // 로그아웃 - 요청의 deviceId에 해당하는 현재 디바이스 세션만 로그아웃
+    @POST("auth/logout")
+    suspend fun logout(
+        @Query("deviceId") deviceId: String
+    ): BaseResponse<*> // result {}
 
 //    // 로그인
 //    @POST("users/login")

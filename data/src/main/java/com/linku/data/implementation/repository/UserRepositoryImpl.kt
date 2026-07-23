@@ -92,8 +92,16 @@ class UserRepositoryImpl @Inject constructor(
 
     // logout
     override suspend fun logout() {
+        val deviceId = authPreference.getDeviceId()
+        Log.d(TAG, "[로그아웃 시도] deviceId=$deviceId")
+
+        safeApiCallUnit {
+            serverApi.logout(deviceId)
+        }.onFailure { e ->
+            Log.e(TAG, "[로그아웃 API 실패] ${e.message}")
+        }
+
         authPreference.clear()
-        //clearAuthData()
         Log.d(TAG, "로그아웃 완료")
     }
 
