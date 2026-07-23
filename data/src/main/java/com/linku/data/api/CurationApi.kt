@@ -3,9 +3,12 @@ package com.linku.data.api
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.curation.DetailDTO
 import com.linku.data.api.dto.server.curation.HistoryDTO
+import com.linku.data.api.dto.server.curation.JobKeywordDTO
 import com.linku.data.api.dto.server.curation.LatestDTO
+import com.linku.data.api.dto.server.curation.MyTopTagDTO
 import com.linku.data.api.dto.server.curation.RecommendDTO
 import com.linku.data.api.dto.server.curation.SectionDTO
+import com.linku.data.api.dto.server.curation.UnreadLinkDTO
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -36,5 +39,23 @@ interface CurationApi {
     suspend fun getCurationDetail(
         @Path("curationId") curationId: Long
     ): BaseResponse<DetailDTO>
+
+    // 저번 달 미열람 링크 조회
+    @GET("linku/unread")
+    suspend fun getUnreadLink(): BaseResponse<UnreadLinkDTO>
+
+    // 월별 상위 태그 조회
+    @GET("tags/my")
+    suspend fun getMyTopTags(
+        @Query("month") month: String,
+        @Query("limit") limit: Int = 3,
+    ): BaseResponse<List<MyTopTagDTO>>
+
+    // 같은 직업 유저들의 해당 월 저장 링크 상위 키워드 조회
+    @GET("keywords/job")
+    suspend fun getJobTopKeywords(
+        @Query("month") month: String,
+        @Query("limit") limit: Int = 10,
+    ): BaseResponse<List<JobKeywordDTO>>
 
 }
