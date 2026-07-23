@@ -50,11 +50,11 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
-import com.linku.home.component.LinkCategoryOption
-import com.linku.home.screen.LinkDetailScreen
-import com.linku.home.screen.SaveLinkScreen
 import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
+import com.linku.link.component.LinkCategoryOption
+import com.linku.link.screen.LinkDetailScreen
+import com.linku.link.screen.SaveLinkScreen
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp

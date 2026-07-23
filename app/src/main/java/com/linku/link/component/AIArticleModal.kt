@@ -1,4 +1,5 @@
-package com.linku.home.component
+package com.linku.link.component
+
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

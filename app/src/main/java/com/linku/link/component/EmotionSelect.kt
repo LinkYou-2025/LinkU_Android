@@ -1,4 +1,4 @@
-package com.linku.home.component
+package com.linku.link.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,7 +31,7 @@ import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
-import com.linku.home.util.imgRes
+import com.linku.link.util.imgRes
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
