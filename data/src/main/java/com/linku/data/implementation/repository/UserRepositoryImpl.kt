@@ -63,13 +63,22 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteUser(reason: String): Result<Unit> {
-        return safeApiCallUnit {
-            serverApi.deleteUser(DeleteUserRequestDTO(reason))
-        }.onSuccess {
-            // 탈퇴 성공 시에만 로컬 세션 제거. 실패하면 계정은 그대로라 로그인 상태를 유지해야 함.
+        val result = safeApiCallUnit { serverApi.deleteUser(DeleteUserRequestDTO(reason)) }
+        if (result.isFailure) {
+            Log.e(TAG, "[회원 탈퇴 실패] ${result.exceptionOrNull()?.message}")
+            return result
+        }
+
+        // 탈퇴 성공 시에만 로컬 세션 제거. 실패하면 계정은 그대로라 로그인 상태를 유지해야 함.
+        // DataStore I/O 예외가 여기서 나면 Result 계약 밖으로 새지 않도록 잡아서 failure로 변환함.
+        return try {
             authPreference.clear()
-        }.onFailure {
-            Log.e(TAG, "[회원 탈퇴 실패] ${it.message}")
+            result
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(TAG, "[회원 탈퇴 세션 정리 실패] ${e.message}")
+            Result.failure(e)
         }
     }
 
