@@ -290,14 +290,14 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
                 "INACTIVE" -> {
-                    // 탈퇴 유예기간 계정. 복구 API(users/recover) 호출에 필요한 토큰을 미리 저장해둠.
-                    authPreference.saveTokens(
+                    // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                    // 아직 아무 선택도 하지 않았는데도 다음 실행 시 자동 로그인이 서버 재확인 없이 홈으로
+                    // 보내버릴 수 있음. 복구 API(users/recover) 호출에 필요한 임시 토큰만 임시로 저장함.
+                    authPreference.updateAccessToken(
                         accessToken = response.accessToken,
-                        refreshToken = response.refreshToken,
-                        userId = response.userId,
-                        loginType = LoginType.KAKAO
+                        refreshToken = response.refreshToken
                     )
-                    Log.d(TAG, "[카카오 로그인] INACTIVE 상태 - 복구용 토큰 저장 완료")
+                    Log.d(TAG, "[카카오 로그인] INACTIVE 상태 - 복구용 토큰 임시 저장 완료")
                 }
             }
 
@@ -349,14 +349,14 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
                 "INACTIVE" -> {
-                    // 탈퇴 유예기간 계정. 복구 API(users/recover) 호출에 필요한 토큰을 미리 저장해둠.
-                    authPreference.saveTokens(
+                    // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                    // 아직 아무 선택도 하지 않았는데도 다음 실행 시 자동 로그인이 서버 재확인 없이 홈으로
+                    // 보내버릴 수 있음. 복구 API(users/recover) 호출에 필요한 토큰만 임시로 저장함.
+                    authPreference.updateAccessToken(
                         accessToken = response.accessToken,
-                        refreshToken = response.refreshToken,
-                        userId = response.userId,
-                        loginType = LoginType.GOOGLE
+                        refreshToken = response.refreshToken
                     )
-                    Log.d(TAG, "[구글 로그인] INACTIVE 상태 - 복구용 토큰 저장 완료")
+                    Log.d(TAG, "[구글 로그인] INACTIVE 상태 - 복구용 토큰 임시 저장 완료")
                 }
             }
 

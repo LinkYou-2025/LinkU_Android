@@ -126,7 +126,7 @@ class SocialAuthViewModel @Inject constructor(
                         TAG,
                         "구글 로그인 실패: ${error.displayMessage}",
                         error
-                    ) //TODO : sha-1키부터 안 먹혔다 샤갈
+                    )
                     updateState { copy(isLoading = false, error = error.displayMessage) }
                     postSideEffect(SocialAuthUiEffect.ShowToast(error.displayMessage))
                 }
@@ -171,6 +171,13 @@ class SocialAuthViewModel @Inject constructor(
 
             if (recovered && pendingResult != null) {
                 Log.d(TAG, "계정 복구 성공")
+                // 복구가 확정된 시점에만 정식 세션(LOGGED_IN=true)으로 저장함.
+                authPreference.saveTokens(
+                    accessToken = pendingResult.accessToken,
+                    refreshToken = pendingResult.refreshToken,
+                    userId = pendingResult.userId,
+                    loginType = currentSocialProvider
+                )
                 postSideEffect(SocialAuthUiEffect.NavigateToHome(pendingResult))
             } else {
                 Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)")
