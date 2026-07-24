@@ -5,9 +5,9 @@ package com.linku.login
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +28,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -50,6 +52,7 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import com.linku.core.model.auth.LoginType
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modal.ModalWindow
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -81,6 +84,7 @@ private fun handleKakaoLogin(
         if (error != null) {
             // 실패 시
             Log.e(TAG, "카카오계정으로 로그인 실패", error)
+            viewModel.notifySocialLoginFailed()
         } else if (token != null) {
             // 카카오 sdk가 토큰을 받아오면 밑에 뷰모델 호출
             viewModel.loginWithKakao(token.accessToken) //뷰모델에서 로그인 상태 확인 함수 사용용으로 1줄 추가함.
@@ -139,6 +143,10 @@ fun LoginScreen(
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
+    // 소셜 로그인 실패 시 노출되는 커스텀 토스트 (딤 처리 없이 버튼 위에 떠 있는 검정 pill 형태).
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
+
 //    //카카오 로그인 state 수집
 //    val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
 //
@@ -158,7 +166,8 @@ fun LoginScreen(
                 }
 
                 is SocialAuthUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    toastMessage = effect.message
+                    isToastVisible = true
                 }
 
                 else -> {}
@@ -307,7 +316,7 @@ fun LoginScreen(
                 onClick = {
                     if (!buttonsEnabled) return@SocialLoginButtonWithRecentBadge
                     val activity = context.findActivity() ?: run {
-                        Toast.makeText(context, "간편 로그인 실패. 다시 시도해주세요!", Toast.LENGTH_SHORT).show()
+                        viewModel.notifySocialLoginFailed()
                         return@SocialLoginButtonWithRecentBadge
                     }
                     scope.launch {
@@ -318,6 +327,7 @@ fun LoginScreen(
                             throw e  // 화면 이탈 등으로 인한 정상 취소, 에러 아님
                         } catch (e: Exception) {
                             Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")
+                            viewModel.notifySocialLoginFailed()
                         }
                     }
                 }
@@ -335,6 +345,25 @@ fun LoginScreen(
                 }
             )
         }
+
+        // 소셜 로그인 실패 시 노출되는 딤 처리 + 토스트. 토스트가 떠 있는 동안 뒤쪽 버튼 탭을 막기 위해 스크림에 클릭도 소비함.
+        if (isToastVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorTheme.black.copy(alpha = 0.5f))
+                    .clickable(enabled = true, onClick = {})
+            )
+        }
+
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = bottomPadding + 50.scaler + 12.scaler)
+        )
 
         // 탈퇴 유예기간(INACTIVE) 계정으로 소셜 로그인 시도 시 노출되는 복구 확인 모달
         ModalWindow(
