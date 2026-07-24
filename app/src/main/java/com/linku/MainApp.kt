@@ -699,7 +699,7 @@ fun MainApp(
                             linkDetailViewModel.deleteLink(
                                 onSucceed = {
                                     homeViewModel.refreshHomeData()
-                                    navigator.popBackStack()
+                                    onSuccess()
                                 },
                                 onFailed = { onFailed() }
                             )
