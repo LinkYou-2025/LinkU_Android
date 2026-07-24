@@ -35,8 +35,8 @@ class HomeViewModel @Inject constructor(
     private val recentRepository: RecentSearchRepository,
 ) : ViewModel() {
 
-    companion object {
-        private const val MIN_RECOMMENDATION_LINK_COUNT = 3L
+    private companion object {
+        const val MIN_RECOMMENDATION_LINK_COUNT = 3L
     }
 
     fun refreshHomeData() {
