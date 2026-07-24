@@ -36,12 +36,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.auth.AutoLoginState
+import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.d
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
-import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.deeplink.invitationLinkRoute
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
@@ -365,20 +365,6 @@ fun MainApp(
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
                             }
-                        },
-                        onAutoLoginSuccess = {
-                            showNavBar = true
-                            edgeToEdgeSystemBars = false
-                            homeViewModel.refreshAfterLogin()
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        onAutoLoginFail = {
-                            navigator.navigate("login_root") {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                            }
                         }
                     )
                 }
@@ -454,11 +440,15 @@ fun MainApp(
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
                                 navigator.navigate("login_root") {
-                                    // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
-                                    popUpTo(navigator.graph.findStartDestination().id) {
+                                    // 그래프 루트까지 백스택 전부 제거.
+                                    // Splash는 로그인 이후 이미 백스택에서 빠져있는 상태라
+                                    // findStartDestination()(Splash)을 popUpTo 타겟으로 쓰면
+                                    // 백스택에서 못 찾아 조용히 no-op 되어(Home/MyPage가 그대로 남음)
+                                    // login_root가 그 위에 얹히기만 하는 문제가 있었음.
+                                    // 그래프 자체의 id는 항상 모든 백스택 엔트리의 조상이라 반드시 제거됨.
+                                    popUpTo(navigator.graph.id) {
                                         inclusive = true
                                     }
-                                    //popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
 //                                navigator.navigate(NavigationRoute.Login.route) {

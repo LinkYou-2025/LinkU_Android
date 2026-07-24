@@ -80,7 +80,8 @@ fun ModalWindow(
  *
  * @param visible 모달 창의 표시 여부. true일 때 화면에 나타납니다.
  * @param onOkay '확인' 버튼을 클릭했을 때 실행될 콜백 함수.
- * @param onDismiss 모달을 닫아야 할 때(취소 버튼 클릭 또는 외부 영역 클릭 시) 실행될 콜백 함수.
+ * @param onDismiss 모달을 닫아야 할 때(외부 영역 클릭 시, 또는 두 버튼 클릭 이후) 실행될 콜백 함수. 순수 UI 처리(모달 숨김)만 담당해야 하며, 두 버튼 클릭 시 공통으로 호출되므로 여기에 버튼별 부수 효과를 넣으면 안 됨.
+ * @param onNegativeClick 취소 버튼을 클릭했을 때 실행될 콜백 함수. 기본값은 null이며, 이 경우 취소 버튼은 [onDismiss]만 호출하는 기존 동작을 유지함. 취소 버튼도 확인 버튼과 별개의 의미 있는 동작(예: 서버 호출)을 수행해야 하는 경우에만 지정할 것.
  * @param positiveText 확인 버튼에 표시될 텍스트.
  * @param negativeText 취소 버튼에 표시될 텍스트.
  * @param title 모달 상단에 표시될 강조된 제목 텍스트.
@@ -94,6 +95,7 @@ fun ModalWindow(
     visible: Boolean,
     onOkay: () -> Unit = {},
     onDismiss: () -> Unit,
+    onNegativeClick: (() -> Unit)? = null,
     positiveText: String,
     negativeText: String,
     title: String,
@@ -115,7 +117,10 @@ fun ModalWindow(
             ModalSecondaryButton(
                 modifier = Modifier.weight(1f),
                 text = negativeText,
-                onClick = onDismiss
+                onClick = {
+                    onNegativeClick?.invoke()
+                    onDismiss()
+                }
             )
             ModalPrimaryButton(
                 modifier = Modifier.weight(1f),
