@@ -3,7 +3,6 @@ package com.linku.link.screen
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -54,6 +53,10 @@ import coil3.compose.AsyncImage
 import com.linku.R
 import com.linku.core.model.EmotionType
 import com.linku.core.model.SituationOptions
+import com.linku.core.util.caller.getCaller
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.d
+import com.linku.core.util.logging.e
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
@@ -109,6 +112,7 @@ fun LinkDetailScreen(
     ) -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val caller = getCaller()
 
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
@@ -252,23 +256,13 @@ fun LinkDetailScreen(
                         placeholder = painterResource(R.drawable.img_link_detail_default),
                         error = painterResource(R.drawable.img_link_detail_default),
                         onLoading = {
-                            Log.d(
-                                "LinkDetailImage",
-                                "loading: ${selectedImageUri ?: imageUrl}"
-                            )
+                            LinkuLog.d(caller) { "loading: ${selectedImageUri ?: imageUrl}" }
                         },
                         onSuccess = {
-                            Log.d(
-                                "LinkDetailImage",
-                                "success: ${selectedImageUri ?: imageUrl}"
-                            )
+                            LinkuLog.d(caller) { "success: ${selectedImageUri ?: imageUrl}" }
                         },
                         onError = { state ->
-                            Log.e(
-                                "LinkDetailImage",
-                                "error: ${selectedImageUri ?: imageUrl}",
-                                state.result.throwable
-                            )
+                            LinkuLog.e(caller, state.result.throwable) { "error: ${selectedImageUri ?: imageUrl}" }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
