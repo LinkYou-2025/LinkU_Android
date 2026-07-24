@@ -17,7 +17,7 @@ data class FolderTreeResponseDTO(
     val categoryId: Long,
 
     @field:Json(name = "isBookmarked")
-    val isBookmarked: Boolean,
+    val isBookmarked: Boolean = false,
 
     @field:Json(name = "children")
     val children: List<FolderTreeResponseDTO>? = null

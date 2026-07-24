@@ -274,16 +274,31 @@ class AuthRepositoryImpl @Inject constructor(
         ).map { response ->
             val currentStatus = response.status?.uppercase() ?: "ACTIVE"
 
-            if (currentStatus == "ACTIVE") {
-                authPreference.saveTokens(
-                    accessToken = response.accessToken,
-                    refreshToken = response.refreshToken,
-                    userId = response.userId,
-                    loginType = LoginType.KAKAO
-                )
-                Log.d(TAG, "[카카오 로그인] ACTIVE 상태 - 토큰 저장 완료")
-            } else if (currentStatus == "TEMP") {
-                Log.d(TAG, "[카카오 로그인] TEMP 상태 - 추가 입력 필요 (토큰 저장 스킵)")
+            when (currentStatus) {
+                "ACTIVE" -> {
+                    authPreference.saveTokens(
+                        accessToken = response.accessToken,
+                        refreshToken = response.refreshToken,
+                        userId = response.userId,
+                        loginType = LoginType.KAKAO
+                    )
+                    Log.d(TAG, "[카카오 로그인] ACTIVE 상태 - 토큰 저장 완료")
+                }
+
+                "TEMP" -> {
+                    Log.d(TAG, "[카카오 로그인] TEMP 상태 - 추가 입력 필요 (토큰 저장 스킵)")
+                }
+
+                "INACTIVE" -> {
+                    // 탈퇴 유예기간 계정. 복구 API(users/recover) 호출에 필요한 토큰을 미리 저장해둠.
+                    authPreference.saveTokens(
+                        accessToken = response.accessToken,
+                        refreshToken = response.refreshToken,
+                        userId = response.userId,
+                        loginType = LoginType.KAKAO
+                    )
+                    Log.d(TAG, "[카카오 로그인] INACTIVE 상태 - 복구용 토큰 저장 완료")
+                }
             }
 
             Log.d(TAG, "[카카오 로그인 성공] status=$currentStatus")
@@ -293,7 +308,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = ""
+                inactiveDate = response.inactiveDate
             )
         }
     }
@@ -318,16 +333,31 @@ class AuthRepositoryImpl @Inject constructor(
         ).map { response ->
             val currentStatus = response.status?.uppercase() ?: "ACTIVE"
 
-            if (currentStatus == "ACTIVE") {
-                authPreference.saveTokens(
-                    accessToken = response.accessToken,
-                    refreshToken = response.refreshToken,
-                    userId = response.userId,
-                    loginType = LoginType.GOOGLE
-                )
-                Log.d(TAG, "[구글 로그인] ACTIVE 상태 - 토큰 저장 완료")
-            } else if (currentStatus == "TEMP") {
-                Log.d(TAG, "[구글 로그인] TEMP 상태 - 추가 입력 필요 (토큰 저장 스킵)")
+            when (currentStatus) {
+                "ACTIVE" -> {
+                    authPreference.saveTokens(
+                        accessToken = response.accessToken,
+                        refreshToken = response.refreshToken,
+                        userId = response.userId,
+                        loginType = LoginType.GOOGLE
+                    )
+                    Log.d(TAG, "[구글 로그인] ACTIVE 상태 - 토큰 저장 완료")
+                }
+
+                "TEMP" -> {
+                    Log.d(TAG, "[구글 로그인] TEMP 상태 - 추가 입력 필요 (토큰 저장 스킵)")
+                }
+
+                "INACTIVE" -> {
+                    // 탈퇴 유예기간 계정. 복구 API(users/recover) 호출에 필요한 토큰을 미리 저장해둠.
+                    authPreference.saveTokens(
+                        accessToken = response.accessToken,
+                        refreshToken = response.refreshToken,
+                        userId = response.userId,
+                        loginType = LoginType.GOOGLE
+                    )
+                    Log.d(TAG, "[구글 로그인] INACTIVE 상태 - 복구용 토큰 저장 완료")
+                }
             }
 
             Log.d(TAG, "[구글 로그인 성공] status=$currentStatus")
@@ -337,7 +367,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = ""
+                inactiveDate = response.inactiveDate
             )
         }.onFailure { e ->
             Log.e(TAG, "[구글 로그인 실패] ${e.message}")

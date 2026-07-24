@@ -11,6 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -54,8 +57,6 @@ import com.linku.login.viewmodel.state.LoginUiEffect
 @Composable
 fun LoginApp(
     onLoginSuccess: () -> Unit,
-    onAutoLoginSuccess: () -> Unit,
-    onAutoLoginFail: () -> Unit,
     loginViewModel: LoginViewModel,
     // 그라데이션 배경(AnimatedLoginScreen/LoginScreen)이 보이는 동안에만 true를 전달해서
     // 상위(MainScreen)의 흰색 상태바 스크림을 끔. 그 외 로그인 하위 화면은 흰 상태바가 기본.
@@ -63,13 +64,20 @@ fun LoginApp(
 ) {
     val navController = rememberNavController()
 
-    // 채널 effect는 오직 LoginApp에서만
+    // 탈퇴 유예기간(INACTIVE) 계정 복구 모달 표시 여부. 단순 1회성 이벤트라 uiState가 아닌
+    // sideEffect(ShowRecoverModal)로 받아서 여기서 remember 상태로만 관리함.
+    var showRecoverModal by remember { mutableStateOf(false) }
+
+    // 채널 effect는 오직 LoginApp에서만.
+    // 자동 로그인 성공/실패는 Splash가 loginViewModel.autoLoginState(StateFlow)를 직접 관찰해 라우팅하므로
+    // 여기서는 다루지 않음 - LoginApp은 자동 로그인 시점엔 아직 컴포즈되지 않아 이 채널로 보내면
+    // 이벤트가 버퍼에 쌓였다가, 로그아웃/탈퇴 후 LoginApp이 뒤늦게 재구성될 때 그 오래된 이벤트를
+    // 받아 엉뚱하게 홈으로 되돌아가는 문제가 있었음.
     LaunchedEffect(Unit) {
         loginViewModel.sideEffect.collect { effect ->
             when (effect) {
                 is LoginUiEffect.LoginSuccess -> onLoginSuccess()
-                is LoginUiEffect.AutoLoginSuccess -> onAutoLoginSuccess()
-                is LoginUiEffect.AutoLoginFail -> onAutoLoginFail()
+                is LoginUiEffect.ShowRecoverModal -> showRecoverModal = true
             }
         }
     }
@@ -161,6 +169,8 @@ fun LoginApp(
 
                 EmailLoginScreen(
                     loginViewModel = loginViewModel,
+                    showRecoverModal = showRecoverModal,
+                    onDismissRecoverModal = { showRecoverModal = false },
                     onSignUpClick = {
                         parentEntry.savedStateHandle["show_terms_sheet"] = true
                     },

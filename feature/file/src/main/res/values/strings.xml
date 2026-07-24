@@ -1,5 +1,3 @@
 <resources>
-    <string name="title_activity_item_file">ItemFile</string>
-<!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="share_link_create_failed">링크 공유에 실패하였습니다. 다시 시도해주세요.</string>
 </resources>

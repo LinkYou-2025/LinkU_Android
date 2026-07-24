@@ -8,8 +8,6 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.model.alarm.AlarmType
-import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
@@ -18,7 +16,6 @@ import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -66,7 +63,7 @@ class MainViewModel @Inject constructor(
 
     // 메인 뷰모델은 액티비티에 속해있어서 앱 종료까지 살아있어서, 로그아웃시에도 닉네임 정보 살아 있을 수 있음. 제거용 구현
     fun clearNickname() {
-        _nickname.value
+        _nickname.value = ""
     }
 
     private val connectivityManager =

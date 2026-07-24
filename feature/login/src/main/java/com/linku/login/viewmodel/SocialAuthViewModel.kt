@@ -12,6 +12,7 @@ import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.AuthRepository
+import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
@@ -38,6 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SocialAuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val userRepository: UserRepository,
     private val authPreference: AuthPreference
 ) : ViewModel(),
     MviContainer<SocialAuthUiState, SocialAuthUiEffect> by mviContainer(SocialAuthUiState()) {
@@ -56,6 +58,17 @@ class SocialAuthViewModel @Inject constructor(
 
     init {
         observeNicknameQuery()
+        loadRecentLoginType()
+    }
+
+    /**
+     * 로그인 화면에 "최근 로그인" 말풍선을 표시하기 위해 마지막으로 로그인했던 수단을 불러옵니다.
+     */
+    private fun loadRecentLoginType() {
+        viewModelScope.launch {
+            val recentLoginType = authPreference.getLoginType()
+            updateState { copy(recentLoginType = recentLoginType) }
+        }
     }
 
     private fun updateForm(update: (SocialLoginForm) -> SocialLoginForm) {
@@ -122,17 +135,66 @@ class SocialAuthViewModel @Inject constructor(
     }
 
     /**
-     * 인증 성공 후 전달받은 회원의 가입 영속 상태(TEMP / ACTIVE)를 판별하여 화면 흐름(Side Effect)을 제어합니다.
+     * 인증 성공 후 전달받은 회원의 가입 영속 상태(TEMP / ACTIVE / INACTIVE)를 판별하여 화면 흐름(Side Effect)을 제어합니다.
      */
     private suspend fun handleLoginRoute(result: LoginResult) {
-        if (result.status == "TEMP") {
-            Log.d(TAG, "신규 TEMP 회원 감지 -> 로컬 세션 초기화 및 온보딩 입력 플로우 지시")
-            authPreference.clear()
-            postSideEffect(SocialAuthUiEffect.NavigateToAdditionalInfo(result))
-        } else {
-            Log.d(TAG, "기존 ACTIVE 회원 감지 -> 로컬 토큰 자동 동기화 완료 상태로 홈 진입 지시")
-            postSideEffect(SocialAuthUiEffect.NavigateToHome(result))
+        when (result.status) {
+            "TEMP" -> {
+                Log.d(TAG, "신규 TEMP 회원 감지 -> 로컬 세션 초기화 및 온보딩 입력 플로우 지시")
+                authPreference.clear()
+                postSideEffect(SocialAuthUiEffect.NavigateToAdditionalInfo(result))
+            }
+
+            "INACTIVE" -> {
+                // 탈퇴 유예기간 계정 -> 홈으로 보내지 않고 복구 여부를 묻는 모달을 띄움.
+                Log.d(TAG, "탈퇴 유예기간 계정 감지 -> 복구 모달 노출")
+                updateState { copy(showRecoverModal = true, pendingLoginResult = result) }
+            }
+
+            else -> {
+                Log.d(TAG, "기존 ACTIVE 회원 감지 -> 로컬 토큰 자동 동기화 완료 상태로 홈 진입 지시")
+                postSideEffect(SocialAuthUiEffect.NavigateToHome(result))
+            }
         }
+    }
+
+    /**
+     * 복구 모달에서 "계정 복구"를 선택했을 때 호출됨. 로그인 응답으로 이미 저장된
+     * 복구 전용 accessToken을 이용해 `users/recover`를 호출하고, 성공하면 정상 로그인과
+     * 동일하게 홈으로 이동시킴.
+     */
+    fun recoverAccount() {
+        viewModelScope.launch {
+            val pendingResult = state.value.pendingLoginResult
+            val recovered = userRepository.recoverUser()
+            updateState { copy(showRecoverModal = false, pendingLoginResult = null) }
+
+            if (recovered && pendingResult != null) {
+                Log.d(TAG, "계정 복구 성공")
+                postSideEffect(SocialAuthUiEffect.NavigateToHome(pendingResult))
+            } else {
+                Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)")
+                // 복구 실패 시 계정은 여전히 비활성 상태이므로 임시 저장된 세션을 정리함.
+                authPreference.clear()
+                postSideEffect(SocialAuthUiEffect.ShowToast("계정 복구에 실패했습니다. 다시 시도해주세요."))
+            }
+        }
+    }
+
+    /**
+     * 복구 모달에서 "탈퇴 유지"를 선택했을 때 호출됨. 로그인 응답으로 임시 저장해둔
+     * 세션(복구 전용 토큰)을 지우고 로그인 화면에 그대로 남김.
+     */
+    fun keepWithdrawn() {
+        viewModelScope.launch {
+            authPreference.clear()
+            updateState { copy(showRecoverModal = false, pendingLoginResult = null) }
+        }
+    }
+
+    /** 복구 모달을 순수 UI적으로만 닫음(외부 영역 클릭 등). 세션은 건드리지 않음. */
+    fun dismissRecoverModal() {
+        updateState { copy(showRecoverModal = false) }
     }
 
     /**

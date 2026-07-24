@@ -3,6 +3,7 @@ package com.linku.data.api
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.folder.FolderCreateRequestDTO
 import com.linku.data.api.dto.folder.FolderListResponseDTO
+import com.linku.data.api.dto.folder.FolderPermissionRequestDTO
 import com.linku.data.api.dto.folder.FolderResponseDTO
 import com.linku.data.api.dto.folder.FolderTreeResponseDTO
 import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
@@ -13,7 +14,6 @@ import com.linku.data.api.dto.folder.ShareFolderResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkResponseDTO
 import com.linku.data.api.dto.folder.ViewerResponseDTO
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -37,7 +37,9 @@ interface FolderApi {
 
     // (중분류) 중분류 폴더 조회
     @GET("folders/parentFolders")
-    suspend fun getParentfolders(): BaseResponse<List<GetParentFoldersDTO>>
+    suspend fun getParentfolders(
+        @Query("sort") sort: String? = "name"
+    ): BaseResponse<List<GetParentFoldersDTO>>
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
     @GET("folders/{parentFolderId}/subfolders")
@@ -50,7 +52,8 @@ interface FolderApi {
     suspend fun getLinksFolders(
         @Path("folderId") folderId: Long,
         @Query("limit") limit: Int? = 20,
-        @Query("cursor") cursor: String? = null
+        @Query("cursor") cursor: String? = null,
+        @Query("sort") sort: String? = "name"
     ): BaseResponse<LinksFoldersResponseDTO>
 
     // (소분류) 폴더 생성 (소분류 폴더 생성)
@@ -71,7 +74,7 @@ interface FolderApi {
     @DELETE("folders/subfolders/{folderId}")
     suspend fun deleteSubfolder(
         @Path("folderId") folderId: Long
-    ): Response<Unit>
+    ): BaseResponse<*>
 
     // 공유 받은 폴더 목록 조회
     @GET("folders/shared")
@@ -81,7 +84,7 @@ interface FolderApi {
     @DELETE("folders/shared/{folderId}")
     suspend fun deleteSharedFolder(
         @Path("folderId") folderId: Long
-    ): Response<Unit>
+    ): BaseResponse<*>
 
     // 폴더 공유 (뷰어 권한 설정)
     @POST("folders/share/{folderId}")
@@ -100,7 +103,7 @@ interface FolderApi {
     suspend fun updateViewerPermission(
         @Path("folderId") folderId: Long,
         @Path("userFolderId") userFolderId: Long,
-        @Body body: String
+        @Body body: FolderPermissionRequestDTO
     ): BaseResponse<ShareFolderResponseDTO>
 
     // 폴더 비공개 전환
@@ -113,4 +116,9 @@ interface FolderApi {
     suspend fun makeInvitationLinkApi(
         @Path("folderId") folderId: Long
     ): BaseResponse<String>
+
+    @DELETE("folders/share/{folderId}/invitation")
+    suspend fun deactivateInvitationLink(
+        @Path("folderId") folderId: Long
+    ): BaseResponse<*>
 }

@@ -4,12 +4,14 @@ import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.dto.user.DeleteUserResponseDTO
 import com.linku.data.api.dto.user.NicknameResponseDTO
+import com.linku.data.api.dto.user.RecoverUserResponseDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.dto.user.UserInfoResponseDTO
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface UserApi {
 
@@ -41,6 +43,17 @@ interface UserApi {
     suspend fun deleteUser(
         @Body body: DeleteUserRequestDTO
     ): BaseResponse<DeleteUserResponseDTO>
+
+    // 로그아웃 - 요청의 deviceId에 해당하는 현재 디바이스 세션만 로그아웃
+    @POST("auth/logout")
+    suspend fun logout(
+        @Query("deviceId") deviceId: String
+    ): BaseResponse<*> // result {}
+
+    // 회원 탈퇴 복구 (계정 활성화) - 탈퇴 유예기간(14일) 내 재로그인 시 호출.
+    // 로그인 응답의 accessToken(purpose=RECOVER)이 Authorization 헤더로 자동 첨부됨.
+    @POST("users/recover")
+    suspend fun recoverUser(): BaseResponse<RecoverUserResponseDTO>
 
 //    // 로그인
 //    @POST("users/login")
