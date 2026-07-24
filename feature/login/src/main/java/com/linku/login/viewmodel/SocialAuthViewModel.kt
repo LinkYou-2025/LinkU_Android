@@ -1,5 +1,6 @@
 package com.linku.login.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,12 +15,14 @@ import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
+import com.linku.login.R
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.SocialAuthUiEffect
 import com.linku.login.viewmodel.state.SocialAuthUiState
 import com.linku.login.viewmodel.state.SocialLoginForm
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -40,7 +43,8 @@ import javax.inject.Inject
 class SocialAuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel(),
     MviContainer<SocialAuthUiState, SocialAuthUiEffect> by mviContainer(SocialAuthUiState()) {
 
@@ -142,7 +146,12 @@ class SocialAuthViewModel @Inject constructor(
             "TEMP" -> {
                 Log.d(TAG, "신규 TEMP 회원 감지 -> 로컬 세션 초기화 및 온보딩 입력 플로우 지시")
                 authPreference.clear()
-                postSideEffect(SocialAuthUiEffect.NavigateToAdditionalInfo(result))
+                postSideEffect(
+                    SocialAuthUiEffect.NavigateToAdditionalInfo(
+                        result,
+                        currentSocialProvider
+                    )
+                )
             }
 
             "INACTIVE" -> {
@@ -210,7 +219,7 @@ class SocialAuthViewModel @Inject constructor(
      * 없으므로 [ApiError]의 표시 메시지 대신 고정 문구를 사용합니다.
      */
     fun notifySocialLoginFailed() {
-        postSideEffect(SocialAuthUiEffect.ShowToast("간편 로그인 실패. 다시 시도해주세요!"))
+        postSideEffect(SocialAuthUiEffect.ShowToast(context.getString(R.string.error_social_login_failed)))
     }
 
     /**
@@ -308,8 +317,13 @@ class SocialAuthViewModel @Inject constructor(
 
     /**
      * 입력 수집된 온보딩 성향 프로필 폼 패키지를 취합하여 서버에 소셜 프로필 설정 완성 처리를 최종 확정 요청합니다.
+     *
+     * @param loginType 로그인 화면에서 인증에 사용한 소셜 공급자(카카오/구글). 이 화면은 로그인 화면과
+     * 다른 nav graph(`social_auth_graph`)에 속해 별도의 [SocialAuthViewModel] 인스턴스를 쓰기 때문에,
+     * 로그인 시점에 세팅된 `currentSocialProvider`를 그대로 참조할 수 없음(항상 초기값 [LoginType.NONE]).
+     * 그래서 로그인 단계에서 `SavedStateHandle`로 넘겨받은 값을 파라미터로 명시적으로 전달받음.
      */
-    fun completeSocialProfile(socialToken: String) {
+    fun completeSocialProfile(socialToken: String, loginType: LoginType) {
         val form = state.value.socialLoginForm
         if (form.nickname.isBlank() || state.value.nicknameCheckState != NicknameCheckState.Available) {
             Log.w(TAG, "필수 가입 온보딩 명세 누락 우회 차단 예외 발생")
@@ -334,7 +348,7 @@ class SocialAuthViewModel @Inject constructor(
                 purposes = form.purposes,
                 interests = form.interests,
                 termsMap = termsMap,
-                loginType = currentSocialProvider
+                loginType = loginType
             ).foldApp(
                 onSuccess = { isSuccess ->
                     updateState { copy(isLoading = false) }
@@ -343,12 +357,15 @@ class SocialAuthViewModel @Inject constructor(
                         Log.d(TAG, "소셜 프로필 동기화 전면 성공 - 자동 로그인 완료")
                         postSideEffect(SocialAuthUiEffect.CompleteProfileSuccess)
                     } else {
-                        updateState { copy(error = "프로필 저장 처리에 실패하였습니다.") }
+                        val message = "프로필 저장 처리에 실패하였습니다."
+                        updateState { copy(error = message) }
+                        postSideEffect(SocialAuthUiEffect.ShowToast(message))
                     }
                 },
                 onFailure = { error ->
                     Log.e(TAG, "온보딩 프로필 전송 중 원격 예외 발생", error)
                     updateState { copy(isLoading = false, error = error.displayMessage) }
+                    postSideEffect(SocialAuthUiEffect.ShowToast(error.displayMessage))
                 }
             )
         }

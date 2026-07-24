@@ -25,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.LoginType
 import com.linku.login.LoginScreen
 import com.linku.login.R
 import com.linku.login.ui.animation.AnimatedLoginScreen
@@ -140,13 +141,17 @@ fun LoginApp(
                         parentEntry.savedStateHandle["show_terms_sheet"] = false
                         navController.navigate("email_login")
                     },
-                    onNavigateToSocialOnboarding = { token ->
+                    onNavigateToSocialOnboarding = { token, loginType ->
                         // TEMP 신규 사용자 감지 시 소셜 온보딩 하위 그래프 세션 인입
                         navController.navigate("social_auth_graph") {
                             launchSingleTop = true
                         }
-                        navController.getBackStackEntry("social_auth_graph")
-                            .savedStateHandle["socialToken"] = token
+                        navController.getBackStackEntry("social_auth_graph").savedStateHandle.apply {
+                            set("socialToken", token)
+                            // social_auth_graph는 auth_graph와 별도의 SocialAuthViewModel 인스턴스를 쓰므로
+                            // 로그인 수단(카카오/구글)을 여기로 같이 넘겨야 completeSocialProfile()에서 유실 안 됨.
+                            set("socialLoginType", loginType)
+                        }
                     },
                     onAnimationSkipHandled = {
                         parentEntry.savedStateHandle.remove<Boolean>("skip_login_animation")
@@ -417,14 +422,15 @@ fun LoginApp(
                     onNavigateToEmailLogin = {
                         navController.navigate("email_login")
                     },
-                    onNavigateToSocialOnboarding = { token ->
+                    onNavigateToSocialOnboarding = { token, loginType ->
                         // TEMP 유저 효과 발생 시 내비게이션 흐름 및 세션 전달을 그래프가 제어합니다.
-                        // TODO : 수정하기
                         navController.navigate("social_auth_graph") {
                             launchSingleTop = true
                         }
-                        navController.getBackStackEntry("social_auth_graph")
-                            .savedStateHandle["socialToken"] = token
+                        navController.getBackStackEntry("social_auth_graph").savedStateHandle.apply {
+                            set("socialToken", token)
+                            set("socialLoginType", loginType)
+                        }
                     },
                     logoSlot = {
                         Image(
@@ -569,6 +575,10 @@ fun LoginApp(
             socialComposable("social_interest") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
                 val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
+                // 로그인 화면에서 SavedStateHandle로 넘겨받음 - social_auth_graph는 auth_graph와
+                // 별도의 SocialAuthViewModel 인스턴스를 쓰기 때문에 이 값을 직접 전달해야 함.
+                val socialLoginType = parentEntry.savedStateHandle.get<LoginType>("socialLoginType")
+                    ?: LoginType.NONE
 
                 // 완료 버튼 클릭 시 completeSocialProfile API를 직접 호출하고, 응답 토큰으로
                 // 자동 로그인 세션 저장까지 끝난 뒤 onComplete(=onLoginSuccess)로 바로 홈 이동.
@@ -576,6 +586,7 @@ fun LoginApp(
                     onBackClick = { navController.popBackStack() },
                     viewModel = vm,
                     socialToken = socialToken,
+                    socialLoginType = socialLoginType,
                     onComplete = onLoginSuccess
                 )
             }

@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.linku.core.model.auth.LoginType
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
 import com.linku.design.util.scaler
@@ -37,7 +38,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AnimatedLoginScreen(
     onNavigateToEmailLogin: () -> Unit,
-    onNavigateToSocialOnboarding: (accessToken: String) -> Unit,
+    onNavigateToSocialOnboarding: (accessToken: String, loginType: LoginType) -> Unit,
     onAnimationSkipHandled: () -> Unit,
     skipAnimation: Boolean = false,
     viewModel: SocialAuthViewModel,

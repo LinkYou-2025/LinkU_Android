@@ -12,6 +12,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.LoginType
 import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.layout.SignUpSelectionLayout
@@ -23,6 +24,7 @@ fun SocialInterestScreen(
     onBackClick: () -> Unit,
     viewModel: SocialAuthViewModel,
     socialToken: String,
+    socialLoginType: LoginType,
     onComplete: () -> Unit
 ) {
     BackHandler { onBackClick() }
@@ -61,7 +63,7 @@ fun SocialInterestScreen(
         buttonText = "완료",
         canProceed = selectedInterests.isNotEmpty() && !uiState.isLoading,
         onButtonClick = {
-            viewModel.completeSocialProfile(socialToken)
+            viewModel.completeSocialProfile(socialToken, socialLoginType)
         },
         onToggle = { interest ->
             viewModel.toggleInterest(interest)

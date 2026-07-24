@@ -124,7 +124,7 @@ private fun handleKakaoLogin(
 @Composable
 fun LoginScreen(
     onNavigateToEmailLogin: () -> Unit,
-    onNavigateToSocialOnboarding: (accessToken: String) -> Unit,
+    onNavigateToSocialOnboarding: (accessToken: String, loginType: LoginType) -> Unit,
     viewModel: SocialAuthViewModel,
     onLoginSuccess: () -> Unit = {},
     logoOffsetY: Float = 0f,
@@ -162,7 +162,7 @@ fun LoginScreen(
 
                 is SocialAuthUiEffect.NavigateToAdditionalInfo -> {
                     Log.d(TAG, "MVI Effect 수령: TEMP 유저 -> 온보딩 위임 콜백 트리거")
-                    onNavigateToSocialOnboarding(effect.loginResult.accessToken)
+                    onNavigateToSocialOnboarding(effect.loginResult.accessToken, effect.loginType)
                 }
 
                 is SocialAuthUiEffect.ShowToast -> {
@@ -423,7 +423,7 @@ fun LoginScreenPreview() {
     LinkuPreview {
         LoginScreen(
             onNavigateToEmailLogin = {},
-            onNavigateToSocialOnboarding = {},
+            onNavigateToSocialOnboarding = { _, _ -> },
             viewModel = viewModel()
         )
     }
