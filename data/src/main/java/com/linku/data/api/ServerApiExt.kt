@@ -11,6 +11,8 @@ import retrofit2.Response
 import java.io.IOException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
+import com.linku.core.error.ApiError as DomainApiError
+import com.linku.core.error.NetworkError as DomainNetworkError
 
 // 추후 기능 확장용 - 네트워크, 서버 오류시 모달창에 활용 -> 기능 확장용
 // Exception(모든 에러의 최상위 부모)
@@ -280,19 +282,23 @@ suspend fun <T> ServerApi.withAuthResp204Raw(
     return withTokenRefresh(authPreference) { execute() }
 }
 
-// 로그인 오류 타입 명시
+/**
+ * 이메일 로그인([safeApiCall] 경유)이 실제로 던지는 예외를 화면에 표시할 [LoginErrorType]으로 변환합니다.
+ *
+ * `authRepository.login()`은 내부적으로 [safeApiCall]을 쓰기 때문에, 실패 시 이 파일 위쪽에 정의된
+ * `@Deprecated ApiError`가 아니라 [com.linku.core.error.ApiError]/[com.linku.core.error.NetworkError]
+ * (도메인 에러) 계열을 던집니다. 예전엔 이 함수가 `@Deprecated ApiError`만 알고 있어서 실제로는 절대
+ * 매칭되지 않았고, 비밀번호 오류 같은 모든 로그인 실패가 else 분기(UNKNOWN_ERROR)로 빠지는 버그가 있었음.
+ *
+ * [safeApiCall]이 `HttpException`/`IOException`류를 이미 내부에서 도메인 에러로 전부 변환해주므로,
+ * 이 함수까지 raw `HttpException`/`IOException`이 넘어오는 경우는 없음 (죽은 분기라 제거함).
+ */
 fun Exception.toLoginErrorType(): LoginErrorType = when (this) {
-    is ApiError.Unauthorized,
-    is ApiError.BusinessError -> LoginErrorType.INVALID_CREDENTIALS // 아이디/비번 틀림
-    is ApiError.NetworkError  -> LoginErrorType.NETWORK_ERROR // 인터넷 끊김
-    is ApiError.ServerError   -> LoginErrorType.SERVER_ERROR // 서버 오류
-    is ApiError.TokenExpired  -> LoginErrorType.SERVER_ERROR // 알 수 없는 오류
-    is HttpException -> when (code()) {
-        401, 403     -> LoginErrorType.INVALID_CREDENTIALS
-        in 500..599  -> LoginErrorType.SERVER_ERROR
-        else         -> LoginErrorType.UNKNOWN_ERROR
-    }
-    is IOException -> LoginErrorType.NETWORK_ERROR
+    is DomainApiError.User.LoginFailed -> LoginErrorType.INVALID_CREDENTIALS // USERS4012 - 이메일/비밀번호 불일치
+    is DomainApiError.Common.Unauthorized -> LoginErrorType.INVALID_CREDENTIALS
+    is DomainApiError.User.Inactive -> LoginErrorType.INACTIVE_USER_ERROR
+    is DomainNetworkError -> LoginErrorType.NETWORK_ERROR // 연결 끊김/타임아웃
+    is DomainApiError.Common.InternalServer -> LoginErrorType.SERVER_ERROR
     else           -> LoginErrorType.UNKNOWN_ERROR
 }
 
