@@ -205,6 +205,15 @@ class SocialAuthViewModel @Inject constructor(
     }
 
     /**
+     * 카카오/구글 SDK 인증 절차 자체가 실패했을 때(취소가 아닌 진짜 실패) UI에서 호출하는 공통 알림입니다.
+     * 서버 API 실패([loginWithKakao]/[loginWithGoogle]의 onFailure)와 달리, 이 경우는 서버 응답 자체가
+     * 없으므로 [ApiError]의 표시 메시지 대신 고정 문구를 사용합니다.
+     */
+    fun notifySocialLoginFailed() {
+        postSideEffect(SocialAuthUiEffect.ShowToast("간편 로그인 실패. 다시 시도해주세요!"))
+    }
+
+    /**
      * 닉네임의 문법 및 길이 유효성을 판단합니다. (SignUpViewModel과 동일 규격 규정)
      */
     private fun isValidNickname(input: String): Boolean {
