@@ -1,10 +1,13 @@
 package com.linku
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -23,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -476,7 +480,6 @@ fun MainApp(
                 composable("savelink") {
                     val context = LocalContext.current
 
-                    // 갤러리 런처: Uri -> 임시 File 로 복사해서 뷰모델에 전달
                     val imagePicker = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
                     ) { uri: Uri? ->
@@ -489,6 +492,28 @@ fun MainApp(
                         }
                     }
 
+                    val photoPermission = if (
+                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                    ) {
+                        Manifest.permission.READ_MEDIA_IMAGES
+                    } else {
+                        Manifest.permission.READ_EXTERNAL_STORAGE
+                    }
+
+                    val permissionLauncher = rememberLauncherForActivityResult(
+                        contract = ActivityResultContracts.RequestPermission()
+                    ) { isGranted ->
+                        if (isGranted) {
+                            imagePicker.launch("image/*")
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "사진을 추가하려면 사진 접근 권한이 필요합니다.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+
                     SaveLinkScreen(
                         image = saveLinkViewModel.image,
                         url = saveLinkViewModel.url,
@@ -497,7 +522,27 @@ fun MainApp(
                         selectedEmotionId = saveLinkViewModel.selectedEmotionId,
                         selectedSituationId = saveLinkViewModel.selectedSituationId,
                         jobId = saveLinkViewModel.jobId ?: 3L,
-                        onPickImage = { imagePicker.launch("image/*") },
+                        onPickImage = {
+                            when {
+                                // Android 6.0 미만은 런타임 권한 요청 없이 실행
+                                Build.VERSION.SDK_INT < Build.VERSION_CODES.M -> {
+                                    imagePicker.launch("image/*")
+                                }
+
+                                // 이미 권한이 허용된 경우 바로 이미지 선택기 실행
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    photoPermission
+                                ) == PackageManager.PERMISSION_GRANTED -> {
+                                    imagePicker.launch("image/*")
+                                }
+
+                                // 권한이 없다면 시스템 권한 팝업 표시
+                                else -> {
+                                    permissionLauncher.launch(photoPermission)
+                                }
+                            }
+                        },
                         onDeleteImage = saveLinkViewModel::deleteImage,
                         onUrlChange = saveLinkViewModel::setUrl,
                         onTitleChange = saveLinkViewModel::setTitle,
