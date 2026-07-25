@@ -102,11 +102,7 @@ fun MainApp(
     val nickname by viewModel.nickname.collectAsStateWithLifecycle()
 
 
-    // 앱 실행 시 실행하여 이전 계정 기록 삭제
-    // FIXME : 지민님한테 여쭈어보기. 매번 앱 실행할 때마다 최근 기록을 지우는 것보다는 로그아웃 때 지우는건 어떤지
     LaunchedEffect(Unit) {
-        viewModel.clearRecentQuery()
-
         val smallestWidth = app.resources.configuration.smallestScreenWidthDp
         val deviceType = if (smallestWidth >= 600) "TABLET" else "PHONE"
         viewModel.initDeviceInfo(deviceType)

@@ -8,7 +8,6 @@ import android.net.NetworkRequest
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.data.preference.AuthPreference
@@ -30,7 +29,6 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     application: Application,
-    private val recentRepository: RecentSearchRepository,
     private val notificationPreference: NotificationPreference,
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
@@ -111,28 +109,6 @@ class MainViewModel @Inject constructor(
                 capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
-
-    // 최근 검색 기록 전체 삭제
-    // 앱 실행 시 실행하여 이전 계정 기록 삭제
-    fun clearRecentQuery() {
-        Log.d("MainViewModel", "clearRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("MainViewModel", "clearRecentQuery launch")
-
-            try{
-                Log.d("MainViewModel", "clearRecentQuery try")
-
-                recentRepository.clear()
-
-            }catch (e: Exception){
-                Log.d("MainViewModel", "clearRecentQuery catch: $e.message")
-            }finally {
-                Log.d("MainViewModel", "clearRecentQuery finally")
-            }
-        }
-        Log.d("MainViewModel", "clearRecentQuery return")
-    }
 
     // 디바이스 정보 초기화 비즈니스 로직 내포
     fun initDeviceInfo(deviceType: String) {
