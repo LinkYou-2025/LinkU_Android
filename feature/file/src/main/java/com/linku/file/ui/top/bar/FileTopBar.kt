@@ -45,6 +45,7 @@ fun FileTopBar(
     fileViewModel: FileViewModel,
     editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
+    onSearchClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -106,9 +107,7 @@ fun FileTopBar(
                 .align(Alignment.TopCenter)
                 // 위쪽 여백 (91dp)
                 .padding(top = 91.dp, start = 16.dp, end = 16.dp)
-                .noRippleClickable {
-                    folderStateViewModel.updateSearchTopSheetVisible(true)
-                },
+                .noRippleClickable(onClick = onSearchClick),
         ) {
             // 커스텀 검색창
             FileSearchBar()
@@ -215,5 +214,6 @@ private fun FileTopBarTest() {
         viewModel(),
         viewModel(),
         viewModel(),
+        {},
     )
 }

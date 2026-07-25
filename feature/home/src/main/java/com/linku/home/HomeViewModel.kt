@@ -7,21 +7,16 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LinkSimpleInfo
-import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
-import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -32,7 +27,6 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
-    private val recentRepository: RecentSearchRepository,
 ) : ViewModel() {
 
     // 자돌 로그인 하고 이 함수가 가장 먼저 실행함.
@@ -216,116 +210,13 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // ---------- search method ----------
     // 검색창 탑 시트 가시성 상태
     var searchTopSheetVisible by mutableStateOf(false)
         private set
+
     fun updateSearchTopSheetVisible(newState: Boolean) {
         Log.d("searchTopSheetVisible", newState.toString())
         searchTopSheetVisible = newState
     }
 
-    // 빠른 링크 검색 목록
-    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
-    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
-
-    // 빠른 링크 검색
-    fun fastSearch(keyword: String){
-        Log.d("HomeViewModel", "fastSearch")
-
-        viewModelScope.launch{
-            Log.d("HomeViewModel", "fastSearch launch")
-            try{
-                Log.d("HomeViewModel", "fastSearch try")
-
-                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
-                    FastSearchItem(
-                        id = it.linkuId,
-                        title = it.title,
-                        url = it.linkUrl
-                    )
-                }
-
-                Log.d("HomeViewModel", "fastSearch try result: ${_fastSearchItems.value}")
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "fastSearch catch: $e.message")
-
-            }finally {
-                Log.d("HomeViewModel", "fastSearch finally")
-            }
-        }
-    }
-
-    //최근 검색 목록
-    val recentQueryList: StateFlow<List<RecentQuery>> =
-        recentRepository.observe(limit = 20)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
-    // 최근 검색 기록 추가
-    fun addRecentQuery(query: String) {
-        Log.d("HomeViewModel", "addRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("HomeViewModel", "addRecentQuery launch")
-
-            try{
-                Log.d("HomeViewModel", "addRecentQuery try")
-
-                recentRepository.add(query)
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "addRecentQuery catch: $e.message")
-            }finally {
-                Log.d("HomeViewModel", "addRecentQuery finally")
-            }
-        }
-        Log.d("HomeViewModel", "addRecentQuery return")
-    }
-
-    // 최근 검색 기록 삭제
-    fun removeRecentQuery(query: String) {
-        Log.d("HomeViewModel", "removeRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("HomeViewModel", "removeRecentQuery launch")
-
-            try{
-                Log.d("HomeViewModel", "removeRecentQuery try")
-
-                recentRepository.remove(query)
-
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "removeRecentQuery catch: $e.message")
-            }finally {
-                Log.d("HomeViewModel", "removeRecentQuery finally")
-            }
-        }
-        Log.d("HomeViewModel", "removeRecentQuery return")
-    }
-
-
-    // 최근 검색 기록 전체 삭제
-    fun clearRecentQuery() {
-        Log.d("HomeViewModel", "clearRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("HomeViewModel", "clearRecentQuery launch")
-
-            try{
-                Log.d("HomeViewModel", "clearRecentQuery try")
-
-                recentRepository.clear()
-
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "clearRecentQuery catch: $e.message")
-            }finally {
-                Log.d("HomeViewModel", "clearRecentQuery finally")
-            }
-        }
-        Log.d("HomeViewModel", "clearRecentQuery return")
-    }
-    // ---------- search method ----------
 }

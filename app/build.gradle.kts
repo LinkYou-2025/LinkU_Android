@@ -170,6 +170,9 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
 
+    // Paging
+    implementation(libs.paging.runtime)
+
     implementation(libs.lottie)
 
 }

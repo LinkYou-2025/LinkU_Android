@@ -90,6 +90,9 @@ dependencies {
     // lazy grid
     implementation(libs.grid)
 
+    // Paging
+    implementation(libs.paging.runtime)
+
     // Retrofit
     implementation(libs.retrofit2)
 

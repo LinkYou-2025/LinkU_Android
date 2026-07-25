@@ -1,8 +1,12 @@
 package com.linku.design
 
 import androidx.compose.runtime.*
-import com.linku.design.top.search.FastSearchItem
+import androidx.paging.PagingData
+import com.linku.design.top.search.RecentSearchItem
 import com.linku.design.top.search.SearchBarTopSheet
+import com.linku.design.top.search.SearchBarUiState
+import com.linku.design.top.search.SearchResultItem
+import kotlinx.coroutines.flow.flowOf
 import kotlin.math.min
 
 /**
@@ -13,14 +17,15 @@ import kotlin.math.min
 @Composable
 fun SearchTopSheetHost(
     visible: Boolean,
-    allItems: List<FastSearchItem>,   // 🔹 검색 대상 전체(서버/DB에서 만든 리스트)
+    allItems: List<SearchResultItem>,   // 🔹 검색 대상 전체(서버/DB에서 만든 리스트)
     onDismiss: () -> Unit
 ) {
     // 최근 검색(최신 우선, 최대 10개)
-    var recent by remember { mutableStateOf(listOf<String>()) }
+    var recent by remember { mutableStateOf(listOf<RecentSearchItem>()) }
+    var nextRecentId by remember { mutableLongStateOf(0L) }
 
     // 필터링 결과
-    var filtered by remember { mutableStateOf<List<FastSearchItem>>(emptyList()) }
+    var filtered by remember { mutableStateOf<List<SearchResultItem>>(emptyList()) }
 
     // SearchBarTopSheet가 350ms 디바운스를 이미 해주므로 여기선 즉시 필터만
     val onQueryChange: (String) -> Unit = { raw ->
@@ -31,16 +36,27 @@ fun SearchTopSheetHost(
     val onQuerySave: (String) -> Unit = { raw ->
         val q = raw.trim()
         if (q.length >= 2) {
-            recent = listOf(q) + recent.filterNot { it.equals(q, ignoreCase = true) }
+            val item = recent.firstOrNull {
+                it.keyword.equals(q, ignoreCase = true)
+            } ?: RecentSearchItem(
+                searchHistoryId = nextRecentId++,
+                keyword = q
+            )
+            recent = listOf(item) + recent.filterNot {
+                it.keyword.equals(q, ignoreCase = true)
+            }
             if (recent.size > 10) recent = recent.take(10)
         }
     }
 
-    val onQueryDelete: (String) -> Unit = { t ->
-        recent = recent.filterNot { it.equals(t, ignoreCase = true) }
+    val onQueryDelete: (Long) -> Unit = { searchHistoryId ->
+        recent = recent.filterNot { it.searchHistoryId == searchHistoryId }
     }
 
     val onQueryClear: () -> Unit = { recent = emptyList() }
+    val searchResults = remember(filtered) {
+        flowOf(PagingData.from(filtered))
+    }
 
     SearchBarTopSheet(
         visible = visible,
@@ -49,36 +65,28 @@ fun SearchTopSheetHost(
         onQuerySave = onQuerySave,
         onQueryDelete = onQueryDelete,
         onQueryClear = onQueryClear,
-        fastSearchItems = filtered,
-        recentQueries = recent,
+        searchResults = searchResults,
+        uiState = SearchBarUiState(recentQueries = recent),
         onLinkClick = {}
     )
 }
 
 /** 간단 랭킹: 제목 매칭 가중치↑, 매칭 위치 빠를수록↑, 제목 짧을수록↑ */
-private fun filterAndRank(items: List<FastSearchItem>, query: String): List<FastSearchItem> {
+private fun filterAndRank(items: List<SearchResultItem>, query: String): List<SearchResultItem> {
     val q = query.lowercase()
     val scored = items.mapNotNull { item ->
         val lt = item.title.lowercase()
-        val lu = item.url.lowercase()
         val ti = lt.indexOf(q)
-        val ui = lu.indexOf(q)
-        if (ti < 0 && ui < 0) return@mapNotNull null
+        if (ti < 0) return@mapNotNull null
 
-        val titleHit = if (ti >= 0) 1 else 0
-        val urlHit = if (ui >= 0) 1 else 0
-        val positionScore = when {
-            ti >= 0 -> 100 - min(ti, 100)
-            ui >= 0 -> 50 - min(ui, 50)
-            else -> 0
-        }
+        val positionScore = 100 - min(ti, 100)
         val lengthScore = 50 - min(item.title.length, 50)
-        val score = (titleHit * 200) + (urlHit * 50) + positionScore + lengthScore
+        val score = 200 + positionScore + lengthScore
         item to score
     }
 
     return scored.sortedWith(
-        compareByDescending<Pair<FastSearchItem, Int>> { it.second }
+        compareByDescending<Pair<SearchResultItem, Int>> { it.second }
             .thenBy { it.first.title.lowercase() }
     ).map { it.first }
 }
