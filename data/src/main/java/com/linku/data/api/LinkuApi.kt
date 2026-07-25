@@ -77,8 +77,8 @@ interface LinkuApi {
     suspend fun recommendLink(
         @Query("situationId") situationId: Long,
         @Query("emotionId") emotionId: Long,
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 5
+        @Query("page") page: Int? = null,
+        @Query("size") size: Int? = null
     ) : BaseResponse<List<LinkuSimpleDTO>>
 
     // 빠른 링크 검색
