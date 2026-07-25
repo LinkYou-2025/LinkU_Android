@@ -24,10 +24,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,6 +76,7 @@ fun FolderItemLayout(
 ) {
     /** 폴더명 배지와 텍스트에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
+    val backdropLayer = rememberGraphicsLayer()
 
     // 디자인 원본 기준 사이즈입니다. 카드 비율과 내부 요소 스케일 계산의 기준값으로 사용합니다.
     val baseW = 165.3.dp
@@ -110,6 +113,7 @@ fun FolderItemLayout(
             fun s(dp: Dp) = dp * scale
             fun ssp(sp: TextUnit) = (sp.value * scale).sp
             val maskHeight = s(116.dp)
+            val maskTopOffset = maxHeight - maskHeight
 
             /**
              * 폴더 일러스트를 구성하는 단일 레이어를 현재 카드 크기에 맞춰 그립니다.
@@ -158,31 +162,44 @@ fun FolderItemLayout(
 
             /** 폴더 레이어와 하단 마스크를 하나의 카드 좌표계에 겹쳐 배치하는 루트 컨테이너입니다. */
             Box(
-                Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.fillMaxSize(),
             ) {
-                // 첫 번째 레이어: 가장 뒤쪽 종이입니다. 원본: 105.45, padding bottom 5.7, rot -7.39
-                FolderLayerBox(
-                    color = color1,
-                    size = 105.45.dp,
-                    padding = PaddingValues(bottom = 5.7.dp),
-                    rotation = -7.39f
-                )
-                // 두 번째 레이어: 가운데 종이입니다. 원본: 105.45, padding bottom 3.1825, rot 4.86
-                FolderLayerBox(
-                    color = color2,
-                    size = 105.45.dp,
-                    padding = PaddingValues(bottom = 3.1825.dp),
-                    rotation = 4.86f
-                )
-                // 세 번째 레이어: 가장 앞쪽 흰색/컬러 종이입니다. 원본: size 126.407 x 107.9605, padding top 7.6
-                FolderLayerBox(
-                    color = color3,
-                    size = 126.407.dp,
-                    height = 107.9605.dp,
-                    padding = PaddingValues(top = 7.6.dp),
-                    rotation = 0f
-                )
+                // 폴더 종이 레이어를 backdropLayer에 기록한 뒤 같은 콘텐츠를 현재 카드에도 그립니다.
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drawWithContent {
+                            backdropLayer.renderEffect = null
+                            backdropLayer.record {
+                                this@drawWithContent.drawContent()
+                            }
+                            drawContent()
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    // 첫 번째 레이어: 가장 뒤쪽 종이입니다. 원본: 105.45, padding bottom 5.7, rot -7.39
+                    FolderLayerBox(
+                        color = color1,
+                        size = 105.45.dp,
+                        padding = PaddingValues(bottom = 5.7.dp),
+                        rotation = -7.39f
+                    )
+                    // 두 번째 레이어: 가운데 종이입니다. 원본: 105.45, padding bottom 3.1825, rot 4.86
+                    FolderLayerBox(
+                        color = color2,
+                        size = 105.45.dp,
+                        padding = PaddingValues(bottom = 3.1825.dp),
+                        rotation = 4.86f
+                    )
+                    // 세 번째 레이어: 가장 앞쪽 흰색/컬러 종이입니다. 원본: size 126.407 x 107.9605, padding top 7.6
+                    FolderLayerBox(
+                        color = color3,
+                        size = 126.407.dp,
+                        height = 107.9605.dp,
+                        padding = PaddingValues(top = 7.6.dp),
+                        rotation = 0f
+                    )
+                }
 
                 /** 하단 폴더 마스크, 아이콘 슬롯, 폴더명 배지를 배치하는 영역입니다. */
                 Box(
@@ -190,7 +207,7 @@ fun FolderItemLayout(
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                 ) {
-                    // Compose FolderMask는 카드 하단을 채우고 전달받은 브러시로 전면 색상을 그립니다.
+                    // Compose FolderMask는 캡처한 뒤쪽 폴더 레이어와 전달받은 전면 브러시를 카드 하단에 합성합니다.
                     FolderMask(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -208,6 +225,9 @@ fun FolderItemLayout(
                             color = Color.Black,
                             alpha = 0.1f,
                         ),
+                        backdropLayer = backdropLayer,
+                        backdropOffsetY = maskTopOffset,
+                        backdropBlurRadius = 4.dp,
                     )
 
                     // 왼쪽 상단 슬롯입니다. 공유/잠금 아이콘처럼 폴더 상태를 나타내는 아이콘을 배치합니다.

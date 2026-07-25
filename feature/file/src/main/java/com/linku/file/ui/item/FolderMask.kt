@@ -11,10 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.BlurEffect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.layer.drawLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -66,6 +71,9 @@ internal fun FolderMask(
     brush: Brush,
     baseColor: Color,
     shadow: Shadow? = null,
+    backdropLayer: GraphicsLayer? = null,
+    backdropOffsetY: Dp = 0.dp,
+    backdropBlurRadius: Dp = 0.dp,
 ) {
     Box(
         modifier = modifier,
@@ -86,8 +94,27 @@ internal fun FolderMask(
                 .fillMaxSize()
                 .clip(FolderMaskShape)
                 .drawWithCache {
+                    val backdropOffsetYPx = backdropOffsetY.toPx()
+                    val blurRadiusPx = backdropBlurRadius.toPx()
+                    val blurEffect = if (backdropLayer != null && blurRadiusPx > 0f) {
+                        BlurEffect(
+                            radiusX = blurRadiusPx,
+                            radiusY = blurRadiusPx,
+                        )
+                    } else {
+                        null
+                    }
+
                     onDrawBehind {
                         drawRect(color = baseColor.copy(alpha = 1f))
+
+                        backdropLayer?.let { layer ->
+                            layer.renderEffect = blurEffect
+                            translate(top = -backdropOffsetYPx) {
+                                drawLayer(layer)
+                            }
+                        }
+
                         drawRect(brush = brush)
                     }
                 }
