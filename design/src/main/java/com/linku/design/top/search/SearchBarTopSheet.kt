@@ -71,6 +71,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val MAX_SEARCH_QUERY_LENGTH = 20
 
@@ -97,7 +98,7 @@ data class SearchBarUiState(
  *
  * @param visible 탑 시트의 표시 여부. true일 때 상단에서 아래로 애니메이션과 함께 나타납니다.
  * @param onDismiss 탑 시트를 닫아야 할 때 호출되는 콜백 (배경 클릭, 뒤로가기 버튼 등).
- * @param onQueryChange 검색어가 변경될 때 호출되는 콜백. 2자 이상의 입력에 대해 데바운스(350ms) 처리 후 실행됩니다.
+ * @param onQueryChange 검색어가 변경될 때 호출되는 콜백. 데바운스(800ms) 처리 후 실행됩니다.
  * @param onQuerySave 현재 검색어를 별도로 저장해야 할 때 호출되는 선택적 콜백.
  * @param onQueryDelete 최근 검색 기록에서 특정 검색어 ID를 삭제할 때 호출되는 콜백.
  * @param onQueryClear 최근 검색 기록의 모든 항목을 삭제할 때 호출되는 콜백.
@@ -152,14 +153,13 @@ fun SearchBarTopSheet(
      * 검색어 변경 디바운스 처리
      *
      * - trim 적용
-     * - 2자 이상만 검색
-     * - 350ms 디바운스
+     * - 800ms 디바운스
      * - 동일 값 중복 호출 방지
      */
     LaunchedEffect(Unit) {
         snapshotFlow { text }
             .map { it.trim() }
-            .debounce(350)
+            .debounce(800.milliseconds)
             .distinctUntilChanged()
             .collectLatest(onQueryChange)
     }

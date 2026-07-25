@@ -27,7 +27,7 @@ fun SearchTopSheetHost(
     // 필터링 결과
     var filtered by remember { mutableStateOf<List<SearchResultItem>>(emptyList()) }
 
-    // SearchBarTopSheet가 350ms 디바운스를 이미 해주므로 여기선 즉시 필터만
+    // SearchBarTopSheet가 800ms 디바운스를 이미 해주므로 여기선 즉시 필터만
     val onQueryChange: (String) -> Unit = { raw ->
         val q = raw.trim()
         filtered = if (q.length < 2) emptyList() else filterAndRank(allItems, q).take(20)
