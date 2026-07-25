@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.ui.item.FolderItemLayout
 
@@ -13,11 +14,12 @@ fun EmptyFolderItemLayout(
     folderName: String = ""
 ) {
     val colors = MaterialTheme.linkuColors
+    val color = CategoryColorStyle.DEFAULT
 
     FolderItemLayout(
-        backgroundColor = colors.gray[200],
-        color1 = colors.gray[300],
-        color2 = colors.gray[200],
+        backgroundColor = color.color2,
+        color1 = color.color3,
+        color2 = color.color2,
         color3 = colors.white,
         folderMaskBrush = Brush.verticalGradient(
             colorStops = arrayOf(
@@ -27,7 +29,7 @@ fun EmptyFolderItemLayout(
         ),
         leftIcon = {},
         rightIcon = {},
-        textBackgroundColor = colors.gray[500],
+        textBackgroundColor = color.color4,
         folderName = folderName,
         modifier = modifier
     )
