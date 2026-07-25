@@ -69,7 +69,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
@@ -160,7 +159,6 @@ fun SearchBarTopSheet(
     LaunchedEffect(Unit) {
         snapshotFlow { text }
             .map { it.trim() }
-            .filter { it.length >= 2 }
             .debounce(350)
             .distinctUntilChanged()
             .collectLatest(onQueryChange)
