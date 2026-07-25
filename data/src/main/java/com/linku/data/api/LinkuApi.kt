@@ -2,6 +2,7 @@ package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
+import com.linku.data.api.dto.search.LinkuSearchResponseDTO
 import com.linku.data.api.dto.server.GetDetailLinkDTO
 import com.linku.data.api.dto.server.LinkCheckDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
@@ -86,6 +87,14 @@ interface LinkuApi {
     suspend fun quickSearch(
         @Query("keyword") keyword: String
     ) : BaseResponse<List<QuickSearchResult>>
+
+    // 링크 검색
+    @GET("linku/search")
+    suspend fun searchLinks(
+        @Query("searchQuery") searchQuery: String,
+        @Query("cursor") cursor: Long = 0,
+        @Query("size") size: Int = 10,
+    ): BaseResponse<LinkuSearchResponseDTO>
 
     // 링크 삭제
     @DELETE("linku/{userLinkuId}")
