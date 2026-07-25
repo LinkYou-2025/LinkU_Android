@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,6 +33,9 @@ class AuthPreferenceImpl @Inject constructor(
         val DEVICE_ID = stringPreferencesKey("device_id")
         val DEVICE_TYPE = stringPreferencesKey("device_type")
         val NICKNAME = stringPreferencesKey("nickname")
+
+        // 로그아웃(clear) 시에도 남겨둘 키. 디바이스 정보와 마지막 로그인 수단은 유저 세션이 아니라 기기/이력 정보라 보존함.
+        val PRESERVED_ON_CLEAR = setOf(DEVICE_ID, DEVICE_TYPE, LOGIN_TYPE)
     }
 
     override suspend fun initDeviceInfo(deviceId: String, deviceType: String) {
@@ -80,8 +84,13 @@ class AuthPreferenceImpl @Inject constructor(
         context.authDataStore.data.map { it[Keys.DEVICE_TYPE] ?: "PHONE" }.first()
 
     override suspend fun getLoginType(): LoginType {
-        val name =
-            context.authDataStore.data.map { it[Keys.LOGIN_TYPE] }.first() ?: return LoginType.NONE
+        // DataStore 파일 읽기 실패(IOException)까지 NONE으로 흡수 - 로그인 화면의 "최근 로그인" 조회가
+        // 이 예외 하나로 부모 코루틴까지 깨지면 안 되므로.
+        val name = try {
+            context.authDataStore.data.map { it[Keys.LOGIN_TYPE] }.first()
+        } catch (e: IOException) {
+            null
+        } ?: return LoginType.NONE
         return runCatching { LoginType.valueOf(name) }.getOrElse { LoginType.NONE }
     }
 
@@ -113,9 +122,13 @@ class AuthPreferenceImpl @Inject constructor(
         }
     }
 
+    // 로그아웃 시 토큰/유저ID/닉네임 등 세션 정보만 지우고,
+    // 디바이스 정보와 마지막으로 로그인한 수단(카카오/구글/이메일)은 남겨 다음 로그인 화면에서 "최근 로그인" 표시에 사용함.
     override suspend fun clear() {
         context.authDataStore.edit { prefs ->
-            prefs.clear()
+            prefs.asMap().keys
+                .filterNot { it in Keys.PRESERVED_ON_CLEAR }
+                .forEach { prefs.remove(it) }
             prefs[Keys.LOGGED_IN] = false
         }
     }
