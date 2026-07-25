@@ -339,6 +339,7 @@ fun MainApp(
 
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
                                 fileViewModel.receiveSharedFolder(folderId)
+                                folderStateViewModel.resetSharedFolderState()
                                 folderStateViewModel.updateIsSharedFolders(true)
 
                                 navigator.navigate(NavigationRoute.File.route) {
@@ -437,6 +438,9 @@ fun MainApp(
 
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
+                                deepLinkViewModel.clearPendingDeepLinks()
+                                folderStateViewModel.resetSharedFolderState()
+                                fileViewModel.resetSharedFolderState()
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
@@ -730,7 +734,10 @@ fun MainApp(
                                     token = token,
                                     isLoggedIn = isLoggedIn,
                                     onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
-                                    onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
+                                    onUpdateIsSharedFolders = { isSharedFolders ->
+                                        folderStateViewModel.resetSharedFolderState()
+                                        folderStateViewModel.updateIsSharedFolders(isSharedFolders)
+                                    },
                                     onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
                                     onInvalidLink = {
                                         Toast.makeText(context, R.string.invalid_share_link, Toast.LENGTH_SHORT).show()
