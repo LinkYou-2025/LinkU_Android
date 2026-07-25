@@ -59,6 +59,7 @@ sealed class ApiError(
      * @property BadRequest COMMON400 - 잘못된 요청
      * @property Unauthorized COMMON401 - 인증 필요
      * @property Forbidden COMMON403 - 접근 금지
+     * @property NotFound COMMON404 - 리소스를 찾을 수 없음
      * @property TooManyRequests COMMON429 - 요청 과다
      * @property InternalServer COMMON500 - 서버 내부 오류
      */
@@ -74,6 +75,9 @@ sealed class ApiError(
 
         /** COMMON403 - 접근 금지 */
         class Forbidden(message: String) : Common(message)
+
+        /** COMMON404 - 리소스를 찾을 수 없음 */
+        class NotFound(message: String) : Common(message)
 
         /** COMMON429 - 요청 과다 */
         class TooManyRequests(message: String) : Common(message)
