@@ -286,6 +286,9 @@ fun MainApp(
                                 is AutoLoginState.Success -> {
                                     edgeToEdgeSystemBars = false
                                     homeViewModel.refreshAfterLogin()
+                                    // 마이페이지 화면에 도달하기 전, 토큰이 확보된 시점에 바로 조회를 시작해
+                                    // 실제 탭 진입 시 응답을 기다리며 비어 보이는 시간을 최대한 줄임.
+                                    mypageViewModel.loadUserInfo()
                                     navigator.navigate(NavigationRoute.Home.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         launchSingleTop = true
@@ -334,6 +337,9 @@ fun MainApp(
                             showNavBar = true
                             edgeToEdgeSystemBars = false
 
+                            // 마이페이지 화면에 도달하기 전, 토큰이 확보된 시점에 바로 조회를 시작해
+                            // 실제 탭 진입 시 응답을 기다리며 비어 보이는 시간을 최대한 줄임.
+                            mypageViewModel.loadUserInfo()
 
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
 
@@ -422,8 +428,8 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-
-                            mypageViewModel.loadUserInfo()
+                            // 실제 조회(loadUserInfo)는 MyPageApp.kt 내부의 LaunchedEffect(Unit)에서
+                            // 담당함 - 여기서 같이 호출하면 진입할 때마다 API가 두 번 나감.
                         }
                         //FinishHandler()
 

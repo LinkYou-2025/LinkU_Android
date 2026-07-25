@@ -61,11 +61,12 @@ fun MyPageApp(
             val user = uiState.userInfo
 
             MyPageScreen(
-                nickname = user?.nickname ?: "",
+                nickname = user?.nickname ?: uiState.cachedNickname ?: "",
                 email = user?.email ?: "",
                 myLinku = user?.myLinku ?: 0L,
                 myFolder = user?.myFolder ?: 0L,
                 myAiLinku = user?.myAiLinku ?: 0L,
+                loginType = session.loginType,
                 onNavigateAccount = { navController.navigate("account") },
                 onNavigateAlarm = { navController.navigate("alarm") },
                 onNavigateAlarmSetting = { navController.navigate("alarmSetting") },

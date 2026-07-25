@@ -118,7 +118,6 @@ fun MypageTopBar(
                         val iconRes = when (socialLoginType.lowercase()) {
                             "kakao" -> R.drawable.ic_kakao_logo
                             "google" -> R.drawable.ic_google_logo  // TODO: 구글 로고 리소스 수정 필요 (다현이에게 svg 파일로 받기)
-                            "none" -> null
                             else -> null
                         }
 
