@@ -167,6 +167,7 @@ class FileViewModel @Inject constructor(
 
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
+    private var receiveSharedFolderInvitationJob: Job? = null
     // ---------- field ----------
 
 //    // ==== [카테고리 색상 불러오기 - HomeVM과 이름을 맞춘 alias] ====
@@ -571,6 +572,18 @@ class FileViewModel @Inject constructor(
             }
         }
         Log.d("FileViewModel", "getSharedFolders return")
+    }
+
+    fun resetSharedFolderState() {
+        receiveSharedFolderInvitationJob?.cancel()
+        receiveSharedFolderInvitationJob = null
+        _sharedTopFolders.value = emptyList()
+        _sharedBottomFolders.value = emptyList()
+        _invitationInfo.value = null
+        _links.value = emptyList()
+        _notCategorizationLinks.value = emptyList()
+        _subFoldersCursor.value = null
+        _errorMessage.value = null
     }
 
     // 공유 폴더 하위 폴더 가져오기
@@ -1205,7 +1218,7 @@ class FileViewModel @Inject constructor(
     fun receiveSharedFolderInvitation(token: String) {
         Log.d("FileViewModel", "receiveSharedFolderInvitation")
 
-        viewModelScope.launch {
+        receiveSharedFolderInvitationJob = viewModelScope.launch {
             Log.d("FileViewModel", "receiveSharedFolderInvitation launch")
 
             startLoading()
