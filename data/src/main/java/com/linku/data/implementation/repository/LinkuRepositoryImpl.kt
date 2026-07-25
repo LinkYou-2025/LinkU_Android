@@ -7,7 +7,6 @@ import androidx.paging.PagingData
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.link.LinkCheckResult
-import com.linku.core.model.search.FastSearchLinkInfo
 import com.linku.core.model.search.LinkuSearchInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
@@ -269,39 +268,6 @@ class LinkuRepositoryImpl @Inject constructor(
         }.onFailure {
             throw it
         }
-
-        return result
-    }
-
-    override suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo> {
-        Log.d("fastSearch", "keyword: $keyword")
-
-        var result: List<FastSearchLinkInfo> = emptyList()
-
-        try {
-            Log.d("fastSearch", "try")
-
-            safeApiCall(
-                apiCall = { serverApi.quickSearch(keyword = keyword) }
-            ).onSuccess { dtoList ->
-                result = dtoList.map {
-                    FastSearchLinkInfo(
-                        linkuId = it.linkuId,
-                        title = it.title,
-                        domainImageUrl = it.domainImageUrl,
-                        linkUrl = it.linkUrl
-                    )
-                }
-                Log.d("fastSearch", "response: $result")
-            }.onFailure {
-                throw it
-            }
-        } catch (e: Exception) {
-            Log.d("fastSearch", "error: $e")
-            return emptyList()
-        }
-
-        Log.d("fastSearch", "return: $result")
 
         return result
     }

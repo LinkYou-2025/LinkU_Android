@@ -8,7 +8,6 @@ import com.linku.data.api.dto.server.LinkCheckDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.LinkuUpdateDTO
-import com.linku.data.api.dto.server.QuickSearchResult
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -81,12 +80,6 @@ interface LinkuApi {
         @Query("page") page: Int? = null,
         @Query("size") size: Int? = null
     ) : BaseResponse<List<LinkuSimpleDTO>>
-
-    // 빠른 링크 검색
-    @GET("linku/search/quick")
-    suspend fun quickSearch(
-        @Query("keyword") keyword: String
-    ) : BaseResponse<List<QuickSearchResult>>
 
     // 링크 검색
     @GET("linku/search")

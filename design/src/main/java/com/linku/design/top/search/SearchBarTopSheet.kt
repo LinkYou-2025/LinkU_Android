@@ -75,12 +75,6 @@ import kotlinx.coroutines.flow.map
 
 private const val MAX_SEARCH_QUERY_LENGTH = 20
 
-data class FastSearchItem(
-    val id: Long,
-    val title: String,
-    val url: String,
-)
-
 data class SearchResultItem(
     val id: Long,
     val title: String,
