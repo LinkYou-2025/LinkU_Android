@@ -13,7 +13,9 @@ class DeepLinkHandlerViewModel @Inject constructor() : ViewModel() {
 
     fun setPendingShare(folderId: Long) { pendingShareFolderId = folderId }
 
-    fun setPendingInvitation(token: String) { pendingInvitationToken = token }
+    fun setPendingInvitation(token: String) {
+        pendingInvitationToken = if (token.isNotBlank()) token else ""
+    }
 
     fun consumePendingShare(): Long? {
         val folderId = pendingShareFolderId
