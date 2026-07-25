@@ -147,4 +147,25 @@ class FolderStateViewModel : ViewModel() {
         Log.d("shareBottomSheetVisible", newState.toString())
         shareBottomSheetVisible = newState
     }
+
+    fun resetSharedFolderState() {
+        Log.d("FolderStateViewModel", "resetSharedFolderState")
+
+        isSharedFolders = false
+        currentFolderState = FolderState.TOP
+        selectedTopFolder = null
+        readyToUpdateTopFolder = null
+        selectedBottomFolder = null
+        readyToUpdateBottomFolder = null
+        selectedTopSharedFolder = null
+        selectedBottomSharedFolder = null
+        topMenuExpanded = false
+        bottomMenuExpanded = false
+        searchTopSheetVisible = false
+        topFolderEditBottomSheetVisible = false
+        newFolderBottomSheetVisible = false
+        bottomFolderEditBottomSheetVisible = false
+        linkCategorizationBottomSheetVisible = false
+        shareBottomSheetVisible = false
+    }
 }
