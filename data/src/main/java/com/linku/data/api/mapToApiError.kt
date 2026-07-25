@@ -73,6 +73,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "LINKU4005" -> ApiError.Linku.NewUser(message)
     "LINKU404" -> ApiError.Linku.UserLinkuNotFound(message)
     "LINKU4041" -> ApiError.Linku.NotFound(message)
+    "LINKU4043" -> ApiError.Linku.SearchHistoryNotFound(message)
 
     // =========================================================
     // 카테고리/도메인/감정/상황 에러

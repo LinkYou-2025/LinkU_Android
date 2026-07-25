@@ -228,6 +228,9 @@ sealed class ApiError(
 
         /** LINKU4041 - 링크 정보를 찾을 수 없음 */
         class NotFound(message: String) : Linku(message)
+
+        /** LINKU4043 - 검색 기록을 찾을 수 없음 */
+        class SearchHistoryNotFound(message: String) : Linku(message)
     }
 
     /**
