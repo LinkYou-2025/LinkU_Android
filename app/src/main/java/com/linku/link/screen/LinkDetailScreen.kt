@@ -540,6 +540,15 @@ fun LinkDetailScreen(
         }
 
         if (isDropdownVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(1f)
+                    .noRippleClickable {
+                        isDropdownVisible = false
+                    }
+            )
+
             LinkDetailCustomDropdown(
                 onAction = { action ->
                     isDropdownVisible = false
