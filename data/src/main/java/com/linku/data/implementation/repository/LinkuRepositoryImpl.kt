@@ -304,23 +304,20 @@ class LinkuRepositoryImpl @Inject constructor(
     // 링크 수정
     override suspend fun updateLink(
         linkuId: Long,
-        categoryId: Long,
-        linku: String,
+        image: File?,
         memo: String?,
-        emotionId: Long,
-        situationId: Long,
-        domainId: Long,
-        title: String,
+        emotionId: Long?,
+        situationId: Long?,
+        categoryId: Long?,
+        title: String?,
     ): LinkResultInfo {
-        val body = LinkuUpdateDTO(
-            categoryId = categoryId,
-            linku = linku,
-            memo = memo?.trim().orEmpty(),
-            emotionId = emotionId,
-            situationId = situationId,
-            domainId = domainId,
-            title = title.trim(),
-        )
+        val imagePart = image?.let { file ->
+            MultipartBody.Part.createFormData(
+                name = "image",
+                filename = file.name.takeIf { it.isNotBlank() } ?: "image.jpg",
+                body = file.asRequestBody("image/*".toMediaTypeOrNull()),
+            )
+        }
 
         lateinit var result: LinkResultInfo
 
@@ -328,7 +325,12 @@ class LinkuRepositoryImpl @Inject constructor(
             apiCall = {
                 serverApi.updateLink(
                     linkuId = linkuId,
-                    body = body,
+                    memo = memo,
+                    emotionId = emotionId,
+                    situationId = situationId,
+                    categoryId = categoryId,
+                    title = title,
+                    image = imagePart,
                 )
             }
         ).onSuccess {

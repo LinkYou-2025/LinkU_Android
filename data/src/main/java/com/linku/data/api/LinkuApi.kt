@@ -6,7 +6,6 @@ import com.linku.data.api.dto.server.GetDetailLinkDTO
 import com.linku.data.api.dto.server.LinkCheckDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
-import com.linku.data.api.dto.server.LinkuUpdateDTO
 import com.linku.data.api.dto.server.QuickSearchResult
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -53,10 +52,16 @@ interface LinkuApi {
     ): BaseResponse<LinkCheckDTO>
 
     // 링크 수정
+    @Multipart
     @PATCH("linku/{linkuId}")
     suspend fun updateLink(
         @Path("linkuId") linkuId: Long,
-        @Body body: LinkuUpdateDTO
+        @Query("memo") memo: String?,
+        @Query("emotionId") emotionId: Long?,
+        @Query("situationId") situationId: Long?,
+        @Query("categoryId") categoryId: Long?,
+        @Query("title") title: String?,
+        @Part image: MultipartBody.Part?,
     ): BaseResponse<LinkuResultDTO>
 
     // 링크의 폴더 바꾸기

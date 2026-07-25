@@ -43,13 +43,12 @@ interface LinkuRepository {
     // 링크 수정
     suspend fun updateLink(
         linkuId: Long,
-        categoryId: Long,
-        linku: String,
+        image: File?,
         memo: String?,
-        emotionId: Long,
-        situationId: Long,
-        domainId: Long,
-        title: String,
+        emotionId: Long?,
+        situationId: Long?,
+        categoryId: Long?,
+        title: String?,
     ): LinkResultInfo
 
     // 링크 삭제

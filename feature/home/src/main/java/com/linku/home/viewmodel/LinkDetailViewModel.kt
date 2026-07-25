@@ -9,7 +9,6 @@ import com.linku.core.model.LinkResultInfo
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
-import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,12 +19,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
 class LinkDetailViewModel @Inject constructor(
     private val linkuRepository: LinkuRepository,
-    private val aiArticleRepository: AIArticleRepository,
     private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
@@ -60,26 +59,6 @@ class LinkDetailViewModel @Inject constructor(
 
     private val isDeletingLinkState = mutableStateOf(false)
     val isDeletingLink get() = isDeletingLinkState.value
-
-    private val _categoryColorMap = MutableStateFlow<Map<String, CategoryColorStyle>>(emptyMap())
-    val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
-
-    private var categoryLoaded = false
-
-    fun loadCategoryColors(force: Boolean = false) {
-        if (!force && categoryLoaded && _categoryColorMap.value.isNotEmpty()) return
-
-        viewModelScope.launch {
-            runCatching {
-                categoryRepository.getCategoryColor().toCategoryColorStyleMap()
-            }.onSuccess { map ->
-                _categoryColorMap.value = map
-                categoryLoaded = true
-            }.onFailure { e ->
-                Log.e("LinkDetailVM", "loadCategoryColors failed", e)
-            }
-        }
-    }
 
     fun loadLinkDetail(
         linkuId: Long,
@@ -126,52 +105,8 @@ class LinkDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadAiArticle(linkuId: Long) {
-        if (isLoadingAiArticleState.value) return
-
-        isLoadingAiArticleState.value = true
-        _aiProgress.value = 0.1f
-
-        aiProgressJob?.cancel()
-        aiProgressJob = viewModelScope.launch {
-            val cap = 0.85f
-
-            while (isActive && _aiProgress.value < cap) {
-                delay(100)
-                _aiProgress.value = (_aiProgress.value + 0.02f).coerceAtMost(cap)
-            }
-        }
-
-        aiJob?.cancel()
-        aiJob = viewModelScope.launch {
-            runCatching {
-                aiArticleRepository.getAiArticle(linkuId)
-            }.onSuccess { article ->
-                aiArticleDetailState.value = article
-            }.onFailure { e ->
-                Log.e("LinkDetailVM", "load AI article failed", e)
-                aiArticleDetailState.value = null
-            }
-
-            aiProgressJob?.cancel()
-            _aiProgress.value = 1f
-            isLoadingAiArticleState.value = false
-
-            launch {
-                delay(300)
-                _aiProgress.value = 0f
-            }
-        }
-    }
-
-    fun cancelAiArticleJob() {
-        aiJob?.cancel()
-        aiProgressJob?.cancel()
-        isLoadingAiArticleState.value = false
-        _aiProgress.value = 0f
-    }
-
     fun updateLink(
+        image: File?,
         title: String,
         memo: String?,
         categoryId: Long?,
@@ -188,12 +123,27 @@ class LinkDetailViewModel @Inject constructor(
         if (isUpdatingLinkState.value) return
 
         val fixedLinkuId = current.linkuId
-        val fixedLinku = current.linku
 
-        val computedDomainId = DomainIdMapper.resolve(
-            url = fixedLinku,
-            domain = current.domain,
-        )
+        val normalizedTitle = title.trim()
+        val normalizedMemo = memo?.trim().orEmpty()
+        val changedTitle = normalizedTitle.takeIf { it != current.title }
+        val changedMemo = normalizedMemo.takeIf { it != current.memo.orEmpty() }
+        val changedCategoryId = categoryId.takeIf { it != current.categoryId }
+        val changedEmotionId = emotionId.takeIf { it != current.emotionId }
+        val changedSituationId = situationId.takeIf { it != current.situationId }
+
+        val hasChanges =
+            image != null ||
+                    changedTitle != null ||
+                    changedMemo != null ||
+                    changedCategoryId != null ||
+                    changedEmotionId != null ||
+                    changedSituationId != null
+
+        if (!hasChanges) {
+            onSucceed(current)
+            return
+        }
 
         viewModelScope.launch {
             isUpdatingLinkState.value = true
@@ -201,19 +151,19 @@ class LinkDetailViewModel @Inject constructor(
             runCatching {
                 linkuRepository.updateLink(
                     linkuId = fixedLinkuId,
-                    categoryId = categoryId ?: current.categoryId ?: 0L,
-                    linku = fixedLinku,
-                    memo = memo ?: current.memo.orEmpty(),
-                    emotionId = emotionId ?: current.emotionId ?: 0L,
-                    situationId = situationId ?: current.situationId ?: 0L,
-                    domainId = computedDomainId,
-                    title = title.ifBlank { current.title },
+                    image = image,
+                    memo = changedMemo,
+                    emotionId = changedEmotionId,
+                    situationId = changedSituationId,
+                    categoryId = changedCategoryId,
+                    title = changedTitle,
                 )
             }.onSuccess { updated ->
                 linkDetailState.value = updated
                 linkCache[fixedLinkuId] = Cached(updated)
                 onSucceed(updated)
             }.onFailure { e ->
+                Log.e("LinkDetailVM", "update link failed", e)
                 onFailed(e)
             }
 

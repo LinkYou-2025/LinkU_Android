@@ -668,21 +668,31 @@ fun MainApp(
                         onPickImage = {
                             detailImagePicker.launch("image/*")
                         },
-                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
+                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed, ->
+                            val selectedImageFile = runCatching {
+                                selectedDetailImageUri?.toTempFile(context)
+                            }.getOrElse { e ->
+                                Log.e("LinkDetail", "selected image conversion failed", e)
+                                onFailed()
+                                return@LinkDetailScreen
+                            }
+
                             linkDetailViewModel.updateLink(
+                                image = selectedImageFile,
                                 title = title,
                                 memo = memo,
                                 categoryId = categoryId,
                                 emotionId = emotionId,
                                 situationId = situationId,
                                 onSucceed = {
+                                    selectedDetailImageUri = null
                                     homeViewModel.loadRecentLinks()
                                     onSuccess()
                                 },
                                 onFailed = { e ->
                                     Log.e("LinkDetail", "update failed", e)
                                     onFailed()
-                                }
+                                },
                             )
                         },
                         onDeleteLink = { onSuccess, onFailed ->
@@ -804,10 +814,18 @@ fun Context.findActivity(): Activity? {
 private fun Uri.toTempFile(context: Context): File {
     val fileName = "picked_${System.currentTimeMillis()}.jpg"
     val tempFile = File(context.cacheDir, fileName)
-    context.contentResolver.openInputStream(this).use { input ->
+
+    val inputStream = requireNotNull(
+        context.contentResolver.openInputStream(this)
+    ) {
+        "선택한 이미지 파일을 열 수 없습니다."
+    }
+
+    inputStream.use { input ->
         FileOutputStream(tempFile).use { output ->
-            input?.copyTo(output)
+            input.copyTo(output)
         }
     }
+
     return tempFile
 }
