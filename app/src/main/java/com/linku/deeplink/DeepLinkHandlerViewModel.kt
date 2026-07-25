@@ -28,4 +28,9 @@ class DeepLinkHandlerViewModel @Inject constructor() : ViewModel() {
         pendingInvitationToken = ""
         return token
     }
+
+    fun clearPendingDeepLinks() {
+        pendingShareFolderId = null
+        pendingInvitationToken = ""
+    }
 }
