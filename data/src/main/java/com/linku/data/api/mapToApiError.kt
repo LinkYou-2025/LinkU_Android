@@ -12,6 +12,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "COMMON400" -> ApiError.Common.BadRequest(message)
     "COMMON401" -> ApiError.Common.Unauthorized(message)
     "COMMON403" -> ApiError.Common.Forbidden(message)
+    "COMMON404" -> ApiError.Common.NotFound(message)
     "COMMON429" -> ApiError.Common.TooManyRequests(message)
     "COMMON500" -> ApiError.Common.InternalServer(message)
 
@@ -164,6 +165,7 @@ internal fun mapHttpError(e: HttpException): ApiError {
         400 -> ApiError.Common.BadRequest(message)
         401 -> ApiError.Common.Unauthorized(message)
         403 -> ApiError.Common.Forbidden(message)
+        404 -> ApiError.Common.NotFound(message)
         429 -> ApiError.Common.TooManyRequests(message)
         in 500..599 -> ApiError.Common.InternalServer(message)
         else -> ApiError.Unknown(message)
