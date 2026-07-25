@@ -1,6 +1,7 @@
 package com.linku.core.model
 
 data class LinkSimpleInfo(
+    val userLinkuId: Long? = null,  // TODO: 추후 null값 및 nullable 제거 예정
     val linkuId: Long,
     val categoryId: Long?,
     val memo: String?,

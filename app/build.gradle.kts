@@ -172,4 +172,10 @@ dependencies {
 
     implementation(libs.lottie)
 
+    // coil 의존성 추가 -> 추후 리팩토링 진행 시 feature 모듈로 따로 이동할 때 삭제할 예정
+    implementation(libs.coil3.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.coil.svg)
+    implementation(libs.accompanist.systemuicontroller)
+
 }
