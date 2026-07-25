@@ -22,18 +22,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.theme.White
 
 @Composable
-fun HomeSearchBar() {
+fun HomeSearchBar(
+    onClick: () -> Unit,
+) {
     val colors = MaterialTheme.linkuColors
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(48.dp),
+            .height(48.dp)
+            .noRippleClickable { onClick() },
         color = Color.Transparent,
     ) {
         Row(
@@ -65,5 +69,5 @@ fun HomeSearchBar() {
 @Preview(showBackground = false)
 @Composable
 fun PreviewHomeSearchBar() {
-    HomeSearchBar()
+    HomeSearchBar(onClick = {})
 }

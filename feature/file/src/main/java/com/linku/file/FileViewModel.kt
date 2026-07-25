@@ -1,9 +1,6 @@
 package com.linku.file
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.SameNameException
@@ -15,19 +12,16 @@ import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.SharedFolderInfo
-import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.FolderRepository
 import com.linku.core.repository.InvitationRepository
 import com.linku.core.repository.LinkuRepository
-import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
@@ -53,7 +47,6 @@ class FileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
 
-    private val recentRepository: RecentSearchRepository,
     private val linkuRepository: LinkuRepository,
 
     private val aiArticleRepository: AIArticleRepository,
@@ -1348,121 +1341,5 @@ class FileViewModel @Inject constructor(
     }
 
     // ---------- share method ----------
-
-    // ---------- search method ----------
-    // 검색창 탑 시트 가시성 상태
-    var searchTopSheetVisible by mutableStateOf(false)
-        private set
-    fun updateSearchTopSheetVisible(newState: Boolean) {
-        Log.d("searchTopSheetVisible", newState.toString())
-        searchTopSheetVisible = newState
-    }
-
-    // 빠른 링크 검색 목록
-    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
-    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
-
-    // 빠른 링크 검색
-    fun fastSearch(keyword: String){
-        Log.d("FileViewModel", "fastSearch")
-
-        viewModelScope.launch{
-            Log.d("FileViewModel", "fastSearch launch")
-
-            _errorMessage.value = null
-            try{
-                Log.d("FileViewModel", "fastSearch try")
-
-                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
-                    FastSearchItem(
-                        id = it.linkuId,
-                        title = it.title,
-                        url = it.linkUrl
-                    )
-                }
-
-                Log.d("FileViewModel", "fastSearch try result: ${_fastSearchItems.value}")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "fastSearch catch: $e.message")
-
-                _errorMessage.value = e.message
-            }finally {
-                Log.d("FileViewModel", "fastSearch finally")
-            }
-        }
-    }
-
-    //최근 검색 목록
-    val recentQueryList: StateFlow<List<RecentQuery>> =
-        recentRepository.observe(limit = 20)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
-    // 최근 검색 기록 추가
-    fun addRecentQuery(query: String) {
-        Log.d("FileViewModel", "addRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "addRecentQuery launch")
-
-            try{
-                Log.d("FileViewModel", "addRecentQuery try")
-
-                recentRepository.add(query)
-            }catch (e: Exception){
-                Log.d("FileViewModel", "addRecentQuery catch: $e.message")
-            }finally {
-                Log.d("FileViewModel", "addRecentQuery finally")
-            }
-        }
-        Log.d("FileViewModel", "addRecentQuery return")
-    }
-
-    // 최근 검색 기록 삭제
-    fun removeRecentQuery(query: String) {
-        Log.d("FileViewModel", "removeRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "removeRecentQuery launch")
-
-            try{
-                Log.d("FileViewModel", "removeRecentQuery try")
-
-                recentRepository.remove(query)
-
-            }catch (e: Exception){
-                Log.d("FileViewModel", "removeRecentQuery catch: $e.message")
-            }finally {
-                Log.d("FileViewModel", "removeRecentQuery finally")
-            }
-        }
-        Log.d("FileViewModel", "removeRecentQuery return")
-    }
-
-
-    // 최근 검색 기록 전체 삭제
-    fun clearRecentQuery() {
-        Log.d("FileViewModel", "clearRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "clearRecentQuery launch")
-
-            try{
-                Log.d("FileViewModel", "clearRecentQuery try")
-
-                recentRepository.clear()
-
-            }catch (e: Exception){
-                Log.d("FileViewModel", "clearRecentQuery catch: $e.message")
-            }finally {
-                Log.d("FileViewModel", "clearRecentQuery finally")
-            }
-        }
-        Log.d("FileViewModel", "clearRecentQuery return")
-    }
-    // ---------- search method ----------
 
 }

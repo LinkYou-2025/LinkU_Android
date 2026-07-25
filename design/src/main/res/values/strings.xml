@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="search_results_load_error_icon_description">검색 결과 불러오기 실패 아이콘</string>
+    <string name="search_results_load_error_retry">검색 결과를 불러오지 못했어요. 다시 시도</string>
+    <string name="search_results_empty_icon_description">검색 결과 없음 아이콘</string>
+    <string name="search_results_empty">찾으시는 검색어 결과가 없어요!</string>
+    <string name="search_results_append_error_retry">추가 결과를 불러오지 못했어요. 다시 시도</string>
+</resources>

@@ -63,6 +63,7 @@ import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
+import com.linku.search.SearchViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -126,6 +127,10 @@ fun MainApp(
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
     val folderStateViewModel: FolderStateViewModel = viewModel()
+
+    val searchViewModel: SearchViewModel = hiltViewModel()
+    val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
+    val searchResults = searchViewModel.searchResults
 
     // 큐레이션 화면에서 사용할 뷰모델
     val curationViewModel: CurationViewModel = hiltViewModel()
@@ -401,6 +406,13 @@ fun MainApp(
 
                         HomeApp(
                             viewModel = homeViewModel,
+                            searchUiState = searchUiState,
+                            searchResults = searchResults,
+                            onSearchQueryChange = searchViewModel::search,
+                            onSearchOpen = searchViewModel::openSearch,
+                            onSearchDismiss = searchViewModel::resetSearchResults,
+                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
+                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
@@ -426,7 +438,14 @@ fun MainApp(
 
                         FileApp(
                             fileViewModel = fileViewModel,
-                            folderStateViewModel = folderStateViewModel
+                            folderStateViewModel = folderStateViewModel,
+                            searchUiState = searchUiState,
+                            searchResults = searchResults,
+                            onSearchQueryChange = searchViewModel::search,
+                            onSearchOpen = searchViewModel::openSearch,
+                            onSearchDismiss = searchViewModel::resetSearchResults,
+                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
+                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                         )
                     }
                 }
@@ -458,6 +477,7 @@ fun MainApp(
 
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
+                                searchViewModel.reset()
                                 deepLinkViewModel.clearPendingDeepLinks()
                                 folderStateViewModel.resetSharedFolderState()
                                 fileViewModel.resetSharedFolderState()
