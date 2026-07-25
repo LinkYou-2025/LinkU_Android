@@ -10,7 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.linku.design.theme.LinkuPreview
@@ -52,6 +55,8 @@ internal fun FolderMask(
                 0.2f to colors.gray[200].copy(alpha = 1.0f),
             )
         ),
+        baseColor = colors.gray[200],
+        shadow = null,
     )
 }
 
@@ -59,16 +64,30 @@ internal fun FolderMask(
 internal fun FolderMask(
     modifier: Modifier,
     brush: Brush,
+    baseColor: Color,
+    shadow: Shadow? = null,
 ) {
     Box(
         modifier = modifier,
     ) {
+        if (shadow != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .dropShadow(
+                        shape = FolderMaskShape,
+                        shadow = shadow,
+                    )
+            )
+        }
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .clip(FolderMaskShape)
                 .drawWithCache {
                     onDrawBehind {
+                        drawRect(color = baseColor.copy(alpha = 1f))
                         drawRect(brush = brush)
                     }
                 }

@@ -28,9 +28,11 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -47,11 +49,11 @@ import com.linku.design.theme.linkuColors
  * 기준으로 함께 축소/확대됩니다.
  *
  * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
- * @param backgroundColor 카드 Surface 배경색입니다.
+ * @param backgroundColor 카드 바탕과 [FolderMask] 내부의 불투명 기본 영역을 채우는 색상입니다.
  * @param color1 뒤쪽에 배치되는 첫 번째 폴더 레이어 색상입니다.
  * @param color2 가운데에 배치되는 두 번째 폴더 레이어 색상입니다.
  * @param color3 앞쪽에 배치되는 세 번째 폴더 레이어 색상입니다.
- * @param folderMaskBrush 하단 [FolderMask]를 채울 브러시입니다.
+ * @param folderMaskBrush 하단 [FolderMask]의 불투명 기본 레이어 위에 합성할 전면 브러시입니다.
  * @param leftIcon 카드 왼쪽 상단에 배치할 아이콘 슬롯입니다.
  * @param rightIcon 카드 오른쪽 상단에 배치할 아이콘 슬롯입니다.
  * @param textBackgroundColor 폴더명 첫 글자 배지의 배경색입니다.
@@ -77,14 +79,21 @@ fun FolderItemLayout(
     val baseW = 165.3.dp
     val baseH = 145.8535.dp
     val aspect = baseW / baseH
+    val cardShape = RoundedCornerShape(28.5.dp)
 
-    // 외부에서 전달한 modifier가 크기를 정하고, aspectRatio가 폴더 카드의 원본 비율을 유지합니다.
-    Surface(
+    // 카드 자체의 모양은 유지하되, 폴더 마스크 그림자가 카드 경계 밖에서도 보이도록 자식은 자르지 않습니다.
+    Box(
         modifier = modifier
-            .aspectRatio(aspect, matchHeightConstraintsFirst = false),
-        shape = RoundedCornerShape(28.5.dp),
-        color = backgroundColor,
-        shadowElevation = 3.8.dp
+            .aspectRatio(aspect, matchHeightConstraintsFirst = false)
+            .shadow(
+                elevation = 3.8.dp,
+                shape = cardShape,
+                clip = false,
+            )
+            .background(
+                color = backgroundColor,
+                shape = cardShape,
+            )
     ) {
         /**
          * 실제 배치된 카드 크기를 기준으로 폴더 레이어, 아이콘 위치, 폰트 크기를 함께 스케일링합니다.
@@ -188,6 +197,17 @@ fun FolderItemLayout(
                             .height(maskHeight)
                             .align(Alignment.BottomCenter),
                         brush = folderMaskBrush,
+                        baseColor = backgroundColor,
+                        shadow = Shadow(
+                            radius = 10.dp,
+                            spread = 0.dp,
+                            offset = DpOffset(
+                                x = 0.dp,
+                                y = (-4).dp,
+                            ),
+                            color = Color.Black,
+                            alpha = 0.1f,
+                        ),
                     )
 
                     // 왼쪽 상단 슬롯입니다. 공유/잠금 아이콘처럼 폴더 상태를 나타내는 아이콘을 배치합니다.
