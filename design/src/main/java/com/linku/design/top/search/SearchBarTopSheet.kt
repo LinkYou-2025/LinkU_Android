@@ -72,6 +72,23 @@ data class FastSearchItem(
     val url: String,
 )
 
+data class SearchResultItem(
+    val id: Long,
+    val title: String,
+    val domainImageUrl: String?,
+)
+
+data class RecentSearchItem(
+    val searchHistoryId: Long,
+    val keyword: String,
+)
+
+data class SearchBarUiState(
+    val recentQueries: List<RecentSearchItem> = emptyList(),
+    val isHistoryLoading: Boolean = false,
+    val errorMessage: String? = null,
+)
+
 /**
  * 상단에서 내려오는 형태의 빠른 링크 검색 탑 시트 컴포넌트입니다.
  * 사용자가 검색어를 입력하여 링크를 빠르게 찾거나, 최근 검색 기록을 관리할 수 있는 기능을 제공합니다.
