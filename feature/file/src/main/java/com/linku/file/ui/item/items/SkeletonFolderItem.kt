@@ -1,51 +1,80 @@
 package com.linku.file.ui.item.items
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import com.linku.design.modifier.skeleton
 import com.linku.design.theme.LinkuPreview
-import com.linku.file.R
+import com.linku.design.theme.linkuColors
+import com.linku.file.ui.item.FolderMask
 
-private const val baseW = 165.3f
-private const val baseH = 145.8535f
+/**
+ * 폴더 카드 스켈레톤의 기준 너비입니다.
+ *
+ * [SkeletonFolderItem] 내부의 하단 마스크 높이, 원형 배지, 텍스트 placeholder, 간격과 padding은 이
+ * 너비를 기준으로 정의된 dp 값을 현재 셀 크기에 맞게 비례 확대/축소합니다.
+ */
+private const val baseW = 174f
+
+/**
+ * 폴더 카드 스켈레톤의 기준 높이입니다.
+ *
+ * [baseW]와 함께 Figma 스켈레톤 프레임의 카드 비율을 만들며, [aspect] 계산에 사용됩니다. 그리드 셀의
+ * 너비가 달라져도 스켈레톤이 찌그러지지 않고 같은 비율로 배치되도록 하는 기준값입니다.
+ */
+private const val baseH = 154.041f
+
+/**
+ * 폴더 카드 스켈레톤이 유지해야 하는 너비 대비 높이 비율입니다.
+ *
+ * [SkeletonFolderItem]의 최상위 [Modifier.aspectRatio]에 적용되어, 호출부가 전달한 너비 제약을 기준으로
+ * Figma 스켈레톤 프레임과 같은 비율의 영역을 확보합니다.
+ */
 private const val aspect = baseW / baseH
 
 /**
- * 폴더 아이템의 로딩 상태를 표시하는 스켈레톤 로더 컴포넌트입니다.
+ * 폴더 목록을 불러오는 동안 실제 폴더 카드 대신 표시하는 스켈레톤 placeholder입니다.
  *
- * 여러 개의 레이어를 회전시키고 겹쳐서 폴더 내부의 종이 뭉치를 표현하며,
- * 하단 마스크를 통해 폴더의 외형을 완성합니다. 지정된 종횡비([aspect])를 유지하며
- * 전달된 [modifier]의 크기에 맞춰 내부 요소들이 동적으로 스케일링됩니다.
+ * 이 컴포저블은 실제 폴더 카드의 전체 카드 영역, 하단 폴더 마스크, 폴더명 첫 글자 배지용 원형
+ * placeholder, 폴더명용 pill placeholder를 단순한 회색 도형으로 구성합니다. 로딩 중에도 최종 카드와
+ * 비슷한 크기와 시각적 밀도를 유지해서, 데이터가 도착한 뒤 실제 카드로 교체될 때 레이아웃이 크게
+ * 흔들리지 않도록 합니다.
  *
- * @param modifier 컨테이너 레이아웃에 적용할 [Modifier]
+ * 최상위 영역은 [aspect]를 사용해 원본 디자인 비율을 유지합니다. 내부에서는 [BoxWithConstraints]로
+ * 현재 셀의 최대 너비와 높이를 읽은 뒤, [baseW]와 [baseH] 대비 scale 값을 계산합니다. 이 scale은
+ * 하단 마스크 높이, 원형 배지, 텍스트 placeholder, 간격과 padding에 적용되어 작은 화면이나 다른 그리드
+ * 폭에서도 내부 요소가 카드 비율에 맞춰 함께 줄어들거나 커지도록 합니다. 카드 바탕의 25dp 모서리 반경은
+ * 내부 placeholder와 달리 고정값을 유지합니다.
+ *
+ * 배경과 내부 placeholder는 [Surface]와 [FolderMask]가 직접 그리는 고정 회색 도형입니다. 이
+ * 컴포저블 자체에는 `Modifier.skeleton`을 적용하지 않으므로 shimmer 애니메이션 없이 정적
+ * placeholder로 표시됩니다.
+ *
+ * @param modifier 그리드 셀이나 부모 레이아웃에서 전달하는 외부 [Modifier]입니다. 보통 셀 전체를 채우도록
+ * [Modifier.fillMaxSize]를 전달하고, 이 컴포저블 내부에서 카드 비율을 다시 맞춥니다.
  */
 @Composable
 internal fun SkeletonFolderItem(
     modifier: Modifier
-){
+) {
+    val colors = MaterialTheme.linkuColors
 
     BoxWithConstraints(
         modifier = modifier
@@ -55,98 +84,61 @@ internal fun SkeletonFolderItem(
         val scaleH = maxHeight / baseH.dp
         val scale = minOf(scaleW, scaleH)
 
-        /** 디자인 기준 dp, sp를 현재 카드 크기에 맞게 변환하는 헬퍼입니다. */
         fun s(dp: Dp) = dp * scale
 
-        /**
-         * 폴더 일러스트를 구성하는 단일 레이어를 현재 카드 크기에 맞춰 그립니다.
-         *
-         * @param size 레이어의 기준 너비입니다.
-         * @param height 레이어의 기준 높이입니다. 지정하지 않으면 [size]와 같은 값으로 사용합니다.
-         * @param padding 기준 크기에서 적용할 외부 여백입니다.
-         * @param rotation 레이어에 적용할 회전 각도입니다.
-         */
-        @Composable
-        fun FolderLayerBox(
-            size: Dp,
-            height: Dp = size,
-            padding: PaddingValues = PaddingValues(0.dp),
-            rotation: Float = 0f,
-        ) {
-            /** 회전과 그림자를 가진 폴더 뒷장/중간장/앞장 레이어입니다. */
-            Surface(
-                modifier = Modifier
-                    // 레이어별 기준 여백을 현재 카드 스케일에 맞게 변환합니다.
-                    .padding(
-                        PaddingValues(
-                            start = s(padding.calculateStartPadding(LayoutDirection.Ltr)),
-                            top = s(padding.calculateTopPadding()),
-                            end = s(padding.calculateEndPadding(LayoutDirection.Ltr)),
-                            bottom = s(padding.calculateBottomPadding())
-                        )
-                    )
-                    // 레이어마다 다른 회전값을 적용해 폴더 종이가 겹친 느낌을 만듭니다.
-                    .rotate(rotation)
-                    // 레이어의 기준 너비/높이를 현재 카드 크기에 맞춰 스케일링합니다.
-                    .width(s(size))
-                    .height(s(height))
-                    .skeleton(isLoading = true),
-                shape = RoundedCornerShape(s(18.dp)),
-            ) {}
-        }
-
-        /** 폴더 레이어와 하단 마스크를 카드 중앙 기준으로 겹쳐 배치하는 루트 컨테이너입니다. */
         Box(
-            Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            // 배경면. SkeletonFolderItem 자체가 갖는 크기를 가짐.
             Surface(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .skeleton(isLoading = true),
-                shape = RoundedCornerShape(28.5.dp)
-            ){}
+                    .fillMaxSize(),
+                shape = RoundedCornerShape(25.dp),
+                color = colors.gray[200]
+            ) {}
 
-            // 첫 번째 레이어: 가장 뒤쪽 종이입니다. 원본: 105.45, padding bottom 5.7, rot -7.39
-            FolderLayerBox(
-                size = 105.45.dp,
-                padding = PaddingValues(bottom = 5.7.dp),
-                rotation = -7.39f
-            )
-
-            // 두 번째 레이어: 가운데 종이입니다. 원본: 105.45, padding bottom 3.1825, rot 4.86
-            FolderLayerBox(
-                size = 105.45.dp,
-                padding = PaddingValues(bottom = 3.1825.dp),
-                rotation = 4.86f
-            )
-
-            // 세 번째 레이어: 가장 앞쪽 흰색/컬러 종이입니다. 원본: size 126.407 x 107.9605, padding top 7.6
-            FolderLayerBox(
-                size = 126.407.dp,
-                height = 107.9605.dp,
-                padding = PaddingValues(top = 7.6.dp),
-                rotation = 0f
-            )
-
-            // 하단 폴더 마스크.
-            Image(
-                painter = painterResource(R.drawable.folder_mask),
-                contentScale = ContentScale.FillWidth,
-                contentDescription = null,
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .skeleton(isLoading = true)
-            )
+            ) {
+                FolderMask(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(s(116.dp))
+                        .align(Alignment.BottomCenter)
+                )
+
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(start = s(18.dp), bottom = s(18.dp)),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(s(8.dp))
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .size(s(29.dp)),
+                        shape = CircleShape,
+                        color = colors.gray[400]
+                    ) {}
+
+                    Surface(
+                        modifier = Modifier
+                            .width(s(58.dp))
+                            .height(s(22.dp)),
+                        shape = RoundedCornerShape(s(8.dp)),
+                        color = colors.gray[300]
+                    ) {}
+                }
+            }
         }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-private fun SkeletonFolderItemPreview(){
+private fun SkeletonFolderItemPreview() {
     LinkuPreview {
         SkeletonFolderItem(Modifier.fillMaxSize())
     }
