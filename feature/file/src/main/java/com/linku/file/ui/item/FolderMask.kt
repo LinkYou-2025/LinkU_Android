@@ -2,12 +2,19 @@ package com.linku.file.ui.item
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 
 private val FolderMaskShape = GenericShape { size, _ ->
     val sx = size.width / 174f
@@ -33,6 +40,23 @@ private val FolderMaskShape = GenericShape { size, _ ->
 
 @Composable
 internal fun FolderMask(
+    modifier: Modifier
+) {
+    val colors = MaterialTheme.linkuColors
+
+    FolderMask(
+        modifier = modifier,
+        brush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                1.0f to colors.gray[100].copy(alpha = 0.7f),
+                0.2f to colors.gray[200].copy(alpha = 1.0f),
+            )
+        ),
+    )
+}
+
+@Composable
+internal fun FolderMask(
     modifier: Modifier,
     brush: Brush,
 ) {
@@ -48,6 +72,18 @@ internal fun FolderMask(
                         drawRect(brush = brush)
                     }
                 }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FolderMaskPreview() {
+    LinkuPreview {
+        FolderMask(
+            Modifier
+                .fillMaxWidth()
+                .height(116.dp)
         )
     }
 }
