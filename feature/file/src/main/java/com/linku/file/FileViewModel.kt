@@ -1215,9 +1215,14 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "receiveSharedFolder return")
     }
 
-    fun receiveSharedFolderInvitation(token: String) {
+    fun receiveSharedFolderInvitation(
+        token: String,
+        onSuccess: () -> Unit,
+        onFailure: (Throwable) -> Unit = {},
+    ) {
         Log.d("FileViewModel", "receiveSharedFolderInvitation")
 
+        receiveSharedFolderInvitationJob?.cancel()
         receiveSharedFolderInvitationJob = viewModelScope.launch {
             Log.d("FileViewModel", "receiveSharedFolderInvitation launch")
 
@@ -1225,6 +1230,10 @@ class FileViewModel @Inject constructor(
             _errorMessage.value = null
 
             try {
+                require(token.isNotBlank()) {
+                    "Invitation token must not be blank."
+                }
+
                 val userId = authPreference.getUserId()
 
                 if (userId == null) {
@@ -1235,12 +1244,18 @@ class FileViewModel @Inject constructor(
                 _sharedTopFolders.value = folderRepository.getSharedFolders()
 
                 Log.d("FileViewModel", "receiveSharedFolderInvitation well done")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.d("FileViewModel", "receiveSharedFolderInvitation catch: $e")
                 _errorMessage.value = e.message
+                onFailure(e)
+                return@launch
             } finally {
                 stopLoading()
             }
+
+            onSuccess()
         }
     }
     // 공개 전환

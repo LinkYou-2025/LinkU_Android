@@ -320,24 +320,47 @@ fun MainApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
                         onLoginSuccess = {
-                            showNavBar = true
+                            // 로그인 전에 저장한 초대 토큰이 있을 때만 공유 폴더 초대를 처리
+                            val pendingInvitationToken =
+                                deepLinkViewModel.consumePendingInvitation()
 
+                            if (pendingInvitationToken.isNotBlank()) {
+                                fileViewModel.receiveSharedFolderInvitation(
+                                    token = pendingInvitationToken,
+                                    onSuccess = {
+                                        if (navigator.currentDestination?.route == "login_root") {
+                                            showNavBar = true
+                                            folderStateViewModel.resetSharedFolderState()
+                                            folderStateViewModel.updateIsSharedFolders(true)
 
-                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
+                                            navigator.navigate(NavigationRoute.File.route) {
+                                                popUpTo("login_root") { inclusive = true }
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    },
+                                    onFailure = {
+                                        if (navigator.currentDestination?.route == "login_root") {
+                                            showNavBar = true
+                                            folderStateViewModel.resetSharedFolderState()
+                                            Toast.makeText(
+                                                context,
+                                                R.string.invalid_share_link,
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
 
-                            // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
-                            deepLinkViewModel.consumePendingInvitation().let { token ->
-                                fileViewModel.receiveSharedFolderInvitation(token)
-                                folderStateViewModel.updateIsSharedFolders(true)
-
-                                navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo("login_root") { inclusive = true }
-                                    launchSingleTop = true
-                                }
+                                            navigator.navigate(NavigationRoute.Home.route) {
+                                                popUpTo("login_root") { inclusive = true }
+                                                launchSingleTop = true
+                                            }
+                                        }
+                                    },
+                                )
                                 return@LoginApp
                             }
 
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
+                                showNavBar = true
                                 fileViewModel.receiveSharedFolder(folderId)
                                 folderStateViewModel.resetSharedFolderState()
                                 folderStateViewModel.updateIsSharedFolders(true)
@@ -350,6 +373,7 @@ fun MainApp(
                             }
 
 
+                            showNavBar = true
                             navigator.navigate(NavigationRoute.Home.route) {
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
