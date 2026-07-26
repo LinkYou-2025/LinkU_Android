@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.Gender
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
@@ -71,6 +72,8 @@ fun EditProfileScreen(
 
     var name by remember(userNickname) { mutableStateOf(userNickname) }
     // 성별은 서버에서 받은 값을 표시만 하고 이 화면에서는 변경하지 않음(변경 불가).
+    // userGender는 서버 원본 값("MALE"/"FEMALE")이라 Gender enum으로 변환해서 비교해야 함.
+    val gender = remember(userGender) { Gender.fromApiValue(userGender) }
 
     val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
     var selectedJob by remember(userJob) {
@@ -359,7 +362,7 @@ fun EditProfileScreen(
                             modifier = Modifier
                                 .size(20.dp)
                                 .border(
-                                    width = if (userGender == "남성") 5.dp else 1.dp,
+                                    width = if (gender == Gender.MALE) 5.dp else 1.dp,
                                     color = colors.blue[200],
                                     shape = CircleShape
                                 )
@@ -383,7 +386,7 @@ fun EditProfileScreen(
                             modifier = Modifier
                                 .size(20.dp)
                                 .border(
-                                    width = if (userGender == "여성") 5.dp else 1.dp,
+                                    width = if (gender == Gender.FEMALE) 5.dp else 1.dp,
                                     color = colors.blue[200],
                                     shape = CircleShape
                                 )
@@ -598,7 +601,7 @@ fun PreviewEditProfileScreen() {
             userNickname = "세나",
             userJob = "대학생",
             userEmail = "longtime03@naver.com",
-            userGender = "여성",
+            userGender = "FEMALE",
             userSocialLoginType = "NAVER"
         )
     }
