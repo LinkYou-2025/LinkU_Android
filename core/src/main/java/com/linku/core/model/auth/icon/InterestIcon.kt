@@ -1,8 +1,8 @@
-package com.linku.login.ui.icon
+package com.linku.core.model.auth.icon
 
 import androidx.annotation.DrawableRes
 import com.linku.core.model.auth.Interest
-import com.linku.login.R
+import com.linku.design.R
 
 val Interest.iconRes: Int
     @DrawableRes get() = when (this) {

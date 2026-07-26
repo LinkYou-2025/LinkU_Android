@@ -20,32 +20,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.BrushText
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.mypage.component.CustomInfoSelectionItem
 
-private val interestItems = listOf(
-    "비즈니스/마케팅",
-    "디자인/크리에이티브",
-    "IT/개발",
-    "학업/리포트 참고",
-    "스타트업/창업",
-    "글쓰기/콘텐츠 작성",
-    "그냥 모아두고 싶은 글들",
-    "커리어/채용",
-    "책/인사이트 요약"
-)
-
 @Composable
 fun InterestSelectionScreen(
     navController: NavController,
-    onFinishClick: () -> Unit
+    initialSelected: Set<Interest>,
+    onFinishClick: (Set<Interest>) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
-    val selectedItems = remember { mutableStateListOf<String>() }
+    val selectedItems = remember(initialSelected) {
+        mutableStateListOf(*initialSelected.toTypedArray())
+    }
+    val hasChanges = selectedItems.toSet() != initialSelected
 
     CustomInfoSelectionContent(
         questionContent = {
@@ -83,17 +77,18 @@ fun InterestSelectionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(interestItems) { item ->
-                    val isSelected = item in selectedItems
+                items(Interest.entries) { interest ->
+                    val isSelected = interest in selectedItems
 
                     CustomInfoSelectionItem(
-                        text = item,
+                        text = interest.displayName.replace("\n", " "),
+                        iconRes = interest.iconRes,
                         isSelected = isSelected,
                         onClick = {
                             if (isSelected) {
-                                selectedItems.remove(item)
+                                selectedItems.remove(interest)
                             } else {
-                                selectedItems.add(item)
+                                selectedItems.add(interest)
                             }
                         }
                     )
@@ -101,9 +96,9 @@ fun InterestSelectionScreen(
             }
         },
         buttonText = "완료",
-        isButtonEnabled = selectedItems.isNotEmpty(),
+        isButtonEnabled = hasChanges,
         onBackClick = { navController.popBackStack() },
-        onButtonClick = onFinishClick
+        onButtonClick = { onFinishClick(selectedItems.toSet()) }
     )
 }
 
@@ -115,6 +110,7 @@ fun PreviewInterestSelectionScreen() {
     ThemeProvider {
         InterestSelectionScreen(
             navController = navController,
+            initialSelected = emptySet(),
             onFinishClick = {}
         )
     }

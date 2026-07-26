@@ -1,10 +1,10 @@
-package com.linku.login.ui.icon
+package com.linku.core.model.auth.icon
 
 import androidx.annotation.DrawableRes
 import com.linku.core.model.auth.Purpose
-import com.linku.login.R
+import com.linku.design.R
 
-internal val Purpose.iconRes: Int
+val Purpose.iconRes: Int
     @DrawableRes get() = when (this) {
         Purpose.CAREER -> R.drawable.ic_purpose_career
         Purpose.CREATION_REFERENCE -> R.drawable.ic_purpose_creation_reference

@@ -33,11 +33,11 @@ import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SelectionItem
+import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
-import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.item.SelectionCardItem
 import com.linku.login.ui.item.StepIndicator
 

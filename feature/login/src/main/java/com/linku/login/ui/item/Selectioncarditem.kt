@@ -122,14 +122,14 @@ fun SelectionCardItemComparePreview() {
             SelectionCardItem(
                 text = "사이드 프로젝트\n& 창업",
                 isSelected = false,
-                iconRes = R.drawable.ic_purpose_side_project,
+                iconRes = com.linku.design.R.drawable.ic_purpose_side_project,
                 onClick = {},
                 modifier = Modifier.size(130.dp)
             )
             SelectionCardItem(
                 text = "글쓰기\n&콘텐츠\n노하우",
                 isSelected = true,
-                iconRes = R.drawable.ic_purpose_insights,
+                iconRes = com.linku.design.R.drawable.ic_purpose_insights,
                 onClick = {},
                 modifier = Modifier.size(130.dp)
             )

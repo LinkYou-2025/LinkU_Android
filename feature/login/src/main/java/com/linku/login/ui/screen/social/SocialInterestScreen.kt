@@ -13,8 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
+import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.theme.LinkuPreview
-import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SocialAuthViewModel
 import com.linku.login.viewmodel.state.SocialAuthUiEffect

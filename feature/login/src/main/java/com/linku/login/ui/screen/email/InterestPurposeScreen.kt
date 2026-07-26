@@ -10,8 +10,8 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Purpose
+import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.theme.LinkuPreview
-import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SignUpViewModel
 import com.linku.login.viewmodel.state.SignUpEffect
