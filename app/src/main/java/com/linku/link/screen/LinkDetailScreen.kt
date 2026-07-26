@@ -9,6 +9,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -82,8 +84,10 @@ private enum class LinkDetailDropdownType {
 
 private const val MAX_MEMO_LENGTH = 200
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LinkDetailScreen(
+    linkuId: Long,
     linkTitle: String,
     category: String,
     emotion: String,
@@ -94,6 +98,8 @@ fun LinkDetailScreen(
     memo: String,
     tags: List<String>,
     aiSummary: String,
+    isAiArticleLoading: Boolean,
+    aiArticleErrorMessage: String?,
     categoryOptions: List<LinkCategoryOption>,
     onBack: () -> Unit,
     onPickImage: () -> Unit,
@@ -110,6 +116,8 @@ fun LinkDetailScreen(
         onSuccess: () -> Unit,
         onFailed: () -> Unit,
     ) -> Unit,
+    onRequestAiArticle: (Long) -> Unit,
+    onClearAiArticleError: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
     val caller = getCaller()
@@ -120,12 +128,11 @@ fun LinkDetailScreen(
     val context = LocalContext.current
 
     var isEditMode by rememberSaveable { mutableStateOf(false) }
-    var isAiSummaryMode by rememberSaveable { mutableStateOf(false) }
+    var isAiSummaryMode by rememberSaveable(linkuId) { mutableStateOf(aiSummary.isNotBlank()) }
 
     var isDropdownVisible by rememberSaveable { mutableStateOf(false) }
     var isDeleteModalVisible by rememberSaveable { mutableStateOf(false) }
     var isAiArticleModalVisible by rememberSaveable { mutableStateOf(false) }
-    var isAiArticleProcessing by rememberSaveable { mutableStateOf(false) }
     var aiArticleProgress by rememberSaveable { mutableFloatStateOf(0f) }
 
     var editToastMessage by rememberSaveable { mutableStateOf("") }
@@ -178,20 +185,55 @@ fun LinkDetailScreen(
         }
     }
 
-    LaunchedEffect(isAiArticleProcessing) {
-        if (isAiArticleProcessing) {
+    LaunchedEffect(isAiArticleLoading) {
+        if (isAiArticleLoading) {
             aiArticleProgress = 0f
 
-            while (aiArticleProgress < 1f) {
-                delay(80.milliseconds)
-                aiArticleProgress = (aiArticleProgress + 0.02f).coerceAtMost(1f)
+            while (isAiArticleLoading && aiArticleProgress < 0.9f) {
+                delay(100.milliseconds)
+
+                aiArticleProgress = when {
+                    aiArticleProgress < 0.5f -> {
+                        (aiArticleProgress +
+                                0.025f).coerceAtMost(0.5f)
+                    }
+
+                    aiArticleProgress < 0.75f -> {
+                        (aiArticleProgress +
+                                0.01f).coerceAtMost(0.75f)
+                    }
+
+                    else -> {
+                        (aiArticleProgress +
+                                0.003f).coerceAtMost(0.9f)
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(aiSummary, isAiArticleLoading) {
+        if (!isAiArticleLoading && aiSummary.isNotBlank()) {
+            aiArticleProgress = 1f
+
+            if (isAiArticleModalVisible) {
+                delay(250.milliseconds)
             }
 
-            delay(300.milliseconds)
-
-            isAiArticleProcessing = false
             isAiArticleModalVisible = false
             isAiSummaryMode = true
+        }
+    }
+
+    LaunchedEffect(aiArticleErrorMessage) {
+        if (aiArticleErrorMessage != null) {
+            isAiArticleModalVisible = false
+            aiArticleProgress = 0f
+
+            editToastMessage = aiArticleErrorMessage
+            isEditToastVisible = true
+
+            onClearAiArticleError()
         }
     }
 
@@ -403,10 +445,10 @@ fun LinkDetailScreen(
                         }
 
                         if (visibleTags.isNotEmpty()) {
-                            Row(
+                            FlowRow(
                                 modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
                                 visibleTags.forEach { tag ->
                                     Text(
@@ -742,9 +784,9 @@ fun LinkDetailScreen(
                             isAiArticleModalVisible = true
                             openedDropdownType = null
 
-                            if (!isAiArticleProcessing) {
+                            if (!isAiArticleLoading) {
                                 aiArticleProgress = 0f
-                                isAiArticleProcessing = true
+                                onRequestAiArticle(linkuId)
                             }
                         }
                     },
@@ -806,14 +848,19 @@ fun PreviewLinkDetailScreen() {
 
     ThemeProvider {
         LinkDetailScreen(
+            linkuId = 0L,
             linkTitle = "3일만에 오픽 AL 꿀팁",
             category = "카테고리2",
             emotion = "평온",
             situationId = 10L,
             linkUrl = "https://blog.naver.com/linkU/1234567890",
-            memo = "오픽 시험 준비시 도움이 되는 내용 정리, AI 활용한 공부법 정리 및 다양한 내용이 포함된 링크!!",
+            memo = "오픽 시험 준비시 도움이 되는 내용 정리",
             tags = listOf("오픽", "AL", "영어회화", "자격증"),
-            aiSummary = "오픽 시험에서는 인터뷰어 Ava와의 대화를 친구처럼 자연스럽게 임하며, 목표 점수에 맞춰 답변량과 유창성을 조절하고, MBC 구조와 콤보 유형 연습을 통해 고득점을 노리는 전략적 접근이 중요하다.",
+            aiSummary = "",
+            isAiArticleLoading = false,
+            aiArticleErrorMessage = null,
+            onRequestAiArticle = { },
+            onClearAiArticleError = { },
             categoryOptions = categoryOptions,
             onBack = { },
             onPickImage = { },

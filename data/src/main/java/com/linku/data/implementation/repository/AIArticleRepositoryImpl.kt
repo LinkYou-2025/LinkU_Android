@@ -20,19 +20,19 @@ class AIArticleRepositoryImpl @Inject constructor(
                 AiArticle(
                     id = dto.id,
                     linkuId = dto.linkuId,
-                    situationId = dto.situationId,
-                    situationName = dto.situationName,
                     emotionId = dto.emotionId,
                     emotionName = dto.emotionName,
-                    title = dto.title,
-                    aiFeelingName = dto.aiFeelingName,
-                    aiFeelingId = dto.aiFeelingId,
-                    aiCategoryId = dto.aiCategoryId,
                     categoryName = dto.categoryName,
-                    summary = dto.summary,
+                    summary = dto.summary.orEmpty(),
                     imgUrl = dto.imgUrl,
                     memo = dto.memo,
-                    keyword = dto.keyword
+                    tags = dto.tags
+                        ?.split(",")
+                        ?.map { tag -> tag.trim() }
+                        ?.filter { tag ->
+                            tag.isNotBlank() }
+                        .orEmpty(),
+                    title = dto.title
                 )
             },
             onFailure = { throwable ->

@@ -54,6 +54,7 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
+import com.linku.home.viewmodel.AIArticleViewModel
 import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
 import com.linku.link.component.LinkCategoryOption
@@ -583,7 +584,20 @@ fun MainApp(
                 ) { backStackEntry ->
                     val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
-                    val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
+
+                    val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: return@composable
+
+                    val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
+                    val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
+
+                    fun keywordToTags(keyword: String?): List<String> {
+                        return keyword
+                            .orEmpty()
+                            .split(",")
+                            .map { keyword -> keyword.trim().removePrefix("#") }
+                            .filter { keyword -> keyword.isNotBlank() }
+                            .take(4)
+                    }
 
                     var selectedDetailImageUri by rememberSaveable(linkuId) {
                         mutableStateOf<Uri?>(null)
@@ -642,15 +656,6 @@ fun MainApp(
                             ?.key
                     }
 
-                    fun keywordToTags(keyword: String?): List<String> {
-                        return keyword
-                            .orEmpty()
-                            .split(",", " ", "#")
-                            .map { it.trim() }
-                            .filter { it.isNotBlank() }
-                            .take(4)
-                    }
-
                     // 색상 맵 수집
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
@@ -664,38 +669,27 @@ fun MainApp(
                         )
                     }
 
-                    // 외부 브라우저 열기
-                    fun openUrl(url: String) {
-                        runCatching {
-                            val fixed = if (
-                                url.startsWith("http://") || url.startsWith("https://")
-                            ) {
-                                url
-                            } else {
-                                "https://$url"
-                            }
-
-                            val intent = Intent(
-                                Intent.ACTION_VIEW,
-                                fixed.toUri()
-                            )
-
-                            context.startActivity(intent)
-                        }.onFailure {
-                            Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
                     val linkDetail = linkDetailViewModel.linkDetail
-                    val aiArticle = linkDetailViewModel.aiArticleDetail
+                    val aiArticle = aiArticleUiState.aiArticle
 
-                    val displayKeyword = aiArticle?.keyword?.trim().orEmpty()
-                        .ifEmpty { linkDetail?.keyword.orEmpty() }
+                    val displayTags = aiArticle
+                        ?.tags
+                        ?.filter { tag -> tag.isNotBlank() }
+                        ?.take(4)
+                        ?.takeIf { tags -> tags.isNotEmpty() }
+                        ?: keywordToTags(linkDetail?.keyword)
 
-                    val displaySummary = aiArticle?.summary?.trim().orEmpty()
-                        .ifEmpty { linkDetail?.summary.orEmpty() }
+                    val displaySummary = aiArticle
+                        ?.summary
+                        ?.trim()
+                        ?.takeIf { summary -> summary.isNotBlank() }
+                        ?: linkDetail?.summary
+                            ?.trim()
+                            .orEmpty()
 
                     LinkDetailScreen(
+
+                        linkuId = linkuId,
                         linkTitle = linkDetail?.title.orEmpty(),
                         category = categoryNameOf(linkDetail?.categoryId),
                         emotion = emotionNameOf(linkDetail?.emotionId),
@@ -704,8 +698,13 @@ fun MainApp(
                         imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
                         selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
-                        tags = keywordToTags(displayKeyword),
+                        tags = displayTags,
                         aiSummary = displaySummary,
+                        isAiArticleLoading = aiArticleUiState.isLoading,
+                        aiArticleErrorMessage = aiArticleUiState.errorMessage,
+                        onRequestAiArticle = aiArticleViewModel::getAiArticle,
+                        onClearAiArticleError =
+                            aiArticleViewModel::clearErrorMessage,
                         categoryOptions = categoryOptions,
                         onBack = {
                             navigator.popBackStack()
@@ -713,11 +712,23 @@ fun MainApp(
                         onPickImage = {
                             detailImagePicker.launch("image/*")
                         },
-                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed, ->
+                        onSubmitEdit = {
+                                title,
+                                memo,
+                                categoryId,
+                                emotionId,
+                                situationId,
+                                onSuccess,
+                                onFailed ->
+
                             val selectedImageFile = runCatching {
                                 selectedDetailImageUri?.toTempFile(context)
-                            }.getOrElse { e ->
-                                Log.e("LinkDetail", "selected image conversion failed", e)
+                            }.getOrElse { error ->
+                                Log.e(
+                                    "LinkDetail",
+                                    "selected image conversion failed",
+                                    error
+                                )
                                 onFailed()
                                 return@LinkDetailScreen
                             }
@@ -734,10 +745,14 @@ fun MainApp(
                                     homeViewModel.loadRecentLinks()
                                     onSuccess()
                                 },
-                                onFailed = { e ->
-                                    Log.e("LinkDetail", "update failed", e)
+                                onFailed = { error ->
+                                    Log.e(
+                                        "LinkDetail",
+                                        "update failed",
+                                        error
+                                    )
                                     onFailed()
-                                },
+                                }
                             )
                         },
                         onDeleteLink = { onSuccess, onFailed ->
@@ -746,7 +761,9 @@ fun MainApp(
                                     homeViewModel.refreshHomeData()
                                     onSuccess()
                                 },
-                                onFailed = { onFailed() }
+                                onFailed = {
+                                    onFailed()
+                                }
                             )
                         }
                     )
