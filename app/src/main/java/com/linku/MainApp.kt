@@ -544,7 +544,10 @@ fun MainApp(
                             onNavigateToLinkDetail = { targetId -> navigator.navigate("savelinkresult/$targetId") },
                             onNavigateToFolder = { /* TODO */ },
                             onNavigateToCuration = { /* TODO */ },
-                            onNavigateToNotice = { targetId -> navigator.navigate("notice_screen/$targetId") }
+                            onNavigateToNotice = { targetId ->
+                                showNavBar = false
+                                navigator.navigate("notice_screen/$targetId")
+                            }
                         )
                     }
                 }

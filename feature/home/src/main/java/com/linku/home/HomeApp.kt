@@ -106,16 +106,14 @@ fun HomeApp(
                 onNavigateToSaveLink = { url ->
                     onNavigateToSaveLink(url)
                 },
-                onAlarmClick = { navController.navigate("alarm") }
+                onAlarmClick = {
+                    onShowNavBar(false)
+                    navController.navigate("alarm")
+                }
             )
         }
 
         composable("alarm") {
-            DisposableEffect(Unit) {
-                onShowNavBar(false)
-                onDispose { onShowNavBar(true) }
-            }
-
             AlarmScreen(
                 onNavigateToSetting = onNavigateToSetting,
                 onBack = { navController.popBackStack() },
