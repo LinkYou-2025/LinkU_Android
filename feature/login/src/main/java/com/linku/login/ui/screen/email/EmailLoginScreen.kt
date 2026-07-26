@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +45,7 @@ import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
 import com.linku.core.system.SystemBarController
 import com.linku.design.component.GradientButtonCore
+import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -57,6 +59,8 @@ import com.linku.login.viewmodel.state.LoginUiState
 @Composable
 fun EmailLoginScreen(
     loginViewModel: LoginViewModel? = null,
+    showRecoverModal: Boolean = false,
+    onDismissRecoverModal: () -> Unit = {},
     onSignUpClick: () -> Unit,
     onResetPasswordClick: () -> Unit,
     onLoginSuccess: () -> Unit = {}
@@ -147,7 +151,8 @@ fun EmailLoginScreen(
                 LoginTextField(
                     value = uiState.email,
                     onValueChange = { loginViewModel?.onEmailChanged(it) },
-                    hint = "이메일"
+                    hint = "이메일",
+                    keyboardType = KeyboardType.Email
                 )
 
                 Spacer(Modifier.height((10.scaler)))
@@ -236,6 +241,38 @@ fun EmailLoginScreen(
                         }
                 )
             }
+        }
+
+        // 탈퇴 유예기간(INACTIVE) 계정으로 로그인 시도 시 노출되는 복구 확인 모달
+        ModalWindow(
+            visible = showRecoverModal,
+            onOkay = {
+                loginViewModel?.keepWithdrawn()
+                onDismissRecoverModal()
+            },
+            onNegativeClick = {
+                loginViewModel?.recoverAccount()
+                onDismissRecoverModal()
+            },
+            onDismiss = {
+                loginViewModel?.dismissRecoverModal()
+                onDismissRecoverModal()
+            },
+            positiveText = "탈퇴 유지",
+            negativeText = "계정 복구",
+            title = "탈퇴 처리 중인 계정입니다.",
+            isLogoDimmed = true
+        ) {
+            Text(
+                text = "지금 로그인하면 계정이 즉시 복구됩니다.\n14일이 지나면 모든 정보가 삭제돼요.",
+                style = TextStyle(
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight(400),
+                    color = colorTheme.gray[600],
+                    textAlign = TextAlign.Center
+                )
+            )
         }
     }
 }

@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.core.model.SystemBarMode
@@ -73,6 +75,10 @@ fun HomeScreen(
     onAlarmClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        homeViewModel.refreshHomeData()
+    }
 
     //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
     val systemBarController =
@@ -138,11 +144,9 @@ fun HomeScreen(
         // 선택 없어도 접히는건 스크롤이 담당
         // 추천 요청은 선택이 있어야만
         if (selectedEmotion != null && selectedTask != null) {
-            onClearNeedMoreNotice()
-            onRecommendRequest(selectedEmotion!!, selectedTask!!, 10)
-            isRecommendMode = true
+            onRecommendRequest(selectedEmotion!!, selectedTask!!, 5)
 
-            // 추천 눌렀으면 강제 접힘(스크롤 상관 없이)
+            isRecommendMode = true
             isTopBarLockedCollapsed = true
 
             coroutineScope.launch { listState.animateScrollToItem(1) }
@@ -223,7 +227,7 @@ fun HomeScreen(
 
             item {
                 Column(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 24.dp)
+                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
                 ) {
                     val itemsToRender = if (isRecommendMode) recommendedLinks else recentLinks
 
@@ -231,7 +235,8 @@ fun HomeScreen(
                         text = titleText,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = colors.black
+                        color = colors.black,
+                        modifier = Modifier.padding(start = 4.dp)
                     )
 
                     when {
@@ -413,7 +418,11 @@ private fun LinkList(
                     onCardClick(link.linkuId)
                 },
                 onDeleteClick = {
-                    onDeleteClick(link.linkuId)
+//                    onDeleteClick(link.userLinkuId)  // nullable 제거 이후 사용
+                    // TODO: nullable 제거 전까지는 아래 코드로 사용하므로 nullable 제거 후 삭제할 예정
+                    link.userLinkuId?.let { userLinkuId ->
+                        onDeleteClick(userLinkuId)
+                    }
                 }
             )
 

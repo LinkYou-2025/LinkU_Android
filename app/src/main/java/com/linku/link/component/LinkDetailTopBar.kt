@@ -1,4 +1,4 @@
-package com.linku.home.ui.home.bar
+package com.linku.link.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -30,11 +30,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
-import com.linku.home.R
 
 @Composable
 fun LinkDetailTopBar(

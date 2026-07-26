@@ -6,9 +6,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,11 +18,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -31,9 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -149,6 +154,7 @@ internal fun EmailVerificationScreenContent(
                     onValueChange = { onEmailEvent(EmailUiEvent.EmailChanged(it)) },
                     hint = "이메일 주소를 입력해주세요",
                     enabled = !emailUiState.isLoading,
+                    keyboardType = KeyboardType.Email,
                     modifier = Modifier.fillMaxWidth(),
                     onFocusChanged = { isEmailFocused = it },
                 )
@@ -188,12 +194,15 @@ internal fun EmailVerificationScreenContent(
                 }
                 Spacer(modifier = Modifier.height(10.scaler))
 
-                OutlinedTextField(
+                val codeInteractionSource = remember { MutableInteractionSource() }
+                // Material3 OutlinedTextField 대신 BasicTextField + DecorationBox를 직접 씀:
+                // (1) enabled=false일 때 자동으로 회색 비활성 컬러가 적용되는 걸 피하기 위해 항상
+                //     enabled=true로 두고 로딩 중엔 readOnly로만 입력을 막음(색은 안 바뀜).
+                // (2) contentPadding을 이메일 필드(LoginTextField)와 동일한 22.scaler로 맞춰서
+                //     두 필드의 글자 시작 위치를 일치시킴(기존엔 Material3 기본 패딩이라 어긋나 있었음).
+                BasicTextField(
                     value = emailUiState.code,
                     onValueChange = { onEmailEvent(EmailUiEvent.CodeChanged(it)) },
-                    placeholder = {
-                        Text("코드를 입력해주세요", fontSize = 14.sp, color = colorTheme.gray[400])
-                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(colorTheme.white, shape = RoundedCornerShape(16.dp))
@@ -203,17 +212,46 @@ internal fun EmailVerificationScreenContent(
                             shape = RoundedCornerShape(16.dp)
                         )
                         .onFocusChanged { isCodeFocused = it.hasFocus },
-                    textStyle = LocalTextStyle.current.copy(fontFamily = MaterialTheme.linkuFont.font),
-                    shape = RoundedCornerShape(16.dp),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontFamily = MaterialTheme.linkuFont.font,
+                        fontSize = 14.sp,
+                        lineHeight = 16.sp,
+                        fontWeight = FontWeight(500),
+                        color = colorTheme.black
+                    ),
                     singleLine = true,
-                    enabled = !emailUiState.isLoading,
-                    trailingIcon = { TimerText(timerProvider = timerProvider) },
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedContainerColor = Color.Transparent,
-                        unfocusedContainerColor = Color.Transparent
-                    )
+                    enabled = true,
+                    readOnly = emailUiState.isLoading,
+                    cursorBrush = SolidColor(colorTheme.black),
+                    // 키보드 타입을 명시하지 않으면 IME 자동완성/맞춤법 검사 밑줄이 표시됨.
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number,
+                        autoCorrectEnabled = false
+                    ),
+                    interactionSource = codeInteractionSource,
+                    decorationBox = { innerTextField ->
+                        OutlinedTextFieldDefaults.DecorationBox(
+                            value = emailUiState.code,
+                            innerTextField = innerTextField,
+                            enabled = true,
+                            singleLine = true,
+                            visualTransformation = VisualTransformation.None,
+                            interactionSource = codeInteractionSource,
+                            placeholder = {
+                                Text("코드를 입력해주세요", fontSize = 14.sp, color = colorTheme.gray[400])
+                            },
+                            trailingIcon = { TimerText(timerProvider = timerProvider) },
+                            contentPadding = PaddingValues(
+                                start = 22.scaler,
+                                end = 21.scaler,
+                                top = 18.scaler,
+                                bottom = 18.scaler
+                            ),
+                            // 테두리는 위 .border()로 직접 그리므로 Material3 기본 컨테이너는 생략함
+                            // (기본 컨테이너는 브러시가 아닌 단색만 지원해서 그라데이션 테두리를 못 그림).
+                            container = {}
+                        )
+                    }
                 )
 
                 emailUiState.codeError?.let {
@@ -224,7 +262,7 @@ internal fun EmailVerificationScreenContent(
                         fontSize = 13.sp,
                         lineHeight = 15.sp,
                         fontWeight = FontWeight.Normal,
-                        modifier = Modifier.padding(start = 12.scaler)
+                        modifier = Modifier.padding(start = 22.scaler)
                     )
                 }
             }

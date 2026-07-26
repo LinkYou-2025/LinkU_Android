@@ -37,12 +37,12 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
+import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.d
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
-import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.deeplink.invitationLinkRoute
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
@@ -51,13 +51,13 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
-import com.linku.home.component.LinkCategoryOption
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.NoticeScreen
-import com.linku.home.screen.LinkDetailScreen
-import com.linku.home.screen.SaveLinkScreen
 import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
+import com.linku.link.component.LinkCategoryOption
+import com.linku.link.screen.LinkDetailScreen
+import com.linku.link.screen.SaveLinkScreen
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
@@ -511,7 +511,6 @@ fun MainApp(
                                     popUpTo(navigator.graph.findStartDestination().id) {
                                         inclusive = true
                                     }
-                                    //popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
 //                                navigator.navigate(NavigationRoute.Login.route) {
@@ -751,7 +750,7 @@ fun MainApp(
                         emotion = emotionNameOf(linkDetail?.emotionId),
                         situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
-                        imageUrl = linkDetail?.linkuImageUrl,
+                        imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
                         selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
@@ -782,7 +781,10 @@ fun MainApp(
                         },
                         onDeleteLink = { onSuccess, onFailed ->
                             linkDetailViewModel.deleteLink(
-                                onSucceed = onSuccess,
+                                onSucceed = {
+                                    homeViewModel.refreshHomeData()
+                                    onSuccess()
+                                },
                                 onFailed = { onFailed() }
                             )
                         }
@@ -866,7 +868,22 @@ fun MainApp(
 
 }
 
+/**
+ * 이미지 URL에 스킴이 없으면 HTTPS 스킴을 추가한다.
+ *
+ * 빈 문자열이나 null은 null로 반환한다.
+ * 스킴이 포함된 URI는 스킴의 종류와 대소문자에 관계없이 원본 값을 유지하며,
+ * 프로토콜 상대 URL은 HTTPS 스킴을 추가한다.
+ */
+private fun String?.toImageUrl(): String? {
+    val value = this?.trim()?.takeIf { it.isNotEmpty() } ?: return null
 
+    return when {
+        value.startsWith("//") -> "https:$value"
+        Uri.parse(value).scheme != null -> value
+        else -> "https://$value"
+    }
+}
 
 // 확장 함수: Context -> Activity
 fun Context.findActivity(): Activity? {

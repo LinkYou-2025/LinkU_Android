@@ -1,4 +1,4 @@
-package com.linku.home.screen
+package com.linku.link.screen
 
 import android.content.ClipData
 import android.content.Intent
@@ -50,22 +50,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import com.linku.R
 import com.linku.core.model.EmotionType
 import com.linku.core.model.SituationOptions
+import com.linku.core.util.caller.getCaller
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.d
+import com.linku.core.util.logging.e
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import com.linku.home.R
-import com.linku.home.component.AIArticleModal
-import com.linku.home.component.DeleteLinkModal
-import com.linku.home.component.LinkCategoryOption
-import com.linku.home.component.LinkDetailAction
-import com.linku.home.component.LinkDetailCategoryDropdown
-import com.linku.home.component.LinkDetailCustomDropdown
-import com.linku.home.component.LinkDetailEmotionDropdown
-import com.linku.home.component.LinkDetailSituationDropdown
-import com.linku.home.ui.home.bar.LinkDetailTopBar
+import com.linku.link.component.AIArticleModal
+import com.linku.link.component.DeleteLinkModal
+import com.linku.link.component.LinkCategoryOption
+import com.linku.link.component.LinkDetailAction
+import com.linku.link.component.LinkDetailCategoryDropdown
+import com.linku.link.component.LinkDetailCustomDropdown
+import com.linku.link.component.LinkDetailEmotionDropdown
+import com.linku.link.component.LinkDetailSituationDropdown
+import com.linku.link.component.LinkDetailTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -108,6 +112,7 @@ fun LinkDetailScreen(
     ) -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val caller = getCaller()
 
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
@@ -250,6 +255,15 @@ fun LinkDetailScreen(
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.img_link_detail_default),
                         error = painterResource(R.drawable.img_link_detail_default),
+                        onLoading = {
+                            LinkuLog.d(caller) { "loading: ${selectedImageUri ?: imageUrl}" }
+                        },
+                        onSuccess = {
+                            LinkuLog.d(caller) { "success: ${selectedImageUri ?: imageUrl}" }
+                        },
+                        onError = { state ->
+                            LinkuLog.e(caller, state.result.throwable) { "error: ${selectedImageUri ?: imageUrl}" }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .aspectRatio(1f)
@@ -455,7 +469,7 @@ fun LinkDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 22.dp)
+                        .padding(top = 22.dp, bottom = 50.dp)
                 ) {
                     Text(
                         text = "메모",

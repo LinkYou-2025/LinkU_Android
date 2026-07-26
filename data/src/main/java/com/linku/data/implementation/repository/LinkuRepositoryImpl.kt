@@ -72,8 +72,6 @@ class LinkuRepositoryImpl @Inject constructor(
                 ?.toRequestBody("text/plain".toMediaTypeOrNull())
 
         // --- API 호출 ---
-        // addLink 의 반환 타입이 BaseResponse<LinkuSimpleDTO> 인 경우와
-        // LinkuSimpleDTO 자체를 반환하는 경우 둘 다 대응할 수 있게 주석 남깁니다.
         lateinit var result: LinkSimpleInfo
 
         safeApiCall(
@@ -87,18 +85,18 @@ class LinkuRepositoryImpl @Inject constructor(
                     title = titleBody
                 )
             }
-        ).onSuccess {
+        ).onSuccess { dto ->
             result = LinkSimpleInfo(
-                linkuId = it.linkuId,
-                categoryId = it.categoryId,
-                memo = it.memo?.nullIfBlank(),
-                emotionId = it.emotionId,
-                situationId = it.situationId,
-                title = it.title,
-                domain = it.domain.orEmpty(),
-                domainImageUrl = it.domainImageUrl,
-                linkuImageUrl = it.linkuImageUrl,
-                aiArticleExists = it.aiArticleExists == true
+                userLinkuId = dto.userLinkuId,
+                linkuId = dto.linkuId,
+                categoryId = dto.categoryId,
+                memo = dto.memo,
+                emotionId = dto.emotionId,
+                title = dto.title,
+                domain = dto.domain.orEmpty(),
+                domainImageUrl = dto.domainImageUrl,
+                linkuImageUrl = dto.linkuImageUrl,
+                aiArticleExists = dto.aiArticleExists == true,
             )
         }.onFailure {
             throw it
@@ -145,17 +143,18 @@ class LinkuRepositoryImpl @Inject constructor(
                 )
             }
         ).onSuccess { dtoList ->
-            result = dtoList.map {
+            result = dtoList.map { dto ->
                 LinkSimpleInfo(
-                    linkuId = it.linkuId ?: 0L,
-                    categoryId = it.categoryId,
-                    memo = it.memo,
-                    emotionId = it.emotionId,
-                    title = it.title.orEmpty(),
-                    domain = it.domain.orEmpty(),
-                    domainImageUrl = it.domainImageUrl,
-                    linkuImageUrl = it.linkuImageUrl,
-                    aiArticleExists = it.aiArticleExists == true
+                    userLinkuId = dto.userLinkuId,
+                    linkuId = dto.linkuId,
+                    categoryId = dto.categoryId,
+                    memo = dto.memo,
+                    emotionId = dto.emotionId,
+                    title = dto.title,
+                    domain = dto.domain.orEmpty(),
+                    domainImageUrl = dto.domainImageUrl,
+                    linkuImageUrl = dto.linkuImageUrl,
+                    aiArticleExists = dto.aiArticleExists,
                 )
             }
         }.onFailure {
@@ -167,35 +166,24 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 최근 열람 링크 조회
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> {
-//        val response = serverApi.withAuth(authPreference) {
-//            recentLinks(limit = limit)   // BaseResponse<List<LinkuSimpleDTO>>
-//        }
-        //홈에서 가장 먼저 호출하는 api 여기서 withAuth 처음 진입함.
-        var result: List<LinkSimpleInfo> = emptyList()
+        // 홈에서 가장 먼저 호출하는 api 여기서 withAuth 처음 진입함.
+        var result = emptyList<LinkSimpleInfo>()
 
         safeApiCall(
             apiCall = { serverApi.recentLinks(limit = limit) }
-        ).onSuccess { raw ->
-            // 원래 있던 캐스팅 로직 원형 그대로 보존
-            val list: List<LinkuSimpleDTO> = when (raw) {
-                is BaseResponse<*> -> (raw.result as? List<LinkuSimpleDTO>).orEmpty()
-                is List<*> -> raw.filterIsInstance<LinkuSimpleDTO>()
-                else -> emptyList()
-            }
-
-            Log.d("RepoRecent", "recent size=${list.size}")
-
-            result = list.map { dto ->
+        ).onSuccess { dtoList ->
+            result = dtoList.map { dto ->
                 LinkSimpleInfo(
+                    userLinkuId = dto.userLinkuId,
                     linkuId = dto.linkuId,
                     categoryId = dto.categoryId,
                     memo = dto.memo,
                     emotionId = dto.emotionId,
-                    title = dto.title.orEmpty(),
+                    title = dto.title,
                     domain = dto.domain.orEmpty(),
                     domainImageUrl = dto.domainImageUrl,
                     linkuImageUrl = dto.linkuImageUrl,
-                    aiArticleExists = dto.aiArticleExists == true
+                    aiArticleExists = dto.aiArticleExists,
                 )
             }
         }.onFailure {
@@ -206,7 +194,6 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // 링크 상세 보기 구현
-    // * 수정 전 *
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
         lateinit var result: LinkResultInfo
 
@@ -242,8 +229,8 @@ class LinkuRepositoryImpl @Inject constructor(
         return result
     }
 
-    // * 수정 후 *
-    override suspend fun getLinkDetail(
+    // 공유받은 링크 상세 보기
+    override suspend fun getLinkDetailWithShared(
         userId: Long,
         linkuId: Long
     ): LinkResultInfo {
@@ -253,22 +240,6 @@ class LinkuRepositoryImpl @Inject constructor(
             apiCall = { serverApi.viewDetailLink(userId = userId, linkuid = linkuId) }
         ).onSuccess {
             result = LinkResultInfo(
-//                userId = it.userId,
-//                linkuId = it.linkuId,
-//                linkuFolderId = it.linkuFolderId,
-//                categoryId = it.categoryId,
-//                linku = it.linku,
-//                memo = it.memo?.takeIf { it.isNotBlank() },
-//                emotionId = it.emotionId,
-//                domain = it.domain ?: "",
-//                title = it.title,
-//                domainImageUrl = it.domainImageUrl,
-//                linkuImageUrl = it.linkuImageUrl,
-//                aiArticleExists = it.aiArticleExists == true,
-//                keyword = it.keyword?.takeIf { it.isNotBlank() },
-//                summary = it.summary?.takeIf { it.isNotBlank() },
-//                createdAt = it.createdAt,
-//                updatedAt = it.updatedAt
                 userId = it.userId,
                 userLinkuId = it.userLinkuId,
                 linkuId = it.linkuId,
