@@ -96,23 +96,22 @@ class AlarmViewModel @Inject constructor(
         // 낙관적 업데이트: 서버 응답을 기다리지 않고 즉시 읽음으로 표시
         _readAlarmIds.update { it + alarm.id }
 
+        // 읽음 API는 별도 코루틴에서 실행하여 화면 이동을 기다리지 않고 처리
         viewModelScope.launch {
+            alarmRepository.readAlarm(alarm.id)
+                .fold(
+                    onSuccess = {
+                        Log.d("AlarmList", "알람 읽음 처리 완료")
+                    },
+                    onFailure = {
+                        _readAlarmIds.update { ids -> ids - alarm.id }
+                        Log.e("AlarmList", "알람 읽음 처리 실패", it)
+                    }
+                )
+        }
 
-            // 새 코루틴을 생성하고 블로킹하지 않고 바로 다음 코드로 넘어감
-            // 읽기 api응답을 기다리지 않고 화면 이동을 실행하여 UX를 최적화
-            launch {
-                alarmRepository.readAlarm(alarm.id)
-                    .fold(
-                        onSuccess ={
-                            Log.d("AlarmList", "알람 읽음 처리 완료")
-                        },
-                        onFailure = {
-                            _readAlarmIds.update { ids -> ids - alarm.id }
-                            Log.e("AlarmList", "알람 읽음 처리 실패", it)
-                        }
-                    )
-            }
-
+        // 읽기 API 응답을 기다리지 않고 즉시 화면 이동을 실행하여 UX 최적화
+        viewModelScope.launch {
             when (alarm.alarmType) {
                 AlarmType.LINK -> {
                     _sideEffect.send(AlarmSideEffect.NavigateToLinkDetail(alarm.targetId))
