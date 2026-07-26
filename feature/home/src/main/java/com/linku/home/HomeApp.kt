@@ -3,31 +3,24 @@ package com.linku.home
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
-import com.linku.home.screen.NoticeScreen
 
 @Composable
 fun HomeApp(
     viewModel: HomeViewModel,
-    nickname: String, // 닉네임 호출을 위해 추가함.
+    nickname: String,
     onNavigateToSetting: () -> Unit,
     onNavigateToSaveLink: (String) -> Unit,
     onNavigateToLinkDetail: (Long) -> Unit,
     onNavigateToCuration: () -> Unit,
-    onShowNavBar: (Boolean) -> Unit = {},
+    onNavigateToAlarm: () -> Unit,
 ) {
     val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -40,27 +33,28 @@ fun HomeApp(
 
     // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
-//    // === 감정/상황 키 → 서버 ID 매핑 ===
-//    fun emotionKeyToId(key: String): Long = when (key) {
-//        "joy" -> 1L
-//        "calm" -> 2L
-//        "excitement" -> 3L
-//        "sadness" -> 4L
-//        "irritation" -> 5L
-//        "anger" -> 6L
-//        else -> 0L
-//    }
-//    fun taskKeyToSituationId(key: String): Long = when (key) {
-//        "트렌드 확인" -> 11L
-//        "과제 중"   -> 12L
-//        "쇼핑 중"   -> 13L
-//        "데이트 중" -> 14L
-//        "통학 중"   -> 15L
-//        "알바 중"   -> 16L
-//        "휴식 중"   -> 17L
-//        "자기 전"   -> 18L
-//        else -> 0L
-//    }
+    // === 감정/상황 키 → 서버 ID 매핑 ===
+    // fun emotionKeyToId(key: String): Long = when (key) {
+    //     "joy" -> 1L
+    //     "calm" -> 2L
+    //     "excitement" -> 3L
+    //     "sadness" -> 4L
+    //     "irritation" -> 5L
+    //     "anger" -> 6L
+    //     else -> 0L
+    // }
+    //
+    // fun taskKeyToSituationId(key: String): Long = when (key) {
+    //     "트렌드 확인" -> 11L
+    //     "과제 중"   -> 12L
+    //     "쇼핑 중"   -> 13L
+    //     "데이트 중" -> 14L
+    //     "통학 중"   -> 15L
+    //     "알바 중"   -> 16L
+    //     "휴식 중"   -> 17L
+    //     "자기 전"   -> 18L
+    //     else -> 0L
+    // }
 
     // 외부 브라우저 열기
     fun openUrl(url: String) {
@@ -73,20 +67,9 @@ fun HomeApp(
         }
     }
 
-//    LaunchedEffect(Unit) {
-//        viewModel.loadCategoryColors()
-//    }
-
-    val currentRoute by navController.currentBackStackEntryAsState()
-    LaunchedEffect(currentRoute?.destination?.route) {
-        onShowNavBar(currentRoute?.destination?.route == "onboarding")
-    }
-
     NavHost(
         navController = navController,
         startDestination = "onboarding",
-        exitTransition = { ExitTransition.None },
-        popExitTransition = { ExitTransition.None }
     ) {
         composable("onboarding") {
             HomeScreen(
@@ -112,39 +95,7 @@ fun HomeApp(
                 onNavigateToSaveLink = { url ->
                     onNavigateToSaveLink(url)
                 },
-                onAlarmClick = {
-                    navController.navigate("alarm")
-                }
-            )
-        }
-
-        composable("alarm") {
-            AlarmScreen(
-                onNavigateToSetting = onNavigateToSetting,
-                onBack = { navController.popBackStack() },
-                onNavigateToHome = {
-                    navController.navigate("onboarding") {
-                        popUpTo("onboarding") { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
-                onNavigateToNotice = { targetId ->
-                    navController.navigate("notice/$targetId")
-                },
-                onNavigateToLinkDetail = onNavigateToLinkDetail,
-                onNavigateToFolder = {}, // TODO: 지민오빠가 나중에 이동 함수 준다고 했씀!(근데 걍 라우트만 주면 내가 할수 있을 듯?)
-                onNavigateToCuration = {}, // TODO: 아직 curation_card1 라우트에 파라미터가 없어서 일단은 빈 람다 처리
-            )
-        }
-
-        composable(
-            route = "notice/{targetId}",
-            arguments = listOf(navArgument("targetId") { type = NavType.LongType })
-        ) {
-            NoticeScreen(
-                onBack = {
-                    navController.popBackStack()
-                }
+                onAlarmClick = onNavigateToAlarm
             )
         }
     }

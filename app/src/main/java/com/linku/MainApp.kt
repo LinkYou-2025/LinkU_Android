@@ -446,7 +446,9 @@ fun MainApp(
                             onNavigateToCuration = {
                                 navigator.navigate("curation_card1")
                             },
-                            onShowNavBar = { showNavBar = it }
+                            onNavigateToAlarm = {
+                                navigator.navigate(NavigationRoute.Alarm.route)
+                            }
                         )
                     }
                 }
@@ -529,11 +531,12 @@ fun MainApp(
 
                 with(NavigationRoute.Alarm) {
                     setNavGraph {
-                        //LaunchedEffect(Unit) { showNavBar = false }
+                        LaunchedEffect(Unit) { showNavBar = false }
                         AlarmScreen(
                             onBack = {
                                 showNavBar = true
-                                navigator.popBackStack() },
+                                navigator.popBackStack()
+                            },
                             onNavigateToSetting = { navigator.navigate(NavigationRoute.AlarmSetting.route) },
                             onNavigateToHome = {
                                 navigator.navigate(NavigationRoute.Home.route) {
@@ -557,7 +560,11 @@ fun MainApp(
                 ) {
                     LaunchedEffect(Unit) { showNavBar = false }
                     NoticeScreen(
-                        onBack = { navigator.popBackStack() }
+                        onBack = {
+                            val prevRoute = navigator.previousBackStackEntry?.destination?.route
+                            if (prevRoute != NavigationRoute.Alarm.route) showNavBar = true
+                            navigator.popBackStack()
+                        }
                     )
                 }
 
