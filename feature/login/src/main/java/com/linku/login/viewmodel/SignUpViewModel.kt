@@ -237,7 +237,7 @@ internal class SignUpViewModel @Inject constructor(
     }
 
     fun onInterestNextClicked() {
-        postSideEffect(SignUpEffect.NavigateToWelcome)
+        signUp()
     }
 
     // 회원가입 폼 유효성 검사
@@ -293,10 +293,13 @@ internal class SignUpViewModel @Inject constructor(
                 ).foldApp(
                     onSuccess = { result ->
                         Log.d("SignUpViewModel", "[회원가입 성공] userId=${result.userId}")
+                        // 회원가입 응답 토큰으로 자동 로그인 세션 저장까지 리포지토리에서 이미 끝난 상태.
                         _signUpState.value = SignUpState.Success
+                        postSideEffect(SignUpEffect.NavigateToHome)
                     },
                     onFailure = { error ->
                         _signUpState.value = SignUpState.Error(error.displayMessage)
+                        postSideEffect(SignUpEffect.ShowToast(error.displayMessage))
                         Log.e("SignUpViewModel", "회원가입 실패: ${error.displayMessage}")
                     }
                 )

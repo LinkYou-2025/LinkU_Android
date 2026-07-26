@@ -159,7 +159,7 @@ open class LoginViewModel @Inject constructor(
                 Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)")
                 // 복구 실패 시 계정은 여전히 비활성 상태이므로 임시 저장된 토큰을 정리함.
                 authPreference.clear()
-                updateState { copy(loginState = LoginState.Error(LoginErrorType.INACTIVE_User_Error)) }
+                updateState { copy(loginState = LoginState.Error(LoginErrorType.INACTIVE_USER_ERROR)) }
             }
         }
     }

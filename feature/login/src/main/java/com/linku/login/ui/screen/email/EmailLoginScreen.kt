@@ -34,6 +34,7 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.BaselineShift
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -150,7 +151,8 @@ fun EmailLoginScreen(
                 LoginTextField(
                     value = uiState.email,
                     onValueChange = { loginViewModel?.onEmailChanged(it) },
-                    hint = "이메일"
+                    hint = "이메일",
+                    keyboardType = KeyboardType.Email
                 )
 
                 Spacer(Modifier.height((10.scaler)))

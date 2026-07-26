@@ -1,5 +1,6 @@
 package com.linku.login.navigation
 
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
@@ -24,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.LoginType
 import com.linku.login.LoginScreen
 import com.linku.login.R
 import com.linku.login.ui.animation.AnimatedLoginScreen
@@ -39,13 +41,11 @@ import com.linku.login.ui.screen.email.SignUpGenderScreen
 import com.linku.login.ui.screen.email.SignUpJobScreen
 import com.linku.login.ui.screen.email.SignUpNicknameScreen
 import com.linku.login.ui.screen.email.SignUpPasswordScreen
-import com.linku.login.ui.screen.email.WelcomeScreen
 import com.linku.login.ui.screen.social.SocialGenderScreen
 import com.linku.login.ui.screen.social.SocialInterestScreen
 import com.linku.login.ui.screen.social.SocialJobScreen
 import com.linku.login.ui.screen.social.SocialNicknameScreen
 import com.linku.login.ui.screen.social.SocialPurposeScreen
-import com.linku.login.ui.screen.social.WelcomeSocialScreen
 import com.linku.login.ui.terms.MarketingTermsScreenComposable
 import com.linku.login.ui.terms.PrivacyTermsScreenFixed
 import com.linku.login.ui.terms.ServiceTermsScreen
@@ -141,13 +141,17 @@ fun LoginApp(
                         parentEntry.savedStateHandle["show_terms_sheet"] = false
                         navController.navigate("email_login")
                     },
-                    onNavigateToSocialOnboarding = { token ->
+                    onNavigateToSocialOnboarding = { token, loginType ->
                         // TEMP 신규 사용자 감지 시 소셜 온보딩 하위 그래프 세션 인입
                         navController.navigate("social_auth_graph") {
                             launchSingleTop = true
                         }
-                        navController.getBackStackEntry("social_auth_graph")
-                            .savedStateHandle["socialToken"] = token
+                        navController.getBackStackEntry("social_auth_graph").savedStateHandle.apply {
+                            set("socialToken", token)
+                            // social_auth_graph는 auth_graph와 별도의 SocialAuthViewModel 인스턴스를 쓰므로
+                            // 로그인 수단(카카오/구글)을 여기로 같이 넘겨야 completeSocialProfile()에서 유실 안 됨.
+                            set("socialLoginType", loginType)
+                        }
                     },
                     onAnimationSkipHandled = {
                         parentEntry.savedStateHandle.remove<Boolean>("skip_login_animation")
@@ -157,6 +161,7 @@ fun LoginApp(
 
             // 2. 이메일 로그인 + 약관 바텀시트
             authComposable("email_login") { parentEntry ->
+                Log.d("LoginApp", "email_login: $parentEntry")
                 val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
                 val signUpUiState by signUpVm.state.collectAsStateWithLifecycle()
                 val showTermsSheet by parentEntry.savedStateHandle
@@ -352,25 +357,9 @@ fun LoginApp(
                     onBackClick = {
                         navController.popBackStack()
                     },
-                    onNavigateToWelcome = {
-                        navController.navigate("welcome") { launchSingleTop = true }
-                    },
-                    signUpViewModel = signUpVm
-                )
-            }
-
-            authComposable("welcome") { parentEntry ->
-                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
-
-                WelcomeScreen(
-                    onNavigateToLogin = {
-                        navController.navigate("email_login") {
-                            popUpTo("auth_graph") { inclusive = true }
-                        }
-                    },
-                    onNavigateBackOnError = {
-                        navController.popBackStack()
-                    },
+                    // 회원가입 API 성공 시 토큰 저장(자동 로그인)까지 리포지토리에서 이미 끝난 상태.
+                    // 소셜 회원가입(sign_up_interest 아래 social_interest)과 동일하게 상위의 로그인 성공 콜백을 그대로 재사용해서 홈으로 이동.
+                    onSignUpSuccess = onLoginSuccess,
                     signUpViewModel = signUpVm
                 )
             }
@@ -410,9 +399,8 @@ fun LoginApp(
 
             // 약관 게이트
             socialComposable("social_login_gate") { parentEntry, entry ->
-                val signUpVm: SignUpViewModel = hiltViewModel(parentEntry)
                 val socialAuthVm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                val signUpUiState by signUpVm.state.collectAsStateWithLifecycle()
+                val socialAuthUiState by socialAuthVm.state.collectAsStateWithLifecycle()
                 val showTermsSheet by entry.savedStateHandle
                     .getStateFlow("show_terms_sheet", true)
                     .collectAsStateWithLifecycle()
@@ -434,14 +422,15 @@ fun LoginApp(
                     onNavigateToEmailLogin = {
                         navController.navigate("email_login")
                     },
-                    onNavigateToSocialOnboarding = { token ->
+                    onNavigateToSocialOnboarding = { token, loginType ->
                         // TEMP 유저 효과 발생 시 내비게이션 흐름 및 세션 전달을 그래프가 제어합니다.
-                        // TODO : 수정하기
                         navController.navigate("social_auth_graph") {
                             launchSingleTop = true
                         }
-                        navController.getBackStackEntry("social_auth_graph")
-                            .savedStateHandle["socialToken"] = token
+                        navController.getBackStackEntry("social_auth_graph").savedStateHandle.apply {
+                            set("socialToken", token)
+                            set("socialLoginType", loginType)
+                        }
                     },
                     logoSlot = {
                         Image(
@@ -459,14 +448,14 @@ fun LoginApp(
                 TermsAgreementSheet(
                     visible = showTermsSheet,
                     state = TermsAgreementState(
-                        agreeTerms = signUpUiState.signUpForm.agreeTerms,
-                        agreePrivacy = signUpUiState.signUpForm.agreePrivacy,
-                        agreeMarketing = signUpUiState.signUpForm.agreeMarketing,
+                        agreeTerms = socialAuthUiState.socialLoginForm.agreeTerms,
+                        agreePrivacy = socialAuthUiState.socialLoginForm.agreePrivacy,
+                        agreeMarketing = socialAuthUiState.socialLoginForm.agreeMarketing,
                     ),
                     event = TermsAgreementEvent(
-                        onAgreeTermsChange = { signUpVm.setAgreeTerms(it) },
-                        onAgreePrivacyChange = { signUpVm.setAgreePrivacy(it) },
-                        onAgreeMarketingChange = { signUpVm.setAgreeMarketing(it) },
+                        onAgreeTermsChange = { socialAuthVm.setAgreeTerms(it) },
+                        onAgreePrivacyChange = { socialAuthVm.setAgreePrivacy(it) },
+                        onAgreeMarketingChange = { socialAuthVm.setAgreeMarketing(it) },
                         onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
@@ -491,15 +480,15 @@ fun LoginApp(
 
             // 소셜 약관 상세 (auth_graph의 termsSteps와 동일한 패턴으로 반복 제거)
             val socialTermsSteps = listOf(
-                "social_terms/service" to { vm: SignUpViewModel -> vm.setAgreeTerms(true) },
-                "social_terms/privacy" to { vm: SignUpViewModel -> vm.setAgreePrivacy(true) },
-                "social_terms/marketing" to { vm: SignUpViewModel -> vm.setAgreeMarketing(true) }
+                "social_terms/service" to { vm: SocialAuthViewModel -> vm.setAgreeTerms(true) },
+                "social_terms/privacy" to { vm: SocialAuthViewModel -> vm.setAgreePrivacy(true) },
+                "social_terms/marketing" to { vm: SocialAuthViewModel -> vm.setAgreeMarketing(true) }
             )
 
             socialTermsSteps.forEach { (route, agreeAction) ->
                 socialComposable(route) { parentEntry, _ ->
-                    val vm: SignUpViewModel = hiltViewModel(parentEntry)
-                    val signUpUiState by vm.state.collectAsStateWithLifecycle()
+                    val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
+                    val socialAuthUiState by vm.state.collectAsStateWithLifecycle()
                     val onBack: () -> Unit = {
                         navController.popBackStack()
                         navController.currentBackStackEntry
@@ -510,19 +499,19 @@ fun LoginApp(
 
                     when (route) {
                         "social_terms/service" -> ServiceTermsScreen(
-                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
+                            alreadyAgreed = socialAuthUiState.socialLoginForm.agreeTerms,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/privacy" -> PrivacyTermsScreenFixed(
-                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
+                            alreadyAgreed = socialAuthUiState.socialLoginForm.agreePrivacy,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
 
                         "social_terms/marketing" -> MarketingTermsScreenComposable(
-                            alreadyAgreed = signUpUiState.signUpForm.agreeTerms,
+                            alreadyAgreed = socialAuthUiState.socialLoginForm.agreeMarketing,
                             onBackClicked = onBack,
                             onAgreeClicked = { agreeAction(vm); onBack() }
                         )
@@ -586,29 +575,19 @@ fun LoginApp(
             socialComposable("social_interest") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
                 val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
+                // 로그인 화면에서 SavedStateHandle로 넘겨받음 - social_auth_graph는 auth_graph와
+                // 별도의 SocialAuthViewModel 인스턴스를 쓰기 때문에 이 값을 직접 전달해야 함.
+                val socialLoginType = parentEntry.savedStateHandle.get<LoginType>("socialLoginType")
+                    ?: LoginType.NONE
 
+                // 완료 버튼 클릭 시 completeSocialProfile API를 직접 호출하고, 응답 토큰으로
+                // 자동 로그인 세션 저장까지 끝난 뒤 onComplete(=onLoginSuccess)로 바로 홈 이동.
                 SocialInterestScreen(
                     onBackClick = { navController.popBackStack() },
                     viewModel = vm,
-                    onComplete = {
-                        navController.navigate("social_welcome") {
-                            launchSingleTop = true
-                        }
-                    }
-                )
-            }
-
-            socialComposable("social_welcome") { parentEntry, _ ->
-                val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
-                val socialToken = parentEntry.savedStateHandle.get<String>("socialToken") ?: ""
-
-                WelcomeSocialScreen(
                     socialToken = socialToken,
-                    onNavigateToHome = onLoginSuccess,
-                    onNavigateBackOnError = {
-                        navController.popBackStack()
-                    },
-                    viewModel = vm
+                    socialLoginType = socialLoginType,
+                    onComplete = onLoginSuccess
                 )
             }
         }

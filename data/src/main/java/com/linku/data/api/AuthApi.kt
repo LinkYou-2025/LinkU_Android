@@ -59,7 +59,7 @@ interface AuthApi {
     ): BaseResponse<*> // result {}
 
     //소셜 로그인 이후 닉네임, 성별, 직업, 목적, 관심 콘텐츠만 담는 api
-    @PATCH("auth/signup/social/complete")
+    @PATCH("users/social/complete") //url 경로 바뀜
     suspend fun completeSocialProfile(
         @Header("Authorization") authorization: String,
         @Body body: SocialProfileRequestDTO

@@ -1,6 +1,7 @@
 package com.linku.login.viewmodel.state
 
 import com.linku.core.model.LoginResult
+import com.linku.core.model.auth.LoginType
 import com.linku.login.mvi.UiSideEffect
 
 /**
@@ -19,8 +20,12 @@ internal sealed interface SocialAuthUiEffect : UiSideEffect {
      * 가입 상태가 TEMP인 신규 회원이 인증되었을 때, 추가 성향 정보 입력 단계로 이동하도록 지시하는 부수 효과입니다.
      *
      * @property loginResult 서버로부터 반환받은 신규 임시 계정 번호 정보입니다.
+     * @property loginType 인증에 사용한 소셜 공급자(카카오/구글). 온보딩 단계(`social_auth_graph`)는
+     * 별도의 `SocialAuthViewModel` 인스턴스를 쓰므로, 이 값을 SavedStateHandle로 함께 넘겨줘야
+     * `completeSocialProfile()` 호출 시 로그인 수단이 유실되지 않음.
      */
-    data class NavigateToAdditionalInfo(val loginResult: LoginResult) : SocialAuthUiEffect
+    data class NavigateToAdditionalInfo(val loginResult: LoginResult, val loginType: LoginType) :
+        SocialAuthUiEffect
 
     /**
      * 소셜 필수 프로필 온보딩 단계 완료 후 최종 메인 프로세스로 진입함을 선언하는 부수 효과입니다.
