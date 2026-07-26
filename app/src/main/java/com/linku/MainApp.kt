@@ -10,6 +10,7 @@ import android.net.Uri
 import android.os.Build
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
@@ -481,6 +482,15 @@ fun MainApp(
                 composable("savelink") {
                     val context = LocalContext.current
 
+                    fun exitSaveLinkScreen() {
+                        saveLinkViewModel.resetForm()
+                        navigator.popBackStack()
+                    }
+
+                    BackHandler {
+                        exitSaveLinkScreen()
+                    }
+
                     val imagePicker = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
                     ) { uri: Uri? ->
@@ -550,7 +560,7 @@ fun MainApp(
                         onMemoChange = saveLinkViewModel::setMemo,
                         onEmotionSelect = saveLinkViewModel::selectEmotion,
                         onSituationClick  = saveLinkViewModel::onSituationClick,
-                        onBack = { navigator.popBackStack() },
+                        onBack = { exitSaveLinkScreen() },
                         isSaveButtonEnabled = saveLinkViewModel.isSaveButtonEnabled,
                         onSaveButtonClick = {
                             Log.d(
