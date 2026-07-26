@@ -24,6 +24,7 @@ import javax.inject.Inject
  *
  * @property curationRepository 월간 큐레이션 관련 데이터를 조회하는 저장소입니다.
  * @property userRepository 사용자 정보를 조회하는 저장소입니다.
+ *
  */
 class MonthlyCurationDetailedUseCase @Inject constructor(
     private val curationRepository: CurationRepository,
