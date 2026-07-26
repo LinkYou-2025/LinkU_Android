@@ -60,7 +60,7 @@ inline fun LinkuLog.d(
 /**
  * 디버그 빌드에서만 [StackTraceElement]를 기반으로 지연 생성된 debug 메시지를 로그로 출력합니다.
  *
- * 태그는 파일 이름으로 설정되며, 메시지 끝에 호출된 메서드 이름이 포함됩니다.
+ * 태그는 파일 이름으로 설정되며, 호출된 메서드 이름은 메시지 앞에 대괄호로 감싸 포함됩니다.
  *
  * @param caller 호출자 정보를 담고 있는 스택 트레이스 요소
  * @param msg 로그로 출력할 지연 생성 메시지
@@ -70,6 +70,23 @@ inline fun LinkuLog.d(
     msg: () -> String,
 ) = debugOnly {
     Log.d(caller.getTag, caller.getMsg(msg))
+}
+
+/**
+ * 디버그 빌드에서만 [StackTraceElement]를 기반으로 지정한 위치 정보가 포함된 지연 생성 debug 메시지를 로그로 출력합니다.
+ *
+ * 태그는 파일 이름으로 설정되며, 지정한 위치 정보는 메시지 앞에 대괄호로 감싸 포함됩니다.
+ *
+ * @param caller 호출자 정보를 담고 있는 스택 트레이스 요소
+ * @param locate 로그 메시지 앞에 표시할 위치 정보
+ * @param msg 로그로 출력할 지연 생성 메시지
+ */
+inline fun LinkuLog.d(
+    caller: StackTraceElement,
+    locate: String,
+    msg: () -> String,
+) = debugOnly {
+    Log.d(caller.getTag, getMsg(locate, msg))
 }
 
 /**
@@ -87,11 +104,10 @@ inline fun LinkuLog.d(
     Log.d(tag, msg(), tr)
 }
 
-
 /**
  * 디버그 빌드에서만 [StackTraceElement]를 기반으로 Throwable이 포함된 지연 생성 debug 메시지를 로그로 출력합니다.
  *
- * 태그는 파일 이름으로 설정되며, 메시지 끝에 호출된 메서드 이름이 포함됩니다.
+ * 태그는 파일 이름으로 설정되며, 호출된 메서드 이름은 메시지 앞에 대괄호로 감싸 포함됩니다.
  *
  * @param caller 호출자 정보를 담고 있는 스택 트레이스 요소
  * @param tr 그 메시지와 함께 스택 트레이스를 출력할 [Throwable] 객체
@@ -103,4 +119,23 @@ inline fun LinkuLog.d(
     msg: () -> String,
 ) = debugOnly {
     Log.d(caller.getTag, caller.getMsg(msg), tr)
+}
+
+/**
+ * 디버그 빌드에서만 [StackTraceElement]를 기반으로 지정한 위치 정보와 [Throwable]이 포함된 지연 생성 debug 메시지를 로그로 출력합니다.
+ *
+ * 태그는 파일 이름으로 설정되며, 지정한 위치 정보는 메시지 앞에 대괄호로 감싸 포함됩니다.
+ *
+ * @param caller 호출자 정보를 담고 있는 스택 트레이스 요소
+ * @param locate 로그 메시지 앞에 표시할 위치 정보
+ * @param tr 그 메시지와 함께 스택 트레이스를 출력할 [Throwable] 객체
+ * @param msg 로그로 출력할 지연 생성 메시지
+ */
+inline fun LinkuLog.d(
+    caller: StackTraceElement,
+    locate: String,
+    tr: Throwable,
+    msg: () -> String,
+) = debugOnly {
+    Log.d(caller.getTag, getMsg(locate, msg), tr)
 }
