@@ -220,7 +220,11 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                        .border(
+                            width = 1.dp,
+                            color = colors.gray[200],
+                            shape = RoundedCornerShape(18.dp)
+                        )
                         .background(colors.white)
                         .padding(horizontal = 22.dp, vertical = 10.dp),
                     contentAlignment = Alignment.CenterStart
@@ -295,7 +299,11 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                        .border(
+                            width = 1.dp,
+                            color = colors.gray[200],
+                            shape = RoundedCornerShape(18.dp)
+                        )
                         .background(colors.gray[100])
                         .padding(horizontal = 22.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -478,8 +486,8 @@ fun JobDropdownMenu(
                 .shadow(
                     elevation = 10.dp,
                     shape = RoundedCornerShape(18.dp),
-                    ambientColor = Color(0xFF7C7C7C).copy(alpha = 0.25f),
-                    spotColor = Color(0xFF7C7C7C).copy(alpha = 0.25f)
+                    ambientColor = colors.shadowColor.copy(alpha = 0.25f),
+                    spotColor = colors.shadowColor.copy(alpha = 0.25f)
                 )
                 .background(colors.white, RoundedCornerShape(18.dp))
                 .padding(horizontal = 22.dp, vertical = 11.dp),
