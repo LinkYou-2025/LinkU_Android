@@ -529,9 +529,11 @@ fun MainApp(
 
                 with(NavigationRoute.Alarm) {
                     setNavGraph {
-                        LaunchedEffect(Unit) { showNavBar = false }
+                        //LaunchedEffect(Unit) { showNavBar = false }
                         AlarmScreen(
-                            onBack = { navigator.popBackStack() },
+                            onBack = {
+                                showNavBar = true
+                                navigator.popBackStack() },
                             onNavigateToSetting = { navigator.navigate(NavigationRoute.AlarmSetting.route) },
                             onNavigateToHome = {
                                 navigator.navigate(NavigationRoute.Home.route) {

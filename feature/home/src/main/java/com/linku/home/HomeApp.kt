@@ -5,13 +5,14 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.linku.home.screen.AlarmScreen
@@ -76,6 +77,11 @@ fun HomeApp(
 //        viewModel.loadCategoryColors()
 //    }
 
+    val currentRoute by navController.currentBackStackEntryAsState()
+    LaunchedEffect(currentRoute?.destination?.route) {
+        onShowNavBar(currentRoute?.destination?.route == "onboarding")
+    }
+
     NavHost(
         navController = navController,
         startDestination = "onboarding",
@@ -107,7 +113,6 @@ fun HomeApp(
                     onNavigateToSaveLink(url)
                 },
                 onAlarmClick = {
-                    onShowNavBar(false)
                     navController.navigate("alarm")
                 }
             )
