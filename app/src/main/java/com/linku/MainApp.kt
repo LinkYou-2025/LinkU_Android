@@ -132,10 +132,8 @@ fun MainApp(
     val mypageViewModel: MyPageViewModel = hiltViewModel()
 
     var showNavBar by rememberSaveable { mutableStateOf(false) }
-    // UI 상태(showNavBar)와 분리된 인증 상태.
-    // 로그인/자동로그인 성공 시 true, 로그아웃 시 false.
-    // 알림 즉시 이동 여부 판단에 사용 (showNavBar는 서브 화면에서 꺼지므로 부적합).
-    var isAuthenticated by rememberSaveable { mutableStateOf(false) }
+
+    val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
     // 스플래시 애니메이션, 로그인 그라데이션 화면처럼 상태바 뒤로 콘텐츠가 그대로 비쳐야 하는
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
@@ -324,7 +322,7 @@ fun MainApp(
                             when (autoLoginState) {
                                 is AutoLoginState.Success -> {
                                     showNavBar = true
-                                    isAuthenticated = true
+                                    viewModel.setAuthenticated(true)
                                     edgeToEdgeSystemBars = false
                                     homeViewModel.refreshAfterLogin()
                                     navigator.navigate(NavigationRoute.Home.route) {
@@ -377,7 +375,7 @@ fun MainApp(
                         onEdgeToEdgeChange = { edgeToEdgeSystemBars = it },
                         onLoginSuccess = {
                             showNavBar = true
-                            isAuthenticated = true
+                            viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
 
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
@@ -491,8 +489,7 @@ fun MainApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
                                 showNavBar = false
-                                isAuthenticated = false
-
+                                viewModel.setAuthenticated(false)
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,

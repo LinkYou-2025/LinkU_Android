@@ -47,6 +47,18 @@ class MainViewModel @Inject constructor(
     private val _nickname = MutableStateFlow<String>("")
     val nickname: StateFlow<String> = _nickname.asStateFlow()
 
+    // 인증 상태. ViewModel State로 관리하는 이유:
+    // ViewModel은 구성 변경(회전)엔 살아남지만 프로세스 종료 시엔 함께 소멸된다.
+    // 따라서 복원 시 항상 false부터 시작 → 실제 로그인/자동 로그인 성공 시에만 true가 되어,
+    // 세션이 죽었는데 stale-true가 복원돼 인증 전 pending 알림을 소비하는 문제를 원천 차단.
+    private val _isAuthenticated = MutableStateFlow(false)
+    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+
+    // 로그인/자동 로그인 성공 시 true, 로그아웃 시 false로 갱신
+    fun setAuthenticated(value: Boolean) {
+        _isAuthenticated.value = value
+    }
+
     fun fetchNickname() {
         viewModelScope.launch {
             // 우선적으로 캐싱 먼저 가져옵니다.(닉네임 변경이 그렇게 많지 않을테니. ui 자연스러움을 위해서 입니다)
