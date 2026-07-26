@@ -11,5 +11,10 @@ internal sealed interface SignUpEffect : UiSideEffect {
     object NavigateToJob : SignUpEffect
     object NavigateToPurpose : SignUpEffect
     object NavigateToInterest : SignUpEffect
-    object NavigateToWelcome : SignUpEffect
+
+    // 회원가입 API 성공(토큰 저장까지 완료) 시 홈으로 바로 이동
+    object NavigateToHome : SignUpEffect
+
+    // 회원가입 API 실패 시 에러 메시지 토스트로 노출
+    data class ShowToast(val message: String) : SignUpEffect
 }

@@ -10,6 +10,9 @@ data class SocialProfileRequestDTO(
     @field:Json(name = "gender") val gender: String,
     @field:Json(name = "jobId") val jobId: Int,
     @field:Json(name = "purposeList") val purposeList: List<String>,
-    @field:Json(name = "interestList") val interestList: List<String>
+    @field:Json(name = "interestList") val interestList: List<String>,
+    @field:Json(name = "termsMap") val termsMap: Map<String, Boolean>,
+    @field:Json(name = "deviceId") val deviceId: String,
+    @field:Json(name = "deviceType") val deviceType: String
 )
 
