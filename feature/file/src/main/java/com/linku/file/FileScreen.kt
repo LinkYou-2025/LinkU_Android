@@ -41,6 +41,7 @@ import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
 import com.linku.file.ui.content.CategoryGrid
 import com.linku.file.ui.content.ClassifiedLinksGrid
+import com.linku.file.ui.content.LoadingFoldersGrid
 import com.linku.file.ui.content.MyFoldersGrid
 import com.linku.file.ui.content.SharedBottomFolderGrid
 import com.linku.file.ui.content.SharedTopFolderGrid
@@ -239,21 +240,13 @@ fun FileScreen(
             )
         }
 
-//        // 로딩창
-//        if (fileViewModel.loading.collectAsState().value) {
-//            // 로딩 로직
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .background(MainColor),
-//                contentAlignment = Alignment.Center
-//            ){
-//                Image(
-//                    painter = painterResource(R.drawable.linku_logo),
-//                    contentDescription = "로딩중"
-//                )
-//            }
-//        }
+        // 로딩창
+        if (fileViewModel.loading.collectAsState().value) {
+            // 로딩 로직
+            LoadingFoldersGrid(
+                modifier = Modifier.fillMaxSize()
+            )
+        }
     }
 
     // 소분류 수정/추가 시 이름 중복 경고 모달창 상태
