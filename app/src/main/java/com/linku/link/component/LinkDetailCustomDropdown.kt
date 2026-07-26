@@ -1,4 +1,4 @@
-package com.linku.home.component
+package com.linku.link.component
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
@@ -23,10 +23,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import com.linku.home.R
 
 enum class LinkDetailAction(
     @param:DrawableRes val iconRes: Int,

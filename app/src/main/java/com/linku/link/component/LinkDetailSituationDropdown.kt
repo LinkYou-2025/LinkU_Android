@@ -1,4 +1,4 @@
-package com.linku.home.component
+package com.linku.link.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -30,7 +30,7 @@ fun LinkDetailSituationDropdown(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.linkuColors
-    
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))

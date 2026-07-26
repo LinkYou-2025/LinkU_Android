@@ -1,4 +1,4 @@
-package com.linku.home.component
+package com.linku.link.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,7 +25,7 @@ import com.linku.core.model.EmotionType
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import com.linku.home.util.imgRes
+import com.linku.link.util.imgRes
 
 @Composable
 fun LinkDetailEmotionDropdown(
@@ -35,7 +35,7 @@ fun LinkDetailEmotionDropdown(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.linkuColors
-    
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
