@@ -318,6 +318,7 @@ fun MainApp(
                         LaunchedEffect(autoLoginState) {
                             when (autoLoginState) {
                                 is AutoLoginState.Success -> {
+                                    showNavBar = true
                                     edgeToEdgeSystemBars = false
                                     homeViewModel.refreshAfterLogin()
                                     navigator.navigate(NavigationRoute.Home.route) {
@@ -411,23 +412,6 @@ fun MainApp(
                             navigator.navigate(NavigationRoute.Home.route) {
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
-                            }
-                        },
-                        onAutoLoginSuccess = {
-                            showNavBar = true
-                            edgeToEdgeSystemBars = false
-                            homeViewModel.refreshAfterLogin()
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                            viewModel.consumePendingNotification()?.let {
-                                navigateByNotification(it.type, it.targetId)
-                            }
-                        },
-                        onAutoLoginFail = {
-                            navigator.navigate("login_root") {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                             }
                         }
                     )
