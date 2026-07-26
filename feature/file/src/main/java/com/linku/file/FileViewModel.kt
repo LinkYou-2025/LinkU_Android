@@ -1079,7 +1079,8 @@ class FileViewModel @Inject constructor(
 
                 Log.d("FileViewModel", "makeInvitationLink try")
 
-                link = folderRepository.makeInvitationLink(folderId)
+                val token = folderRepository.makeInvitationLink(folderId)
+                link = "https://${BuildConfig.SERVER_HOST}/open?action={action}&token={${token}}"
 
                 Log.d("FileViewModel", "makeInvitationLink try result: $link")
 

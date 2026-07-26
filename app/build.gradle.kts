@@ -34,10 +34,10 @@ val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException("SERVER_DOMAIN is missing or blank in local.properties")
 
-val serverHost = serverDomain
-    .removePrefix("https://")
-    .removePrefix("http://")
-    .trimEnd('/')
+val serverHost = localProperties.getProperty("SERVER_HOST")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("SERVER_DOMAIN is missing or blank in local.properties")
 
 android {
     namespace = "com.linku"
