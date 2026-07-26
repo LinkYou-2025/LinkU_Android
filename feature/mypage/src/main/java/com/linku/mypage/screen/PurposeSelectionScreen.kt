@@ -20,32 +20,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.Purpose
+import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.BrushText
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.component.CustomInfoSelectionContent
 import com.linku.mypage.component.CustomInfoSelectionItem
 
-private val purposeItems = listOf(
-    "취업·커리어 준비",
-    "사이드 프로젝트/창업 준비",
-    "자기계발/정보 수집",
-    "인사이트 모으기",
-    "업무자료 아카이빙",
-    "학업/리포트 정리",
-    "블로그/콘텐츠 작성 참고용",
-    "그냥 나중에 읽고 싶은 글 저장",
-    "기타"
-)
-
 @Composable
 fun PurposeSelectionScreen(
     navController: NavController,
-    onNextClick: () -> Unit  // TODO: 목적 저장 API 연결
+    initialSelected: Set<Purpose>,
+    onNextClick: (Set<Purpose>) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
-    val selectedItems = remember { mutableStateListOf<String>() }
+    val selectedItems = remember(initialSelected) {
+        mutableStateListOf(*initialSelected.toTypedArray())
+    }
+    val hasChanges = selectedItems.toSet() != initialSelected
 
     CustomInfoSelectionContent(
         questionContent = {
@@ -92,17 +86,18 @@ fun PurposeSelectionScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                items(purposeItems) { item ->
-                    val isSelected = item in selectedItems
+                items(Purpose.entries) { purpose ->
+                    val isSelected = purpose in selectedItems
 
                     CustomInfoSelectionItem(
-                        text = item,
+                        text = purpose.displayName.replace("\n", " "),
+                        iconRes = purpose.iconRes,
                         isSelected = isSelected,
                         onClick = {
                             if (isSelected) {
-                                selectedItems.remove(item)
+                                selectedItems.remove(purpose)
                             } else {
-                                selectedItems.add(item)
+                                selectedItems.add(purpose)
                             }
                         }
                     )
@@ -110,9 +105,9 @@ fun PurposeSelectionScreen(
             }
         },
         buttonText = "다음",
-        isButtonEnabled = selectedItems.isNotEmpty(),
+        isButtonEnabled = hasChanges,
         onBackClick = { navController.popBackStack() },
-        onButtonClick = onNextClick
+        onButtonClick = { onNextClick(selectedItems.toSet()) }
     )
 }
 
@@ -124,6 +119,7 @@ fun PurposeSelectionScreenPreview() {
     ThemeProvider {
         PurposeSelectionScreen(
             navController = navController,
+            initialSelected = emptySet(),
             onNextClick = {}
         )
     }

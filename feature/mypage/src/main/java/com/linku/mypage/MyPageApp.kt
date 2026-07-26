@@ -10,7 +10,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
+import com.linku.core.model.auth.Purpose
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
@@ -239,6 +241,10 @@ fun MyPageApp(
 //        }
 
         composable("editProfile") {
+            LaunchedEffect(Unit) {
+                viewModel.loadUserInfo()
+            }
+
             val user = uiState.userInfo
             if (user != null) {
                 EditProfileScreen(
@@ -249,6 +255,10 @@ fun MyPageApp(
                     onChangeProfileImage = {
                         // TODO: 프로필 이미지 변경 API 연결
                     },
+                    onNicknameInputChanged = { input ->
+                        viewModel.onNicknameChanged(input, originalNickname = user.nickname)
+                    },
+                    nicknameCheckState = uiState.nicknameCheckState,
                     onChangeNickname = { newNickname ->
                         viewModel.updateUserInfo(
                             nickname = newNickname,
@@ -264,9 +274,6 @@ fun MyPageApp(
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                             }
                         )
-                    },
-                    onChangeGender = { newGender ->
-                        // TODO: 성별 변경 API 또는 updateUserInfo에 gender 포함해서 연결
                     },
                     onChangeJob = { newJobName ->
                         // TODO: jobName -> jobId 매핑 수단이 없어 기존 jobId를 그대로 유지함
@@ -310,24 +317,64 @@ fun MyPageApp(
         }
 
         composable("customInfoSetting") {
-            PurposeSelectionScreen(
-                navController = navController,
-                onNextClick = {
-                    // TODO: 목적 저장 API 연결
-                    navController.navigate("customInfoInterest")
-                }
-            )
+            LaunchedEffect(Unit) {
+                viewModel.loadUserInfo()
+            }
+
+            val user = uiState.userInfo
+            if (user != null) {
+                PurposeSelectionScreen(
+                    navController = navController,
+                    initialSelected = user.purposes.mapNotNull { Purpose.fromServerKey(it) }
+                        .toSet(),
+                    onNextClick = { selected ->
+                        viewModel.updateUserInfo(
+                            nickname = user.nickname,
+                            jobId = user.jobId,
+                            jobName = user.jobName,
+                            purposes = selected.map { it.serverKey },
+                            interests = user.interests,
+                            onSuccess = {
+                                navController.navigate("customInfoInterest")
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                )
+            }
         }
 
         composable("customInfoInterest") {
-            InterestSelectionScreen(
-                navController = navController,
-                onFinishClick = {
-                    // TODO: 목적/관심사 저장 API 연결
-                    Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack("customInfoSetting", inclusive = true)
-                }
-            )
+            LaunchedEffect(Unit) {
+                viewModel.loadUserInfo()
+            }
+
+            val user = uiState.userInfo
+            if (user != null) {
+                InterestSelectionScreen(
+                    navController = navController,
+                    initialSelected = user.interests.mapNotNull { Interest.fromServerKey(it) }
+                        .toSet(),
+                    onFinishClick = { selected ->
+                        viewModel.updateUserInfo(
+                            nickname = user.nickname,
+                            jobId = user.jobId,
+                            jobName = user.jobName,
+                            purposes = user.purposes,
+                            interests = selected.map { it.serverKey },
+                            onSuccess = {
+                                Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                                navController.popBackStack("customInfoSetting", inclusive = true)
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                )
+            }
         }
 
         composable("alarm") {

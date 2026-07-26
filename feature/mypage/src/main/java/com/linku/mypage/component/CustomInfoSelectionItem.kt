@@ -1,9 +1,9 @@
 package com.linku.mypage.component
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +31,7 @@ import com.linku.mypage.R
 @Composable
 fun CustomInfoSelectionItem(
     text: String,
+    @DrawableRes iconRes: Int,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -53,11 +54,10 @@ fun CustomInfoSelectionItem(
             .padding(horizontal = 18.dp, vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(18.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(colors.gray[600])
+        Image(
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            modifier = Modifier.size(22.dp)
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -87,6 +87,7 @@ fun PreviewCustomInfoSelectionItem() {
     ThemeProvider {
         CustomInfoSelectionItem(
             text = "비즈니스/마케팅",
+            iconRes = com.linku.design.R.drawable.ic_interest_business,
             isSelected = true,
             onClick = {}
         )

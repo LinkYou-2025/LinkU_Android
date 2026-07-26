@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -53,8 +55,9 @@ fun EditProfileScreen(
     navController: NavController,
     onPickProfileImage: () -> Unit,
     onChangeProfileImage: () -> Unit,
+    onNicknameInputChanged: (String) -> Unit,
+    nicknameCheckState: NicknameCheckState,
     onChangeNickname: (String) -> Unit,
-    onChangeGender: (String) -> Unit,
     onChangeJob: (String) -> Unit,
     userNickname: String,
     userJob: String,
@@ -67,7 +70,7 @@ fun EditProfileScreen(
     var isProfileImageChanged by remember { mutableStateOf(false) }
 
     var name by remember(userNickname) { mutableStateOf(userNickname) }
-    var selectedGender by remember(userGender) { mutableStateOf(userGender) }
+    // 성별은 서버에서 받은 값을 표시만 하고 이 화면에서는 변경하지 않음(변경 불가).
 
     val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
     var selectedJob by remember(userJob) {
@@ -86,40 +89,37 @@ fun EditProfileScreen(
     val showSocialLoginGuide = !socialLoginGuideText.isNullOrBlank()
 
     val trimmedName = name.trim()
-    val isSubmitEnabled =
-        isProfileImageChanged ||
-                trimmedName != userNickname ||
-                selectedGender != userGender ||
-                selectedJob != userJob
+    val isNicknameChanged = trimmedName != userNickname
 
-    fun isNicknameDuplicated(nickname: String): Boolean {
-        // TODO: 추후 닉네임 중복 확인 API 연결
-        return false
+    LaunchedEffect(trimmedName) {
+        onNicknameInputChanged(trimmedName)
     }
 
-    val showNicknameWarning =
-        trimmedName.isNotBlank() &&
-                trimmedName != userNickname &&
-                isNicknameDuplicated(trimmedName)
+    val isNicknameAvailable =
+        !isNicknameChanged || nicknameCheckState is NicknameCheckState.Available
 
+    val isSubmitEnabled =
+        isProfileImageChanged ||
+                (isNicknameChanged && isNicknameAvailable) ||
+                selectedJob != userJob
+
+    val nicknameWarningText = if (isNicknameChanged && trimmedName.isNotBlank()) {
+        when (val checkState = nicknameCheckState) {
+            is NicknameCheckState.Duplicated -> "이미 존재하는 닉네임이에요."
+            is NicknameCheckState.Error -> checkState.message
+            else -> null
+        }
+    } else {
+        null
+    }
 
     fun handleSubmit() {
-        val nicknameChanged = trimmedName != userNickname
-        val genderChanged = selectedGender != userGender
         val jobChanged = selectedJob != userJob
         val profileImageChanged = isProfileImageChanged
 
-        if (nicknameChanged) {
-            if (trimmedName.isBlank()) return
-
-            val isDuplicated = isNicknameDuplicated(trimmedName)
-            if (isDuplicated) return
-
+        if (isNicknameChanged) {
+            if (trimmedName.isBlank() || !isNicknameAvailable) return
             onChangeNickname(trimmedName)
-        }
-
-        if (genderChanged) {
-            onChangeGender(selectedGender)
         }
 
         if (jobChanged) {
@@ -261,11 +261,11 @@ fun EditProfileScreen(
                     }
                 }
 
-                if (showNicknameWarning) {
+                if (nicknameWarningText != null) {
                     Spacer(modifier = Modifier.height(6.5.dp))
 
                     Text(
-                        text = "이미 존재하는 닉네임이에요.",
+                        text = nicknameWarningText,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         color = colors.negative,
@@ -353,14 +353,13 @@ fun EditProfileScreen(
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     Row(
-                        modifier = Modifier.noRippleClickable { selectedGender = "남성" },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(20.dp)
                                 .border(
-                                    width = if (selectedGender == "남성") 5.dp else 1.dp,
+                                    width = if (userGender == "남성") 5.dp else 1.dp,
                                     color = colors.blue[200],
                                     shape = CircleShape
                                 )
@@ -378,14 +377,13 @@ fun EditProfileScreen(
                     }
 
                     Row(
-                        modifier = Modifier.noRippleClickable { selectedGender = "여성" },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(20.dp)
                                 .border(
-                                    width = if (selectedGender == "여성") 5.dp else 1.dp,
+                                    width = if (userGender == "여성") 5.dp else 1.dp,
                                     color = colors.blue[200],
                                     shape = CircleShape
                                 )
@@ -593,8 +591,9 @@ fun PreviewEditProfileScreen() {
             navController = navController,
             onPickProfileImage = { },
             onChangeProfileImage = { },
+            onNicknameInputChanged = { },
+            nicknameCheckState = NicknameCheckState.Idle,
             onChangeNickname = { },
-            onChangeGender = { },
             onChangeJob = { },
             userNickname = "세나",
             userJob = "대학생",

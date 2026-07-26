@@ -3,15 +3,23 @@ package com.linku.mypage
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.ApiError
+import com.linku.core.error.AppError
 import com.linku.core.model.UserInfo
+import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.model.auth.UserSession
+import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -19,8 +27,13 @@ import javax.inject.Inject
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val authRepository: AuthRepository,
     private val authPreference: AuthPreference
 ): ViewModel() {
+
+    companion object {
+        private const val NICKNAME_DEBOUNCE_TIME = 500L
+    }
 
     // Eagerly: 로그인 직후(마이페이지 탭 진입 전) MainApp 생성 시점부터 미리 구독해 둠.
     // WhileSubscribed였을 때는 마이페이지 화면에 실제로 진입해야 구독이 시작돼,
@@ -41,17 +54,67 @@ class MyPageViewModel @Inject constructor(
         val error: String? = null,
         // 서버 응답 오기 전까지 헤더에 즉시 보여줄 로컬 캐시 닉네임.
         // 이메일은 소셜 로그인 응답에 아예 안 내려오는 값이라 캐싱 대상에서 제외.
-        val cachedNickname: String? = null
+        val cachedNickname: String? = null,
+        val nicknameCheckState: NicknameCheckState = NicknameCheckState.Idle
     )
 
     private val _uiState = MutableStateFlow(MyPageUiState())
     val uiState: StateFlow<MyPageUiState> = _uiState.asStateFlow()
+
+    // 닉네임 중복 체크 파이프라인(과잉 호출되지 않도록) - SignUpViewModel과 동일한 패턴
+    private val nicknameQuery = MutableStateFlow("")
 
     init {
         viewModelScope.launch {
             authPreference.getCachedNickname()?.takeIf { it.isNotBlank() }?.let { cached ->
                 _uiState.value = _uiState.value.copy(cachedNickname = cached)
             }
+        }
+
+        @OptIn(FlowPreview::class)
+        viewModelScope.launch {
+            nicknameQuery
+                .debounce(NICKNAME_DEBOUNCE_TIME)
+                .distinctUntilChanged()
+                .filter { it.isNotBlank() }
+                .collect { query -> checkNickname(query) }
+        }
+    }
+
+    // 닉네임 입력 변경 - 원래 닉네임과 같으면(변경 없음/원복) 중복 체크를 건너뜀
+    fun onNicknameChanged(nickname: String, originalNickname: String) {
+        if (nickname == originalNickname) {
+            _uiState.value = _uiState.value.copy(nicknameCheckState = NicknameCheckState.Idle)
+            return
+        }
+
+        _uiState.value = _uiState.value.copy(nicknameCheckState = NicknameCheckState.Idle)
+
+        if (nickname.isNotBlank()) {
+            nicknameQuery.value = nickname
+        }
+    }
+
+    private fun checkNickname(nickname: String) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(nicknameCheckState = NicknameCheckState.Checking)
+
+            authRepository.checkNickname(nickname).fold(
+                onSuccess = {
+                    _uiState.value =
+                        _uiState.value.copy(nicknameCheckState = NicknameCheckState.Available)
+                },
+                onFailure = { exception ->
+                    val appError = exception as? AppError
+                        ?: ApiError.Unknown(exception.message ?: "알 수 없는 오류가 발생했습니다.")
+                    val nextState = when (appError) {
+                        is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
+                        else -> NicknameCheckState.Error(appError.displayMessage)
+                    }
+                    _uiState.value = _uiState.value.copy(nicknameCheckState = nextState)
+                    Log.e("MyPageViewModel", "닉네임 중복 체크 실패", exception)
+                }
+            )
         }
     }
 
