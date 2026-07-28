@@ -61,7 +61,6 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
-    showRecommendations: Boolean,
     recommendedLinks: List<LinkSimpleInfo>,
     recentLinks: List<LinkSimpleInfo>,
     isRecommending: Boolean,
@@ -75,7 +74,10 @@ fun HomeScreen(
 ) {
     val colors = MaterialTheme.linkuColors
 
+    var isRecommendMode by remember { mutableStateOf(false) }
+
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        isRecommendMode = false
         homeViewModel.refreshHomeData()
     }
 
@@ -96,8 +98,6 @@ fun HomeScreen(
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-
-    var isRecommendMode by remember(showRecommendations) { mutableStateOf(showRecommendations) }
 
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
@@ -432,7 +432,6 @@ fun PreviewHomeScreen() {
         HomeScreen(
             homeViewModel = hiltViewModel(),
             userName = "세나",
-            showRecommendations = false,
             recommendedLinks = emptyList(),
             recentLinks = emptyList(),
             isRecommending = false,

@@ -140,9 +140,6 @@ class HomeViewModel @Inject constructor(
     private val isRecommendingState = mutableStateOf(false)
     val isRecommending get() = isRecommendingState.value
 
-    private val showRecommendationsState = mutableStateOf(false)
-    val showRecommendations get() = showRecommendationsState.value
-
     // 최근 조회 링크 상태
     private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
     val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
@@ -159,7 +156,6 @@ class HomeViewModel @Inject constructor(
         if (myLinkuCount < MIN_RECOMMENDATION_LINK_COUNT) {
             needMoreForRecommendationState.value = true
             recommendedLinksState.value = emptyList()
-            showRecommendationsState.value = true
             onDone()
             return
         }
@@ -177,13 +173,11 @@ class HomeViewModel @Inject constructor(
                 )
             }.onSuccess { links ->
                 recommendedLinksState.value = links
-                showRecommendationsState.value = true
             }.onFailure { error ->
                 val needMoreLinks = error.isLinku4003()
 
                 needMoreForRecommendationState.value = needMoreLinks
                 recommendedLinksState.value = emptyList()
-                showRecommendationsState.value = true
 
                 if (!needMoreLinks) {
                     Log.e("HomeVM", "fetchRecommendations failed", error)

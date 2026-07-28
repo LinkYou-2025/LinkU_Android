@@ -82,7 +82,6 @@ fun HomeApp(
             HomeScreen(
                 homeViewModel = viewModel,
                 userName = nickname,
-                showRecommendations = viewModel.showRecommendations,
                 recommendedLinks = viewModel.recommendedLinks,
                 recentLinks = recentLinks,
                 isRecommending = viewModel.isRecommending,
