@@ -209,6 +209,8 @@ fun HomeScreen(
                         isRecommendMode = false
                         onClearNeedMoreNotice()
                         isTopBarLockedCollapsed = false
+                        selectedEmotion = null
+                        selectedTask = null
 
                         coroutineScope.launch { listState.animateScrollToItem(0) } // 맨 위로 올려서 펼침 유지
                     },
