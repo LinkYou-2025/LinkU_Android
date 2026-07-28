@@ -167,7 +167,7 @@ fun HomeScreen(
 
         // 아이템이 적어서 스크롤 여유가 필요할 때만 footer를 줌
         if (itemsToRender.size <= 3) {
-            maxOf(screenHeight * fraction, 800.dp)
+            screenHeight * fraction
         } else {
             // 아이템 많으면 굳이 여유 필요 없음
             0.dp
