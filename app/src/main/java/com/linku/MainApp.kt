@@ -28,13 +28,12 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.linku.core.error.DeepLinkError
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.curation.navigation.curationGraph
@@ -43,8 +42,8 @@ import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.HandleNewIntentDeepLinks
 import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
 import com.linku.deeplink.OPEN_DEEP_LINK_TOKEN_ARGUMENT
-import com.linku.deeplink.OpenDeepLinkParseResult
 import com.linku.deeplink.invitationLinkRoute
+import com.linku.deeplink.openDeepLinkTokenArgument
 import com.linku.deeplink.openDeepLinkUriPattern
 import com.linku.deeplink.parseOpenDeepLinkToken
 import com.linku.design.AlarmAllowDialog
@@ -71,6 +70,7 @@ import com.linku.search.SearchViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
@@ -843,10 +843,7 @@ fun MainApp(
                 composable(
                     route = OPEN_DEEP_LINK_ROUTE,
                     arguments = listOf(
-                        navArgument(OPEN_DEEP_LINK_TOKEN_ARGUMENT) {
-                            type = NavType.StringType
-                            nullable = false
-                        },
+                        openDeepLinkTokenArgument(),
                     ),
                     deepLinks = listOf(
                         navDeepLink {
@@ -859,16 +856,12 @@ fun MainApp(
                     LaunchedEffect(backStackEntry.id) {
 
                         try {
-                            val parsedDeepLink = parseOpenDeepLinkToken(
+                            // non-null 인자의 빈 기본값은 파서에서 구체적인 딥링크 오류로 변환합니다.
+                            val token = parseOpenDeepLinkToken(
                                 backStackEntry.arguments?.getString(
                                     OPEN_DEEP_LINK_TOKEN_ARGUMENT
-                                )
+                                ).orEmpty()
                             )
-                            // 파싱 실패도 초대 라우터의 단일 잘못된 링크 처리 경로로 전달합니다.
-                            val token = when (parsedDeepLink) {
-                                is OpenDeepLinkParseResult.Invitation -> parsedDeepLink.token
-                                OpenDeepLinkParseResult.Invalid -> ""
-                            }
 
                             invitationLinkRoute(
                                 token = token,
@@ -920,9 +913,17 @@ fun MainApp(
                                 deepLinkEntryId = backStackEntry.id,
                             )
 
-                        } catch (e: kotlinx.coroutines.CancellationException) {
+                        } catch (e: CancellationException) {
                             // Compose effect 취소를 일반 오류로 변환하지 않고 구조화된 취소를 전파합니다.
                             throw e
+
+                        } catch (e: DeepLinkError.MissingInvitationToken) {
+                            // 토큰 누락은 현재 화면과 초대 상태를 바꾸지 않고 안내만 표시합니다.
+                            Toast.makeText(
+                                context,
+                                R.string.invalid_share_link,
+                                Toast.LENGTH_SHORT
+                            ).show()
 
                         } catch (e: IllegalArgumentException) {
                             // 추후 공통 토스트 메시지로 변경
