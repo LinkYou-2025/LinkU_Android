@@ -1,6 +1,5 @@
 package com.linku.data.di.api
 
-import android.util.Log
 import com.linku.data.BuildConfig
 import com.linku.data.api.AuthApi
 import com.linku.data.api.AuthClient
@@ -15,7 +14,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -31,29 +29,11 @@ import javax.inject.Singleton
 object ServerApiModule {
 
     /**
-     * 빌드 유형에 맞게 HTTP 요청과 응답을 기록하는 로깅 인터셉터를 제공합니다.
-     *
-     * 디버그 빌드에서는 본문을 포함하는 [HttpLoggingInterceptor.Level.BODY]를 사용하고,
-     * 릴리스 빌드에서는 [HttpLoggingInterceptor.Level.NONE]으로 로그를 비활성화합니다.
-     * 출력 전 [SensitiveHttpLogSanitizer]를 적용하여 Bearer 인증 정보, 초대 URL 경로 토큰 및
-     * `token` 쿼리 값을 마스킹합니다.
-     *
-     * @return 현재 빌드 유형의 로그 수준과 민감 정보 정제 처리가 적용된 인터셉터
-     */
-    @Provides
-    @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor { message ->
-            Log.d("OkHttp", SensitiveHttpLogSanitizer.sanitize(message))
-        }.apply {
-            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-            else HttpLoggingInterceptor.Level.NONE
-        }
-
-    /**
      * 로그인, 회원가입 및 토큰 재발급처럼 인증 헤더가 필요하지 않은 Retrofit을 제공합니다.
      *
-     * @param loggingInterceptor 빌드 유형에 맞게 HTTP 로그를 처리하는 인터셉터
+     * 요청·응답 본문이나 인증 정보가 애플리케이션 로그에 남지 않도록
+     * 별도의 애플리케이션 인터셉터를 설치하지 않습니다.
+     *
      * @param moshi 서버 응답과 요청 본문을 변환하는 Moshi 인스턴스
      * @return [PublicClient]로 구분되는 인증 불필요 Retrofit
      */
@@ -61,16 +41,11 @@ object ServerApiModule {
     @Singleton
     @PublicClient
     fun providePublicRetrofit(
-        loggingInterceptor: HttpLoggingInterceptor,
         moshi: Moshi
     ): Retrofit = Retrofit.Builder()
         .baseUrl(BuildConfig.SERVER_BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .client(
-            OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                .build()
-        )
+        .client(OkHttpClient.Builder().build())
         .build()
 
     /**
@@ -78,8 +53,8 @@ object ServerApiModule {
      *
      * 요청에 인증 헤더가 없을 때 저장된 액세스 토큰을 추가하고, 인증 실패 시
      * [TokenAuthenticator]가 토큰 갱신 흐름을 처리하도록 구성합니다.
+     * HTTP 원문을 기록하는 인터셉터는 설치하지 않습니다.
      *
-     * @param loggingInterceptor 빌드 유형에 맞게 HTTP 로그를 처리하는 인터셉터
      * @param authPreference 저장된 액세스 토큰을 제공하는 인증 환경설정
      * @param tokenAuthenticator 인증 실패 시 토큰 갱신과 요청 재시도를 처리하는 인증자
      * @param moshi 서버 응답과 요청 본문을 변환하는 Moshi 인스턴스
@@ -89,7 +64,6 @@ object ServerApiModule {
     @Singleton
     @AuthClient
     fun provideAuthRetrofit(
-        loggingInterceptor: HttpLoggingInterceptor,
         authPreference: AuthPreference,
         tokenAuthenticator: TokenAuthenticator,
         moshi: Moshi
@@ -100,9 +74,12 @@ object ServerApiModule {
             OkHttpClient.Builder()
                 .authenticator(tokenAuthenticator)
                 .addInterceptor { chain ->
+                    // 호출자가 이미 지정한 인증 헤더는 변경하지 않고 그대로 사용합니다.
                     if (chain.request().header("Authorization") != null) {
                         return@addInterceptor chain.proceed(chain.request())
                     }
+
+                    // OkHttp 인터셉터는 동기 계약이므로 저장소의 suspend 조회를 현재 스레드에서 연결합니다.
                     val token = runBlocking { authPreference.getAccessToken() }
                     val request = if (!token.isNullOrBlank()) {
                         chain.request().newBuilder()
@@ -111,7 +88,6 @@ object ServerApiModule {
                     } else chain.request()
                     chain.proceed(request)
                 }
-                .addInterceptor(loggingInterceptor)
                 .build()
         )
         .build()
