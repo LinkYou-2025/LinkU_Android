@@ -36,12 +36,17 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.auth.AutoLoginState
+import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.HandleNewIntentDeepLinks
-import com.linku.core.model.deeplink.DeepLinkType
+import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
+import com.linku.deeplink.OPEN_DEEP_LINK_TOKEN_ARGUMENT
+import com.linku.deeplink.OpenDeepLinkParseResult
 import com.linku.deeplink.invitationLinkRoute
+import com.linku.deeplink.openDeepLinkUriPattern
+import com.linku.deeplink.parseOpenDeepLinkToken
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
@@ -317,46 +322,123 @@ fun MainApp(
 
                 composable(NavigationRoute.Login.route) {
                     LaunchedEffect(Unit) { showNavBar = false }
+                    val loginScope = rememberCoroutineScope()
+
+                    /**
+                     * 비동기 로그인 결과가 도착한 시점에도 로그인 화면에 있을 때만 대상 화면으로 이동합니다.
+                     *
+                     * @param route 로그인 화면에서 전환할 목적지 경로
+                     */
+                    fun navigateFromLoginTo(route: String) {
+                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
+                            showNavBar = route != NavigationRoute.Login.route
+                            navigator.navigate(route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
+                    /**
+                     * 로그인 화면에서 공유 폴더 상태를 초기화한 뒤 공유 폴더 화면을 새 루트로 엽니다.
+                     */
+                    fun openSharedFoldersFromLogin() {
+                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
+                            showNavBar = true
+                            folderStateViewModel.resetSharedFolderState()
+                            folderStateViewModel.updateIsSharedFolders(true)
+
+                            navigator.navigate(NavigationRoute.File.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
+                    /**
+                     * 보류 중인 초대 처리 실패를 알리고 일반 폴더 상태로 홈 화면을 새 루트로 엽니다.
+                     *
+                     * @param messageResId 실패 원인을 안내할 문자열 리소스 ID
+                     */
+                    fun handlePendingInvitationFailure(messageResId: Int) {
+                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
+                            showNavBar = true
+                            folderStateViewModel.resetSharedFolderState()
+                            folderStateViewModel.updateIsSharedFolders(false)
+                            Toast.makeText(
+                                context,
+                                messageResId,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
                     LoginApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
                         onLoginSuccess = {
-                            // 로그인 전에 저장한 초대 토큰이 있을 때만 공유 폴더 초대를 처리
+                            // 보류 작업은 초대 토큰, 공유 폴더 ID, 일반 홈 진입 순으로 한 번만 처리합니다.
                             val pendingInvitationToken =
                                 deepLinkViewModel.consumePendingInvitation()
 
                             if (pendingInvitationToken.isNotBlank()) {
-                                fileViewModel.receiveSharedFolderInvitation(
-                                    token = pendingInvitationToken,
-                                    onSuccess = {
-                                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
-                                            showNavBar = true
-                                            folderStateViewModel.resetSharedFolderState()
-                                            folderStateViewModel.updateIsSharedFolders(true)
-
-                                            navigator.navigate(NavigationRoute.File.route) {
-                                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                                launchSingleTop = true
-                                            }
+                                loginScope.launch {
+                                    when (
+                                        fileViewModel.receiveSharedFolderInvitation(
+                                            pendingInvitationToken
+                                        )
+                                    ) {
+                                        is AcceptSharedFolderInvitationResult.Accepted -> {
+                                            openSharedFoldersFromLogin()
                                         }
-                                    },
-                                    onFailure = {
-                                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
-                                            showNavBar = true
-                                            folderStateViewModel.resetSharedFolderState()
+
+                                        is AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed -> {
+                                            // 초대 수락은 완료되었으므로 갱신 실패를 알리고 공유 폴더를 엽니다.
                                             Toast.makeText(
                                                 context,
-                                                R.string.invalid_share_link,
+                                                R.string.share_folder_refresh_failed,
                                                 Toast.LENGTH_SHORT,
                                             ).show()
-
-                                            navigator.navigate(NavigationRoute.Home.route) {
-                                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                                launchSingleTop = true
-                                            }
+                                            openSharedFoldersFromLogin()
                                         }
-                                    },
-                                )
+
+                                        is AcceptSharedFolderInvitationResult.AuthenticationRequired -> {
+                                            // 소비한 토큰을 복원해 다음 로그인 성공 후 초대 수락을 재시도합니다.
+                                            deepLinkViewModel.setPendingInvitation(
+                                                pendingInvitationToken
+                                            )
+                                            Toast.makeText(
+                                                context,
+                                                R.string.authentication_required,
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                            navigateFromLoginTo(NavigationRoute.Login.route)
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.InvalidInvitation -> {
+                                            handlePendingInvitationFailure(
+                                                R.string.invalid_share_link
+                                            )
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.NetworkFailure -> {
+                                            handlePendingInvitationFailure(
+                                                R.string.network_error
+                                            )
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.Failure -> {
+                                            handlePendingInvitationFailure(
+                                                R.string.undefined_behavior
+                                            )
+                                        }
+                                    }
+                                }
                                 return@LoginApp
                             }
 
@@ -736,53 +818,96 @@ fun MainApp(
                 }
 
                 composable(
-                    route = "open?action={action}&token={token}",
+                    route = OPEN_DEEP_LINK_ROUTE,
                     arguments = listOf(
-                        navArgument("action") { type = NavType.StringType; nullable = false },
-                        navArgument("token") { type = NavType.StringType; nullable = false },
+                        navArgument(OPEN_DEEP_LINK_TOKEN_ARGUMENT) {
+                            type = NavType.StringType
+                            nullable = false
+                        },
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = "$deepLinkDomain/open?action={action}&token={token}"
-                        },
-                        navDeepLink {
-                            uriPattern = "$deepLinkDomain/open?token={token}&action={action}"
+                            uriPattern = openDeepLinkUriPattern(deepLinkDomain)
                         }
                     )
                 ) { backStackEntry ->
-                    val arguments = checkNotNull(backStackEntry.arguments) {
-                        // 추후 공통 토스트 메시지로 변경
-                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
-                    }
 
-                    val action = checkNotNull(arguments.getString("action")) {
-                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
-                    }
+                    // 백 스택 항목마다 한 번 처리하고 같은 ID를 비동기 결과의 유효성 확인에 사용합니다.
+                    LaunchedEffect(backStackEntry.id) {
 
-                    val token = checkNotNull(arguments.getString("token")) {
-                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
-                    }
-
-                    LaunchedEffect(action, token) {
-                        val isLoggedIn = viewModel.hasValidRefreshToken()
-
-                        when(DeepLinkType.valueOf(action.uppercase())){
-                            DeepLinkType.SHARE ->{
-                                invitationLinkRoute(
-                                    token = token,
-                                    isLoggedIn = isLoggedIn,
-                                    onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
-                                    onUpdateIsSharedFolders = { isSharedFolders ->
-                                        folderStateViewModel.resetSharedFolderState()
-                                        folderStateViewModel.updateIsSharedFolders(isSharedFolders)
-                                    },
-                                    onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
-                                    onInvalidLink = {
-                                        Toast.makeText(context, R.string.invalid_share_link, Toast.LENGTH_SHORT).show()
-                                    },
-                                    navigator = navigator
+                        try {
+                            val parsedDeepLink = parseOpenDeepLinkToken(
+                                backStackEntry.arguments?.getString(
+                                    OPEN_DEEP_LINK_TOKEN_ARGUMENT
                                 )
+                            )
+                            // 파싱 실패도 초대 라우터의 단일 잘못된 링크 처리 경로로 전달합니다.
+                            val token = when (parsedDeepLink) {
+                                is OpenDeepLinkParseResult.Invitation -> parsedDeepLink.token
+                                OpenDeepLinkParseResult.Invalid -> ""
                             }
+
+                            invitationLinkRoute(
+                                token = token,
+                                isLoggedIn = viewModel.hasValidRefreshToken(),
+                                onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                                onUpdateIsSharedFolders = { isSharedFolders ->
+                                    folderStateViewModel.resetSharedFolderState()
+                                    folderStateViewModel.updateIsSharedFolders(
+                                        isSharedFolders
+                                    )
+                                },
+                                onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
+                                onInvalidLink = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.invalid_share_link,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onAuthenticationRequired = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.authentication_required,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onNetworkFailure = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.network_error,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onRefreshFailed = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.share_folder_refresh_failed,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onFailure = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.undefined_behavior,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                navigator = navigator,
+                                deepLinkEntryId = backStackEntry.id,
+                            )
+
+                        } catch (e: kotlinx.coroutines.CancellationException) {
+                            // Compose effect 취소를 일반 오류로 변환하지 않고 구조화된 취소를 전파합니다.
+                            throw e
+
+                        } catch (e: IllegalArgumentException) {
+                            // 추후 공통 토스트 메시지로 변경
+                            Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
+
+                        } catch (e: Exception) {
+                            // 추후 공통 토스트 메시지로 변경
+                            Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
