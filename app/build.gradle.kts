@@ -134,7 +134,6 @@ dependencies {
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.converter.moshi)
-    implementation(libs.logging.interceptor)
     implementation(libs.moshi.kotlin)
 
     // SharedPreference
