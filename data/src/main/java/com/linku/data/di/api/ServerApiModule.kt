@@ -1,5 +1,6 @@
 package com.linku.data.di.api
 
+import android.util.Log
 import com.linku.data.BuildConfig
 import com.linku.data.api.AuthApi
 import com.linku.data.api.AuthClient
@@ -26,7 +27,9 @@ object ServerApiModule {
     @Provides
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor =
-        HttpLoggingInterceptor().apply {
+        HttpLoggingInterceptor { message ->
+            Log.d("OkHttp", SensitiveHttpLogSanitizer.sanitize(message))
+        }.apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
             else HttpLoggingInterceptor.Level.NONE
         }
