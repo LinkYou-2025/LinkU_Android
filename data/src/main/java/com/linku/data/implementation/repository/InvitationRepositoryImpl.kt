@@ -1,6 +1,5 @@
 package com.linku.data.implementation.repository
 
-import android.util.Log
 import com.linku.core.model.InvitationInfo
 import com.linku.core.repository.InvitationRepository
 import com.linku.data.api.ServerApi
@@ -13,8 +12,6 @@ class InvitationRepositoryImpl @Inject constructor(
 ) : InvitationRepository {
 
     override suspend fun getInvitationInfo(token: String): InvitationInfo {
-        Log.d("InvitationRepositoryImpl", "getInvitationInfo token: $token")
-
         return safeApiCall {
             serverApi.getInvitationInfo(token)
         }.fold(
@@ -24,8 +21,6 @@ class InvitationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun acceptInvitation(token: String): Long {
-        Log.d("InvitationRepositoryImpl", "acceptInvitation token: $token")
-
         return safeApiCall {
             serverApi.acceptInvitation(token)
         }.fold(
