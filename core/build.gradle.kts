@@ -57,7 +57,6 @@ dependencies {
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.okhttp) // OkHttp
-    implementation(libs.logging.interceptor) // 로깅
 
     // ✅ Gson (Retrofit gson converter에서 필요)
     implementation(libs.gson)
