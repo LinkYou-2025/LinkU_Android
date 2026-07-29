@@ -46,7 +46,7 @@
                     android:host="auth" />
             </intent-filter>
 
-            <!-- 폴더 공유 앱링크 (http) -->
+            <!-- 폴더 공유 앱링크 (https) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
