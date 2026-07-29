@@ -49,4 +49,16 @@ class DeepLinkHandlerViewModelTest {
         assertNull(viewModel.consumePendingShare())
         assertEquals("", viewModel.consumePendingInvitation())
     }
+
+    @Test
+    fun `pending invitation token is restored from saved state`() {
+        val savedStateHandle = SavedStateHandle()
+
+        createViewModel(savedStateHandle).setPendingInvitation("invitation-token")
+
+        assertEquals(
+            "invitation-token",
+            createViewModel(savedStateHandle).consumePendingInvitation()
+        )
+    }
 }
