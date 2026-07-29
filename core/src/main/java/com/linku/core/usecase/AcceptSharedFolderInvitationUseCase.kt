@@ -24,6 +24,8 @@ class AcceptSharedFolderInvitationUseCase @Inject constructor(
     /**
      * 전달받은 초대 토큰으로 공유 폴더 초대를 수락하고 공유 폴더 목록을 갱신합니다.
      *
+     * 복구 가능한 [Exception]만 결과 유형으로 변환하며 JVM의 치명적 [Error]는 호출자에게 전파합니다.
+     *
      * @param token 서버에서 발급한 공유 폴더 초대 토큰
      * @return 초대 수락과 후속 목록 갱신 상태를 나타내는 [AcceptSharedFolderInvitationResult]
      * @throws CancellationException 코루틴 작업이 취소된 경우 결과로 변환하지 않고 그대로 전파합니다.
@@ -36,8 +38,10 @@ class AcceptSharedFolderInvitationUseCase @Inject constructor(
         val acceptedFolderId = try {
             invitationRepository.acceptInvitation(token)
         } catch (e: CancellationException) {
+            // 구조화된 동시성의 취소 신호는 비즈니스 실패로 소비하지 않습니다.
             throw e
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
+            // 복구 가능한 예외만 화면에서 처리할 수 있는 초대 수락 결과로 분류합니다.
             return e.toAcceptFailure()
         }
 
@@ -47,8 +51,10 @@ class AcceptSharedFolderInvitationUseCase @Inject constructor(
                 sharedFolders = folderRepository.getSharedFolders(),
             )
         } catch (e: CancellationException) {
+            // 수락 후 목록 갱신이 취소되어도 상위 코루틴의 취소 상태를 유지합니다.
             throw e
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
+            // 초대 수락은 이미 완료되었으므로 목록 갱신 실패를 별도의 부분 성공으로 보존합니다.
             AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed(
                 folderId = acceptedFolderId,
                 cause = e,
@@ -67,7 +73,7 @@ class AcceptSharedFolderInvitationUseCase @Inject constructor(
      * @receiver 초대 수락 요청 중 발생한 예외
      * @return 예외 유형에 대응하는 [AcceptSharedFolderInvitationResult]
      */
-    private fun Throwable.toAcceptFailure(): AcceptSharedFolderInvitationResult =
+    private fun Exception.toAcceptFailure(): AcceptSharedFolderInvitationResult =
         when (this) {
             is ApiError.Common.Unauthorized,
             is ApiError.Auth.Unauthorized,
@@ -86,7 +92,7 @@ class AcceptSharedFolderInvitationUseCase @Inject constructor(
 }
 
 /**
- * 공유 폴더 초대 수락 처리에서 발생할 수 있는 모든 결과를 나타냅니다.
+ * 공유 폴더 초대 수락 처리에서 호출자가 복구할 수 있는 결과를 나타냅니다.
  *
  * 초대 수락 자체의 실패와 수락 성공 후 공유 폴더 목록 갱신 실패를 구분하여, 호출자가
  * 이미 완료된 수락을 중복 요청하지 않고 후속 동작을 결정할 수 있도록 합니다.
@@ -111,7 +117,7 @@ sealed interface AcceptSharedFolderInvitationResult {
      */
     data class AcceptedButRefreshFailed(
         val folderId: Long,
-        val cause: Throwable,
+        val cause: Exception,
     ) : AcceptSharedFolderInvitationResult
 
     /**
@@ -120,7 +126,7 @@ sealed interface AcceptSharedFolderInvitationResult {
      * @property cause 유효하지 않은 초대로 판단한 원인 예외. 빈 토큰인 경우 `null`
      */
     data class InvalidInvitation(
-        val cause: Throwable? = null,
+        val cause: Exception? = null,
     ) : AcceptSharedFolderInvitationResult
 
     /**
@@ -129,7 +135,7 @@ sealed interface AcceptSharedFolderInvitationResult {
      * @property cause 인증 필요 상태로 판단한 원인 예외
      */
     data class AuthenticationRequired(
-        val cause: Throwable,
+        val cause: Exception,
     ) : AcceptSharedFolderInvitationResult
 
     /**
@@ -138,7 +144,7 @@ sealed interface AcceptSharedFolderInvitationResult {
      * @property cause 네트워크 실패로 판단한 [NetworkError]
      */
     data class NetworkFailure(
-        val cause: Throwable,
+        val cause: Exception,
     ) : AcceptSharedFolderInvitationResult
 
     /**
@@ -147,6 +153,6 @@ sealed interface AcceptSharedFolderInvitationResult {
      * @property cause 분류되지 않은 초대 수락 예외
      */
     data class Failure(
-        val cause: Throwable,
+        val cause: Exception,
     ) : AcceptSharedFolderInvitationResult
 }
