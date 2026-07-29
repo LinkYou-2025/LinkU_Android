@@ -121,14 +121,14 @@ class FolderRepositoryImpl @Inject constructor(
 
     // (중/소분류) 폴더 내부 폴더, 링크 조회
     override suspend fun getLinksFolders(
-        parentFolderId: Long,
+        folderId: Long,
         limit: Int?,
         cursor: String?,
         sort: String?,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String? {
-        Log.d("FolderRepositoryImpl", "getLinksFolders folderId: $parentFolderId, limit: $limit, cursor: $cursor")
+        Log.d("FolderRepositoryImpl", "getLinksFolders folderId: $folderId, limit: $limit, cursor: $cursor")
 
         var nextCursor: String? = null
 
@@ -136,15 +136,15 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getLinksFolders try")
 
             safeApiCall(
-                apiCall = { serverApi.getLinksFolders(parentFolderId, limit, cursor, sort) }
+                apiCall = { serverApi.getLinksFolders(folderId, limit, cursor, sort) }
             ).onSuccess { response ->
                 Log.d("FolderRepositoryImpl", "getLinksFolders response: $response")
 
-                onGetFolders(response.folders.map { it.toDomain(parentFolderId) })
+                onGetFolders(response.folders.map { it.toDomain(folderId) })
 
                 Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetFolders(${response.folders})")
 
-                onGetLinks(response.links.map { it.toDomain(parentFolderId) })
+                onGetLinks(response.links.map { it.toDomain(folderId) })
 
                 Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetLinks(${response.links})")
 
@@ -411,7 +411,13 @@ class FolderRepositoryImpl @Inject constructor(
         Log.d("FolderRepositoryImpl", "updateViewerPermission return")
     }
 
-    // 링크 소분류
+    /**
+     * 링크를 지정한 폴더로 이동합니다.
+     *
+     * @param linku 이동할 링크 정보
+     * @param folderId 이동 대상 폴더 ID
+     * @return 이동 요청에 사용한 링크 정보
+     */
     override suspend fun updateLinkFolder(
         linku: LinkItemInfo,
         folderId: Long
@@ -428,16 +434,7 @@ class FolderRepositoryImpl @Inject constructor(
                         UpdateLinkFolderDTO(folderId)
                     )
                 }
-            ).onSuccess {
-                val result = LinkItemInfo(
-                    linkuId = it.linkuId,
-                    parentFolderId = folderId,
-                    title = it.title,
-                    tags = emptyList(),
-                    url = it.domain ?: "",
-                    linkuImageUrl = it.linkuImageUrl,
-                    createdAt = it.createdAt,
-                )
+            ).onSuccess { result ->
                 Log.d("FolderRepositoryImpl", "updateLinkFolder response: $result")
             }.onFailure {
                 throw it
@@ -458,13 +455,10 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "deleteLink try")
 
-            var userLinkuId = 0L
-
             safeApiCall(
                 apiCall = { serverApi.getDetailLink(linkuId) }
             ).onSuccess {
-                userLinkuId = it.userLinkuId
-                Log.d("FolderRepositoryImpl", "deleteLink userLinkuId: $userLinkuId")
+                Log.d("FolderRepositoryImpl", "deleteLink userLinkuId")
             }.onFailure {
                 throw it
             }
