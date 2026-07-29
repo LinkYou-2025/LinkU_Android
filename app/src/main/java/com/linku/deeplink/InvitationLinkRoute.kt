@@ -13,6 +13,7 @@ import kotlinx.coroutines.CancellationException
  * 인증 필요, 잘못된 초대, 네트워크 실패 및 기타 실패 결과에 맞는 상태 갱신과 화면 이동을 수행합니다.
  * 처리 도중 다른 딥링크 항목으로 이동한 경우에는 [deepLinkEntryId]를 비교해 오래된 결과를 반영하지
  * 않습니다.
+ * 복구 가능한 [Exception]은 일반 실패 결과로 변환하지만 JVM의 치명적 [Error]는 호출자에게 전파합니다.
  *
  * @param token 처리할 공유 폴더 초대 토큰
  * @param isLoggedIn 현재 유효한 로그인 세션이 있는지 여부
@@ -99,12 +100,12 @@ internal suspend fun invitationLinkRoute(
         return
     }
 
-    // 취소는 상위 coroutine에 전파하고 그 외 예외만 도메인 실패 결과로 정규화합니다.
+    // 취소는 상위 coroutine에 전파하고 복구 가능한 예외만 도메인 실패 결과로 정규화합니다.
     val result = try {
         onReceiveSharedFolderInvitation(token)
     } catch (e: CancellationException) {
         throw e
-    } catch (e: Throwable) {
+    } catch (e: Exception) {
         AcceptSharedFolderInvitationResult.Failure(e)
     }
 
