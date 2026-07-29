@@ -25,7 +25,7 @@ class InvitationRepositoryImpl @Inject constructor(
      *
      * @param token 서버에서 발급한 공유 폴더 초대 토큰
      * @return API 응답을 변환한 [InvitationInfo] 도메인 모델
-     * @throws Throwable API 또는 네트워크 요청이 실패하거나 코루틴 작업이 취소된 경우
+     * @throws Exception API 또는 네트워크 요청이 실패하거나 코루틴 작업이 취소된 경우
      */
     override suspend fun getInvitationInfo(token: String): InvitationInfo {
         // 초대 토큰은 접근 자격 정보이므로 요청 및 오류 로그에 원문을 남기지 않습니다.
@@ -43,7 +43,7 @@ class InvitationRepositoryImpl @Inject constructor(
      *
      * @param token 수락할 공유 폴더의 초대 토큰
      * @return 서버가 반환한 수락된 공유 폴더의 식별자
-     * @throws Throwable API 또는 네트워크 요청이 실패하거나 코루틴 작업이 취소된 경우
+     * @throws Exception API 또는 네트워크 요청이 실패하거나 코루틴 작업이 취소된 경우
      */
     override suspend fun acceptInvitation(token: String): Long {
         // 초대 토큰은 로그에 남기지 않고 성공 시 서버가 반환한 폴더 식별자만 전달합니다.
