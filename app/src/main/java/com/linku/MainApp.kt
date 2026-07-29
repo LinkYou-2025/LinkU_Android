@@ -40,6 +40,7 @@ import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
+import com.linku.deeplink.HandleNewIntentDeepLinks
 import com.linku.deeplink.invitationLinkRoute
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
@@ -108,6 +109,7 @@ fun MainApp(
     }
 
     val navigator = rememberNavController()
+    HandleNewIntentDeepLinks(navigator)
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
