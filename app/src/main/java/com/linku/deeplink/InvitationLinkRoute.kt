@@ -22,7 +22,6 @@ internal fun invitationLinkRoute(
 ) {
     val caller = getCaller()
 
-    LinkuLog.d(caller) {"token: $token"}
     LinkuLog.d(caller) {"isLoggedIn: $isLoggedIn"}
 
     val deepLinkDestinationId = navigator.currentDestination?.id

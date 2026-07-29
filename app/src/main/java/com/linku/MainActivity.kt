@@ -2,7 +2,6 @@ package com.linku
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
@@ -19,7 +18,6 @@ class MainActivity : ComponentActivity(), SystemBarController {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        intent?.data?.let { Log.d("DEEPLINK", "onCreate uri = $it") }
         // 앱이 꺼진 상태에서 딥링크로 실행된 경우
         //WindowCompat.setDecorFitsSystemWindows(window, false)
         //enableEdgeToEdge()

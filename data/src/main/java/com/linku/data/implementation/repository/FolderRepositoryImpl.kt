@@ -537,7 +537,7 @@ class FolderRepositoryImpl @Inject constructor(
                 }
             ).onSuccess {
                 link = it
-                Log.d("FolderRepositoryImpl", "makeInvitationLink response: $link")
+                Log.d("FolderRepositoryImpl", "makeInvitationLink response: true")
             }.onFailure {
                 throw it
             }
@@ -546,7 +546,7 @@ class FolderRepositoryImpl @Inject constructor(
             throw e
         }
 
-        Log.d("FolderRepositoryImpl", "makeInvitationLink return: $link")
+        Log.d("FolderRepositoryImpl", "makeInvitationLink return: true")
 
         return link
     }

@@ -37,8 +37,6 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.model.deeplink.DeepLinkType
-import com.linku.core.util.logging.LinkuLog
-import com.linku.core.util.logging.d
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
@@ -769,8 +767,6 @@ fun MainApp(
                     val token = checkNotNull(arguments.getString("token")) {
                         Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
                     }
-
-                    LinkuLog.d("MainApp") { "route: appLink action: $action, token: $token" }
 
                     LaunchedEffect(action, token) {
                         val isLoggedIn = viewModel.hasValidRefreshToken()
