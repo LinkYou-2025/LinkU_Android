@@ -523,20 +523,20 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     /**
-     * 지정한 폴더를 공유할 수 있는 초대 링크를 서버에서 생성합니다.
+     * 지정한 폴더를 공유할 수 있는 초대 토큰을 서버에서 생성합니다.
      *
      * 서버 요청 실패 시 [safeApiCall]이 변환한 예외를 호출자에게 그대로 전파합니다.
      *
-     * @param folderId 초대 링크를 생성할 폴더의 식별자
-     * @return 서버에서 발급한 공유 폴더 초대 링크
-     * @throws Throwable 초대 링크 생성 요청이 실패한 경우
+     * @param folderId 초대 토큰을 생성할 폴더의 식별자
+     * @return 서버에서 발급한 공유 폴더 초대 토큰
+     * @throws Exception 초대 토큰 생성 요청이 실패한 경우
      */
     override suspend fun makeInvitationLink(folderId: Long): String {
         Log.d("FolderRepositoryImpl", "makeInvitationLink folderId: $folderId")
 
         var link = ""
 
-        // 초대 링크에는 민감한 초대 토큰이 포함되므로 로그에는 실제 값 대신 성공 여부만 남깁니다.
+        // 초대 토큰은 공유 폴더 접근 자격 정보이므로 로그에는 실제 값 대신 성공 여부만 남깁니다.
         try {
             Log.d("FolderRepositoryImpl", "makeInvitationLink try")
 
