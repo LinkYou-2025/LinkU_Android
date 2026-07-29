@@ -40,7 +40,7 @@ internal fun invitationLinkRoute(
         onUpdateIsSharedFolders(false)
         onInvalidLink()
         navigateAsRoot(
-            if (isLoggedIn) NavigationRoute.Home.route else "login_root"
+            if (isLoggedIn) NavigationRoute.Home.route else NavigationRoute.Login.route
         )
     }
 
@@ -94,7 +94,7 @@ internal fun invitationLinkRoute(
             LinkuLog.d(caller) {"onSetPendingInvitation done"}
 
             LinkuLog.d(caller) {"start NavigationRoute.Login"}
-            navigateAsRoot("login_root")
+            navigateAsRoot(NavigationRoute.Login.route)
             LinkuLog.d(caller) {"NavigationRoute.Login done"}
 
             LinkuLog.d(caller) {"Escape else isLoggedIn"}

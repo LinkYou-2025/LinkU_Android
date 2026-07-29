@@ -294,7 +294,7 @@ fun MainApp(
                                 }
 
                                 is AutoLoginState.Failed -> {
-                                    navigator.navigate("login_root") {
+                                    navigator.navigate(NavigationRoute.Login.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                     }
                                 }
@@ -309,7 +309,7 @@ fun MainApp(
                                     val hasRefresh = viewModel.hasValidRefreshToken()
 
                                     if (autoLoginTried || !hasRefresh) {
-                                        navigator.navigate("login_root") {
+                                        navigator.navigate(NavigationRoute.Login.route) {
                                             popUpTo(NavigationRoute.Splash.route) {
                                                 inclusive = true
                                             }
@@ -325,7 +325,7 @@ fun MainApp(
                     }
                 }
 
-                composable("login_root") {
+                composable(NavigationRoute.Login.route) {
                     LaunchedEffect(Unit) { showNavBar = false }
                     LoginApp(
                         //navController = navigator,
@@ -342,19 +342,19 @@ fun MainApp(
                                 fileViewModel.receiveSharedFolderInvitation(
                                     token = pendingInvitationToken,
                                     onSuccess = {
-                                        if (navigator.currentDestination?.route == "login_root") {
+                                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
                                             showNavBar = true
                                             folderStateViewModel.resetSharedFolderState()
                                             folderStateViewModel.updateIsSharedFolders(true)
 
                                             navigator.navigate(NavigationRoute.File.route) {
-                                                popUpTo("login_root") { inclusive = true }
+                                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
                                                 launchSingleTop = true
                                             }
                                         }
                                     },
                                     onFailure = {
-                                        if (navigator.currentDestination?.route == "login_root") {
+                                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
                                             showNavBar = true
                                             folderStateViewModel.resetSharedFolderState()
                                             Toast.makeText(
@@ -364,7 +364,7 @@ fun MainApp(
                                             ).show()
 
                                             navigator.navigate(NavigationRoute.Home.route) {
-                                                popUpTo("login_root") { inclusive = true }
+                                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
                                                 launchSingleTop = true
                                             }
                                         }
@@ -380,7 +380,7 @@ fun MainApp(
                                 folderStateViewModel.updateIsSharedFolders(true)
 
                                 navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo("login_root") { inclusive = true }
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                                 return@LoginApp
@@ -389,7 +389,7 @@ fun MainApp(
 
                             showNavBar = true
                             navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo("login_root") { inclusive = true }
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
@@ -484,7 +484,7 @@ fun MainApp(
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
-                                navigator.navigate("login_root") {
+                                navigator.navigate(NavigationRoute.Login.route) {
                                     // 그래프 루트까지 백스택 전부 제거.
                                     // Splash는 로그인 이후 이미 백스택에서 빠져있는 상태라
                                     // findStartDestination()(Splash)을 popUpTo 타겟으로 쓰면
