@@ -72,6 +72,14 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 
+/**
+ * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
+ *
+ * 콜드 스타트와 웜 스타트 딥링크를 내비게이션에 전달하며, 로그인 전에 보류된 초대가 있으면
+ * 로그인 성공 후 해당 초대를 이어서 처리합니다.
+ *
+ * @param viewModel 앱 전역 상태와 세션 및 사이드 이펙트를 제공하는 [MainViewModel]
+ */
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
@@ -173,6 +181,13 @@ fun MainApp(
         }
     }
 
+    /**
+     * 현재 경로가 지정한 하단 탭의 루트 또는 하위 경로인지 확인합니다.
+     *
+     * @param current 현재 내비게이션 경로
+     * @param root 비교할 하단 탭의 루트 경로
+     * @return 루트 경로와 같거나 경로 및 쿼리 하위에 속하면 `true`
+     */
     fun isTabRoute(current: String?, root: String): Boolean =
         current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
 
