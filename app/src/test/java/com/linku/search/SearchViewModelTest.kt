@@ -377,7 +377,7 @@ private class FakeLinkuRepository : LinkuRepository {
 
     override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo = unused()
 
-    override suspend fun getLinkDetail(
+    override suspend fun getLinkDetailWithShared(
         userId: Long,
         linkuId: Long,
     ): LinkResultInfo = unused()
