@@ -78,12 +78,12 @@ internal fun SelectionCardItem(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
                 modifier = Modifier
-                    .width(26.dp)
-                    .height(26.dp)
+                    .width(25.dp)
+                    .height(25.dp)
             )
             Text(
                 text = text,
-                fontSize = 14.sp,
+                fontSize = 12.5.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colorTheme.black
@@ -93,7 +93,7 @@ internal fun SelectionCardItem(
         if (isSelected) {
             Box(
                 modifier = Modifier
-                    .size(26.dp)
+                    .size(25.dp)
                     .align(Alignment.TopEnd)
                     .clip(CircleShape)
                     .background(brush = colorTheme.maincolor),
@@ -127,7 +127,7 @@ fun SelectionCardItemComparePreview() {
                 modifier = Modifier.size(130.dp)
             )
             SelectionCardItem(
-                text = "인사이트\n모으기",
+                text = "글쓰기\n&콘텐츠\n노하우",
                 isSelected = true,
                 iconRes = R.drawable.ic_purpose_insights,
                 onClick = {},

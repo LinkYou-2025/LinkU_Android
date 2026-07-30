@@ -36,12 +36,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.auth.AutoLoginState
+import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.d
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
-import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.deeplink.invitationLinkRoute
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
@@ -50,11 +50,11 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
-import com.linku.home.component.LinkCategoryOption
-import com.linku.home.screen.LinkDetailScreen
-import com.linku.home.screen.SaveLinkScreen
 import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
+import com.linku.link.component.LinkCategoryOption
+import com.linku.link.screen.LinkDetailScreen
+import com.linku.link.screen.SaveLinkScreen
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
@@ -365,20 +365,6 @@ fun MainApp(
                                 popUpTo("login_root") { inclusive = true }
                                 launchSingleTop = true
                             }
-                        },
-                        onAutoLoginSuccess = {
-                            showNavBar = true
-                            edgeToEdgeSystemBars = false
-                            homeViewModel.refreshAfterLogin()
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        onAutoLoginFail = {
-                            navigator.navigate("login_root") {
-                                popUpTo(NavigationRoute.Splash.route) { inclusive = true }
-                            }
                         }
                     )
                 }
@@ -454,11 +440,15 @@ fun MainApp(
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
                                 navigator.navigate("login_root") {
-                                    // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
-                                    popUpTo(navigator.graph.findStartDestination().id) {
+                                    // 그래프 루트까지 백스택 전부 제거.
+                                    // Splash는 로그인 이후 이미 백스택에서 빠져있는 상태라
+                                    // findStartDestination()(Splash)을 popUpTo 타겟으로 쓰면
+                                    // 백스택에서 못 찾아 조용히 no-op 되어(Home/MyPage가 그대로 남음)
+                                    // login_root가 그 위에 얹히기만 하는 문제가 있었음.
+                                    // 그래프 자체의 id는 항상 모든 백스택 엔트리의 조상이라 반드시 제거됨.
+                                    popUpTo(navigator.graph.id) {
                                         inclusive = true
                                     }
-                                    //popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
 //                                navigator.navigate(NavigationRoute.Login.route) {
@@ -666,7 +656,7 @@ fun MainApp(
                         emotion = emotionNameOf(linkDetail?.emotionId),
                         situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
-                        imageUrl = linkDetail?.linkuImageUrl,
+                        imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
                         selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
                         tags = keywordToTags(displayKeyword),
@@ -697,7 +687,10 @@ fun MainApp(
                         },
                         onDeleteLink = { onSuccess, onFailed ->
                             linkDetailViewModel.deleteLink(
-                                onSucceed = onSuccess,
+                                onSucceed = {
+                                    homeViewModel.refreshHomeData()
+                                    onSuccess()
+                                },
                                 onFailed = { onFailed() }
                             )
                         }
@@ -781,7 +774,22 @@ fun MainApp(
 
 }
 
+/**
+ * 이미지 URL에 스킴이 없으면 HTTPS 스킴을 추가한다.
+ *
+ * 빈 문자열이나 null은 null로 반환한다.
+ * 스킴이 포함된 URI는 스킴의 종류와 대소문자에 관계없이 원본 값을 유지하며,
+ * 프로토콜 상대 URL은 HTTPS 스킴을 추가한다.
+ */
+private fun String?.toImageUrl(): String? {
+    val value = this?.trim()?.takeIf { it.isNotEmpty() } ?: return null
 
+    return when {
+        value.startsWith("//") -> "https:$value"
+        Uri.parse(value).scheme != null -> value
+        else -> "https://$value"
+    }
+}
 
 // 확장 함수: Context -> Activity
 fun Context.findActivity(): Activity? {

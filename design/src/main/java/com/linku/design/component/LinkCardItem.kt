@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -82,15 +83,12 @@ fun LinkCardItem(
             Spacer(modifier = Modifier.width(14.dp))
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.weight(1f),
                 horizontalAlignment = Alignment.Start
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 13.dp)
                         // 최소 높이만 20dp로 맞추고, 폰트 크게 설정 등으로 더 필요하면 늘어나게 둠(글자 짤림 방지)
                         .heightIn(min = 20.dp),
                     verticalAlignment = Alignment.CenterVertically
@@ -116,7 +114,9 @@ fun LinkCardItem(
                         style = LocalTextStyle.current.copy(
                             platformStyle = PlatformTextStyle(includeFontPadding = false)
                         ),
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(top = 8.dp)
                     )
                 }
 
@@ -173,18 +173,21 @@ fun LinkCardItem(
             }
 
             Box(
-                modifier = Modifier.height(85.dp)
+                modifier = Modifier
+                    .height(85.dp)
+                    .width(22.dp)
             ) {
                 Box(
                     modifier = Modifier
-                        .size(17.dp)
-                        .padding(end = 5.dp)
+                        .size(22.dp)
+                        .padding(top = 8.dp, end = 5.dp)
                         .noRippleClickable { isMenuVisible = !isMenuVisible },
                     contentAlignment = Alignment.TopEnd
                 ) {
-                    Image(
+                    Icon(
                         painter = painterResource(R.drawable.ic_more),
-                        contentDescription = null,
+                        contentDescription = "더보기",
+                        tint = colors.gray[400],
                         modifier = Modifier.size(17.dp)
                     )
                 }

@@ -9,7 +9,7 @@ data class LinkuResultDTO(
     @field:Json(name = "userId")
     val userId: Long,
 
-    @field:Json(name = "userLinkuId")
+    @field:Json(name = "userLinkuId")  // TODO: 추후 nullable 제거 예정
     val userLinkuId: Long?,
 
     @field:Json(name = "linkuId")

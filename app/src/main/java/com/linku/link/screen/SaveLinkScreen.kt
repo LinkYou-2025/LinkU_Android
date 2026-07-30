@@ -1,4 +1,4 @@
-package com.linku.home.screen
+package com.linku.link.screen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.rememberAsyncImagePainter
+import com.linku.R
 import com.linku.core.model.JobType
 import com.linku.core.model.link.ToastEvent
 import com.linku.design.component.TimedCustomToastMessage
@@ -48,9 +49,8 @@ import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
-import com.linku.home.R
-import com.linku.home.component.EmotionSelect
-import com.linku.home.component.SituationSelect
+import com.linku.link.component.EmotionSelect
+import com.linku.link.component.SituationSelect
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import java.io.File
@@ -272,7 +272,7 @@ fun SaveLinkScreen(
                             contentDescription = null,
                             modifier = Modifier.height(24.dp)
                         )
-                        
+
                         Text(
                             text = "사진 추가",
                             fontSize = 14.sp,

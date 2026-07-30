@@ -5,8 +5,9 @@ package com.linku.login
 
 import android.content.Context
 import android.util.Log
-import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,24 +15,30 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Devices
@@ -45,6 +52,8 @@ import com.kakao.sdk.common.model.ClientError
 import com.kakao.sdk.common.model.ClientErrorCause
 import com.kakao.sdk.user.UserApiClient
 import com.linku.core.model.auth.LoginType
+import com.linku.design.component.TimedCustomToastMessage
+import com.linku.design.modal.ModalWindow
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.DesignSystemBars
@@ -54,6 +63,7 @@ import com.linku.login.auth.findActivity
 import com.linku.login.ui.item.SocialLoginButton
 import com.linku.login.viewmodel.SocialAuthViewModel
 import com.linku.login.viewmodel.state.SocialAuthUiEffect
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 
@@ -74,6 +84,7 @@ private fun handleKakaoLogin(
         if (error != null) {
             // 실패 시
             Log.e(TAG, "카카오계정으로 로그인 실패", error)
+            viewModel.notifySocialLoginFailed()
         } else if (token != null) {
             // 카카오 sdk가 토큰을 받아오면 밑에 뷰모델 호출
             viewModel.loginWithKakao(token.accessToken) //뷰모델에서 로그인 상태 확인 함수 사용용으로 1줄 추가함.
@@ -113,7 +124,7 @@ private fun handleKakaoLogin(
 @Composable
 fun LoginScreen(
     onNavigateToEmailLogin: () -> Unit,
-    onNavigateToSocialOnboarding: (accessToken: String) -> Unit,
+    onNavigateToSocialOnboarding: (accessToken: String, loginType: LoginType) -> Unit,
     viewModel: SocialAuthViewModel,
     onLoginSuccess: () -> Unit = {},
     logoOffsetY: Float = 0f,
@@ -132,6 +143,10 @@ fun LoginScreen(
 
     val uiState by viewModel.state.collectAsStateWithLifecycle()
 
+    // 소셜 로그인 실패 시 노출되는 커스텀 토스트 (딤 처리 없이 버튼 위에 떠 있는 검정 pill 형태).
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
+
 //    //카카오 로그인 state 수집
 //    val kakaoLoginState by viewModel.kakaoLoginState.collectAsStateWithLifecycle()
 //
@@ -147,11 +162,12 @@ fun LoginScreen(
 
                 is SocialAuthUiEffect.NavigateToAdditionalInfo -> {
                     Log.d(TAG, "MVI Effect 수령: TEMP 유저 -> 온보딩 위임 콜백 트리거")
-                    onNavigateToSocialOnboarding(effect.loginResult.accessToken)
+                    onNavigateToSocialOnboarding(effect.loginResult.accessToken, effect.loginType)
                 }
 
                 is SocialAuthUiEffect.ShowToast -> {
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    toastMessage = effect.message
+                    isToastVisible = true
                 }
 
                 else -> {}
@@ -283,8 +299,9 @@ fun LoginScreen(
         ) {
 
             // 카카오
-            SocialLoginButton(
+            SocialLoginButtonWithRecentBadge(
                 type = LoginType.KAKAO,
+                recentLoginType = uiState.recentLoginType,
                 onClick = {
                     if (buttonsEnabled) handleKakaoLogin(context, viewModel)
                     //약관 화면에서 중복 로그인 방지.
@@ -293,34 +310,108 @@ fun LoginScreen(
 
 
             // 구글
-            SocialLoginButton(
+            SocialLoginButtonWithRecentBadge(
                 type = LoginType.GOOGLE,
+                recentLoginType = uiState.recentLoginType,
                 onClick = {
-                    if (!buttonsEnabled) return@SocialLoginButton
+                    if (!buttonsEnabled) return@SocialLoginButtonWithRecentBadge
                     val activity = context.findActivity() ?: run {
-                        Toast.makeText(context, "간편 로그인 실패. 다시 시도해주세요!", Toast.LENGTH_SHORT).show()
-                        return@SocialLoginButton
+                        viewModel.notifySocialLoginFailed()
+                        return@SocialLoginButtonWithRecentBadge
                     }
                     scope.launch {
                         try {
                             val idToken = googleAuthHelper.getGoogleIdToken(activity)
                             viewModel.loginWithGoogle(idToken)
+                        } catch (e: CancellationException) {
+                            throw e  // 화면 이탈 등으로 인한 정상 취소, 에러 아님
                         } catch (e: Exception) {
                             Log.e("GoogleLogin", "구글 로그인 실패: ${e.message}")
+                            viewModel.notifySocialLoginFailed()
                         }
                     }
                 }
             )
 
             // 이메일 기존 그대로 유지.
-            SocialLoginButton(
+            SocialLoginButtonWithRecentBadge(
                 type = LoginType.EMAIL,
+                recentLoginType = uiState.recentLoginType,
                 onClick = {
                     //navigator.navigate("email_login")
                     if (buttonsEnabled) {
                         onNavigateToEmailLogin()
                     }
                 }
+            )
+        }
+
+        // 소셜 로그인 실패 시 노출되는 딤 처리 + 토스트. 토스트가 떠 있는 동안 뒤쪽 버튼 탭을 막기 위해 스크림에 클릭도 소비함.
+        if (isToastVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colorTheme.black.copy(alpha = 0.5f))
+                    .clickable(enabled = true, onClick = {})
+            )
+        }
+
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = bottomPadding + 50.scaler + 12.scaler)
+        )
+
+        // 탈퇴 유예기간(INACTIVE) 계정으로 소셜 로그인 시도 시 노출되는 복구 확인 모달
+        ModalWindow(
+            visible = uiState.showRecoverModal,
+            onOkay = { viewModel.keepWithdrawn() },
+            onNegativeClick = { viewModel.recoverAccount() },
+            onDismiss = { viewModel.dismissRecoverModal() },
+            positiveText = "탈퇴 유지",
+            negativeText = "계정 복구",
+            title = "탈퇴 처리 중인 계정입니다.",
+            isLogoDimmed = true
+        ) {
+            Text(
+                text = "지금 로그인하면 계정이 즉시 복구됩니다.\n14일이 지나면 모든 정보가 삭제돼요.",
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight(400),
+                color = colorTheme.gray[600],
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+/**
+ * 소셜 로그인 버튼 위에 마지막으로 로그인했던 수단을 알려주는 "최근 로그인" 말풍선을 겹쳐 보여줍니다.
+ *
+ * @param type 이 버튼이 나타내는 로그인 수단.
+ * @param recentLoginType 사용자가 마지막으로 로그인했던 수단. [type]과 일치할 때만 말풍선이 노출됩니다.
+ */
+@Composable
+private fun SocialLoginButtonWithRecentBadge(
+    type: LoginType,
+    recentLoginType: LoginType,
+    onClick: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        SocialLoginButton(type = type, onClick = onClick)
+
+        if (recentLoginType == type) {
+            Image(
+                painter = painterResource(id = R.drawable.img_recent_login),
+                contentDescription = "최근 로그인",
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-7).scaler, y = (-20).scaler)
+                    .width(100.scaler)
+                    .height(42.scaler)
             )
         }
     }
@@ -332,7 +423,7 @@ fun LoginScreenPreview() {
     LinkuPreview {
         LoginScreen(
             onNavigateToEmailLogin = {},
-            onNavigateToSocialOnboarding = {},
+            onNavigateToSocialOnboarding = { _, _ -> },
             viewModel = viewModel()
         )
     }

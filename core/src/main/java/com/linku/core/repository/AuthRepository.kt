@@ -6,6 +6,7 @@ import com.linku.core.model.TokenReissueResult
 import com.linku.core.model.auth.Gender
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpEmailResult
 import com.linku.core.model.auth.UserSession
@@ -39,14 +40,16 @@ interface AuthRepository {
 
     suspend fun reissue(refreshToken: String): Result<TokenReissueResult>
 
-    //소셜 로그인 이후 사용자 정보 받음
+    //소셜 로그인 이후 사용자 정보 받음. 응답 토큰으로 곧바로 로그인 세션을 저장(자동 로그인)하기 위해 loginType이 필요함.
     suspend fun completeSocialProfile(
         socialToken: String,
         nickName: String,
         gender: Gender,
         job: Job,
         purposes: List<Purpose>,
-        interests: List<Interest>
+        interests: List<Interest>,
+        termsMap: Map<String, Boolean>,
+        loginType: LoginType
     ): Result<Boolean>
 
     // 카카오로 로그인 하기
