@@ -85,6 +85,7 @@ fun HomeApp(
                 recommendedLinks = viewModel.recommendedLinks,
                 recentLinks = recentLinks,
                 isRecommending = viewModel.isRecommending,
+                isLoadingMoreRecommendations = viewModel.isLoadingMoreRecommendations,
                 onRecommendRequest = { emotionId, situationId, size ->
                     viewModel.fetchRecommendations(
                         situationId = situationId,
@@ -92,6 +93,7 @@ fun HomeApp(
                         size = size
                     )
                 },
+                onLoadMoreRecommendations = viewModel::loadMoreRecommendations,
                 needMoreForRecommendation = viewModel.needMoreForRecommendation,
                 onClearNeedMoreNotice = viewModel::clearNeedMoreNotice,
                 jobId = viewModel.jobId ?: 2L,

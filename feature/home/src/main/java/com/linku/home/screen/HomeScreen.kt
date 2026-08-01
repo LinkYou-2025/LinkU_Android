@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -54,6 +56,7 @@ import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
 import com.linku.home.component.rememberClipboardUrl
 import com.linku.home.ui.home.bar.HomeTopBar
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -64,7 +67,9 @@ fun HomeScreen(
     recommendedLinks: List<LinkSimpleInfo>,
     recentLinks: List<LinkSimpleInfo>,
     isRecommending: Boolean,
+    isLoadingMoreRecommendations: Boolean,
     onRecommendRequest: (emotionId: Long, situationId: Long, size: Int) -> Unit,
+    onLoadMoreRecommendations: () -> Unit,
     needMoreForRecommendation: Boolean,
     onClearNeedMoreNotice: () -> Unit,
     jobId: Long,
@@ -97,6 +102,36 @@ fun HomeScreen(
     }
 
     val listState = rememberLazyListState()
+
+    LaunchedEffect(
+        listState,
+        isRecommendMode,
+        isRecommending,
+        isLoadingMoreRecommendations,
+    ) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val lastVisibleItemIndex =
+                layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            val totalItemsCount = layoutInfo.totalItemsCount
+
+            totalItemsCount > 0 &&
+                    lastVisibleItemIndex >= totalItemsCount - 2
+        }
+            .distinctUntilChanged()
+            .collect { reachedEnd ->
+                if (
+                    reachedEnd &&
+                    isRecommendMode &&
+                    !isRecommending &&
+                    !isLoadingMoreRecommendations &&
+                    recommendedLinks.isNotEmpty()
+                ) {
+                    onLoadMoreRecommendations()
+                }
+            }
+    }
+
     val coroutineScope = rememberCoroutineScope()
 
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
@@ -219,65 +254,169 @@ fun HomeScreen(
                 )
             }
 
-            item {
-                Column(
-                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
-                ) {
-                    val itemsToRender = if (isRecommendMode) recommendedLinks else recentLinks
+//            item {
+//                Column(
+//                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
+//                ) {
+//                    val itemsToRender = if (isRecommendMode) recommendedLinks else recentLinks
+//
+//                    Text(
+//                        text = titleText,
+//                        fontSize = 20.sp,
+//                        fontWeight = FontWeight.Bold,
+//                        color = colors.black,
+//                        modifier = Modifier.padding(start = 4.dp)
+//                    )
+//
+//                    when {
+//                        // 1) 최근 열람 링크 없음
+//                        !isRecommendMode && itemsToRender.isEmpty() -> {
+//                            EmptyRecentBox()
+//                        }
+//
+//                        // 2) 추천 데이터 부족 (링크 3개 미만)
+//                        isRecommendMode && needMoreForRecommendation -> {
+//                            NeedMoreLinks()
+//                        }
+//
+//                        // 3) 추천할 링크 분류 중
+//                        isRecommendMode && isRecommending -> {
+//                            Box(
+//                                modifier = Modifier.fillMaxSize()
+//                            ) {
+//                                CustomToastMessage(
+//                                    toastMessage = "추천할 링크 분류중..",
+//                                    modifier = Modifier
+//                                        .align(Alignment.BottomCenter)
+//                                        .padding(bottom = 152.dp)
+//                                )
+//                            }
+//                        }
+//
+//                        // 4) 추천 모드 및 최근 열람 링크 리스트
+//                        else -> {
+//                            LinkList(
+//                                links = itemsToRender,
+//                                onCardClick = onLinkClick,
+//                                onDeleteClick = { linkuId ->
+//                                    // TODO: 삭제 API 연결
+//                                }
+//                            )
+//                        }
+//                    }
+//                }
+//            }
 
-                    Text(
-                        text = titleText,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.black,
-                        modifier = Modifier.padding(start = 4.dp)
-                    )
+            item(key = "home-title") {
+                Text(
+                    text = titleText,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.black,
+                    modifier = Modifier.padding(
+                        start = 24.dp,
+                        end = 20.dp,
+                        top = 20.dp,
+                        bottom = 20.dp,
+                    ),
+                )
+            }
 
-                    when {
-                        // 1) 최근 열람 링크 없음
-                        !isRecommendMode && itemsToRender.isEmpty() -> {
+            when {
+                // 최근 열람 링크가 없는 경우
+                !isRecommendMode && recentLinks.isEmpty() -> {
+                    item(key = "empty-recent") {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                        ) {
                             EmptyRecentBox()
                         }
+                    }
+                }
 
-                        // 2) 추천 데이터 부족 (링크 3개 미만)
-                        isRecommendMode && needMoreForRecommendation -> {
+                // 추천에 필요한 저장 링크가 부족한 경우
+                isRecommendMode && needMoreForRecommendation -> {
+                    item(key = "need-more-links") {
+                        Box(
+                            modifier = Modifier.padding(horizontal = 20.dp),
+                        ) {
                             NeedMoreLinks()
                         }
+                    }
+                }
 
-                        // 3) 추천할 링크 분류 중
-                        isRecommendMode && isRecommending -> {
+                // 최초 추천 데이터를 불러오는 경우
+                isRecommendMode &&
+                        isRecommending &&
+                        recommendedLinks.isEmpty() -> {
+                    item(key = "initial-recommendation-loading") {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp),
+                        ) {
+                            CustomToastMessage(
+                                toastMessage = "추천할 링크 분류중..",
+                                modifier = Modifier.align(Alignment.Center),
+                            )
+                        }
+                    }
+                }
+
+                else -> {
+                    items(
+                        items = itemsToRender,
+                        key = { link ->
+                            if (isRecommendMode) {
+                                "recommend-${link.userLinkuId}-${link.linkuId}"
+                            } else {
+                                "recent-${link.userLinkuId}-${link.linkuId}"
+                            }
+                        },
+                    ) { link ->
+                        LinkCard(
+                            link = link,
+                            onCardClick = onLinkClick,
+                            onDeleteClick = { userLinkuId ->
+                                // TODO: 삭제 API 연결
+                            },
+                            modifier = Modifier.padding(
+                                start = 20.dp,
+                                end = 20.dp,
+                                bottom = 10.dp,
+                            ),
+                        )
+                    }
+
+                    if (
+                        isRecommendMode &&
+                        isLoadingMoreRecommendations
+                    ) {
+                        item(key = "recommendation-loading-more") {
                             Box(
-                                modifier = Modifier.fillMaxSize()
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(80.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
-                                CustomToastMessage(
-                                    toastMessage = "추천할 링크 분류중..",
-                                    modifier = Modifier
-                                        .align(Alignment.BottomCenter)
-                                        .padding(bottom = 152.dp)
+                                Text(
+                                    text = "추천 링크를 더 불러오는 중...",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = colors.gray[600],
                                 )
                             }
-                        }
-
-                        // 4) 추천 모드 및 최근 열람 링크 리스트
-                        else -> {
-                            LinkList(
-                                links = itemsToRender,
-                                onCardClick = onLinkClick,
-                                onDeleteClick = { linkuId ->
-                                    // TODO: 삭제 API 연결
-                                }
-                            )
                         }
                     }
                 }
             }
 
-            if (footerHeight > 0.dp) {
+            if (!isRecommendMode && footerHeight > 0.dp) {
                 item(key = "footer-slack") {
                     Spacer(
-                        Modifier
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .height(footerHeight)
+                            .height(footerHeight),
                     )
                 }
             }
@@ -388,40 +527,31 @@ private fun NeedMoreLinks() {
 }
 
 @Composable
-private fun LinkList(
-    links: List<LinkSimpleInfo>,
+private fun LinkCard(
+    link: LinkSimpleInfo,
     onCardClick: (Long) -> Unit,
     onDeleteClick: (Long) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Column {
-        Spacer(modifier = Modifier.height(20.dp))
-
-        links.forEach { link ->
-            LinkCardItem(
-                hasAiSummary = link.aiArticleExists,
-                linkTitle = link.title,
-                tags = buildList {
-                    link.categoryType?.tagName?.let(::add)
-                    link.emotionType?.tagName?.let(::add)
-                },
-                domainName = link.domain,
-                isExternalLink = false,
-                linkImageUrl = link.linkuImageUrl.orEmpty(),
-                domainImageUrl = link.domainImageUrl.orEmpty(),
-                onCardClick = {
-                    onCardClick(link.linkuId)
-                },
-                onDeleteClick = {
-//                    onDeleteClick(link.userLinkuId)  // nullable 제거 이후 사용
-                    // TODO: nullable 제거 전까지는 아래 코드로 사용하므로 nullable 제거 후 삭제할 예정
-                    link.userLinkuId?.let { userLinkuId ->
-                        onDeleteClick(userLinkuId)
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-        }
+    Box(modifier = modifier) {
+        LinkCardItem(
+            hasAiSummary = link.aiArticleExists,
+            linkTitle = link.title,
+            tags = buildList {
+                link.categoryType?.tagName?.let(::add)
+                link.emotionType?.tagName?.let(::add)
+            },
+            domainName = link.domain,
+            isExternalLink = false,
+            linkImageUrl = link.linkuImageUrl.orEmpty(),
+            domainImageUrl = link.domainImageUrl.orEmpty(),
+            onCardClick = {
+                onCardClick(link.linkuId)
+            },
+            onDeleteClick = {
+                link.userLinkuId?.let(onDeleteClick)
+            },
+        )
     }
 }
 
@@ -435,13 +565,15 @@ fun PreviewHomeScreen() {
             recommendedLinks = emptyList(),
             recentLinks = emptyList(),
             isRecommending = false,
+            isLoadingMoreRecommendations = false,
+            onLoadMoreRecommendations = { },
             onRecommendRequest = { _, _, _ -> },
             needMoreForRecommendation = false,
-            onClearNeedMoreNotice = {},
+            onClearNeedMoreNotice = { },
             jobId = 2L,
             onLinkClick = { },
-            onNavigateToSaveLink = {},
-            onAlarmClick = {}
+            onNavigateToSaveLink = { },
+            onAlarmClick = { }
         )
     }
 }

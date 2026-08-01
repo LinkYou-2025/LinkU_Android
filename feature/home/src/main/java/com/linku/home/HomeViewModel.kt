@@ -111,6 +111,19 @@ class HomeViewModel @Inject constructor(
         _recentLinks.value = emptyList()
         _categoryColorMap.value = emptyMap()
         categoryLoaded = false
+
+        // 추천 상태값도 초기화
+        recommendedLinksState.value = emptyList()
+        needMoreForRecommendationState.value = false
+
+        recommendationNextCursor = null
+        recommendationHasNext = false
+        recommendationSituationId = null
+        recommendationEmotionId = null
+        recommendationPageSize = 5
+
+        isRecommendingState.value = false
+        isLoadingMoreRecommendationsState.value = false
     }
 
     private fun Throwable.isLinku4003(): Boolean {
@@ -143,12 +156,16 @@ class HomeViewModel @Inject constructor(
     private var recommendationNextCursor: String? = null
     private var recommendationHasNext: Boolean = false
 
+    private var recommendationSituationId: Long? = null
+    private var recommendationEmotionId: Long? = null
+    private var recommendationPageSize: Int = 5
+
     private val isRecommendingState = mutableStateOf(false)
     val isRecommending get() = isRecommendingState.value
 
-    // 최근 조회 링크 상태
-    private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
-    val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
+    // 추가 로딩 여부
+    private val isLoadingMoreRecommendationsState = mutableStateOf(false)
+    val isLoadingMoreRecommendations get() = isLoadingMoreRecommendationsState.value
 
     // 링크 추천
     fun fetchRecommendations(
@@ -165,6 +182,9 @@ class HomeViewModel @Inject constructor(
 
             recommendationNextCursor = null
             recommendationHasNext = false
+            recommendationSituationId = null
+            recommendationEmotionId = null
+            recommendationPageSize = 5
 
             onDone()
             return
@@ -177,6 +197,10 @@ class HomeViewModel @Inject constructor(
             // 새로운 추천 조건으로 다시 요청하므로 기존 페이징 상태 초기화
             recommendationNextCursor = null
             recommendationHasNext = false
+
+            recommendationSituationId = situationId
+            recommendationEmotionId = emotionId
+            recommendationPageSize = size
 
             runCatching {
                 linkuRepository.recommendLinks(
@@ -197,6 +221,9 @@ class HomeViewModel @Inject constructor(
 
                 recommendationNextCursor = null
                 recommendationHasNext = false
+                recommendationSituationId = null
+                recommendationEmotionId = null
+                recommendationPageSize = 5
 
                 if (!needMoreLinks) {
                     LinkuLog.e(
@@ -211,6 +238,47 @@ class HomeViewModel @Inject constructor(
             onDone()
         }
     }
+
+    fun loadMoreRecommendations() {
+        if (isRecommendingState.value) return
+        if (isLoadingMoreRecommendationsState.value) return
+        if (!recommendationHasNext) return
+
+        val cursor = recommendationNextCursor ?: return
+        val situationId = recommendationSituationId ?: return
+        val emotionId = recommendationEmotionId ?: return
+
+        viewModelScope.launch {
+            isLoadingMoreRecommendationsState.value = true
+
+            runCatching {
+                linkuRepository.recommendLinks(
+                    situationId = situationId,
+                    emotionId = emotionId,
+                    cursor = cursor,
+                    size = recommendationPageSize,
+                )
+            }.onSuccess { page ->
+                recommendedLinksState.value =
+                    recommendedLinksState.value + page.items
+
+                recommendationNextCursor = page.nextCursor
+                recommendationHasNext = page.hasNext
+            }.onFailure { error ->
+                LinkuLog.e(
+                    "HomeVM",
+                    "loadMoreRecommendations failed",
+                    error,
+                )
+            }
+
+            isLoadingMoreRecommendationsState.value = false
+        }
+    }
+
+    // 최근 조회 링크 상태
+    private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
+    val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
 
     // 최근 조회 링크 로딩
     // 가장 먼저 호출되는 api? 토큰 달고 요청을 함.
