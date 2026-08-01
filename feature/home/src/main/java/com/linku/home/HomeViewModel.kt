@@ -12,6 +12,8 @@ import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
@@ -137,6 +139,10 @@ class HomeViewModel @Inject constructor(
     private val recommendedLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
     val recommendedLinks get() = recommendedLinksState.value
 
+    // 추천 커서 페이징 상태
+    private var recommendationNextCursor: String? = null
+    private var recommendationHasNext: Boolean = false
+
     private val isRecommendingState = mutableStateOf(false)
     val isRecommending get() = isRecommendingState.value
 
@@ -149,13 +155,17 @@ class HomeViewModel @Inject constructor(
         situationId: Long,
         emotionId: Long,
         size: Int = 5,
-        onDone: () -> Unit = {}
+        onDone: () -> Unit = {},
     ) {
         if (isRecommendingState.value) return
 
         if (myLinkuCount < MIN_RECOMMENDATION_LINK_COUNT) {
             needMoreForRecommendationState.value = true
             recommendedLinksState.value = emptyList()
+
+            recommendationNextCursor = null
+            recommendationHasNext = false
+
             onDone()
             return
         }
@@ -164,23 +174,36 @@ class HomeViewModel @Inject constructor(
             isRecommendingState.value = true
             needMoreForRecommendationState.value = false
 
+            // 새로운 추천 조건으로 다시 요청하므로 기존 페이징 상태 초기화
+            recommendationNextCursor = null
+            recommendationHasNext = false
+
             runCatching {
                 linkuRepository.recommendLinks(
                     situationId = situationId,
                     emotionId = emotionId,
-                    page = 0,
+                    cursor = null,
                     size = size,
                 )
-            }.onSuccess { links ->
-                recommendedLinksState.value = links
+            }.onSuccess { page ->
+                recommendedLinksState.value = page.items
+                recommendationNextCursor = page.nextCursor
+                recommendationHasNext = page.hasNext
             }.onFailure { error ->
                 val needMoreLinks = error.isLinku4003()
 
                 needMoreForRecommendationState.value = needMoreLinks
                 recommendedLinksState.value = emptyList()
 
+                recommendationNextCursor = null
+                recommendationHasNext = false
+
                 if (!needMoreLinks) {
-                    Log.e("HomeVM", "fetchRecommendations failed", error)
+                    LinkuLog.e(
+                        "HomeVM",
+                        "fetchRecommendations failed",
+                        error,
+                    )
                 }
             }
 

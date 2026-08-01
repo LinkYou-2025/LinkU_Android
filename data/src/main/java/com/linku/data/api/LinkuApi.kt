@@ -7,6 +7,7 @@ import com.linku.data.api.dto.server.LinkCheckDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.QuickSearchResult
+import com.linku.data.api.dto.server.RecommendLinkPageDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -82,9 +83,9 @@ interface LinkuApi {
     suspend fun recommendLink(
         @Query("situationId") situationId: Long,
         @Query("emotionId") emotionId: Long,
-        @Query("page") page: Int? = null,
+        @Query("cursor") cursor: String? = null,
         @Query("size") size: Int? = null
-    ) : BaseResponse<List<LinkuSimpleDTO>>
+    ) : BaseResponse<RecommendLinkPageDTO>
 
     // 빠른 링크 검색
     @GET("linku/search/quick")

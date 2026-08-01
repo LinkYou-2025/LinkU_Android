@@ -2,6 +2,7 @@ package com.linku.core.repository
 
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.RecommendationPage
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.FastSearchLinkInfo
 import java.io.File
@@ -24,9 +25,9 @@ interface LinkuRepository {
     suspend fun recommendLinks(
         situationId: Long,
         emotionId: Long,
-        page: Int = 0,
-        size: Int = 10
-    ): List<LinkSimpleInfo>
+        cursor: String? = null,
+        size: Int = 5,
+    ): RecommendationPage
 
     // 최근 조회 링크 조회(10개)
     suspend fun getRecentLinks(limit: Int = 10): List<LinkSimpleInfo>
