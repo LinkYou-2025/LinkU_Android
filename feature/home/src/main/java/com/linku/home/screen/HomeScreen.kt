@@ -350,22 +350,7 @@ fun HomeScreen(
                 }
 
                 // 최초 추천 데이터를 불러오는 경우
-                isRecommendMode &&
-                        isRecommending &&
-                        recommendedLinks.isEmpty() -> {
-                    item(key = "initial-recommendation-loading") {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                        ) {
-                            CustomToastMessage(
-                                toastMessage = "추천할 링크 분류중..",
-                                modifier = Modifier.align(Alignment.Center),
-                            )
-                        }
-                    }
-                }
+                isRecommendMode && isRecommending && recommendedLinks.isEmpty() -> Unit
 
                 else -> {
                     items(
@@ -424,6 +409,20 @@ fun HomeScreen(
                     )
                 }
             }
+        }
+
+        if (
+            isRecommendMode &&
+            isRecommending &&
+            recommendedLinks.isEmpty()
+        ) {
+            CustomToastMessage(
+                toastMessage = "추천할 링크 분류중..",
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 22.dp)
+                    .zIndex(20f),
+            )
         }
 
         Box(
