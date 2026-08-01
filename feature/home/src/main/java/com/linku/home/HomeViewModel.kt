@@ -113,6 +113,7 @@ class HomeViewModel @Inject constructor(
         categoryLoaded = false
 
         // 추천 상태값도 초기화
+        isRecommendModeState.value = false
         recommendedLinksState.value = emptyList()
         needMoreForRecommendationState.value = false
 
@@ -146,11 +147,19 @@ class HomeViewModel @Inject constructor(
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
     val needMoreForRecommendation get() = needMoreForRecommendationState.value
-    fun clearNeedMoreNotice() { needMoreForRecommendationState.value = false }
 
     // 추천 링크
     private val recommendedLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
     val recommendedLinks get() = recommendedLinksState.value
+
+    // 추천 모드 여부
+    private val isRecommendModeState = mutableStateOf(false)
+    val isRecommendMode get() = isRecommendModeState.value
+
+    fun exitRecommendMode() {
+        isRecommendModeState.value = false
+        needMoreForRecommendationState.value = false
+    }
 
     // 추천 커서 페이징 상태
     private var recommendationNextCursor: String? = null
@@ -177,6 +186,7 @@ class HomeViewModel @Inject constructor(
         if (isRecommendingState.value) return
 
         if (myLinkuCount < MIN_RECOMMENDATION_LINK_COUNT) {
+            isRecommendModeState.value = true
             needMoreForRecommendationState.value = true
             recommendedLinksState.value = emptyList()
 
@@ -189,6 +199,8 @@ class HomeViewModel @Inject constructor(
             onDone()
             return
         }
+
+        isRecommendModeState.value = true
 
         viewModelScope.launch {
             isRecommendingState.value = true

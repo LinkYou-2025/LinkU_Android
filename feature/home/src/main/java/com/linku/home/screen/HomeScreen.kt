@@ -66,12 +66,13 @@ fun HomeScreen(
     userName: String,
     recommendedLinks: List<LinkSimpleInfo>,
     recentLinks: List<LinkSimpleInfo>,
+    isRecommendMode: Boolean,
     isRecommending: Boolean,
     isLoadingMoreRecommendations: Boolean,
     onRecommendRequest: (emotionId: Long, situationId: Long, size: Int) -> Unit,
     onLoadMoreRecommendations: () -> Unit,
+    onExitRecommendMode: () -> Unit,
     needMoreForRecommendation: Boolean,
-    onClearNeedMoreNotice: () -> Unit,
     jobId: Long,
     onLinkClick: (linkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
@@ -79,10 +80,7 @@ fun HomeScreen(
 ) {
     val colors = MaterialTheme.linkuColors
 
-    var isRecommendMode by remember { mutableStateOf(false) }
-
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        isRecommendMode = false
         homeViewModel.refreshHomeData()
     }
 
@@ -148,6 +146,13 @@ fun HomeScreen(
 
     var hasRequestedRecommend by remember { mutableStateOf(false) }
 
+    LaunchedEffect(isRecommendMode) {
+        if (isRecommendMode) {
+            isTopBarLockedCollapsed = true
+            hasRequestedRecommend = true
+        }
+    }
+
     LaunchedEffect(
         listState.firstVisibleItemIndex,
         listState.firstVisibleItemScrollOffset,
@@ -175,7 +180,6 @@ fun HomeScreen(
         if (selectedEmotion != null && selectedTask != null) {
             onRecommendRequest(selectedEmotion!!, selectedTask!!, 5)
 
-            isRecommendMode = true
             isTopBarLockedCollapsed = true
 
             coroutineScope.launch { listState.animateScrollToItem(1) }
@@ -241,8 +245,8 @@ fun HomeScreen(
                     isCollapsed = topBarCollapsed,
                     onExpandClick = {
                         hasRequestedRecommend = false
-                        isRecommendMode = false
-                        onClearNeedMoreNotice()
+                        onExitRecommendMode()
+
                         isTopBarLockedCollapsed = false
                         selectedEmotion = null
                         selectedTask = null
@@ -564,16 +568,17 @@ fun PreviewHomeScreen() {
             userName = "세나",
             recommendedLinks = emptyList(),
             recentLinks = emptyList(),
+            isRecommendMode = false,
             isRecommending = false,
             isLoadingMoreRecommendations = false,
-            onLoadMoreRecommendations = { },
+            onLoadMoreRecommendations = {},
+            onExitRecommendMode = {},
             onRecommendRequest = { _, _, _ -> },
             needMoreForRecommendation = false,
-            onClearNeedMoreNotice = { },
             jobId = 2L,
-            onLinkClick = { },
-            onNavigateToSaveLink = { },
-            onAlarmClick = { }
+            onLinkClick = {},
+            onNavigateToSaveLink = {},
+            onAlarmClick = {}
         )
     }
 }

@@ -84,6 +84,7 @@ fun HomeApp(
                 userName = nickname,
                 recommendedLinks = viewModel.recommendedLinks,
                 recentLinks = recentLinks,
+                isRecommendMode = viewModel.isRecommendMode,
                 isRecommending = viewModel.isRecommending,
                 isLoadingMoreRecommendations = viewModel.isLoadingMoreRecommendations,
                 onRecommendRequest = { emotionId, situationId, size ->
@@ -94,8 +95,8 @@ fun HomeApp(
                     )
                 },
                 onLoadMoreRecommendations = viewModel::loadMoreRecommendations,
+                onExitRecommendMode = viewModel::exitRecommendMode,
                 needMoreForRecommendation = viewModel.needMoreForRecommendation,
-                onClearNeedMoreNotice = viewModel::clearNeedMoreNotice,
                 jobId = viewModel.jobId ?: 2L,
                 onLinkClick = { id ->
                     onNavigateToLinkDetail(id)
