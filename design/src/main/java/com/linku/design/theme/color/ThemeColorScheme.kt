@@ -4,6 +4,7 @@ import androidx.compose.runtime.Stable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 
 @Stable
 sealed class ThemeColorScheme(
@@ -47,10 +48,8 @@ sealed class ThemeColorScheme(
         800 to Color(0xFF43454B),
     ),
 
-    // 비활성화용 그라데이션 브러시 추가 -로그인, 회원가입용
-    val inactiveColor: Brush = Brush.horizontalGradient(
-        listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
-    ),
+    // 비활성화용 단색 브러시 추가 -로그인, 회원가입용
+    val inactiveColor: Brush = SolidColor(Color(0xFFD7D9DF)),
 
 
     val black: Color = Color(0xFF000208),
