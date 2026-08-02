@@ -55,13 +55,9 @@ fun MonthlyCurationScreen(
     // "yyyy-MM" 형식의 month에서 월(1~12)을 추출해 키로 사용
     val historyMap = state.curationHistory.associateBy { it.month.takeLast(2).toIntOrNull() ?: 0 }
 
-    // 가장 최근 월 (헤더 타이틀 포맷팅용)
-    val latestMonth = historyMap.keys.maxOrNull() ?: 0
-
     MonthlyCurationScreenContent(
         modifier = modifier,
         year = year,
-        latestMonth = latestMonth,
         onBackClick = onBackClick,
         onMonthClick = { month ->
             // 클릭된 월(Long)로 curationId 조회, 없으면 무시
@@ -87,7 +83,6 @@ fun MonthlyCurationScreen(
 private fun MonthlyCurationScreenContent(
     modifier: Modifier = Modifier,
     year: Int = 2026,
-    latestMonth: Int = 0,
     onBackClick: () -> Unit = {},
     onMonthClick: (Long) -> Unit = {},
     imageUrlOf: (Int) -> String? = { null },
@@ -102,7 +97,7 @@ private fun MonthlyCurationScreenContent(
         CurationTopHeader(
             onBackClick = onBackClick,
             contentTopOffset = 92.scaler,
-            title = "${year}년 ${latestMonth}월호",
+            title = "${year}년",
             description = "월간 큐레이션",
             titleDescriptionGap = 8.scaler // 피그마상 12인데 아무리 봐도 12간격으로는... 피그마랑 다른데? 6로 했는데 디자이너와 조정해주세용
         )

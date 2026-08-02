@@ -120,7 +120,7 @@ private fun CurationTopHeaderDetailPreview() {
         CurationTopHeader(
             onBackClick = {},
             contentTopOffset = 68.scaler,
-            title = "2026\n 월간 큐레이션 5월호",
+            title = "2026\n 월간 큐레이션",
             description = "세나님의 이번 달을 링큐가 분석했어요!",
             titleDescriptionGap = 18.49f.scaler
         )
