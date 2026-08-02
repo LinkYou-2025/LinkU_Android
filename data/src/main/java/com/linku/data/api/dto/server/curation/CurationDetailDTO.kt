@@ -9,5 +9,4 @@ data class CurationDetailDTO(
     @field:Json(name = "month") val month: String,
     @field:Json(name = "headerMent") val headerMent: String,
     @field:Json(name = "footerMent") val footerMent: String,
-    @field:Json(name = "mentReady") val mentReady: Boolean
 )

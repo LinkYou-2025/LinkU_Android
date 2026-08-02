@@ -25,7 +25,6 @@ object CurationMapper {
         title = month.toCurationTitle(),
         headerMent = headerMent,
         footerMent = footerMent,
-        mentReady = mentReady
     )
 
     fun SectionDTO.toDomain(): SectionItem = SectionItem(

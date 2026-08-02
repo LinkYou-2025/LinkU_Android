@@ -3,6 +3,7 @@ package com.linku.core.di
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CurationRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.CurationMainUseCase
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.core.usecase.MonthlyCurationDetailedUseCase
 import dagger.Module
@@ -46,6 +47,14 @@ object UseCaseModule {
         userRepository: UserRepository
     ): MonthlyCurationDetailedUseCase {
         return MonthlyCurationDetailedUseCase(curationRepository, userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurationMainUseCase(
+        curationRepository: CurationRepository
+    ): CurationMainUseCase {
+        return CurationMainUseCase(curationRepository)
     }
 
 }

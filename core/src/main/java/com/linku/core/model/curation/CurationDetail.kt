@@ -6,5 +6,4 @@ data class CurationDetail(
     val title: String,
     val headerMent: String,
     val footerMent: String,
-    val mentReady: Boolean
 )
