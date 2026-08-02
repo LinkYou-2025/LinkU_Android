@@ -1,7 +1,7 @@
 package com.linku.core.model.curation
 
 data class RecommendLink(
-    val userLinkuId: Long,
+    val userLinkuId: Long?,
     val isExternal: Boolean = false, // 외부 링크인지 여부. DTO에는 아직 추가 전
     val title: String,
     val url: String, // 외부 리다이렉트 시 사용
@@ -12,16 +12,9 @@ data class RecommendLink(
     val type: LinkType
 )
 
-enum class LinkType(
-    val type: String
-) {
-    INTERNAL("INTERNAL"),
-    EXTERNAL("EXTERNAL");
-
-    companion object {
-        fun from(apiValue: String): LinkType =
-            entries.find { it.type == apiValue } ?: INTERNAL
-    }
+sealed interface LinkType {
+    data class Internal(val linkId: Long) : LinkType
+    data class External(val url: String) : LinkType
 }
 
 

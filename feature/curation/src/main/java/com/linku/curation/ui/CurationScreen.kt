@@ -44,7 +44,7 @@ private const val PAGER_VIRTUAL_PAGE_COUNT = Int.MAX_VALUE
 fun CurationScreen(
     nickname: String,
     viewModel: CurationViewModel = hiltViewModel(),
-    onMonthlyDetailClick: () -> Unit = {},
+    onMonthlyDetailClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
     onKeywordDetailClick: () -> Unit = {},
     onRemindClick: () -> Unit = {},
     onCurationHistoryClick: (year: Int) -> Unit = {},
@@ -55,7 +55,7 @@ fun CurationScreen(
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
-                is CurationMainSideEffect.NavigateToCurationSection -> onMonthlyDetailClick()
+                is CurationMainSideEffect.NavigateToCurationSection -> onMonthlyDetailClick(effect.month, effect.curationId)
                 is CurationMainSideEffect.NavigateToLastMonthKeyWord -> onKeywordDetailClick()
                 is CurationMainSideEffect.NavigateToUnreadLink -> onRemindClick()
 

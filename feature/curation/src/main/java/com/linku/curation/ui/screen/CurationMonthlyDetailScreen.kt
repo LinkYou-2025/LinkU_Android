@@ -12,22 +12,44 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.RecommendedLink
 import com.linku.curation.ui.emotion.CurationEmotionSection
 import com.linku.curation.ui.emotion.EmotionItem
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.recommend_list.CurationRecommendedLinksPager
 import com.linku.curation.ui.util.CurationFixedGradientBackground
+import com.linku.curation.viewModel.CurationDetailViewModel
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
+
+@Composable
+internal fun CurationMonthlyDetailScreen(
+    onBack: () -> Unit,
+    onGoHome: () -> Unit = {},
+    viewModel: CurationDetailViewModel = hiltViewModel(),
+) {
+    val state by viewModel.curationDetailedState.collectAsStateWithLifecycle()
+
+    CurationMonthlyDetailScreenContent(
+        onBack = onBack,
+        onGoHome = onGoHome,
+        nickname = state.monthlyCurationDetail?.nickname.orEmpty(),
+        title = state.monthlyCurationDetail?.detail?.title.orEmpty(),
+        emotionItems = emptyList(), // TODO:  topTags→ EmotionItem 매핑
+        recommendedLinks = emptyList(), // TODO: recommendLink 매핑
+    )
+}
 
 /**
  * 월간 큐레이션 1번 카드 상세(#42-1) 화면.
@@ -37,8 +59,7 @@ import com.linku.design.util.scaler
  * 대신 홈으로 이동하는 [BottomGradientButton]을 보여준다.
  *
  * @param nickname 상단 설명/본문 문구에 쓰일 사용자 닉네임
- * @param year 상단에 표시할 연도. ex) "2026"
- * @param monthTitle 상단에 표시할 회차 제목. ex) "월간 큐레이션 5월호"
+ * @param title 상단에 표시할 제목. ex) "2026\n월간 큐레이션 5월호"
  * @param emotionItems "N월 상황/감정 요약" 섹션에 표시할 감정 키워드 항목 (최대 3개). 비어있으면 예외 상태로 전환
  * @param recommendedLinks "추천 링크" 섹션에 표시할 링크 목록
  * @param onBack 백버튼 클릭 콜백
@@ -47,7 +68,7 @@ import com.linku.design.util.scaler
  * @param onGoHome 예외 상태의 "링크 저장하러 가기" 버튼 클릭 시 호출. 홈 화면으로 이동
  */
 @Composable
-internal fun CurationMonthlyDetailScreen(
+internal fun CurationMonthlyDetailScreenContent(
     onBack: () -> Unit,
     nickname: String = "",
     title: String = "2026\n월간 큐레이션 5월호",
@@ -179,7 +200,7 @@ private fun CurationMonthlyDetailScreenPreview() {
     )
 
     LinkuPreview {
-        CurationMonthlyDetailScreen(
+        CurationMonthlyDetailScreenContent(
             onBack = {},
             nickname = "세나",
             title = "2026\n월간 큐레이션 5월호",
@@ -193,7 +214,7 @@ private fun CurationMonthlyDetailScreenPreview() {
 @Composable
 private fun CurationMonthlyDetailScreenEmptyPreview() {
     LinkuPreview {
-        CurationMonthlyDetailScreen(
+        CurationMonthlyDetailScreenContent(
             onBack = {},
             nickname = "세나",
             title = "2026\n월간 큐레이션 5월호",

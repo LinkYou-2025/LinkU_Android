@@ -42,7 +42,11 @@ object CurationMapper {
         domain = domain,
         domainImageUrl = domainImageUrl,
         categories = categories,
-        type = LinkType.from(type)
+        type = if (type == "EXTERNAL") {
+            LinkType.External(url)
+        } else {
+            LinkType.Internal(userLinkuId)
+        }
     )
 
     fun HistoryDTO.toDomain(): History = History(

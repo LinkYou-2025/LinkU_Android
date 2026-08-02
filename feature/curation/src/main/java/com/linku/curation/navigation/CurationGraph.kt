@@ -42,14 +42,22 @@ fun NavGraphBuilder.curationGraph(
 
             CurationScreen(
                 nickname = nickname,
-                onMonthlyDetailClick = { navigator.navigate("curation_card1") },
+                onMonthlyDetailClick = { month, curationId ->
+                    navigator.navigate("curation_detail/$month/$curationId")
+                },
                 onKeywordDetailClick = { navigator.navigate("curation_card2") },
                 onRemindClick = { navigator.navigate("curation_card3") },
                 onCurationHistoryClick = { year -> navigator.navigate("curation_monthly/$year") }
             )
         }
 
-        composable("curation_card1") {
+        composable(
+            route = "curation_detail/{month}/{curationId}",
+            arguments = listOf(
+                navArgument("month") { type = NavType.StringType },
+                navArgument("curationId") { type = NavType.LongType }
+            )
+        ) {
             showNavBar(false)
             CurationMonthlyDetailScreen(
                 onBack = { navigator.popBackStack() },
