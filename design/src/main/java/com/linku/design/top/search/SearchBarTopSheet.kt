@@ -523,10 +523,10 @@ fun SearchBarTopSheet(
                         Text(
                             text = if (text.isEmpty()) "최근 검색" else "검색 결과",
                             fontSize = 14.sp,
-                            lineHeight = 20.sp,
+                            lineHeight = 16.sp,
                             fontFamily = paperlogyFont,
-                            fontWeight = FontWeight.Bold,
-                            color = colors.black
+                            fontWeight = FontWeight.Medium,
+                            color = colors.gray[700]
                         )
 
                         // 입력된 검색어가 없을 때,

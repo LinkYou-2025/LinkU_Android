@@ -64,6 +64,7 @@ googleid = "1.1.1"
 lifecycleRuntimeCompose = "2.10.0"
 
 paging = "3.3.6"
+material3 = "1.4.0"
 
 [libraries]
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -152,6 +153,7 @@ paging-compose = { group = "androidx.paging", name = "paging-compose", version.r
 
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 
 [bundles]
 firebase = [
