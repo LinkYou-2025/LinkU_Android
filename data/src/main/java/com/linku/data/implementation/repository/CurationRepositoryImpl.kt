@@ -12,6 +12,7 @@ import com.linku.core.repository.CurationRepository
 import com.linku.data.api.CurationApi
 import com.linku.data.api.safeApiCall
 import com.linku.data.mapper.CurationMapper.toDomain
+import android.util.Log
 import javax.inject.Inject
 
 
@@ -23,6 +24,8 @@ class CurationRepositoryImpl @Inject constructor(
     override suspend fun getSections(month: String?): Result<List<SectionItem>> {
         return safeApiCall {
             curationApi.getSections(month)
+        }.onSuccess { dtos ->
+            Log.d("CurationRepositoryImpl", "getSections dto: $dtos")
         }.map { dtos ->
             dtos.map { it.toDomain() }
         }
@@ -39,6 +42,8 @@ class CurationRepositoryImpl @Inject constructor(
     override suspend fun getLatestCuration(): Result<MyLatestCuration> {
         return safeApiCall {
             curationApi.getLatestCuration()
+        }.onSuccess { dto ->
+            Log.d("CurationRepositoryImpl", "getLatestCuration dto: $dto")
         }.map { it.toDomain() }
     }
 
