@@ -1,47 +1,66 @@
 package com.linku.curation.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.curation.SectionItem
 import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.header.CurationHeader
 import com.linku.curation.ui.main_card.CurationMainCardPager
 import com.linku.curation.ui.util.CurationBackground
+import com.linku.curation.viewModel.CurationMainIntent
+import com.linku.curation.viewModel.CurationMainSideEffect
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.TopBar
 import com.linku.design.util.scaler
 
-// 큐레이션 메인 카드 개수 (pm이 나중에 3개 이상으로 확장될 수도 있다고 함)
 private const val CURATION_CARD_COUNT = 3
-
-// 1번 <-> 3번 카드가 서로 이어지는 양방향(무한) 스와이프를 흉내내기 위한 가상 페이지 수.
-// 실제 카드는 CURATION_CARD_COUNT개뿐이라 page % CURATION_CARD_COUNT로 실제 인덱스를 구한다.
 private const val PAGER_VIRTUAL_PAGE_COUNT = Int.MAX_VALUE
 
 @Composable
-internal fun CurationScreen(
+fun CurationScreen(
     nickname: String,
-    viewModel: CurationViewModel = hiltViewModel(), //TODO princehw가 구현해줄거임!
-    onMonthlyDetailClick: () -> Unit = {}, // 1번 카드 -> CurationMonthlyDetailScreen
-    onKeywordDetailClick: () -> Unit = {}, // 2번 카드 -> CurationKeywordDetailScreen
-    onRemindClick: () -> Unit = {}, // 3번 카드 -> CurationRemindScreen
+    viewModel: CurationViewModel = hiltViewModel(),
+    onMonthlyDetailClick: () -> Unit = {},
+    onKeywordDetailClick: () -> Unit = {},
+    onRemindClick: () -> Unit = {},
     onMonthlyCurationClick: () -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val curationMain by viewModel.curationMainState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is CurationMainSideEffect.NavigateToCurationSection -> onMonthlyDetailClick()
+                is CurationMainSideEffect.NavigateToLastMonthKeyWord -> onKeywordDetailClick()
+                is CurationMainSideEffect.NavigateToUnreadLink -> onRemindClick()
+                is CurationMainSideEffect.NavigateToYearHistory -> onMonthlyCurationClick()
+                is CurationMainSideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     val pagerState = rememberPagerState(
         initialPage = PAGER_VIRTUAL_PAGE_COUNT / 2 - (PAGER_VIRTUAL_PAGE_COUNT / 2).mod(
             CURATION_CARD_COUNT
@@ -60,15 +79,25 @@ internal fun CurationScreen(
 
             CurationScreenContent(
                 nickname = displayNickname,
+                sections = curationMain?.sections ?: emptyList(),
                 pagerState = pagerState,
-                onCardClick = { index, _ ->
+                onCardClick = { index ->
+                    val month = curationMain?.latestCurationMonth ?: return@CurationScreenContent
                     when (index) {
-                        0 -> onMonthlyDetailClick()
-                        1 -> onKeywordDetailClick()
-                        2 -> onRemindClick()
+                        0 -> viewModel.handleIntent(
+                            CurationMainIntent.ClickCurationSection(
+                                curationId = curationMain?.latestCurationId ?: return@CurationScreenContent,
+                                month = month
+                            )
+                        )
+                        1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
+                        2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
                     }
                 },
-                onMonthlyCurationClick = onMonthlyCurationClick
+                onMonthlyCurationClick = {
+                    val month = curationMain?.latestCurationMonth ?: return@CurationScreenContent
+                    viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
+                }
             )
         }
     }
@@ -78,19 +107,25 @@ internal fun CurationScreen(
 private fun CurationScreenContent(
     modifier: Modifier = Modifier,
     nickname: String,
-    pagerState: PagerState,
-    onCardClick: (index: Int, imageUrl: String?) -> Unit,
+    sections: List<SectionItem>,
+    pagerState: androidx.compose.foundation.pager.PagerState,
+    onCardClick: (index: Int) -> Unit,
     onMonthlyCurationClick: () -> Unit = {},
 ) {
+    val imageUrls = sections
+        .sortedBy { it.section }
+        .map { it.imageUrl }
+        .let { urls -> List(CURATION_CARD_COUNT) { index -> urls.getOrElse(index) { "" } } }
+
     Column(modifier = modifier.fillMaxSize()) {
         CurationHeader(nickname = nickname)
 
         Spacer(modifier = Modifier.height(26.scaler))
 
         CurationMainCardPager(
-            imageUrls = List(CURATION_CARD_COUNT) { "" },
+            imageUrls = imageUrls,
             pagerState = pagerState,
-            onCardClick = onCardClick
+            onCardClick = { index, _ -> onCardClick(index) }
         )
 
         Spacer(modifier = Modifier.height(26.scaler))

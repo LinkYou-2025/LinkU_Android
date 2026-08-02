@@ -21,7 +21,7 @@ class CurationViewModel @Inject constructor(
     private val _curationMainState = MutableStateFlow<CurationMain?>(null)
     val curationMainState = _curationMainState.asStateFlow()
 
-    private val _sideEffect = Channel<CurationMainSideEffect>()
+    private val _sideEffect = Channel<CurationMainSideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
 
     init {

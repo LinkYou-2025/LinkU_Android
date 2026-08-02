@@ -18,7 +18,6 @@ import com.linku.curation.viewModel.CurationViewModel
 
 fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,
-    curationViewModel: CurationViewModel,
     showNavBar: (Boolean) -> Unit,
     nickname: String,
 ) {
@@ -43,7 +42,6 @@ fun NavGraphBuilder.curationGraph(
 
             CurationScreen(
                 nickname = nickname,
-                viewModel = curationViewModel,
                 onMonthlyDetailClick = { navigator.navigate("curation_card1") },
                 onKeywordDetailClick = { navigator.navigate("curation_card2") },
                 onRemindClick = { navigator.navigate("curation_card3") },
