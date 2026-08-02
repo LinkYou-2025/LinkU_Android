@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,8 +29,8 @@ import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.header.CurationHeader
 import com.linku.curation.ui.main_card.CurationMainCardPager
 import com.linku.curation.ui.util.CurationBackground
-import com.linku.curation.viewModel.CurationMainIntent
-import com.linku.curation.viewModel.CurationMainSideEffect
+import com.linku.curation.viewModel.intent.CurationMainIntent
+import com.linku.curation.viewModel.sideeffect.CurationMainSideEffect
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -46,7 +47,7 @@ fun CurationScreen(
     onMonthlyDetailClick: () -> Unit = {},
     onKeywordDetailClick: () -> Unit = {},
     onRemindClick: () -> Unit = {},
-    onMonthlyCurationClick: () -> Unit = {},
+    onCurationHistoryClick: (year: String) -> Unit = {},
 ) {
     val context = LocalContext.current
     val curationMain by viewModel.curationMainState.collectAsStateWithLifecycle()
@@ -57,7 +58,10 @@ fun CurationScreen(
                 is CurationMainSideEffect.NavigateToCurationSection -> onMonthlyDetailClick()
                 is CurationMainSideEffect.NavigateToLastMonthKeyWord -> onKeywordDetailClick()
                 is CurationMainSideEffect.NavigateToUnreadLink -> onRemindClick()
-                is CurationMainSideEffect.NavigateToYearHistory -> onMonthlyCurationClick()
+
+                // 최신 큐레이션 조회 api응답 중 year부분만 파싱해서 전달.
+                is CurationMainSideEffect.NavigateToYearHistory -> onCurationHistoryClick(effect.month.take(4))
+
                 is CurationMainSideEffect.ShowToast ->
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
             }
@@ -111,7 +115,7 @@ private fun CurationScreenContent(
     modifier: Modifier = Modifier,
     nickname: String,
     sections: List<SectionItem>,
-    pagerState: androidx.compose.foundation.pager.PagerState,
+    pagerState: PagerState,
     onCardClick: (index: Int) -> Unit,
     onMonthlyCurationClick: () -> Unit = {},
 ) {

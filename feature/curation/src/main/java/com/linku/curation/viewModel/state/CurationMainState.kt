@@ -1,4 +1,4 @@
-package com.linku.curation.viewModel
+package com.linku.curation.viewModel.state
 
 import com.linku.core.model.curation.CurationMain
 

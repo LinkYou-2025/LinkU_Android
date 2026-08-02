@@ -1,4 +1,4 @@
-package com.linku.curation.viewModel
+package com.linku.curation.viewModel.sideeffect
 
 /**
  * 큐레이션 메인 화면의 단발성 부수 효과(Side Effect)를 정의하는 sealed interface.

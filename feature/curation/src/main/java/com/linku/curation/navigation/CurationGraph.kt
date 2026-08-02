@@ -45,7 +45,7 @@ fun NavGraphBuilder.curationGraph(
                 onMonthlyDetailClick = { navigator.navigate("curation_card1") },
                 onKeywordDetailClick = { navigator.navigate("curation_card2") },
                 onRemindClick = { navigator.navigate("curation_card3") },
-                onMonthlyCurationClick = { navigator.navigate("curation_monthly") }
+                onCurationHistoryClick = { year -> navigator.navigate("curation_monthly/$year") }
             )
         }
 
@@ -96,9 +96,16 @@ fun NavGraphBuilder.curationGraph(
             CurationRemindScreen(onBack = { navigator.popBackStack() })
         }
 
-        composable("curation_monthly") {
+        composable(
+            route = "curation_monthly/{year}",
+            arguments = listOf(navArgument("year") { type = NavType.StringType })
+        ) { backStackEntry ->
             showNavBar(false)
-            MonthlyCurationScreen(onBackClick = { navigator.popBackStack() })
+            val year = backStackEntry.arguments?.getString("year").orEmpty()
+            MonthlyCurationScreen(
+                year = year,
+                onBackClick = { navigator.popBackStack() }
+            )
         }
     }
 }
