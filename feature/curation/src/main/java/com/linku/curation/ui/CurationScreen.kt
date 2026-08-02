@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -117,7 +120,9 @@ private fun CurationScreenContent(
         .map { it.imageUrl }
         .let { urls -> List(CURATION_CARD_COUNT) { index -> urls.getOrElse(index) { "" } } }
 
-    Column(modifier = modifier.fillMaxSize()) {
+    val scrollState = rememberScrollState()
+
+    Column(modifier = modifier.fillMaxWidth().verticalScroll(scrollState)) {
         CurationHeader(nickname = nickname)
 
         Spacer(modifier = Modifier.height(26.scaler))
@@ -145,13 +150,48 @@ private fun CurationScreenContent(
             modifier = Modifier.padding(horizontal = 20.scaler),
             onClick = onMonthlyCurationClick
         )
+
+        Spacer(modifier = Modifier.height(15.scaler))
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewCurationScreen() {
+private fun CurationScreenContentPreview() {
+    val sections = listOf(
+        SectionItem(
+            section = 0,
+            title = "Section 1",
+            description = "Description 1",
+            imageUrl = ""
+        ),
+        SectionItem(
+            section = 1,
+            title = "Section 2",
+            description = "Description 2",
+            imageUrl = ""
+        ),
+        SectionItem(
+            section = 2,
+            title = "Section 3",
+            description = "Description 3",
+            imageUrl = ""
+        )
+    )
+    val pagerState = rememberPagerState(
+        initialPage = PAGER_VIRTUAL_PAGE_COUNT / 2 - (PAGER_VIRTUAL_PAGE_COUNT / 2).mod(
+            CURATION_CARD_COUNT
+        ),
+        pageCount = { PAGER_VIRTUAL_PAGE_COUNT }
+    )
     LinkuPreview {
-        CurationScreen(nickname = "세나")
+        CurationScreenContent(
+            nickname = "테스트",
+            sections = sections,
+            pagerState = pagerState,
+            onCardClick = {},
+            onMonthlyCurationClick = {}
+        )
     }
 }
+
