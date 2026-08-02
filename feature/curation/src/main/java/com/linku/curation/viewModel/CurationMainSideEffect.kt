@@ -15,6 +15,10 @@ sealed interface CurationMainSideEffect {
      */
     data class ShowToast(val message: String) : CurationMainSideEffect
 
+    data class NavigateToLastMonthKeyWord(val month: String): CurationMainSideEffect
+
+    data object NavigateToUnreadLink: CurationMainSideEffect
+
     /**
      * 큐레이션 섹션 상세 화면으로 이동한다.
      *

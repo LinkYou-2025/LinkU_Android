@@ -1,6 +1,5 @@
 package com.linku.curation.viewModel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.curation.CurationMain
@@ -8,7 +7,6 @@ import com.linku.core.usecase.CurationMainUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -34,6 +32,8 @@ class CurationViewModel @Inject constructor(
         when (intent) {
             is CurationMainIntent.ClickCurationSection -> navigateToCurationSection(intent.curationId, intent.month)
             is CurationMainIntent.ClickYearHistory -> navigateToYearHistory(intent.month)
+            is CurationMainIntent.ClickLastMonthKeyWord -> navigateToLastMonthKeyWord(intent.month)
+            CurationMainIntent.ClickUnreadLink -> navigateToUnreadLink()
         }
     }
 
@@ -49,12 +49,22 @@ class CurationViewModel @Inject constructor(
         }
     }
 
+    private fun navigateToLastMonthKeyWord(month: String) {
+        viewModelScope.launch {
+            _sideEffect.send(CurationMainSideEffect.NavigateToLastMonthKeyWord(month))
+        }
+    }
+
+    private fun navigateToUnreadLink() {
+        viewModelScope.launch {
+            _sideEffect.send(CurationMainSideEffect.NavigateToUnreadLink)
+        }
+    }
+
     private fun loadCurationMain() {
         viewModelScope.launch {
             curationMainUseCase().fold(
-                onSuccess ={
-
-                },
+                onSuccess = { _curationMainState.value = it },
                 onFailure = {
                     _sideEffect.send(CurationMainSideEffect.ShowToast("큐레이션을 조회할 수 없습니다. 잠시 후 다시 시도해주세요."))
                 }
