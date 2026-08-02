@@ -3,6 +3,7 @@ package com.linku.data.mapper
 import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.History
 import com.linku.core.model.curation.JobKeyWord
+import com.linku.core.model.curation.LinkType
 import com.linku.core.model.curation.MyLatestCuration
 import com.linku.core.model.curation.MyTopTag
 import com.linku.core.model.curation.RecommendLink
@@ -10,7 +11,7 @@ import com.linku.core.model.curation.SectionItem
 import com.linku.core.model.curation.UnreadLink
 import com.linku.data.api.dto.server.curation.CurationDetailDTO
 import com.linku.data.api.dto.server.curation.HistoryDTO
-import com.linku.data.api.dto.server.curation.JobKeywordDTO
+import com.linku.data.api.dto.server.curation.KeywordDTO
 import com.linku.data.api.dto.server.curation.MyLatestCurationDTO
 import com.linku.data.api.dto.server.curation.MyTopTagDTO
 import com.linku.data.api.dto.server.curation.RecommendLinkDTO
@@ -22,9 +23,9 @@ object CurationMapper {
     fun CurationDetailDTO.toDomain(): CurationDetail = CurationDetail(
         curationId = curationId,
         title = month.toCurationTitle(),
-        topTags = emptyList(), // 아직 백엔드 DTO에 미포함
         headerMent = headerMent,
-        footerMent = footerMent
+        footerMent = footerMent,
+        mentReady = mentReady
     )
 
     fun SectionDTO.toDomain(): SectionItem = SectionItem(
@@ -41,7 +42,8 @@ object CurationMapper {
         imageUrl = imageUrl,
         domain = domain,
         domainImageUrl = domainImageUrl,
-        categories = categories
+        categories = categories,
+        type = LinkType.from(type)
     )
 
     fun HistoryDTO.toDomain(): History = History(
@@ -68,7 +70,7 @@ object CurationMapper {
         percent = percent
     )
 
-    fun JobKeywordDTO.toDomain(): JobKeyWord = JobKeyWord(
+    fun KeywordDTO.toDomain(): JobKeyWord = JobKeyWord(
         name = name,
         count = count
     )

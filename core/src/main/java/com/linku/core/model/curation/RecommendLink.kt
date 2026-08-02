@@ -8,5 +8,20 @@ data class RecommendLink(
     val imageUrl: String,
     val domain: String,
     val domainImageUrl: String,
-    val categories: List<String>
+    val categories: List<String>,
+    val type: LinkType
 )
+
+enum class LinkType(
+    val type: String
+) {
+    INTERNAL("INTERNAL"),
+    EXTERNAL("EXTERNAL");
+
+    companion object {
+        fun from(apiValue: String): LinkType =
+            entries.find { it.type == apiValue } ?: INTERNAL
+    }
+}
+
+

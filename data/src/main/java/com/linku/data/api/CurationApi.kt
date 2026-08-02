@@ -3,7 +3,7 @@ package com.linku.data.api
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.curation.CurationDetailDTO
 import com.linku.data.api.dto.server.curation.HistoryDTO
-import com.linku.data.api.dto.server.curation.JobKeywordDTO
+import com.linku.data.api.dto.server.curation.KeywordDTO
 import com.linku.data.api.dto.server.curation.MyLatestCurationDTO
 import com.linku.data.api.dto.server.curation.MyTopTagDTO
 import com.linku.data.api.dto.server.curation.RecommendLinkDTO
@@ -56,6 +56,6 @@ interface CurationApi {
     suspend fun getJobTopKeywords(
         @Query("month") month: String,
         @Query("limit") limit: Int = 10,
-    ): BaseResponse<List<JobKeywordDTO>>
+    ): BaseResponse<List<KeywordDTO>>
 
 }

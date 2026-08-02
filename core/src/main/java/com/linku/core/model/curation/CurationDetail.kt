@@ -4,7 +4,7 @@ package com.linku.core.model.curation
 data class CurationDetail(
     val curationId: Long,
     val title: String,
-    val topTags: List<String>,
     val headerMent: String,
-    val footerMent: String
+    val footerMent: String,
+    val mentReady: Boolean
 )
