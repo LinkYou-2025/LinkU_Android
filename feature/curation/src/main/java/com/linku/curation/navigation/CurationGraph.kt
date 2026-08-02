@@ -98,10 +98,10 @@ fun NavGraphBuilder.curationGraph(
 
         composable(
             route = "curation_monthly/{year}",
-            arguments = listOf(navArgument("year") { type = NavType.StringType })
+            arguments = listOf(navArgument("year") { type = NavType.IntType })
         ) { backStackEntry ->
             showNavBar(false)
-            val year = backStackEntry.arguments?.getString("year").orEmpty()
+            val year = backStackEntry.arguments?.getInt("year") ?: 0
             MonthlyCurationScreen(
                 year = year,
                 onBackClick = { navigator.popBackStack() }

@@ -47,7 +47,7 @@ fun CurationScreen(
     onMonthlyDetailClick: () -> Unit = {},
     onKeywordDetailClick: () -> Unit = {},
     onRemindClick: () -> Unit = {},
-    onCurationHistoryClick: (year: String) -> Unit = {},
+    onCurationHistoryClick: (year: Int) -> Unit = {},
 ) {
     val context = LocalContext.current
     val curationMain by viewModel.curationMainState.collectAsStateWithLifecycle()
@@ -60,7 +60,7 @@ fun CurationScreen(
                 is CurationMainSideEffect.NavigateToUnreadLink -> onRemindClick()
 
                 // 최신 큐레이션 조회 api응답 중 year부분만 파싱해서 전달.
-                is CurationMainSideEffect.NavigateToYearHistory -> onCurationHistoryClick(effect.month.take(4))
+                is CurationMainSideEffect.NavigateToYearHistory -> onCurationHistoryClick(effect.month.take(4).toInt())
 
                 is CurationMainSideEffect.ShowToast ->
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()

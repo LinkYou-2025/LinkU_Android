@@ -28,7 +28,7 @@ import com.linku.design.util.scaler
 @Composable
 internal fun MonthlyCurationScreen(
     modifier: Modifier = Modifier,
-    year: String = "2026", // 이거 api 연동할 때 삭제해주세요
+    year: Int = 2026, // 이거 api 연동할 때 삭제해주세요
     onBackClick: () -> Unit = {},
     onMonthClick: (Int) -> Unit = {},
     imageUrlOf: (Int) -> String? = { null },
@@ -43,7 +43,7 @@ internal fun MonthlyCurationScreen(
         CurationTopHeader(
             onBackClick = onBackClick,
             contentTopOffset = 92.scaler,
-            title = year,
+            title = year.toString(),
             description = "월간 큐레이션",
             titleDescriptionGap = 8.scaler // 피그마상 12인데 아무리 봐도 12간격으로는... 피그마랑 다른데? 6로 했는데 디자이너와 조정해주세용
         )
