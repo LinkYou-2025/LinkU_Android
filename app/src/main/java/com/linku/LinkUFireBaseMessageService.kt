@@ -54,60 +54,73 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
                 return@launch
             }
 
-            val title = message.notification?.title
-            val body = message.notification?.body
+            try {
+                val title = message.notification?.title ?: "링큐"
 
-            val type = message.data["type"]
-            val targetId = message.data["targetId"]
-            val alarmId = message.data["alarmId"]
-
-            // type, targetId 없으면 얼리 리턴
-            if (type == null || targetId == null) return@launch
-
-            if (BuildConfig.DEBUG) {
-                Log.d("FCM", """
-                FCM 수신
-                title: $title
-                body: $body
-                targetId: $targetId
-                """.trimIndent()
-                )
-            }
-
-            // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
-            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-                ?.apply {
-                    putExtra("type", type)
-                    putExtra("targetId", targetId)
-                    alarmId?.let { putExtra("alarmId", it) }  // alarmId는 있을 때만
+                val body = requireNotNull(message.notification?.body) {
+                    "알림 body가 없습니다."
                 }
 
-            val pendingIntent = PendingIntent.getActivity(
-                this@LinkUFireBaseMessageService,
-                0,
-                launchIntent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            ) ?: return@launch
+                val type = requireNotNull(message.data["type"]) {
+                    "알림 데이터에 type이 없습니다."
+                }
 
-            // 알림 제작
-            val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
-                .setSmallIcon(R.drawable.img_noti_ex_2) // 상태바 표시 아이콘
-                .setLargeIcon( // 알림 확장 영역 표시용 앱 로고
-                    BitmapFactory.decodeResource(
-                        resources,
-                        R.drawable.ic_logo
+                val targetId = requireNotNull(message.data["targetId"]) {
+                    "알림 데이터에 targetId가 없습니다."
+                }
+
+                val alarmId = requireNotNull(message.data["alarmId"]) {
+                    "알림 데이터에 alarmId가 없습니다."
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.d("FCM", """
+                    FCM 수신
+                    title: $title
+                    body: $body
+                    targetId: $targetId
+                    """.trimIndent()
                     )
-                )
-                .setContentTitle(title)
-                .setContentText(body)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-                .build()
+                }
 
-            // 알림 출력
-            getSystemService(NotificationManager::class.java)
-                .notify(System.currentTimeMillis().toInt(), notification)
+                // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
+                val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+                    ?.apply {
+                        putExtra("type", type)
+                        putExtra("targetId", targetId)
+                        putExtra("alarmId", alarmId)
+                    }
+
+                val pendingIntent = PendingIntent.getActivity(
+                    this@LinkUFireBaseMessageService,
+                    0,
+                    launchIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                ) ?: return@launch
+
+                // 알림 제작
+                val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.img_noti_ex_2) // 상태바 표시 아이콘
+                    .setLargeIcon( // 알림 확장 영역 표시용 앱 로고
+                        BitmapFactory.decodeResource(
+                            resources,
+                            R.drawable.ic_logo
+                        )
+                    )
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .build()
+
+                // 알림 출력
+                getSystemService(NotificationManager::class.java)
+                    .notify(System.currentTimeMillis().toInt(), notification)
+
+            } catch (e: IllegalArgumentException) {
+                Log.e("FCM", "FCM 메시지 처리 실패: ${e.message}")
+            }
         }
     }
 
