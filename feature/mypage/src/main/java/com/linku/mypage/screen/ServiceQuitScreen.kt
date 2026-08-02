@@ -223,19 +223,37 @@ fun ServiceQuitScreen(
 
                         Spacer(modifier = Modifier.height(4.dp))
 
-                        Text(
-                            text = """
-                                        1. 탈퇴 아이디는 복구와 재사용이 불가합니다.
-                                        2. 삭제된 데이터는 복구되지 않습니다.
-                                        3. 소셜 로그인 회원의 경우 서비스에서 관리하는 모든 정보가 삭제되며, 같은 소셜 아이디로 재가입시 신규 회원으로 가입됩니다.
-                                    """.trimIndent(),
-                            fontSize = 15.sp,
-                            lineHeight = 24.sp,
-                            fontWeight = FontWeight.Normal,
-                            color = colors.gray[800]
-                        )
-                    }
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            listOf(
+                                "탈퇴 아이디는 복구와 재사용이 불가합니다.",
+                                "삭제된 데이터는 복구되지 않습니다.",
+                                "소셜 로그인 회원의 경우 서비스에서 관리하는 모든 정보가 삭제되며, 같은 소셜 아이디로 재가입 시 신규 회원으로 가입됩니다."
+                            ).forEachIndexed { index, text ->
+                                Row {
+                                    Text(
+                                        text = "${index + 1}.",
+                                        fontSize = 15.sp,
+                                        lineHeight = 24.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = colors.gray[800]
+                                    )
 
+                                    Spacer(modifier = Modifier.width(4.dp))
+
+                                    Text(
+                                        text = text,
+                                        modifier = Modifier.weight(1f),
+                                        fontSize = 15.sp,
+                                        lineHeight = 24.sp,
+                                        fontWeight = FontWeight.Normal,
+                                        color = colors.gray[800]
+                                    )
+                                }
+                            }
+                        }
+                    }
                     Spacer(modifier = Modifier.height(18.dp))
 
                     Row(
