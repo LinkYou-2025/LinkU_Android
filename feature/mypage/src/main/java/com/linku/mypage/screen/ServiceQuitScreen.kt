@@ -129,12 +129,13 @@ fun ServiceQuitScreen(
                 Text(
                     text = "그동안 링큐를 이용해주셔서\n감사합니다.",
                     fontSize = 22.sp,
+                    lineHeight = 30.sp,
                     fontWeight = FontWeight.Bold,
                     color = colors.black,
                     modifier = Modifier.padding(horizontal = 4.dp)
                 )
 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
                     text = "링큐를 이용하며 느끼신 불편함을 공유해주시면\n더욱 발전된 서비스를 제공할 수 있도록 노력하겠습니다.",
