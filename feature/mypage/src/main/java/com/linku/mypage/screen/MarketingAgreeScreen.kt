@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
+import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
@@ -128,7 +129,8 @@ fun MarketingAgreeScreen(
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        fontWeight = FontWeight.Light,
+                                        fontFamily = Paperlogy.font,
+                                        fontWeight = FontWeight.Normal,
                                         fontSize = 12.sp,
                                         color = colors.black,
                                     )
@@ -141,7 +143,8 @@ fun MarketingAgreeScreen(
 
                                 withStyle(
                                     style = SpanStyle(
-                                        fontWeight = FontWeight.Normal,
+                                        fontFamily = Paperlogy.font,
+                                        fontWeight = FontWeight.Medium,
                                         fontSize = 12.sp,
                                         color = colors.black
                                     )
@@ -151,7 +154,8 @@ fun MarketingAgreeScreen(
 
                                 withStyle(
                                     style = SpanStyle(
-                                        fontWeight = FontWeight.Light,
+                                        fontWeight = FontWeight.Normal,
+                                        fontFamily = Paperlogy.font,
                                         fontSize = 12.sp,
                                         color = colors.black
                                     )
@@ -168,7 +172,8 @@ fun MarketingAgreeScreen(
                             text = buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        fontWeight = FontWeight.Light,
+                                        fontFamily = Paperlogy.font,
+                                        fontWeight = FontWeight.Normal,
                                         fontSize = 12.sp,
                                         color = colors.black
                                     )
@@ -197,7 +202,8 @@ fun MarketingAgreeScreen(
 
                                 withStyle(
                                     style = SpanStyle(
-                                        fontWeight = FontWeight.Normal,
+                                        fontFamily = Paperlogy.font,
+                                        fontWeight = FontWeight.Medium,
                                         fontSize = 12.sp,
                                         color = colors.black
                                     )
@@ -207,7 +213,8 @@ fun MarketingAgreeScreen(
 
                                 withStyle(
                                     style = SpanStyle(
-                                        fontWeight = FontWeight.Light,
+                                        fontFamily = Paperlogy.font,
+                                        fontWeight = FontWeight.Normal,
                                         fontSize = 12.sp,
                                         color = colors.black
                                     )
@@ -252,7 +259,7 @@ fun MarketingAgreeScreen(
             Text(
                 text = "마케팅 수신에 동의합니다.",
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.Medium,
                 color = colors.black,
                 modifier = Modifier.weight(1f)
             )
