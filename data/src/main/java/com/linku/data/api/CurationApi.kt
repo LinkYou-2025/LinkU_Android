@@ -17,6 +17,7 @@ import retrofit2.http.Query
 /** princeHw 작업 공간  */
 interface CurationApi {
 
+    // 프론트에선 파라미터 입력할 필요 없음
     @GET("curations/sections")
     suspend fun getSections(
         @Query("month") month: String? = null
@@ -30,6 +31,7 @@ interface CurationApi {
     @GET("curations/latest")
     suspend fun getLatestCuration(): BaseResponse<MyLatestCurationDTO>
 
+    // 프론트에선 파라미터 입력할 필요 없음
     @GET("curations/history")
     suspend fun getHistory(
         @Query("year") year: Int? = null

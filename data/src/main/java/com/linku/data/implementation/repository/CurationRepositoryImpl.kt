@@ -10,6 +10,8 @@ import com.linku.core.model.curation.SectionItem
 import com.linku.core.model.curation.UnreadLink
 import com.linku.core.repository.CurationRepository
 import com.linku.data.api.CurationApi
+import com.linku.data.api.safeApiCall
+import com.linku.data.mapper.CurationMapper.toDomain
 import javax.inject.Inject
 
 
@@ -17,43 +19,64 @@ import javax.inject.Inject
 class CurationRepositoryImpl @Inject constructor(
     private val curationApi: CurationApi
 ) : CurationRepository {
+
     override suspend fun getSections(month: String?): Result<List<SectionItem>> {
-        TODO("Not yet implemented")
+        return safeApiCall {
+            curationApi.getSections(month)
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
     }
 
     override suspend fun getRecommendLinks(curationId: Long): Result<List<RecommendLink>> {
-        TODO("Not yet implemented")
+        return safeApiCall {
+            curationApi.getRecommendLinks(curationId)
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
     }
 
     override suspend fun getLatestCuration(): Result<MyLatestCuration> {
-        TODO("Not yet implemented")
+        return safeApiCall {
+            curationApi.getLatestCuration()
+        }.map { it.toDomain() }
     }
 
     override suspend fun getHistory(year: Int?): Result<List<History>> {
-        TODO("Not yet implemented")
+        return safeApiCall {
+            curationApi.getHistory(year)
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
     }
 
     override suspend fun getCurationDetail(curationId: Long): Result<CurationDetail> {
-        TODO("Not yet implemented")
+        return safeApiCall {
+            curationApi.getCurationDetail(curationId)
+        }.map { it.toDomain() }
     }
 
     override suspend fun getUnreadLink(): Result<List<UnreadLink>> {
-        TODO("Not yet implemented")
+        return safeApiCall {
+            curationApi.getUnreadLink()
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
     }
 
-    override suspend fun getMyTopTags(
-        month: String,
-        limit: Int
-    ): Result<List<MyTopTag>> {
-        TODO("Not yet implemented")
+    override suspend fun getMyTopTags(month: String, limit: Int): Result<List<MyTopTag>> {
+        return safeApiCall {
+            curationApi.getMyTopTags(month, limit)
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
     }
 
-    override suspend fun getJobTopKeywords(
-        month: String,
-        limit: Int
-    ): Result<List<JobKeyWord>> {
-        TODO("Not yet implemented")
+    override suspend fun getJobTopKeywords(month: String, limit: Int): Result<List<JobKeyWord>> {
+        return safeApiCall {
+            curationApi.getJobTopKeywords(month, limit)
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
     }
-
-
 }
