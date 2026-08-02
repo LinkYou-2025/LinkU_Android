@@ -181,7 +181,7 @@ fun SearchBarTopSheet(
                     // Gray 100 배경색
                     color = colors.gray[100]
                 )
-                .padding(horizontal = 15.dp, vertical = 10.dp),
+                .padding(horizontal = 15.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
