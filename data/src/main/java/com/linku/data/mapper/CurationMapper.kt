@@ -47,7 +47,7 @@ object CurationMapper {
 
     fun HistoryDTO.toDomain(): History = History(
         curationId = curationId,
-        title = month.toCurationYear(),
+        month = month,
         thumbnailUrl = thumbnailUrl
     )
 
