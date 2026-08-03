@@ -78,18 +78,21 @@ private fun CurationKeywordDetailContent(
                 titleDescriptionGap = 12.scaler,
             )
         } else {
-            CurationTopHeader(
-                onBackClick = onBack,
-                contentTopOffset = 92.scaler,
-                title = "${nickname}님과 같은 ${jobName}들은\n이번 달, 이런 키워드를 많이 봤어요",
-                description = "나와 비슷한 사람들의 관심 키워드",
-                titleDescriptionGap = 12.scaler,
-            )
+            Column(modifier = Modifier.fillMaxSize()) {
+                CurationTopHeader(
+                    onBackClick = onBack,
+                    contentTopOffset = 92.scaler,
+                    title = "${nickname}님과 같은 ${jobName}들은\n이번 달, 이런 키워드를 많이 봤어요",
+                    description = "나와 비슷한 사람들의 관심 키워드",
+                    titleDescriptionGap = 12.scaler,
+                )
 
-            CurationKeywordCloud(
-                keywords = keywords,
-                onKeywordClick = { _, keyword -> onKeywordClick(keyword) }
-            )
+                CurationKeywordCloud(
+                    modifier = Modifier.weight(1f),
+                    keywords = keywords,
+                    onKeywordClick = { _, keyword -> onKeywordClick(keyword) },
+                )
+            }
         }
 
         // 하단 영역 (EmailVerificationScreen과 동일한 방식으로 하단 고정)
