@@ -114,6 +114,19 @@ fun MainApp(
 
     val navigator = rememberNavController()
 
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
+
+    LaunchedEffect(isLoggedIn) {
+        if (previousLoggedIn == true && isLoggedIn == false) {
+            navigator.navigate("login_root") {
+                popUpTo(navigator.graph.id) { inclusive = true }
+            }
+        }
+        previousLoggedIn = isLoggedIn
+
+    }
+
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
 
@@ -300,6 +313,7 @@ fun MainApp(
 
                                 else -> Unit
                             }
+
                         }
 
                         Splash(
@@ -768,6 +782,7 @@ fun MainApp(
 //                    lastBackPressed = now
 //                }
 //            }
+
         }
     }
 
