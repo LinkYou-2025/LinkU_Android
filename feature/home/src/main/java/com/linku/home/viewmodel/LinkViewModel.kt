@@ -211,21 +211,36 @@ class LinkViewModel @Inject constructor(
             isSavingState.value = true
 
             try {
-                when (linkuRepository.checkLink(currentUrl)) {
-                    LinkCheckResult.Available -> {
-                        saveLink(
-                            url = currentUrl,
-                            onSucceed = onSucceed,
-                        )
-                    }
+                val linkCheckResult = try {
+                    linkuRepository.checkLink(currentUrl)
+                } catch (error: Exception) {
+                    sendToast(error.toLinkCheckToastMessage())
+                    onFailed(error)
+                    return@launch
+                }
 
+                when (linkCheckResult) {
                     LinkCheckResult.AlreadySaved -> {
                         sendToast("이미 저장된 링크예요.")
                     }
+
+                    LinkCheckResult.Available -> {
+                        try {
+                            saveLink(
+                                url = currentUrl,
+                                onSucceed = onSucceed,
+                            )
+                        } catch (error: Exception) {
+                            Log.e(
+                                "LinkViewModel",
+                                "save link failed",
+                                error,
+                            )
+                            sendToast("링크 저장에 실패했어요. 다시 시도해 주세요.")
+                            onFailed(error)
+                        }
+                    }
                 }
-            } catch (error: Exception) {
-                sendToast(error.toLinkCheckToastMessage())
-                onFailed(error)
             } finally {
                 isSavingState.value = false
             }
