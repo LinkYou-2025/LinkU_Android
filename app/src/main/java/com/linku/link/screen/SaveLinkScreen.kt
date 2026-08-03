@@ -1,5 +1,11 @@
 package com.linku.link.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,11 +33,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +48,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.R
 import com.linku.core.model.JobType
@@ -51,8 +61,12 @@ import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
 import com.linku.link.component.EmotionSelect
 import com.linku.link.component.SituationSelect
+import com.linku.link.util.toTempFile
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 @Composable
@@ -64,7 +78,9 @@ fun SaveLinkScreen(
     selectedEmotionId: Long?,
     selectedSituationId: Long?,
     jobId: Long,
-    onPickImage: () -> Unit,
+    onImageSelected: (File) -> Unit,
+    onPermissionDenied: () -> Unit,
+    onImageLoadFailed: () -> Unit,
     onDeleteImage: () -> Unit,
     onUrlChange: (String) -> Unit,
     onTitleChange: (String) -> Unit,
@@ -77,6 +93,68 @@ fun SaveLinkScreen(
     toastEvent: Flow<ToastEvent>,
 ) {
     val colors = MaterialTheme.linkuColors
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val currentOnImageSelected by rememberUpdatedState(onImageSelected)
+    val currentOnPermissionDenied by rememberUpdatedState(onPermissionDenied)
+    val currentOnImageLoadFailed by rememberUpdatedState(onImageLoadFailed)
+
+    val imagePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+    ) { uri: Uri? ->
+        uri ?: return@rememberLauncherForActivityResult
+
+        coroutineScope.launch {
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    uri.toTempFile(context)
+                }
+            }.onSuccess { file ->
+                currentOnImageSelected(file)
+            }.onFailure {
+                currentOnImageLoadFailed()
+            }
+        }
+    }
+
+    val photoPermission = remember {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { isGranted ->
+        if (isGranted) {
+            imagePicker.launch("image/*")
+        } else {
+            currentOnPermissionDenied()
+        }
+    }
+
+    val launchImagePicker = {
+        when {
+            Build.VERSION.SDK_INT < Build.VERSION_CODES.M -> {
+                imagePicker.launch("image/*")
+            }
+
+            ContextCompat.checkSelfPermission(
+                context,
+                photoPermission,
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                imagePicker.launch("image/*")
+            }
+
+            else -> {
+                permissionLauncher.launch(photoPermission)
+            }
+        }
+    }
+
     val jobType = JobType.fromId(jobId)
 
     var toastMessage by remember { mutableStateOf("") }
@@ -244,7 +322,7 @@ fun SaveLinkScreen(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(18.dp))
-                                .noRippleClickable(onClick = onPickImage)
+                                .noRippleClickable(onClick = launchImagePicker)
                         )
 
                         Image(
@@ -263,7 +341,7 @@ fun SaveLinkScreen(
                             .clip(RoundedCornerShape(18.dp))
                             .background(colors.gray[100])
                             .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
-                            .noRippleClickable { onPickImage() }
+                            .noRippleClickable { launchImagePicker() }
                             .padding(38.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -474,7 +552,9 @@ fun PreviewSaveLinkScreen() {
             selectedEmotionId = null,
             selectedSituationId = null,
             jobId = 2L,
-            onPickImage = { },
+            onImageSelected = { },
+            onPermissionDenied = { },
+            onImageLoadFailed = { },
             onDeleteImage = { },
             onUrlChange = { },
             onTitleChange = { },

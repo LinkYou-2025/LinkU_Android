@@ -1,12 +1,9 @@
 package com.linku
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -26,7 +23,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -59,6 +55,7 @@ import com.linku.home.viewmodel.LinkViewModel
 import com.linku.link.component.LinkCategoryOption
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
+import com.linku.link.util.toTempFile
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
@@ -70,8 +67,6 @@ import com.linku.navigation.LinkuNavigationItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
 
 @Composable
 fun MainApp(
@@ -478,7 +473,6 @@ fun MainApp(
 
                 composable("savelink") {
                     val context = LocalContext.current
-                    val saveLinkCoroutineScope = rememberCoroutineScope()
 
                     fun exitSaveLinkScreen() {
                         linkViewModel.resetSaveForm()
@@ -487,56 +481,6 @@ fun MainApp(
 
                     BackHandler {
                         exitSaveLinkScreen()
-                    }
-
-                    val imagePicker = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.GetContent(),
-                    ) { uri: Uri? ->
-                        uri?.let { selectedUri ->
-                            saveLinkCoroutineScope.launch {
-                                runCatching {
-                                    withContext(Dispatchers.IO) {
-                                        selectedUri.toTempFile(context)
-                                    }
-                                }.onSuccess { file ->
-                                    linkViewModel.setSaveImage(file)
-                                }.onFailure { error ->
-                                    LinkuLog.e(
-                                        "SaveLink",
-                                        "selected image conversion failed",
-                                        error,
-                                    )
-
-                                    Toast.makeText(
-                                        context,
-                                        "이미지 로드에 실패했습니다.",
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                                }
-                            }
-                        }
-                    }
-
-                    val photoPermission = if (
-                        Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
-                    ) {
-                        Manifest.permission.READ_MEDIA_IMAGES
-                    } else {
-                        Manifest.permission.READ_EXTERNAL_STORAGE
-                    }
-
-                    val permissionLauncher = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.RequestPermission()
-                    ) { isGranted ->
-                        if (isGranted) {
-                            imagePicker.launch("image/*")
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "사진을 추가하려면 사진 접근 권한이 필요합니다.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
                     }
 
                     SaveLinkScreen(
@@ -549,24 +493,20 @@ fun MainApp(
                         selectedSituationId =
                             linkViewModel.selectedSaveSituationId,
                         jobId = linkViewModel.jobId ?: 3L,
-                        onPickImage = {
-                            when {
-                                Build.VERSION.SDK_INT <
-                                        Build.VERSION_CODES.M -> {
-                                    imagePicker.launch("image/*")
-                                }
-
-                                ContextCompat.checkSelfPermission(
-                                    context,
-                                    photoPermission,
-                                ) == PackageManager.PERMISSION_GRANTED -> {
-                                    imagePicker.launch("image/*")
-                                }
-
-                                else -> {
-                                    permissionLauncher.launch(photoPermission)
-                                }
-                            }
+                        onImageSelected = linkViewModel::setSaveImage,
+                        onPermissionDenied = {
+                            Toast.makeText(
+                                context,
+                                "사진을 추가하려면 사진 접근 권한이 필요합니다.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                        onImageLoadFailed = {
+                            Toast.makeText(
+                                context,
+                                "이미지 로드에 실패했습니다.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         },
                         onDeleteImage = linkViewModel::deleteSaveImage,
                         onUrlChange = linkViewModel::setSaveUrl,
@@ -901,23 +841,4 @@ fun Context.findActivity(): Activity? {
         ctx = ctx.baseContext
     }
     return null
-}
-
-private fun Uri.toTempFile(context: Context): File {
-    val fileName = "picked_${System.currentTimeMillis()}.jpg"
-    val tempFile = File(context.cacheDir, fileName)
-
-    val inputStream = requireNotNull(
-        context.contentResolver.openInputStream(this)
-    ) {
-        "선택한 이미지 파일을 열 수 없습니다."
-    }
-
-    inputStream.use { input ->
-        FileOutputStream(tempFile).use { output ->
-            input.copyTo(output)
-        }
-    }
-
-    return tempFile
 }
