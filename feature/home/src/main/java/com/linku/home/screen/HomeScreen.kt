@@ -3,6 +3,7 @@ package com.linku.home.screen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -99,7 +101,18 @@ fun HomeScreen(
         }
     }
 
+    var openedDeleteMenuId by remember { mutableStateOf<Long?>(null) }
     val listState = rememberLazyListState()
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .distinctUntilChanged()
+            .collect { isScrolling ->
+                if (isScrolling) {
+                    openedDeleteMenuId = null
+                }
+            }
+    }
 
     LaunchedEffect(
         listState,
@@ -134,7 +147,6 @@ fun HomeScreen(
 
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
-    var openedDeleteMenuId by remember { mutableStateOf<Long?>(null) }
 
     // 추천 누르면 강제로 접힘 유지하는 용도
     var isTopBarLockedCollapsed by remember { mutableStateOf(false) }
@@ -229,7 +241,18 @@ fun HomeScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(colors.gray[100]),
+                .background(colors.gray[100])
+                .then(
+                    if (openedDeleteMenuId != null) {
+                        Modifier.pointerInput(openedDeleteMenuId) {
+                            detectTapGestures {
+                                openedDeleteMenuId = null
+                            }
+                        }
+                    } else {
+                        Modifier
+                    }
+                ),
             state = listState
         ) {
             stickyHeader {
@@ -245,6 +268,7 @@ fun HomeScreen(
                     onRecommendClick = onRecommendClick,
                     isCollapsed = topBarCollapsed,
                     onExpandClick = {
+                        openedDeleteMenuId = null
                         hasRequestedRecommend = false
                         onExitRecommendMode()
 
