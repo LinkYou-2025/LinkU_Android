@@ -19,26 +19,26 @@ val constraints = ConstraintSet {
     val x2 = createGuidelineFromStart(0.78f)
     val y2 = createGuidelineFromTop(0.36f)
 
-    val x3 = createGuidelineFromStart(0.41f)
-    val y3 = createGuidelineFromTop(0.36f)
+    val x3 = createGuidelineFromStart(0.17f)
+    val y3 = createGuidelineFromTop(0.59f)
 
-    val x4 = createGuidelineFromStart(0.78f)
-    val y4 = createGuidelineFromTop(0.36f)
+    val x4 = createGuidelineFromStart(0.77f)
+    val y4 = createGuidelineFromTop(0.5f)
 
-    val x5 = createGuidelineFromStart(0.41f)
-    val y5 = createGuidelineFromTop(0.36f)
+    val x5 = createGuidelineFromStart(0.23f)
+    val y5 = createGuidelineFromTop(0.28f)
 
-    val x6 = createGuidelineFromStart(0.78f)
-    val y6 = createGuidelineFromTop(0.36f)
+    val x6 = createGuidelineFromStart(0.695f)
+    val y6 = createGuidelineFromTop(0.166f)
 
-    val x7 = createGuidelineFromStart(0.41f)
-    val y7 = createGuidelineFromTop(0.36f)
+    val x7 = createGuidelineFromStart(0.656f)
+    val y7 = createGuidelineFromTop(0.671f)
 
-    val x8 = createGuidelineFromStart(0.78f)
-    val y8 = createGuidelineFromTop(0.36f)
+    val x8 = createGuidelineFromStart(0.6f)
+    val y8 = createGuidelineFromTop(0.3f)
 
-    val x9 = createGuidelineFromStart(0.41f)
-    val y9 = createGuidelineFromTop(0.36f)
+    val x9 = createGuidelineFromStart(0.334f)
+    val y9 = createGuidelineFromTop(0.544f)
 
     constrain(chip1) {
         start.linkTo(x1)
