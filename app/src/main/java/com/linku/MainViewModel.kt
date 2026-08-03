@@ -45,11 +45,11 @@ class MainViewModel @Inject constructor(
     val nickname: StateFlow<String> = _nickname.asStateFlow()
 
     // 로그인 세션 반영함.
-    val isLoggedIn: StateFlow<Boolean> = authPreference.isLoggedIn
+    val isLoggedIn: StateFlow<Boolean?> = authPreference.isLoggedIn
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false // 첫 값이 DataStore에서 로드되기 전 임시값
+            initialValue = null // 첫 값이 로그되기 전 아직 모름 상태임. MainApp에서 previousLoggedIn과 비교해 로그아웃 전이면 감지함.
         )
 
     fun fetchNickname() {
