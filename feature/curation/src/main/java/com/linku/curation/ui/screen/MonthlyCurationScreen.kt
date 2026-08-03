@@ -1,4 +1,4 @@
-package com.linku.curation.ui.monthly
+package com.linku.curation.ui.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.background
@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.header.CurationTopHeader
+import com.linku.curation.ui.monthly.MonthlyCurationGrid
 import com.linku.curation.viewModel.CurationHistoryViewModel
 import com.linku.curation.viewModel.intent.CurationHistoryIntent
 import com.linku.curation.viewModel.sideeffect.CurationHistorySideEffect
@@ -37,7 +38,7 @@ fun MonthlyCurationScreen(
     viewModel: CurationHistoryViewModel = hiltViewModel(),
     year: Int = 2026,
     onBackClick: () -> Unit = {},
-    onMonthClick: (Long) -> Unit = {},
+    onMonthClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
 ) {
     val context = LocalContext.current
     val state by viewModel.curationHistoryState.collectAsStateWithLifecycle()
@@ -45,7 +46,8 @@ fun MonthlyCurationScreen(
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
-                is CurationHistorySideEffect.NavigateToCurationDetail -> onMonthClick(effect.curationId)
+                is CurationHistorySideEffect.NavigateToCurationDetail ->
+                    onMonthClick(effect.month, effect.curationId)
                 is CurationHistorySideEffect.ShowToast ->
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
             }
@@ -59,10 +61,14 @@ fun MonthlyCurationScreen(
         modifier = modifier,
         year = year,
         onBackClick = onBackClick,
-        onMonthClick = { month ->
-            // 클릭된 월(Long)로 curationId 조회, 없으면 무시
-            val curationId = historyMap[month.toInt()]?.curationId ?: return@MonthlyCurationScreenContent
-            viewModel.handleIntent(CurationHistoryIntent.ClickCurationHistory(curationId))
+        onMonthClick = { monthNum ->
+            // 클릭된 월(1~12)로 히스토리 조회. 데이터 없는 달이면 무시
+            val history = historyMap[monthNum.toInt()] ?: return@MonthlyCurationScreenContent
+
+            // curationId가 null이면 아직 해당 월 큐레이션이 생성되지 않은 것이므로 무시
+            val curationId = history.curationId ?: return@MonthlyCurationScreenContent
+
+            viewModel.handleIntent(CurationHistoryIntent.ClickCurationHistory(curationId, history.month))
         },
         imageUrlOf = { month -> historyMap[month]?.thumbnailUrl }
     )
@@ -70,7 +76,7 @@ fun MonthlyCurationScreen(
 
 /**
  * 월별 큐레이션 모아보기(#41-1) 실제 UI.
- * [CurationTopHeader](연도 + "월간 큐레이션") 아래 44.49 간격을 두고 [MonthlyCurationGrid]를 보여준다.
+ * [CurationTopHeader](연도 + "월간 큐레이션") 아래 44.49 간격을 두고 [com.linku.curation.ui.monthly.MonthlyCurationGrid]를 보여준다.
  *
  * 값 받으면 헤더 뒤에 배경 Box 하나 추가하면 됨.
  *

@@ -143,7 +143,7 @@ private fun CurationLinksPagerIndicator(
 private fun RecommendedLinkCardItem(
     link: RecommendLink,
     onClick: (RecommendLink) -> Unit,
-    onDeleteClick: (RecommendLink) -> Unit,
+    onDeleteClick: (RecommendLink) -> Unit = {},
 ) {
     //LinkCardItem은 지현이가 구현해서 여기서 궁금한거 있으면 그녀에게...
     LinkCardItem(

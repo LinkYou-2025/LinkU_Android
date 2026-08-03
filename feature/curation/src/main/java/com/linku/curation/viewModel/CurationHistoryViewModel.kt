@@ -36,13 +36,14 @@ class CurationHistoryViewModel @Inject constructor(
 
     fun handleIntent(intent: CurationHistoryIntent) {
         when (intent) {
-            is CurationHistoryIntent.ClickCurationHistory -> navigateToCurationDetail(intent.curationId)
+            is CurationHistoryIntent.ClickCurationHistory ->
+                navigateToCurationDetail(intent.curationId, intent.month)
         }
     }
 
-    private fun navigateToCurationDetail(curationId: Long) {
+    private fun navigateToCurationDetail(curationId: Long, month: String) {
         viewModelScope.launch {
-            _sideEffect.send(CurationHistorySideEffect.NavigateToCurationDetail(curationId))
+            _sideEffect.send(CurationHistorySideEffect.NavigateToCurationDetail(curationId, month))
         }
     }
 

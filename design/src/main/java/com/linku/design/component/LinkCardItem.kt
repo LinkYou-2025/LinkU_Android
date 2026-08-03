@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -108,7 +109,7 @@ fun LinkCardItem(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         color = colors.black,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         // 폰트 기본 여백 때문에 아이콘이랑 세로 중앙이 안 맞아서 제거함
                         style = LocalTextStyle.current.copy(
@@ -116,6 +117,7 @@ fun LinkCardItem(
                         ),
                         modifier = Modifier
                             .weight(1f)
+                            .widthIn(min = 1.dp)
                             .padding(top = 8.dp)
                     )
                 }

@@ -9,12 +9,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
 import com.linku.curation.ui.CurationScreen
-import com.linku.curation.ui.monthly.MonthlyCurationScreen
+import com.linku.curation.ui.screen.MonthlyCurationScreen
 import com.linku.curation.ui.screen.CurationKeywordDetailScreen
 import com.linku.curation.ui.screen.CurationKeywordLinksScreen
 import com.linku.curation.ui.screen.CurationMonthlyDetailScreen
 import com.linku.curation.ui.screen.CurationRemindScreen
-import com.linku.curation.viewModel.CurationViewModel
 
 fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,
@@ -113,7 +112,10 @@ fun NavGraphBuilder.curationGraph(
             val year = backStackEntry.arguments?.getInt("year") ?: 0
             MonthlyCurationScreen(
                 year = year,
-                onBackClick = { navigator.popBackStack() }
+                onBackClick = { navigator.popBackStack() },
+                onMonthClick = { month, curationId ->
+                    navigator.navigate("curation_detail/$month/$curationId")
+                }
             )
         }
     }
