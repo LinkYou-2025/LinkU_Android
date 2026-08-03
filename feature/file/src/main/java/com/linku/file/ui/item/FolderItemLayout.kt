@@ -89,7 +89,7 @@ fun FolderItemLayout(
         modifier = modifier
             .aspectRatio(aspect, matchHeightConstraintsFirst = false)
             .shadow(
-                elevation = 2.dp,
+                elevation = 0.dp,
                 shape = cardShape,
                 clip = false,
             )
