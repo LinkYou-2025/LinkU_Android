@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class RecommendLinkDTO(
     @field:Json(name = "userLinkuId")
-    val userLinkuId: Long,
+    val userLinkuId: Long?,
 
     @field:Json(name = "title")
     val title: String,
@@ -15,16 +15,16 @@ data class RecommendLinkDTO(
     val url: String, // 외부 리다이렉트 시 사용
 
     @field:Json(name = "imageUrl")
-    val imageUrl: String,
+    val imageUrl: String?,
 
     @field:Json(name = "domain")
-    val domain: String,
+    val domain: String?,
 
     @field:Json(name = "domainImageUrl")
-    val domainImageUrl: String,
+    val domainImageUrl: String?,
 
     @field:Json(name = "categories")
-    val categories: List<String>,
+    val categories: List<String>?,
 
     @field:Json(name = "type")
     val type: String

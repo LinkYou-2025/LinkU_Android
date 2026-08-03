@@ -38,14 +38,14 @@ object CurationMapper {
         userLinkuId = userLinkuId,
         title = title,
         url = url,
-        imageUrl = imageUrl,
-        domain = domain,
-        domainImageUrl = domainImageUrl,
-        categories = categories,
+        imageUrl = imageUrl.orEmpty(),
+        domain = domain.orEmpty(),
+        domainImageUrl = domainImageUrl.orEmpty(),
+        categories = categories.orEmpty(),
         type = if (type == "EXTERNAL") {
             LinkType.External(url)
         } else {
-            LinkType.Internal(userLinkuId)
+            LinkType.Internal(userLinkuId ?: 0L)
         }
     )
 

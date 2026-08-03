@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.RecommendedLink
+import com.linku.core.model.curation.LinkType
 import com.linku.curation.ui.emotion.CurationEmotionSection
 import com.linku.curation.ui.emotion.EmotionItem
 import com.linku.curation.ui.header.CurationTopHeader
@@ -46,8 +47,23 @@ internal fun CurationMonthlyDetailScreen(
         onGoHome = onGoHome,
         nickname = state.monthlyCurationDetail?.nickname.orEmpty(),
         title = state.monthlyCurationDetail?.detail?.title.orEmpty(),
-        emotionItems = emptyList(), // TODO:  topTags→ EmotionItem 매핑
-        recommendedLinks = emptyList(), // TODO: recommendLink 매핑
+        emotionItems = state.monthlyCurationDetail?.topTags?.map { tag ->
+            EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
+        } ?: emptyList(),
+        recommendedLinks = state.monthlyCurationDetail?.recommendLink?.map { link ->
+            RecommendedLink(
+                isInternal = link.type is LinkType.Internal,
+                userLinkuId = link.userLinkuId,
+                title = link.title,
+                url = link.url,
+                imageUrl = link.imageUrl,
+                domain = link.domain,
+                domainImageUrl = link.domainImageUrl,
+                categories = link.categories,
+            )
+        } ?: emptyList(),
+        headerMent = state.monthlyCurationDetail?.detail?.headerMent.orEmpty(),
+        footerMent = state.monthlyCurationDetail?.detail?.footerMent.orEmpty(),
     )
 }
 
@@ -60,6 +76,8 @@ internal fun CurationMonthlyDetailScreen(
  *
  * @param nickname 상단 설명/본문 문구에 쓰일 사용자 닉네임
  * @param title 상단에 표시할 제목. ex) "2026\n월간 큐레이션 5월호"
+ * @param headerMent 감정 섹션 아래 표시할 상단 본문 문구 (API `headerMent`)
+ * @param footerMent 추천 링크 아래 표시할 하단 본문 문구 (API `footerMent`)
  * @param emotionItems "N월 상황/감정 요약" 섹션에 표시할 감정 키워드 항목 (최대 3개). 비어있으면 예외 상태로 전환
  * @param recommendedLinks "추천 링크" 섹션에 표시할 링크 목록
  * @param onBack 백버튼 클릭 콜백
@@ -72,6 +90,8 @@ internal fun CurationMonthlyDetailScreenContent(
     onBack: () -> Unit,
     nickname: String = "",
     title: String = "2026\n월간 큐레이션 5월호",
+    headerMent: String = "",
+    footerMent: String = "",
     emotionItems: List<EmotionItem> = emptyList(),
     recommendedLinks: List<RecommendedLink> = emptyList(),
     onLinkClick: (String) -> Unit = {},
@@ -105,9 +125,8 @@ internal fun CurationMonthlyDetailScreenContent(
                 if (!isEmpty) {
                     Spacer(modifier = Modifier.height(40.scaler))
 
-                    // api 연동해야 하는 문구 입니다. 일단 기본 피그마 내용으로 넣었습니다.
                     Text(
-                        text = "생각은 많은데 정리가 안되죠.\n${nickname}님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
+                        text = headerMent,
                         fontSize = 16.sp,
                         lineHeight = 22.sp,
                         fontWeight = FontWeight(400),
@@ -124,9 +143,8 @@ internal fun CurationMonthlyDetailScreenContent(
 
                     Spacer(modifier = Modifier.height(60.scaler))
 
-                    // api 연동해야 하는 문구 입니다. 일단 기본 피그마 내용으로 넣었습니다.
                     Text(
-                        text = "지금 떠오르지 않아도 괜찮아요.\n영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요.",
+                        text = footerMent,
                         style = TextStyle(
                             brush = colorTheme.emotionTitleGradient,
                             fontSize = 16.sp,
@@ -204,6 +222,8 @@ private fun CurationMonthlyDetailScreenPreview() {
             onBack = {},
             nickname = "세나",
             title = "2026\n월간 큐레이션 5월호",
+            headerMent = "생각은 많은데 정리가 안되죠.\n세나님의 머릿속을 환기시켜줄 콘텐츠들을 모았어요!",
+            footerMent = "지금 떠오르지 않아도 괜찮아요.\n영감은 가끔, 쉬고 있을 때 더 잘 찾아오거든요.",
             emotionItems = emotions,
             recommendedLinks = links
         )
