@@ -300,6 +300,7 @@ fun MainApp(
 
                                 else -> Unit
                             }
+
                         }
 
                         Splash(
@@ -768,6 +769,19 @@ fun MainApp(
 //                    lastBackPressed = now
 //                }
 //            }
+
+            val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+            var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
+
+            LaunchedEffect(isLoggedIn) {
+                if (previousLoggedIn == true && !isLoggedIn) {
+                    navigator.navigate("login_root") {
+                        popUpTo(navigator.graph.id) { inclusive = true }
+                    }
+                }
+                previousLoggedIn = isLoggedIn
+
+            }
         }
     }
 

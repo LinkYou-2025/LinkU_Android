@@ -44,6 +44,14 @@ class MainViewModel @Inject constructor(
     private val _nickname = MutableStateFlow<String>("")
     val nickname: StateFlow<String> = _nickname.asStateFlow()
 
+    // 로그인 세션 반영함.
+    val isLoggedIn: StateFlow<Boolean> = authPreference.isLoggedIn
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false // 첫 값이 DataStore에서 로드되기 전 임시값
+        )
+
     fun fetchNickname() {
         viewModelScope.launch {
             // 우선적으로 캐싱 먼저 가져옵니다.(닉네임 변경이 그렇게 많지 않을테니. ui 자연스러움을 위해서 입니다)
@@ -144,8 +152,7 @@ class MainViewModel @Inject constructor(
 
     // 리프레시 토큰 유효성 검사 (컴포저블에서 동기/비동기 흐름 제어를 위해 suspend 함수로 제공)
     suspend fun hasValidRefreshToken(): Boolean {
-        val token = authPreference.getRefreshToken()
-        return !token.isNullOrBlank()
+        return !authPreference.getRefreshToken().isNullOrBlank()
     }
 
     // 푸시 알림 권한 요청 다이얼로그를 최초 1회만 노출
