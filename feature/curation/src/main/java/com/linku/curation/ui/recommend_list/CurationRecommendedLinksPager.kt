@@ -23,9 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.core.model.RecommendedLink
+import com.linku.core.model.curation.LinkType
+import com.linku.core.model.curation.RecommendLink
 import com.linku.design.component.LinkCardItem
-import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -44,16 +44,16 @@ private const val MAX_INDICATOR_DOTS = 9
  *
  * @param links 추천 링크 목록
  * @param linksPerPage 한 페이지에 보여줄 링크 개수
- * @param onLinkClick 링크 카드 클릭 시 호출. 클릭된 링크의 url 전달
+ * @param onLinkClick 링크 카드 클릭 시 호출. 클릭된 링크 전달
  * @param onDeleteClick 카드의 "더보기" 메뉴에서 삭제 선택 시 호출. 클릭된 링크 전달
  */
 @Composable
 fun CurationRecommendedLinksPager(
     modifier: Modifier = Modifier,
-    links: List<RecommendedLink>,
+    links: List<RecommendLink>,
     linksPerPage: Int = 3,
-    onLinkClick: (String) -> Unit = {},
-    onDeleteClick: (RecommendedLink) -> Unit = {},
+    onLinkClick: (RecommendLink) -> Unit = {},
+    onDeleteClick: (RecommendLink) -> Unit = {},
 ) {
     if (links.isEmpty()) return
 
@@ -141,58 +141,57 @@ private fun CurationLinksPagerIndicator(
 // 연동해주는 분이 분리 여부를 결정해주세요:)
 @Composable
 private fun RecommendedLinkCardItem(
-    link: RecommendedLink,
-    onClick: (String) -> Unit,
-    onDeleteClick: (RecommendedLink) -> Unit,
+    link: RecommendLink,
+    onClick: (RecommendLink) -> Unit,
+    onDeleteClick: (RecommendLink) -> Unit,
 ) {
-    Box(modifier = Modifier.noRippleClickable { onClick(link.url) }) {
-        //LinkCardItem은 지현이가 구현해서 여기서 궁금한거 있으면 그녀에게...
-        LinkCardItem(
-            hasAiSummary = false,
-            linkTitle = link.title,
-            tags = link.categories?.take(2) ?: emptyList(),
-            domainName = "", //도메인 이미지는 연동시에 mapper를 이용할지 아닐지 결정해주세요!
-            // domainLogoMap 여기에 지민이가 이전에 만든 mapper가 있어 현우 오빠 그래서 인기 도메인은 그대로 쓰고 아니면..? 서버가 내려주는 이미지 써도 좋을 것 같은데?
-            isExternalLink = !link.isInternal,
-            linkImageUrl = link.imageUrl ?: "",
-            domainImageUrl = link.domainImageUrl ?: "",
-            onDeleteClick = { onDeleteClick(link) }
-        )
-    }
+    //LinkCardItem은 지현이가 구현해서 여기서 궁금한거 있으면 그녀에게...
+    LinkCardItem(
+        hasAiSummary = false,
+        linkTitle = link.title,
+        tags = link.categories.take(2),
+        domainName = "", //도메인 이미지는 연동시에 mapper를 이용할지 아닐지 결정해주세요!
+        // domainLogoMap 여기에 지민이가 이전에 만든 mapper가 있어 현우 오빠 그래서 인기 도메인은 그대로 쓰고 아니면..? 서버가 내려주는 이미지 써도 좋을 것 같은데?
+        isExternalLink = link.type is LinkType.External,
+        linkImageUrl = link.imageUrl,
+        domainImageUrl = link.domainImageUrl,
+        onCardClick = { onClick(link) },
+        onDeleteClick = { onDeleteClick(link) }
+    )
 }
 
 // 프리뷰용 링크 N개 생성 (3개 샘플을 돌려가며 채움 -> 태그 없는 카드도 섞여서 나옴)
-private fun demoLinks(count: Int): List<RecommendedLink> {
+private fun demoLinks(count: Int): List<RecommendLink> {
     val samples = listOf(
-        RecommendedLink(
-            isInternal = true,
+        RecommendLink(
             userLinkuId = 1L,
             title = "오픽 AL 따는 꿀팁 얼른 보러오세요",
             url = "https://blog.naver.com/example",
-            imageUrl = null,
+            imageUrl = "",
             domain = "blog.naver.com",
-            domainImageUrl = null,
-            categories = listOf("생산성·툴", "평온")
+            domainImageUrl = "",
+            categories = listOf("생산성·툴", "평온"),
+            type = LinkType.Internal(linkId = 1L)
         ),
-        RecommendedLink(
-            isInternal = true,
+        RecommendLink(
             userLinkuId = 2L,
             title = "오픽 공부할 때 문법도 공부해야할까?",
             url = "https://github.com/example",
-            imageUrl = null,
+            imageUrl = "",
             domain = "github.com",
-            domainImageUrl = null,
-            categories = listOf("여행", "행복")
+            domainImageUrl = "",
+            categories = listOf("여행", "행복"),
+            type = LinkType.Internal(linkId = 2L)
         ),
-        RecommendedLink(
-            isInternal = false,
+        RecommendLink(
             userLinkuId = null,
             title = "글램핑 예약, 누구보다 싸게하기",
             url = "https://blog.naver.com/example2",
-            imageUrl = null,
+            imageUrl = "",
             domain = "blog.naver.com",
-            domainImageUrl = null,
-            categories = emptyList()
+            domainImageUrl = "",
+            categories = emptyList(),
+            type = LinkType.External(url = "https://blog.naver.com/example2")
         )
     )
 

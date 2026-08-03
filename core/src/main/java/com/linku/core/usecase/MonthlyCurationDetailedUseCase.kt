@@ -53,7 +53,7 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
 
             MonthlyCurationDetail(
                 detail = detailDeferred.await().getOrThrow(),
-                nickname = nicknameDeferred.await(),
+                nickname = nicknameDeferred.await(), // 닉네임 api 누가했냐 당장 레포지토리 메서드 반환타입 Result로 맞추도록.
                 recommendLink = recommendLinksDeferred.await().getOrThrow(),
                 topTags = topTagsDeferred.await().getOrThrow()
             )

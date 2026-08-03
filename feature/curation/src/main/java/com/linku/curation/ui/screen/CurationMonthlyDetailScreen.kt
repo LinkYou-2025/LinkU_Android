@@ -1,5 +1,8 @@
 package com.linku.curation.ui.screen
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,35 +15,68 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.linku.core.model.RecommendedLink
 import com.linku.core.model.curation.LinkType
+import com.linku.core.model.curation.RecommendLink
 import com.linku.curation.ui.emotion.CurationEmotionSection
 import com.linku.curation.ui.emotion.EmotionItem
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.recommend_list.CurationRecommendedLinksPager
 import com.linku.curation.ui.util.CurationFixedGradientBackground
 import com.linku.curation.viewModel.CurationDetailViewModel
+import com.linku.curation.viewModel.intent.CurationDetailedIntent
+import com.linku.curation.viewModel.sideeffect.CurationDetailedSideEffect
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 @Composable
-internal fun CurationMonthlyDetailScreen(
+fun CurationMonthlyDetailScreen(
     onBack: () -> Unit,
     onGoHome: () -> Unit = {},
+    onNavigateToLinkDetail: (Long) -> Unit = {},
     viewModel: CurationDetailViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
+
+    // 뷰모델 상태 구독
     val state by viewModel.curationDetailedState.collectAsStateWithLifecycle()
+
+    // 사이드이펙트 수집
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is CurationDetailedSideEffect.NavigateToLinkDetail ->
+                    onNavigateToLinkDetail(effect.linkId)
+
+                is CurationDetailedSideEffect.OpenBrowser -> {
+                    runCatching {
+                        val url = effect.url.let {
+                            if (it.startsWith("http://") || it.startsWith("https://")) it
+                            else "https://$it"
+                        }
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                    }.onFailure {
+                        Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                is CurationDetailedSideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
 
     CurationMonthlyDetailScreenContent(
         onBack = onBack,
@@ -50,20 +86,10 @@ internal fun CurationMonthlyDetailScreen(
         emotionItems = state.monthlyCurationDetail?.topTags?.map { tag ->
             EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
         } ?: emptyList(),
-        recommendedLinks = state.monthlyCurationDetail?.recommendLink?.map { link ->
-            RecommendedLink(
-                isInternal = link.type is LinkType.Internal,
-                userLinkuId = link.userLinkuId,
-                title = link.title,
-                url = link.url,
-                imageUrl = link.imageUrl,
-                domain = link.domain,
-                domainImageUrl = link.domainImageUrl,
-                categories = link.categories,
-            )
-        } ?: emptyList(),
+        recommendedLinks = state.monthlyCurationDetail?.recommendLink ?: emptyList(),
         headerMent = state.monthlyCurationDetail?.detail?.headerMent.orEmpty(),
         footerMent = state.monthlyCurationDetail?.detail?.footerMent.orEmpty(),
+        onLinkClick = { link -> viewModel.handleIntent(CurationDetailedIntent.ClickLink(link)) },
     )
 }
 
@@ -81,21 +107,21 @@ internal fun CurationMonthlyDetailScreen(
  * @param emotionItems "N월 상황/감정 요약" 섹션에 표시할 감정 키워드 항목 (최대 3개). 비어있으면 예외 상태로 전환
  * @param recommendedLinks "추천 링크" 섹션에 표시할 링크 목록
  * @param onBack 백버튼 클릭 콜백
- * @param onLinkClick 추천 링크 카드 클릭 시 호출. 클릭된 링크의 url 전달
+ * @param onLinkClick 추천 링크 카드 클릭 시 호출. 클릭된 링크 전달
  * @param onLinkDeleteClick 추천 링크 카드의 "더보기" 메뉴에서 삭제 선택 시 호출
- * @param onGoHome 예외 상태의 "링크 저장하러 가기" 버튼 클릭 시 호출. 홈 화면으로 이동
+ * @param onGoHome 예외 상태의 "링크 저장하러 가기" 버튼 클릭 시 홈 화면으로 이동
  */
 @Composable
-internal fun CurationMonthlyDetailScreenContent(
+private fun CurationMonthlyDetailScreenContent(
     onBack: () -> Unit,
     nickname: String = "",
     title: String = "2026\n월간 큐레이션 5월호",
     headerMent: String = "",
     footerMent: String = "",
     emotionItems: List<EmotionItem> = emptyList(),
-    recommendedLinks: List<RecommendedLink> = emptyList(),
-    onLinkClick: (String) -> Unit = {},
-    onLinkDeleteClick: (RecommendedLink) -> Unit = {},
+    recommendedLinks: List<RecommendLink> = emptyList(),
+    onLinkClick: (RecommendLink) -> Unit = {},
+    onLinkDeleteClick: (RecommendLink) -> Unit = {},
     onGoHome: () -> Unit = {},
 ) {
     val colorTheme = MaterialTheme.linkuColors
@@ -185,35 +211,35 @@ private fun CurationMonthlyDetailScreenPreview() {
         EmotionItem(progress = 0.09f, keyword = "#짜증")
     )
     val links = listOf(
-        RecommendedLink(
-            isInternal = true,
+        RecommendLink(
             userLinkuId = 1L,
             title = "오픽 AL 따는 꿀팁 얼른 보러오세요",
             url = "https://blog.naver.com/example",
-            imageUrl = null,
+            imageUrl = "",
             domain = "blog.naver.com",
-            domainImageUrl = null,
-            categories = listOf("생산성·툴", "평온")
+            domainImageUrl = "",
+            categories = listOf("생산성·툴", "평온"),
+            type = LinkType.Internal(linkId = 1L)
         ),
-        RecommendedLink(
-            isInternal = true,
+        RecommendLink(
             userLinkuId = 2L,
             title = "오픽 공부할 때 문법도 공부해야할까?",
             url = "https://github.com/example",
-            imageUrl = null,
+            imageUrl = "",
             domain = "github.com",
-            domainImageUrl = null,
-            categories = listOf("여행", "행복")
+            domainImageUrl = "",
+            categories = listOf("여행", "행복"),
+            type = LinkType.Internal(linkId = 2L)
         ),
-        RecommendedLink(
-            isInternal = false,
+        RecommendLink(
             userLinkuId = null,
             title = "글램핑 예약, 누구보다 싸게하기",
             url = "https://blog.naver.com/example2",
-            imageUrl = null,
+            imageUrl = "",
             domain = "blog.naver.com",
-            domainImageUrl = null,
-            categories = emptyList()
+            domainImageUrl = "",
+            categories = emptyList(),
+            type = LinkType.External(url = "https://blog.naver.com/example2")
         )
     )
 

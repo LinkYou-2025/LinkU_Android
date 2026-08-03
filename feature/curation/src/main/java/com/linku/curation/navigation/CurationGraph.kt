@@ -61,7 +61,8 @@ fun NavGraphBuilder.curationGraph(
             showNavBar(false)
             CurationMonthlyDetailScreen(
                 onBack = { navigator.popBackStack() },
-                onGoHome = goHome
+                onGoHome = goHome,
+                onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
             )
         }
 

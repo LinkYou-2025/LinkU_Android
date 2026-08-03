@@ -3,7 +3,9 @@ package com.linku.curation.viewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.model.curation.LinkType
 import com.linku.core.usecase.MonthlyCurationDetailedUseCase
+import com.linku.curation.viewModel.intent.CurationDetailedIntent
 import com.linku.curation.viewModel.sideeffect.CurationDetailedSideEffect
 import com.linku.curation.viewModel.state.CurationDetailedState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +32,23 @@ class CurationDetailViewModel @Inject constructor(
         val month = savedStateHandle.get<String>("month").orEmpty()
         val curationId = savedStateHandle.get<Long>("curationId") ?: 0L
         loadCurationDetail(curationId, month)
+    }
+
+    fun handleIntent(intent: CurationDetailedIntent) {
+        viewModelScope.launch {
+            when (intent) {
+                is CurationDetailedIntent.ClickLink -> {
+                    when (val type = intent.link.type) {
+                        is LinkType.Internal -> _sideEffect.send(
+                            CurationDetailedSideEffect.NavigateToLinkDetail(type.linkId)
+                        )
+                        is LinkType.External -> _sideEffect.send(
+                            CurationDetailedSideEffect.OpenBrowser(type.url)
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private fun loadCurationDetail(curationId: Long, month: String) {
