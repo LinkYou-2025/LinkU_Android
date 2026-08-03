@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.ApiError
 import com.linku.core.error.NetworkError
+import com.linku.core.model.AIArticleUiState
 import com.linku.core.model.AiArticle
 import com.linku.core.repository.AIArticleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,12 +15,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AIArticleUiState(
-    val isLoading: Boolean = false,
-    val aiArticle: AiArticle? = null,
-    val errorMessage: String? = null
-)
-
 @HiltViewModel
 class AIArticleViewModel @Inject constructor(
     private val aiArticleRepository: AIArticleRepository
@@ -27,6 +22,21 @@ class AIArticleViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(AIArticleUiState())
     val uiState: StateFlow<AIArticleUiState> = _uiState.asStateFlow()
+
+    private var linkKeyword: String? = null
+    private var linkSummary: String? = null
+
+    fun setLinkContent(
+        keyword: String?,
+        summary: String?,
+    ) {
+        linkKeyword = keyword
+        linkSummary = summary
+
+        updateDisplayContent(
+            aiArticle = _uiState.value.aiArticle,
+        )
+    }
 
     fun getAiArticle(linkuId: Long) {
         if (_uiState.value.isLoading) return
@@ -52,24 +62,58 @@ class AIArticleViewModel @Inject constructor(
                     return@onSuccess
                 }
 
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        aiArticle = aiArticle,
-                        errorMessage = null
-                    )
-                }
+                updateDisplayContent(
+                    aiArticle = aiArticle,
+                    isLoading = false,
+                    clearError = true,
+                )
             }.onFailure { throwable ->
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage =
-                            throwable.toAiArticleErrorMessage()
+                        errorMessage = throwable.toAiArticleErrorMessage(),
                     )
                 }
             }
         }
     }
+
+    private fun updateDisplayContent(
+        aiArticle: AiArticle?,
+        isLoading: Boolean = _uiState.value.isLoading,
+        clearError: Boolean = false,
+    ) {
+        _uiState.update { state ->
+            state.copy(
+                isLoading = isLoading,
+                aiArticle = aiArticle,
+                displayTags = aiArticle
+                    ?.tags
+                    ?.map { tag -> tag.trim() }
+                    ?.filter { tag -> tag.isNotBlank() }
+                    ?.take(MAX_TAG_COUNT)
+                    ?.takeIf { tags -> tags.isNotEmpty() }
+                    ?: linkKeyword.toTags(),
+                displaySummary = aiArticle
+                    ?.summary
+                    ?.trim()
+                    ?.takeIf { summary -> summary.isNotBlank() }
+                    ?: linkSummary
+                        ?.trim()
+                        .orEmpty(),
+                errorMessage = if (clearError) null else state.errorMessage,
+            )
+        }
+    }
+
+    private fun String?.toTags(): List<String> {
+        return orEmpty()
+            .split(",")
+            .map { keyword -> keyword.trim().removePrefix("#") }
+            .filter { keyword -> keyword.isNotBlank() }
+            .take(MAX_TAG_COUNT)
+    }
+
 
     fun clearErrorMessage() {
         _uiState.update {
@@ -124,5 +168,9 @@ class AIArticleViewModel @Inject constructor(
                     ?: "AI 요약을 불러오지 못했어요. 다시 시도해 주세요."
             }
         }
+    }
+
+    private companion object {
+        const val MAX_TAG_COUNT = 4
     }
 }

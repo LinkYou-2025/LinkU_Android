@@ -564,15 +564,6 @@ fun MainApp(
                     val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
                     val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
 
-                    fun keywordToTags(keyword: String?): List<String> {
-                        return keyword
-                            .orEmpty()
-                            .split(",")
-                            .map { keyword -> keyword.trim().removePrefix("#") }
-                            .filter { keyword -> keyword.isNotBlank() }
-                            .take(4)
-                    }
-
                     var selectedDetailImageUri by rememberSaveable(linkuId) {
                         mutableStateOf<Uri?>(null)
                     }
@@ -644,23 +635,16 @@ fun MainApp(
                     }
 
                     val linkDetail = linkViewModel.linkDetail
-                    val aiArticle = aiArticleUiState.aiArticle
 
-                    val displayTags = aiArticle
-                        ?.tags
-                        ?.filter { tag -> tag.isNotBlank() }
-                        ?.take(4)
-                        ?.takeIf { tags -> tags.isNotEmpty() }
-                        ?: keywordToTags(linkDetail?.keyword)
-
-                    val displaySummary = aiArticle
-                        ?.summary
-                        ?.trim()
-                        ?.takeIf { summary -> summary.isNotBlank() }
-                        ?: linkDetail?.summary
-                            ?.trim()
-                            .orEmpty()
-
+                    LaunchedEffect(
+                        linkDetail?.keyword,
+                        linkDetail?.summary,
+                    ) {
+                        aiArticleViewModel.setLinkContent(
+                            keyword = linkDetail?.keyword,
+                            summary = linkDetail?.summary,
+                        )
+                    }
 
                     LinkDetailScreen(
                         linkuId = linkuId,
@@ -672,8 +656,8 @@ fun MainApp(
                         imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
                         selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
-                        tags = displayTags,
-                        aiSummary = displaySummary,
+                        tags = aiArticleUiState.displayTags,
+                        aiSummary = aiArticleUiState.displaySummary,
                         isAiArticleLoading = aiArticleUiState.isLoading,
                         aiArticleErrorMessage = aiArticleUiState.errorMessage,
                         onRequestAiArticle = aiArticleViewModel::getAiArticle,
