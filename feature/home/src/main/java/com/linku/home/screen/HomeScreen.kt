@@ -267,74 +267,26 @@ fun HomeScreen(
                     recommendEnabled = (selectedEmotion != null && selectedTask != null && !isRecommending),
                     onRecommendClick = onRecommendClick,
                     isCollapsed = topBarCollapsed,
+                    expandEnabled =
+                        !isRecommending &&
+                                !isLoadingMoreRecommendations,
                     onExpandClick = {
-                        openedDeleteMenuId = null
-                        hasRequestedRecommend = false
-                        onExitRecommendMode()
+                        if (!isRecommending && !isLoadingMoreRecommendations) {
+                            openedDeleteMenuId = null
+                            hasRequestedRecommend = false
+                            onExitRecommendMode()
 
-                        isTopBarLockedCollapsed = false
-                        selectedEmotion = null
-                        selectedTask = null
+                            isTopBarLockedCollapsed = false
+                            selectedEmotion = null
+                            selectedTask = null
 
-                        coroutineScope.launch { listState.animateScrollToItem(0) } // 맨 위로 올려서 펼침 유지
+                            coroutineScope.launch { listState.animateScrollToItem(0) }  // 맨 위로 올려서 펼침 유지
+                        }
                     },
                     hasRequestedRecommend = hasRequestedRecommend,
                     onAlarmClick = onAlarmClick,
                 )
             }
-
-//            item {
-//                Column(
-//                    modifier = Modifier.padding(horizontal = 20.dp, vertical = 20.dp)
-//                ) {
-//                    val itemsToRender = if (isRecommendMode) recommendedLinks else recentLinks
-//
-//                    Text(
-//                        text = titleText,
-//                        fontSize = 20.sp,
-//                        fontWeight = FontWeight.Bold,
-//                        color = colors.black,
-//                        modifier = Modifier.padding(start = 4.dp)
-//                    )
-//
-//                    when {
-//                        // 1) 최근 열람 링크 없음
-//                        !isRecommendMode && itemsToRender.isEmpty() -> {
-//                            EmptyRecentBox()
-//                        }
-//
-//                        // 2) 추천 데이터 부족 (링크 3개 미만)
-//                        isRecommendMode && needMoreForRecommendation -> {
-//                            NeedMoreLinks()
-//                        }
-//
-//                        // 3) 추천할 링크 분류 중
-//                        isRecommendMode && isRecommending -> {
-//                            Box(
-//                                modifier = Modifier.fillMaxSize()
-//                            ) {
-//                                CustomToastMessage(
-//                                    toastMessage = "추천할 링크 분류중..",
-//                                    modifier = Modifier
-//                                        .align(Alignment.BottomCenter)
-//                                        .padding(bottom = 152.dp)
-//                                )
-//                            }
-//                        }
-//
-//                        // 4) 추천 모드 및 최근 열람 링크 리스트
-//                        else -> {
-//                            LinkList(
-//                                links = itemsToRender,
-//                                onCardClick = onLinkClick,
-//                                onDeleteClick = { linkuId ->
-//                                    // TODO: 삭제 API 연결
-//                                }
-//                            )
-//                        }
-//                    }
-//                }
-//            }
 
             item(key = "home-title") {
                 Text(
