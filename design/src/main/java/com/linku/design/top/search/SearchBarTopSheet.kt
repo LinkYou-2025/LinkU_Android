@@ -481,7 +481,7 @@ fun SearchBarTopSheet(
                                             // 입력값이 없을 때만 placeholder 보임
                                             if (text.isEmpty()) {
                                                 Text(
-                                                    text = " 빠른 링크 검색",
+                                                    text = "빠른 링크 검색",
                                                     fontSize = 15.sp,
                                                     lineHeight = 22.sp,
                                                     fontFamily = paperlogyFont,
