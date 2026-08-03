@@ -594,7 +594,11 @@ fun MainApp(
                     val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
 
-                    val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: return@composable
+                    val linkuId = backStackEntry.arguments
+                        ?.takeIf { it.containsKey("linkuId") }
+                        ?.getLong("linkuId")
+                        ?.takeIf { it > 0L }
+                        ?: return@composable
 
                     val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
                     val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
