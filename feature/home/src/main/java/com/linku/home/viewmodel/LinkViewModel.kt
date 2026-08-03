@@ -357,14 +357,14 @@ class LinkViewModel @Inject constructor(
         val linkuId = current.linkuId
 
         val normalizedTitle = title.trim()
-        val normalizedMemo = memo?.trim().orEmpty()
 
         val changedTitle =
             normalizedTitle.takeIf { it != current.title }
 
-        val changedMemo =
-            normalizedMemo.takeIf {
-                it != current.memo.orEmpty()
+        val changedMemo = memo
+            ?.trim()
+            ?.takeIf { normalizedMemo ->
+                normalizedMemo != current.memo.orEmpty()
             }
 
         val changedCategoryId =
