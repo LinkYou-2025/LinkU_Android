@@ -134,6 +134,7 @@ fun HomeScreen(
 
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
+    var openedDeleteMenuId by remember { mutableStateOf<Long?>(null) }
 
     // 추천 누르면 강제로 접힘 유지하는 용도
     var isTopBarLockedCollapsed by remember { mutableStateOf(false) }
@@ -363,11 +364,27 @@ fun HomeScreen(
                             }
                         },
                     ) { link ->
+                        val menuId = link.userLinkuId ?: link.linkuId
+
                         LinkCard(
                             link = link,
-                            onCardClick = onLinkClick,
+                            isDeleteMenuVisible = openedDeleteMenuId == menuId,
+                            onMoreClick = {
+                                openedDeleteMenuId =
+                                    if (openedDeleteMenuId == menuId) {
+                                        null
+                                    } else {
+                                        menuId
+                                    }
+                            },
                             onDeleteClick = { userLinkuId ->
+                                openedDeleteMenuId = null
+
                                 // TODO: 삭제 API 연결
+                            },
+                            onCardClick = { linkuId ->
+                                openedDeleteMenuId = null
+                                onLinkClick(linkuId)
                             },
                             modifier = Modifier.padding(
                                 start = 20.dp,
@@ -532,6 +549,8 @@ private fun NeedMoreLinks() {
 @Composable
 private fun LinkCard(
     link: LinkSimpleInfo,
+    isDeleteMenuVisible: Boolean,
+    onMoreClick: () -> Unit,
     onCardClick: (Long) -> Unit,
     onDeleteClick: (Long) -> Unit,
     modifier: Modifier = Modifier,
@@ -548,6 +567,8 @@ private fun LinkCard(
             isExternalLink = false,
             linkImageUrl = link.linkuImageUrl.orEmpty(),
             domainImageUrl = link.domainImageUrl.orEmpty(),
+            isDeleteMenuVisible = isDeleteMenuVisible,
+            onMoreClick = onMoreClick,
             onCardClick = {
                 onCardClick(link.linkuId)
             },
