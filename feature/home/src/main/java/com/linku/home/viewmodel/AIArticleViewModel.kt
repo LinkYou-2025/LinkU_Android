@@ -2,6 +2,8 @@ package com.linku.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.ApiError
+import com.linku.core.error.NetworkError
 import com.linku.core.model.AiArticle
 import com.linku.core.repository.AIArticleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -76,32 +78,50 @@ class AIArticleViewModel @Inject constructor(
     }
 
     private fun Throwable.toAiArticleErrorMessage(): String {
-        val errorText = buildString {
-            append(message.orEmpty())
+        val causeError = cause
 
-            cause?.message
-                ?.takeIf { it.isNotBlank() }
-                ?.let {
-                    append(" ")
-                    append(it)
-                }
+        val error: Throwable = when {
+            this is ApiError || this is NetworkError -> this
+
+            causeError is ApiError ||
+                    causeError is NetworkError -> causeError
+
+            else -> this
         }
 
-        return when {
-            errorText.contains("CRAWLER4031", ignoreCase = true)
-                    ||
-                    errorText.contains("403", ignoreCase = true) -> {
+        return when (error) {
+            is ApiError.Crawler.ContentExtractionProhibited -> {
                 "해당 사이트는 크롤링이 금지되어 AI 요약을 만들 수 없어요."
             }
 
-            errorText.contains("OPENAI5002", ignoreCase = true) ||
-                    errorText.contains("500", ignoreCase = true) -> {
+            is ApiError.OpenAi.InvalidResponse,
+            is ApiError.OpenAi.ParseError,
+            is ApiError.AiArticle.InternalServerError,
+            is ApiError.Common.InternalServer -> {
                 "AI 요약에 실패했어요. 잠시 후 다시 시도해 주세요."
             }
 
+            is ApiError.Crawler.ContentExtractionFailed -> {
+                "웹페이지 내용을 불러오지 못해 AI 요약을 만들 수 없어요."
+            }
+
+            is ApiError.Gemini.Timeout,
+            is NetworkError.Timeout -> {
+                "AI 요약 요청 시간이 초과되었어요. 다시 시도해 주세요."
+            }
+
+            is NetworkError.NoConnection -> {
+                error.displayMessage
+            }
+
+            is ApiError -> {
+                error.displayMessage
+            }
+
             else -> {
-                message?.takeIf { it.isNotBlank() }
-                    ?: "AI 요약을 불러오지 못했어요. 다시 시도해주세요."
+                error.message
+                    ?.takeIf { it.isNotBlank() }
+                    ?: "AI 요약을 불러오지 못했어요. 다시 시도해 주세요."
             }
         }
     }
