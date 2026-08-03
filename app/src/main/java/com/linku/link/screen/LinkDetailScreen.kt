@@ -630,6 +630,7 @@ fun LinkDetailScreen(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 100.dp, end = 20.dp)
+                    .zIndex(2f)
             )
         }
 
@@ -709,6 +710,7 @@ fun LinkDetailScreen(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(top = 200.dp, start = 24.dp)
+                            .zIndex(1f)
                     )
                 }
 
@@ -723,6 +725,7 @@ fun LinkDetailScreen(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(top = 200.dp, start = 93.dp)
+                            .zIndex(1f)
                     )
                 }
 
@@ -737,6 +740,7 @@ fun LinkDetailScreen(
                         modifier = Modifier
                             .align(Alignment.TopStart)
                             .padding(top = 200.dp, start = 186.dp)
+                            .zIndex(1f)
                     )
                 }
 
