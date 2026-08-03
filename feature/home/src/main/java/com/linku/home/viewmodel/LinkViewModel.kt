@@ -188,7 +188,6 @@ class LinkViewModel @Inject constructor(
         saveMemoState.value = ""
         saveEmotionIdState.value = null
         saveSituationIdState.value = null
-        isSavingState.value = false
     }
 
     fun onSaveButtonClick(
