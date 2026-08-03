@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -62,7 +63,7 @@ fun LinkuNavigationBarFAB(
 
             contentDescription = "링큐 추가 버튼 더하기 아이콘",
 
-            modifier = Modifier
+            modifier = Modifier.size(20.dp)
 
                 // 전체의 20/57 넓이를 차지
                 .fillMaxSize(20f/57f)
