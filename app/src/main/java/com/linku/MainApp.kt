@@ -42,6 +42,7 @@ import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.model.deeplink.DeepLinkType
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.d
+import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
@@ -66,7 +67,9 @@ import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 
@@ -475,6 +478,7 @@ fun MainApp(
 
                 composable("savelink") {
                     val context = LocalContext.current
+                    val saveLinkCoroutineScope = rememberCoroutineScope()
 
                     fun exitSaveLinkScreen() {
                         linkViewModel.resetSaveForm()
@@ -486,14 +490,30 @@ fun MainApp(
                     }
 
                     val imagePicker = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.GetContent()
+                        contract = ActivityResultContracts.GetContent(),
                     ) { uri: Uri? ->
-                        if (uri != null) {
-                            runCatching { uri.toTempFile(context) }
-                                .onSuccess { file -> linkViewModel.setSaveImage(file) }
-                                .onFailure {
-                                    Toast.makeText(context, "이미지 로드에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                        uri?.let { selectedUri ->
+                            saveLinkCoroutineScope.launch {
+                                runCatching {
+                                    withContext(Dispatchers.IO) {
+                                        selectedUri.toTempFile(context)
+                                    }
+                                }.onSuccess { file ->
+                                    linkViewModel.setSaveImage(file)
+                                }.onFailure { error ->
+                                    LinkuLog.e(
+                                        "SaveLink",
+                                        "selected image conversion failed",
+                                        error,
+                                    )
+
+                                    Toast.makeText(
+                                        context,
+                                        "이미지 로드에 실패했습니다.",
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                                 }
+                            }
                         }
                     }
 
@@ -593,6 +613,7 @@ fun MainApp(
                 ) { backStackEntry ->
                     val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
+                    val detailCoroutineScope = rememberCoroutineScope()
 
                     val linkuId = backStackEntry.arguments
                         ?.takeIf { it.containsKey("linkuId") }
@@ -700,6 +721,7 @@ fun MainApp(
                             ?.trim()
                             .orEmpty()
 
+
                     LinkDetailScreen(
                         linkuId = linkuId,
                         linkTitle = linkDetail?.title.orEmpty(),
@@ -724,48 +746,44 @@ fun MainApp(
                         onPickImage = {
                             detailImagePicker.launch("image/*")
                         },
-                        onSubmitEdit = {
-                                title,
-                                memo,
-                                categoryId,
-                                emotionId,
-                                situationId,
-                                onSuccess,
-                                onFailed ->
-
-                            val selectedImageFile = runCatching {
-                                selectedDetailImageUri?.toTempFile(context)
-                            }.getOrElse { error ->
-                                Log.e(
-                                    "LinkDetail",
-                                    "selected image conversion failed",
-                                    error
-                                )
-                                onFailed()
-                                return@LinkDetailScreen
-                            }
-
-                            linkViewModel.updateLink(
-                                image = selectedImageFile,
-                                title = title,
-                                memo = memo,
-                                categoryId = categoryId,
-                                emotionId = emotionId,
-                                situationId = situationId,
-                                onSucceed = {
-                                    selectedDetailImageUri = null
-                                    homeViewModel.loadRecentLinks()
-                                    onSuccess()
-                                },
-                                onFailed = { error ->
-                                    Log.e(
+                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
+                            detailCoroutineScope.launch {
+                                val selectedImageFile = runCatching {
+                                    withContext(Dispatchers.IO) {
+                                        selectedDetailImageUri?.toTempFile(context)
+                                    }
+                                }.getOrElse { error ->
+                                    LinkuLog.e(
                                         "LinkDetail",
-                                        "update failed",
-                                        error
+                                        "selected image conversion failed",
+                                        error,
                                     )
                                     onFailed()
+                                    return@launch
                                 }
-                            )
+
+                                linkViewModel.updateLink(
+                                    image = selectedImageFile,
+                                    title = title,
+                                    memo = memo,
+                                    categoryId = categoryId,
+                                    emotionId = emotionId,
+                                    situationId = situationId,
+                                    onSucceed = {
+                                        selectedDetailImageUri = null
+                                        homeViewModel.loadRecentLinks()
+                                        onSuccess()
+                                    },
+                                    onFailed = { error ->
+                                        LinkuLog.e(
+                                            "LinkDetail",
+                                            "update failed",
+                                            error,
+                                        )
+                                        onFailed()
+                                    },
+                                )
+                            }
                         },
                         onDeleteLink = { onSuccess, onFailed ->
                             linkViewModel.deleteCurrentLink(
