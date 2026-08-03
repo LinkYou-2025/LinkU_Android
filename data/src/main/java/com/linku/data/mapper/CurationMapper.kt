@@ -2,7 +2,7 @@ package com.linku.data.mapper
 
 import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.History
-import com.linku.core.model.curation.JobKeyWord
+import com.linku.core.model.curation.KeyWord
 import com.linku.core.model.curation.LinkType
 import com.linku.core.model.curation.MyLatestCuration
 import com.linku.core.model.curation.MyTopTag
@@ -74,7 +74,7 @@ object CurationMapper {
         percent = percent
     )
 
-    fun KeywordDTO.toDomain(): JobKeyWord = JobKeyWord(
+    fun KeywordDTO.toDomain(): KeyWord = KeyWord(
         name = name,
         count = count
     )

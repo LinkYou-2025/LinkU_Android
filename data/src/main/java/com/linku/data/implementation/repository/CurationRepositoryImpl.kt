@@ -2,7 +2,7 @@ package com.linku.data.implementation.repository
 
 import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.History
-import com.linku.core.model.curation.JobKeyWord
+import com.linku.core.model.curation.KeyWord
 import com.linku.core.model.curation.MyLatestCuration
 import com.linku.core.model.curation.MyTopTag
 import com.linku.core.model.curation.RecommendLink
@@ -77,7 +77,7 @@ class CurationRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getJobTopKeywords(month: String, limit: Int): Result<List<JobKeyWord>> {
+    override suspend fun getJobTopKeywords(month: String, limit: Int): Result<List<KeyWord>> {
         return safeApiCall {
             curationApi.getJobTopKeywords(month, limit)
         }.map { dtos ->

@@ -2,7 +2,7 @@ package com.linku.core.repository
 
 import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.History
-import com.linku.core.model.curation.JobKeyWord
+import com.linku.core.model.curation.KeyWord
 import com.linku.core.model.curation.MyLatestCuration
 import com.linku.core.model.curation.MyTopTag
 import com.linku.core.model.curation.RecommendLink
@@ -34,6 +34,6 @@ interface CurationRepository {
     suspend fun getMyTopTags(month: String, limit: Int = 3): Result<List<MyTopTag>>
 
     // 같은 직업 유저들의 해당 월 저장 링크 상위 키워드 조회
-    suspend fun getJobTopKeywords(month: String, limit: Int = 10): Result<List<JobKeyWord>>
+    suspend fun getJobTopKeywords(month: String, limit: Int = 10): Result<List<KeyWord>>
 
 }
