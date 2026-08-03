@@ -49,7 +49,7 @@ sealed class ThemeColorScheme(
     ),
 
     // 비활성화용 단색 브러시 추가 -로그인, 회원가입용
-    val inactiveColor: Brush = SolidColor(Color(0xFFD7D9DF)),
+    val inactiveColor: Brush = SolidColor(gray[300]),
 
 
     val black: Color = Color(0xFF000208),
