@@ -38,7 +38,7 @@ enum class LinkuNavigationItem(
         title = "큐레이션",
         icon = R.drawable.ic_curation,
         size = Size(31f, 13.78f),
-        magnification = 0.85f,
+        magnification = 0.75f,
     ),
 
     MY_PAGE(
