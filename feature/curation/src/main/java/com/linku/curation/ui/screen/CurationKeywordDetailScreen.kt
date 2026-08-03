@@ -5,14 +5,16 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.chip.CurationKeywordCloud
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
-import com.linku.curation.viewModel.CurationViewModel
+import com.linku.curation.viewModel.CurationKeywordViewModel
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
@@ -27,6 +29,7 @@ private val sampleKeywords = listOf(
  * 큐레이션 2번 카드 상세(#43-1) 화면. "이번 달 관심 키워드" 워드클라우드를 보여준다.
  *
  * @param nickname 상단 문구에 쓰일 사용자 닉네임
+ * @param month 키워드 조회에 사용할 월 (`yyyy-MM` 형식). ViewModel이 SavedStateHandle로 수신
  * @param onBack 백버튼 클릭 콜백
  * @param onGoHome "링크 저장하러 가기" 버튼 클릭 시 호출. 홈 탭으로 이동
  * @param onKeywordClick 키워드 칩 클릭 시 호출. 클릭된 키워드("#" 없이) 전달
@@ -34,14 +37,18 @@ private val sampleKeywords = listOf(
 @Composable
 internal fun CurationKeywordDetailScreen(
     nickname: String,
-    viewModel: CurationViewModel = hiltViewModel(),
+    month: String,
+    viewModel: CurationKeywordViewModel = hiltViewModel(),
     onBack: () -> Unit = {},
     onGoHome: () -> Unit = {},
     onKeywordClick: (String) -> Unit = {},
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
     CurationKeywordDetailContent(
-        nickname = nickname,
-        keywords = sampleKeywords, // TODO: viewModel에서 실제 응답 받은 topTags로 교체
+        nickname = state.nickname.ifBlank { nickname },
+        jobName = state.jobName,
+        keywords = state.keywords.map { it.name },
         onBack = onBack,
         onGoHome = onGoHome,
         onKeywordClick = onKeywordClick,
@@ -51,6 +58,7 @@ internal fun CurationKeywordDetailScreen(
 @Composable
 private fun CurationKeywordDetailContent(
     nickname: String,
+    jobName: String,
     keywords: List<String>,
     onBack: () -> Unit = {},
     onGoHome: () -> Unit = {},
@@ -73,7 +81,7 @@ private fun CurationKeywordDetailContent(
             CurationTopHeader(
                 onBackClick = onBack,
                 contentTopOffset = 92.scaler,
-                title = "${nickname}님과 같은 대학생들은\n이번 달, 이런 키워드를 많이 봤어요",
+                title = "${nickname}님과 같은 ${jobName}들은\n이번 달, 이런 키워드를 많이 봤어요",
                 description = "나와 비슷한 사람들의 관심 키워드",
                 titleDescriptionGap = 12.scaler,
             )
@@ -105,6 +113,7 @@ private fun CurationKeywordDetailScreenPreview() {
     LinkuPreview {
         CurationKeywordDetailContent(
             nickname = "세나",
+            jobName = "대학생",
             keywords = sampleKeywords,
         )
     }
@@ -116,6 +125,7 @@ private fun CurationKeywordDetailScreenEmptyPreview() {
     LinkuPreview {
         CurationKeywordDetailContent(
             nickname = "세나",
+            jobName = "대학생",
             keywords = emptyList(),
         )
     }

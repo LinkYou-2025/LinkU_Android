@@ -44,7 +44,7 @@ fun NavGraphBuilder.curationGraph(
                 onMonthlyDetailClick = { month, curationId ->
                     navigator.navigate("curation_detail/$month/$curationId")
                 },
-                onKeywordDetailClick = { navigator.navigate("curation_card2") },
+                onKeywordDetailClick = { month -> navigator.navigate("curation_card2/$month") },
                 onRemindClick = { navigator.navigate("curation_card3") },
                 onCurationHistoryClick = { year -> navigator.navigate("curation_monthly/$year") }
             )
@@ -65,20 +65,19 @@ fun NavGraphBuilder.curationGraph(
             )
         }
 
-        composable("curation_card2") {
+        composable(
+            route = "curation_card2/{month}",
+            arguments = listOf(navArgument("month") { type = NavType.StringType })
+        ) { backStackEntry ->
             showNavBar(false)
+            val month = backStackEntry.arguments?.getString("month").orEmpty()
             CurationKeywordDetailScreen(
                 nickname = nickname,
+                month = month,
                 onBack = { navigator.popBackStack() },
                 onGoHome = goHome,
                 onKeywordClick = { keyword ->
-                    navigator.navigate(
-                        "curation_keyword_links/${
-                            Uri.encode(
-                                keyword
-                            )
-                        }"
-                    )
+                    navigator.navigate("curation_keyword_links/${Uri.encode(keyword)}")
                 }
             )
         }

@@ -45,7 +45,7 @@ fun CurationScreen(
     nickname: String,
     viewModel: CurationViewModel = hiltViewModel(),
     onMonthlyDetailClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
-    onKeywordDetailClick: () -> Unit = {},
+    onKeywordDetailClick: (month: String) -> Unit = {},
     onRemindClick: () -> Unit = {},
     onCurationHistoryClick: (year: Int) -> Unit = {},
 ) {
@@ -56,7 +56,7 @@ fun CurationScreen(
         viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is CurationMainSideEffect.NavigateToCurationSection -> onMonthlyDetailClick(effect.month, effect.curationId)
-                is CurationMainSideEffect.NavigateToLastMonthKeyWord -> onKeywordDetailClick()
+                is CurationMainSideEffect.NavigateToLastMonthKeyWord -> onKeywordDetailClick(effect.month)
                 is CurationMainSideEffect.NavigateToUnreadLink -> onRemindClick()
 
                 // 최신 큐레이션 조회 api응답 중 year부분만 파싱해서 전달.
