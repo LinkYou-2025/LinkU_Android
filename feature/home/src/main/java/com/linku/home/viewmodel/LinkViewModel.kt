@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.linku.core.model.AiArticle
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.link.ToastEvent
 import com.linku.core.repository.LinkuRepository
@@ -24,7 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,7 +38,7 @@ class LinkViewModel @Inject constructor(
      * Save link state
      */
 
-    private val saveImageState = mutableStateOf<File?>(null)
+    private val saveImageState = mutableStateOf<TempImageFile?>(null)
     private val saveUrlState = mutableStateOf("")
     private val saveTitleState = mutableStateOf("")
     private val saveMemoState = mutableStateOf("")
@@ -148,7 +148,7 @@ class LinkViewModel @Inject constructor(
         }
     }
 
-    fun setSaveImage(file: File?) {
+    fun setSaveImage(file: TempImageFile?) {
         saveImageState.value = file
     }
 
@@ -322,7 +322,7 @@ class LinkViewModel @Inject constructor(
     }
 
     fun updateLink(
-        image: File?,
+        image: TempImageFile?,
         title: String,
         memo: String?,
         categoryId: Long?,

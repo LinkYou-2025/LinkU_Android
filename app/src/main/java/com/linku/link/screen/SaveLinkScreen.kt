@@ -52,6 +52,7 @@ import androidx.core.content.ContextCompat
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.R
 import com.linku.core.model.JobType
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.ToastEvent
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
@@ -67,18 +68,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 @Composable
 fun SaveLinkScreen(
-    image: File?,
+    image: TempImageFile?,
     url: String,
     title: String,
     memo: String,
     selectedEmotionId: Long?,
     selectedSituationId: Long?,
     jobId: Long,
-    onImageSelected: (File) -> Unit,
+    onImageSelected: (TempImageFile) -> Unit,
     onPermissionDenied: () -> Unit,
     onImageLoadFailed: () -> Unit,
     onDeleteImage: () -> Unit,
@@ -110,8 +110,8 @@ fun SaveLinkScreen(
                 withContext(Dispatchers.IO) {
                     uri.toTempFile(context)
                 }
-            }.onSuccess { file ->
-                currentOnImageSelected(file)
+            }.onSuccess { tempImage ->
+                currentOnImageSelected(tempImage)
             }.onFailure {
                 currentOnImageLoadFailed()
             }
@@ -316,7 +316,7 @@ fun SaveLinkScreen(
                             .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
                     ) {
                         Image(
-                            painter = rememberAsyncImagePainter(model = image),
+                            painter = rememberAsyncImagePainter(model = image.file),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

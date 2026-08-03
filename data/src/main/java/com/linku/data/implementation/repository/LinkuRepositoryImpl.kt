@@ -4,20 +4,18 @@ import android.util.Log
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationPage
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.FastSearchLinkInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.LinkuSimpleDTO
-import com.linku.data.api.dto.server.LinkuUpdateDTO
 import com.linku.data.api.safeApiCall
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
 import javax.inject.Inject
 
 /*
@@ -34,7 +32,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 새로운 링크 저장
     override suspend fun saveNewLink(
-        image: File?,
+        image: TempImageFile?,
         url: String,
         title: String?,
         memo: String?,
@@ -42,11 +40,13 @@ class LinkuRepositoryImpl @Inject constructor(
         situationId: Long?,
     ): LinkSimpleInfo {
         // 이미지 파트: 있을 때만 첨부
-        val imagePart: MultipartBody.Part? = image?.let { file ->
+        val imagePart: MultipartBody.Part? = image?.let { tempImage ->
             MultipartBody.Part.createFormData(
                 name = "image",
-                filename = (file.name.takeIf { it.isNotBlank() } ?: "image.jpg"),
-                body = file.asRequestBody("image/*".toMediaTypeOrNull())
+                filename = tempImage.file.name,
+                body = tempImage.file.asRequestBody(
+                    tempImage.mimeType.toMediaType(),
+                ),
             )
         }
 
@@ -309,18 +309,20 @@ class LinkuRepositoryImpl @Inject constructor(
     // 링크 수정
     override suspend fun updateLink(
         linkuId: Long,
-        image: File?,
+        image: TempImageFile?,
         memo: String?,
         emotionId: Long?,
         situationId: Long?,
         categoryId: Long?,
         title: String?,
     ): LinkResultInfo {
-        val imagePart = image?.let { file ->
+        val imagePart: MultipartBody.Part? = image?.let { tempImage ->
             MultipartBody.Part.createFormData(
                 name = "image",
-                filename = file.name.takeIf { it.isNotBlank() } ?: "image.jpg",
-                body = file.asRequestBody("image/*".toMediaTypeOrNull()),
+                filename = tempImage.file.name,
+                body = tempImage.file.asRequestBody(
+                    tempImage.mimeType.toMediaType(),
+                ),
             )
         }
 

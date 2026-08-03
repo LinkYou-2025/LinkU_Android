@@ -3,14 +3,14 @@ package com.linku.core.repository
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationPage
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.FastSearchLinkInfo
-import java.io.File
 
 interface LinkuRepository {
     // 링크 저장
     suspend fun saveNewLink(
-        image: File?,
+        image: TempImageFile?,
         url: String,
         title: String?,
         memo: String?,
@@ -44,7 +44,7 @@ interface LinkuRepository {
     // 링크 수정
     suspend fun updateLink(
         linkuId: Long,
-        image: File?,
+        image: TempImageFile?,
         memo: String?,
         emotionId: Long?,
         situationId: Long?,

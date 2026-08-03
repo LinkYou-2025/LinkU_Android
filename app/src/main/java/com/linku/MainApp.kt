@@ -672,7 +672,7 @@ fun MainApp(
                         },
                         onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
                             detailCoroutineScope.launch {
-                                val selectedImageFile = runCatching {
+                                val selectedTempImage = runCatching {
                                     withContext(Dispatchers.IO) {
                                         selectedDetailImageUri?.toTempFile(context)
                                     }
@@ -687,7 +687,7 @@ fun MainApp(
                                 }
 
                                 linkViewModel.updateLink(
-                                    image = selectedImageFile,
+                                    image = selectedTempImage,
                                     title = title,
                                     memo = memo,
                                     categoryId = categoryId,
