@@ -55,7 +55,8 @@ fun MonthlyCurationScreen(
     }
 
     // "yyyy-MM" 형식의 month에서 월(1~12)을 추출해 키로 사용
-    val historyMap = state.curationHistory.associateBy { it.month.takeLast(2).toIntOrNull() ?: 0 }
+    val historyMap = state.curationHistory
+        .associateBy { it.month.takeLast(2).toIntOrNull() ?: 0 }
 
     MonthlyCurationScreenContent(
         modifier = modifier,
@@ -68,7 +69,9 @@ fun MonthlyCurationScreen(
             // curationId가 null이면 아직 해당 월 큐레이션이 생성되지 않은 것이므로 무시
             val curationId = history.curationId ?: return@MonthlyCurationScreenContent
 
-            viewModel.handleIntent(CurationHistoryIntent.ClickCurationHistory(curationId, history.month))
+            viewModel.handleIntent(
+                CurationHistoryIntent.ClickCurationHistory(curationId, history.month)
+            )
         },
         imageUrlOf = { month -> historyMap[month]?.thumbnailUrl }
     )

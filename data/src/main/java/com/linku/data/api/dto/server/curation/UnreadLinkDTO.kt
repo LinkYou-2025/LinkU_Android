@@ -6,6 +6,9 @@ import com.squareup.moshi.JsonClass
 // 필요 없는 필드는 그냥 무시. 심플 이즈 베스트
 @JsonClass(generateAdapter = true)
 data class UnreadLinkDTO(
+    @field:Json(name = "userLinkuId")
+    val userLinkuId: Long?,
+
     @field:Json(name = "title")
     val title: String,
 

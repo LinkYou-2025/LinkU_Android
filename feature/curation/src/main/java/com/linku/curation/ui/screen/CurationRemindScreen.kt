@@ -12,16 +12,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.linku.core.model.CategoryType
-import com.linku.core.model.EmotionType
-import com.linku.core.model.LinkSimpleInfo
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.curation.UnreadLink
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
+import com.linku.curation.viewModel.CurationRemindViewModel
+import com.linku.curation.viewModel.intent.CurationRemindIntent
+import com.linku.curation.viewModel.sideeffect.CurationRemindSideEffect
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
@@ -30,13 +34,29 @@ import java.time.LocalDate
 @Composable
 fun CurationRemindScreen(
     onBack: () -> Unit,
-    links: List<LinkSimpleInfo> = emptyList(),
+    onNavigateToLinkDetail: (Long) -> Unit = {},
+    viewModel: CurationRemindViewModel = hiltViewModel(),
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is CurationRemindSideEffect.NavigateToLinkDetail ->
+                    onNavigateToLinkDetail(effect.linkId)
+            }
+        }
+    }
+
     BackHandler { onBack() }
 
     CurationRemindScreenContent(
-        links = links,
+        links = state.links,
         onBack = onBack,
+        onLinkClick = { link ->
+            val linkId = link.userLinkuId ?: return@CurationRemindScreenContent
+            viewModel.handleIntent(CurationRemindIntent.ClickLink(linkId))
+        },
     )
 }
 
@@ -65,8 +85,9 @@ private fun CurationRemindEmptyHeader(onBack: () -> Unit) {
 
 @Composable
 private fun CurationRemindScreenContent(
-    links: List<LinkSimpleInfo>,
+    links: List<UnreadLink>,
     onBack: () -> Unit,
+    onLinkClick: (UnreadLink) -> Unit = {},
 ) {
     val remindMonth = remember { remindMonthText() }
     val isEmpty = links.isEmpty()
@@ -114,20 +135,18 @@ private fun CurationRemindScreenContent(
                 ) {
                     items(
                         count = links.size,
-                        key = { index -> links[index].linkuId }
+                        key = { index -> links[index].userLinkuId ?: index.toLong() }
                     ) { index ->
                         val link = links[index]
                         LinkCardItem(
-                            hasAiSummary = link.aiArticleExists,
+                            hasAiSummary = false,
                             linkTitle = link.title,
-                            tags = listOfNotNull(
-                                link.categoryType?.tagName,
-                                link.emotionType?.tagName
-                            ),
+                            tags = link.categories.take(2),
                             domainName = link.domain,
                             isExternalLink = false,
                             linkImageUrl = link.linkuImageUrl ?: "",
-                            domainImageUrl = link.domainImageUrl ?: "",
+                            domainImageUrl = link.domainImageUrl,
+                            onCardClick = { onLinkClick(link) },
                             onDeleteClick = { /* TODO: 삭제 API 연동 전까지는 no-op */ }
                         )
                     }
@@ -141,16 +160,13 @@ private fun CurationRemindScreenContent(
 @Composable
 private fun CurationRemindScreenPreview() {
     val sampleLinks = List(6) { index ->
-        LinkSimpleInfo(
-            linkuId = index.toLong(),
-            categoryId = CategoryType.PRODUCTIVITY_TOOL.id,
-            memo = null,
-            emotionId = EmotionType.CALM.value,
+        UnreadLink(
+            userLinkuId = index.toLong(),
             title = "오픽 AL 따는 꿀팁 얻고 보러오세요",
             domain = "BLOG",
-            domainImageUrl = null,
+            categories = listOf("생산성·툴", "평온"),
+            domainImageUrl = "",
             linkuImageUrl = null,
-            aiArticleExists = index % 2 == 0,
         )
     }
 

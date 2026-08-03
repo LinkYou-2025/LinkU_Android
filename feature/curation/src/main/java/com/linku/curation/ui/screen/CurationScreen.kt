@@ -1,4 +1,4 @@
-package com.linku.curation.ui
+package com.linku.curation.ui.screen
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box

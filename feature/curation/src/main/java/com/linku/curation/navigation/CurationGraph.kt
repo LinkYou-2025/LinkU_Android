@@ -8,7 +8,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.navArgument
-import com.linku.curation.ui.CurationScreen
+import com.linku.curation.ui.screen.CurationScreen
 import com.linku.curation.ui.screen.MonthlyCurationScreen
 import com.linku.curation.ui.screen.CurationKeywordDetailScreen
 import com.linku.curation.ui.screen.CurationKeywordLinksScreen
@@ -101,7 +101,10 @@ fun NavGraphBuilder.curationGraph(
 
         composable("curation_card3") {
             showNavBar(false)
-            CurationRemindScreen(onBack = { navigator.popBackStack() })
+            CurationRemindScreen(
+                onBack = { navigator.popBackStack() },
+                onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
+            )
         }
 
         composable(

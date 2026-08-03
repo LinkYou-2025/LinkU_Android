@@ -62,6 +62,7 @@ object CurationMapper {
     )
 
     fun UnreadLinkDTO.toDomain(): UnreadLink = UnreadLink(
+        userLinkuId = userLinkuId,
         title = title,
         domain = domain,
         domainImageUrl = domainImageUrl,
