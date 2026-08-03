@@ -101,7 +101,7 @@ fun BottomFolderListLayout(
                     // '>' 문자열을 상·하위 폴더를 구분하는 아이콘으로 변경
                     Icon(
                         painter = painterResource(id = R.drawable.ic_chevron_right),
-                        contentDescription = "오른쪽 화살표",
+                        contentDescription = null,
                         tint = colorStyle.color3
                     )
 
