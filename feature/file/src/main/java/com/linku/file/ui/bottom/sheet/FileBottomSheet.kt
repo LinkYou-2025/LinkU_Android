@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -114,13 +113,11 @@ fun FileBottomSheet(
                         .fillMaxWidth()
                         .height(50.dp)
                         .clip(shape = RoundedCornerShape(18.dp))
-                        .background(
-                            brush = if (isReady) {
-                                colors.maincolor
+                        .then(
+                            if (isReady) {
+                                Modifier.background(colors.maincolor)
                             } else {
-                                Brush.verticalGradient(
-                                    listOf(colors.gray[300], colors.gray[300])
-                                )
+                                Modifier.background(colors.gray[300])
                             }
                         )
                         .noRippleClickable {
