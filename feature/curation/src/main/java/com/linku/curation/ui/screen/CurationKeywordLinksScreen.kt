@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -21,6 +22,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.linku.core.model.CategoryType
 import com.linku.core.model.EmotionType
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.curation.ui.effect.skeleton.CurationTopHeaderSkeleton
+import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationViewModel
@@ -47,11 +50,13 @@ internal fun CurationKeywordLinksScreen(
 
     // TODO: viewModel에서 keyword 기준 링크 목록 API 연동
     val links: List<LinkSimpleInfo> = emptyList()
+    val isLoading = false
 
     CurationKeywordLinksScreenContent(
         keyword = keyword,
         nickname = nickname,
         links = links,
+        isLoading = isLoading,
         onBack = onBack,
     )
 }
@@ -75,11 +80,31 @@ private fun CurationKeywordLinksScreenContent(
     keyword: String,
     nickname: String,
     links: List<LinkSimpleInfo>,
+    isLoading: Boolean = false,
     onBack: () -> Unit,
 ) {
     val isEmpty = links.isEmpty()
 
     CurationGradientCircleBackground {
+        if (isLoading) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                CurationTopHeaderSkeleton(
+                    onBack = onBack,
+                    contentTopOffset = 105.scaler,
+                )
+
+                Spacer(modifier = Modifier.height(44.scaler))
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.scaler),
+                    verticalArrangement = Arrangement.spacedBy(10.scaler)
+                ) {
+                    repeat(4) { LinkCardItemSkeleton() }
+                }
+            }
+            return@CurationGradientCircleBackground
+        }
+
         Column(modifier = Modifier.fillMaxWidth()) {
             if (isEmpty) {
                 CurationKeywordLinksEmptyHeader(keyword = keyword, onBack = onBack)
@@ -137,6 +162,20 @@ private fun CurationKeywordLinksScreenContent(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "큐레이션 키워드 관련 링크 - 로딩 중 (#43-2)", showBackground = true)
+@Composable
+private fun CurationKeywordLinksScreenLoadingPreview() {
+    LinkuPreview {
+        CurationKeywordLinksScreenContent(
+            keyword = "영어공부",
+            nickname = "세나",
+            links = emptyList(),
+            isLoading = true,
+            onBack = {},
+        )
     }
 }
 
