@@ -2,6 +2,7 @@ package com.linku.curation.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.chip.CurationKeywordCloud
 import com.linku.curation.ui.header.CurationTopHeader
+import com.linku.curation.ui.util.CurationCircleProgressBar
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationKeywordViewModel
 import com.linku.design.component.BottomGradientButton
@@ -49,6 +51,7 @@ internal fun CurationKeywordDetailScreen(
         nickname = state.nickname.ifBlank { nickname },
         jobName = state.jobName,
         keywords = state.keywords.map { it.name },
+        isLoading = state.isLoading,
         onBack = onBack,
         onGoHome = onGoHome,
         onKeywordClick = onKeywordClick,
@@ -60,6 +63,7 @@ private fun CurationKeywordDetailContent(
     nickname: String,
     jobName: String,
     keywords: List<String>,
+    isLoading: Boolean = false,
     onBack: () -> Unit = {},
     onGoHome: () -> Unit = {},
     onKeywordClick: (String) -> Unit = {},
@@ -69,6 +73,16 @@ private fun CurationKeywordDetailContent(
     BackHandler { onBack() }
 
     CurationGradientCircleBackground(modifier = Modifier.fillMaxSize()) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CurationCircleProgressBar()
+            }
+            return@CurationGradientCircleBackground
+        }
+
         if (isEmpty) {
             CurationTopHeader(
                 onBackClick = onBack,
@@ -107,6 +121,19 @@ private fun CurationKeywordDetailContent(
                 onClick = onGoHome,
             )
         }
+    }
+}
+
+@Preview(name = "#43-1 로딩 중", showBackground = true)
+@Composable
+private fun CurationKeywordDetailScreenLoadingPreview() {
+    LinkuPreview {
+        CurationKeywordDetailContent(
+            nickname = "세나",
+            jobName = "대학생",
+            keywords = emptyList(),
+            isLoading = true,
+        )
     }
 }
 

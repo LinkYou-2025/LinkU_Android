@@ -2,25 +2,39 @@ package com.linku.curation.ui.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.UnreadLink
+import com.linku.curation.ui.effect.skeleton.CurationTopHeaderSkeleton
+import com.linku.curation.ui.effect.skeleton.SkeletonBox
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationRemindViewModel
@@ -28,6 +42,7 @@ import com.linku.curation.viewModel.intent.CurationRemindIntent
 import com.linku.curation.viewModel.sideeffect.CurationRemindSideEffect
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import java.time.LocalDate
 
@@ -52,6 +67,7 @@ fun CurationRemindScreen(
 
     CurationRemindScreenContent(
         links = state.links,
+        isLoading = state.isLoading,
         onBack = onBack,
         onLinkClick = { link ->
             val linkId = link.userLinkuId ?: return@CurationRemindScreenContent
@@ -83,9 +99,83 @@ private fun CurationRemindEmptyHeader(onBack: () -> Unit) {
     )
 }
 
+/** [LinkCardItem] 레이아웃을 그대로 따라 만든 shimmer 스켈레톤 플레이스홀더 */
+@Composable
+private fun LinkCardItemSkeleton() {
+    val colors = MaterialTheme.linkuColors
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(colors.white)
+            .padding(10.dp)
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            // 썸네일
+            SkeletonBox(
+                modifier = Modifier.size(85.dp),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                // 제목 1줄
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .fillMaxWidth(0.75f),
+                    shape = RoundedCornerShape(4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(6.dp))
+
+                // 제목 2줄
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(14.dp)
+                        .fillMaxWidth(0.5f),
+                    shape = RoundedCornerShape(4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 태그 칩
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .fillMaxWidth(0.35f),
+                    shape = RoundedCornerShape(6.dp)
+                )
+
+                Spacer(modifier = Modifier.height(9.dp))
+
+                // 도메인 행
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SkeletonBox(
+                        modifier = Modifier.size(22.dp),
+                        shape = CircleShape
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    SkeletonBox(
+                        modifier = Modifier
+                            .height(12.dp)
+                            .fillMaxWidth(0.3f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun CurationRemindScreenContent(
     links: List<UnreadLink>,
+    isLoading: Boolean = false,
     onBack: () -> Unit,
     onLinkClick: (UnreadLink) -> Unit = {},
 ) {
@@ -93,6 +183,25 @@ private fun CurationRemindScreenContent(
     val isEmpty = links.isEmpty()
 
     CurationGradientCircleBackground {
+        if (isLoading) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                CurationTopHeaderSkeleton(
+                    onBack = onBack,
+                    contentTopOffset = 105.scaler,
+                )
+
+                Spacer(modifier = Modifier.height(44.scaler))
+
+                Column(
+                    modifier = Modifier.padding(horizontal = 20.scaler),
+                    verticalArrangement = Arrangement.spacedBy(10.scaler)
+                ) {
+                    repeat(4) { LinkCardItemSkeleton() }
+                }
+            }
+            return@CurationGradientCircleBackground
+        }
+
         Column(modifier = Modifier.fillMaxWidth()) {
             if (isEmpty) {
                 CurationRemindEmptyHeader(onBack = onBack)
@@ -153,6 +262,18 @@ private fun CurationRemindScreenContent(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "큐레이션 리마인드 - 로딩 중 (#44-1)", showBackground = true)
+@Composable
+private fun CurationRemindScreenLoadingPreview() {
+    LinkuPreview {
+        CurationRemindScreenContent(
+            links = emptyList(),
+            isLoading = true,
+            onBack = {},
+        )
     }
 }
 
