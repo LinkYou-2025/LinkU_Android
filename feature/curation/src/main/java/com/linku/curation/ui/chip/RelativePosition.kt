@@ -3,6 +3,10 @@ package com.linku.curation.ui.chip
 import androidx.constraintlayout.compose.ConstraintSet
 
 val constraints = ConstraintSet {
+
+    // ==========================================================
+    // ConstraintLayout 참조 객체
+    // ==========================================================
     val chip1 = createRefFor("chip1")
     val chip2 = createRefFor("chip2")
     val chip3 = createRefFor("chip3")
@@ -13,6 +17,11 @@ val constraints = ConstraintSet {
     val chip8 = createRefFor("chip8")
     val chip9 = createRefFor("chip9")
 
+
+    // ==========================================================
+    // 피그마 기준 칩 중심 좌표를 백분율(상대 좌표)로 계산하여
+    // Guideline으로 정의한다.
+    // ==========================================================
     val x1 = createGuidelineFromStart(0.41f)
     val y1 = createGuidelineFromTop(0.42f)
 
@@ -40,6 +49,10 @@ val constraints = ConstraintSet {
     val x9 = createGuidelineFromStart(0.334f)
     val y9 = createGuidelineFromTop(0.544f)
 
+
+    // ==========================================================
+    // Guideline을 기준으로 각 칩을 배치한다.
+    // ==========================================================
     constrain(chip1) {
         start.linkTo(x1)
         end.linkTo(x1)
