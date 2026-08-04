@@ -58,6 +58,7 @@ class CurationHistoryViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
+                    //TODO: 링큐의 최고 피엠님 ❤️다인눈나❤️ 한테 물어보고 ui 예외처리를 진행해야 할 듯
                     _curationHistoryState.update { it.copy(isLoading = false) }
                 }
         }
