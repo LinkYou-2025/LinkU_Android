@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.SectionItem
 import com.linku.curation.ui.calendar.CalendarBox
@@ -60,7 +60,11 @@ fun CurationScreen(
                 is CurationMainSideEffect.NavigateToUnreadLink -> onRemindClick()
 
                 // 최신 큐레이션 조회 api응답 중 year부분만 파싱해서 전달.
-                is CurationMainSideEffect.NavigateToYearHistory -> onCurationHistoryClick(effect.month.take(4).toInt())
+                is CurationMainSideEffect.NavigateToYearHistory ->
+                    effect.month
+                        .substringBefore('-')
+                        .toIntOrNull()
+                        ?.let(onCurationHistoryClick)
 
                 is CurationMainSideEffect.ShowToast ->
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()

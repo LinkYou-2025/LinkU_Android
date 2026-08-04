@@ -150,8 +150,7 @@ private fun RecommendedLinkCardItem(
         hasAiSummary = false,
         linkTitle = link.title,
         tags = link.categories.take(2),
-        domainName = "", //도메인 이미지는 연동시에 mapper를 이용할지 아닐지 결정해주세요!
-        // domainLogoMap 여기에 지민이가 이전에 만든 mapper가 있어 현우 오빠 그래서 인기 도메인은 그대로 쓰고 아니면..? 서버가 내려주는 이미지 써도 좋을 것 같은데?
+        domainName = link.domain,
         isExternalLink = link.type is LinkType.External,
         linkImageUrl = link.imageUrl,
         domainImageUrl = link.domainImageUrl,
