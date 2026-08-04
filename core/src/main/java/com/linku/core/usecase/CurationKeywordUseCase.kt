@@ -1,5 +1,6 @@
 package com.linku.core.usecase
 
+import com.linku.core.model.curation.KeyWord
 import com.linku.core.repository.CurationRepository
 import com.linku.core.repository.UserRepository
 import kotlinx.coroutines.CancellationException
@@ -37,3 +38,18 @@ class CurationKeywordUseCase @Inject constructor(
         if (it is CancellationException) throw it
     }
 }
+
+/**
+ * 큐레이션 2번 카드 상세 화면(#43-1)에서 사용되는 데이터 모델.
+ *
+ * 사용자의 닉네임, 직업군 정보 및 해당 직업군에서 유행하는 키워드 목록을 포함한다.
+ *
+ * @property nickname 사용자의 닉네임.
+ * @property jobName 사용자의 직업 이름.
+ * @property keywords 해당 직업군 유저들의 이번 달 주요 키워드 리스트.
+ */
+data class KeywordModel(
+    val nickname: String,
+    val jobName: String,
+    val keywords: List<KeyWord>,
+)
