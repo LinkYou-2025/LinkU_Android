@@ -1,6 +1,5 @@
 package com.linku.core.usecase
 
-import com.linku.core.model.curation.CurationMain
 import com.linku.core.repository.CurationRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async

@@ -1,4 +1,8 @@
-package com.linku.core.model.curation
+package com.linku.core.usecase
+
+import com.linku.core.model.curation.CurationDetail
+import com.linku.core.model.curation.MyTopTag
+import com.linku.core.model.curation.RecommendLink
 
 /**
  * 월간 큐레이션의 상세 정보를 나타내는 데이터 클래스입니다.

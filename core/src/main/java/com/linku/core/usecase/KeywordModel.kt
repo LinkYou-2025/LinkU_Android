@@ -1,4 +1,6 @@
-package com.linku.core.model.curation
+package com.linku.core.usecase
+
+import com.linku.core.model.curation.KeyWord
 
 data class KeywordModel(
     val nickname: String,

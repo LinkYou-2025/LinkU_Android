@@ -2,7 +2,7 @@ package com.linku.curation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.model.curation.CurationMain
+import com.linku.core.usecase.CurationMain
 import com.linku.core.usecase.CurationMainUseCase
 import com.linku.curation.viewModel.intent.CurationMainIntent
 import com.linku.curation.viewModel.sideeffect.CurationMainSideEffect

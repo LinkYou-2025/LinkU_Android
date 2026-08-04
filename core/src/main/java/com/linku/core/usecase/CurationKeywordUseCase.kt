@@ -1,6 +1,5 @@
 package com.linku.core.usecase
 
-import com.linku.core.model.curation.KeywordModel
 import com.linku.core.repository.CurationRepository
 import com.linku.core.repository.UserRepository
 import kotlinx.coroutines.CancellationException
