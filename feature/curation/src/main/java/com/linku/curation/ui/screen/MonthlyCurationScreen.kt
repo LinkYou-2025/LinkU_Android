@@ -13,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.monthly.MonthlyCurationGrid
@@ -35,7 +34,7 @@ import com.linku.design.util.scaler
 @Composable
 fun MonthlyCurationScreen(
     modifier: Modifier = Modifier,
-    viewModel: CurationHistoryViewModel = hiltViewModel(),
+    viewModel: CurationHistoryViewModel,
     year: Int = 2026,
     onBackClick: () -> Unit = {},
     onMonthClick: (month: String, curationId: Long) -> Unit = { _, _ -> },

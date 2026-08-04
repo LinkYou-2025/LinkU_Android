@@ -24,7 +24,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.LinkType
 import com.linku.core.model.curation.RecommendLink
@@ -46,7 +45,7 @@ fun CurationMonthlyDetailScreen(
     onBack: () -> Unit,
     onGoHome: () -> Unit = {},
     onNavigateToLinkDetail: (Long) -> Unit = {},
-    viewModel: CurationDetailViewModel = hiltViewModel(),
+    viewModel: CurationDetailViewModel,
 ) {
     val context = LocalContext.current
 

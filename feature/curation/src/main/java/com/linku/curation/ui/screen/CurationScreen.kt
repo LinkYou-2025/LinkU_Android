@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.SectionItem
 import com.linku.curation.ui.calendar.CalendarBox
@@ -43,7 +42,7 @@ private const val PAGER_VIRTUAL_PAGE_COUNT = Int.MAX_VALUE
 @Composable
 fun CurationScreen(
     nickname: String,
-    viewModel: CurationViewModel = hiltViewModel(),
+    viewModel: CurationViewModel,
     onMonthlyDetailClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
     onKeywordDetailClick: (month: String) -> Unit = {},
     onRemindClick: () -> Unit = {},
