@@ -28,6 +28,7 @@
         <activity
             android:name="com.linku.MainActivity"
             android:launchMode="singleTask"
+            android:screenOrientation="portrait"
             android:exported="true"
             android:label="@string/app_name"
             android:theme="@style/Theme.LinkU_Android">
@@ -35,16 +36,6 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
-            <!-- 폴더 공유 앱링크 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="linku"
-                    android:host="open" />
             </intent-filter>
 
             <intent-filter>
@@ -56,7 +47,7 @@
                     android:host="auth" />
             </intent-filter>
 
-            <!-- 폴더 공유 앱링크 (http) -->
+            <!-- 폴더 공유 앱링크 (https) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -67,7 +58,12 @@
                     android:path="/open"/>
             </intent-filter>
 
-            <!-- 카카오 로그인 콜백 로컬 프로퍼티에 꼭 각자 디버그 키 넣어주세요. -->
+        </activity>
+
+        <!-- 카카오 로그인 콜백(카카오계정/웹뷰 로그인 리다이렉트). 로컬 프로퍼티에 꼭 각자 디버그 키 넣어주세요. -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -76,7 +72,6 @@
                     android:scheme="kakao${KAKAO_NATIVE_APP_KEY}"
                     android:host="oauth" />
             </intent-filter>
-
         </activity>
 
         <meta-data
@@ -94,4 +89,3 @@
 
     </application>
 </manifest>
-

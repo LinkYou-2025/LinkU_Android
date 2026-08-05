@@ -14,15 +14,28 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.PagingData
+import com.linku.design.top.search.SearchBarUiState
+import com.linku.design.top.search.SearchResultItem
 import com.linku.file.ui.link.SaveLinkResultScreen
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 @Composable
 fun FileApp(
     fileViewModel: FileViewModel = hiltViewModel(),
     editStateViewModel:EditStateViewModel = viewModel(),
-    folderStateViewModel: FolderStateViewModel = viewModel()
+    folderStateViewModel: FolderStateViewModel = viewModel(),
+    searchUiState: SearchBarUiState = SearchBarUiState(),
+    searchResults: Flow<PagingData<SearchResultItem>> =
+        flowOf(PagingData.empty<SearchResultItem>()),
+    onSearchQueryChange: (String) -> Unit = {},
+    onSearchOpen: () -> Unit = {},
+    onSearchDismiss: () -> Unit = {},
+    onSearchHistoryDelete: (Long) -> Unit = {},
+    onSearchHistoryClear: () -> Unit = {},
 ) {
     val context = LocalContext.current
     val navController = rememberNavController()
@@ -44,7 +57,14 @@ fun FileApp(
             FileScreen(
                 fileViewModel = fileViewModel,
                 editStateViewModel = editStateViewModel,
-                folderStateViewModel = folderStateViewModel
+                folderStateViewModel = folderStateViewModel,
+                searchUiState = searchUiState,
+                searchResults = searchResults,
+                onSearchQueryChange = onSearchQueryChange,
+                onSearchOpen = onSearchOpen,
+                onSearchDismiss = onSearchDismiss,
+                onSearchHistoryDelete = onSearchHistoryDelete,
+                onSearchHistoryClear = onSearchHistoryClear,
             )
         }
 

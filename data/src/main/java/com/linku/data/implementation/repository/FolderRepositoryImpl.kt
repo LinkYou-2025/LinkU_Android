@@ -121,14 +121,14 @@ class FolderRepositoryImpl @Inject constructor(
 
     // (중/소분류) 폴더 내부 폴더, 링크 조회
     override suspend fun getLinksFolders(
-        parentFolderId: Long,
+        folderId: Long,
         limit: Int?,
         cursor: String?,
         sort: String?,
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String? {
-        Log.d("FolderRepositoryImpl", "getLinksFolders folderId: $parentFolderId, limit: $limit, cursor: $cursor")
+        Log.d("FolderRepositoryImpl", "getLinksFolders folderId: $folderId, limit: $limit, cursor: $cursor")
 
         var nextCursor: String? = null
 
@@ -136,15 +136,15 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getLinksFolders try")
 
             safeApiCall(
-                apiCall = { serverApi.getLinksFolders(parentFolderId, limit, cursor, sort) }
+                apiCall = { serverApi.getLinksFolders(folderId, limit, cursor, sort) }
             ).onSuccess { response ->
                 Log.d("FolderRepositoryImpl", "getLinksFolders response: $response")
 
-                onGetFolders(response.folders.map { it.toDomain(parentFolderId) })
+                onGetFolders(response.folders.map { it.toDomain(folderId) })
 
                 Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetFolders(${response.folders})")
 
-                onGetLinks(response.links.map { it.toDomain(parentFolderId) })
+                onGetLinks(response.links.map { it.toDomain(folderId) })
 
                 Log.d("FolderRepositoryImpl", "getLinksFolders well done onGetLinks(${response.links})")
 
@@ -411,7 +411,13 @@ class FolderRepositoryImpl @Inject constructor(
         Log.d("FolderRepositoryImpl", "updateViewerPermission return")
     }
 
-    // 링크 소분류
+    /**
+     * 링크를 지정한 폴더로 이동합니다.
+     *
+     * @param linku 이동할 링크 정보
+     * @param folderId 이동 대상 폴더 ID
+     * @return 이동 요청에 사용한 링크 정보
+     */
     override suspend fun updateLinkFolder(
         linku: LinkItemInfo,
         folderId: Long
@@ -428,16 +434,7 @@ class FolderRepositoryImpl @Inject constructor(
                         UpdateLinkFolderDTO(folderId)
                     )
                 }
-            ).onSuccess {
-                val result = LinkItemInfo(
-                    linkuId = it.linkuId,
-                    parentFolderId = folderId,
-                    title = it.title,
-                    tags = emptyList(),
-                    url = it.domain ?: "",
-                    linkuImageUrl = it.linkuImageUrl,
-                    createdAt = it.createdAt,
-                )
+            ).onSuccess { result ->
                 Log.d("FolderRepositoryImpl", "updateLinkFolder response: $result")
             }.onFailure {
                 throw it
@@ -458,13 +455,10 @@ class FolderRepositoryImpl @Inject constructor(
         try {
             Log.d("FolderRepositoryImpl", "deleteLink try")
 
-            var userLinkuId = 0L
-
             safeApiCall(
                 apiCall = { serverApi.getDetailLink(linkuId) }
             ).onSuccess {
-                userLinkuId = it.userLinkuId
-                Log.d("FolderRepositoryImpl", "deleteLink userLinkuId: $userLinkuId")
+                Log.d("FolderRepositoryImpl", "deleteLink userLinkuId")
             }.onFailure {
                 throw it
             }
@@ -522,11 +516,21 @@ class FolderRepositoryImpl @Inject constructor(
         return tree
     }
 
+    /**
+     * 지정한 폴더를 공유할 수 있는 초대 토큰을 서버에서 생성합니다.
+     *
+     * 서버 요청 실패 시 [safeApiCall]이 변환한 예외를 호출자에게 그대로 전파합니다.
+     *
+     * @param folderId 초대 토큰을 생성할 폴더의 식별자
+     * @return 서버에서 발급한 공유 폴더 초대 토큰
+     * @throws Exception 초대 토큰 생성 요청이 실패한 경우
+     */
     override suspend fun makeInvitationLink(folderId: Long): String {
         Log.d("FolderRepositoryImpl", "makeInvitationLink folderId: $folderId")
 
         var link = ""
 
+        // 초대 토큰은 공유 폴더 접근 자격 정보이므로 로그에는 실제 값 대신 성공 여부만 남깁니다.
         try {
             Log.d("FolderRepositoryImpl", "makeInvitationLink try")
 
@@ -537,7 +541,7 @@ class FolderRepositoryImpl @Inject constructor(
                 }
             ).onSuccess {
                 link = it
-                Log.d("FolderRepositoryImpl", "makeInvitationLink response: $link")
+                Log.d("FolderRepositoryImpl", "makeInvitationLink response: true")
             }.onFailure {
                 throw it
             }
@@ -546,7 +550,7 @@ class FolderRepositoryImpl @Inject constructor(
             throw e
         }
 
-        Log.d("FolderRepositoryImpl", "makeInvitationLink return: $link")
+        Log.d("FolderRepositoryImpl", "makeInvitationLink return: true")
 
         return link
     }
