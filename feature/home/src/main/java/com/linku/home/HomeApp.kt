@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.HomeScreen
 import com.linku.home.viewmodel.AlarmViewModel
@@ -23,6 +24,7 @@ fun HomeApp(
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
     val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
+    val recommendedLinks = viewModel.recommendedLinks.collectAsLazyPagingItems()
     val navController = rememberNavController()
 
     // 일림 목록창에서 사용할 뷰모델
@@ -46,28 +48,20 @@ fun HomeApp(
             HomeScreen(
                 homeViewModel = viewModel,
                 userName = nickname,
-                recommendedLinks = viewModel.recommendedLinks,
+                recommendedLinks = recommendedLinks,
                 recentLinks = recentLinks,
                 isRecommendMode = viewModel.isRecommendMode,
-                isRecommending = viewModel.isRecommending,
-                isLoadingMoreRecommendations = viewModel.isLoadingMoreRecommendations,
-                onRecommendRequest = { emotionId, situationId, size ->
+                onRecommendRequest = { emotionId, situationId ->
                     viewModel.fetchRecommendations(
                         situationId = situationId,
-                        emotionId = emotionId,
-                        size = size
+                        emotionId = emotionId
                     )
                 },
-                onLoadMoreRecommendations = viewModel::loadMoreRecommendations,
                 onExitRecommendMode = viewModel::exitRecommendMode,
                 needMoreForRecommendation = viewModel.needMoreForRecommendation,
                 jobId = viewModel.jobId ?: 2L,
-                onLinkClick = { id ->
-                    onNavigateToLinkDetail(id)
-                },
-                onNavigateToSaveLink = { url ->
-                    onNavigateToSaveLink(url)
-                },
+                onLinkClick = onNavigateToLinkDetail,
+                onNavigateToSaveLink = onNavigateToSaveLink,
                 onAlarmClick = { navController.navigate("alarm") }
             )
         }

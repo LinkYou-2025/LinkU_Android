@@ -41,9 +41,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemContentType
+import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.core.model.SystemBarMode
@@ -66,13 +69,13 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
-    recommendedLinks: List<LinkSimpleInfo>,
+    recommendedLinks: LazyPagingItems<LinkSimpleInfo>,
     recentLinks: List<LinkSimpleInfo>,
     isRecommendMode: Boolean,
-    isRecommending: Boolean,
-    isLoadingMoreRecommendations: Boolean,
-    onRecommendRequest: (emotionId: Long, situationId: Long, size: Int) -> Unit,
-    onLoadMoreRecommendations: () -> Unit,
+    onRecommendRequest: (
+        emotionId: Long,
+        situationId: Long,
+    ) -> Unit,
     onExitRecommendMode: () -> Unit,
     needMoreForRecommendation: Boolean,
     jobId: Long,
@@ -104,41 +107,29 @@ fun HomeScreen(
     var openedDeleteMenuId by remember { mutableStateOf<Long?>(null) }
     val listState = rememberLazyListState()
 
+    val recommendationRefreshState = recommendedLinks.loadState.refresh
+
+    val recommendationAppendState = recommendedLinks.loadState.append
+
+    val isInitialRecommendationLoading =
+        isRecommendMode &&
+                recommendationRefreshState is LoadState.Loading &&
+                recommendedLinks.itemCount == 0
+
+    val isAppendRecommendationLoading =
+        isRecommendMode &&
+                recommendationAppendState is LoadState.Loading
+
+    val initialRecommendationError = recommendationRefreshState as? LoadState.Error
+
+    val appendRecommendationError = recommendationAppendState as? LoadState.Error
+
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }
             .distinctUntilChanged()
             .collect { isScrolling ->
                 if (isScrolling) {
                     openedDeleteMenuId = null
-                }
-            }
-    }
-
-    LaunchedEffect(
-        listState,
-        isRecommendMode,
-        isRecommending,
-        isLoadingMoreRecommendations,
-    ) {
-        snapshotFlow {
-            val layoutInfo = listState.layoutInfo
-            val lastVisibleItemIndex =
-                layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            val totalItemsCount = layoutInfo.totalItemsCount
-
-            totalItemsCount > 0 &&
-                    lastVisibleItemIndex >= totalItemsCount - 2
-        }
-            .distinctUntilChanged()
-            .collect { reachedEnd ->
-                if (
-                    reachedEnd &&
-                    isRecommendMode &&
-                    !isRecommending &&
-                    !isLoadingMoreRecommendations &&
-                    recommendedLinks.isNotEmpty()
-                ) {
-                    onLoadMoreRecommendations()
                 }
             }
     }
@@ -187,19 +178,29 @@ fun HomeScreen(
     val topBarCollapsed = isTopBarLockedCollapsed
 
     val onRecommendClick: () -> Unit = {
-        hasRequestedRecommend = true // 클릭 기록
-        // 선택 없어도 접히는건 스크롤이 담당
-        // 추천 요청은 선택이 있어야만
-        if (selectedEmotion != null && selectedTask != null) {
-            onRecommendRequest(selectedEmotion!!, selectedTask!!, 5)
+        hasRequestedRecommend = true
+
+        val emotionId = selectedEmotion
+        val situationId = selectedTask
+
+        if (
+            emotionId != null &&
+            situationId != null &&
+            !isInitialRecommendationLoading
+        ) {
+            onRecommendRequest(
+                emotionId,
+                situationId,
+            )
 
             isTopBarLockedCollapsed = true
 
-            coroutineScope.launch { listState.animateScrollToItem(1) }
+            coroutineScope.launch {
+                listState.animateScrollToItem(1)
+            }
         }
     }
 
-    val itemsToRender = if (isRecommendMode) recommendedLinks else recentLinks
     val titleText =
         if (isRecommendMode) "${userName}님에게 딱 맞는 링크"
         else "${userName}님이 최근에 열람한 링크"
@@ -214,17 +215,23 @@ fun HomeScreen(
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
-    val footerHeight = remember(itemsToRender.size, topBarCollapsed, screenHeight) {
-        val fraction = slackFractionFor(itemsToRender.size, topBarCollapsed)
+    val footerHeight =
+        remember(
+            recentLinks.size,
+            topBarCollapsed,
+            screenHeight,
+        ) {
+            val fraction = slackFractionFor(
+                count = recentLinks.size,
+                collapsed = topBarCollapsed,
+            )
 
-        // 아이템이 적어서 스크롤 여유가 필요할 때만 footer를 줌
-        if (itemsToRender.size <= 3) {
-            screenHeight * fraction
-        } else {
-            // 아이템 많으면 굳이 여유 필요 없음
-            0.dp
+            if (recentLinks.size <= 3) {
+                screenHeight * fraction
+            } else {
+                0.dp
+            }
         }
-    }
 
     val clipboardUrl by rememberClipboardUrl()
     var dismissedClipboardUrl by remember { mutableStateOf<String?>(null) }
@@ -264,23 +271,32 @@ fun HomeScreen(
                     selectedTaskId = selectedTask,
                     onTaskChange = { id -> selectedTask = id },
                     situations = jobSituations,
-                    recommendEnabled = (selectedEmotion != null && selectedTask != null && !isRecommending),
+                    recommendEnabled =
+                        selectedEmotion != null &&
+                                selectedTask != null &&
+                                !isInitialRecommendationLoading,
                     onRecommendClick = onRecommendClick,
                     isCollapsed = topBarCollapsed,
                     expandEnabled =
-                        !isRecommending &&
-                                !isLoadingMoreRecommendations,
+                        !isInitialRecommendationLoading &&
+                                !isAppendRecommendationLoading,
                     onExpandClick = {
-                        if (!isRecommending && !isLoadingMoreRecommendations) {
+                        if (
+                            !isInitialRecommendationLoading &&
+                            !isAppendRecommendationLoading
+                        ) {
                             openedDeleteMenuId = null
                             hasRequestedRecommend = false
+
                             onExitRecommendMode()
 
                             isTopBarLockedCollapsed = false
                             selectedEmotion = null
                             selectedTask = null
 
-                            coroutineScope.launch { listState.animateScrollToItem(0) }  // 맨 위로 올려서 펼침 유지
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0)
+                            }
                         }
                     },
                     hasRequestedRecommend = hasRequestedRecommend,
@@ -327,18 +343,74 @@ fun HomeScreen(
                 }
 
                 // 최초 추천 데이터를 불러오는 경우
-                isRecommendMode && isRecommending && recommendedLinks.isEmpty() -> Unit
+                isInitialRecommendationLoading -> {
+                    /*
+                     * 기존 정책대로 목록 영역은 비웁니다.
+                     * 하단 CustomToastMessage에서 로딩을 표시합니다.
+                     */
+                }
+
+                isRecommendMode && initialRecommendationError != null -> {
+                    item(key = "recommendation-refresh-error") {
+                        RecommendationLoadError(
+                            message = "추천 링크를 불러오지 못했어요.",
+                            onRetry = recommendedLinks::retry,
+                        )
+                    }
+                }
+
+                isRecommendMode -> {
+                    items(
+                        count = recommendedLinks.itemCount,
+                        key = recommendedLinks.itemKey { link ->
+                            "recommend-${link.userLinkuId}-${link.linkuId}"
+                        },
+                        contentType = recommendedLinks.itemContentType { "recommendation-link" },
+                    ) { index ->
+                        val link = recommendedLinks[index] ?: return@items
+                        val menuId = link.userLinkuId ?: link.linkuId
+
+                        LinkCard(
+                            link = link,
+                            isDeleteMenuVisible = openedDeleteMenuId == menuId,
+                            onMoreClick = {
+                                openedDeleteMenuId = if (openedDeleteMenuId == menuId) null else menuId
+                            },
+                            onDeleteClick = {
+                                openedDeleteMenuId = null
+
+                                /*
+                                 * TODO 삭제 API 성공 후:
+                                 * recommendedLinks.refresh()
+                                 */
+                            },
+                            onCardClick = { linkuId ->
+                                openedDeleteMenuId = null
+                                onLinkClick(linkuId)
+                            },
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
+                        )
+                    }
+
+                    when {
+                        isAppendRecommendationLoading -> {
+                            item(key = "recommendation-append-loading") {
+                                RecommendationAppendLoading()
+                            }
+                        }
+
+                        appendRecommendationError != null -> {
+                            item(key = "recommendation-append-error") {
+                                RecommendationAppendError(onRetry = recommendedLinks::retry)
+                            }
+                        }
+                    }
+                }
 
                 else -> {
                     items(
-                        items = itemsToRender,
-                        key = { link ->
-                            if (isRecommendMode) {
-                                "recommend-${link.userLinkuId}-${link.linkuId}"
-                            } else {
-                                "recent-${link.userLinkuId}-${link.linkuId}"
-                            }
-                        },
+                        items = recentLinks,
+                        key = { link -> "recent-${link.userLinkuId}-${link.linkuId}" },
                     ) { link ->
                         val menuId = link.userLinkuId ?: link.linkuId
 
@@ -362,34 +434,30 @@ fun HomeScreen(
                                 openedDeleteMenuId = null
                                 onLinkClick(linkuId)
                             },
-                            modifier = Modifier.padding(
-                                start = 20.dp,
-                                end = 20.dp,
-                                bottom = 10.dp,
-                            ),
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
                         )
                     }
 
-                    if (
-                        isRecommendMode &&
-                        isLoadingMoreRecommendations
-                    ) {
-                        item(key = "recommendation-loading-more") {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(80.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "추천 링크를 더 불러오는 중...",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Normal,
-                                    color = colors.gray[600],
-                                )
-                            }
-                        }
-                    }
+//                    if (
+//                        isRecommendMode &&
+//                        isLoadingMoreRecommendations
+//                    ) {
+//                        item(key = "recommendation-loading-more") {
+//                            Box(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .height(80.dp),
+//                                contentAlignment = Alignment.Center,
+//                            ) {
+//                                Text(
+//                                    text = "추천 링크를 더 불러오는 중...",
+//                                    fontSize = 13.sp,
+//                                    fontWeight = FontWeight.Normal,
+//                                    color = colors.gray[600],
+//                                )
+//                            }
+//                        }
+//                    }
                 }
             }
 
@@ -404,11 +472,7 @@ fun HomeScreen(
             }
         }
 
-        if (
-            isRecommendMode &&
-            isRecommending &&
-            recommendedLinks.isEmpty()
-        ) {
+        if (isInitialRecommendationLoading) {
             CustomToastMessage(
                 toastMessage = "추천할 링크 분류중..",
                 modifier = Modifier
@@ -522,6 +586,105 @@ private fun NeedMoreLinks() {
     }
 }
 
+// 추가 로딩 UI
+@Composable
+private fun RecommendationAppendLoading() {  // TODO: 다인언니에게 물어본 후 확정 예정, 지금은 임시
+    val colors = MaterialTheme.linkuColors
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(80.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "추천 링크를 더 불러오는 중...",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Normal,
+            color = colors.gray[600],
+        )
+    }
+}
+
+// 추가 로딩 실패 UI
+@Composable
+private fun RecommendationAppendError(  // TODO: 다인언니에게 물어본 후 확정 예정, 지금은 임시
+    onRetry: () -> Unit,
+) {
+    val colors = MaterialTheme.linkuColors
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "추천 링크를 더 불러오지 못했어요.",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Normal,
+            color = colors.gray[600],
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "다시 시도",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.black,
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures {
+                    onRetry()
+                }
+            },
+        )
+    }
+}
+
+// 최초 로딩 실패 UI
+@Composable
+private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 확정 예정, 지금은 임시
+    message: String,
+    onRetry: () -> Unit,
+) {
+    val colors = MaterialTheme.linkuColors
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = 20.dp,
+                vertical = 65.dp,
+            ),
+        horizontalAlignment =
+            Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = message,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.gray[800],
+        )
+
+        Spacer(
+            modifier = Modifier.height(12.dp),
+        )
+
+        Text(
+            text = "다시 시도하기",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.black,
+            modifier = Modifier.pointerInput(Unit) {
+                detectTapGestures {
+                    onRetry()
+                }
+            },
+        )
+    }
+}
+
 @Composable
 private fun LinkCard(
     link: LinkSimpleInfo,
@@ -557,24 +720,8 @@ private fun LinkCard(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewHomeScreen() {
+private fun PreviewEmptyRecentBox() {
     ThemeProvider {
-        HomeScreen(
-            homeViewModel = hiltViewModel(),
-            userName = "세나",
-            recommendedLinks = emptyList(),
-            recentLinks = emptyList(),
-            isRecommendMode = false,
-            isRecommending = false,
-            isLoadingMoreRecommendations = false,
-            onLoadMoreRecommendations = {},
-            onExitRecommendMode = {},
-            onRecommendRequest = { _, _, _ -> },
-            needMoreForRecommendation = false,
-            jobId = 2L,
-            onLinkClick = {},
-            onNavigateToSaveLink = {},
-            onAlarmClick = {}
-        )
+        EmptyRecentBox()
     }
 }

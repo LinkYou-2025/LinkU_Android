@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     //alias(libs.plugins.kotlin.android)
@@ -177,5 +178,9 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.svg)
     implementation(libs.accompanist.systemuicontroller)
+
+    // paging
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 
 }
