@@ -3,6 +3,7 @@ package com.linku.home.screen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -34,6 +37,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -651,11 +655,14 @@ private fun RecommendationAppendError(  // TODO: 다인언니에게 물어본 �
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             color = colors.black,
-            modifier = Modifier.pointerInput(Unit) {
-                detectTapGestures {
-                    onRetry()
-                }
-            },
+            modifier = Modifier
+                .clickable(
+                    role = Role.Button,
+                    onClick = onRetry,
+                )
+                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .wrapContentSize()
+                .padding(horizontal = 12.dp),
         )
     }
 }
@@ -688,11 +695,14 @@ private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = colors.black,
-            modifier = Modifier.pointerInput(Unit) {
-                detectTapGestures {
-                    onRetry()
-                }
-            },
+            modifier = Modifier
+                .clickable(
+                    role = Role.Button,
+                    onClick = onRetry,
+                )
+                .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+                .wrapContentSize()
+                .padding(horizontal = 12.dp),
         )
     }
 }
