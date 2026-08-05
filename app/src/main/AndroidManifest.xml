@@ -41,6 +41,21 @@
             </intent-filter>
 
             <intent-filter>
+                <action android:name="notice_icon_click"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+
+            <!-- 폴더 공유 앱링크 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="linku"
+                    android:host="open" />
+            </intent-filter>
+
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -79,6 +94,13 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="default_channel" />
+
+        <!--   상태바 표시용 아이콘   -->
+        <!--   왜인지는 모르겠는데 png로 처리하니 백그라운드에서 알람 아이콘이 단색처리되는 문제가 사라졌다..  -->
+        <!--   호애앵!! 너 때문에 몇 시간을 쓴 거지...  -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/img_noti_ex_2"/>
 
         <!--    FCM Service    -->
         <service

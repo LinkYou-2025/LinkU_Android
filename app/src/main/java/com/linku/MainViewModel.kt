@@ -7,6 +7,9 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.model.alarm.AlarmType
+import com.linku.core.repository.AlarmRepository
+import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.data.preference.AuthPreference
@@ -31,7 +34,8 @@ class MainViewModel @Inject constructor(
     private val notificationPreference: NotificationPreference,
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
-    private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase
+    private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase,
+    private val alarmRepository: AlarmRepository,
 ) : AndroidViewModel(application) {
 
     private val _sideEffect = Channel<SideEffect>(Channel.BUFFERED)
@@ -40,6 +44,18 @@ class MainViewModel @Inject constructor(
     // 닉네임 캐싱 먼저 -> ui 지직거림 방지
     private val _nickname = MutableStateFlow<String>("")
     val nickname: StateFlow<String> = _nickname.asStateFlow()
+
+    // 인증 상태. ViewModel State로 관리하는 이유:
+    // ViewModel은 구성 변경(회전)엔 살아남지만 프로세스 종료 시엔 함께 소멸된다.
+    // 따라서 복원 시 항상 false부터 시작 → 실제 로그인/자동 로그인 성공 시에만 true가 되어,
+    // 세션이 죽었는데 stale-true가 복원돼 인증 전 pending 알림을 소비하는 문제를 원천 차단.
+    private val _isAuthenticated = MutableStateFlow(false)
+    val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+
+    // 로그인/자동 로그인 성공 시 true, 로그아웃 시 false로 갱신
+    fun setAuthenticated(value: Boolean) {
+        _isAuthenticated.value = value
+    }
 
     // 로그인 세션 반영함.
     val isLoggedIn: StateFlow<Boolean?> = authPreference.isLoggedIn
@@ -142,6 +158,42 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun handleNotification(type: AlarmType, targetId: Long, alarmId: Long?) {
+        viewModelScope.launch {
+
+            _sideEffect.send(
+                SideEffect.NavigateByNotification(type, targetId, alarmId)
+            )
+        }
+    }
+
+    // 푸시 알림 클릭 시 앱이 죽어있던 경우, auth 완료 전까지 목적지를 임시 보관
+    private var pendingNotification: PendingNotification? = null
+
+
+    // auth 플로우 중 수신된 알림 목적지 저장 (login/auto-login 성공 후 consume)
+    fun setPendingNotification(
+        type: AlarmType,
+        targetId: Long,
+        alarmId: Long?
+    ) {
+        pendingNotification = PendingNotification(
+            type = type,
+            targetId = targetId,
+            alarmId = alarmId
+        )
+    }
+
+    // 저장된 알림 목적지를 꺼내고 초기화 (1회용).
+    // alarmId가 있으면 이 시점(인증 완료 후)에 readAlarm 호출 → 인증 전 콜드스타트에서도 안전하게 처리됨.
+    fun consumePendingNotification(): PendingNotification? {
+        val pending = pendingNotification.also { pendingNotification = null }
+        pending?.alarmId?.let { id ->
+            viewModelScope.launch { alarmRepository.readAlarm(id) }
+        }
+        return pending
+    }
+
     fun allowPushAlarm() {
         viewModelScope.launch {
             firstPushAlarmAllowedUseCase()
@@ -165,4 +217,16 @@ class MainViewModel @Inject constructor(
 sealed interface SideEffect {
     data object ShowPushAlarmDialog: SideEffect
     data class ShowToast(val message: String) : SideEffect
+
+    data class NavigateByNotification(
+        val type: AlarmType,
+        val targetId: Long,
+        val alarmId: Long?
+    ) : SideEffect
 }
+
+data class PendingNotification(
+    val type: AlarmType,
+    val targetId: Long,
+    val alarmId: Long?
+)

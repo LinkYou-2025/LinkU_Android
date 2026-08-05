@@ -5,14 +5,15 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.google.firebase.messaging.FirebaseMessaging
+import com.linku.core.model.alarm.AlarmDetail
 import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
 import com.linku.data.preference.NotificationPreference
 import com.linku.data.api.alarm.AlarmApi
-import com.linku.data.api.dto.server.alarm.AlarmSettingRequest
-import com.linku.data.api.dto.server.alarm.FcmTokenRequest
+import com.linku.data.api.dto.alarm.AlarmSettingRequest
+import com.linku.data.api.dto.alarm.FcmTokenRequest
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.AlarmMapper.toDomain
@@ -53,6 +54,7 @@ class AlarmRepositoryImpl @Inject constructor(
         }.onSuccess { dto ->
             // isAllEnabled만 캐싱
             notificationPreference.setMasterNotificationEnabled(dto.isAllEnabled)
+            Log.d("FCM", "푸시 활성화 여부 ${dto.isAllEnabled}")
         }.map {
             it.toDomain()
         }
@@ -87,6 +89,27 @@ class AlarmRepositoryImpl @Inject constructor(
         }.onFailure { e ->
             Log.e("FCM", "fcm 토큰 서버 전송 실패: ${e::class.simpleName} - ${e.message}")
         }
+    }
+
+    override suspend fun getAlarmDetail(alarmId: Long): Result<AlarmDetail> {
+        return safeApiCall {
+            alarmApi.getAlarmDetail(alarmId)
+        }.map {
+            it.toDomain()
+        }
+    }
+
+    override suspend fun readAlarm(alarmId: Long): Result<Unit> {
+        return safeApiCallUnit {
+            Log.d("AlarmList","알람 읽음 처리 완료")
+            alarmApi.readAlarm(alarmId)
+        }
+    }
+
+    override suspend fun getUnreadAlarmExists(): Result<Boolean> {
+        return safeApiCall {
+            alarmApi.getUnreadAlarmExists()
+        }.map { it.hasUnread }
     }
 
 }

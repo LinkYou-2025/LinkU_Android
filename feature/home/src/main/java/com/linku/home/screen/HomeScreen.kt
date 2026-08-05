@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.paging.PagingData
@@ -119,6 +120,11 @@ fun HomeScreen(
     }
 
     var openedDeleteMenuId by remember { mutableStateOf<Long?>(null) }
+
+    // 알림 읽지 않음 여부 갱신
+    LaunchedEffect(Unit) {
+        homeViewModel.refreshUnreadAlarm()
+    }
     val listState = rememberLazyListState()
 
     val recommendationRefreshState = recommendedLinks.loadState.refresh
@@ -254,6 +260,8 @@ fun HomeScreen(
     val shouldShowClipboardBanner =
         clipboardUrl != null && clipboardUrl != dismissedClipboardUrl
 
+    val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -278,7 +286,7 @@ fun HomeScreen(
         ) {
             stickyHeader {
                 HomeTopBar(
-                    isNoticeExist = false, // TODO: 실제 알림 여부 연결
+                    isNoticeExist = isUnreadAlarmExists,
                     userName = userName,
                     selectedEmotionId = selectedEmotion,
                     onEmotionChange = { id -> selectedEmotion = id },

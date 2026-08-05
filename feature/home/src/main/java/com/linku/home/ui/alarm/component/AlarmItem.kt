@@ -34,12 +34,15 @@ import com.linku.home.ui.alarm.util.iconRes
 @Composable
 fun AlarmItem(
     alarm: AlarmSummary,
-    modifier: Modifier = Modifier
+    isRead: Boolean = alarm.isRead,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp)
+        shape = RoundedCornerShape(18.dp),
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier
@@ -76,7 +79,7 @@ fun AlarmItem(
                         fontSize = 13.sp,
                         color = LocalColorTheme.current.gray[400],
                     )
-                    if (!alarm.isRead) {
+                    if (!isRead) {
                         Box(
                             modifier = Modifier
                                 .size(7.dp)
@@ -95,7 +98,7 @@ fun AlarmItem(
             Text(
                 text = alarm.message,
                 fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight(500),
                 color = LocalColorTheme.current.black,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
@@ -107,19 +110,25 @@ fun AlarmItem(
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//private fun AlarmItemPreview() {
-//    LinkuPreview {
-//        AlarmItem(
-//            alarm = AlarmSummary(
-//                id = 1,
-//                alarmType = AlarmType.CURATION,
-//                whenSubmitted = "10분 전",
-//                message = "1월 세나님을 위한 링큐레이션이 도착했어요!",
-//                isRead = false
-//            ),
-//            modifier = Modifier.padding(16.dp)
-//        )
-//    }
-//}
+@Preview
+@Composable
+private fun AlarmItemPreview() {
+    LinkuPreview {
+        Box(
+            modifier = Modifier
+                .background(LocalColorTheme.current.white)
+                .padding(16.dp)
+        ) {
+            AlarmItem(
+                alarm = AlarmSummary(
+                    id = 1L,
+                    alarmType = AlarmType.LINK,
+                    whenSubmitted = "2023-10-27 10:00:00",
+                    message = "새로운 링크가 추가되었습니다.",
+                    targetId = 101L,
+                    isRead = false
+                )
+            )
+        }
+    }
+}

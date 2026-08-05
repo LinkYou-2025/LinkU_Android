@@ -216,7 +216,7 @@ fun SearchBarTopSheet(
             if(isEditMode){
                 Icon(
                     modifier = Modifier
-                        .noRippleClickable{
+                        .noRippleClickable(enabled = !uiState.isHistoryLoading) {
                             onQueryDelete(item.searchHistoryId)
                         },
                     painter = painterResource(id = R.drawable.ic_recent_search_x),
@@ -552,7 +552,10 @@ fun SearchBarTopSheet(
 
                                     // 모두 지우기 버튼
                                     Text(
-                                        modifier = Modifier.noRippleClickable (onClick = onQueryClear),
+                                        modifier = Modifier.noRippleClickable(
+                                            enabled = !uiState.isHistoryLoading,
+                                            onClick = onQueryClear,
+                                        ),
                                         text = "모두 지우기",
                                         fontSize = 14.sp,
                                         lineHeight = 20.sp,

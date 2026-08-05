@@ -2,6 +2,7 @@ package com.linku
 
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -46,49 +47,80 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
         super.onMessageReceived(message)
 
         externalScope.launch {
+
             // 푸시알림 활성화 안되어있으면 종료
-            if (!notificationPreference.isMasterNotificationEnabled()) return@launch
+            if (!notificationPreference.isMasterNotificationEnabled()) {
+                Log.e("FCM", "master notification off")
+                return@launch
+            }
 
-            // FCM 메시지 타입에 따라 title/body 추출
-            // Notification Message: message.notification에서 추출
-            // Data Message: message.data에서 추출
-            // 둘 다 없으면 처리 불필요로 판단하여 종료
-            val title = message.notification?.title ?: message.data["title"] ?: return@launch
-            val body = message.notification?.body ?: message.data["message"] ?: return@launch
-            val targetId = message.data["targetId"] ?: "null"
+            try {
+                val title = message.notification?.title ?: "링큐"
 
-            Log.d("FCM", """
-                FCM 수신
-                title: $title
-                body: $body
-                targetId: $targetId
-                """.trimIndent()
-            )
+                val body = requireNotNull(message.notification?.body) {
+                    "알림 body가 없습니다."
+                }
 
-            val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
-                ?: return@launch // null이면 알림 생략하고 종료
+                val type = requireNotNull(message.data["type"]) {
+                    "알림 데이터에 type이 없습니다."
+                }
 
-            // 일단은 액티비티로의 이동처리만 구현. 추후 수정 예정
-            val pendingIntent = PendingIntent.getActivity(
-                this@LinkUFireBaseMessageService,
-                0,
-                launchIntent,
-                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-            )
+                val targetId = requireNotNull(message.data["targetId"]) {
+                    "알림 데이터에 targetId가 없습니다."
+                }
 
-            // 알림 제작
-            val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_logo)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setContentIntent(pendingIntent)
-                .build()
+                val alarmId = requireNotNull(message.data["alarmId"]) {
+                    "알림 데이터에 alarmId가 없습니다."
+                }
 
-            // 알림 출력
-            getSystemService(NotificationManager::class.java)
-                .notify(System.currentTimeMillis().toInt(), notification)
+                if (BuildConfig.DEBUG) {
+                    Log.d("FCM", """
+                    FCM 수신
+                    title: $title
+                    body: $body
+                    targetId: $targetId
+                    """.trimIndent()
+                    )
+                }
+
+                // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
+                val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+                    ?.apply {
+                        putExtra("type", type)
+                        putExtra("targetId", targetId)
+                        putExtra("alarmId", alarmId)
+                    }
+
+                val pendingIntent = PendingIntent.getActivity(
+                    this@LinkUFireBaseMessageService,
+                    0,
+                    launchIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                ) ?: return@launch
+
+                // 알림 제작
+                val notification = NotificationCompat.Builder(this@LinkUFireBaseMessageService, CHANNEL_ID)
+                    .setSmallIcon(R.drawable.img_noti_ex_2) // 상태바 표시 아이콘
+                    .setLargeIcon( // 알림 확장 영역 표시용 앱 로고
+                        BitmapFactory.decodeResource(
+                            resources,
+                            R.drawable.ic_logo
+                        )
+                    )
+                    .setContentTitle(title)
+                    .setContentText(body)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .build()
+
+                // 알림 출력
+                getSystemService(NotificationManager::class.java)
+                    .notify(System.currentTimeMillis().toInt(), notification)
+
+            } catch (e: IllegalArgumentException) {
+                Log.e("FCM", "FCM 메시지 처리 실패: ${e.message}")
+            }
         }
     }
 

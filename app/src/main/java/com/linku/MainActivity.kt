@@ -2,13 +2,16 @@ package com.linku
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.linku.core.model.SystemBarMode
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.system.SystemBarController
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -17,6 +20,12 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity(), SystemBarController {
+    private var currentSystemBarMode: SystemBarMode? = null
+
+    // 푸시 알림 수신은 Activity 또는 FCM 서비스에서 호출되므로
+    // Composable 범위가 아닌 Activity 생명주기에 묶여야 한다.
+    private val viewModel: MainViewModel by viewModels()
+
     /**
      * 앱 전역 Compose UI를 구성하고 콜드 스타트 딥링크를 내비게이션 그래프에 전달합니다.
      *
@@ -24,6 +33,8 @@ class MainActivity : ComponentActivity(), SystemBarController {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("_MainActivity", "onCreate")
+        handleIntent(intent)
 
         //WindowCompat.setDecorFitsSystemWindows(window, false)
         //enableEdgeToEdge()
@@ -46,7 +57,35 @@ class MainActivity : ComponentActivity(), SystemBarController {
         // 이후 Activity.intent 조회에서도 가장 최근에 받은 Intent를 반환하도록 교체합니다.
         setIntent(intent)
 
+        Log.d("_MainActivity", "onNewIntent")
+        handleIntent(intent)
+    }
 
+    /**
+     * 전달된 [Intent]를 분석하여 알림 처리를 수행합니다.
+     *
+     * Intent의 extra 데이터에서 "type"과 "targetId"를 추출하며,
+     * 유효한 데이터가 존재할 경우 [MainViewModel]을 통해 알림 처리 로직을 실행합니다.
+     *
+     * @param intent 처리를 수행할 인텐트 객체
+     */
+    private fun handleIntent(intent: Intent) {
+
+        val type = intent.getStringExtra("type")
+            ?.let { runCatching { AlarmType.valueOf(it) }.getOrNull() }
+            ?: return
+
+        val targetId = intent.getStringExtra("targetId")?.toLongOrNull() ?: return
+        val alarmId = intent.getStringExtra("alarmId")?.toLongOrNull()
+
+        viewModel.handleNotification(type, targetId, alarmId)
+
+        // 처리 완료한 알림 Intent는 소비 처리.
+        // Activity 재생성(예: 화면 회전) 시 동일 Intent가 다시 전달되어
+        // 중복 읽음 처리 및 중복 네비게이션이 발생하는 것을 방지
+        intent.removeExtra("type")
+        intent.removeExtra("targetId")
+        intent.removeExtra("alarmId")
     }
 
     override fun onResume() {

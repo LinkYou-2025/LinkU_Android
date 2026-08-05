@@ -1,4 +1,4 @@
-package com.linku.data.api.dto.server.alarm
+package com.linku.data.api.dto.alarm
 
 import com.squareup.moshi.Json
 import com.squareup.moshi.JsonClass
