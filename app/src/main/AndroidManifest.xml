@@ -38,16 +38,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- 폴더 공유 앱링크 -->
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="linku"
-                    android:host="open" />
-            </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -57,7 +47,7 @@
                     android:host="auth" />
             </intent-filter>
 
-            <!-- 폴더 공유 앱링크 (http) -->
+            <!-- 폴더 공유 앱링크 (https) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -99,4 +89,3 @@
 
     </application>
 </manifest>
-

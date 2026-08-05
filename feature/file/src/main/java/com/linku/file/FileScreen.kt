@@ -30,12 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.PagingData
 import com.linku.core.error.SameNameException
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
+import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchBarTopSheet
+import com.linku.design.top.search.SearchResultItem
 import com.linku.design.util.LocalStatusBarDarkIcons
 import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
@@ -52,13 +55,22 @@ import com.linku.file.ui.top.bar.component.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @Composable
 fun FileScreen(
     fileViewModel: FileViewModel = hiltViewModel(),
     editStateViewModel:EditStateViewModel = viewModel(),
-    folderStateViewModel: FolderStateViewModel = viewModel()
+    folderStateViewModel: FolderStateViewModel = viewModel(),
+    searchUiState: SearchBarUiState,
+    searchResults: Flow<PagingData<SearchResultItem>>,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchOpen: () -> Unit,
+    onSearchDismiss: () -> Unit,
+    onSearchHistoryDelete: (Long) -> Unit,
+    onSearchHistoryClear: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -137,7 +149,11 @@ fun FileScreen(
             FileTopBar(
                 fileViewModel = fileViewModel,
                 editStateViewModel = editStateViewModel,
-                folderStateViewModel = folderStateViewModel
+                folderStateViewModel = folderStateViewModel,
+                onSearchClick = {
+                    folderStateViewModel.updateSearchTopSheetVisible(true)
+                    onSearchOpen()
+                },
             )},
     ){ innerPadding ->
 
@@ -381,13 +397,17 @@ fun FileScreen(
     SearchBarTopSheet(
         visible = folderStateViewModel.searchTopSheetVisible,
         onLinkClick = { fileViewModel.onLinkClick?.invoke(it)},
-        onDismiss = { folderStateViewModel.updateSearchTopSheetVisible(false) },
-        onQueryChange = { fileViewModel.fastSearch(it) },
-        onQuerySave = { fileViewModel.addRecentQuery(it) },
-        onQueryDelete = { fileViewModel.removeRecentQuery(it) },
-        onQueryClear = { fileViewModel.clearRecentQuery() },
-        fastSearchItems = fileViewModel.fastSearchItems.collectAsState().value,
-        recentQueries = fileViewModel.recentQueryList.collectAsState().value.map{it.text}
+        onDismiss = {
+            if (folderStateViewModel.searchTopSheetVisible) {
+                folderStateViewModel.updateSearchTopSheetVisible(false)
+                onSearchDismiss()
+            }
+        },
+        onQueryChange = onSearchQueryChange,
+        onQueryDelete = onSearchHistoryDelete,
+        onQueryClear = onSearchHistoryClear,
+        searchResults = searchResults,
+        uiState = searchUiState,
     )
 }
 
@@ -398,5 +418,13 @@ fun FileScreen(
     showBackground = true)
 @Composable
 private fun PreviewFileScreen() {
-    FileScreen()
+    FileScreen(
+        searchUiState = SearchBarUiState(),
+        searchResults = flowOf(PagingData.empty<SearchResultItem>()),
+        onSearchQueryChange = {},
+        onSearchOpen = {},
+        onSearchDismiss = {},
+        onSearchHistoryDelete = {},
+        onSearchHistoryClear = {},
+    )
 }
