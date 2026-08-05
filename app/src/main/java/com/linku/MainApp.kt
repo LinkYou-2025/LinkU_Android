@@ -633,6 +633,7 @@ fun MainApp(
 
                 composable("savelink") {
                     val context = LocalContext.current
+                    val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
 
                     fun exitSaveLinkScreen() {
                         linkViewModel.resetSaveForm()
@@ -644,15 +645,15 @@ fun MainApp(
                     }
 
                     SaveLinkScreen(
-                        image = linkViewModel.saveImage,
-                        url = linkViewModel.saveUrl,
-                        title = linkViewModel.saveTitle,
-                        memo = linkViewModel.saveMemo,
+                        image = linkUiState.saveImage,
+                        url = linkUiState.saveUrl,
+                        title = linkUiState.saveTitle,
+                        memo = linkUiState.saveMemo,
                         selectedEmotionId =
-                            linkViewModel.selectedSaveEmotionId,
+                            linkUiState.selectedSaveEmotionId,
                         selectedSituationId =
-                            linkViewModel.selectedSaveSituationId,
-                        jobId = linkViewModel.jobId ?: 3L,
+                            linkUiState.selectedSaveSituationId,
+                        jobId = linkUiState.jobId ?: 3L,
                         onImageSelected = linkViewModel::setSaveImage,
                         onPermissionDenied = {
                             Toast.makeText(
@@ -680,7 +681,7 @@ fun MainApp(
                             exitSaveLinkScreen()
                         },
                         isSaveButtonEnabled =
-                            linkViewModel.isSaveButtonEnabled,
+                            linkUiState.isSaveButtonEnabled,
                         onSaveButtonClick = {
                             linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
@@ -714,6 +715,7 @@ fun MainApp(
                     val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
                     val detailCoroutineScope = rememberCoroutineScope()
+                    val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
 
                     val linkuId = backStackEntry.arguments
                         ?.takeIf { it.containsKey("linkuId") }
@@ -794,7 +796,7 @@ fun MainApp(
                         )
                     }
 
-                    val linkDetail = linkViewModel.linkDetail
+                    val linkDetail = linkUiState.linkDetail
 
                     LaunchedEffect(
                         linkDetail?.keyword,

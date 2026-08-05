@@ -1,10 +1,8 @@
 package com.linku.home.viewmodel
 
 import android.util.Log
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.model.AiArticle
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.TempImageFile
@@ -17,12 +15,13 @@ import com.linku.home.util.UrlValidationResult
 import com.linku.home.util.toToastMessage
 import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -34,30 +33,8 @@ class LinkViewModel @Inject constructor(
     private val authPreference: AuthPreference,
 ) : ViewModel() {
 
-    /*
-     * Save link state
-     */
-
-    private val saveImageState = mutableStateOf<TempImageFile?>(null)
-    private val saveUrlState = mutableStateOf("")
-    private val saveTitleState = mutableStateOf("")
-    private val saveMemoState = mutableStateOf("")
-    private val saveEmotionIdState = mutableStateOf<Long?>(null)
-    private val saveSituationIdState = mutableStateOf<Long?>(null)
-    private val jobIdState = mutableStateOf<Long?>(null)
-    private val isSavingState = mutableStateOf(false)
-
-    val saveImage get() = saveImageState.value
-    val saveUrl get() = saveUrlState.value
-    val saveTitle get() = saveTitleState.value
-    val saveMemo get() = saveMemoState.value
-    val selectedSaveEmotionId get() = saveEmotionIdState.value
-    val selectedSaveSituationId get() = saveSituationIdState.value
-    val jobId get() = jobIdState.value
-    val isSaving get() = isSavingState.value
-
-    val isSaveButtonEnabled: Boolean
-        get() = saveUrlState.value.isNotBlank() && !isSavingState.value
+    private val _uiState = MutableStateFlow(LinkUiState())
+    val uiState: StateFlow<LinkUiState> = _uiState.asStateFlow()
 
     private val _toastEvent = Channel<ToastEvent>(Channel.BUFFERED)
     val toastEvent = _toastEvent.receiveAsFlow()
@@ -66,57 +43,11 @@ class LinkViewModel @Inject constructor(
      * Link detail state
      */
 
-    private data class Cached<T>(
-        val value: T,
-        val ts: Long = System.currentTimeMillis(),
-    )
+    private data class Cached<T>(val value: T, val ts: Long = System.currentTimeMillis())
 
-    private val linkCache =
-        mutableMapOf<Long, Cached<LinkResultInfo>>()
+    private val linkCache = mutableMapOf<Long, Cached<LinkResultInfo>>()
 
     private val detailTtl = 60_000L
-
-    private val linkDetailState =
-        mutableStateOf<LinkResultInfo?>(null)
-
-    val linkDetail get() = linkDetailState.value
-
-    private val isLoadingLinkDetailState =
-        mutableStateOf(false)
-
-    val isLoadingLinkDetail
-        get() = isLoadingLinkDetailState.value
-
-    private val aiArticleDetailState =
-        mutableStateOf<AiArticle?>(null)
-
-    val aiArticleDetail
-        get() = aiArticleDetailState.value
-
-    private val isLoadingAiArticleState =
-        mutableStateOf(false)
-
-    val isLoadingAiArticle
-        get() = isLoadingAiArticleState.value
-
-    private val _aiProgress = MutableStateFlow(0f)
-    val aiProgress: StateFlow<Float> =
-        _aiProgress.asStateFlow()
-
-    private var aiJob: Job? = null
-    private var aiProgressJob: Job? = null
-
-    private val isUpdatingLinkState =
-        mutableStateOf(false)
-
-    val isUpdatingLink
-        get() = isUpdatingLinkState.value
-
-    private val isDeletingLinkState =
-        mutableStateOf(false)
-
-    val isDeletingLink
-        get() = isDeletingLinkState.value
 
     init {
         loadUserBasics()
@@ -136,70 +67,66 @@ class LinkViewModel @Inject constructor(
 
             userRepository.getUserInfo(userId)
                 .onSuccess { userInfo ->
-                    jobIdState.value = userInfo.jobId
+                    _uiState.update { state -> state.copy(jobId = userInfo.jobId) }
                 }
                 .onFailure { error ->
-                    Log.e(
-                        "LinkViewModel",
-                        "loadUserBasics failed",
-                        error,
-                    )
+                    Log.e("LinkViewModel", "loadUserBasics failed", error)
                 }
         }
     }
 
     fun setSaveImage(file: TempImageFile?) {
-        saveImageState.value = file
+        _uiState.update { state -> state.copy(saveImage = file) }
     }
 
     fun deleteSaveImage() {
-        saveImageState.value = null
+        _uiState.update { state -> state.copy(saveImage = null) }
     }
 
     fun setSaveUrl(newUrl: String) {
-        saveUrlState.value = newUrl
+        _uiState.update { state -> state.copy(saveUrl = newUrl) }
     }
 
     fun setSaveTitle(newTitle: String) {
-        saveTitleState.value = newTitle
+        _uiState.update { state -> state.copy(saveTitle = newTitle) }
     }
 
     fun setSaveMemo(newMemo: String) {
-        saveMemoState.value = newMemo
+        _uiState.update { state -> state.copy(saveMemo = newMemo) }
     }
 
     fun selectSaveEmotion(id: Long?) {
-        saveEmotionIdState.value = id
+        _uiState.update { state -> state.copy(selectedSaveEmotionId = id) }
     }
 
     fun onSaveSituationClick(id: Long) {
-        saveSituationIdState.value =
-            if (saveSituationIdState.value == id) {
-                null
-            } else {
-                id
-            }
+        _uiState.update { state ->
+            state.copy(selectedSaveSituationId = id.takeUnless { state.selectedSaveSituationId == id })
+        }
     }
 
     fun resetSaveForm() {
-        saveImageState.value = null
-        saveUrlState.value = ""
-        saveTitleState.value = ""
-        saveMemoState.value = ""
-        saveEmotionIdState.value = null
-        saveSituationIdState.value = null
+        _uiState.update { state ->
+            state.copy(
+                saveImage = null,
+                saveUrl = "",
+                saveTitle = "",
+                saveMemo = "",
+                selectedSaveEmotionId = null,
+                selectedSaveSituationId = null,
+            )
+        }
     }
 
-    fun onSaveButtonClick(
-        onSucceed: (LinkSimpleInfo) -> Unit = {},
-        onFailed: (Exception) -> Unit = {},
-    ) {
-        if (isSavingState.value) {
+    fun onSaveButtonClick(onSucceed: (LinkSimpleInfo) -> Unit = {}, onFailed: (Exception) -> Unit = {}) {
+        val currentState = _uiState.value
+
+        if (currentState.isSaving) {
             sendToast("링크를 저장하고 있어요.")
             return
         }
 
-        val currentUrl = saveUrlState.value.trim()
+        val currentUrl = currentState.saveUrl.trim()
         val validationResult = validateUrlInput(currentUrl)
 
         if (validationResult != UrlValidationResult.Valid) {
@@ -207,12 +134,14 @@ class LinkViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
-            isSavingState.value = true
+        _uiState.update { state -> state.copy(isSaving = true) }
 
+        viewModelScope.launch {
             try {
                 val linkCheckResult = try {
                     linkuRepository.checkLink(currentUrl)
+                } catch (error: CancellationException) {
+                    throw error
                 } catch (error: Exception) {
                     sendToast(error.toLinkCheckToastMessage())
                     onFailed(error)
@@ -220,44 +149,34 @@ class LinkViewModel @Inject constructor(
                 }
 
                 when (linkCheckResult) {
-                    LinkCheckResult.AlreadySaved -> {
-                        sendToast("이미 저장된 링크예요.")
-                    }
+                    LinkCheckResult.AlreadySaved -> sendToast("이미 저장된 링크예요.")
 
                     LinkCheckResult.Available -> {
                         try {
-                            saveLink(
-                                url = currentUrl,
-                                onSucceed = onSucceed,
-                            )
+                            saveLink(state = currentState, url = currentUrl, onSucceed = onSucceed)
+                        } catch (error: CancellationException) {
+                            throw error
                         } catch (error: Exception) {
-                            Log.e(
-                                "LinkViewModel",
-                                "save link failed",
-                                error,
-                            )
+                            Log.e("LinkViewModel", "save link failed", error)
                             sendToast("링크 저장에 실패했어요. 다시 시도해 주세요.")
                             onFailed(error)
                         }
                     }
                 }
             } finally {
-                isSavingState.value = false
+                _uiState.update { state -> state.copy(isSaving = false) }
             }
         }
     }
 
-    private suspend fun saveLink(
-        url: String,
-        onSucceed: (LinkSimpleInfo) -> Unit,
-    ) {
+    private suspend fun saveLink(state: LinkUiState, url: String, onSucceed: (LinkSimpleInfo) -> Unit) {
         val saved = linkuRepository.saveNewLink(
-            image = saveImageState.value,
+            image = state.saveImage,
             url = url,
-            title = saveTitleState.value.ifBlank { null },
-            memo = saveMemoState.value.ifBlank { null },
-            emotionId = saveEmotionIdState.value,
-            situationId = saveSituationIdState.value,
+            title = state.saveTitle.ifBlank { null },
+            memo = state.saveMemo.ifBlank { null },
+            emotionId = state.selectedSaveEmotionId,
+            situationId = state.selectedSaveSituationId,
         )
 
         sendToast("링크가 저장되었어요.")
@@ -266,9 +185,7 @@ class LinkViewModel @Inject constructor(
 
     private fun sendToast(message: String) {
         viewModelScope.launch {
-            _toastEvent.send(
-                ToastEvent(message = message),
-            )
+            _toastEvent.send(ToastEvent(message = message))
         }
     }
 
@@ -276,34 +193,22 @@ class LinkViewModel @Inject constructor(
      * Link detail
      */
 
-    fun loadLinkDetail(
-        linkuId: Long,
-        forceRefresh: Boolean = false,
-    ) {
+    fun loadLinkDetail(linkuId: Long, forceRefresh: Boolean = false) {
         val now = System.currentTimeMillis()
         val cached = linkCache[linkuId]
 
-        if (
-            !forceRefresh &&
-            cached != null &&
-            now - cached.ts < detailTtl
-        ) {
-            linkDetailState.value = cached.value
-            isLoadingLinkDetailState.value = false
+        if (!forceRefresh && cached != null && now - cached.ts < detailTtl) {
+            _uiState.update { state -> state.copy(linkDetail = cached.value, isLoadingLinkDetail = false) }
 
             viewModelScope.launch {
-                runCatching {
-                    linkuRepository.getLinkDetail(linkuId)
-                }.onSuccess { refreshed ->
+                try {
+                    val refreshed = linkuRepository.getLinkDetail(linkuId)
                     linkCache[linkuId] = Cached(refreshed)
-                    linkDetailState.value = refreshed
-                    aiArticleDetailState.value = null
-                }.onFailure { error ->
-                    Log.e(
-                        "LinkViewModel",
-                        "refresh detail failed",
-                        error,
-                    )
+                    _uiState.update { state -> state.copy(linkDetail = refreshed) }
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.e("LinkViewModel", "refresh detail failed", error)
                 }
             }
 
@@ -311,27 +216,23 @@ class LinkViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            isLoadingLinkDetailState.value = cached == null
+            _uiState.update { state -> state.copy(linkDetail = cached?.value, isLoadingLinkDetail = cached == null) }
 
-            runCatching {
-                linkuRepository.getLinkDetail(linkuId)
-            }.onSuccess { detail ->
+            try {
+                val detail = linkuRepository.getLinkDetail(linkuId)
                 linkCache[linkuId] = Cached(detail)
-                linkDetailState.value = detail
-                aiArticleDetailState.value = null
-            }.onFailure { error ->
-                Log.e(
-                    "LinkViewModel",
-                    "load detail failed",
-                    error,
-                )
+                _uiState.update { state -> state.copy(linkDetail = detail) }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("LinkViewModel", "load detail failed", error)
 
                 if (cached == null) {
-                    linkDetailState.value = null
+                    _uiState.update { state -> state.copy(linkDetail = null) }
                 }
+            } finally {
+                _uiState.update { state -> state.copy(isLoadingLinkDetail = false) }
             }
-
-            isLoadingLinkDetailState.value = false
         }
     }
 
@@ -345,61 +246,41 @@ class LinkViewModel @Inject constructor(
         onSucceed: (LinkResultInfo) -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
-        val current = linkDetailState.value ?: run {
-            onFailed(
-                IllegalStateException("링크 상세가 없습니다."),
-            )
+        val currentState = _uiState.value
+        val current = currentState.linkDetail ?: run {
+            onFailed(IllegalStateException("링크 상세가 없습니다."))
             return
         }
 
-        if (isUpdatingLinkState.value) return
+        if (currentState.isUpdatingLink) return
 
         val linkuId = current.linkuId
 
         val normalizedTitle = title.trim()
 
-        val changedTitle =
-            normalizedTitle.takeIf { it != current.title }
+        val changedTitle = normalizedTitle.takeIf { it != current.title }
+        val changedMemo = memo?.trim()?.takeIf { normalizedMemo -> normalizedMemo != current.memo.orEmpty() }
+        val changedCategoryId = categoryId.takeIf { it != current.categoryId }
+        val changedEmotionId = emotionId.takeIf { it != current.emotionId }
+        val changedSituationId = situationId.takeIf { it != current.situationId }
 
-        val changedMemo = memo
-            ?.trim()
-            ?.takeIf { normalizedMemo ->
-                normalizedMemo != current.memo.orEmpty()
-            }
-
-        val changedCategoryId =
-            categoryId.takeIf {
-                it != current.categoryId
-            }
-
-        val changedEmotionId =
-            emotionId.takeIf {
-                it != current.emotionId
-            }
-
-        val changedSituationId =
-            situationId.takeIf {
-                it != current.situationId
-            }
-
-        val hasChanges =
-            image != null ||
-                    changedTitle != null ||
-                    changedMemo != null ||
-                    changedCategoryId != null ||
-                    changedEmotionId != null ||
-                    changedSituationId != null
+        val hasChanges = image != null ||
+            changedTitle != null ||
+            changedMemo != null ||
+            changedCategoryId != null ||
+            changedEmotionId != null ||
+            changedSituationId != null
 
         if (!hasChanges) {
             onSucceed(current)
             return
         }
 
-        viewModelScope.launch {
-            isUpdatingLinkState.value = true
+        _uiState.update { state -> state.copy(isUpdatingLink = true) }
 
-            runCatching {
-                linkuRepository.updateLink(
+        viewModelScope.launch {
+            try {
+                val updated = linkuRepository.updateLink(
                     linkuId = linkuId,
                     image = image,
                     memo = changedMemo,
@@ -408,38 +289,28 @@ class LinkViewModel @Inject constructor(
                     categoryId = changedCategoryId,
                     title = changedTitle,
                 )
-            }.onSuccess { updated ->
-                linkDetailState.value = updated
                 linkCache[linkuId] = Cached(updated)
+                _uiState.update { state -> state.copy(linkDetail = updated) }
                 onSucceed(updated)
-            }.onFailure { error ->
-                Log.e(
-                    "LinkViewModel",
-                    "update link failed",
-                    error,
-                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("LinkViewModel", "update link failed", error)
                 onFailed(error)
+            } finally {
+                _uiState.update { state -> state.copy(isUpdatingLink = false) }
             }
-
-            isUpdatingLinkState.value = false
         }
     }
 
-    fun deleteCurrentLink(
-        onSucceed: () -> Unit = {},
-        onFailed: (Throwable) -> Unit = {},
-    ) {
-        val current = linkDetailState.value ?: run {
-            onFailed(
-                IllegalStateException("링크 상세가 없습니다."),
-            )
+    fun deleteCurrentLink(onSucceed: () -> Unit = {}, onFailed: (Throwable) -> Unit = {}) {
+        val current = _uiState.value.linkDetail ?: run {
+            onFailed(IllegalStateException("링크 상세가 없습니다."))
             return
         }
 
         val userLinkuId = current.userLinkuId ?: run {
-            onFailed(
-                IllegalStateException("userLinkuId가 없습니다."),
-            )
+            onFailed(IllegalStateException("userLinkuId가 없습니다."))
             return
         }
 
@@ -447,8 +318,7 @@ class LinkViewModel @Inject constructor(
             userLinkuId = userLinkuId,
             linkuId = current.linkuId,
             onSucceed = {
-                linkDetailState.value = null
-                aiArticleDetailState.value = null
+                _uiState.update { state -> state.copy(linkDetail = null) }
                 onSucceed()
             },
             onFailed = onFailed,
@@ -461,69 +331,42 @@ class LinkViewModel @Inject constructor(
         onSucceed: () -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
-        if (isDeletingLinkState.value) return
+        if (_uiState.value.isDeletingLink) return
+
+        _uiState.update { state -> state.copy(isDeletingLink = true) }
 
         viewModelScope.launch {
-            isDeletingLinkState.value = true
-
-            runCatching {
-                linkuRepository.deleteLink(
-                    userLinkuId = userLinkuId,
-                )
-            }.onSuccess {
+            try {
+                linkuRepository.deleteLink(userLinkuId = userLinkuId)
                 linkuId?.let(linkCache::remove)
                 onSucceed()
-            }.onFailure { error ->
-                Log.e(
-                    "LinkViewModel",
-                    "delete link failed",
-                    error,
-                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("LinkViewModel", "delete link failed", error)
                 onFailed(error)
+            } finally {
+                _uiState.update { state -> state.copy(isDeletingLink = false) }
             }
-
-            isDeletingLinkState.value = false
         }
     }
 
     fun clearLinkDetail() {
-        linkDetailState.value = null
-        aiArticleDetailState.value = null
-    }
-
-    override fun onCleared() {
-        aiJob?.cancel()
-        aiProgressJob?.cancel()
-        super.onCleared()
+        _uiState.update { state -> state.copy(linkDetail = null, isLoadingLinkDetail = false) }
     }
 }
 
 private fun Throwable.toLinkCheckToastMessage(): String {
     val errorMessage = message.orEmpty()
 
-    val errorBody = runCatching {
-        (this as? HttpException)
-            ?.response()
-            ?.errorBody()
-            ?.string()
-    }.getOrNull().orEmpty()
+    val errorBody = runCatching { (this as? HttpException)?.response()?.errorBody()?.string() }.getOrNull().orEmpty()
 
     val errorContent = "$errorMessage $errorBody"
 
     return when {
-        errorContent.contains(
-            "LINKU4001",
-            ignoreCase = true,
-        ) ||
-                errorContent.contains(
-                    "영상",
-                    ignoreCase = true,
-                ) -> {
-            "영상 콘텐츠는 지원하지 않아요!"
-        }
+        errorContent.contains("LINKU4001", ignoreCase = true) ||
+            errorContent.contains("영상", ignoreCase = true) -> "영상 콘텐츠는 지원하지 않아요!"
 
-        else -> {
-            "유효하지 않은 링크입니다!"
-        }
+        else -> "유효하지 않은 링크입니다!"
     }
 }
