@@ -1,11 +1,13 @@
 package com.linku.core.repository
 
+import androidx.paging.PagingData
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationPage
 import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
-import com.linku.core.model.search.FastSearchLinkInfo
+import com.linku.core.model.search.LinkuSearchInfo
+import kotlinx.coroutines.flow.Flow
 
 interface LinkuRepository {
     // 링크 저장
@@ -55,6 +57,6 @@ interface LinkuRepository {
     // 링크 삭제
     suspend fun deleteLink(userLinkuId: Long)
 
-    // 빠른 링크 검색
-    suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo>
+    // 링크 검색
+    fun searchLinks(searchQuery: String): Flow<PagingData<LinkuSearchInfo>>
 }

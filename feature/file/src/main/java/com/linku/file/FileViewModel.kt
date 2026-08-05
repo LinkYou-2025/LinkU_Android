@@ -1,9 +1,7 @@
 package com.linku.file
 
+import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.SameNameException
@@ -15,22 +13,22 @@ import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.SharedFolderInfo
-import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.FolderRepository
 import com.linku.core.repository.InvitationRepository
 import com.linku.core.repository.LinkuRepository
-import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.AcceptSharedFolderInvitationResult
+import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
 import com.linku.data.preference.AuthPreference
-import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -45,6 +43,12 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
 
+/**
+ * 파일 화면에서 폴더, 링크, 공유 상태와 관련 비동기 작업을 관리하는 ViewModel입니다.
+ *
+ * @property acceptSharedFolderInvitationUseCase 초대 토큰을 사용해 공유 폴더 초대를 수락하고
+ * 최신 공유 폴더 목록을 함께 반환하는 UseCase입니다.
+ */
 @HiltViewModel
 class FileViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
@@ -53,10 +57,10 @@ class FileViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
 
-    private val recentRepository: RecentSearchRepository,
     private val linkuRepository: LinkuRepository,
 
     private val aiArticleRepository: AIArticleRepository,
+    private val acceptSharedFolderInvitationUseCase: AcceptSharedFolderInvitationUseCase,
 ) : ViewModel() {
 
     // ---------- field ----------
@@ -167,6 +171,13 @@ class FileViewModel @Inject constructor(
 
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
+
+    /**
+     * 현재 진행 중인 공유 폴더 초대 수락 요청입니다.
+     *
+     * 새 요청이 시작되거나 공유 폴더 상태가 초기화되면 기존 요청을 취소하기 위해 사용합니다.
+     */
+    private var receiveSharedFolderInvitationJob: Deferred<AcceptSharedFolderInvitationResult>? = null
     // ---------- field ----------
 
 //    // ==== [카테고리 색상 불러오기 - HomeVM과 이름을 맞춘 alias] ====
@@ -266,35 +277,29 @@ class FileViewModel @Inject constructor(
         if (isUpdatingLink) return
 
         val fixedLinkuId = current.linkuId
-        val fixedLinku   = current.linku
-
-        // domainId 계산 (URL/도메인 기반)
-        val computedDomainId = DomainIdMapper.resolve(
-            url = fixedLinku,
-            domain = current.domain
-        )
 
         viewModelScope.launch {
             isUpdatingLink = true
-//            try {  // TODO: 링크 업데이트 API 수정으로 인해 주석 처리 하였습니다. 지민님께서 판단 후 수정 부탁드립니다.
-//                val updated = linkuRepository.updateLink(
-//                    linkuId    = fixedLinkuId,
-//                    categoryId = categoryId ?: (current.categoryId ?: 0L),
-//                    linku      = fixedLinku,                     // 서버 URL 고정
-//                    memo       = memo,                           // null/"" 그대로
-//                    emotionId  = emotionId ?: (current.emotionId ?: 0L),
-//                    situationId = situationId ?: current.situationId ?: 0L,    // TODO: 도메인 모델과 DTO 수정하면서 상황이 추가가 되어 넣었습니다. 지민님께서 확인 후 수정 부탁드립니다.
-//                    domainId   = computedDomainId,
-//                    title      = title.ifBlank { current.title } // 빈 제목이면 기존 유지
-//                )
-//                _linkDetail.value = updated
-//                onSucceed(updated)
-//            } catch (e: Throwable) {
-//                onFailed(e)
-//                _errorMessage.value = e.message
-//            } finally {
-//                isUpdatingLink = false
-//            }
+            try {
+                val updated = linkuRepository.updateLink(
+                    linkuId = fixedLinkuId,
+                    image = null,
+                    memo = memo,
+                    emotionId = emotionId ?: current.emotionId,
+                    situationId = situationId ?: current.situationId,
+                    categoryId = categoryId ?: current.categoryId,
+                    title = title.ifBlank { current.title },
+                )
+                _linkDetail.value = updated
+                onSucceed(updated)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                onFailed(e)
+                _errorMessage.value = e.message
+            } finally {
+                isUpdatingLink = false
+            }
         }
     }
 
@@ -571,6 +576,18 @@ class FileViewModel @Inject constructor(
             }
         }
         Log.d("FileViewModel", "getSharedFolders return")
+    }
+
+    fun resetSharedFolderState() {
+        receiveSharedFolderInvitationJob?.cancel()
+        receiveSharedFolderInvitationJob = null
+        _sharedTopFolders.value = emptyList()
+        _sharedBottomFolders.value = emptyList()
+        _invitationInfo.value = null
+        _links.value = emptyList()
+        _notCategorizationLinks.value = emptyList()
+        _subFoldersCursor.value = null
+        _errorMessage.value = null
     }
 
     // 공유 폴더 하위 폴더 가져오기
@@ -1058,6 +1075,62 @@ class FileViewModel @Inject constructor(
 
     // ---------- share method ----------
     // 폴더 공유하기
+    /**
+     * 서버가 반환한 초대 토큰 또는 소문자 `http://`·`https://` 접두사의 초대 링크를
+     * 앱에서 공유할 HTTPS 링크로 정규화합니다.
+     *
+     * 최종 링크는 [BuildConfig.SERVER_HOST]의 `/open` 경로에 URL 인코딩된 `token`
+     * 쿼리 파라미터를 포함합니다.
+     *
+     * @param tokenOrLink 원시 초대 토큰 또는 소문자 `http://`·`https://` 접두사로 시작하고
+     * `token` 쿼리 파라미터가 포함된 링크입니다.
+     * @return 앱에서 공유할 수 있는 완전한 HTTPS 초대 링크입니다.
+     * @throws IllegalArgumentException 입력에서 추출한 초대 토큰이 빈 문자열인 경우 발생합니다.
+     */
+    private fun buildInvitationLink(tokenOrLink: String): String {
+        val invitationToken = extractInvitationToken(tokenOrLink)
+        require(invitationToken.isNotBlank()) {
+            "Invitation token must not be blank."
+        }
+
+        return Uri.Builder()
+            .scheme("https")
+            .authority(BuildConfig.SERVER_HOST)
+            .path("open")
+            .appendQueryParameter("token", invitationToken)
+            .build()
+            .toString()
+    }
+
+    /**
+     * 원시 초대 토큰과 소문자 `http://`·`https://` 접두사의 기존 초대 링크를 구분해
+     * 초대 토큰만 추출합니다.
+     *
+     * @param tokenOrLink 원시 초대 토큰 또는 소문자 `http://`·`https://` 접두사로 시작하고
+     * `token` 쿼리 파라미터가 포함된 링크입니다.
+     * @return 링크 입력이면 `token` 쿼리 값, 그 외에는 앞뒤 공백을 제거한 입력값입니다.
+     * 링크에 `token` 쿼리 파라미터가 없으면 빈 문자열을 반환합니다.
+     */
+    private fun extractInvitationToken(tokenOrLink: String): String {
+        val trimmed = tokenOrLink.trim()
+
+        return if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            Uri.parse(trimmed).getQueryParameter("token").orEmpty()
+        } else {
+            trimmed
+        }
+    }
+
+    /**
+     * 지정한 폴더의 초대 링크 생성 요청을 시작하고 현재 링크 값을 즉시 반환합니다.
+     *
+     * 이 함수는 [viewModelScope]에서 시작한 비동기 요청의 완료를 기다리지 않습니다. 따라서 반환
+     * 시점에 링크 생성이 완료된다고 보장할 수 없으며, 완료 전에는 `null`이 반환될 수 있습니다.
+     * 완료된 링크가 필요한 호출자는 [createInvitationLink]의 콜백을 사용해야 합니다.
+     *
+     * @param folderId 초대 링크를 생성할 폴더 ID입니다.
+     * @return 반환 시점까지 생성된 초대 링크이며, 아직 생성되지 않았거나 실패하면 `null`입니다.
+     */
     fun makeInvitationLink(folderId: Long): String? {
         Log.d("FileViewModel", "makeInvitationLink")
 
@@ -1073,9 +1146,10 @@ class FileViewModel @Inject constructor(
 
                 Log.d("FileViewModel", "makeInvitationLink try")
 
-                link = folderRepository.makeInvitationLink(folderId)
+                val token = folderRepository.makeInvitationLink(folderId)
+                link = buildInvitationLink(token)
 
-                Log.d("FileViewModel", "makeInvitationLink try result: $link")
+                Log.d("FileViewModel", "makeInvitationLink try result: true")
 
             } catch (e: Exception) {
                 Log.e("FileViewModel", "makeInvitationLink catch: $e.message")
@@ -1093,6 +1167,13 @@ class FileViewModel @Inject constructor(
         return link
     }
 
+    /**
+     * 지정한 폴더의 초대 토큰을 발급받아 공유 가능한 HTTPS 초대 링크를 비동기로 생성합니다.
+     *
+     * @param folderId 초대 링크를 생성할 폴더 ID입니다.
+     * @param onSuccess 완성된 HTTPS 초대 링크와 함께 호출되는 콜백입니다.
+     * @param onFailure 토큰 발급 또는 링크 정규화에 실패했을 때 원인과 함께 호출되는 콜백입니다.
+     */
     fun createInvitationLink(
         folderId: Long,
         onSuccess: (String) -> Unit,
@@ -1107,10 +1188,10 @@ class FileViewModel @Inject constructor(
             _errorMessage.value = null
 
             try {
-                val link = folderRepository.makeInvitationLink(folderId)
+                val link = buildInvitationLink(folderRepository.makeInvitationLink(folderId))
                 onSuccess(link)
 
-                Log.d("FileViewModel", "createInvitationLink result: $link")
+                Log.d("FileViewModel", "createInvitationLink result: true")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -1202,10 +1283,23 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "receiveSharedFolder return")
     }
 
-    fun receiveSharedFolderInvitation(token: String) {
+    /**
+     * 로그인한 사용자의 공유 폴더 초대를 수락하고 결과를 파일 화면 상태에 반영합니다.
+     *
+     * 새 요청이 시작되면 이전 초대 수락 요청을 취소합니다. 수락에 성공하면 최신 공유 폴더 목록을
+     * 갱신하고, 실패 결과는 화면에 노출할 오류 메시지로 반영합니다.
+     *
+     * @param token 수락할 공유 폴더 초대 토큰입니다.
+     * @return 초대 수락과 공유 폴더 목록 갱신 결과를 구분한 [AcceptSharedFolderInvitationResult]입니다.
+     * @throws CancellationException 호출이 취소되거나 새 요청으로 기존 요청이 취소된 경우 발생합니다.
+     */
+    suspend fun receiveSharedFolderInvitation(
+        token: String,
+    ): AcceptSharedFolderInvitationResult {
         Log.d("FileViewModel", "receiveSharedFolderInvitation")
 
-        viewModelScope.launch {
+        receiveSharedFolderInvitationJob?.cancel()
+        val request = viewModelScope.async(start = CoroutineStart.LAZY) {
             Log.d("FileViewModel", "receiveSharedFolderInvitation launch")
 
             startLoading()
@@ -1214,19 +1308,69 @@ class FileViewModel @Inject constructor(
             try {
                 val userId = authPreference.getUserId()
 
-                if (userId == null) {
-                    throw UserIdNullException()
+                val result = if (userId == null) {
+                    AcceptSharedFolderInvitationResult.AuthenticationRequired(
+                        UserIdNullException()
+                    )
+                } else {
+                    acceptSharedFolderInvitationUseCase(token)
                 }
 
-                invitationRepository.acceptInvitation(token)
-                _sharedTopFolders.value = folderRepository.getSharedFolders()
+                result.updateSharedFolderInvitationState()
 
                 Log.d("FileViewModel", "receiveSharedFolderInvitation well done")
+                result
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.d("FileViewModel", "receiveSharedFolderInvitation catch: $e")
                 _errorMessage.value = e.message
+                AcceptSharedFolderInvitationResult.Failure(e)
             } finally {
                 stopLoading()
+            }
+        }
+
+        receiveSharedFolderInvitationJob = request
+        request.invokeOnCompletion {
+            if (receiveSharedFolderInvitationJob === request) {
+                receiveSharedFolderInvitationJob = null
+            }
+        }
+        request.start()
+
+        return request.await()
+    }
+
+    /**
+     * 공유 폴더 초대 수락 결과를 파일 화면의 공유 폴더 목록 또는 오류 상태에 반영합니다.
+     *
+     * @receiver 화면 상태에 반영할 [AcceptSharedFolderInvitationResult]입니다.
+     */
+    private fun AcceptSharedFolderInvitationResult.updateSharedFolderInvitationState() {
+        when (this) {
+            is AcceptSharedFolderInvitationResult.Accepted -> {
+                _sharedTopFolders.value = sharedFolders
+            }
+
+            is AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed -> {
+                _errorMessage.value = cause.message
+            }
+
+            is AcceptSharedFolderInvitationResult.AuthenticationRequired -> {
+                _errorMessage.value = cause.message
+            }
+
+            is AcceptSharedFolderInvitationResult.Failure -> {
+                _errorMessage.value = cause.message
+            }
+
+            is AcceptSharedFolderInvitationResult.InvalidInvitation -> {
+                _errorMessage.value = cause?.message
+            }
+
+            is AcceptSharedFolderInvitationResult.NetworkFailure -> {
+                _errorMessage.value = cause.message
             }
         }
     }
@@ -1320,121 +1464,5 @@ class FileViewModel @Inject constructor(
     }
 
     // ---------- share method ----------
-
-    // ---------- search method ----------
-    // 검색창 탑 시트 가시성 상태
-    var searchTopSheetVisible by mutableStateOf(false)
-        private set
-    fun updateSearchTopSheetVisible(newState: Boolean) {
-        Log.d("searchTopSheetVisible", newState.toString())
-        searchTopSheetVisible = newState
-    }
-
-    // 빠른 링크 검색 목록
-    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
-    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
-
-    // 빠른 링크 검색
-    fun fastSearch(keyword: String){
-        Log.d("FileViewModel", "fastSearch")
-
-        viewModelScope.launch{
-            Log.d("FileViewModel", "fastSearch launch")
-
-            _errorMessage.value = null
-            try{
-                Log.d("FileViewModel", "fastSearch try")
-
-                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
-                    FastSearchItem(
-                        id = it.linkuId,
-                        title = it.title,
-                        url = it.linkUrl
-                    )
-                }
-
-                Log.d("FileViewModel", "fastSearch try result: ${_fastSearchItems.value}")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "fastSearch catch: $e.message")
-
-                _errorMessage.value = e.message
-            }finally {
-                Log.d("FileViewModel", "fastSearch finally")
-            }
-        }
-    }
-
-    //최근 검색 목록
-    val recentQueryList: StateFlow<List<RecentQuery>> =
-        recentRepository.observe(limit = 20)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
-    // 최근 검색 기록 추가
-    fun addRecentQuery(query: String) {
-        Log.d("FileViewModel", "addRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "addRecentQuery launch")
-
-            try{
-                Log.d("FileViewModel", "addRecentQuery try")
-
-                recentRepository.add(query)
-            }catch (e: Exception){
-                Log.d("FileViewModel", "addRecentQuery catch: $e.message")
-            }finally {
-                Log.d("FileViewModel", "addRecentQuery finally")
-            }
-        }
-        Log.d("FileViewModel", "addRecentQuery return")
-    }
-
-    // 최근 검색 기록 삭제
-    fun removeRecentQuery(query: String) {
-        Log.d("FileViewModel", "removeRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "removeRecentQuery launch")
-
-            try{
-                Log.d("FileViewModel", "removeRecentQuery try")
-
-                recentRepository.remove(query)
-
-            }catch (e: Exception){
-                Log.d("FileViewModel", "removeRecentQuery catch: $e.message")
-            }finally {
-                Log.d("FileViewModel", "removeRecentQuery finally")
-            }
-        }
-        Log.d("FileViewModel", "removeRecentQuery return")
-    }
-
-
-    // 최근 검색 기록 전체 삭제
-    fun clearRecentQuery() {
-        Log.d("FileViewModel", "clearRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "clearRecentQuery launch")
-
-            try{
-                Log.d("FileViewModel", "clearRecentQuery try")
-
-                recentRepository.clear()
-
-            }catch (e: Exception){
-                Log.d("FileViewModel", "clearRecentQuery catch: $e.message")
-            }finally {
-                Log.d("FileViewModel", "clearRecentQuery finally")
-            }
-        }
-        Log.d("FileViewModel", "clearRecentQuery return")
-    }
-    // ---------- search method ----------
 
 }

@@ -1,6 +1,7 @@
 package com.linku.data.api
 
 import com.linku.core.error.ApiError
+import org.json.JSONObject
 import retrofit2.HttpException
 
 
@@ -12,6 +13,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "COMMON400" -> ApiError.Common.BadRequest(message)
     "COMMON401" -> ApiError.Common.Unauthorized(message)
     "COMMON403" -> ApiError.Common.Forbidden(message)
+    "COMMON404" -> ApiError.Common.NotFound(message)
     "COMMON429" -> ApiError.Common.TooManyRequests(message)
     "COMMON500" -> ApiError.Common.InternalServer(message)
 
@@ -71,6 +73,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "LINKU4005" -> ApiError.Linku.NewUser(message)
     "LINKU404" -> ApiError.Linku.UserLinkuNotFound(message)
     "LINKU4041" -> ApiError.Linku.NotFound(message)
+    "LINKU4043" -> ApiError.Linku.SearchHistoryNotFound(message)
 
     // =========================================================
     // 카테고리/도메인/감정/상황 에러
@@ -157,13 +160,35 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
 }
 
 
+/**
+ * Retrofit은 2xx가 아닌 응답을 받으면 응답 바디를 파싱하지 않고 곧바로 [HttpException]을 던짐.
+ * 그래서 예전엔 [e]의 HTTP 상태코드만 보고 400/401/403/429/5xx 구간별로만 뭉뚱그려 매핑했는데,
+ * 서버가 비즈니스 에러를 항상 저 5개 상태코드로만 내려주지 않아서 문제였음 - 예를 들어 이메일 중복
+ * (USERS4092)은 409로 내려오는데 위 when엔 409가 없어서 else(Unknown)로 빠졌고, 바디에 있는 진짜
+ * 서버 코드/메시지("USERS4092", "중복된 이메일입니다.")는 통째로 버려져서 화면엔 일반 실패 문구만 떴음.
+ *
+ * 이제 에러 바디를 먼저 파싱해서 서버가 내려준 실제 `code`가 있으면 [mapToApiError]로 위임함
+ * (상태코드가 뭐든 상관없이 비즈니스 코드 기준으로 정확히 매핑됨). 바디가 없거나 파싱에 실패한 경우
+ * (진짜 순수 HTTP 레벨 오류)에만 상태코드 기반 매핑으로 폴백함.
+ */
 internal fun mapHttpError(e: HttpException): ApiError {
-    val code = e.code().toString()
+    val bodyJson = try {
+        e.response()?.errorBody()?.string()?.let { JSONObject(it) }
+    } catch (_: Exception) {
+        null
+    }
+    val bodyCode = bodyJson?.optString("code")?.takeIf { it.isNotBlank() }
+
+    if (bodyJson != null && bodyCode != null) {
+        return mapToApiError(bodyCode, bodyJson.optString("message"))
+    }
+
     val message = e.message() ?: "알 수 없는 오류가 발생했습니다."
     return when (e.code()) {
         400 -> ApiError.Common.BadRequest(message)
         401 -> ApiError.Common.Unauthorized(message)
         403 -> ApiError.Common.Forbidden(message)
+        404 -> ApiError.Common.NotFound(message)
         429 -> ApiError.Common.TooManyRequests(message)
         in 500..599 -> ApiError.Common.InternalServer(message)
         else -> ApiError.Unknown(message)

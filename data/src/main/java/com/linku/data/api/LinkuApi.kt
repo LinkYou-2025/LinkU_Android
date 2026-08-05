@@ -1,12 +1,13 @@
 package com.linku.data.api
 
 import com.linku.data.api.dto.BaseResponse
+import com.linku.data.api.dto.folder.LinkuFolderChangeResultDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
+import com.linku.data.api.dto.search.LinkuSearchResponseDTO
 import com.linku.data.api.dto.server.GetDetailLinkDTO
 import com.linku.data.api.dto.server.LinkCheckDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
-import com.linku.data.api.dto.server.QuickSearchResult
 import com.linku.data.api.dto.server.RecommendLinkPageDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -65,12 +66,18 @@ interface LinkuApi {
         @Part image: MultipartBody.Part?,
     ): BaseResponse<LinkuResultDTO>
 
-    // 링크의 폴더 바꾸기
-    @PATCH("linku/{linkuid}/folder")
+    /**
+     * 사용자가 저장한 링크를 지정한 폴더로 이동합니다.
+     *
+     * @param linkuId 이동할 링크 ID
+     * @param body 이동할 폴더 정보
+     * @return 변경된 링크 폴더 정보가 포함된 응답
+     */
+    @PATCH("linku/{linkuId}/folder")
     suspend fun updateLinkFolder(
-        @Path("linkuid") linkuId: Long,
+        @Path("linkuId") linkuId: Long,
         @Body body: UpdateLinkFolderDTO
-    ): BaseResponse<LinkuResultDTO>
+    ): BaseResponse<LinkuFolderChangeResultDTO>
 
     // 최근 열람한 링크 불러오기
     @GET("linku/recent")
@@ -87,11 +94,13 @@ interface LinkuApi {
         @Query("size") size: Int? = null
     ) : BaseResponse<RecommendLinkPageDTO>
 
-    // 빠른 링크 검색
-    @GET("linku/search/quick")
-    suspend fun quickSearch(
-        @Query("keyword") keyword: String
-    ) : BaseResponse<List<QuickSearchResult>>
+    // 링크 검색
+    @GET("linku/search")
+    suspend fun searchLinks(
+        @Query("searchQuery") searchQuery: String,
+        @Query("cursor") cursor: Long = 0,
+        @Query("size") size: Int = 10,
+    ): BaseResponse<LinkuSearchResponseDTO>
 
     // 링크 삭제
     @DELETE("linku/{userLinkuId}")

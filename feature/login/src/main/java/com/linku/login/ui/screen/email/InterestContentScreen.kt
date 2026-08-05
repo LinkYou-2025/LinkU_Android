@@ -1,15 +1,18 @@
 package com.linku.login.ui.screen.email
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.SignUpState
 import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.icon.iconRes
 import com.linku.login.ui.layout.SignUpSelectionLayout
@@ -19,19 +22,28 @@ import com.linku.login.viewmodel.state.SignUpEffect
 @Composable
 internal fun InterestContentScreen(
     onBackClick: () -> Unit,
-    onNavigateToWelcome: () -> Unit,
+    onSignUpSuccess: () -> Unit,
     signUpViewModel: SignUpViewModel
 ) {
     BackHandler { onBackClick() }
 
+    val context = LocalContext.current
     val signUpState by signUpViewModel.state.collectAsStateWithLifecycle()
     val selectedInterests = signUpState.signUpForm.interestList
+
+    // "다음"을 누르면 회원가입 API 호출 → 토큰 저장(자동 로그인)까지 리포지토리에서 처리됨.
+    // 요청 진행 중에는 버튼을 비활성화해서 중복 제출을 막음.
+    val signUpApiState by signUpViewModel.signUpState.collectAsStateWithLifecycle()
 
     LaunchedEffect(signUpViewModel.sideEffect) {
         signUpViewModel.sideEffect.collect { effect ->
             when (effect) {
-                is SignUpEffect.NavigateToWelcome -> {
-                    onNavigateToWelcome()
+                is SignUpEffect.NavigateToHome -> {
+                    onSignUpSuccess()
+                }
+
+                is SignUpEffect.ShowToast -> {
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 }
 
                 else -> { /* 여기도 형식상 남겨용 */
@@ -50,7 +62,7 @@ internal fun InterestContentScreen(
         iconRes = { it.iconRes },
         selectedItems = selectedInterests,
         buttonText = "다음",
-        canProceed = selectedInterests.isNotEmpty(),
+        canProceed = selectedInterests.isNotEmpty() && signUpApiState !is SignUpState.Loading,
         onButtonClick = {
             signUpViewModel.onInterestNextClicked()
         },

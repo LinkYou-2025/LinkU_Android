@@ -1,0 +1,135 @@
+package com.linku.file.ui.item
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.layer.drawLayer
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+
+private val FolderMaskShape = GenericShape { size, _ ->
+    val sx = size.width / 174f
+    val sy = size.height / 116f
+
+    fun x(value: Float) = value * sx
+    fun y(value: Float) = value * sy
+
+    moveTo(x(0f), y(25.77f))
+    cubicTo(x(0f), y(11.96f), x(11.19f), y(0.77f), x(25f), y(0.77f))
+    lineTo(x(46.8f), y(0.77f))
+    cubicTo(x(51.82f), y(0.77f), x(56.56f), y(3.05f), x(59.68f), y(6.98f))
+    cubicTo(x(62.81f), y(10.91f), x(67.55f), y(13.2f), x(72.57f), y(13.2f))
+    lineTo(x(149f), y(13.2f))
+    cubicTo(x(162.81f), y(13.2f), x(174f), y(24.39f), x(174f), y(38.2f))
+    lineTo(x(174f), y(91f))
+    cubicTo(x(174f), y(104.81f), x(162.81f), y(116f), x(149f), y(116f))
+    lineTo(x(25f), y(116f))
+    cubicTo(x(11.19f), y(116f), x(0f), y(104.81f), x(0f), y(91f))
+
+    close()
+}
+
+@Composable
+internal fun FolderMask(
+    modifier: Modifier
+) {
+    val colors = MaterialTheme.linkuColors
+
+    FolderMask(
+        modifier = modifier,
+        brush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                1.0f to colors.gray[100].copy(alpha = 0.7f),
+                0.2f to colors.gray[200].copy(alpha = 1.0f),
+            )
+        ),
+        baseColor = colors.gray[200],
+        shadow = null,
+    )
+}
+
+@Composable
+internal fun FolderMask(
+    modifier: Modifier,
+    brush: Brush,
+    baseColor: Color,
+    shadow: Shadow? = null,
+    backdropLayer: GraphicsLayer? = null,
+    backdropOffsetY: Dp = 0.dp,
+    backdropBlurRadius: Dp = 0.dp,
+) {
+    Box(
+        modifier = modifier,
+    ) {
+        if (shadow != null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .dropShadow(
+                        shape = FolderMaskShape,
+                        shadow = shadow,
+                    )
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(FolderMaskShape)
+                .drawWithCache {
+                    val backdropOffsetYPx = backdropOffsetY.toPx()
+                    val blurRadiusPx = backdropBlurRadius.toPx()
+                    val blurEffect = if (backdropLayer != null && blurRadiusPx > 0f) {
+                        BlurEffect(
+                            radiusX = blurRadiusPx,
+                            radiusY = blurRadiusPx,
+                        )
+                    } else {
+                        null
+                    }
+
+                    onDrawBehind {
+                        drawRect(color = baseColor.copy(alpha = 1f))
+
+                        backdropLayer?.let { layer ->
+                            layer.renderEffect = blurEffect
+                            translate(top = -backdropOffsetYPx) {
+                                drawLayer(layer)
+                            }
+                        }
+
+                        drawRect(brush = brush)
+                    }
+                }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FolderMaskPreview() {
+    LinkuPreview {
+        FolderMask(
+            Modifier
+                .fillMaxWidth()
+                .height(116.dp)
+        )
+    }
+}

@@ -249,17 +249,18 @@ fun FaqScreen(
                             if (selectedFilter == filter) {
                                 Modifier
                                     .background(colors.gray[800])
+                            } else {
+                                Modifier
+                                    .background(colors.white)
                                     .border(
                                         1.dp,
                                         MaterialTheme.linkuColors.gray[200],
                                         RoundedCornerShape(10.dp)
                                     )
-                            } else {
-                                Modifier.background(colors.white)
                             }
                         )
                         .noRippleClickable { selectedFilter = filter }
-                        .padding(horizontal = 15.dp, vertical = 8.dp),
+                        .padding(horizontal = 15.dp, vertical = 6.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(

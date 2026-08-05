@@ -35,10 +35,10 @@ val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException("SERVER_DOMAIN is missing or blank in local.properties")
 
-val serverHost = serverDomain
-    .removePrefix("https://")
-    .removePrefix("http://")
-    .trimEnd('/')
+val serverHost = localProperties.getProperty("SERVER_HOST")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("SERVER_HOST is missing or blank in local.properties")
 
 android {
     namespace = "com.linku"
@@ -111,6 +111,7 @@ dependencies {
     implementation(libs.firebase.messaging.ktx)
     implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -134,7 +135,6 @@ dependencies {
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.converter.moshi)
-    implementation(libs.logging.interceptor)
     implementation(libs.moshi.kotlin)
 
     // SharedPreference
@@ -170,6 +170,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
+
+    // Paging
+    implementation(libs.paging.runtime)
 
     implementation(libs.lottie)
 

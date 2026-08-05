@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
+import kotlin.apply
 
 plugins {
     alias(libs.plugins.android.library)
@@ -10,6 +12,16 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) load(file.inputStream())
+}
+
+val serverHost = localProperties.getProperty("SERVER_HOST")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException("SERVER_HOST is missing or blank in local.properties")
+
 android {
     namespace = "com.linku.file"
 
@@ -20,6 +32,7 @@ android {
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         //consumerProguardFiles("consumer-rules.pro")
+        buildConfigField("String", "SERVER_HOST", "\"$serverHost\"")
     }
 
     buildTypes {
@@ -89,6 +102,9 @@ dependencies {
 
     // lazy grid
     implementation(libs.grid)
+
+    // Paging
+    implementation(libs.paging.runtime)
 
     // Retrofit
     implementation(libs.retrofit2)
