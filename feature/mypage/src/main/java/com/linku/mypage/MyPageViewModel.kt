@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.UserSession
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,9 +20,9 @@ import javax.inject.Inject
 @HiltViewModel
 class MyPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
+    private val alarmRepository: AlarmRepository,
     private val authPreference: AuthPreference
 ): ViewModel() {
-
     val sessionState: StateFlow<UserSession> = authPreference.sessionState
         .stateIn(
             scope = viewModelScope,
@@ -33,11 +34,21 @@ class MyPageViewModel @Inject constructor(
     data class MyPageUiState(
         val isLoading: Boolean = false,
         val userInfo: UserInfo? = null,
+        val isUnreadAlarmExists: Boolean = false,
         val error: String? = null
     )
 
     private val _uiState = MutableStateFlow(MyPageUiState())
     val uiState: StateFlow<MyPageUiState> = _uiState.asStateFlow()
+
+    fun checkUnreadAlarm() {
+        viewModelScope.launch {
+            alarmRepository.getUnreadAlarmExists()
+                .onSuccess { exists ->
+                    _uiState.value = _uiState.value.copy(isUnreadAlarmExists = exists)
+                }
+        }
+    }
 
     // 마이페이지 진입 시, api 로든
     fun loadUserInfo() {
@@ -52,11 +63,11 @@ class MyPageViewModel @Inject constructor(
 
             userRepository.getUserInfo(id).fold(
                 onSuccess = { info ->
-                    _uiState.value = MyPageUiState(isLoading = false, userInfo = info)
+                    _uiState.value = _uiState.value.copy(isLoading = false, userInfo = info, error = null)
                 },
                 onFailure = { e ->
                     _uiState.value =
-                        MyPageUiState(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
+                        _uiState.value.copy(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
                 }
             )
         }

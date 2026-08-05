@@ -74,4 +74,19 @@ fun String.toCurationYear(): String {
     return this.split("-").firstOrNull()?.takeIf { it.toIntOrNull() != null } ?: this
 }
 
-
+/**
+ * ISO 8601 형식의 문자열을 "yy.mm.dd" 형식의 날짜 문자열로 변환합니다.
+ *
+ * 문자열 파싱에 실패하거나 포맷이 올바르지 않은 경우 "알 수 없음"을 반환합니다.
+ * 연도는 뒤의 두 자리만 표시하며, 월과 일은 두 자리 숫자로 패딩됩니다.
+ *
+ */
+fun String.toDate(): String {
+    return runCatching {
+        val parsed = LocalDateTime.parse(this)
+        val yy = parsed.year % 100
+        val mm = parsed.monthValue
+        val dd = parsed.dayOfMonth
+        "%02d.%02d.%02d".format(yy, mm, dd)
+    }.getOrElse { "알 수 없음" }
+}

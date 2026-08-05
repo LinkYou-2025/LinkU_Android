@@ -24,14 +24,15 @@ import com.linku.home.R
 @Composable
 fun AlarmTopBar(
     onBack: () -> Unit,
-    onHomeClick: () -> Unit,
+    onHomeClick: () -> Unit = {},
+    topText: String
 ) {
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "알림함",
+            text = topText,
             color = LocalColorTheme.current.black,
             fontSize = 16.sp,
             fontFamily = LocalFontTheme.current.font,
@@ -61,6 +62,7 @@ fun AlarmTopBar(
 fun PreviewAlarmTopBar() {
     AlarmTopBar(
         onBack = {},
-        onHomeClick = {}
+        onHomeClick = {},
+        topText = "알림함"
     )
 }

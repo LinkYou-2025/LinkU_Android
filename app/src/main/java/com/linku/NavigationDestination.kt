@@ -25,6 +25,9 @@ sealed class NavigationRoute(
     data object MyPage: NavigationRoute("my_page")
 
     data object AlarmSetting: NavigationRoute("alarm_setting")
+    data object Alarm: NavigationRoute("alarm_list")
+    data object Notice: NavigationRoute("notice_screen/{targetId}")
+
 }
 
 class LoginRoutingInfo(val empty: Any? = null)

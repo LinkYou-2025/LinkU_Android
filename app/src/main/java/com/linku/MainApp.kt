@@ -35,6 +35,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.error.DeepLinkError
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
@@ -55,6 +56,8 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
+import com.linku.home.screen.AlarmScreen
+import com.linku.home.screen.NoticeScreen
 import com.linku.home.viewmodel.LinkDetailViewModel
 import com.linku.home.viewmodel.SaveLinkViewModel
 import com.linku.link.component.LinkCategoryOption
@@ -91,18 +94,6 @@ fun MainApp(
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
-
-    // 채널 사이드 이펙트 수신
-    LaunchedEffect(Unit) {
-        viewModel.sideEffect.collect { effect ->
-            when (effect) {
-                is SideEffect.ShowToast ->
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                is SideEffect.ShowPushAlarmDialog ->
-                    showPushAlarmDialog = true
-            }
-        }
-    }
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -168,6 +159,8 @@ fun MainApp(
 
     var showNavBar by rememberSaveable { mutableStateOf(false) }
 
+    val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+
     // 스플래시 애니메이션, 로그인 그라데이션 화면처럼 상태바 뒤로 콘텐츠가 그대로 비쳐야 하는
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
     // Splash가 시작 화면이라 초기값만 true.
@@ -190,6 +183,50 @@ fun MainApp(
             currentRoute == "curation_list"
         ) {
             viewModel.fetchNickname()
+        }
+    }
+
+    // 푸시 알림 네비게이션 공통 함수.
+    // Home이 백스택에 있어야 뒤로가기 시 Home으로 복귀하므로 popUpTo 사용.
+    fun navigateByNotification(type: AlarmType, targetId: Long) {
+        when (type) {
+            AlarmType.NOTICE -> {
+                showNavBar = false
+                navigator.navigate("notice_screen/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            }
+            AlarmType.LINK ->
+                navigator.navigate("savelinkresult/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            AlarmType.FOLDER -> { /* TODO */ }
+            AlarmType.CURATION -> { /* TODO */ }
+            AlarmType.ALL -> Unit
+        }
+    }
+
+    // 채널 사이드 이펙트 수신
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SideEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
+
+                is SideEffect.NavigateByNotification -> {
+                    // alarmId 포함해서 저장 → consume 시점(인증 완료 후)에 readAlarm 호출됨
+                    viewModel.setPendingNotification(effect.type, effect.targetId, effect.alarmId)
+
+                    // 인증 완료 상태면 즉시 이동, 아니면 auth 완료 후 consume
+                    if (isAuthenticated) {
+                        viewModel.consumePendingNotification()?.let {
+                            navigateByNotification(it.type, it.targetId)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -317,11 +354,17 @@ fun MainApp(
                         LaunchedEffect(autoLoginState) {
                             when (autoLoginState) {
                                 is AutoLoginState.Success -> {
+                                    showNavBar = true
+                                    viewModel.setAuthenticated(true)
                                     edgeToEdgeSystemBars = false
                                     homeViewModel.refreshAfterLogin()
                                     navigator.navigate(NavigationRoute.Home.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         launchSingleTop = true
+                                    }
+                                    // 자동 로그인 성공 후 pending 알림 처리
+                                    viewModel.consumePendingNotification()?.let {
+                                        navigateByNotification(it.type, it.targetId)
                                     }
                                 }
 
@@ -421,8 +464,11 @@ fun MainApp(
                         loginViewModel = loginViewModel,
                         onEdgeToEdgeChange = { edgeToEdgeSystemBars = it },
                         onLoginSuccess = {
+                            showNavBar = true
+                            viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
 
+                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
                             // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
                             // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
                             val pendingInvitationToken =
@@ -497,6 +543,17 @@ fun MainApp(
                                 return@LoginApp
                             }
 
+                            // 수동 로그인 성공 후 pending 알림 처리
+                            viewModel.consumePendingNotification()?.let {
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo("login_root") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                navigateByNotification(it.type, it.targetId)
+                                return@LoginApp
+                            }
+
+                            // pending 알림이 없는 경우의 기본 동작
 
                             showNavBar = true
                             navigator.navigate(NavigationRoute.Home.route) {
@@ -535,7 +592,12 @@ fun MainApp(
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
                             },
-                            onShowNavBar = { showNavBar = it }
+                            onNavigateToCuration = {
+                                navigator.navigate("curation_card1")
+                            },
+                            onNavigateToAlarm = {
+                                navigator.navigate(NavigationRoute.Alarm.route)
+                            }
                         )
                     }
                 }
@@ -583,8 +645,8 @@ fun MainApp(
                         MyPageApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
-                                showNavBar = false  // 바텀바 끄기
-
+                                showNavBar = false
+                                viewModel.setAuthenticated(false)
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 searchViewModel.reset()
@@ -606,10 +668,9 @@ fun MainApp(
                                     }
                                     launchSingleTop = true
                                 }
-//                                navigator.navigate(NavigationRoute.Login.route) {
-//                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
-//                                    launchSingleTop = true
-//                                }
+                            },
+                            onNavigateToAlarm = {
+                                navigator.navigate(NavigationRoute.Alarm.route)
                             }
                         )
                     }
@@ -626,6 +687,45 @@ fun MainApp(
                             viewModel = notificationViewModel
                         )
                     }
+                }
+
+                with(NavigationRoute.Alarm) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) { showNavBar = false }
+                        AlarmScreen(
+                            onBack = {
+                                showNavBar = true
+                                navigator.popBackStack()
+                            },
+                            onNavigateToSetting = { navigator.navigate(NavigationRoute.AlarmSetting.route) },
+                            onNavigateToHome = {
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                                }
+                            },
+                            onNavigateToLinkDetail = { targetId -> navigator.navigate("savelinkresult/$targetId") },
+                            onNavigateToFolder = { /* TODO */ },
+                            onNavigateToCuration = { /* TODO */ },
+                            onNavigateToNotice = { targetId ->
+                                showNavBar = false
+                                navigator.navigate("notice_screen/$targetId")
+                            }
+                        )
+                    }
+                }
+
+                composable(
+                    route = NavigationRoute.Notice.route,
+                    arguments = listOf(navArgument("targetId") { type = NavType.LongType })
+                ) {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    NoticeScreen(
+                        onBack = {
+                            val prevRoute = navigator.previousBackStackEntry?.destination?.route
+                            if (prevRoute != NavigationRoute.Alarm.route) showNavBar = true
+                            navigator.popBackStack()
+                        }
+                    )
                 }
 
                 composable("savelink") {
