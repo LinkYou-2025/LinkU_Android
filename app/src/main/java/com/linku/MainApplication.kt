@@ -23,7 +23,7 @@ class MainApplication: Application() {
         val channel = NotificationChannel(
             "default_channel",
                 "기본 알림",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_DEFAULT
         )
 
         getSystemService(NotificationManager::class.java)

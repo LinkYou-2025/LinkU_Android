@@ -37,6 +37,7 @@ import com.linku.mypage.ui.top.bar.MypageTopBar
 fun MyPageScreen(
     nickname: String,
     email: String,
+    isUnreadAlarmExists: Boolean,
     myLinku: Long,
     myFolder: Long,
     myAiLinku: Long,
@@ -60,7 +61,7 @@ fun MyPageScreen(
             .background(colors.gray[100])
     ) {
         MypageTopBar(
-            isNoticeExist = false, // TODO: 실제 알림 여부 연결
+            isNoticeExist = isUnreadAlarmExists,
             nickname = nickname,
             email = email,
             myLinku = myLinku,
@@ -272,6 +273,7 @@ fun PreviewMyPageScreen() {
     MyPageScreen(
         nickname = "세나",
         email = "linkU2025@gmail.com",
+        isUnreadAlarmExists = true,
         myLinku = 63,
         myFolder = 5,
         myAiLinku = 48,

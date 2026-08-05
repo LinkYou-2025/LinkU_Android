@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
@@ -27,6 +28,7 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
+    private val alarmRepository: AlarmRepository
 ) : ViewModel() {
 
     private companion object {
@@ -102,6 +104,7 @@ class HomeViewModel @Inject constructor(
         jobIdState.value = null
         _recentLinks.value = emptyList()
         _categoryColorMap.value = emptyMap()
+        _isUnreadAlarmExists.value = false
         categoryLoaded = false
     }
 
@@ -210,5 +213,17 @@ class HomeViewModel @Inject constructor(
         Log.d("searchTopSheetVisible", newState.toString())
         searchTopSheetVisible = newState
     }
+
+
+    private val _isUnreadAlarmExists = MutableStateFlow(false)
+    val isUnreadAlarmExists = _isUnreadAlarmExists.asStateFlow()
+
+    fun refreshUnreadAlarm() {
+        viewModelScope.launch {
+            alarmRepository.getUnreadAlarmExists()
+                .onSuccess { _isUnreadAlarmExists.value = it }
+        }
+    }
+
 
 }
