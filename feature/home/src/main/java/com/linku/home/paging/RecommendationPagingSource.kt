@@ -4,6 +4,7 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.repository.LinkuRepository
+import kotlinx.coroutines.CancellationException
 
 class RecommendationPagingSource(
     private val linkuRepository: LinkuRepository,
@@ -17,43 +18,40 @@ class RecommendationPagingSource(
     ): PagingSource.LoadResult<String, LinkSimpleInfo> {
         val cursor = params.key
 
-        return runCatching {
-            linkuRepository.recommendLinks(
+        return try {
+            val page = linkuRepository.recommendLinks(
                 situationId = situationId,
                 emotionId = emotionId,
                 cursor = cursor,
                 size = pageSize,
             )
-        }.fold(
-            onSuccess = { page ->
-                val nextCursor = when {
-                    !page.hasNext -> null
 
-                    page.nextCursor.isNullOrBlank() -> {
-                        throw IllegalStateException(
-                            "hasNext=true이지만 nextCursor가 없습니다.",
-                        )
-                    }
+            val nextCursor = when {
+                !page.hasNext -> null
 
-                    page.nextCursor == cursor -> {
-                        throw IllegalStateException(
-                            "현재 cursor와 nextCursor가 동일합니다. cursor=${page.nextCursor}",
-                        )
-                    }
-
-                    else -> page.nextCursor
+                page.nextCursor.isNullOrBlank() -> {
+                    throw IllegalStateException("hasNext=true이지만 nextCursor가 없습니다.")
                 }
 
-                LoadResult.Page(
-                    data = page.items,
-                    prevKey = null,
-                    nextKey = nextCursor,
-                )
-            },
-            onFailure = { error ->
-                LoadResult.Error(error)
-            },
-        )
+                page.nextCursor == cursor -> {
+                    throw IllegalStateException(
+                        "현재 cursor와 nextCursor가 동일합니다. cursor=${page.nextCursor}",
+                    )
+                }
+
+                else -> page.nextCursor
+            }
+
+            LoadResult.Page(
+                data = page.items,
+                prevKey = null,
+                nextKey = nextCursor,
+            )
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            LoadResult.Error(error)
+        }
     }
 
     override fun getRefreshKey(
