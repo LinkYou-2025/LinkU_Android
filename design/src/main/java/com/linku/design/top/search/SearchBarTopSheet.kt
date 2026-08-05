@@ -181,7 +181,7 @@ fun SearchBarTopSheet(
                     // Gray 100 배경색
                     color = colors.gray[100]
                 )
-                .padding(horizontal = 15.dp, vertical = 10.dp),
+                .padding(horizontal = 15.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
@@ -481,7 +481,7 @@ fun SearchBarTopSheet(
                                             // 입력값이 없을 때만 placeholder 보임
                                             if (text.isEmpty()) {
                                                 Text(
-                                                    text = " 빠른 링크 검색",
+                                                    text = "빠른 링크 검색",
                                                     fontSize = 15.sp,
                                                     lineHeight = 22.sp,
                                                     fontFamily = paperlogyFont,
@@ -523,10 +523,10 @@ fun SearchBarTopSheet(
                         Text(
                             text = if (text.isEmpty()) "최근 검색" else "검색 결과",
                             fontSize = 14.sp,
-                            lineHeight = 20.sp,
+                            lineHeight = 16.sp,
                             fontFamily = paperlogyFont,
-                            fontWeight = FontWeight.Bold,
-                            color = colors.black
+                            fontWeight = FontWeight.Medium,
+                            color = colors.gray[700]
                         )
 
                         // 입력된 검색어가 없을 때,
