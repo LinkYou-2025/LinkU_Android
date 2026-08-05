@@ -65,16 +65,6 @@ fun String.toCurationTitle(): String {
 }
 
 /**
- * "yyyy-MM" 형식의 문자열에서 연도만 추출합니다.
- *
- * @receiver "yyyy-MM" 형식의 문자열 (예: "2026-01")
- * @return 연도 문자열 (예: "2026"), 파싱 실패 시 원본 반환
- */
-fun String.toCurationYear(): String {
-    return this.split("-").firstOrNull()?.takeIf { it.toIntOrNull() != null } ?: this
-}
-
-/**
  * ISO 8601 형식의 문자열을 "yy.mm.dd" 형식의 날짜 문자열로 변환합니다.
  *
  * 문자열 파싱에 실패하거나 포맷이 올바르지 않은 경우 "알 수 없음"을 반환합니다.
