@@ -27,6 +27,12 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** 검색 API 호출을 시작하는 최소 검색어 길이입니다. */
+private const val MIN_SEARCH_LENGTH = 2
+
+/** 검색어 입력 및 API 요청에 허용하는 최대 길이입니다. */
+private const val MAX_SEARCH_LENGTH = 20
+
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -64,8 +70,20 @@ class SearchViewModel @Inject constructor(
             }
             .cachedIn(viewModelScope)
 
-    private var historyJob: Job? = null
-    private var historyRequestId: Long = 0L
+    /** 이전 조회 결과가 최신 조회 결과를 덮어쓰지 않도록 조회 작업만 관리하는 Job입니다. */
+    private var historyLoadJob: Job? = null
+
+    /** 취소된 이전 조회 결과가 UI에 반영되지 않도록 식별하는 조회 요청 ID입니다. */
+    private var historyLoadRequestId: Long = 0L
+
+    /** 화면 초기화 시 함께 취소할 진행 중인 검색 기록 변경 작업입니다. */
+    private val historyMutationJobs = mutableSetOf<Job>()
+
+    /** 동시에 진행 중인 검색 기록 작업 수입니다. */
+    private var activeHistoryActionCount: Int = 0
+
+    /** 화면 초기화 전에 시작한 작업의 UI 반영을 차단하기 위한 세대 값입니다. */
+    private var historyGeneration: Long = 0L
 
     fun openSearch() {
         resetSearchResults()
@@ -77,117 +95,44 @@ class SearchViewModel @Inject constructor(
     }
 
     fun loadRecentQueries() {
-        val requestId = ++historyRequestId
-        historyJob?.cancel()
-        historyJob = viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isHistoryLoading = true,
-                    errorMessage = null,
+        cancelHistoryLoad()
+        val requestId = historyLoadRequestId
+        historyLoadJob = runHistoryAction(
+            action = recentSearchRepository::getRecentQueries,
+            onSuccess = { state, recentQueries ->
+                state.copy(
+                    recentQueries = recentQueries.map { query ->
+                        RecentSearchItem(
+                            searchHistoryId = query.searchHistoryId,
+                            keyword = query.keyword,
+                        )
+                    },
                 )
-            }
-
-            try {
-                recentSearchRepository.getRecentQueries()
-                    .onSuccess { recentQueries ->
-                        if (historyRequestId == requestId) {
-                            _uiState.update {
-                                it.copy(
-                                    recentQueries = recentQueries.map { query ->
-                                        RecentSearchItem(
-                                            searchHistoryId = query.searchHistoryId,
-                                            keyword = query.keyword,
-                                        )
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    .onFailure { exception ->
-                        if (historyRequestId == requestId) {
-                            _uiState.update { it.copy(errorMessage = exception.message) }
-                        }
-                    }
-            } catch (exception: CancellationException) {
-                throw exception
-            } finally {
-                if (historyRequestId == requestId) {
-                    _uiState.update { it.copy(isHistoryLoading = false) }
-                }
-            }
-        }
+            },
+            canApplyResult = { historyLoadRequestId == requestId },
+        )
     }
 
     fun removeRecentQuery(searchHistoryId: Long) {
-        val requestId = ++historyRequestId
-        historyJob?.cancel()
-        historyJob = viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isHistoryLoading = true,
-                    errorMessage = null,
+        cancelHistoryLoad()
+        runHistoryAction(
+            action = { recentSearchRepository.remove(searchHistoryId) },
+            onSuccess = { state, _ ->
+                state.copy(
+                    recentQueries = state.recentQueries.filterNot { query ->
+                        query.searchHistoryId == searchHistoryId
+                    },
                 )
-            }
-
-            try {
-                recentSearchRepository.remove(searchHistoryId)
-                    .onSuccess {
-                        if (historyRequestId == requestId) {
-                            _uiState.update { state ->
-                                state.copy(
-                                    recentQueries = state.recentQueries.filterNot { query ->
-                                        query.searchHistoryId == searchHistoryId
-                                    },
-                                )
-                            }
-                        }
-                    }
-                    .onFailure { exception ->
-                        if (historyRequestId == requestId) {
-                            _uiState.update { it.copy(errorMessage = exception.message) }
-                        }
-                    }
-            } catch (exception: CancellationException) {
-                throw exception
-            } finally {
-                if (historyRequestId == requestId) {
-                    _uiState.update { it.copy(isHistoryLoading = false) }
-                }
-            }
-        }
+            },
+        ).trackHistoryMutation()
     }
 
     fun clearRecentQueries() {
-        val requestId = ++historyRequestId
-        historyJob?.cancel()
-        historyJob = viewModelScope.launch {
-            _uiState.update {
-                it.copy(
-                    isHistoryLoading = true,
-                    errorMessage = null,
-                )
-            }
-
-            try {
-                recentSearchRepository.clear()
-                    .onSuccess {
-                        if (historyRequestId == requestId) {
-                            _uiState.update { it.copy(recentQueries = emptyList()) }
-                        }
-                    }
-                    .onFailure { exception ->
-                        if (historyRequestId == requestId) {
-                            _uiState.update { it.copy(errorMessage = exception.message) }
-                        }
-                    }
-            } catch (exception: CancellationException) {
-                throw exception
-            } finally {
-                if (historyRequestId == requestId) {
-                    _uiState.update { it.copy(isHistoryLoading = false) }
-                }
-            }
-        }
+        cancelHistoryLoad()
+        runHistoryAction(
+            action = recentSearchRepository::clear,
+            onSuccess = { state, _ -> state.copy(recentQueries = emptyList()) },
+        ).trackHistoryMutation()
     }
 
     fun resetSearchResults() {
@@ -195,15 +140,83 @@ class SearchViewModel @Inject constructor(
     }
 
     fun reset() {
-        historyRequestId++
-        historyJob?.cancel()
-        historyJob = null
+        historyGeneration++
+        cancelHistoryLoad()
+        historyMutationJobs.toList().forEach { it.cancel() }
+        historyMutationJobs.clear()
+        activeHistoryActionCount = 0
         searchQuery.value = ""
         _uiState.value = SearchBarUiState()
     }
 
-    private companion object {
-        const val MIN_SEARCH_LENGTH = 2
-        const val MAX_SEARCH_LENGTH = 20
+    /**
+     * 진행 중인 최근 검색 기록 조회를 취소합니다.
+     *
+     * 삭제 작업은 이 Job을 공유하지 않으므로 연속 삭제 요청이 서로 취소되지 않습니다.
+     */
+    private fun cancelHistoryLoad() {
+        historyLoadRequestId++
+        historyLoadJob?.cancel()
+        historyLoadJob = null
+    }
+
+    /**
+     * 검색 기록 작업의 공통 로딩, 오류 및 성공 상태 반영을 수행합니다.
+     *
+     * @param T 검색 기록 작업이 성공했을 때 반환하는 값의 타입입니다.
+     * @param action 검색 기록 저장소에 요청할 비동기 작업입니다.
+     * @param onSuccess 성공 결과를 현재 UI 상태에 반영하는 함수입니다.
+     * @param canApplyResult 현재 작업 결과를 UI 상태에 반영할 수 있는지 확인하는 함수입니다.
+     * @return 실행 중인 검색 기록 작업의 [Job]입니다.
+     */
+    private fun <T> runHistoryAction(
+        action: suspend () -> Result<T>,
+        onSuccess: (SearchBarUiState, T) -> SearchBarUiState,
+        canApplyResult: () -> Boolean = { true },
+    ): Job {
+        val generation = historyGeneration
+
+        return viewModelScope.launch {
+            if (generation != historyGeneration) return@launch
+
+            activeHistoryActionCount++
+            _uiState.update {
+                it.copy(
+                    isHistoryLoading = true,
+                    errorMessage = null,
+                )
+            }
+
+            try {
+                action()
+                    .onSuccess { result ->
+                        if (generation == historyGeneration && canApplyResult()) {
+                            _uiState.update { state -> onSuccess(state, result) }
+                        }
+                    }
+                    .onFailure { exception ->
+                        if (generation == historyGeneration && canApplyResult()) {
+                            _uiState.update { it.copy(errorMessage = exception.message) }
+                        }
+                    }
+            } catch (exception: CancellationException) {
+                throw exception
+            } finally {
+                if (generation == historyGeneration) {
+                    activeHistoryActionCount = (activeHistoryActionCount - 1).coerceAtLeast(0)
+                    _uiState.update {
+                        it.copy(isHistoryLoading = activeHistoryActionCount > 0)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 검색 기록 변경 Job을 추적해 [reset] 호출 시 함께 취소합니다.
+     */
+    private fun Job.trackHistoryMutation() {
+        historyMutationJobs += this
+        invokeOnCompletion { historyMutationJobs -= this }
     }
 }

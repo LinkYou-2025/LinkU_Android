@@ -15,6 +15,7 @@ import com.linku.design.top.search.RecentSearchItem
 import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchResultItem
 import java.io.File
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -215,6 +216,51 @@ class SearchViewModelTest {
         }
 
     @Test
+    fun `latest recent query load ignores stale result after previous load cancellation`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val firstStarted = CompletableDeferred<Unit>()
+            var firstCancelled = false
+            var requestCount = 0
+
+            recentSearchRepository.getHandler = {
+                requestCount++
+                if (requestCount == 1) {
+                    firstStarted.complete(Unit)
+                    try {
+                        awaitCancellation()
+                    } catch (_: CancellationException) {
+                        firstCancelled = true
+                        Result.success(
+                            listOf(
+                                RecentQuery(searchHistoryId = 10L, keyword = "Compose"),
+                            )
+                        )
+                    }
+                } else {
+                    Result.success(
+                        listOf(
+                            RecentQuery(searchHistoryId = 20L, keyword = "Kotlin"),
+                        )
+                    )
+                }
+            }
+
+            viewModel.loadRecentQueries()
+            runCurrent()
+            assertTrue(firstStarted.isCompleted)
+
+            viewModel.loadRecentQueries()
+            advanceUntilIdle()
+
+            assertTrue(firstCancelled)
+            assertEquals(
+                listOf(RecentSearchItem(searchHistoryId = 20L, keyword = "Kotlin")),
+                viewModel.uiState.value.recentQueries,
+            )
+            assertFalse(viewModel.uiState.value.isHistoryLoading)
+        }
+
+    @Test
     fun `removeRecentQuery removes matching id from common ui state`() =
         runTest(mainDispatcherRule.testDispatcher) {
             recentSearchRepository.getResult = Result.success(
@@ -234,6 +280,88 @@ class SearchViewModelTest {
                 listOf(RecentSearchItem(searchHistoryId = 20L, keyword = "Kotlin")),
                 viewModel.uiState.value.recentQueries,
             )
+            assertFalse(viewModel.uiState.value.isHistoryLoading)
+        }
+
+    @Test
+    fun `consecutive remove requests complete independently and keep loading until all finish`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            val firstStarted = CompletableDeferred<Unit>()
+            val secondStarted = CompletableDeferred<Unit>()
+            val firstCompletion = CompletableDeferred<Unit>()
+            val secondCompletion = CompletableDeferred<Unit>()
+
+            recentSearchRepository.getResult = Result.success(
+                listOf(
+                    RecentQuery(searchHistoryId = 10L, keyword = "Compose"),
+                    RecentQuery(searchHistoryId = 20L, keyword = "Kotlin"),
+                )
+            )
+            recentSearchRepository.removeHandler = { searchHistoryId ->
+                when (searchHistoryId) {
+                    10L -> {
+                        firstStarted.complete(Unit)
+                        firstCompletion.await()
+                        Result.success(Unit)
+                    }
+
+                    20L -> {
+                        secondStarted.complete(Unit)
+                        secondCompletion.await()
+                        Result.success(Unit)
+                    }
+
+                    else -> Result.failure(
+                        IllegalArgumentException("예상하지 못한 검색 기록 ID입니다.")
+                    )
+                }
+            }
+
+            viewModel.loadRecentQueries()
+            advanceUntilIdle()
+
+            viewModel.removeRecentQuery(searchHistoryId = 10L)
+            runCurrent()
+            viewModel.removeRecentQuery(searchHistoryId = 20L)
+            runCurrent()
+
+            assertTrue(firstStarted.isCompleted)
+            assertTrue(secondStarted.isCompleted)
+            assertTrue(viewModel.uiState.value.isHistoryLoading)
+
+            firstCompletion.complete(Unit)
+            runCurrent()
+
+            assertEquals(
+                listOf(20L),
+                viewModel.uiState.value.recentQueries.map { it.searchHistoryId },
+            )
+            assertTrue(viewModel.uiState.value.isHistoryLoading)
+
+            secondCompletion.complete(Unit)
+            advanceUntilIdle()
+
+            assertEquals(listOf(10L, 20L), recentSearchRepository.removedIds)
+            assertTrue(viewModel.uiState.value.recentQueries.isEmpty())
+            assertFalse(viewModel.uiState.value.isHistoryLoading)
+        }
+
+    @Test
+    fun `clearRecentQueries clears common ui state`() =
+        runTest(mainDispatcherRule.testDispatcher) {
+            recentSearchRepository.getResult = Result.success(
+                listOf(
+                    RecentQuery(searchHistoryId = 10L, keyword = "Compose"),
+                    RecentQuery(searchHistoryId = 20L, keyword = "Kotlin"),
+                )
+            )
+            viewModel.loadRecentQueries()
+            advanceUntilIdle()
+
+            viewModel.clearRecentQueries()
+            advanceUntilIdle()
+
+            assertTrue(viewModel.uiState.value.recentQueries.isEmpty())
             assertFalse(viewModel.uiState.value.isHistoryLoading)
         }
 
@@ -331,13 +459,15 @@ private class FakeRecentSearchRepository : RecentSearchRepository {
     var getResult: Result<List<RecentQuery>> = Result.success(emptyList())
     var removeResult: Result<Unit> = Result.success(Unit)
     var clearResult: Result<Unit> = Result.success(Unit)
+    var getHandler: suspend () -> Result<List<RecentQuery>> = { getResult }
+    var removeHandler: suspend (Long) -> Result<Unit> = { removeResult }
     val removedIds = mutableListOf<Long>()
 
-    override suspend fun getRecentQueries(): Result<List<RecentQuery>> = getResult
+    override suspend fun getRecentQueries(): Result<List<RecentQuery>> = getHandler()
 
     override suspend fun remove(searchHistoryId: Long): Result<Unit> {
         removedIds += searchHistoryId
-        return removeResult
+        return removeHandler(searchHistoryId)
     }
 
     override suspend fun clear(): Result<Unit> = clearResult
