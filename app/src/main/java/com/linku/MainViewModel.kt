@@ -5,7 +5,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.alarm.AlarmType
@@ -32,7 +31,6 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     application: Application,
-    private val recentRepository: RecentSearchRepository,
     private val notificationPreference: NotificationPreference,
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
@@ -58,6 +56,14 @@ class MainViewModel @Inject constructor(
     fun setAuthenticated(value: Boolean) {
         _isAuthenticated.value = value
     }
+
+    // 로그인 세션 반영함.
+    val isLoggedIn: StateFlow<Boolean?> = authPreference.isLoggedIn
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null // 첫 값이 로그되기 전 아직 모름 상태임. MainApp에서 previousLoggedIn과 비교해 로그아웃 전이면 감지함.
+        )
 
     fun fetchNickname() {
         viewModelScope.launch {
@@ -127,28 +133,6 @@ class MainViewModel @Inject constructor(
     }
 
 
-    // 최근 검색 기록 전체 삭제
-    // 앱 실행 시 실행하여 이전 계정 기록 삭제
-    fun clearRecentQuery() {
-        Log.d("MainViewModel", "clearRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("MainViewModel", "clearRecentQuery launch")
-
-            try{
-                Log.d("MainViewModel", "clearRecentQuery try")
-
-                recentRepository.clear()
-
-            }catch (e: Exception){
-                Log.d("MainViewModel", "clearRecentQuery catch: $e.message")
-            }finally {
-                Log.d("MainViewModel", "clearRecentQuery finally")
-            }
-        }
-        Log.d("MainViewModel", "clearRecentQuery return")
-    }
-
     // 디바이스 정보 초기화 비즈니스 로직 내포
     fun initDeviceInfo(deviceType: String) {
         viewModelScope.launch {
@@ -159,8 +143,7 @@ class MainViewModel @Inject constructor(
 
     // 리프레시 토큰 유효성 검사 (컴포저블에서 동기/비동기 흐름 제어를 위해 suspend 함수로 제공)
     suspend fun hasValidRefreshToken(): Boolean {
-        val token = authPreference.getRefreshToken()
-        return !token.isNullOrBlank()
+        return !authPreference.getRefreshToken().isNullOrBlank()
     }
 
     // 푸시 알림 권한 요청 다이얼로그를 최초 1회만 노출

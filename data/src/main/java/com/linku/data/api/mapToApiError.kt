@@ -13,6 +13,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "COMMON400" -> ApiError.Common.BadRequest(message)
     "COMMON401" -> ApiError.Common.Unauthorized(message)
     "COMMON403" -> ApiError.Common.Forbidden(message)
+    "COMMON404" -> ApiError.Common.NotFound(message)
     "COMMON429" -> ApiError.Common.TooManyRequests(message)
     "COMMON500" -> ApiError.Common.InternalServer(message)
 
@@ -72,6 +73,7 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "LINKU4005" -> ApiError.Linku.NewUser(message)
     "LINKU404" -> ApiError.Linku.UserLinkuNotFound(message)
     "LINKU4041" -> ApiError.Linku.NotFound(message)
+    "LINKU4043" -> ApiError.Linku.SearchHistoryNotFound(message)
 
     // =========================================================
     // 카테고리/도메인/감정/상황 에러
@@ -186,6 +188,7 @@ internal fun mapHttpError(e: HttpException): ApiError {
         400 -> ApiError.Common.BadRequest(message)
         401 -> ApiError.Common.Unauthorized(message)
         403 -> ApiError.Common.Forbidden(message)
+        404 -> ApiError.Common.NotFound(message)
         429 -> ApiError.Common.TooManyRequests(message)
         in 500..599 -> ApiError.Common.InternalServer(message)
         else -> ApiError.Unknown(message)

@@ -18,7 +18,7 @@ sealed class NavigationRoute(
     }
 
     data object Splash: NavigationRoute("splash")
-    data object Login: NavigationRoute("login")
+    data object Login: NavigationRoute("login_root")
     data object Home: NavigationRoute("home")
     data object File: NavigationRoute("file")
     data object Curation: NavigationRoute("curation")

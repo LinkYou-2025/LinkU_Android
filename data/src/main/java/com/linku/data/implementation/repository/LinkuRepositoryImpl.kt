@@ -1,16 +1,20 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.link.LinkCheckResult
-import com.linku.core.model.search.FastSearchLinkInfo
+import com.linku.core.model.search.LinkuSearchInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.LinkuUpdateDTO
 import com.linku.data.api.safeApiCall
+import kotlinx.coroutines.flow.Flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
@@ -268,38 +272,22 @@ class LinkuRepositoryImpl @Inject constructor(
         return result
     }
 
-    override suspend fun fastSearch(keyword: String): List<FastSearchLinkInfo> {
-        Log.d("fastSearch", "keyword: $keyword")
-
-        var result: List<FastSearchLinkInfo> = emptyList()
-
-        try {
-            Log.d("fastSearch", "try")
-
-            safeApiCall(
-                apiCall = { serverApi.quickSearch(keyword = keyword) }
-            ).onSuccess { dtoList ->
-                result = dtoList.map {
-                    FastSearchLinkInfo(
-                        linkuId = it.linkuId,
-                        title = it.title,
-                        domainImageUrl = it.domainImageUrl,
-                        linkUrl = it.linkUrl
-                    )
-                }
-                Log.d("fastSearch", "response: $result")
-            }.onFailure {
-                throw it
-            }
-        } catch (e: Exception) {
-            Log.d("fastSearch", "error: $e")
-            return emptyList()
-        }
-
-        Log.d("fastSearch", "return: $result")
-
-        return result
-    }
+    override fun searchLinks(
+        searchQuery: String,
+    ): Flow<PagingData<LinkuSearchInfo>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = 10,
+                initialLoadSize = 10,
+                enablePlaceholders = false,
+            ),
+            pagingSourceFactory = {
+                LinkuSearchPagingSource(
+                    linkuApi = serverApi,
+                    searchQuery = searchQuery,
+                )
+            },
+        ).flow
 
     // 링크 수정
     override suspend fun updateLink(

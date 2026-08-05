@@ -11,18 +11,14 @@ import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
-import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.design.top.search.FastSearchItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import javax.inject.Inject
@@ -33,7 +29,6 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
-    private val recentRepository: RecentSearchRepository,
     private val alarmRepository: AlarmRepository
 ) : ViewModel() {
 
@@ -211,10 +206,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // ---------- search method ----------
     // 검색창 탑 시트 가시성 상태
     var searchTopSheetVisible by mutableStateOf(false)
         private set
+
     fun updateSearchTopSheetVisible(newState: Boolean) {
         Log.d("searchTopSheetVisible", newState.toString())
         searchTopSheetVisible = newState

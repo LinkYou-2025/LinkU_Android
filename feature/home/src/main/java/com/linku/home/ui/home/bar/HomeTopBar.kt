@@ -73,6 +73,7 @@ fun HomeTopBar(
     onExpandClick: () -> Unit,
     hasRequestedRecommend: Boolean,
     onAlarmClick: () -> Unit,
+    onSearchClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
     val density = LocalDensity.current
@@ -129,7 +130,7 @@ fun HomeTopBar(
 
         Spacer(modifier = Modifier.height(13.44.dp))
 
-        HomeSearchBar()
+        HomeSearchBar(onClick = onSearchClick)
 
         Spacer(modifier = Modifier.height(18.dp))
 
@@ -281,6 +282,7 @@ fun PreviewHomeTopBar() {
         isCollapsed = false,
         onExpandClick = { },
         hasRequestedRecommend = false,
-        onAlarmClick = { }
+        onAlarmClick = { },
+        onSearchClick = { },
     )
 }

@@ -25,12 +25,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import com.linku.design.theme.color.CategoryColorStyle
-import com.linku.design.theme.linkuColors
 import kotlin.collections.get
 
 @Composable
@@ -40,19 +40,21 @@ fun BottomFolderListLayout(
 ) {
     val colors = MaterialTheme.linkuColors
 
-    var text = if(!folderStateViewModel.isSharedFolders)(
-        folderStateViewModel.selectedTopFolder?.folderName +
-                if (folderStateViewModel.currentFolderState == FolderState.LINKS)
-                    folderStateViewModel.selectedBottomFolder?.let { " > ${it.folderName}" }
-                else ""
-    )else(
-        "${folderStateViewModel.selectedTopSharedFolder?.nickname?:""}의 폴더" +
-                if (folderStateViewModel.currentFolderState == FolderState.LINKS)
-                    folderStateViewModel.selectedBottomSharedFolder?.let { " > ${it.folderName}" }
-                else ""
-    )
+    val topFolderText = if (!folderStateViewModel.isSharedFolders) {
+        folderStateViewModel.selectedTopFolder?.folderName.orEmpty()
+    } else {
+        "${folderStateViewModel.selectedTopSharedFolder?.nickname.orEmpty()}의 폴더"
+    }
 
-    val colorStyle = fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]?: CategoryColorStyle.DEFAULT
+    val bottomFolderText = if (!folderStateViewModel.isSharedFolders) {
+        folderStateViewModel.selectedBottomFolder?.folderName.orEmpty()
+    } else {
+        folderStateViewModel.selectedBottomSharedFolder?.folderName.orEmpty()
+    }
+
+    val colorStyle =
+        fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]
+            ?: CategoryColorStyle.DEFAULT
 
     // 레이아웃의 배경틀
     Box(
@@ -79,15 +81,40 @@ fun BottomFolderListLayout(
             verticalAlignment = Alignment.CenterVertically,
         ) {
 
-            // 현재, 상위 폴더명
-            Text(
-                text = text,
-                fontSize = 16.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight(500),
-                color = colorStyle.color4,
-                textAlign = TextAlign.Center,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+
+                // 현재, 상위 폴더명
+                Text(
+                    text = topFolderText,
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp,
+                    fontWeight = FontWeight(500),
+                    color = colorStyle.color4,
+                    textAlign = TextAlign.Center,
+                )
+
+                if (folderStateViewModel.currentFolderState == FolderState.LINKS) {
+
+                    // '>' 문자열을 상·하위 폴더를 구분하는 아이콘으로 변경
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_chevron_right),
+                        contentDescription = null,
+                        tint = colorStyle.color3
+                    )
+
+                    Text(
+                        text = bottomFolderText,
+                        fontSize = 16.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight(500),
+                        color = colorStyle.color4,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            }
 
             // 아래 화살표 모양 아이콘
             Icon(

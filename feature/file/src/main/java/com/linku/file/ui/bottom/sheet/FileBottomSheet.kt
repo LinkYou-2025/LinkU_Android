@@ -113,9 +113,12 @@ fun FileBottomSheet(
                         .fillMaxWidth()
                         .height(50.dp)
                         .clip(shape = RoundedCornerShape(18.dp))
-                        .background(
-                            brush = colors.maincolor,
-                            alpha = if (isReady) 1f else 0.5f
+                        .then(
+                            if (isReady) {
+                                Modifier.background(colors.maincolor)
+                            } else {
+                                Modifier.background(colors.gray[300])
+                            }
                         )
                         .noRippleClickable {
                             if (isReady){

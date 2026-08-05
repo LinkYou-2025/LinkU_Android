@@ -36,14 +36,19 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.model.alarm.AlarmType
+import com.linku.core.error.DeepLinkError
 import com.linku.core.model.auth.AutoLoginState
-import com.linku.core.model.deeplink.DeepLinkType
-import com.linku.core.util.logging.LinkuLog
-import com.linku.core.util.logging.d
+import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
+import com.linku.deeplink.HandleNewIntentDeepLinks
+import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
+import com.linku.deeplink.OPEN_DEEP_LINK_TOKEN_ARGUMENT
 import com.linku.deeplink.invitationLinkRoute
+import com.linku.deeplink.openDeepLinkTokenArgument
+import com.linku.deeplink.openDeepLinkUriPattern
+import com.linku.deeplink.parseOpenDeepLinkToken
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
@@ -66,10 +71,20 @@ import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
+import com.linku.search.SearchViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.coroutines.cancellation.CancellationException
 
+/**
+ * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
+ *
+ * 콜드 스타트와 웜 스타트 딥링크를 내비게이션에 전달하며, 로그인 전에 보류된 초대가 있으면
+ * 로그인 성공 후 해당 초대를 이어서 처리합니다.
+ *
+ * @param viewModel 앱 전역 상태와 세션 및 사이드 이펙트를 제공하는 [MainViewModel]
+ */
 @Composable
 fun MainApp(
     viewModel: MainViewModel,
@@ -93,17 +108,27 @@ fun MainApp(
     val nickname by viewModel.nickname.collectAsStateWithLifecycle()
 
 
-    // 앱 실행 시 실행하여 이전 계정 기록 삭제
-    // FIXME : 지민님한테 여쭈어보기. 매번 앱 실행할 때마다 최근 기록을 지우는 것보다는 로그아웃 때 지우는건 어떤지
     LaunchedEffect(Unit) {
-        viewModel.clearRecentQuery()
-
         val smallestWidth = app.resources.configuration.smallestScreenWidthDp
         val deviceType = if (smallestWidth >= 600) "TABLET" else "PHONE"
         viewModel.initDeviceInfo(deviceType)
     }
 
     val navigator = rememberNavController()
+    HandleNewIntentDeepLinks(navigator)
+
+    val isLoggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
+    var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
+
+    LaunchedEffect(isLoggedIn) {
+        if (previousLoggedIn == true && isLoggedIn == false) {
+            navigator.navigate("login_root") {
+                popUpTo(navigator.graph.id) { inclusive = true }
+            }
+        }
+        previousLoggedIn = isLoggedIn
+
+    }
 
     // 로그인에서 사용할 뷰모델
     val loginViewModel: LoginViewModel = hiltViewModel()
@@ -121,6 +146,10 @@ fun MainApp(
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
     val folderStateViewModel: FolderStateViewModel = viewModel()
+
+    val searchViewModel: SearchViewModel = hiltViewModel()
+    val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
+    val searchResults = searchViewModel.searchResults
 
     // 큐레이션 화면에서 사용할 뷰모델
     val curationViewModel: CurationViewModel = hiltViewModel()
@@ -204,6 +233,13 @@ fun MainApp(
         }
     }
 
+    /**
+     * 현재 경로가 지정한 하단 탭의 루트 또는 하위 경로인지 확인합니다.
+     *
+     * @param current 현재 내비게이션 경로
+     * @param root 비교할 하단 탭의 루트 경로
+     * @return 루트 경로와 같거나 경로 및 쿼리 하위에 속하면 `true`
+     */
     fun isTabRoute(current: String?, root: String): Boolean =
         current == root || current?.startsWith("$root/") == true || current?.startsWith("$root?") == true
 
@@ -336,13 +372,14 @@ fun MainApp(
                                 }
 
                                 is AutoLoginState.Failed -> {
-                                    navigator.navigate("login_root") {
+                                    navigator.navigate(NavigationRoute.Login.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                     }
                                 }
 
                                 else -> Unit
                             }
+
                         }
 
                         Splash(
@@ -351,7 +388,7 @@ fun MainApp(
                                     val hasRefresh = viewModel.hasValidRefreshToken()
 
                                     if (autoLoginTried || !hasRefresh) {
-                                        navigator.navigate("login_root") {
+                                        navigator.navigate(NavigationRoute.Login.route) {
                                             popUpTo(NavigationRoute.Splash.route) {
                                                 inclusive = true
                                             }
@@ -367,8 +404,64 @@ fun MainApp(
                     }
                 }
 
-                composable("login_root") {
+                composable(NavigationRoute.Login.route) {
                     LaunchedEffect(Unit) { showNavBar = false }
+                    val loginScope = rememberCoroutineScope()
+
+                    /**
+                     * 비동기 로그인 결과가 도착한 시점에도 로그인 화면에 있을 때만 대상 화면으로 이동합니다.
+                     *
+                     * @param route 로그인 화면에서 전환할 목적지 경로
+                     */
+                    fun navigateFromLoginTo(route: String) {
+                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
+                            showNavBar = route != NavigationRoute.Login.route
+                            navigator.navigate(route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
+                    /**
+                     * 로그인 화면에서 공유 폴더 상태를 초기화한 뒤 공유 폴더 화면을 새 루트로 엽니다.
+                     */
+                    fun openSharedFoldersFromLogin() {
+                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
+                            showNavBar = true
+                            folderStateViewModel.resetSharedFolderState()
+                            folderStateViewModel.updateIsSharedFolders(true)
+
+                            navigator.navigate(NavigationRoute.File.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
+                    /**
+                     * 보류 중인 초대 처리 실패를 알리고 일반 폴더 상태로 홈 화면을 새 루트로 엽니다.
+                     *
+                     * @param messageResId 실패 원인을 안내할 문자열 리소스 ID
+                     */
+                    fun handlePendingInvitationFailure(messageResId: Int) {
+                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
+                            showNavBar = true
+                            folderStateViewModel.resetSharedFolderState()
+                            folderStateViewModel.updateIsSharedFolders(false)
+                            Toast.makeText(
+                                context,
+                                messageResId,
+                                Toast.LENGTH_SHORT,
+                            ).show()
+
+                            navigator.navigate(NavigationRoute.Home.route) {
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+
                     LoginApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
@@ -379,25 +472,75 @@ fun MainApp(
                             edgeToEdgeSystemBars = false
 
                             // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
+                            // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
+                            // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
+                            val pendingInvitationToken =
+                                deepLinkViewModel.consumePendingInvitation()
 
-                            // 딥링크 대기 작업 처리 //지민아 이거 정리해줄 수 있어?
-                            deepLinkViewModel.consumePendingInvitation()?.let { token ->
-                                fileViewModel.receiveSharedFolderInvitation(token)
-                                folderStateViewModel.updateIsSharedFolders(true)
+                            if (pendingInvitationToken.isNotBlank()) {
+                                loginScope.launch {
+                                    when (
+                                        fileViewModel.receiveSharedFolderInvitation(
+                                            pendingInvitationToken
+                                        )
+                                    ) {
+                                        is AcceptSharedFolderInvitationResult.Accepted -> {
+                                            openSharedFoldersFromLogin()
+                                        }
 
-                                navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo("login_root") { inclusive = true }
-                                    launchSingleTop = true
+                                        is AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed -> {
+                                            // 초대 수락은 완료되었으므로 갱신 실패를 알리고 공유 폴더를 엽니다.
+                                            Toast.makeText(
+                                                context,
+                                                R.string.share_folder_refresh_failed,
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                            openSharedFoldersFromLogin()
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.AuthenticationRequired -> {
+                                            // 소비한 토큰을 복원해 다음 로그인 성공 후 초대 수락을 재시도합니다.
+                                            deepLinkViewModel.setPendingInvitation(
+                                                pendingInvitationToken
+                                            )
+                                            Toast.makeText(
+                                                context,
+                                                R.string.authentication_required,
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                            navigateFromLoginTo(NavigationRoute.Login.route)
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.InvalidInvitation -> {
+                                            handlePendingInvitationFailure(
+                                                R.string.invalid_share_link
+                                            )
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.NetworkFailure -> {
+                                            handlePendingInvitationFailure(
+                                                R.string.network_error
+                                            )
+                                        }
+
+                                        is AcceptSharedFolderInvitationResult.Failure -> {
+                                            handlePendingInvitationFailure(
+                                                R.string.undefined_behavior
+                                            )
+                                        }
+                                    }
                                 }
                                 return@LoginApp
                             }
 
                             deepLinkViewModel.consumePendingShare()?.let { folderId ->
+                                showNavBar = true
                                 fileViewModel.receiveSharedFolder(folderId)
+                                folderStateViewModel.resetSharedFolderState()
                                 folderStateViewModel.updateIsSharedFolders(true)
 
                                 navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo("login_root") { inclusive = true }
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
                                     launchSingleTop = true
                                 }
                                 return@LoginApp
@@ -414,8 +557,10 @@ fun MainApp(
                             }
 
                             // pending 알림이 없는 경우의 기본 동작
+
+                            showNavBar = true
                             navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo("login_root") { inclusive = true }
+                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
                                 launchSingleTop = true
                             }
                         }
@@ -432,6 +577,13 @@ fun MainApp(
 
                         HomeApp(
                             viewModel = homeViewModel,
+                            searchUiState = searchUiState,
+                            searchResults = searchResults,
+                            onSearchQueryChange = searchViewModel::search,
+                            onSearchOpen = searchViewModel::openSearch,
+                            onSearchDismiss = searchViewModel::resetSearchResults,
+                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
+                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
@@ -462,7 +614,14 @@ fun MainApp(
 
                         FileApp(
                             fileViewModel = fileViewModel,
-                            folderStateViewModel = folderStateViewModel
+                            folderStateViewModel = folderStateViewModel,
+                            searchUiState = searchUiState,
+                            searchResults = searchResults,
+                            onSearchQueryChange = searchViewModel::search,
+                            onSearchOpen = searchViewModel::openSearch,
+                            onSearchDismiss = searchViewModel::resetSearchResults,
+                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
+                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                         )
                     }
                 }
@@ -494,20 +653,25 @@ fun MainApp(
                                 viewModel.setAuthenticated(false)
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
+                                searchViewModel.reset()
+                                deepLinkViewModel.clearPendingDeepLinks()
+                                folderStateViewModel.resetSharedFolderState()
+                                fileViewModel.resetSharedFolderState()
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
-                                navigator.navigate("login_root") {
-                                    // 현재 내비게이션 그래프의 시작점(Splash 등)까지 모두 제거
-                                    popUpTo(navigator.graph.findStartDestination().id) {
+                                navigator.navigate(NavigationRoute.Login.route) {
+                                    // 그래프 루트까지 백스택 전부 제거.
+                                    // Splash는 로그인 이후 이미 백스택에서 빠져있는 상태라
+                                    // findStartDestination()(Splash)을 popUpTo 타겟으로 쓰면
+                                    // 백스택에서 못 찾아 조용히 no-op 되어(Home/MyPage가 그대로 남음)
+                                    // login_root가 그 위에 얹히기만 하는 문제가 있었음.
+                                    // 그래프 자체의 id는 항상 모든 백스택 엔트리의 조상이라 반드시 제거됨.
+                                    popUpTo(navigator.graph.id) {
                                         inclusive = true
                                     }
                                     launchSingleTop = true
                                 }
-//                                navigator.navigate(NavigationRoute.Login.route) {
-//                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
-//                                    launchSingleTop = true
-//                                }
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
@@ -793,52 +957,97 @@ fun MainApp(
                 }
 
                 composable(
-                    route = "open?action={action}&token={token}",
+                    route = OPEN_DEEP_LINK_ROUTE,
                     arguments = listOf(
-                        navArgument("action") { type = NavType.StringType; nullable = false },
-                        navArgument("token") { type = NavType.StringType; nullable = false },
+                        openDeepLinkTokenArgument(),
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = "$deepLinkDomain/open?action={action}&token={token}"
-                        },
-                        navDeepLink {
-                            uriPattern = "$deepLinkDomain/open?token={token}&action={action}"
+                            uriPattern = openDeepLinkUriPattern(deepLinkDomain)
                         }
                     )
                 ) { backStackEntry ->
-                    val arguments = checkNotNull(backStackEntry.arguments) {
-                        // 추후 공통 토스트 메시지로 변경
-                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
-                    }
 
-                    val action = checkNotNull(arguments.getString("action")) {
-                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
-                    }
+                    // 백 스택 항목마다 한 번 처리하고 같은 ID를 비동기 결과의 유효성 확인에 사용합니다.
+                    LaunchedEffect(backStackEntry.id) {
 
-                    val token = checkNotNull(arguments.getString("token")) {
-                        Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
-                    }
+                        try {
+                            // non-null 인자의 빈 기본값은 파서에서 구체적인 딥링크 오류로 변환합니다.
+                            val token = parseOpenDeepLinkToken(
+                                backStackEntry.arguments?.getString(
+                                    OPEN_DEEP_LINK_TOKEN_ARGUMENT
+                                ).orEmpty()
+                            )
 
-                    LinkuLog.d("MainApp") { "route: appLink action: $action, token: $token" }
+                            invitationLinkRoute(
+                                token = token,
+                                isLoggedIn = viewModel.hasValidRefreshToken(),
+                                onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                                onUpdateIsSharedFolders = { isSharedFolders ->
+                                    folderStateViewModel.resetSharedFolderState()
+                                    folderStateViewModel.updateIsSharedFolders(
+                                        isSharedFolders
+                                    )
+                                },
+                                onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
+                                onInvalidLink = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.invalid_share_link,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onAuthenticationRequired = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.authentication_required,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onNetworkFailure = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.network_error,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onRefreshFailed = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.share_folder_refresh_failed,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                onFailure = {
+                                    Toast.makeText(
+                                        context,
+                                        R.string.undefined_behavior,
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                },
+                                navigator = navigator,
+                                deepLinkEntryId = backStackEntry.id,
+                            )
 
-                    LaunchedEffect(action, token) {
-                        val isLoggedIn = viewModel.hasValidRefreshToken()
+                        } catch (e: CancellationException) {
+                            // Compose effect 취소를 일반 오류로 변환하지 않고 구조화된 취소를 전파합니다.
+                            throw e
 
-                        when(DeepLinkType.valueOf(action.uppercase())){
-                            DeepLinkType.SHARE ->{
-                                invitationLinkRoute(
-                                    token = token,
-                                    isLoggedIn = isLoggedIn,
-                                    onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
-                                    onUpdateIsSharedFolders = folderStateViewModel::updateIsSharedFolders,
-                                    onSetPendingInvitation = deepLinkViewModel::setPendingInvitation,
-                                    onInvalidLink = {
-                                        Toast.makeText(context, R.string.invalid_share_link, Toast.LENGTH_SHORT).show()
-                                    },
-                                    navigator = navigator
-                                )
-                            }
+                        } catch (e: DeepLinkError.MissingInvitationToken) {
+                            // 토큰 누락은 현재 화면과 초대 상태를 바꾸지 않고 안내만 표시합니다.
+                            Toast.makeText(
+                                context,
+                                R.string.invalid_share_link,
+                                Toast.LENGTH_SHORT
+                            ).show()
+
+                        } catch (e: IllegalArgumentException) {
+                            // 추후 공통 토스트 메시지로 변경
+                            Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
+
+                        } catch (e: Exception) {
+                            // 추후 공통 토스트 메시지로 변경
+                            Toast.makeText(context, R.string.undefined_behavior, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -863,6 +1072,7 @@ fun MainApp(
 //                    lastBackPressed = now
 //                }
 //            }
+
         }
     }
 
