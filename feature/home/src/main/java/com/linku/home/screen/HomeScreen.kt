@@ -18,7 +18,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +39,7 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.paging.PagingData
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.core.model.SystemBarMode
@@ -48,12 +48,16 @@ import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchBarTopSheet
+import com.linku.design.top.search.SearchResultItem
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
 import com.linku.home.component.rememberClipboardUrl
 import com.linku.home.ui.home.bar.HomeTopBar
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -72,6 +76,13 @@ fun HomeScreen(
     onLinkClick: (linkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
     onAlarmClick: () -> Unit,
+    searchUiState: SearchBarUiState,
+    searchResults: Flow<PagingData<SearchResultItem>>,
+    onSearchQueryChange: (String) -> Unit,
+    onSearchOpen: () -> Unit,
+    onSearchDismiss: () -> Unit,
+    onSearchHistoryDelete: (Long) -> Unit,
+    onSearchHistoryClear: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -214,6 +225,10 @@ fun HomeScreen(
                     },
                     hasRequestedRecommend = hasRequestedRecommend,
                     onAlarmClick = onAlarmClick,
+                    onSearchClick = {
+                        homeViewModel.updateSearchTopSheetVisible(true)
+                        onSearchOpen()
+                    },
                 )
             }
 
@@ -308,13 +323,17 @@ fun HomeScreen(
     SearchBarTopSheet(
         visible = homeViewModel.searchTopSheetVisible,
         onLinkClick = { onLinkClick(it) },
-        onDismiss = { homeViewModel.updateSearchTopSheetVisible(false) },
-        onQueryChange = { homeViewModel.fastSearch(it) },
-        onQuerySave = { homeViewModel.addRecentQuery(it) },
-        onQueryDelete = { homeViewModel.removeRecentQuery(it) },
-        onQueryClear = { homeViewModel.clearRecentQuery() },
-        fastSearchItems = homeViewModel.fastSearchItems.collectAsState().value,
-        recentQueries = homeViewModel.recentQueryList.collectAsState().value.map{it.text}
+        onDismiss = {
+            if (homeViewModel.searchTopSheetVisible) {
+                homeViewModel.updateSearchTopSheetVisible(false)
+                onSearchDismiss()
+            }
+        },
+        onQueryChange = onSearchQueryChange,
+        onQueryDelete = onSearchHistoryDelete,
+        onQueryClear = onSearchHistoryClear,
+        searchResults = searchResults,
+        uiState = searchUiState,
     )
 }
 
@@ -440,7 +459,14 @@ fun PreviewHomeScreen() {
             jobId = 2L,
             onLinkClick = { },
             onNavigateToSaveLink = {},
-            onAlarmClick = {}
+            onAlarmClick = {},
+            searchUiState = SearchBarUiState(),
+            searchResults = flowOf(PagingData.empty<SearchResultItem>()),
+            onSearchQueryChange = {},
+            onSearchOpen = {},
+            onSearchDismiss = {},
+            onSearchHistoryDelete = {},
+            onSearchHistoryClear = {},
         )
     }
 }

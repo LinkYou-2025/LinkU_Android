@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
@@ -56,12 +57,13 @@ fun FaqItem(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .graphicsLayer {
-                shadowElevation = 1.dp.toPx()
-                shape = cardShape
-                clip = true
-            }
-            .clip(RoundedCornerShape(18.dp))
+            .shadow(
+                elevation = 1.dp,
+                shape = cardShape,
+                ambientColor = colors.black.copy(alpha = 0.02f),
+                spotColor = colors.black.copy(alpha = 0.02f)
+            )
+            .clip(cardShape)
             .background(colors.white)
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally

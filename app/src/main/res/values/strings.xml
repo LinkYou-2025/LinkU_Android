@@ -1,5 +1,8 @@
 <resources>
     <string name="invalid_share_link">유효하지 않은 공유 링크입니다.</string>
     <string name="undefined_behavior">예상치 못한 오류가 발생했습니다.</string>
+    <string name="authentication_required">로그인이 필요한 공유 링크입니다.</string>
+    <string name="network_error">네트워크 연결을 확인해주세요.</string>
+    <string name="share_folder_refresh_failed">공유 폴더를 받았지만 목록 갱신에 실패했습니다.</string>
     <string name="app_name">링큐</string>
 </resources>
