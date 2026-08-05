@@ -653,12 +653,8 @@ private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(
-                horizontal = 20.dp,
-                vertical = 65.dp,
-            ),
-        horizontalAlignment =
-            Alignment.CenterHorizontally,
+            .padding(horizontal = 20.dp,vertical = 65.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = message,
@@ -667,9 +663,7 @@ private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 
             color = colors.gray[800],
         )
 
-        Spacer(
-            modifier = Modifier.height(12.dp),
-        )
+        Spacer(modifier = Modifier.height(12.dp))
 
         Text(
             text = "다시 시도하기",
