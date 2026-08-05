@@ -6,6 +6,8 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListUpdateCallback
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.RecommendationPage
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.LinkuSearchInfo
 import com.linku.core.model.search.RecentQuery
@@ -14,7 +16,6 @@ import com.linku.core.repository.RecentSearchRepository
 import com.linku.design.top.search.RecentSearchItem
 import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchResultItem
-import java.io.File
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -486,7 +487,7 @@ private class FakeLinkuRepository : LinkuRepository {
     }
 
     override suspend fun saveNewLink(
-        image: File?,
+        image: TempImageFile?,
         url: String,
         title: String?,
         memo: String?,
@@ -499,9 +500,9 @@ private class FakeLinkuRepository : LinkuRepository {
     override suspend fun recommendLinks(
         situationId: Long,
         emotionId: Long,
-        page: Int,
+        cursor: String?,
         size: Int,
-    ): List<LinkSimpleInfo> = unused()
+    ): RecommendationPage = unused()
 
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> = unused()
 
@@ -514,13 +515,12 @@ private class FakeLinkuRepository : LinkuRepository {
 
     override suspend fun updateLink(
         linkuId: Long,
-        categoryId: Long,
-        linku: String,
+        image: TempImageFile?,
         memo: String?,
-        emotionId: Long,
-        situationId: Long,
-        domainId: Long,
-        title: String,
+        emotionId: Long?,
+        situationId: Long?,
+        categoryId: Long?,
+        title: String?,
     ): LinkResultInfo = unused()
 
     override suspend fun deleteLink(userLinkuId: Long) {

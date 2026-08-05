@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,9 +25,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -136,65 +140,101 @@ fun LinkDetailTopBar(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (isEditMode) {
-                        Row(
-                            modifier = Modifier
-                                .widthIn(min = 1.dp, max = 280.dp)
-                                .clip(RoundedCornerShape(13.dp))
-                                .border(1.dp, colors.white, RoundedCornerShape(13.dp))
-                                .padding(horizontal = 15.dp, vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            BasicTextField(
-                                value = linkTitle,
-                                onValueChange = onTitleChange,
-                                textStyle = TextStyle(
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    fontFamily = MaterialTheme.linkuFont.font,
-                                    color = colors.white.copy(alpha = titleAlpha)
-                                ),
-                                modifier = Modifier.widthIn(min = 1.dp, max = 220.dp),
-                                decorationBox = { innerTextField ->
-                                    Box {
-                                        if (isTitleEmpty) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                            ) {
-                                                Image(
-                                                    painter = painterResource(R.drawable.ic_warning),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(18.dp)
-                                                )
+                        BoxWithConstraints {
+                            val density = LocalDensity.current
+                            val textMeasurer = rememberTextMeasurer()
 
-                                                Text(
-                                                    text = "링크 제목을 입력하세요",
-                                                    fontSize = 22.sp,
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = colors.white,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis
-                                                )
-                                            }
-                                        }
-
-                                        innerTextField()
-                                    }
-                                }
+                            val titleTextStyle = TextStyle(
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = MaterialTheme.linkuFont.font,
+                                color = colors.white.copy(alpha = titleAlpha)
                             )
 
-                            if (!isTitleEmpty) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(18.dp)
-                                        .noRippleClickable { onTitleClearClick() }
-                                ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.ic_delete_blue),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                            val displayText = if (isTitleEmpty) {
+                                "링크 제목을 입력하세요."
+                            } else {
+                                linkTitle
+                            }
+
+                            val measuredTextWidth = with(density) {
+                                textMeasurer.measure(
+                                    text = displayText,
+                                    style = titleTextStyle,
+                                    maxLines = 1
+                                ).size.width.toDp()
+                            }
+
+                            val contentWidth = if (isTitleEmpty) {
+                                // 안내 문구 + warning 아이콘 + 간격
+                                measuredTextWidth + 18.dp + 10.dp
+                            } else {
+                                // 제목 + X 버튼 + 간격
+                                measuredTextWidth + 18.dp + 10.dp
+                            }
+
+                            val fieldWidth = (contentWidth + 30.dp)
+                                .coerceAtMost(maxWidth)
+
+                            Row(
+                                modifier = Modifier
+                                    .width(fieldWidth)
+                                    .clip(RoundedCornerShape(13.dp))
+                                    .border(1.dp, colors.white, RoundedCornerShape(13.dp))
+                                    .padding(horizontal = 15.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                BasicTextField(
+                                    value = linkTitle,
+                                    onValueChange = onTitleChange,
+                                    textStyle = TextStyle(
+                                        fontSize = 22.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        fontFamily = MaterialTheme.linkuFont.font,
+                                        color = colors.white.copy(alpha = titleAlpha)
+                                    ),
+                                    modifier = Modifier.weight(1f),
+                                    decorationBox = { innerTextField ->
+                                        Box {
+                                            if (isTitleEmpty) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                                ) {
+                                                    Image(
+                                                        painter = painterResource(R.drawable.ic_warning),
+                                                        contentDescription = null,
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+
+                                                    Text(
+                                                        text = "링크 제목을 입력하세요",
+                                                        fontSize = 22.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = colors.white,
+                                                        maxLines = 1
+                                                    )
+                                                }
+                                            }
+
+                                            innerTextField()
+                                        }
+                                    }
+                                )
+
+                                if (!isTitleEmpty) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .noRippleClickable { onTitleClearClick() }
+                                    ) {
+                                        Image(
+                                            painter = painterResource(R.drawable.ic_delete_blue),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

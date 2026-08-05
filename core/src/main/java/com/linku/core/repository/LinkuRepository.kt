@@ -3,15 +3,16 @@ package com.linku.core.repository
 import androidx.paging.PagingData
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.RecommendationPage
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.LinkuSearchInfo
-import java.io.File
 import kotlinx.coroutines.flow.Flow
 
 interface LinkuRepository {
     // 링크 저장
     suspend fun saveNewLink(
-        image: File?,
+        image: TempImageFile?,
         url: String,
         title: String?,
         memo: String?,
@@ -26,9 +27,9 @@ interface LinkuRepository {
     suspend fun recommendLinks(
         situationId: Long,
         emotionId: Long,
-        page: Int = 0,
-        size: Int = 10
-    ): List<LinkSimpleInfo>
+        cursor: String? = null,
+        size: Int = 5,
+    ): RecommendationPage
 
     // 최근 조회 링크 조회(10개)
     suspend fun getRecentLinks(limit: Int = 10): List<LinkSimpleInfo>
@@ -45,13 +46,12 @@ interface LinkuRepository {
     // 링크 수정
     suspend fun updateLink(
         linkuId: Long,
-        categoryId: Long,
-        linku: String,
+        image: TempImageFile?,
         memo: String?,
-        emotionId: Long,
-        situationId: Long,
-        domainId: Long,
-        title: String,
+        emotionId: Long?,
+        situationId: Long?,
+        categoryId: Long?,
+        title: String?,
     ): LinkResultInfo
 
     // 링크 삭제

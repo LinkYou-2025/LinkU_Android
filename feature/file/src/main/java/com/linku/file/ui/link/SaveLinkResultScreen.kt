@@ -149,7 +149,7 @@ fun SaveLinkResultScreen(
     val aiExists = link?.aiArticleExists == true
 
     val displayKeyword = when {
-        !aiArticle?.keyword.isNullOrBlank() -> aiArticle!!.keyword!!.trim()
+//        !aiArticle?.keyword.isNullOrBlank() -> aiArticle!!.keyword!!.trim()
         aiExists -> link?.keyword.orEmpty()
         else -> ""
     }
