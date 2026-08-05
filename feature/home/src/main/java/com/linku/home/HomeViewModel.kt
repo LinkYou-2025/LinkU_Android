@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.LinkSimpleInfo
-import com.linku.core.model.search.RecentQuery
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
@@ -215,108 +214,6 @@ class HomeViewModel @Inject constructor(
         searchTopSheetVisible = newState
     }
 
-    // 빠른 링크 검색 목록
-    private var _fastSearchItems = MutableStateFlow<List<FastSearchItem>>(emptyList())
-    val fastSearchItems: StateFlow<List<FastSearchItem>> = _fastSearchItems.asStateFlow()
-
-    // 빠른 링크 검색
-    fun fastSearch(keyword: String){
-        Log.d("HomeViewModel", "fastSearch")
-
-        viewModelScope.launch{
-            Log.d("HomeViewModel", "fastSearch launch")
-            try{
-                Log.d("HomeViewModel", "fastSearch try")
-
-                _fastSearchItems.value = linkuRepository.fastSearch(keyword).map{
-                    FastSearchItem(
-                        id = it.linkuId,
-                        title = it.title,
-                        url = it.linkUrl
-                    )
-                }
-
-                Log.d("HomeViewModel", "fastSearch try result: ${_fastSearchItems.value}")
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "fastSearch catch: $e.message")
-
-            }finally {
-                Log.d("HomeViewModel", "fastSearch finally")
-            }
-        }
-    }
-
-    //최근 검색 목록
-    val recentQueryList: StateFlow<List<RecentQuery>> =
-        recentRepository.observe(limit = 20)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = emptyList()
-            )
-
-    // 최근 검색 기록 추가
-    fun addRecentQuery(query: String) {
-        Log.d("HomeViewModel", "addRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("HomeViewModel", "addRecentQuery launch")
-
-            try{
-                Log.d("HomeViewModel", "addRecentQuery try")
-
-                recentRepository.add(query)
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "addRecentQuery catch: $e.message")
-            }finally {
-                Log.d("HomeViewModel", "addRecentQuery finally")
-            }
-        }
-        Log.d("HomeViewModel", "addRecentQuery return")
-    }
-
-    // 최근 검색 기록 삭제
-    fun removeRecentQuery(query: String) {
-        Log.d("HomeViewModel", "removeRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("HomeViewModel", "removeRecentQuery launch")
-
-            try{
-                Log.d("HomeViewModel", "removeRecentQuery try")
-
-                recentRepository.remove(query)
-
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "removeRecentQuery catch: $e.message")
-            }finally {
-                Log.d("HomeViewModel", "removeRecentQuery finally")
-            }
-        }
-        Log.d("HomeViewModel", "removeRecentQuery return")
-    }
-
-
-    // 최근 검색 기록 전체 삭제
-    fun clearRecentQuery() {
-        Log.d("HomeViewModel", "clearRecentQuery")
-
-        viewModelScope.launch {
-            Log.d("HomeViewModel", "clearRecentQuery launch")
-
-            try{
-                Log.d("HomeViewModel", "clearRecentQuery try")
-
-                recentRepository.clear()
-
-            }catch (e: Exception){
-                Log.d("HomeViewModel", "clearRecentQuery catch: $e.message")
-            }finally {
-                Log.d("HomeViewModel", "clearRecentQuery finally")
-            }
-        }
-        Log.d("HomeViewModel", "clearRecentQuery return")
-    }
 
     private val _isUnreadAlarmExists = MutableStateFlow(false)
     val isUnreadAlarmExists = _isUnreadAlarmExists.asStateFlow()
@@ -329,5 +226,4 @@ class HomeViewModel @Inject constructor(
     }
 
 
-    // ---------- search method ----------
 }
