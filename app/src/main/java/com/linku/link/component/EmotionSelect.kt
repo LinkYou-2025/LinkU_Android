@@ -79,7 +79,7 @@ private fun EmotionBadgeImage(
             .clip(RoundedCornerShape(20.dp))
             .background(
                 brush = if (selected) {
-                    colors.inactiveColor
+                    colors.selectedChipGradient
                 } else {
                     SolidColor(colors.white)
                 },
