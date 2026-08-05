@@ -3,6 +3,7 @@ package com.linku.home.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.AppError
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.TempImageFile
@@ -23,7 +24,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -142,8 +142,8 @@ class LinkViewModel @Inject constructor(
                     linkuRepository.checkLink(currentUrl)
                 } catch (error: CancellationException) {
                     throw error
-                } catch (error: Exception) {
-                    sendToast(error.toLinkCheckToastMessage())
+                } catch (error: AppError) {
+                    sendToast(error.displayMessage)
                     onFailed(error)
                     return@launch
                 }
@@ -353,20 +353,5 @@ class LinkViewModel @Inject constructor(
 
     fun clearLinkDetail() {
         _uiState.update { state -> state.copy(linkDetail = null, isLoadingLinkDetail = false) }
-    }
-}
-
-private fun Throwable.toLinkCheckToastMessage(): String {
-    val errorMessage = message.orEmpty()
-
-    val errorBody = runCatching { (this as? HttpException)?.response()?.errorBody()?.string() }.getOrNull().orEmpty()
-
-    val errorContent = "$errorMessage $errorBody"
-
-    return when {
-        errorContent.contains("LINKU4001", ignoreCase = true) ||
-            errorContent.contains("영상", ignoreCase = true) -> "영상 콘텐츠는 지원하지 않아요!"
-
-        else -> "유효하지 않은 링크입니다!"
     }
 }
