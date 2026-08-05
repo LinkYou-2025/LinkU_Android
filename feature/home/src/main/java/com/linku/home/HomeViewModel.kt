@@ -115,7 +115,7 @@ class HomeViewModel @Inject constructor(
         _categoryColorMap.value = emptyMap()
 
         categoryLoaded = false
-        myLinkuCount = 0L
+        myLinkuCount = null
 
         isRecommendModeState.value = false
         needMoreForRecommendationState.value = false
@@ -123,7 +123,7 @@ class HomeViewModel @Inject constructor(
     }
 
     // 사용자가 저장한 링크 개수
-    private var myLinkuCount = 0L
+    private var myLinkuCount: Long? = null
 
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
@@ -176,7 +176,9 @@ class HomeViewModel @Inject constructor(
     ) {
         isRecommendModeState.value = true
 
-        if (myLinkuCount < MIN_RECOMMENDATION_LINK_COUNT) {
+        val linkCount = myLinkuCount
+
+        if (linkCount != null && linkCount < MIN_RECOMMENDATION_LINK_COUNT) {
             needMoreForRecommendationState.value = true
             recommendationRequestState.value = null
 
