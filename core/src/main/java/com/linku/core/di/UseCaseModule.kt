@@ -3,6 +3,7 @@ package com.linku.core.di
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CurationRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.CurationKeywordUseCase
 import com.linku.core.usecase.CurationMainUseCase
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.core.usecase.MonthlyCurationDetailedUseCase
@@ -55,6 +56,15 @@ object UseCaseModule {
         curationRepository: CurationRepository
     ): CurationMainUseCase {
         return CurationMainUseCase(curationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurationKeywordUseCase(
+        curationRepository: CurationRepository,
+        userRepository: UserRepository
+    ): CurationKeywordUseCase {
+        return CurationKeywordUseCase(curationRepository, userRepository)
     }
 
 }
