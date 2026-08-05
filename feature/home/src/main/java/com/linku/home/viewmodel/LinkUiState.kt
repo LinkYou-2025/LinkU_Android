@@ -4,18 +4,18 @@ import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.TempImageFile
 
 data class LinkUiState(
-    val saveImage: TempImageFile? = null,
-    val saveUrl: String = "",
-    val saveTitle: String = "",
-    val saveMemo: String = "",
-    val selectedSaveEmotionId: Long? = null,
-    val selectedSaveSituationId: Long? = null,
-    val jobId: Long? = null,
-    val isSaving: Boolean = false,
-    val linkDetail: LinkResultInfo? = null,
-    val isLoadingLinkDetail: Boolean = false,
-    val isUpdatingLink: Boolean = false,
-    val isDeletingLink: Boolean = false,
+    val saveImage: TempImageFile?,
+    val saveUrl: String,
+    val saveTitle: String,
+    val saveMemo: String,
+    val selectedSaveEmotionId: Long?,
+    val selectedSaveSituationId: Long?,
+    val jobId: Long?,
+    val isSaving: Boolean,
+    val linkDetail: LinkResultInfo?,
+    val isLoadingLinkDetail: Boolean,
+    val isUpdatingLink: Boolean,
+    val isDeletingLink: Boolean,
 ) {
     val isSaveButtonEnabled: Boolean
         get() = saveUrl.isNotBlank() && !isSaving

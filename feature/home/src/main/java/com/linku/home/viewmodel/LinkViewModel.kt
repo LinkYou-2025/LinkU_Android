@@ -33,7 +33,22 @@ class LinkViewModel @Inject constructor(
     private val authPreference: AuthPreference,
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(LinkUiState())
+    private val _uiState = MutableStateFlow(
+        LinkUiState(
+            saveImage = null,
+            saveUrl = "",
+            saveTitle = "",
+            saveMemo = "",
+            selectedSaveEmotionId = null,
+            selectedSaveSituationId = null,
+            jobId = null,
+            isSaving = false,
+            linkDetail = null,
+            isLoadingLinkDetail = false,
+            isUpdatingLink = false,
+            isDeletingLink = false,
+        ),
+    )
     val uiState: StateFlow<LinkUiState> = _uiState.asStateFlow()
 
     private val _toastEvent = Channel<ToastEvent>(Channel.BUFFERED)
