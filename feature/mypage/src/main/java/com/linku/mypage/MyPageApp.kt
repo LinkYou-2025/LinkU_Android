@@ -29,7 +29,8 @@ import com.linku.mypage.screen.ServiceQuitScreen
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
-    onLogoutToLogin: () -> Unit
+    onLogoutToLogin: () -> Unit,
+    onNavigateToAlarm: () -> Unit
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -48,6 +49,7 @@ fun MyPageApp(
     // 화면 진입 시 최신 데이터 한 번 긁어오기
     LaunchedEffect(Unit) {
         viewModel.loadUserInfo()
+        viewModel.checkUnreadAlarm()
     }
     //기존
 //    LaunchedEffect(Unit) {
@@ -63,16 +65,18 @@ fun MyPageApp(
         composable("mypage") {
 
             val user = uiState.userInfo
+            val isUnreadAlarmExists = uiState.isUnreadAlarmExists
 
             MyPageScreen(
                 nickname = user?.nickname ?: uiState.cachedNickname ?: "",
                 email = user?.email ?: "",
+                isUnreadAlarmExists = isUnreadAlarmExists,
                 myLinku = user?.myLinku ?: 0L,
                 myFolder = user?.myFolder ?: 0L,
                 myAiLinku = user?.myAiLinku ?: 0L,
                 loginType = session.loginType,
                 onNavigateAccount = { navController.navigate("account") },
-                onNavigateAlarm = { navController.navigate("alarm") },
+                onNavigateAlarm = { onNavigateToAlarm() },
                 onNavigateAlarmSetting = { navController.navigate("alarmSetting") },
                 onNavigateQuit = { navController.navigate("quit") },
                 onNavigateFAQ = { navController.navigate("faq") },
@@ -377,9 +381,9 @@ fun MyPageApp(
             }
         }
 
-        composable("alarm") {
-            // TODO: 알림 화면 연결
-        }
+//        composable("alarm") {
+//            // TODO: 알림 화면 연결
+//        }
 
         composable("alarmSetting") {
             AlarmSettingScreen(

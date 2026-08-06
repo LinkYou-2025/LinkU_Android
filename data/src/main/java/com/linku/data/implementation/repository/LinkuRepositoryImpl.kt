@@ -1,26 +1,24 @@
 package com.linku.data.implementation.repository
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.RecommendationPage
+import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.search.LinkuSearchInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
-import com.linku.data.api.dto.BaseResponse
-import com.linku.data.api.dto.server.LinkuSimpleDTO
-import com.linku.data.api.dto.server.LinkuUpdateDTO
 import com.linku.data.api.safeApiCall
 import kotlinx.coroutines.flow.Flow
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
 import javax.inject.Inject
 
 /*
@@ -37,7 +35,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 새로운 링크 저장
     override suspend fun saveNewLink(
-        image: File?,
+        image: TempImageFile?,
         url: String,
         title: String?,
         memo: String?,
@@ -45,11 +43,13 @@ class LinkuRepositoryImpl @Inject constructor(
         situationId: Long?,
     ): LinkSimpleInfo {
         // 이미지 파트: 있을 때만 첨부
-        val imagePart: MultipartBody.Part? = image?.let { file ->
+        val imagePart: MultipartBody.Part? = image?.let { tempImage ->
             MultipartBody.Part.createFormData(
                 name = "image",
-                filename = (file.name.takeIf { it.isNotBlank() } ?: "image.jpg"),
-                body = file.asRequestBody("image/*".toMediaTypeOrNull())
+                filename = tempImage.file.name,
+                body = tempImage.file.asRequestBody(
+                    tempImage.mimeType.toMediaType(),
+                ),
             )
         }
 
@@ -132,35 +132,39 @@ class LinkuRepositoryImpl @Inject constructor(
     override suspend fun recommendLinks(
         situationId: Long,
         emotionId: Long,
-        page: Int,
-        size: Int
-    ): List<LinkSimpleInfo> {
-        var result: List<LinkSimpleInfo> = emptyList()
+        cursor: String?,
+        size: Int,
+    ): RecommendationPage {
+        lateinit var result: RecommendationPage
 
         safeApiCall(
             apiCall = {
                 serverApi.recommendLink(
                     situationId = situationId,
                     emotionId = emotionId,
-                    page = page,
-                    size = size
+                    cursor = cursor,
+                    size = size,
                 )
             }
-        ).onSuccess { dtoList ->
-            result = dtoList.map { dto ->
-                LinkSimpleInfo(
-                    userLinkuId = dto.userLinkuId,
-                    linkuId = dto.linkuId,
-                    categoryId = dto.categoryId,
-                    memo = dto.memo,
-                    emotionId = dto.emotionId,
-                    title = dto.title,
-                    domain = dto.domain.orEmpty(),
-                    domainImageUrl = dto.domainImageUrl,
-                    linkuImageUrl = dto.linkuImageUrl,
-                    aiArticleExists = dto.aiArticleExists,
-                )
-            }
+        ).onSuccess { dto ->
+            result = RecommendationPage(
+                items = dto.items.map { item ->
+                    LinkSimpleInfo(
+                        userLinkuId = item.userLinkuId,
+                        linkuId = item.linkuId,
+                        categoryId = item.categoryId,
+                        memo = item.memo,
+                        emotionId = item.emotionId,
+                        title = item.title,
+                        domain = item.domain.orEmpty(),
+                        domainImageUrl = item.domainImageUrl,
+                        linkuImageUrl = item.linkuImageUrl,
+                        aiArticleExists = item.aiArticleExists,
+                    )
+                },
+                nextCursor = dto.nextCursor,
+                hasNext = dto.hasNext,
+            )
         }.onFailure {
             throw it
         }
@@ -292,23 +296,22 @@ class LinkuRepositoryImpl @Inject constructor(
     // 링크 수정
     override suspend fun updateLink(
         linkuId: Long,
-        categoryId: Long,
-        linku: String,
+        image: TempImageFile?,
         memo: String?,
-        emotionId: Long,
-        situationId: Long,
-        domainId: Long,
-        title: String,
+        emotionId: Long?,
+        situationId: Long?,
+        categoryId: Long?,
+        title: String?,
     ): LinkResultInfo {
-        val body = LinkuUpdateDTO(
-            categoryId = categoryId,
-            linku = linku,
-            memo = memo?.trim().orEmpty(),
-            emotionId = emotionId,
-            situationId = situationId,
-            domainId = domainId,
-            title = title.trim(),
-        )
+        val imagePart: MultipartBody.Part? = image?.let { tempImage ->
+            MultipartBody.Part.createFormData(
+                name = "image",
+                filename = tempImage.file.name,
+                body = tempImage.file.asRequestBody(
+                    tempImage.mimeType.toMediaType(),
+                ),
+            )
+        }
 
         lateinit var result: LinkResultInfo
 
@@ -316,7 +319,12 @@ class LinkuRepositoryImpl @Inject constructor(
             apiCall = {
                 serverApi.updateLink(
                     linkuId = linkuId,
-                    body = body,
+                    memo = memo,
+                    emotionId = emotionId,
+                    situationId = situationId,
+                    categoryId = categoryId,
+                    title = title,
+                    image = imagePart,
                 )
             }
         ).onSuccess {

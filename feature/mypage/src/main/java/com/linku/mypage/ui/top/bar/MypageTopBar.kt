@@ -79,16 +79,10 @@ fun MypageTopBar(
                 Spacer(modifier = Modifier.weight(1f))
 
                 // 알림
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .noRippleClickable { onAlarmClick() }
-                ) {
-                    AlarmButton(
-                        isNoticeExist = isNoticeExist,
-                        modifier = Modifier
-                    )
-                }
+                AlarmButton(
+                    isNoticeExist = isNoticeExist,
+                    onClick = onAlarmClick
+                )
             }
 
             Row(

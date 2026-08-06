@@ -3,10 +3,10 @@ package com.linku
 import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.EnterTransition
@@ -23,7 +23,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.net.toUri
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -35,9 +34,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.error.DeepLinkError
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
@@ -55,11 +57,14 @@ import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
-import com.linku.home.viewmodel.LinkDetailViewModel
-import com.linku.home.viewmodel.SaveLinkViewModel
+import com.linku.home.screen.AlarmScreen
+import com.linku.home.screen.NoticeScreen
+import com.linku.home.viewmodel.AIArticleViewModel
+import com.linku.home.viewmodel.LinkViewModel
 import com.linku.link.component.LinkCategoryOption
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
+import com.linku.link.util.toTempFile
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
@@ -69,9 +74,9 @@ import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
 import com.linku.search.SearchViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -91,18 +96,6 @@ fun MainApp(
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
-
-    // 채널 사이드 이펙트 수신
-    LaunchedEffect(Unit) {
-        viewModel.sideEffect.collect { effect ->
-            when (effect) {
-                is SideEffect.ShowToast ->
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
-                is SideEffect.ShowPushAlarmDialog ->
-                    showPushAlarmDialog = true
-            }
-        }
-    }
 
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
@@ -146,11 +139,8 @@ fun MainApp(
     val homeViewModel: HomeViewModel = hiltViewModel()
     // 로그인 혹은 자동 로그인 성공 후 생성함. 여기서는 이미 AuthPreference 주입 끝.
 
-    // 링크 저장에서 사용할 뷰모델
-    val saveLinkViewModel: SaveLinkViewModel = hiltViewModel()
-
-    // 링크 상세에서 사용할 뷰모델
-     val linkDetailViewModel: LinkDetailViewModel = hiltViewModel()
+    // 링크 관련 뷰모델
+    val linkViewModel: LinkViewModel = hiltViewModel()
 
     // 파일 화면에서 사용할 뷰모델
     val fileViewModel: FileViewModel = hiltViewModel()
@@ -170,6 +160,8 @@ fun MainApp(
     val mypageViewModel: MyPageViewModel = hiltViewModel()
 
     var showNavBar by rememberSaveable { mutableStateOf(false) }
+
+    val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
     // 스플래시 애니메이션, 로그인 그라데이션 화면처럼 상태바 뒤로 콘텐츠가 그대로 비쳐야 하는
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
@@ -193,6 +185,50 @@ fun MainApp(
             currentRoute == "curation_list"
         ) {
             viewModel.fetchNickname()
+        }
+    }
+
+    // 푸시 알림 네비게이션 공통 함수.
+    // Home이 백스택에 있어야 뒤로가기 시 Home으로 복귀하므로 popUpTo 사용.
+    fun navigateByNotification(type: AlarmType, targetId: Long) {
+        when (type) {
+            AlarmType.NOTICE -> {
+                showNavBar = false
+                navigator.navigate("notice_screen/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            }
+            AlarmType.LINK ->
+                navigator.navigate("savelinkresult/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            AlarmType.FOLDER -> { /* TODO */ }
+            AlarmType.CURATION -> { /* TODO */ }
+            AlarmType.ALL -> Unit
+        }
+    }
+
+    // 채널 사이드 이펙트 수신
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is SideEffect.ShowToast ->
+                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is SideEffect.ShowPushAlarmDialog ->
+                    showPushAlarmDialog = true
+
+                is SideEffect.NavigateByNotification -> {
+                    // alarmId 포함해서 저장 → consume 시점(인증 완료 후)에 readAlarm 호출됨
+                    viewModel.setPendingNotification(effect.type, effect.targetId, effect.alarmId)
+
+                    // 인증 완료 상태면 즉시 이동, 아니면 auth 완료 후 consume
+                    if (isAuthenticated) {
+                        viewModel.consumePendingNotification()?.let {
+                            navigateByNotification(it.type, it.targetId)
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -320,14 +356,17 @@ fun MainApp(
                         LaunchedEffect(autoLoginState) {
                             when (autoLoginState) {
                                 is AutoLoginState.Success -> {
+                                    showNavBar = true
+                                    viewModel.setAuthenticated(true)
                                     edgeToEdgeSystemBars = false
                                     homeViewModel.refreshAfterLogin()
-                                    // 마이페이지 화면에 도달하기 전, 토큰이 확보된 시점에 바로 조회를 시작해
-                                    // 실제 탭 진입 시 응답을 기다리며 비어 보이는 시간을 최대한 줄임.
-                                    mypageViewModel.loadUserInfo()
                                     navigator.navigate(NavigationRoute.Home.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
                                         launchSingleTop = true
+                                    }
+                                    // 자동 로그인 성공 후 pending 알림 처리
+                                    viewModel.consumePendingNotification()?.let {
+                                        navigateByNotification(it.type, it.targetId)
                                     }
                                 }
 
@@ -427,12 +466,11 @@ fun MainApp(
                         loginViewModel = loginViewModel,
                         onEdgeToEdgeChange = { edgeToEdgeSystemBars = it },
                         onLoginSuccess = {
+                            showNavBar = true
+                            viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
 
-                            // 마이페이지 화면에 도달하기 전, 토큰이 확보된 시점에 바로 조회를 시작해
-                            // 실제 탭 진입 시 응답을 기다리며 비어 보이는 시간을 최대한 줄임.
-                            mypageViewModel.loadUserInfo()
-
+                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
                             // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
                             // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
                             val pendingInvitationToken =
@@ -507,6 +545,17 @@ fun MainApp(
                                 return@LoginApp
                             }
 
+                            // 수동 로그인 성공 후 pending 알림 처리
+                            viewModel.consumePendingNotification()?.let {
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo("login_root") { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                                navigateByNotification(it.type, it.targetId)
+                                return@LoginApp
+                            }
+
+                            // pending 알림이 없는 경우의 기본 동작
 
                             showNavBar = true
                             navigator.navigate(NavigationRoute.Home.route) {
@@ -539,13 +588,18 @@ fun MainApp(
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onNavigateToSaveLink = { url ->
-                                saveLinkViewModel.setUrl(url)
+                                linkViewModel.setSaveUrl(url)
                                 navigator.navigate("savelink")
                             },
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
                             },
-                            onShowNavBar = { showNavBar = it }
+                            onNavigateToCuration = {
+                                navigator.navigate("curation_card1")
+                            },
+                            onNavigateToAlarm = {
+                                navigator.navigate(NavigationRoute.Alarm.route)
+                            }
                         )
                     }
                 }
@@ -584,8 +638,8 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-                            // 실제 조회(loadUserInfo)는 MyPageApp.kt 내부의 LaunchedEffect(Unit)에서
-                            // 담당함 - 여기서 같이 호출하면 진입할 때마다 API가 두 번 나감.
+
+                            mypageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
 
@@ -594,8 +648,8 @@ fun MainApp(
                         MyPageApp(
                             viewModel = mypageViewModel,
                             onLogoutToLogin = {
-                                showNavBar = false  // 바텀바 끄기
-
+                                showNavBar = false
+                                viewModel.setAuthenticated(false)
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 searchViewModel.reset()
@@ -617,10 +671,9 @@ fun MainApp(
                                     }
                                     launchSingleTop = true
                                 }
-//                                navigator.navigate(NavigationRoute.Login.route) {
-//                                    popUpTo(0) { inclusive = true } // 전체 스택 제거
-//                                    launchSingleTop = true
-//                                }
+                            },
+                            onNavigateToAlarm = {
+                                navigator.navigate(NavigationRoute.Alarm.route)
                             }
                         )
                     }
@@ -639,61 +692,118 @@ fun MainApp(
                     }
                 }
 
+                with(NavigationRoute.Alarm) {
+                    setNavGraph {
+                        LaunchedEffect(Unit) { showNavBar = false }
+                        AlarmScreen(
+                            onBack = {
+                                showNavBar = true
+                                navigator.popBackStack()
+                            },
+                            onNavigateToSetting = { navigator.navigate(NavigationRoute.AlarmSetting.route) },
+                            onNavigateToHome = {
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                                }
+                            },
+                            onNavigateToLinkDetail = { targetId -> navigator.navigate("savelinkresult/$targetId") },
+                            onNavigateToFolder = { /* TODO */ },
+                            onNavigateToCuration = { /* TODO */ },
+                            onNavigateToNotice = { targetId ->
+                                showNavBar = false
+                                navigator.navigate("notice_screen/$targetId")
+                            }
+                        )
+                    }
+                }
+
+                composable(
+                    route = NavigationRoute.Notice.route,
+                    arguments = listOf(navArgument("targetId") { type = NavType.LongType })
+                ) {
+                    LaunchedEffect(Unit) { showNavBar = false }
+                    NoticeScreen(
+                        onBack = {
+                            val prevRoute = navigator.previousBackStackEntry?.destination?.route
+                            if (prevRoute != NavigationRoute.Alarm.route) showNavBar = true
+                            navigator.popBackStack()
+                        }
+                    )
+                }
+
                 composable("savelink") {
                     val context = LocalContext.current
+                    val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
 
-                    // 갤러리 런처: Uri -> 임시 File 로 복사해서 뷰모델에 전달
-                    val imagePicker = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.GetContent()
-                    ) { uri: Uri? ->
-                        if (uri != null) {
-                            runCatching { uri.toTempFile(context) }
-                                .onSuccess { file -> saveLinkViewModel.setImage(file) }
-                                .onFailure {
-                                    Toast.makeText(context, "이미지 로드에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                                }
-                        }
+                    fun exitSaveLinkScreen() {
+                        linkViewModel.resetSaveForm()
+                        navigator.popBackStack()
+                    }
+
+                    BackHandler {
+                        exitSaveLinkScreen()
                     }
 
                     SaveLinkScreen(
-                        image = saveLinkViewModel.image,
-                        url = saveLinkViewModel.url,
-                        title = saveLinkViewModel.title,
-                        memo = saveLinkViewModel.memo,
-                        selectedEmotionId = saveLinkViewModel.selectedEmotionId,
-                        selectedSituationId = saveLinkViewModel.selectedSituationId,
-                        jobId = saveLinkViewModel.jobId ?: 3L,
-                        onPickImage = { imagePicker.launch("image/*") },
-                        onDeleteImage = saveLinkViewModel::deleteImage,
-                        onUrlChange = saveLinkViewModel::setUrl,
-                        onTitleChange = saveLinkViewModel::setTitle,
-                        onMemoChange = saveLinkViewModel::setMemo,
-                        onEmotionSelect = saveLinkViewModel::selectEmotion,
-                        onSituationClick  = saveLinkViewModel::onSituationClick,
-                        onBack = { navigator.popBackStack() },
-                        isSaveButtonEnabled = saveLinkViewModel.isSaveButtonEnabled,
+                        image = linkUiState.saveImage,
+                        url = linkUiState.saveUrl,
+                        title = linkUiState.saveTitle,
+                        memo = linkUiState.saveMemo,
+                        selectedEmotionId =
+                            linkUiState.selectedSaveEmotionId,
+                        selectedSituationId =
+                            linkUiState.selectedSaveSituationId,
+                        jobId = linkUiState.jobId ?: 3L,
+                        onImageSelected = linkViewModel::setSaveImage,
+                        onPermissionDenied = {
+                            Toast.makeText(
+                                context,
+                                "사진을 추가하려면 사진 접근 권한이 필요합니다.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                        onImageLoadFailed = {
+                            Toast.makeText(
+                                context,
+                                "이미지 로드에 실패했습니다.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                        },
+                        onDeleteImage = linkViewModel::deleteSaveImage,
+                        onUrlChange = linkViewModel::setSaveUrl,
+                        onTitleChange = linkViewModel::setSaveTitle,
+                        onMemoChange = linkViewModel::setSaveMemo,
+                        onEmotionSelect =
+                            linkViewModel::selectSaveEmotion,
+                        onSituationClick =
+                            linkViewModel::onSaveSituationClick,
+                        onBack = {
+                            exitSaveLinkScreen()
+                        },
+                        isSaveButtonEnabled =
+                            linkUiState.isSaveButtonEnabled,
                         onSaveButtonClick = {
-                            Log.d(
-                                "SaveLink",
-                                "try save -> url=${saveLinkViewModel.url}, memo=${saveLinkViewModel.memo}, emotionId=${saveLinkViewModel.selectedEmotionId}, situationId=${saveLinkViewModel.selectedSituationId}, image=${saveLinkViewModel.image?.name}"
-                            )
-
-                            saveLinkViewModel.onSaveButtonClick(
+                            linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
-                                    Log.d(
-                                        "SaveLink",
-                                        "success -> id=${saved.linkuId}, title=${saved.title}, domain=${saved.domain}"
+                                    linkViewModel.loadLinkDetail(
+                                        saved.linkuId,
                                     )
-                                    linkDetailViewModel.loadLinkDetail(saved.linkuId)
-                                    saveLinkViewModel.resetForm()
-                                    navigator.navigate("savelinkresult/${saved.linkuId}")
+                                    linkViewModel.resetSaveForm()
+
+                                    navigator.navigate(
+                                        "savelinkresult/${saved.linkuId}",
+                                    )
                                 },
-                                onFailed = { e ->
-                                    Log.e("SaveLink", "failed: ${e.message}", e)
-                                }
+                                onFailed = { error ->
+                                    Log.e(
+                                        "SaveLink",
+                                        "failed",
+                                        error,
+                                    )
+                                },
                             )
                         },
-                        toastEvent = saveLinkViewModel.toastEvent
+                        toastEvent = linkViewModel.toastEvent,
                     )
                 }
 
@@ -704,7 +814,17 @@ fun MainApp(
                 ) { backStackEntry ->
                     val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
-                    val linkuId = backStackEntry.arguments?.getLong("linkuId") ?: 0L
+                    val detailCoroutineScope = rememberCoroutineScope()
+                    val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
+
+                    val linkuId = backStackEntry.arguments
+                        ?.takeIf { it.containsKey("linkuId") }
+                        ?.getLong("linkuId")
+                        ?.takeIf { it > 0L }
+                        ?: return@composable
+
+                    val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
+                    val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
 
                     var selectedDetailImageUri by rememberSaveable(linkuId) {
                         mutableStateOf<Uri?>(null)
@@ -717,7 +837,7 @@ fun MainApp(
                     }
 
                     LaunchedEffect(linkuId) {
-                        linkDetailViewModel.loadLinkDetail(linkuId)
+                        linkViewModel.loadLinkDetail(linkuId)
                         vm.loadCategoryColors()
                     }
 
@@ -763,15 +883,6 @@ fun MainApp(
                             ?.key
                     }
 
-                    fun keywordToTags(keyword: String?): List<String> {
-                        return keyword
-                            .orEmpty()
-                            .split(",", " ", "#")
-                            .map { it.trim() }
-                            .filter { it.isNotBlank() }
-                            .take(4)
-                    }
-
                     // 색상 맵 수집
                     val categoryColorMap = vm.categoryColorMap.collectAsState().value
 
@@ -785,38 +896,20 @@ fun MainApp(
                         )
                     }
 
-                    // 외부 브라우저 열기
-                    fun openUrl(url: String) {
-                        runCatching {
-                            val fixed = if (
-                                url.startsWith("http://") || url.startsWith("https://")
-                            ) {
-                                url
-                            } else {
-                                "https://$url"
-                            }
+                    val linkDetail = linkUiState.linkDetail
 
-                            val intent = Intent(
-                                Intent.ACTION_VIEW,
-                                fixed.toUri()
-                            )
-
-                            context.startActivity(intent)
-                        }.onFailure {
-                            Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
-                        }
+                    LaunchedEffect(
+                        linkDetail?.keyword,
+                        linkDetail?.summary,
+                    ) {
+                        aiArticleViewModel.setLinkContent(
+                            keyword = linkDetail?.keyword,
+                            summary = linkDetail?.summary,
+                        )
                     }
 
-                    val linkDetail = linkDetailViewModel.linkDetail
-                    val aiArticle = linkDetailViewModel.aiArticleDetail
-
-                    val displayKeyword = aiArticle?.keyword?.trim().orEmpty()
-                        .ifEmpty { linkDetail?.keyword.orEmpty() }
-
-                    val displaySummary = aiArticle?.summary?.trim().orEmpty()
-                        .ifEmpty { linkDetail?.summary.orEmpty() }
-
                     LinkDetailScreen(
+                        linkuId = linkuId,
                         linkTitle = linkDetail?.title.orEmpty(),
                         category = categoryNameOf(linkDetail?.categoryId),
                         emotion = emotionNameOf(linkDetail?.emotionId),
@@ -825,8 +918,13 @@ fun MainApp(
                         imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
                         selectedImageUri = selectedDetailImageUri,
                         memo = linkDetail?.memo.orEmpty(),
-                        tags = keywordToTags(displayKeyword),
-                        aiSummary = displaySummary,
+                        tags = aiArticleUiState.displayTags,
+                        aiSummary = aiArticleUiState.displaySummary,
+                        isAiArticleLoading = aiArticleUiState.isLoading,
+                        aiArticleErrorMessage = aiArticleUiState.errorMessage,
+                        onRequestAiArticle = aiArticleViewModel::getAiArticle,
+                        onClearAiArticleError =
+                            aiArticleViewModel::clearErrorMessage,
                         categoryOptions = categoryOptions,
                         onBack = {
                             navigator.popBackStack()
@@ -835,29 +933,53 @@ fun MainApp(
                             detailImagePicker.launch("image/*")
                         },
                         onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
-                            linkDetailViewModel.updateLink(
-                                title = title,
-                                memo = memo,
-                                categoryId = categoryId,
-                                emotionId = emotionId,
-                                situationId = situationId,
-                                onSucceed = {
-                                    homeViewModel.loadRecentLinks()
-                                    onSuccess()
-                                },
-                                onFailed = { e ->
-                                    Log.e("LinkDetail", "update failed", e)
+                            detailCoroutineScope.launch {
+                                val selectedTempImage = runCatching {
+                                    withContext(Dispatchers.IO) {
+                                        selectedDetailImageUri?.toTempFile(context)
+                                    }
+                                }.getOrElse { error ->
+                                    LinkuLog.e(
+                                        "LinkDetail",
+                                        "selected image conversion failed",
+                                        error,
+                                    )
                                     onFailed()
+                                    return@launch
                                 }
-                            )
+
+                                linkViewModel.updateLink(
+                                    image = selectedTempImage,
+                                    title = title,
+                                    memo = memo,
+                                    categoryId = categoryId,
+                                    emotionId = emotionId,
+                                    situationId = situationId,
+                                    onSucceed = {
+                                        selectedDetailImageUri = null
+                                        homeViewModel.loadRecentLinks()
+                                        onSuccess()
+                                    },
+                                    onFailed = { error ->
+                                        LinkuLog.e(
+                                            "LinkDetail",
+                                            "update failed",
+                                            error,
+                                        )
+                                        onFailed()
+                                    },
+                                )
+                            }
                         },
                         onDeleteLink = { onSuccess, onFailed ->
-                            linkDetailViewModel.deleteLink(
+                            linkViewModel.deleteCurrentLink(
                                 onSucceed = {
                                     homeViewModel.refreshHomeData()
                                     onSuccess()
                                 },
-                                onFailed = { onFailed() }
+                                onFailed = {
+                                    onFailed()
+                                },
                             )
                         }
                     )
@@ -1011,15 +1133,4 @@ fun Context.findActivity(): Activity? {
         ctx = ctx.baseContext
     }
     return null
-}
-
-private fun Uri.toTempFile(context: Context): File {
-    val fileName = "picked_${System.currentTimeMillis()}.jpg"
-    val tempFile = File(context.cacheDir, fileName)
-    context.contentResolver.openInputStream(this).use { input ->
-        FileOutputStream(tempFile).use { output ->
-            input?.copyTo(output)
-        }
-    }
-    return tempFile
 }

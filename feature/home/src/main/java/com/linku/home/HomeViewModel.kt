@@ -6,19 +6,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.linku.core.model.LinkSimpleInfo
+import com.linku.core.model.RecommendationRequest
+import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.home.paging.RecommendationPagingSource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -27,10 +36,13 @@ class HomeViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
+    private val alarmRepository: AlarmRepository,
 ) : ViewModel() {
 
     private companion object {
         const val MIN_RECOMMENDATION_LINK_COUNT = 3L
+        const val RECOMMENDATION_PAGE_SIZE = 5
+        const val RECOMMENDATION_PREFETCH_DISTANCE = 2
     }
 
     fun refreshHomeData() {
@@ -51,6 +63,7 @@ class HomeViewModel @Inject constructor(
     val categoryColorMap: StateFlow<Map<String, CategoryColorStyle>> = _categoryColorMap.asStateFlow()
 
     private var categoryLoaded = false
+
     fun loadCategoryColors(force: Boolean = false) {
         if (!force && categoryLoaded && _categoryColorMap.value.isNotEmpty()) return
         viewModelScope.launch {
@@ -102,92 +115,101 @@ class HomeViewModel @Inject constructor(
         jobIdState.value = null
         _recentLinks.value = emptyList()
         _categoryColorMap.value = emptyMap()
+        _isUnreadAlarmExists.value = false
         categoryLoaded = false
-    }
+        myLinkuCount = null
 
-    private fun Throwable.isLinku4003(): Boolean {
-        // 예외 메시지에 코드가 섞여 오는 경우
-        if (message?.contains("LINKU4003") == true) return true
-
-        // Retrofit HttpException인 경우 에러 바디에서 코드 텍스트만 탐지
-        val http = this as? HttpException ?: return false
-        return try {
-            val body = http.response()?.errorBody()?.string()
-            body?.contains("\"code\":\"LINKU4003\"") == true || body?.contains("LINKU4003") == true
-        } catch (_: Exception) {
-            false
-        }
+        isRecommendModeState.value = false
+        needMoreForRecommendationState.value = false
+        recommendationRequestState.value = null
     }
 
     // 사용자가 저장한 링크 개수
-    private var myLinkuCount = 0L
+    private var myLinkuCount: Long? = null
 
     // 추천에 필요한 링크 수 부족 안내 플래그
     private val needMoreForRecommendationState = mutableStateOf(false)
     val needMoreForRecommendation get() = needMoreForRecommendationState.value
-    fun clearNeedMoreNotice() { needMoreForRecommendationState.value = false }
 
-    // 추천 링크
-    private val recommendedLinksState = mutableStateOf<List<LinkSimpleInfo>>(emptyList())
-    val recommendedLinks get() = recommendedLinksState.value
+    // 추천 모드 여부
+    private val isRecommendModeState = mutableStateOf(false)
+    val isRecommendMode get() = isRecommendModeState.value
 
-    private val isRecommendingState = mutableStateOf(false)
-    val isRecommending get() = isRecommendingState.value
+    /*
+     * null이면 추천 목록을 수집하지 않습니다.
+     *
+     * requestId가 있으므로 동일한 감정/상황으로 다시 요청해도
+     * 새로운 PagingSource가 생성됩니다.
+     */
+    private val recommendationRequestState =
+        MutableStateFlow<RecommendationRequest?>(null)
 
-    private val showRecommendationsState = mutableStateOf(false)
-    val showRecommendations get() = showRecommendationsState.value
+    val recommendedLinks: Flow<PagingData<LinkSimpleInfo>> =
+        recommendationRequestState
+            .flatMapLatest { request ->
+                if (request == null) {
+                    emptyFlow()
+                } else {
+                    Pager(
+                        config = PagingConfig(
+                            pageSize = request.pageSize,
+                            initialLoadSize = request.pageSize,
+                            prefetchDistance = RECOMMENDATION_PREFETCH_DISTANCE,
+                            enablePlaceholders = false,
+                        ),
+                        pagingSourceFactory = {
+                            RecommendationPagingSource(
+                                linkuRepository = linkuRepository,
+                                situationId = request.situationId,
+                                emotionId = request.emotionId,
+                                pageSize = request.pageSize,
+                            )
+                        },
+                    ).flow
+                }
+            }
+            .cachedIn(viewModelScope)
 
-    // 최근 조회 링크 상태
-    private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
-    val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
-
-    // 링크 추천
     fun fetchRecommendations(
         situationId: Long,
         emotionId: Long,
-        size: Int = 5,
-        onDone: () -> Unit = {}
+        size: Int = RECOMMENDATION_PAGE_SIZE,
+        onDone: () -> Unit = {},
     ) {
-        if (isRecommendingState.value) return
+        isRecommendModeState.value = true
 
-        if (myLinkuCount < MIN_RECOMMENDATION_LINK_COUNT) {
+        val linkCount = myLinkuCount
+
+        if (linkCount != null && linkCount < MIN_RECOMMENDATION_LINK_COUNT) {
             needMoreForRecommendationState.value = true
-            recommendedLinksState.value = emptyList()
-            showRecommendationsState.value = true
+            recommendationRequestState.value = null
+
             onDone()
             return
         }
 
-        viewModelScope.launch {
-            isRecommendingState.value = true
-            needMoreForRecommendationState.value = false
+        needMoreForRecommendationState.value = false
 
-            runCatching {
-                linkuRepository.recommendLinks(
-                    situationId = situationId,
-                    emotionId = emotionId,
-                    page = 0,
-                    size = size,
-                )
-            }.onSuccess { links ->
-                recommendedLinksState.value = links
-                showRecommendationsState.value = true
-            }.onFailure { error ->
-                val needMoreLinks = error.isLinku4003()
+        recommendationRequestState.value =
+            RecommendationRequest(
+                situationId = situationId,
+                emotionId = emotionId,
+                pageSize = size,
+                requestId = System.nanoTime(),
+            )
 
-                needMoreForRecommendationState.value = needMoreLinks
-                recommendedLinksState.value = emptyList()
-                showRecommendationsState.value = true
-
-                if (!needMoreLinks) {
-                    Log.e("HomeVM", "fetchRecommendations failed", error)
-                }
-            }
-
-            isRecommendingState.value = false
-            onDone()
-        }
+        onDone()
     }
+
+    fun exitRecommendMode() {
+        isRecommendModeState.value = false
+        needMoreForRecommendationState.value = false
+        recommendationRequestState.value = null
+    }
+
+    // 최근 조회 링크 상태
+    private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
+    val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
 
     // 최근 조회 링크 로딩
     // 가장 먼저 호출되는 api? 토큰 달고 요청을 함.
@@ -210,5 +232,17 @@ class HomeViewModel @Inject constructor(
         Log.d("searchTopSheetVisible", newState.toString())
         searchTopSheetVisible = newState
     }
+
+
+    private val _isUnreadAlarmExists = MutableStateFlow(false)
+    val isUnreadAlarmExists = _isUnreadAlarmExists.asStateFlow()
+
+    fun refreshUnreadAlarm() {
+        viewModelScope.launch {
+            alarmRepository.getUnreadAlarmExists()
+                .onSuccess { _isUnreadAlarmExists.value = it }
+        }
+    }
+
 
 }

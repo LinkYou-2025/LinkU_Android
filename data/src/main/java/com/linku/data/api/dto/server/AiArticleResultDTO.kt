@@ -13,29 +13,11 @@ data class AiArticleResultDTO(
     @field:Json(name = "linkuId")
     val linkuId: Long,
 
-    @field:Json(name = "situationId")
-    val situationId: Long,
-
-    @field:Json(name = "situationName")
-    val situationName: String,
-
     @field:Json(name = "emotionId")
     val emotionId: Long,
 
     @field:Json(name = "emotionName")
     val emotionName: String,
-
-    @field:Json(name = "title")
-    val title: String,
-
-    @field:Json(name = "aiFeelingName")
-    val aiFeelingName: String,
-
-    @field:Json(name = "aiFeelingId")
-    val aiFeelingId: Long,
-
-    @field:Json(name = "aiCategoryId")
-    val aiCategoryId: Long,
 
     @field:Json(name = "categoryName")
     val categoryName: String,
@@ -49,7 +31,10 @@ data class AiArticleResultDTO(
     @field:Json(name = "memo")
     val memo: String?,
 
-    @field:Json(name = "keyword")
-    val keyword: String?
+    @field:Json(name = "tags")
+    val tags: String?,
+
+    @field:Json(name = "title")
+    val title: String
 
 )

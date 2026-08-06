@@ -70,6 +70,7 @@ fun HomeTopBar(
     recommendEnabled: Boolean,
     onRecommendClick: () -> Unit,
     isCollapsed: Boolean,
+    expandEnabled: Boolean,
     onExpandClick: () -> Unit,
     hasRequestedRecommend: Boolean,
     onAlarmClick: () -> Unit,
@@ -122,16 +123,10 @@ fun HomeTopBar(
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Box(
-                modifier = Modifier
-                    .size(30.dp)
-                    .noRippleClickable { onAlarmClick() }
-            ) {
-                AlarmButton(
-                    isNoticeExist = isNoticeExist,
-                    modifier = Modifier
-                )
-            }
+            AlarmButton(
+                isNoticeExist = isNoticeExist,
+                onClick = onAlarmClick
+            )
         }
 
         Spacer(modifier = Modifier.height(13.44.dp))
@@ -238,27 +233,33 @@ fun HomeTopBar(
                     modifier = Modifier
                         .width(44.dp)
                         .align(Alignment.CenterHorizontally)
-                        .pointerInput(expandDragThreshold) {
-                            detectVerticalDragGestures(
-                                onDragStart = {
-                                    draggedDistance = 0f
-                                },
-                                onVerticalDrag = { change, dragAmount ->
-                                    change.consume()
-                                    draggedDistance += dragAmount
-                                },
-                                onDragEnd = {
-                                    if (draggedDistance >= expandDragThreshold) {
-                                        onExpandClick()
-                                    }
-                                    draggedDistance = 0f
-                                },
-                                onDragCancel = {
-                                    draggedDistance = 0f
+                        .then(
+                            if (expandEnabled) {
+                                Modifier.pointerInput(expandDragThreshold) {
+                                    detectVerticalDragGestures(
+                                        onDragStart = {
+                                            draggedDistance = 0f
+                                        },
+                                        onVerticalDrag = { change, dragAmount ->
+                                            change.consume()
+                                            draggedDistance += dragAmount
+                                        },
+                                        onDragEnd = {
+                                            if (draggedDistance >= expandDragThreshold) {
+                                                onExpandClick()
+                                            }
+                                            draggedDistance = 0f
+                                        },
+                                        onDragCancel = {
+                                            draggedDistance = 0f
+                                        }
+                                    )
                                 }
-                            )
-                        }
-                        .noRippleClickable {
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .noRippleClickable(enabled = expandEnabled) {
                             onExpandClick()
                         }
                 )
@@ -286,6 +287,7 @@ fun PreviewHomeTopBar() {
         recommendEnabled = (selectedEmotion != null && selectedTask != null),
         onRecommendClick = { },
         isCollapsed = false,
+        expandEnabled = true,
         onExpandClick = { },
         hasRequestedRecommend = false,
         onAlarmClick = { },

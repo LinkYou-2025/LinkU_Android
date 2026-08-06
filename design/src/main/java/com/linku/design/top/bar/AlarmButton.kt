@@ -1,7 +1,6 @@
 package com.linku.design.top.bar
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.offset
@@ -16,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.linku.design.R
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.PixelScaler
 
@@ -23,17 +23,22 @@ import com.linku.design.util.PixelScaler
 @Composable
 fun AlarmButton(
     isNoticeExist: Boolean,  // 알림 존재 여부
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BoxWithConstraints() {
-        var ps = PixelScaler(
+    BoxWithConstraints(
+        modifier = modifier
+            .size(30.dp)
+            .noRippleClickable { onClick() }
+    ) {
+        val ps = PixelScaler(
             maxWidth = this.maxWidth,
             maxHeight = this.maxHeight,
             baseWidth = 22.93.dp, // 피그마에서 보이는 너비
             baseHeight = 28.73.dp // 피그마에서 보이는 높이
         )
 
-        Box(modifier = modifier) {
+        Box(modifier = Modifier.size(26.dp, 29.dp)) {
             with(ps) {
                 // 알림 아이콘
                 Icon(
@@ -49,19 +54,14 @@ fun AlarmButton(
                 if (isNoticeExist) {
                     Box(
                         modifier = Modifier
-                            .size(11.dp.scaled())
+                            .size(5.dp.scaled())
                             .align(Alignment.TopEnd)  // 빨간 원 오른쪽 위로 이동
                             .offset(  // 빨간 원 오른쪽 위에서 원하는 위치로 더 이동
-                                x = 2.82.dp.scaled(),
+                                x = 2.99.dp.scaled(),
                                 y = (-1).dp.scaled()
                             )
                             .background(
                                 LocalColorTheme.current.negative,
-                                shape = RoundedCornerShape(50)
-                            )
-                            .border(
-                                width = 3.dp.scaled(),
-                                color = LocalColorTheme.current.white,
                                 shape = RoundedCornerShape(50)
                             )
                             .zIndex(1f)  // 아이콘보다 위 레이어에 뱃지를 올려서 겹쳐 보이게끔 함
@@ -76,6 +76,7 @@ fun AlarmButton(
 @Composable
 fun PreviewAlarmButton() {
     AlarmButton(
-        isNoticeExist = true
+        isNoticeExist = true,
+        onClick = {}
     )
 }

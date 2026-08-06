@@ -8,7 +8,7 @@ import com.linku.data.api.dto.server.GetDetailLinkDTO
 import com.linku.data.api.dto.server.LinkCheckDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
-import com.linku.data.api.dto.server.LinkuUpdateDTO
+import com.linku.data.api.dto.server.RecommendLinkPageDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -54,10 +54,16 @@ interface LinkuApi {
     ): BaseResponse<LinkCheckDTO>
 
     // 링크 수정
+    @Multipart
     @PATCH("linku/{linkuId}")
     suspend fun updateLink(
         @Path("linkuId") linkuId: Long,
-        @Body body: LinkuUpdateDTO
+        @Query("memo") memo: String?,
+        @Query("emotionId") emotionId: Long?,
+        @Query("situationId") situationId: Long?,
+        @Query("categoryId") categoryId: Long?,
+        @Query("title") title: String?,
+        @Part image: MultipartBody.Part?,
     ): BaseResponse<LinkuResultDTO>
 
     /**
@@ -84,9 +90,9 @@ interface LinkuApi {
     suspend fun recommendLink(
         @Query("situationId") situationId: Long,
         @Query("emotionId") emotionId: Long,
-        @Query("page") page: Int? = null,
+        @Query("cursor") cursor: String? = null,
         @Query("size") size: Int? = null
-    ) : BaseResponse<List<LinkuSimpleDTO>>
+    ) : BaseResponse<RecommendLinkPageDTO>
 
     // 링크 검색
     @GET("linku/search")
