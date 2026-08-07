@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -25,7 +27,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginType
+import com.linku.core.system.SystemBarController
 import com.linku.login.LoginScreen
 import com.linku.login.R
 import com.linku.login.ui.animation.AnimatedLoginScreen
@@ -131,6 +135,18 @@ fun LoginApp(
                 DisposableEffect(Unit) {
                     onEdgeToEdgeChange(true)
                     onDispose { onEdgeToEdgeChange(false) }
+                }
+
+                // 로그아웃/탈퇴 후 Splash를 거치지 않고 이 화면으로 바로 진입하는 경로가 있어
+                // 안드로이드 시스템 하단바(내비게이션 바)가 계속 보이는 상태로 남아있었음.
+                // Splash와 동일하게 이 화면에 있는 동안엔 숨기고, 벗어나면(email_login 등) 복원함.
+                val systemBarController = LocalContext.current as? SystemBarController
+                val isPreview = LocalInspectionMode.current
+                if (!isPreview && systemBarController != null) {
+                    DisposableEffect(Unit) {
+                        systemBarController.setSystemBarMode(SystemBarMode.HIDDEN)
+                        onDispose { systemBarController.setSystemBarMode(SystemBarMode.VISIBLE) }
+                    }
                 }
 
                 AnimatedLoginScreen(

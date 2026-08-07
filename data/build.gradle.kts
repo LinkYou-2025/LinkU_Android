@@ -93,6 +93,9 @@ dependencies {
     implementation(libs.retrofit2)
     implementation(libs.retrofit2.converter.gson)
     implementation(libs.converter.moshi)
+    // release 빌드에서도 심볼 해석이 되어야 해서 implementation으로 포함하고,
+    // 실제 로깅 여부는 ServerApiModule에서 BuildConfig.DEBUG로 런타임 분기함.
+    implementation(libs.okhttp.logging.interceptor)
 
     // SharedPreference
     implementation(libs.preference.ktx)

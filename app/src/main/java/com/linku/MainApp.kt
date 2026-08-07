@@ -650,6 +650,13 @@ fun MainApp(
                             onLogoutToLogin = {
                                 showNavBar = false
                                 viewModel.setAuthenticated(false)
+                                // 로그인 화면(auth_graph "login")은 자체 DisposableEffect로
+                                // 시스템 바를 HIDDEN + edge-to-edge로 전환하지만, 그 효과가 반영되기
+                                // 전 프레임에 MainScreen이 여전히 edgeToEdgeSystemBars=false로
+                                // 남아있으면 EdgeToEdgeSystemBars가 함께 조합되어 시스템 바가
+                                // 다시 보이는 상태로 남을 수 있었음. 여기서 미리 true로 맞춰
+                                // 그 경합 자체를 없앰(로그인 성공 시 false로 되돌리는 것과 대칭).
+                                edgeToEdgeSystemBars = true
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 searchViewModel.reset()
