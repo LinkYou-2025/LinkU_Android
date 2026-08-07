@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
@@ -63,12 +62,16 @@ private val quitReasons = listOf(
 @Composable
 fun ServiceQuitScreen(
     navController: NavController,
+    onDimmedChange: (Boolean) -> Unit = {},
     onRequestQuit: (reason: String) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
     var reasonText by remember { mutableStateOf("") }
     var showDialog by remember { mutableStateOf(false) }
+
+    // 탈퇴 확인 다이얼로그가 떠있는 동안 MainScreen 전체(하단 탭바 포함)를 딤 처리.
+    LaunchedEffect(showDialog) { onDimmedChange(showDialog) }
     var selectedReason by remember { mutableStateOf<String?>(null) }
     var isAgreeChecked by remember { mutableStateOf(false) }
 
@@ -325,18 +328,19 @@ fun ServiceQuitScreen(
     if (showDialog) {
         // Compose Dialog는 별도의 시스템 창(Window)에 그려지므로, 하단 탭바를 포함한 화면 전체를
         // 딤 처리할 수 있음(Scaffold content 영역 내부 Box로는 탭바 아래까지 못 가림).
+        // 딤 자체는 MainScreen에서 onDimmedChange로 이미 켜져 있으므로, 이 다이얼로그는 그 위에
+        // 배경 없이 외부 클릭만 막고 콘텐츠만 그림.
         Dialog(
             onDismissRequest = { showDialog = false },
             properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
         ) {
             val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
-            // 다이얼로그 기본 딤을 끄고, 아래 커스텀 딤(0.5f)만 적용해 MainScreen과 동일하게 맞춤.
+            // 다이얼로그 기본 딤을 끔 - MainScreen의 딤을 그대로 통해서 보이게 함.
             SideEffect { dialogWindow?.setDimAmount(0f) }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.5f)) // MainScreen과 동일한 50% 딤 처리
                     .noRippleClickable(enabled = false) {}, // 외부 클릭 막기
                 contentAlignment = Alignment.Center
             ) {

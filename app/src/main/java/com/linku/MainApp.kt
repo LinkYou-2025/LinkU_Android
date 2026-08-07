@@ -97,6 +97,10 @@ fun MainApp(
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
 
+    // MainScreen 전체 딤 처리 여부. 화면 전환용 다이얼로그(로그아웃/탈퇴 확인 등)가
+    // 하단 탭바까지 포함해 화면 전체를 딤 처리해야 할 때 각 화면에서 이 콜백으로 켜고 끔.
+    var dimmed by remember { mutableStateOf(false) }
+
     // 네트워크 감지 추가
     val isConnected by viewModel.isConnected.collectAsStateWithLifecycle()
     LaunchedEffect(isConnected) {
@@ -334,7 +338,8 @@ fun MainApp(
             ) else null,
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
-            hideSystemBars = edgeToEdgeSystemBars
+            hideSystemBars = edgeToEdgeSystemBars,
+            dimmed = dimmed
         ) {
             NavHost(
                 navController = navigator,
@@ -660,6 +665,8 @@ fun MainApp(
                             // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
                             // MyPageApp이 false로 되돌림.
                             onImmersiveTransitionChange = { edgeToEdgeSystemBars = it },
+                            // 로그아웃/탈퇴 확인 다이얼로그가 떠있는 동안 MainScreen 전체(하단 탭바 포함)를 딤 처리.
+                            onDimmedChange = { dimmed = it },
                             onLogoutToLogin = {
                                 showNavBar = false
                                 viewModel.setAuthenticated(false)

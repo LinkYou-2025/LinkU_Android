@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.component.LinkuNavigationBar
+import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.EdgeToEdgeSystemBars
 import com.linku.design.util.LocalStatusBarDarkIcons
@@ -121,11 +122,11 @@ fun MainScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
+                        .background(LocalColorTheme.current.dimColor)
                 )
             }
 
-    }
+        }
     }
 }
 
