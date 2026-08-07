@@ -1,5 +1,6 @@
 package com.linku
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -52,6 +53,7 @@ fun MainScreen(
     // 통일함 — 예전엔 SystemBarController가 화면별로 별도 호출되면서 같은 Window를 서로 다른
     // 타이밍에 건드려 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시 보이던 버그).
     hideSystemBars: Boolean = false,
+    dimmed : Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -70,49 +72,59 @@ fun MainScreen(
     EdgeToEdgeSystemBars(darkIcons = statusBarDarkIcons.value, hidden = hideSystemBars)
 
     CompositionLocalProvider(LocalStatusBarDarkIcons provides statusBarDarkIcons) {
-    Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-        ),
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White,
-        bottomBar = {
-            if (navigationBarProp != null) {
-                // 내비게이션 바의 위치/사이즈를 캡처
-                Box(
-                    modifier = Modifier.onGloballyPositioned { coords ->
-                        val pos = coords.positionInRoot()
-                        navBarTopPx = pos.y
-                        navBarSizePx = Size(
-                            coords.size.width.toFloat(),
-                            coords.size.height.toFloat()
-                        )
-                        navBarCenter = with(density) {
-                            Offset(
-                                x = pos.x + coords.size.width / 2f,
-                                y = pos.y + coords.size.height / 2f
+        Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+            ),
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.White,
+            bottomBar = {
+                if (navigationBarProp != null) {
+                    // 내비게이션 바의 위치/사이즈를 캡처
+                    Box(
+                        modifier = Modifier.onGloballyPositioned { coords ->
+                            val pos = coords.positionInRoot()
+                            navBarTopPx = pos.y
+                            navBarSizePx = Size(
+                                coords.size.width.toFloat(),
+                                coords.size.height.toFloat()
                             )
+                            navBarCenter = with(density) {
+                                Offset(
+                                    x = pos.x + coords.size.width / 2f,
+                                    y = pos.y + coords.size.height / 2f
+                                )
+                            }
                         }
+                    ) {
+                        LinkuNavigationBar(
+                            currentLinkuNavigationItem = navigationBarProp.currentLinkuNavigationItem,
+                            onNavigate = navigationBarProp.onNavigate,
+                            onFABClick = onFABClick
+                        )
                     }
-                ) {
-                    LinkuNavigationBar(
-                        currentLinkuNavigationItem = navigationBarProp.currentLinkuNavigationItem,
-                        onNavigate = navigationBarProp.onNavigate,
-                        onFABClick = onFABClick
-                    )
                 }
             }
-        }
 
-    ) { innerPadding ->
-        // 컨텐츠
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            content()
+        ) { innerPadding ->
+            // 컨텐츠
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                content()
+            }
         }
+            if(dimmed) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                )
+            }
+
     }
     }
 }
