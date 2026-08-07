@@ -23,6 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -244,22 +246,36 @@ fun EmailLoginScreen(
         }
 
         // 탈퇴 유예기간(INACTIVE) 계정으로 로그인 시도 시 노출되는 복구 확인 모달
+        // ModalWindow(2버튼 오버로드)는 onOkay/onNegativeClick 클릭 시에도 onDismiss를 함께 호출하는
+        // 설계라서, 버튼으로 인한 onDismiss 호출과 실제 외부 영역 클릭으로 인한 dismiss를 여기서
+        // 구분해야 함. 구분하지 않으면 "계정 복구" 클릭 직후 onDismiss가 dismissRecoverModal()을 호출해
+        // recoverAccount()가 네트워크 응답을 받기도 전에 pendingRecoverLoginResult를 null로 지우고
+        // authPreference까지 clear()해버려 복구가 성공해도 홈으로 못 가는 레이스가 있었음.
+        var recoverModalActionTaken by remember { mutableStateOf(false) }
+
         ModalWindow(
             visible = showRecoverModal,
             onOkay = {
-                loginViewModel?.keepWithdrawn()
-                onDismissRecoverModal()
-            },
-            onNegativeClick = {
+                recoverModalActionTaken = true
                 loginViewModel?.recoverAccount()
                 onDismissRecoverModal()
             },
-            onDismiss = {
-                loginViewModel?.dismissRecoverModal()
+            onNegativeClick = {
+                recoverModalActionTaken = true
+                loginViewModel?.keepWithdrawn()
                 onDismissRecoverModal()
             },
-            positiveText = "탈퇴 유지",
-            negativeText = "계정 복구",
+            onDismiss = {
+                // 버튼 클릭으로 인한 호출이면 이미 recoverAccount()/keepWithdrawn()이 처리했으므로
+                // dismissRecoverModal()을 또 호출하지 않음. 순수 외부 영역 클릭일 때만 호출함.
+                if (!recoverModalActionTaken) {
+                    loginViewModel?.dismissRecoverModal()
+                }
+                recoverModalActionTaken = false
+                onDismissRecoverModal()
+            },
+            positiveText = "계정 복구",
+            negativeText = "탈퇴 유지",
             title = "탈퇴 처리 중인 계정입니다.",
             isLogoDimmed = true
         ) {

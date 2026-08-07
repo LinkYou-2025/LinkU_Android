@@ -368,11 +368,11 @@ fun LoginScreen(
         // 탈퇴 유예기간(INACTIVE) 계정으로 소셜 로그인 시도 시 노출되는 복구 확인 모달
         ModalWindow(
             visible = uiState.showRecoverModal,
-            onOkay = { viewModel.keepWithdrawn() },
-            onNegativeClick = { viewModel.recoverAccount() },
+            onOkay = { viewModel.recoverAccount() },
+            onNegativeClick = { viewModel.keepWithdrawn() },
             onDismiss = { viewModel.dismissRecoverModal() },
-            positiveText = "탈퇴 유지",
-            negativeText = "계정 복구",
+            positiveText = "계정 복구",
+            negativeText = "탈퇴 유지",
             title = "탈퇴 처리 중인 계정입니다.",
             isLogoDimmed = true
         ) {
