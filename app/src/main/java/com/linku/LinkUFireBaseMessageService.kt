@@ -83,6 +83,11 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
                     )
                 }
 
+                // 알림마다 고유 ID를 생성해 PendingIntent requestCode로 사용.
+                // requestCode가 동일하면 FLAG_UPDATE_CURRENT가 기존 PendingIntent의 extras를
+                // 덮어써서, 먼저 쌓인 알림이 마지막 알림의 목적지로 이동하는 버그가 발생함.
+                val notificationId = System.currentTimeMillis().toInt()
+
                 // 포그라운드에서 알림을 탭했을 때 앱의 진입 액티비티를 실행하며 알림 데이터를 전달
                 val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
                     ?.apply {
@@ -93,7 +98,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
                 val pendingIntent = PendingIntent.getActivity(
                     this@LinkUFireBaseMessageService,
-                    0,
+                    notificationId,
                     launchIntent,
                     PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 ) ?: return@launch
@@ -116,7 +121,7 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
 
                 // 알림 출력
                 getSystemService(NotificationManager::class.java)
-                    .notify(System.currentTimeMillis().toInt(), notification)
+                    .notify(notificationId, notification)
 
             } catch (e: IllegalArgumentException) {
                 Log.e("FCM", "FCM 메시지 처리 실패: ${e.message}")
