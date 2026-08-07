@@ -614,6 +614,9 @@ fun MainApp(
                         FileApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel,
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
+                            },
                             searchUiState = searchUiState,
                             searchResults = searchResults,
                             onSearchQueryChange = searchViewModel::search,

@@ -59,11 +59,30 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
+/**
+ * 파일 탭의 폴더와 링크 목록, 검색 및 편집 UI를 표시합니다.
+ *
+ * 링크 상세 이동은 ViewModel에 UI 콜백을 저장하지 않고 [onLinkClick]을 통해 상위
+ * 내비게이션 소유자에게 직접 위임합니다.
+ *
+ * @param fileViewModel 파일 및 폴더 데이터를 제공하는 ViewModel
+ * @param editStateViewModel 폴더 편집 상태를 관리하는 ViewModel
+ * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
+ * @param onLinkClick 상세 화면을 열 링크의 ID를 전달하는 콜백
+ * @param searchUiState 검색 기록과 검색 UI 상태
+ * @param searchResults 검색 결과 페이징 데이터
+ * @param onSearchQueryChange 검색어 변경 콜백
+ * @param onSearchOpen 검색 UI가 열릴 때 호출되는 콜백
+ * @param onSearchDismiss 검색 UI가 닫힐 때 호출되는 콜백
+ * @param onSearchHistoryDelete 개별 검색 기록 삭제 콜백
+ * @param onSearchHistoryClear 전체 검색 기록 삭제 콜백
+ */
 @Composable
 fun FileScreen(
     fileViewModel: FileViewModel = hiltViewModel(),
     editStateViewModel:EditStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
+    onLinkClick: (Long) -> Unit,
     searchUiState: SearchBarUiState,
     searchResults: Flow<PagingData<SearchResultItem>>,
     onSearchQueryChange: (String) -> Unit,
@@ -233,9 +252,7 @@ fun FileScreen(
                             onDeleteFolder = { folder ->
                                 fileViewModel.deleteSubfolder(folder.folderId)
                             },
-                            onLinkClick = { linkId ->
-                                fileViewModel.onLinkClick?.invoke(linkId)
-                            },
+                            onLinkClick = onLinkClick,
                             onDeleteNotCategorizationLink = { linkId ->
                                 fileViewModel.deleteNotCategorizationLink(linkId)
                             }
@@ -269,9 +286,7 @@ fun FileScreen(
                         onLinkCategorizationClick = {
                             folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
                         },
-                        onLinkClick = { linkId ->
-                            fileViewModel.onLinkClick?.invoke(linkId)
-                        },
+                        onLinkClick = onLinkClick,
                         onDeleteLink = { linkId ->
                             fileViewModel.deleteLink(linkId)
                         },
@@ -396,7 +411,13 @@ fun FileScreen(
     // 검색창 탑 시트
     SearchBarTopSheet(
         visible = folderStateViewModel.searchTopSheetVisible,
-        onLinkClick = { fileViewModel.onLinkClick?.invoke(it)},
+        onLinkClick = { linkId ->
+            if (folderStateViewModel.searchTopSheetVisible) {
+                folderStateViewModel.updateSearchTopSheetVisible(false)
+                onSearchDismiss()
+            }
+            onLinkClick(linkId)
+        },
         onDismiss = {
             if (folderStateViewModel.searchTopSheetVisible) {
                 folderStateViewModel.updateSearchTopSheetVisible(false)
@@ -421,6 +442,7 @@ private fun PreviewFileScreen() {
     FileScreen(
         searchUiState = SearchBarUiState(),
         searchResults = flowOf(PagingData.empty<SearchResultItem>()),
+        onLinkClick = {},
         onSearchQueryChange = {},
         onSearchOpen = {},
         onSearchDismiss = {},
