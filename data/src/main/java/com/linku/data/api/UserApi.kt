@@ -78,7 +78,7 @@ interface UserApi {
     @PATCH("users/profile")
     suspend fun updateUserInfo(
         @Body body: UpdateUserProfileRequestDTO
-    ) : BaseResponse<String> // BaseResponse 형태임. 별도 클래스 생성 없음.
+    ): BaseResponse<*> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
 
 //    // 이메일 인증 코드 전송
