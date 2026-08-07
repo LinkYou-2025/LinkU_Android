@@ -326,7 +326,7 @@ fun MainApp(
             ) else null,
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
-            applyDefaultSystemBarIcons = !edgeToEdgeSystemBars
+            hideSystemBars = edgeToEdgeSystemBars
         ) {
             NavHost(
                 navController = navigator,
@@ -647,15 +647,17 @@ fun MainApp(
 
                         MyPageApp(
                             viewModel = mypageViewModel,
+                            // 로그아웃/탈퇴 버튼을 누른 "즉시"(API 응답 기다리지 않고) 시스템 바를
+                            // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
+                            // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
+                            // MyPageApp이 false로 되돌림.
+                            onImmersiveTransitionChange = { edgeToEdgeSystemBars = it },
                             onLogoutToLogin = {
                                 showNavBar = false
                                 viewModel.setAuthenticated(false)
-                                // 로그인 화면(auth_graph "login")은 자체 DisposableEffect로
-                                // 시스템 바를 HIDDEN + edge-to-edge로 전환하지만, 그 효과가 반영되기
-                                // 전 프레임에 MainScreen이 여전히 edgeToEdgeSystemBars=false로
-                                // 남아있으면 EdgeToEdgeSystemBars가 함께 조합되어 시스템 바가
-                                // 다시 보이는 상태로 남을 수 있었음. 여기서 미리 true로 맞춰
-                                // 그 경합 자체를 없앰(로그인 성공 시 false로 되돌리는 것과 대칭).
+                                // onImmersiveTransitionChange(true)가 버튼 클릭 시점에 이미
+                                // 처리했지만, 안전하게 한 번 더 명시함(대칭적으로 로그인 성공 시
+                                // false로 되돌리는 것과 짝).
                                 edgeToEdgeSystemBars = true
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.

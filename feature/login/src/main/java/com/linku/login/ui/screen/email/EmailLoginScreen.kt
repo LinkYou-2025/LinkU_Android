@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -43,9 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.linku.core.model.SystemBarMode
 import com.linku.core.model.auth.LoginState
-import com.linku.core.system.SystemBarController
 import com.linku.design.component.GradientButtonCore
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
@@ -81,17 +77,8 @@ fun EmailLoginScreen(
     val containerWidthDp = with(density) { containerSize.width.toDp() }
     val containerHeightDp = with(density) { containerSize.height.toDp() }
 
-    val systemBarController = LocalContext.current as? SystemBarController
-    val isPreview = LocalInspectionMode.current
-
-    // 로그인 입력 화면 진입 시 시스템 바 복구
-    // (색상/아이콘 밝기는 MainScreen이 edgeToEdgeSystemBars 상태를 보고 공통 처리함)
-    DisposableEffect(Unit) {
-        if (!isPreview && systemBarController != null) {
-            systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
-        }
-        onDispose {}
-    }
+    // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
+    // (LoginApp.kt가 "login" 화면을 벗어날 때 edgeToEdgeSystemBars=false로 되돌림).
 
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(uiState.email).matches()
     val isFormValid = uiState.email.isNotBlank() && uiState.password.isNotBlank() && isEmailValid

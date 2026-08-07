@@ -35,7 +35,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -56,7 +55,6 @@ import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modal.ModalWindow
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
-import com.linku.design.util.DesignSystemBars
 import com.linku.design.util.scaler
 import com.linku.login.auth.GoogleAuthHelper
 import com.linku.login.auth.findActivity
@@ -203,13 +201,8 @@ fun LoginScreen(
 //        }
 //    }
 
-    // 스플래쉬 다음 화면도 역시 바텀바가 보이지 않도록 함.
-    DesignSystemBars(
-        statusBarColor = Color.Transparent,
-        navigationBarColor = Color.Transparent,
-        darkIcons = false,
-        immersive = true
-    )
+    // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
+    // (LoginApp.kt의 "login"/"social_login_gate" 진입 시 edgeToEdgeSystemBars=true로 세팅함).
 
     Box(
         modifier = Modifier
