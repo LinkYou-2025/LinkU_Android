@@ -123,13 +123,13 @@ fun MainApp(
     var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(isLoggedIn) {
-        // onLogoutToLogin()이 이미 launchSingleTop으로 "login_root"에 진입시킨 경우 여기서
+        // onLogoutToLogin()이 이미 launchSingleTop으로 NavigationRoute.Login.route에 진입시킨 경우 여기서
         // 또 navigate하면 같은 목적지로 두 번 이동하게 되어 LoginApp의 "login" 컴포저블이
         // dispose→재mount되면서 EdgeToEdgeSystemBars의 hidden 값이 순간적으로
         // true→false→true로 흔들림. 그 결과 OS가 hide() 호출을 애니메이션 중첩으로 무시해서
         // 탈퇴/로그아웃 후 진입한 로그인 화면에 시스템 바가 계속 보이는 버그가 있었음.
         if (previousLoggedIn == true && isLoggedIn == false &&
-            navigator.currentDestination?.route != "login_root"
+            navigator.currentDestination?.route != NavigationRoute.Login.route
         ) {
             navigator.navigate("login_root") {
                 popUpTo(navigator.graph.id) { inclusive = true }
