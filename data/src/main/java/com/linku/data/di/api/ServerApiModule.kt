@@ -14,6 +14,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
@@ -29,10 +30,24 @@ import javax.inject.Singleton
 object ServerApiModule {
 
     /**
+     * 디버그 빌드에서만 요청/응답 전문을 Logcat 태그 `OkHttp`로 출력하는 로깅 인터셉터.
+     * release 빌드에서는 [HttpLoggingInterceptor.Level.NONE]으로 아무것도 기록하지 않음
+     * (토큰/개인정보가 로그에 남지 않도록).
+     */
+    private fun httpLoggingInterceptor() = HttpLoggingInterceptor { message ->
+        android.util.Log.d("OkHttp", message)
+    }.apply {
+        level = if (BuildConfig.DEBUG) {
+            HttpLoggingInterceptor.Level.BODY
+        } else {
+            HttpLoggingInterceptor.Level.NONE
+        }
+    }
+
+    /**
      * 로그인, 회원가입 및 토큰 재발급처럼 인증 헤더가 필요하지 않은 Retrofit을 제공합니다.
      *
-     * 요청·응답 본문이나 인증 정보가 애플리케이션 로그에 남지 않도록
-     * 별도의 애플리케이션 인터셉터를 설치하지 않습니다.
+     * 디버그 빌드에서만 [httpLoggingInterceptor]로 요청/응답 전문을 Logcat에 남깁니다.
      *
      * @param moshi 서버 응답과 요청 본문을 변환하는 Moshi 인스턴스
      * @return [PublicClient]로 구분되는 인증 불필요 Retrofit
@@ -45,7 +60,11 @@ object ServerApiModule {
     ): Retrofit = Retrofit.Builder()
         .baseUrl(BuildConfig.SERVER_BASE_URL)
         .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .client(OkHttpClient.Builder().build())
+        .client(
+            OkHttpClient.Builder()
+                .addInterceptor(httpLoggingInterceptor())
+                .build()
+        )
         .build()
 
     /**
@@ -53,7 +72,7 @@ object ServerApiModule {
      *
      * 요청에 인증 헤더가 없을 때 저장된 액세스 토큰을 추가하고, 인증 실패 시
      * [TokenAuthenticator]가 토큰 갱신 흐름을 처리하도록 구성합니다.
-     * HTTP 원문을 기록하는 인터셉터는 설치하지 않습니다.
+     * 디버그 빌드에서만 [httpLoggingInterceptor]로 요청/응답 전문(Authorization 헤더 포함)을 Logcat에 남깁니다.
      *
      * @param authPreference 저장된 액세스 토큰을 제공하는 인증 환경설정
      * @param tokenAuthenticator 인증 실패 시 토큰 갱신과 요청 재시도를 처리하는 인증자
@@ -88,6 +107,7 @@ object ServerApiModule {
                     } else chain.request()
                     chain.proceed(request)
                 }
+                .addInterceptor(httpLoggingInterceptor())
                 .build()
         )
         .build()
