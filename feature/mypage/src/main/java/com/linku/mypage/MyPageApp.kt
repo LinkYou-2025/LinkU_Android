@@ -30,13 +30,10 @@ fun MyPageApp(
     // 로그아웃/탈퇴 API 응답을 기다리는 동안(성공 전) 로그인 화면 전환 애니메이션이 시작되기도
     // 전에 안드로이드 시스템 바가 잠깐 보였다 사라지는 깜빡임을 없애기 위해, 버튼을 누른 즉시
     // (API 호출 전에) 몰입 모드로 먼저 전환함. 실패해서 계속 MyPage에 남으면 다시 false로 되돌림.
-    onImmersiveTransitionChange: (Boolean) -> Unit = {}
+    onImmersiveTransitionChange: (Boolean) -> Unit = {},
+    // 로그아웃/탈퇴 확인 다이얼로그가 떠있는 동안 상위(MainScreen)의 화면 전체 딤 처리를 켜고 끄는 콜백.
+    onDimmedChange: (Boolean) -> Unit = {}
 ) {
-    // 로그아웃/탈퇴 확인 다이얼로그가 떠있는 동안 화면 전체(하단 탭바 포함) 딤 처리.
-    // GlobalDimController를 MainViewModel과 공유하므로 MainApp까지 콜백을 relay할 필요 없음.
-    val onDimmedChange: (Boolean) -> Unit = { dimmed ->
-        if (dimmed) viewModel.showDim() else viewModel.hideDim()
-    }
     val navController = rememberNavController()
     val context = LocalContext.current
 

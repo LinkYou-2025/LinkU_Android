@@ -12,7 +12,6 @@ import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
-import com.linku.core.util.GlobalDimController
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
@@ -39,14 +38,10 @@ class MainViewModel @Inject constructor(
     private val userRepository: UserRepository, // 닉네임 호출용
     private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase,
     private val alarmRepository: AlarmRepository,
-    private val dimController: GlobalDimController,
 ) : AndroidViewModel(application) {
 
     private val _sideEffect = Channel<SideEffect>(Channel.BUFFERED)
     val sideEffect = _sideEffect.receiveAsFlow()
-
-    // 로그아웃/탈퇴 등 다른 ViewModel(MyPageViewModel 등)에서 켠 화면 전체 딤 상태를 그대로 구독함.
-    val isDimmed: StateFlow<Boolean> = dimController.isDimmed
 
     // 닉네임 캐싱 먼저 -> ui 지직거림 방지
     private val _nickname = MutableStateFlow<String>("")
