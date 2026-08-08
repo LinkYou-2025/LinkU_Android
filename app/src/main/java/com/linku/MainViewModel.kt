@@ -74,7 +74,9 @@ class MainViewModel @Inject constructor(
 
     private fun reRegisterFcmToken() {
         viewModelScope.launch {
-            // 최초알림팝업을 통한 fcm토큰등록이 진행되었다면 스킵
+            // FCM 토큰을 서버에 등록한 적이 없거나
+            // 로그아웃을 통해 delete 처리가 되었다면 스킵
+            // 위의 경우에는 푸시알림 팝업을 통해서 토큰을 POST한다.
             if (!notificationPreference.isFcmTokenRegistered()) return@launch
 
             // fcm토큰 재등록
