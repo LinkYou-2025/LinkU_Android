@@ -1,6 +1,8 @@
 package com.linku.core.repository
 
+import com.linku.core.model.Nickname
 import com.linku.core.model.UserInfo
+import com.linku.core.model.auth.RecoverResult
 
 
 interface UserRepository {
@@ -8,7 +10,7 @@ interface UserRepository {
     suspend fun deleteUser(reason: String): Result<Unit>
 
     // 회원 탈퇴 복구 (탈퇴 유예기간 14일 이내 재로그인 시). 성공(서버 호출 성공)했을 때만 true.
-    suspend fun recoverUser(): Boolean
+    suspend fun recoverUser(): Result<RecoverResult>
 //
 //    // 닉네임 전용 메서드 추가
 //    suspend fun getNickname(userId: Long): String?
@@ -28,6 +30,6 @@ interface UserRepository {
     suspend fun logout(): Boolean
 
     // 닉네임만 호출
-    suspend fun getNickname(): String?
+    suspend fun getNickname(): Result<Nickname>
 
 }

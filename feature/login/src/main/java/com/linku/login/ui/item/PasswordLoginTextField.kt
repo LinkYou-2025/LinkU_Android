@@ -126,7 +126,7 @@ internal fun PasswordLoginTextField(
                         if (isPasswordVisible) {
                             LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
-                                lineHeight = 16.sp,
+                                lineHeight = 20.sp,
                                 fontWeight = FontWeight(500),
                                 color = colorTheme.black,
                                 letterSpacing = 0.sp
@@ -134,7 +134,7 @@ internal fun PasswordLoginTextField(
                         } else {
                             LocalTextStyle.current.copy(
                                 fontSize = 14.sp,
-                                lineHeight = 16.sp,
+                                lineHeight = 20.sp,
                                 fontWeight = FontWeight(500),
                                 letterSpacing = 2.sp,
                                 color = colorTheme.black

@@ -123,9 +123,17 @@ fun MainApp(
     var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(isLoggedIn) {
-        if (previousLoggedIn == true && isLoggedIn == false) {
+        // onLogoutToLogin()이 이미 launchSingleTop으로 NavigationRoute.Login.route에 진입시킨 경우 여기서
+        // 또 navigate하면 같은 목적지로 두 번 이동하게 되어 LoginApp의 "login" 컴포저블이
+        // dispose→재mount되면서 EdgeToEdgeSystemBars의 hidden 값이 순간적으로
+        // true→false→true로 흔들림. 그 결과 OS가 hide() 호출을 애니메이션 중첩으로 무시해서
+        // 탈퇴/로그아웃 후 진입한 로그인 화면에 시스템 바가 계속 보이는 버그가 있었음.
+        if (previousLoggedIn == true && isLoggedIn == false &&
+            navigator.currentDestination?.route != NavigationRoute.Login.route
+        ) {
             navigator.navigate("login_root") {
                 popUpTo(navigator.graph.id) { inclusive = true }
+                launchSingleTop = true
             }
         }
         previousLoggedIn = isLoggedIn
@@ -326,7 +334,7 @@ fun MainApp(
             ) else null,
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
-            applyDefaultSystemBarIcons = !edgeToEdgeSystemBars
+            hideSystemBars = edgeToEdgeSystemBars
         ) {
             NavHost(
                 navController = navigator,
@@ -470,7 +478,6 @@ fun MainApp(
                             viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
 
-                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
                             // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
                             // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
                             val pendingInvitationToken =
@@ -650,9 +657,18 @@ fun MainApp(
 
                         MyPageApp(
                             viewModel = mypageViewModel,
+                            // 로그아웃/탈퇴 버튼을 누른 "즉시"(API 응답 기다리지 않고) 시스템 바를
+                            // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
+                            // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
+                            // MyPageApp이 false로 되돌림.
+                            onImmersiveTransitionChange = { edgeToEdgeSystemBars = it },
                             onLogoutToLogin = {
                                 showNavBar = false
                                 viewModel.setAuthenticated(false)
+                                // onImmersiveTransitionChange(true)가 버튼 클릭 시점에 이미
+                                // 처리했지만, 안전하게 한 번 더 명시함(대칭적으로 로그인 성공 시
+                                // false로 되돌리는 것과 짝).
+                                edgeToEdgeSystemBars = true
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 searchViewModel.reset()

@@ -68,14 +68,14 @@ internal fun SignUpStepLayout(
                 .padding(
                     start = 20.scaler,
                     end = 20.scaler,
-                    top = 60.scaler,
+                    top = 52.scaler,  // NOTE 원래 60인데 조정함
                     bottom = 72.scaler
                 ),
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator(currentStep)
 
-            Spacer(Modifier.height(36.scaler + extraTopGap))
+            Spacer(Modifier.height(20.scaler + extraTopGap)) // NOTE  원래 30인데 20으로 조정함.
 
             Text(
                 text = title,
@@ -85,7 +85,7 @@ internal fun SignUpStepLayout(
                 color = colorTheme.black // 다크모드 시 ThemeColorScheme에 darkText 추가하면 됨
             )
 
-            Spacer(Modifier.height(40.scaler))
+            Spacer(Modifier.height(32.scaler)) // NOTE  원래 40인데 -> 32로 조정함.
 
             content()
         }
