@@ -22,7 +22,6 @@ import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
 import com.linku.data.preference.AuthPreference
-import com.linku.data.util.DomainIdMapper
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -130,12 +129,6 @@ class FileViewModel @Inject constructor(
 
     private val _aiArticleDetail = MutableStateFlow<AiArticle?>(null)
     val aiArticleDetail: StateFlow<AiArticle?> = _aiArticleDetail.asStateFlow()
-
-    // 링크 클릭 콜백
-    var onLinkClick: ((Long) -> Unit)? = null
-    fun registeronLinkClick(callback: (Long) -> Unit) {
-        onLinkClick = callback
-    }
 
     // 로딩/에러 상태
     private val _loadingCount = MutableStateFlow(0)
@@ -278,29 +271,23 @@ class FileViewModel @Inject constructor(
         if (isUpdatingLink) return
 
         val fixedLinkuId = current.linkuId
-        val fixedLinku   = current.linku
-
-        // domainId 계산 (URL/도메인 기반)
-        val computedDomainId = DomainIdMapper.resolve(
-            url = fixedLinku,
-            domain = current.domain
-        )
 
         viewModelScope.launch {
             isUpdatingLink = true
             try {
                 val updated = linkuRepository.updateLink(
-                    linkuId    = fixedLinkuId,
-                    categoryId = categoryId ?: (current.categoryId ?: 0L),
-                    linku      = fixedLinku,                     // 서버 URL 고정
-                    memo       = memo,                           // null/"" 그대로
-                    emotionId  = emotionId ?: (current.emotionId ?: 0L),
-                    situationId = situationId ?: current.situationId ?: 0L,    // TODO: 도메인 모델과 DTO 수정하면서 상황이 추가가 되어 넣었습니다. 지민님께서 확인 후 수정 부탁드립니다.
-                    domainId   = computedDomainId,
-                    title      = title.ifBlank { current.title } // 빈 제목이면 기존 유지
+                    linkuId = fixedLinkuId,
+                    image = null,
+                    memo = memo,
+                    emotionId = emotionId ?: current.emotionId,
+                    situationId = situationId ?: current.situationId,
+                    categoryId = categoryId ?: current.categoryId,
+                    title = title.ifBlank { current.title },
                 )
                 _linkDetail.value = updated
                 onSucceed(updated)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Throwable) {
                 onFailed(e)
                 _errorMessage.value = e.message

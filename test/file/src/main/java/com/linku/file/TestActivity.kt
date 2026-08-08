@@ -14,7 +14,9 @@ class TestActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
 
-            ThemeProvider { FileApp() }
+            ThemeProvider {
+                FileApp(onNavigateToLinkDetail = {})
+            }
         }
     }
 }

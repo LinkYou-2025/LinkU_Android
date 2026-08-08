@@ -51,6 +51,13 @@ sealed class ThemeColorScheme(
     // 비활성화용 단색 브러시 추가 -로그인, 회원가입용
     val inactiveColor: Brush = SolidColor(gray[300]),
 
+    // 감정 선택 칩 배경 그라데이션 (선택 상태)
+    val selectedChipGradient: Brush = Brush.horizontalGradient(
+        listOf(
+            Color(0xFF2C6FFF).copy(alpha = 0.1f),
+            Color(0xFFC800FF).copy(alpha = 0.1f)
+        )
+    ),
 
     val black: Color = Color(0xFF000208),
     val white: Color = Color(0xFFFFFFFF),

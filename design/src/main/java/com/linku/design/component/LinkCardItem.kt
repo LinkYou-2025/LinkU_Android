@@ -19,10 +19,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,12 +46,12 @@ fun LinkCardItem(
     isExternalLink: Boolean,
     linkImageUrl: String = "",
     domainImageUrl: String = "",
+    isDeleteMenuVisible: Boolean = false,
+    onMoreClick: () -> Unit = { },
     onCardClick: () -> Unit = { },  // TODO: 머지 이후 기본값 제거 예정
     onDeleteClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
-
-    var isMenuVisible by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -183,7 +179,7 @@ fun LinkCardItem(
                     modifier = Modifier
                         .size(22.dp)
                         .padding(top = 8.dp, end = 5.dp)
-                        .noRippleClickable { isMenuVisible = !isMenuVisible },
+                        .noRippleClickable(onClick = onMoreClick),
                     contentAlignment = Alignment.TopEnd
                 ) {
                     Icon(
@@ -206,15 +202,12 @@ fun LinkCardItem(
             )
         }
 
-        if (isMenuVisible) {
+        if (isDeleteMenuVisible) {
             DeleteLinkItemModal(
-                onDeleteClick = {
-                    isMenuVisible = false
-                    onDeleteClick()
-                },
+                onDeleteClick = onDeleteClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 36.dp, end = 12.dp)
+                    .padding(top = 36.dp, end = 12.dp),
             )
         }
     }

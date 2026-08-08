@@ -70,7 +70,7 @@ private fun SituationChip(
         modifier = Modifier
             .background(
                 brush = if (selected) {
-                    colors.inactiveColor
+                    colors.selectedChipGradient
                 } else {
                     SolidColor(colors.white)
                 },
