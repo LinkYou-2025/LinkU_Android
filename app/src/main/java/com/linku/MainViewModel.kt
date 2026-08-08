@@ -5,7 +5,6 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.alarm.AlarmType
@@ -13,6 +12,7 @@ import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
+import com.linku.core.usecase.ReRegisterFcmTokenUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.data.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +36,7 @@ class MainViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
     private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase,
+    private val reRegisterFcmTokenUseCase: ReRegisterFcmTokenUseCase,
     private val alarmRepository: AlarmRepository,
 ) : AndroidViewModel(application) {
 
@@ -61,11 +62,19 @@ class MainViewModel @Inject constructor(
 
     private fun reRegisterFcmToken() {
         viewModelScope.launch {
-            alarmRepository.getFCMTokenFromFCM()
-                .onSuccess {
-                    token -> alarmRepository.registerFCMToken(token)
-                    Log.d("FCM", "FCM 토큰 재등록 성공")
-                }
+            // 최초알림팝업을 통한 fcm토큰등록이 진행되었다면 스킵
+            if (!notificationPreference.isFcmTokenRegistered()) return@launch
+
+            // fcm토큰 재등록
+            reRegisterFcmTokenUseCase()
+                .fold(
+                    onSuccess ={
+
+                    },
+                    onFailure = {
+
+                    }
+                )
         }
     }
 
