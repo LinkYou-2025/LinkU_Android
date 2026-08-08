@@ -141,22 +141,24 @@ open class LoginViewModel @Inject constructor(
      */
     fun recoverAccount() {
         viewModelScope.launch {
-            val recovered = userRepository.recoverUser()
+            val recoverResult = userRepository.recoverUser()
             val pendingResult = pendingRecoverLoginResult
             pendingRecoverLoginResult = null
 
-            if (recovered && pendingResult != null) {
+            recoverResult.onSuccess { recovered ->
+                if (pendingResult == null) return@onSuccess
                 Log.d(TAG, "계정 복구 성공")
                 // 복구가 확정된 시점에만 정식 세션(LOGGED_IN=true)으로 저장함.
+                // recover API가 새로 내려준 정식 토큰을 씀 (로그인 때 받은 복구 전용 토큰이 아님).
                 authPreference.saveTokens(
-                    accessToken = pendingResult.accessToken,
-                    refreshToken = pendingResult.refreshToken,
+                    accessToken = recovered.accessToken,
+                    refreshToken = recovered.refreshToken,
                     userId = pendingResult.userId,
                     loginType = LoginType.EMAIL
                 )
                 postSideEffect(LoginUiEffect.LoginSuccess)
-            } else {
-                Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)")
+            }.onFailure { error ->
+                Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)", error)
                 // 복구 실패 시 계정은 여전히 비활성 상태이므로 임시 저장된 토큰을 정리함.
                 authPreference.clear()
                 updateState { copy(loginState = LoginState.Error(LoginErrorType.INACTIVE_USER_ERROR)) }

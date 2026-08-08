@@ -13,6 +13,8 @@ import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.core.usecase.ReRegisterFcmTokenUseCase
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
 import com.linku.core.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -104,11 +106,17 @@ class MainViewModel @Inject constructor(
             }
 
             // 서버에서 최신 닉네임 조회 후, 변경 감지 시 갱신 및 닉네임 캐시 업데이트
-            val fresh = userRepository.getNickname()
-            if (!fresh.isNullOrBlank() && fresh != cachedNickname) {
-                _nickname.value = fresh
-                authPreference.saveNickname(fresh)  // 캐시 갱신
-            }
+            userRepository.getNickname()
+                .onSuccess { result ->
+                    val fresh = result.nickname
+                    if (fresh.isNotBlank() && fresh != cachedNickname) {
+                        _nickname.value = fresh
+                        authPreference.saveNickname(fresh)  // 캐시 갱신
+                    }
+                }
+                .onFailure { e ->
+                    LinkuLog.e("MainViewModel", "[닉네임 조회 실패] ${e.message}")
+                }
         }
     }
 

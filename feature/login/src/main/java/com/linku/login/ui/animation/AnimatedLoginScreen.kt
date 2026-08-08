@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,8 +25,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.linku.core.model.auth.LoginType
-import com.linku.design.theme.linkuColors
-import com.linku.design.util.DesignSystemBars
 import com.linku.design.util.scaler
 import com.linku.login.LoginScreen
 import com.linku.login.R
@@ -45,14 +42,10 @@ fun AnimatedLoginScreen(
     onLoginSuccess: () -> Unit = {}
 ) {
 
-    val colorTheme = MaterialTheme.linkuColors
-    //로그인 진입 애니메이션도 바텀바 보이니 않도록 설정함.
-    DesignSystemBars(
-        statusBarColor = colorTheme.white, // 디자인 모듈의 white 사용
-        navigationBarColor = colorTheme.white,
-        darkIcons = true, //배경이 화이트이므로 아이콘은 어두운 색(검정)으로 표시(시계, 배터리)
-        immersive = true
-    )
+    // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
+    // (LoginApp.kt가 "login" 화면 진입 시 edgeToEdgeSystemBars=true로 세팅함). 예전엔 여기와
+    // LoginScreen이 각자 DesignSystemBars(immersive=true)를 따로 호출해서 같은 Window를
+    // 서로 다른 색상값으로 중복 제어했음.
     var hasAnimated by rememberSaveable { mutableStateOf(false) }
 
     val logoOffsetY = remember { Animatable(0f) }
