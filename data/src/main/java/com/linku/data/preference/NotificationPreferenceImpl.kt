@@ -3,7 +3,6 @@ package com.linku.data.preference
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.linku.core.preference.NotificationPreference
 import kotlinx.coroutines.flow.Flow
@@ -18,7 +17,6 @@ class NotificationPreferenceImpl(
 
     private object Keys {
         val NOTIFICATION_MASTER = booleanPreferencesKey("key_notification_master")
-        val FCM_TOKEN = stringPreferencesKey("key_fcm_token")
         val FCM_TOKEN_REGISTERED = booleanPreferencesKey("key_fcm_token_registered")
         val SYSTEM_PERMISSION_REQUESTED = booleanPreferencesKey("key_system_permission_requested")
         val PUSH_PERMISSION_REQUESTED = booleanPreferencesKey("key_push_permission_requested")
@@ -40,18 +38,6 @@ class NotificationPreferenceImpl(
         }
     }
 
-    // ===== FCM Token =====
-
-    // TODO: FCM 토큰 유효성 검사에 사용 예정
-    override suspend fun getFcmToken(): String? =
-        context.notificationDataStore.data.map { it[Keys.FCM_TOKEN] }.first()
-
-    override suspend fun setFcmToken(token: String) {
-        context.notificationDataStore.edit { prefs ->
-            prefs[Keys.FCM_TOKEN] = token
-        }
-    }
-
     // ===== FCM Token Server Registration =====
 
     override suspend fun isFcmTokenRegistered(): Boolean =
@@ -60,13 +46,6 @@ class NotificationPreferenceImpl(
     override suspend fun setFcmTokenRegistered(registered: Boolean) {
         context.notificationDataStore.edit { prefs ->
             prefs[Keys.FCM_TOKEN_REGISTERED] = registered
-        }
-    }
-
-    //TODO: fcm토큰 삭제 api 연동 작업 시에 사용 예정
-    override suspend fun clearFcmToken() {
-        context.notificationDataStore.edit { prefs ->
-            prefs.remove(Keys.FCM_TOKEN)
         }
     }
 

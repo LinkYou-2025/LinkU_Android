@@ -112,6 +112,16 @@ class AlarmRepositoryImpl @Inject constructor(
         }.map { it.hasUnread }
     }
 
+    override suspend fun deleteFcmToken(
+        token: String
+    ): Result<Unit> {
+        return safeApiCallUnit {
+            alarmApi.deleteFcmToken(
+                FcmTokenRequest(token)
+            )
+        }
+    }
+
 }
 
 

@@ -39,7 +39,6 @@ class LinkUFireBaseMessageService : FirebaseMessagingService() {
         }
 
         externalScope.launch {
-            notificationPreference.setFcmToken(token)
             alarmRepository.registerFCMToken(token)
         }
     }
