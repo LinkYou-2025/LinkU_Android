@@ -7,6 +7,7 @@ import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.UserSession
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.util.GlobalDimController
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val alarmRepository: AlarmRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+    private val dimController: GlobalDimController
 ): ViewModel() {
     val sessionState: StateFlow<UserSession> = authPreference.sessionState
         .stateIn(
@@ -29,6 +31,10 @@ class MyPageViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = UserSession()
         )
+
+    // 로그아웃/탈퇴 확인 다이얼로그가 떠있는 동안 MainScreen 전체(하단 탭바 포함)를 딤 처리.
+    fun showDim() = dimController.show()
+    fun hideDim() = dimController.hide()
 
     // 마이페이지 ui 상태
     data class MyPageUiState(
