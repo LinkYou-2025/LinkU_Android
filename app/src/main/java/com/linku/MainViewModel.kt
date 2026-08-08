@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.alarm.AlarmType
@@ -55,6 +56,17 @@ class MainViewModel @Inject constructor(
     // 로그인/자동 로그인 성공 시 true, 로그아웃 시 false로 갱신
     fun setAuthenticated(value: Boolean) {
         _isAuthenticated.value = value
+        if (value) reRegisterFcmToken()
+    }
+
+    private fun reRegisterFcmToken() {
+        viewModelScope.launch {
+            alarmRepository.getFCMTokenFromFCM()
+                .onSuccess {
+                    token -> alarmRepository.registerFCMToken(token)
+                    Log.d("FCM", "FCM 토큰 재등록 성공")
+                }
+        }
     }
 
     // 로그인 세션 반영함.
