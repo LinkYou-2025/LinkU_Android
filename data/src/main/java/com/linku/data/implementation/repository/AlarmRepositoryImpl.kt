@@ -122,6 +122,7 @@ class AlarmRepositoryImpl @Inject constructor(
         }.onSuccess {
             notificationPreference.setFcmTokenRegistered(false)
             notificationPreference.setPushPermissionRequested(false)
+            notificationPreference.setMasterNotificationEnabled(false)
             Log.d("FCM", "fcm 토큰 삭제 완료")
         }.onFailure { e ->
             Log.e("FCM", "fcm 토큰 삭제 실패: ${e::class.simpleName} - ${e.message}")
