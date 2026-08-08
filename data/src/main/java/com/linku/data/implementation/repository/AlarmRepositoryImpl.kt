@@ -119,6 +119,10 @@ class AlarmRepositoryImpl @Inject constructor(
             alarmApi.deleteFcmToken(
                 FcmTokenRequest(token)
             )
+        }.onSuccess{
+            notificationPreference.setFcmTokenRegistered(false)
+            notificationPreference.setPushPermissionRequested(false)
+            Log.d("FCM", "fcm 토큰 삭제 완료")
         }
     }
 

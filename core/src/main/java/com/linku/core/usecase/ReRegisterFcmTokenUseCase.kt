@@ -2,6 +2,7 @@ package com.linku.core.usecase
 
 import android.util.Log
 import com.linku.core.repository.AlarmRepository
+import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
 
 /**
@@ -20,5 +21,11 @@ class ReRegisterFcmTokenUseCase @Inject constructor(
         val token = alarmRepository.getFCMTokenFromFCM().getOrThrow()
         alarmRepository.registerFCMToken(token).getOrThrow()
         Log.d("FCM", "FCM 토큰 재등록 성공")
+
+        Unit
+    }.onFailure {
+        // 사용자가 화면을 나가는 등의 이유로 발생하는 CancellationException는
+        // 정상 흐름이므로 Result로 감싸지 않고 그대로 전파
+        if (it is CancellationException) throw it
     }
 }
