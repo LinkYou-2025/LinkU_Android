@@ -9,7 +9,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.linku.core.di.ApplicationScope
 import com.linku.core.repository.AlarmRepository
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

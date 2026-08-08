@@ -14,7 +14,7 @@ import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.core.usecase.ReRegisterFcmTokenUseCase
 import com.linku.data.preference.AuthPreference
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose

@@ -177,13 +177,14 @@ class MyPageViewModel @Inject constructor(
     // TODO: FCM토큰 삭제 API호출
     fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
-            val success = userRepository.logout()
-            if (success) {
-                _uiState.value = MyPageUiState()
-                onSuccess()
-            } else {
-                onError("로그아웃에 실패했습니다.")
-            }
+            userRepository.logout()
+                .fold(
+                    onSuccess = {
+                        _uiState.value = MyPageUiState()
+                        onSuccess()
+                    },
+                    onFailure = { onError("로그아웃에 실패했습니다.") }
+                )
         }
     }
 

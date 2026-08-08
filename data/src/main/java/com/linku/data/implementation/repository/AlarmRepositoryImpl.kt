@@ -10,7 +10,7 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import com.linku.data.api.alarm.AlarmApi
 import com.linku.data.api.dto.alarm.AlarmSettingRequest
 import com.linku.data.api.dto.alarm.FcmTokenRequest

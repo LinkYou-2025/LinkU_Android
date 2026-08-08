@@ -34,7 +34,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.linku.core.model.SystemBarMode
 import com.linku.core.system.SystemBarController
-import com.linku.data.preference.NotificationPreference
+import com.linku.data.preference.NotificationPreferenceImpl
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
 
@@ -71,7 +71,7 @@ fun Splash(onResult: () -> Unit) {
     // 스플래시에서만 일회성으로 사용하는 값이라 Hilt & ViewModel 없이 직접 생성.
     val context = LocalContext.current
     val notificationPreference = remember {
-        NotificationPreference(context)
+        NotificationPreferenceImpl(context)
     }
 
     LaunchedEffect(Unit) {
