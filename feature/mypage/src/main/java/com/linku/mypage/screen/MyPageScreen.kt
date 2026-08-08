@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,15 +54,11 @@ fun MyPageScreen(
     onNavigateNotice: () -> Unit,
     onNavigateTerms: () -> Unit,
     onNavigateAISummary: () -> Unit,  // TODO: 윤지언니에게 세션 관련해서 한 번 더 물어보고 작업하기...
-    onDimmedChange: (Boolean) -> Unit = {},
     onRequestLogout: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
     var showLogoutDialog by remember { mutableStateOf(false) }
-
-    // 로그아웃 확인 다이얼로그가 떠있는 동안 MainScreen 전체(하단 탭바 포함)를 딤 처리.
-    LaunchedEffect(showLogoutDialog) { onDimmedChange(showLogoutDialog) }
 
     Column(
         modifier = Modifier
@@ -254,19 +250,18 @@ fun MyPageScreen(
     if (showLogoutDialog) {
         // Compose Dialog는 별도의 시스템 창(Window)에 그려지므로, 하단 탭바(LinkuNavigationBar)를
         // 포함한 화면 전체를 딤 처리할 수 있음(Scaffold content 영역 내부 Box로는 탭바 아래까지 못 가림).
-        // 딤 자체는 MainScreen에서 onDimmedChange로 이미 켜져 있으므로, 이 다이얼로그는 그 위에
-        // 배경 없이 외부 클릭만 막고 콘텐츠만 그림.
         Dialog(
             onDismissRequest = { showLogoutDialog = false },
             properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
         ) {
             val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
-            // 다이얼로그 기본 딤을 끔 - MainScreen의 딤을 그대로 통해서 보이게 함.
+            // 다이얼로그 기본 딤을 끄고, 아래 커스텀 딤(0.5f)만 적용해 MainScreen과 동일하게 맞춤.
             SideEffect { dialogWindow?.setDimAmount(0f) }
 
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
                     .noRippleClickable(enabled = false) {},
                 contentAlignment = Alignment.Center
             ) {

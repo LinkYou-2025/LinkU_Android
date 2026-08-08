@@ -61,9 +61,6 @@ sealed class ThemeColorScheme(
 
     val black: Color = Color(0xFF000208),
     val white: Color = Color(0xFFFFFFFF),
-
-    // 화면 전체 딤 처리용 (MainScreen 및 화면 전환 다이얼로그의 스크림 배경)
-    val dimColor: Color = black.copy(alpha = 0.5f),
     val positive: Color = Color(0xFF35DF79),
     val negative: Color = Color(0xFFFF5E5E),
 
