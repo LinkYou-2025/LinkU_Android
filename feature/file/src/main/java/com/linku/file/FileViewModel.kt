@@ -130,12 +130,6 @@ class FileViewModel @Inject constructor(
     private val _aiArticleDetail = MutableStateFlow<AiArticle?>(null)
     val aiArticleDetail: StateFlow<AiArticle?> = _aiArticleDetail.asStateFlow()
 
-    // 링크 클릭 콜백
-    var onLinkClick: ((Long) -> Unit)? = null
-    fun registeronLinkClick(callback: (Long) -> Unit) {
-        onLinkClick = callback
-    }
-
     // 로딩/에러 상태
     private val _loadingCount = MutableStateFlow(0)
 

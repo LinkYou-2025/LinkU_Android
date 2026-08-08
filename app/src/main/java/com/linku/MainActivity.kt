@@ -6,21 +6,18 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import com.linku.core.model.SystemBarMode
 import com.linku.core.model.alarm.AlarmType
-import com.linku.core.system.SystemBarController
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
- * 앱의 Compose UI를 시작하고 Activity 수준의 Intent 및 시스템 바 상태를 관리합니다.
+ * 앱의 Compose UI를 시작하고 Activity 수준의 Intent를 관리합니다.
+ *
+ * 시스템 바 표시/숨김은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars)에서 통일해서 처리하므로
+ * 여기서는 별도로 다루지 않습니다.
  */
 @AndroidEntryPoint
-class MainActivity : ComponentActivity(), SystemBarController {
-    private var currentSystemBarMode: SystemBarMode? = null
+class MainActivity : ComponentActivity() {
 
     // 푸시 알림 수신은 Activity 또는 FCM 서비스에서 호출되므로
     // Composable 범위가 아닌 Activity 생명주기에 묶여야 한다.
@@ -91,47 +88,4 @@ class MainActivity : ComponentActivity(), SystemBarController {
     override fun onResume() {
         super.onResume()
     }
-
-
-    /**
-     * 앱 전역 시스템 바 표시 상태와 콘텐츠의 시스템 윈도우 맞춤 여부를 함께 적용합니다.
-     *
-     * Compose의 시스템 바 효과와 상태가 어긋나지 않도록 동일한 모드도 매 호출마다 다시 적용합니다.
-     *
-     * @param mode 적용할 시스템 바 표시 모드
-     */
-    override fun setSystemBarMode(mode: SystemBarMode) {
-        // DesignSystemBars(Compose SideEffect)가 같은 Window를 별도로 직접 제어하기 때문에
-        // 이전 호출 결과를 캐시해서 조기 반환하면 실제 상태와 어긋나 복구 호출이 무시될 수 있음.
-        // 그래서 매번 무조건 반영함(hide/show는 반복 호출해도 안전함).
-
-        // 시스템 바 표시 여부에 맞춰 앱 콘텐츠의 시스템 윈도우 inset 처리도 전환합니다.
-        WindowCompat.setDecorFitsSystemWindows(
-            window,
-            mode == SystemBarMode.VISIBLE
-        )
-
-        val controller = WindowInsetsControllerCompat(
-            window,
-            window.decorView
-        )
-
-        if (mode == SystemBarMode.VISIBLE) {
-            controller.show(
-                WindowInsetsCompat.Type.statusBars() or
-                        WindowInsetsCompat.Type.navigationBars()
-            )
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
-        } else {
-            controller.hide(
-                WindowInsetsCompat.Type.statusBars() or
-                        WindowInsetsCompat.Type.navigationBars()
-            )
-            controller.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-
-    }
 }
-

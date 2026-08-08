@@ -1,5 +1,6 @@
 package com.linku
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -46,10 +47,13 @@ fun MainScreen(
     navigationBarProp: NavigationBarProp?,
     centerButtonProp: CenterButtonProp?,
     onFABClick: () -> Unit,
-    // 스플래시, 로그인 그라데이션 화면처럼 자체적으로 시스템 바를 다루는(edge-to-edge) 화면에서만
-    // false로 넘김. 그 외 화면은 기본값(true) — 시스템 바 배경은 각 화면 콘텐츠가 그대로 확장되어
-    // 비치게 두고(edge-to-edge), 아이콘 밝기와 표시 여부만 여기서 공통으로 맞춰줌.
-    applyDefaultSystemBarIcons: Boolean = true,
+    // 스플래시, 로그인 그라데이션 화면처럼 몰입형(전체 화면)으로 보여야 하는 화면에서만
+    // true로 넘김. 그 외 화면은 기본값(false) — 시스템 바가 항상 보이되, 아이콘 밝기만
+    // 여기서 공통으로 맞춰줌. 시스템 바 표시/숨김 제어는 이 한 곳(EdgeToEdgeSystemBars)으로
+    // 통일함 — 예전엔 SystemBarController가 화면별로 별도 호출되면서 같은 Window를 서로 다른
+    // 타이밍에 건드려 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시 보이던 버그).
+    hideSystemBars: Boolean = false,
+    dimmed : Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -64,55 +68,63 @@ fun MainScreen(
 
     // 시스템 바 "배경색"은 지정하지 않음 — 각 화면의 상단 색상(gray[100], 그라데이션 등)이
     // 상태바/내비게이션 바까지 자연스럽게 확장되어 보이게(edge-to-edge) 둠.
-    // 아이콘 밝기와 바 표시만 공통으로 맞춤.
-    if (applyDefaultSystemBarIcons) {
-        EdgeToEdgeSystemBars(darkIcons = statusBarDarkIcons.value)
-    }
+    // 아이콘 밝기와 바 표시/숨김을 여기서 공통으로 맞춤.
+    EdgeToEdgeSystemBars(darkIcons = statusBarDarkIcons.value, hidden = hideSystemBars)
 
     CompositionLocalProvider(LocalStatusBarDarkIcons provides statusBarDarkIcons) {
-    Scaffold(
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-        ),
-        modifier = Modifier.fillMaxSize(),
-        containerColor = Color.White,
-        bottomBar = {
-            if (navigationBarProp != null) {
-                // 내비게이션 바의 위치/사이즈를 캡처
-                Box(
-                    modifier = Modifier.onGloballyPositioned { coords ->
-                        val pos = coords.positionInRoot()
-                        navBarTopPx = pos.y
-                        navBarSizePx = Size(
-                            coords.size.width.toFloat(),
-                            coords.size.height.toFloat()
-                        )
-                        navBarCenter = with(density) {
-                            Offset(
-                                x = pos.x + coords.size.width / 2f,
-                                y = pos.y + coords.size.height / 2f
+        Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing.only(
+                WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+            ),
+            modifier = Modifier.fillMaxSize(),
+            containerColor = Color.White,
+            bottomBar = {
+                if (navigationBarProp != null) {
+                    // 내비게이션 바의 위치/사이즈를 캡처
+                    Box(
+                        modifier = Modifier.onGloballyPositioned { coords ->
+                            val pos = coords.positionInRoot()
+                            navBarTopPx = pos.y
+                            navBarSizePx = Size(
+                                coords.size.width.toFloat(),
+                                coords.size.height.toFloat()
                             )
+                            navBarCenter = with(density) {
+                                Offset(
+                                    x = pos.x + coords.size.width / 2f,
+                                    y = pos.y + coords.size.height / 2f
+                                )
+                            }
                         }
+                    ) {
+                        LinkuNavigationBar(
+                            currentLinkuNavigationItem = navigationBarProp.currentLinkuNavigationItem,
+                            onNavigate = navigationBarProp.onNavigate,
+                            onFABClick = onFABClick
+                        )
                     }
-                ) {
-                    LinkuNavigationBar(
-                        currentLinkuNavigationItem = navigationBarProp.currentLinkuNavigationItem,
-                        onNavigate = navigationBarProp.onNavigate,
-                        onFABClick = onFABClick
-                    )
                 }
             }
-        }
 
-    ) { innerPadding ->
-        // 컨텐츠
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            content()
+        ) { innerPadding ->
+            // 컨텐츠
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                content()
+            }
         }
+            if(dimmed) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f))
+                )
+            }
+
     }
     }
 }

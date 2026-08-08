@@ -24,6 +24,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import com.linku.login.ui.item.PasswordLoginTextField
 import com.linku.login.ui.item.PasswordRuleItem
+import com.linku.login.ui.item.WrongRuleItem
 import com.linku.login.ui.layout.SignUpStepLayout
 import com.linku.login.ui.layout.SignUpStepLayoutPreview
 import com.linku.login.viewmodel.SignUpViewModel
@@ -112,11 +113,10 @@ internal fun SignUpPasswordScreen(
             )
 
             if (passwordState.confirmPassword.isNotEmpty() && !passwordState.doPasswordsMatch) {
-                Text(
+                Spacer(Modifier.height(6.scaler))
+                WrongRuleItem(
                     text = "비밀번호가 일치하지 않습니다. 다시 입력해주세요.",
-                    fontSize = 13.sp,
-                    color = colorTheme.negative,
-                    modifier = Modifier.padding(start = 8.scaler, top = 4.scaler)
+                    modifier = Modifier.padding(start = 8.scaler)
                 )
             }
         }

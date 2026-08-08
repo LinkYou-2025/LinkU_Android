@@ -55,6 +55,7 @@ import com.linku.design.util.scaler
 import com.linku.login.ui.alert.CodeNotReceivedAlert
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
+import com.linku.login.ui.item.WrongRuleItem
 import com.linku.login.viewmodel.EmailAuthViewModel
 import com.linku.login.viewmodel.SignUpViewModel
 import com.linku.login.viewmodel.state.EmailUiEffect
@@ -132,12 +133,12 @@ internal fun EmailVerificationScreenContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 20.scaler, end = 20.scaler, top = 60.scaler, bottom = 72.scaler),
+                .padding(start = 20.scaler, end = 20.scaler, top = 52.scaler, bottom = 72.scaler), //NOTE : 원래 top=60 이었는데 52로 조정함.
             horizontalAlignment = Alignment.Start
         ) {
             StepIndicator(currentStep = 1)
             // 입력 전엔 여유 있게(72), 필드에 커서가 활성화되면(포커스) 바로 좁힘(36)
-            Spacer(modifier = Modifier.height(if (isEmailFocused || isCodeFocused) 36.scaler else 72.scaler))
+            Spacer(modifier = Modifier.height(if (isEmailFocused || isCodeFocused) 20.scaler else 72.scaler)) //NOTE : 원래 32 -> 인데 20으로 조정함.
             Text(
                 text = "가입을 위한 이메일 주소를\n인증해주세요",
                 fontSize = 22.sp,
@@ -145,7 +146,7 @@ internal fun EmailVerificationScreenContent(
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
-            Spacer(modifier = Modifier.height(32.scaler))
+            Spacer(modifier = Modifier.height(32.scaler)) // NOTE : 다현이랑 이야기 해서 간격 조정해주기.. 원래 40
 
             if (!emailUiState.isCodeSent) {
                 // 1단계: 이메일 입력 화면
@@ -256,12 +257,8 @@ internal fun EmailVerificationScreenContent(
 
                 emailUiState.codeError?.let {
                     Spacer(modifier = Modifier.height(12.scaler))
-                    Text(
+                    WrongRuleItem(
                         text = it,
-                        color = colorTheme.negative,
-                        fontSize = 13.sp,
-                        lineHeight = 15.sp,
-                        fontWeight = FontWeight.Normal,
                         modifier = Modifier.padding(start = 22.scaler)
                     )
                 }
