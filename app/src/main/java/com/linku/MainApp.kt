@@ -282,7 +282,10 @@ fun MainApp(
         // 다이알로그를 보여줘야 하면 출력.
         if (showPushAlarmDialog) {
             AlarmAllowDialog(
-                onDismissRequest = { showPushAlarmDialog = false },
+                onDismissRequest = {
+                    showPushAlarmDialog = false
+                    viewModel.denyPushAlarm()
+                },
                 onConfirmation = {
                     showPushAlarmDialog = false
                     viewModel.allowPushAlarm() // 성공/실패 토스트는 VM이 쏨

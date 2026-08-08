@@ -28,4 +28,8 @@ interface AlarmRepository {
 
     suspend fun getUnreadAlarmExists(): Result<Boolean>
 
+    suspend fun deleteFcmToken(
+        token: String
+    ): Result<Unit>
+
 }

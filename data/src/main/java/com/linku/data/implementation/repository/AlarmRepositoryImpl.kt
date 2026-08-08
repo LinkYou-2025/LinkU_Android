@@ -10,7 +10,7 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import com.linku.data.api.alarm.AlarmApi
 import com.linku.data.api.dto.alarm.AlarmSettingRequest
 import com.linku.data.api.dto.alarm.FcmTokenRequest
@@ -110,6 +110,23 @@ class AlarmRepositoryImpl @Inject constructor(
         return safeApiCall {
             alarmApi.getUnreadAlarmExists()
         }.map { it.hasUnread }
+    }
+
+    override suspend fun deleteFcmToken(
+        token: String
+    ): Result<Unit> {
+        return safeApiCallUnit {
+            alarmApi.deleteFcmToken(
+                FcmTokenRequest(token)
+            )
+        }.onSuccess {
+            notificationPreference.setFcmTokenRegistered(false)
+            notificationPreference.setPushPermissionRequested(false)
+            notificationPreference.setMasterNotificationEnabled(false)
+            Log.d("FCM", "fcm 토큰 삭제 완료")
+        }.onFailure { e ->
+            Log.e("FCM", "fcm 토큰 삭제 실패: ${e::class.simpleName} - ${e.message}")
+        }
     }
 
 }

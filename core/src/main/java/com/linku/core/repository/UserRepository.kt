@@ -26,8 +26,8 @@ interface UserRepository {
         interests: List<String>
     ): Result<Unit>
 
-    // 로그아웃. 성공(서버 호출 + 로컬 세션 정리)했을 때만 true.
-    suspend fun logout(): Boolean
+    // 로그아웃. 성공(서버 호출 + 로컬 세션 정리)했을 때만 Success.
+    suspend fun logout(): Result<Unit>
 
     // 닉네임만 호출
     suspend fun getNickname(): Result<Nickname>
