@@ -232,6 +232,15 @@ class MainViewModel @Inject constructor(
         return pending
     }
 
+    // "안하기" 선택 시 서버 알림 설정이 활성화 상태라면 비활성화 API 호출
+    fun denyPushAlarm() {
+        viewModelScope.launch {
+            if (notificationPreference.isMasterNotificationEnabled()) {
+                alarmRepository.updateAlarmSetting(AlarmType.ALL)
+            }
+        }
+    }
+
     fun allowPushAlarm() {
         viewModelScope.launch {
             firstPushAlarmAllowedUseCase()

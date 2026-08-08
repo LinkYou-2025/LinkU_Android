@@ -1,6 +1,7 @@
 package com.linku.core.usecase
 
 import android.util.Log
+import com.linku.core.BuildConfig
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.UserRepository
 import kotlinx.coroutines.CancellationException
@@ -25,7 +26,9 @@ class LogoutUseCase @Inject constructor(
         val token = alarmRepository.getFCMTokenFromFCM()
             .getOrNull()
 
-        Log.d("FCM", "로그아웃 시 FCM 토큰: $token")
+        if (BuildConfig.DEBUG) {
+            Log.d("FCM", "로그아웃 시 FCM 토큰: $token")
+        }
 
         if (token != null) {
             alarmRepository.deleteFcmToken(token)
