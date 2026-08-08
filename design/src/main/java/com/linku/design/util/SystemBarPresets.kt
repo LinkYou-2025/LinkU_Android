@@ -51,11 +51,23 @@ fun EdgeToEdgeSystemBars(darkIcons: Boolean = true, hidden: Boolean = false) {
 
         val window = activity.window
 
+        // window.statusBarColor/navigationBarColor, isStatusBarContrastEnforced는 API 35(edge-to-edge
+        // 강제화)부터 deprecated됨. 대체 API인 enableEdgeToEdge()는 Activity.onCreate에서 한 번만
+        // 호출하는 걸 전제로 하고 화면별 darkIcons/hidden 동적 전환을 지원하지 않아서, 이 프로젝트의
+        // "화면마다 런타임에 바뀌는 시스템 바 제어" 구조엔 그대로 못 씀. API 35 미만 기기에서는 여전히
+        // 유효하게 동작하는 API라 기능상 문제 없이 경고만 억제함.
+        @Suppress("DEPRECATION")
         fun applySystemBars() {
             val controller = WindowInsetsControllerCompat(window, view)
 
             // 항상 edge-to-edge: 화면 콘텐츠 색이 상태바/내비게이션 바 배경으로 그대로 확장됨.
             WindowCompat.setDecorFitsSystemWindows(window, false)
+
+            // setDecorFitsSystemWindows(false)만으로는 3버튼 내비게이션 바가 기기 기본 회색
+            // 배경을 유지하는 경우가 있어(특히 삼성 등 일부 OEM), 명시적으로 투명 처리함.
+            // 이게 없으면 화면 위 딤 오버레이가 하단 바에는 비치지 않아 어색하게 끊겨 보임.
+            window.statusBarColor = android.graphics.Color.TRANSPARENT
+            window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
             if (hidden) {
                 controller.hide(

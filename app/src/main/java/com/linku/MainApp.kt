@@ -478,7 +478,6 @@ fun MainApp(
                             viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
 
-                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
                             // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
                             // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
                             val pendingInvitationToken =

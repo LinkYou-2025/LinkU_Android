@@ -252,7 +252,11 @@ fun MyPageScreen(
         // 포함한 화면 전체를 딤 처리할 수 있음(Scaffold content 영역 내부 Box로는 탭바 아래까지 못 가림).
         Dialog(
             onDismissRequest = { showLogoutDialog = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+            properties = DialogProperties(
+                    dismissOnClickOutside = false,
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false
+            )
         ) {
             val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
             // 다이얼로그 기본 딤을 끄고, 아래 커스텀 딤(0.5f)만 적용해 MainScreen과 동일하게 맞춤.
