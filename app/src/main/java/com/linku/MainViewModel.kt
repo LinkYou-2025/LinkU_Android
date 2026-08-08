@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.alarm.AlarmType
@@ -78,12 +79,14 @@ class MainViewModel @Inject constructor(
 
             // fcm토큰 재등록
             reRegisterFcmTokenUseCase()
+                //로그인 직후 백그라운드에서 조용히 실행되는 작업이므로
+                //UI 개입을 최소화
                 .fold(
                     onSuccess ={
-
+                        Log.d("FCM", "FCM 토큰 재등록 성공")
                     },
                     onFailure = {
-
+                        Log.w("FCM", "FCM 토큰 재등록 실패(다음 로그인 때 재시도)")
                     }
                 )
         }
