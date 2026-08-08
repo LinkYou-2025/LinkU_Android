@@ -11,6 +11,7 @@ import com.linku.data.api.dto.alarm.UnreadAlarmExistDTO
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -52,7 +53,7 @@ interface AlarmApi {
     @GET("alarm/unread")
     suspend fun getUnreadAlarmExists(): BaseResponse<UnreadAlarmExistDTO>
 
-    @DELETE("alarm/fcmtoken")
+    @HTTP(method = "DELETE", path = "alarm/fcmtoken", hasBody = true)
     suspend fun deleteFcmToken(
         @Body body: FcmTokenRequest
     ): BaseResponse<Any?>

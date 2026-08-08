@@ -7,6 +7,7 @@ import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.UserSession
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.LogoutUseCase
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val alarmRepository: AlarmRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+    private val logoutUseCase: LogoutUseCase,
 ): ViewModel() {
     val sessionState: StateFlow<UserSession> = authPreference.sessionState
         .stateIn(
@@ -173,11 +175,9 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    // 로그아웃 */
-    // TODO: FCM토큰 삭제 API호출
     fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
-            userRepository.logout()
+            logoutUseCase()
                 .fold(
                     onSuccess = {
                         _uiState.value = MyPageUiState()
