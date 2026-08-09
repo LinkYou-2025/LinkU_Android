@@ -4,4 +4,5 @@ import com.linku.core.model.curation.RecommendLink
 
 sealed interface CurationDetailedIntent {
     data class ClickLink(val link: RecommendLink) : CurationDetailedIntent
+    data object Retry : CurationDetailedIntent
 }

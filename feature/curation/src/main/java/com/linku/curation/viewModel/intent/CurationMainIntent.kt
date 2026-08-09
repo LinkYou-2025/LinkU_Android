@@ -22,4 +22,6 @@ sealed interface CurationMainIntent{
     data class ClickYearHistory(
         val month: String,
     ): CurationMainIntent
+
+    data object Retry : CurationMainIntent
 }

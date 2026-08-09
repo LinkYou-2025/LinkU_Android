@@ -10,11 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,16 +24,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.linkuColors
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.linku.curation.R
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
 
 @Composable
 fun CurationErrorLayout(
+    modifier: Modifier = Modifier,
     onRetry: () -> Unit = {},
     errorMessage: String,
-    modifier: Modifier = Modifier,
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
@@ -65,7 +60,9 @@ fun CurationErrorLayout(
                     brush = colorTheme.maincolor,
                     shape = RoundedCornerShape(50),
                 ),
-            contentPadding = PaddingValues(horizontal = 12.scaler),
+            contentPadding = PaddingValues(
+                horizontal = 20.scaler
+            ),
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_refresh),
@@ -74,7 +71,7 @@ fun CurationErrorLayout(
                 tint = Color.Unspecified,
             )
 
-            Spacer(modifier = Modifier.width(8.scaler))
+            Spacer(modifier = Modifier.width(6.scaler))
 
             Text(
                 text = "다시 시도",

@@ -22,6 +22,9 @@ class CurationDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    private val month = savedStateHandle.get<String>("month").orEmpty()
+    private val curationId = savedStateHandle.get<Long>("curationId") ?: 0L
+
     private val _curationDetailedState = MutableStateFlow(CurationDetailedState())
     val curationDetailedState = _curationDetailedState.asStateFlow()
 
@@ -29,27 +32,24 @@ class CurationDetailViewModel @Inject constructor(
     val sideEffect = _sideEffect.receiveAsFlow()
 
     init {
-        val month = savedStateHandle.get<String>("month").orEmpty()
-        val curationId = savedStateHandle.get<Long>("curationId") ?: 0L
         loadCurationDetail(curationId, month)
     }
 
     fun handleIntent(intent: CurationDetailedIntent) {
-        viewModelScope.launch {
-            when (intent) {
-                is CurationDetailedIntent.ClickLink -> {
-                    when (val type = intent.link.type) {
-                        is LinkType.Internal -> _sideEffect.send(
-                            CurationDetailedSideEffect.NavigateToLinkDetail(type.linkId)
-                        )
-                        is LinkType.External -> {
-                            val url = if (type.url.startsWith("http://") || type.url.startsWith("https://")) {
-                                type.url
-                            } else {
-                                "https://${type.url}"
-                            }
-                            _sideEffect.send(CurationDetailedSideEffect.OpenBrowser(url))
+        when (intent) {
+            is CurationDetailedIntent.Retry -> loadCurationDetail(curationId, month)
+            is CurationDetailedIntent.ClickLink -> viewModelScope.launch {
+                when (val type = intent.link.type) {
+                    is LinkType.Internal -> _sideEffect.send(
+                        CurationDetailedSideEffect.NavigateToLinkDetail(type.linkId)
+                    )
+                    is LinkType.External -> {
+                        val url = if (type.url.startsWith("http://") || type.url.startsWith("https://")) {
+                            type.url
+                        } else {
+                            "https://${type.url}"
                         }
+                        _sideEffect.send(CurationDetailedSideEffect.OpenBrowser(url))
                     }
                 }
             }
@@ -58,7 +58,7 @@ class CurationDetailViewModel @Inject constructor(
 
     private fun loadCurationDetail(curationId: Long, month: String) {
         viewModelScope.launch {
-            _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = true)
+            _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = true, errorMessage = "")
 
             monthlyCurationDetailedUseCase(curationId, month)
                 .fold(
@@ -69,8 +69,10 @@ class CurationDetailViewModel @Inject constructor(
                         )
                     },
                     onFailure = {
-                        //TODO: 링큐의 최고 피엠님 ❤️다인눈나❤️ 한테 물어보고 ui 예외처리를 진행해야 할 듯
-                        _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = false)
+                        _curationDetailedState.value = _curationDetailedState.value.copy(
+                            isLoading = false,
+                            errorMessage = "월간 큐레이션을 불러오지 못했어요"
+                        )
                     }
                 )
         }

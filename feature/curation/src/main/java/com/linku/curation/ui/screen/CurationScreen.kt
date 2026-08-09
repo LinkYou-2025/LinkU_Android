@@ -28,6 +28,7 @@ import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.header.CurationHeader
 import com.linku.curation.ui.main_card.CurationMainCardPager
 import com.linku.curation.ui.util.CurationBackground
+import com.linku.curation.ui.util.CurationErrorLayout
 import com.linku.curation.viewModel.intent.CurationMainIntent
 import com.linku.curation.viewModel.sideeffect.CurationMainSideEffect
 import com.linku.curation.viewModel.CurationViewModel
@@ -49,7 +50,7 @@ fun CurationScreen(
     onCurationHistoryClick: (year: Int) -> Unit = {},
 ) {
     val context = LocalContext.current
-    val curationMain by viewModel.curationMainState.collectAsStateWithLifecycle()
+    val state by viewModel.curationMainState.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
@@ -82,33 +83,41 @@ fun CurationScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         CurationBackground(modifier = Modifier.fillMaxSize(), showLogo = true)
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            TopBar(showSearchBar = false, backgroundColor = null)
-
-            Spacer(modifier = Modifier.height(12.scaler))
-
-            CurationScreenContent(
-                nickname = displayNickname,
-                sections = curationMain?.sections ?: emptyList(),
-                pagerState = pagerState,
-                onCardClick = { index ->
-                    val month = curationMain?.latestCurationMonth ?: return@CurationScreenContent
-                    when (index) {
-                        0 -> viewModel.handleIntent(
-                            CurationMainIntent.ClickCurationSection(
-                                curationId = curationMain?.latestCurationId ?: return@CurationScreenContent,
-                                month = month
-                            )
-                        )
-                        1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
-                        2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
-                    }
-                },
-                onMonthlyCurationClick = {
-                    val month = curationMain?.latestCurationMonth ?: return@CurationScreenContent
-                    viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
-                }
+        if (state.errorMessage.isNotEmpty()) {
+            CurationErrorLayout(
+                errorMessage = state.errorMessage,
+                onRetry = { viewModel.handleIntent(CurationMainIntent.Retry) }
             )
+        } else {
+            Column(modifier = Modifier.fillMaxSize()) {
+                TopBar(showSearchBar = false, backgroundColor = null)
+
+                Spacer(modifier = Modifier.height(12.scaler))
+
+                CurationScreenContent(
+                    nickname = displayNickname,
+                    sections = state.curationMain?.sections ?: emptyList(),
+                    pagerState = pagerState,
+                    onCardClick = { index ->
+                        val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
+                        when (index) {
+                            0 -> viewModel.handleIntent(
+                                CurationMainIntent.ClickCurationSection(
+                                    curationId = state.curationMain?.latestCurationId ?: return@CurationScreenContent,
+                                    month = month
+                                )
+                            )
+                            1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
+                            2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
+                        }
+                    },
+                    onMonthlyCurationClick = {
+                        state.curationMain?.latestCurationMonth?.let { month ->
+                            viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
+                        }
+                    }
+                )
+            }
         }
     }
 }

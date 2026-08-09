@@ -2,10 +2,10 @@ package com.linku.curation.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.usecase.CurationMain
 import com.linku.core.usecase.CurationMainUseCase
 import com.linku.curation.viewModel.intent.CurationMainIntent
 import com.linku.curation.viewModel.sideeffect.CurationMainSideEffect
+import com.linku.curation.viewModel.state.CurationMainState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +20,7 @@ class CurationViewModel @Inject constructor(
     private val curationMainUseCase: CurationMainUseCase
 ) : ViewModel() {
 
-    private val _curationMainState = MutableStateFlow<CurationMain?>(null)
+    private val _curationMainState = MutableStateFlow(CurationMainState())
     val curationMainState = _curationMainState.asStateFlow()
 
     private val _sideEffect = Channel<CurationMainSideEffect>(Channel.BUFFERED)
@@ -36,6 +36,7 @@ class CurationViewModel @Inject constructor(
             is CurationMainIntent.ClickYearHistory -> navigateToYearHistory(intent.month)
             is CurationMainIntent.ClickLastMonthKeyWord -> navigateToLastMonthKeyWord(intent.month)
             CurationMainIntent.ClickUnreadLink -> navigateToUnreadLink()
+            CurationMainIntent.Retry -> loadCurationMain()
         }
     }
 
@@ -65,11 +66,19 @@ class CurationViewModel @Inject constructor(
 
     private fun loadCurationMain() {
         viewModelScope.launch {
+            _curationMainState.value = _curationMainState.value.copy(isLoading = true, errorMessage = "")
             curationMainUseCase().fold(
-                onSuccess = { _curationMainState.value = it },
+                onSuccess = { data ->
+                    _curationMainState.value = _curationMainState.value.copy(
+                        curationMain = data,
+                        isLoading = false
+                    )
+                },
                 onFailure = {
-                    //TODO: 링큐의 최고 피엠님 ❤️다인눈나❤️ 한테 물어보고 ui 예외처리를 진행해야 할 듯
-                    _sideEffect.send(CurationMainSideEffect.ShowToast("큐레이션을 조회할 수 없습니다. 잠시 후 다시 시도해주세요."))
+                    _curationMainState.value = _curationMainState.value.copy(
+                        isLoading = false,
+                        errorMessage = "큐레이션을 불러오지 못했어요"
+                    )
                 }
             )
         }

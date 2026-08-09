@@ -31,6 +31,7 @@ import com.linku.curation.ui.emotion.CurationEmotionSection
 import com.linku.curation.ui.emotion.EmotionItem
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.recommend_list.CurationRecommendedLinksPager
+import com.linku.curation.ui.util.CurationErrorLayout
 import com.linku.curation.ui.util.CurationFixedGradientBackground
 import com.linku.curation.viewModel.CurationDetailViewModel
 import com.linku.curation.viewModel.intent.CurationDetailedIntent
@@ -73,19 +74,26 @@ fun CurationMonthlyDetailScreen(
         }
     }
 
-    CurationMonthlyDetailScreenContent(
-        onBack = onBack,
-        onGoHome = onGoHome,
-        nickname = state.monthlyCurationDetail?.nickname.orEmpty(),
-        title = state.monthlyCurationDetail?.detail?.title.orEmpty(),
-        emotionItems = state.monthlyCurationDetail?.topTags?.map { tag ->
-            EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
-        } ?: emptyList(),
-        recommendedLinks = state.monthlyCurationDetail?.recommendLink ?: emptyList(),
-        headerMent = state.monthlyCurationDetail?.detail?.headerMent.orEmpty(),
-        footerMent = state.monthlyCurationDetail?.detail?.footerMent.orEmpty(),
-        onLinkClick = { link -> viewModel.handleIntent(CurationDetailedIntent.ClickLink(link)) },
-    )
+    if (state.errorMessage.isNotEmpty()) {
+        CurationErrorLayout(
+            errorMessage = state.errorMessage,
+            onRetry = { viewModel.handleIntent(CurationDetailedIntent.Retry) }
+        )
+    } else {
+        CurationMonthlyDetailScreenContent(
+            onBack = onBack,
+            onGoHome = onGoHome,
+            nickname = state.monthlyCurationDetail?.nickname.orEmpty(),
+            title = state.monthlyCurationDetail?.detail?.title.orEmpty(),
+            emotionItems = state.monthlyCurationDetail?.topTags?.map { tag ->
+                EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
+            } ?: emptyList(),
+            recommendedLinks = state.monthlyCurationDetail?.recommendLink ?: emptyList(),
+            headerMent = state.monthlyCurationDetail?.detail?.headerMent.orEmpty(),
+            footerMent = state.monthlyCurationDetail?.detail?.footerMent.orEmpty(),
+            onLinkClick = { link -> viewModel.handleIntent(CurationDetailedIntent.ClickLink(link)) },
+        )
+    }
 }
 
 /**
