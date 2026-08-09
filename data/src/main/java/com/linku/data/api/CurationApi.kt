@@ -14,7 +14,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 
-/** princeHw 작업 공간  */
 interface CurationApi {
 
     // 프론트에선 파라미터 입력할 필요 없음

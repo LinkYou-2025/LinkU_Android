@@ -122,10 +122,9 @@ private fun CurationScreenContent(
     onCardClick: (index: Int) -> Unit,
     onMonthlyCurationClick: () -> Unit = {},
 ) {
-    val imageUrls = sections
-        .sortedBy { it.section }
-        .map { it.imageUrl }
-        .let { urls -> List(CURATION_CARD_COUNT) { index -> urls.getOrElse(index) { "" } } }
+    val imageUrls = List(CURATION_CARD_COUNT) { index ->
+        sections.find { it.section == index + 1 }?.imageUrl ?: ""
+    }
 
     val scrollState = rememberScrollState()
 

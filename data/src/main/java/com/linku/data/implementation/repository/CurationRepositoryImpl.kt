@@ -16,7 +16,6 @@ import android.util.Log
 import javax.inject.Inject
 
 
-/** princeHw 작업 공간  */
 class CurationRepositoryImpl @Inject constructor(
     private val curationApi: CurationApi
 ) : CurationRepository {

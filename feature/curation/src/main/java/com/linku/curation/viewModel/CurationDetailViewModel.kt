@@ -42,9 +42,14 @@ class CurationDetailViewModel @Inject constructor(
                         is LinkType.Internal -> _sideEffect.send(
                             CurationDetailedSideEffect.NavigateToLinkDetail(type.linkId)
                         )
-                        is LinkType.External -> _sideEffect.send(
-                            CurationDetailedSideEffect.OpenBrowser(type.url)
-                        )
+                        is LinkType.External -> {
+                            val url = if (type.url.startsWith("http://") || type.url.startsWith("https://")) {
+                                type.url
+                            } else {
+                                "https://${type.url}"
+                            }
+                            _sideEffect.send(CurationDetailedSideEffect.OpenBrowser(url))
+                        }
                     }
                 }
             }

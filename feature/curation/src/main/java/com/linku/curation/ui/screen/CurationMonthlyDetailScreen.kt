@@ -61,11 +61,7 @@ fun CurationMonthlyDetailScreen(
 
                 is CurationDetailedSideEffect.OpenBrowser -> {
                     runCatching {
-                        val url = effect.url.let {
-                            if (it.startsWith("http://") || it.startsWith("https://")) it
-                            else "https://$it"
-                        }
-                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+                        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(effect.url)))
                     }.onFailure {
                         Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
                     }

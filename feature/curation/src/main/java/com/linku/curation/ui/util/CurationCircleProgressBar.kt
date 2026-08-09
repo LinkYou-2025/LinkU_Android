@@ -7,7 +7,9 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -56,36 +58,34 @@ fun CurationCircleProgressBar(
         label = "rotation"
     )
 
-    Canvas(modifier = modifier.size(size)) {
-        val strokePx = strokeWidth.toPx()
-        val inset = strokePx / 2f
-        val arcSize = Size(
-            width = this.size.width - strokePx,
-            height = this.size.height - strokePx
-        )
-        val topLeft = Offset(inset, inset)
+    Box(modifier = modifier.size(size), contentAlignment = Alignment.Center) {
+        // 정적 트랙 — rotation과 무관, 한 번만 그려짐
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val strokePx = strokeWidth.toPx()
+            drawArc(
+                color = resolvedTrackColor,
+                startAngle = 0f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = Offset(strokePx / 2f, strokePx / 2f),
+                size = Size(this.size.width - strokePx, this.size.height - strokePx),
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
+            )
+        }
 
-        // 배경 트랙
-        drawArc(
-            color = resolvedTrackColor,
-            startAngle = 0f,
-            sweepAngle = 360f,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = strokePx, cap = StrokeCap.Round)
-        )
-
-        // maincolor 그라디언트 프로그레스 아크 (무한 회전)
-        drawArc(
-            brush = colors.maincolor,
-            startAngle = rotation - 90f,
-            sweepAngle = SWEEP_ANGLE,
-            useCenter = false,
-            topLeft = topLeft,
-            size = arcSize,
-            style = Stroke(width = strokePx, cap = StrokeCap.Round)
-        )
+        // 애니메이션 아크만 매 프레임 다시 그림
+        Canvas(modifier = Modifier.matchParentSize()) {
+            val strokePx = strokeWidth.toPx()
+            drawArc(
+                brush = colors.maincolor,
+                startAngle = rotation - 90f,
+                sweepAngle = SWEEP_ANGLE,
+                useCenter = false,
+                topLeft = Offset(strokePx / 2f,     strokePx / 2f),
+                size = Size(this.size.width - strokePx, this.size.height - strokePx),
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
+            )
+        }
     }
 }
 

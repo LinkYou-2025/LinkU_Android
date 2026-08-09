@@ -56,7 +56,7 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
 
             MonthlyCurationDetail(
                 detail = detailDeferred.await().getOrThrow(),
-                nickname = nicknameDeferred.await().getOrThrow().nickname, // 융.D야 고생 많았어~~
+                nickname = nicknameDeferred.await().getOrNull()?.nickname ?: "",
                 recommendLink = recommendLinksDeferred.await().getOrThrow(),
                 topTags = topTagsDeferred.await().getOrThrow()
             )
@@ -72,13 +72,13 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
  * 월간 큐레이션의 상세 정보를 나타내는 데이터 클래스입니다.
  *
  * @property detail 큐레이션의 핵심 메타데이터 및 콘텐츠 정보입니다.
- * @property nickname 유저 닉네임이며, 없을 경우 null일 수 있습니다.
+ * @property nickname 유저 닉네임이며, 조회 실패 시 빈 문자열입니다.
  * @property recommendLink 이 월간 큐레이션과 관련된 추천 링크 목록입니다.
  * @property topTags 이 월간 큐레이션의 상위 태그 목록입니다.
  */
 data class MonthlyCurationDetail(
     val detail: CurationDetail,
-    val nickname: String?,
+    val nickname: String = "",
     val recommendLink: List<RecommendLink>,
     val topTags: List<MyTopTag>
 )

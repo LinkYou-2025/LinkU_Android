@@ -9,7 +9,6 @@ import com.linku.core.model.curation.RecommendLink
 import com.linku.core.model.curation.SectionItem
 import com.linku.core.model.curation.UnreadLink
 
-/** princeHw 작업 공간  */
 interface CurationRepository {
 
     // 큐레이션 섹션 목록 조회
