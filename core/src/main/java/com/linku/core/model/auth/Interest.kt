@@ -10,7 +10,7 @@ enum class Interest(
     INSIGHTS("책 요약\n& 인사이트"),
 
     // 행 2
-    DESIGN("디자인\n& 크리에이티브"),
+    DESIGN("디자인\n& 창작"),
     CURRENT_EVENTS("시사\n& 트렌드"),
     STUDY("학습 & 리포트\n참고 자료"),
 

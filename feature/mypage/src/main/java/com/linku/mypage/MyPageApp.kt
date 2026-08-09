@@ -26,7 +26,11 @@ import com.linku.mypage.screen.ServiceQuitScreen
 fun MyPageApp(
     viewModel: MyPageViewModel,
     onLogoutToLogin: () -> Unit,
-    onNavigateToAlarm: () -> Unit
+    onNavigateToAlarm: () -> Unit,
+    // 로그아웃/탈퇴 API 응답을 기다리는 동안(성공 전) 로그인 화면 전환 애니메이션이 시작되기도
+    // 전에 안드로이드 시스템 바가 잠깐 보였다 사라지는 깜빡임을 없애기 위해, 버튼을 누른 즉시
+    // (API 호출 전에) 몰입 모드로 먼저 전환함. 실패해서 계속 MyPage에 남으면 다시 false로 되돌림.
+    onImmersiveTransitionChange: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -79,12 +83,15 @@ fun MyPageApp(
                 onNavigateTerms = { navController.navigate("terms") },
                 onNavigateAISummary = { navController.navigate("aisummary") },
                 onRequestLogout = {
+                    onImmersiveTransitionChange(true)
                     viewModel.logout(
                         onSuccess = {
                             Toast.makeText(context, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
                             onLogoutToLogin()
                         },
                         onError = { msg ->
+                            // 실패 시 계속 MyPage에 남으므로 몰입 모드를 되돌림
+                            onImmersiveTransitionChange(false)
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                         }
                     )
@@ -350,6 +357,7 @@ fun MyPageApp(
                             .show()
                         return@ServiceQuitScreen
                     }
+                    onImmersiveTransitionChange(true)
                     viewModel.leaveUser(
                         reason = reason,
                         onSuccess = {
@@ -365,6 +373,8 @@ fun MyPageApp(
                             onLogoutToLogin()
                         },
                         onError = { msg ->
+                            // 실패 시 계속 MyPage에 남으므로 몰입 모드를 되돌림
+                            onImmersiveTransitionChange(false)
                             android.widget.Toast
                                 .makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
                                 .show()

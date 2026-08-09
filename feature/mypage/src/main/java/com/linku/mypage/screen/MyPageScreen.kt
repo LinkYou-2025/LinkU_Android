@@ -14,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,10 +23,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.zIndex
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
@@ -243,25 +248,39 @@ fun MyPageScreen(
     }
 
     if (showLogoutDialog) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0x66000000))
-                .zIndex(1f)
-                .noRippleClickable(enabled = false) {},
-            contentAlignment = Alignment.Center
+        // Compose Dialog는 별도의 시스템 창(Window)에 그려지므로, 하단 탭바(LinkuNavigationBar)를
+        // 포함한 화면 전체를 딤 처리할 수 있음(Scaffold content 영역 내부 Box로는 탭바 아래까지 못 가림).
+        Dialog(
+            onDismissRequest = { showLogoutDialog = false },
+            properties = DialogProperties(
+                    dismissOnClickOutside = false,
+                    usePlatformDefaultWidth = false,
+                    decorFitsSystemWindows = false
+            )
         ) {
+            val dialogWindow = (LocalView.current.parent as? DialogWindowProvider)?.window
+            // 다이얼로그 기본 딤을 끄고, 아래 커스텀 딤(0.5f)만 적용해 MainScreen과 동일하게 맞춤.
+            SideEffect { dialogWindow?.setDimAmount(0f) }
+
             Box(
-                modifier = Modifier.padding(horizontal = 20.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .noRippleClickable(enabled = false) {},
                 contentAlignment = Alignment.Center
             ) {
-                LogoutModal(
-                    onDismiss = { showLogoutDialog = false },
-                    onConfirm = {
-                        showLogoutDialog = false
-                        onRequestLogout()
-                    }
-                )
+                Box(
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LogoutModal(
+                        onDismiss = { showLogoutDialog = false },
+                        onConfirm = {
+                            showLogoutDialog = false
+                            onRequestLogout()
+                        }
+                    )
+                }
             }
         }
     }

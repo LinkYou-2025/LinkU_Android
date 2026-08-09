@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,9 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -54,8 +51,6 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
-import com.linku.core.model.SystemBarMode
-import com.linku.core.system.SystemBarController
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.ThemeProvider
@@ -104,20 +99,8 @@ fun HomeScreen(
         homeViewModel.refreshHomeData()
     }
 
-    //스플래쉬에서 숨긴 시스템 바 다시 뜨도록
-    val systemBarController =
-        LocalContext.current as? SystemBarController
-    val isPreview = LocalInspectionMode.current
-
-    // Home 진입 시 시스템 바 표시
-    DisposableEffect(Unit) { // systemBarController 대신 Unit 권장
-        if (!isPreview && systemBarController != null) {
-            systemBarController.setSystemBarMode(SystemBarMode.VISIBLE)
-        }
-        onDispose {
-            // 이 화면을 나갈 때의 동작이 필요 없다면 비움..
-        }
-    }
+    // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
+    // (MainApp.kt가 로그인 성공 시 edgeToEdgeSystemBars=false로 되돌림).
 
     var openedDeleteMenuId by remember { mutableStateOf<Long?>(null) }
 

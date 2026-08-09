@@ -29,8 +29,16 @@ class FirstPushAlarmAllowedUseCase @Inject constructor(
         alarmRepository.registerFCMToken(currentFcmToken)
             .getOrThrow()
 
-        alarmRepository.updateAlarmSetting(AlarmType.ALL)
+        // 로그인한 유저의 알림 설정이 이미 활성화되어있는지 여부 확인
+        val isAlreadyEnabled = alarmRepository.getAlarmSetting()
             .getOrThrow()
+            .isAllEnabled
+
+        // 활성화되어있지 않을 때만 업데이트 api 호출
+        if (!isAlreadyEnabled) {
+            alarmRepository.updateAlarmSetting(AlarmType.ALL)
+                .getOrThrow()
+        }
 
         Unit
 
