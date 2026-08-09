@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Gender
+import com.linku.core.model.auth.Job
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
@@ -58,10 +59,9 @@ fun EditProfileScreen(
     onChangeProfileImage: () -> Unit,
     onNicknameInputChanged: (String) -> Unit,
     nicknameCheckState: NicknameCheckState,
-    onChangeNickname: (String) -> Unit,
-    onChangeJob: (String) -> Unit,
+    onSubmit: (nickname: String, jobId: Long) -> Unit,
     userNickname: String,
-    userJob: String,
+    userJobId: Long,
     userEmail: String,
     userGender: String,
     userSocialLoginType: String,
@@ -75,17 +75,16 @@ fun EditProfileScreen(
     // userGender는 서버 원본 값("MALE"/"FEMALE")이라 Gender enum으로 변환해서 비교해야 함.
     val gender = remember(userGender) { Gender.fromApiValue(userGender) }
 
-    val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
-    var selectedJob by remember(userJob) {
-        mutableStateOf(
-            userJob.takeIf { it.isNotBlank() } ?: jobOptions.first()
-        )
+    val jobOptions = remember { Job.getAllJobs() }
+    var selectedJob by remember(userJobId) {
+        mutableStateOf(Job.fromId(userJobId.toInt()).takeIf { it != Job.NONE }
+            ?: jobOptions.first())
     }
 
     val socialLoginGuideText = when (userSocialLoginType) {
-        "KAKAO" -> "카카오로 가입한 계정이에요."
-        "GOOGLE" -> "구글로 가입한 계정이에요."
-//        "NAVER" -> "네이버로 가입한 계정이에요."
+        "KAKAO" -> "카카오로 가입된 계정이예요."
+        "GOOGLE" -> "구글로 가입된 계정이예요."
+        "EMAIL" -> "이메일로 가입된 계정이예요."
         else -> null
     }
 
@@ -101,14 +100,16 @@ fun EditProfileScreen(
     val isNicknameAvailable =
         !isNicknameChanged || nicknameCheckState is NicknameCheckState.Available
 
+    val isJobChanged = selectedJob.id.toLong() != userJobId
+
     val isSubmitEnabled =
         isProfileImageChanged ||
                 (isNicknameChanged && isNicknameAvailable) ||
-                selectedJob != userJob
+                isJobChanged
 
     val nicknameWarningText = if (isNicknameChanged && trimmedName.isNotBlank()) {
         when (val checkState = nicknameCheckState) {
-            is NicknameCheckState.Duplicated -> "이미 존재하는 닉네임이에요."
+            is NicknameCheckState.Duplicated -> "이미 존재하는 닉네임이예요."
             is NicknameCheckState.Error -> checkState.message
             else -> null
         }
@@ -117,19 +118,11 @@ fun EditProfileScreen(
     }
 
     fun handleSubmit() {
-        val jobChanged = selectedJob != userJob
-        val profileImageChanged = isProfileImageChanged
+        if (isNicknameChanged && (trimmedName.isBlank() || !isNicknameAvailable)) return
 
-        if (isNicknameChanged) {
-            if (trimmedName.isBlank() || !isNicknameAvailable) return
-            onChangeNickname(trimmedName)
-        }
+        onSubmit(trimmedName, selectedJob.id.toLong())
 
-        if (jobChanged) {
-            onChangeJob(selectedJob)
-        }
-
-        if (profileImageChanged) {
+        if (isProfileImageChanged) {
             onChangeProfileImage()
         }
     }
@@ -424,9 +417,11 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(13.dp))
 
                 JobDropdownMenu(
-                    options = jobOptions,
-                    selectedOption = selectedJob,
-                    onOptionSelected = { selectedJob = it }
+                    options = jobOptions.map { it.displayName },
+                    selectedOption = selectedJob.displayName,
+                    onOptionSelected = { name ->
+                        selectedJob = jobOptions.first { it.displayName == name }
+                    }
                 )
             }
         }
@@ -596,10 +591,9 @@ fun PreviewEditProfileScreen() {
             onChangeProfileImage = { },
             onNicknameInputChanged = { },
             nicknameCheckState = NicknameCheckState.Idle,
-            onChangeNickname = { },
-            onChangeJob = { },
+            onSubmit = { _, _ -> },
             userNickname = "세나",
-            userJob = "대학생",
+            userJobId = Job.COLLEGE.id.toLong(),
             userEmail = "longtime03@naver.com",
             userGender = "FEMALE",
             userSocialLoginType = "NAVER"

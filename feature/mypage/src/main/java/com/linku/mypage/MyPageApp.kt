@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
+import com.linku.mypage.intent.EditUserInfoIntent
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
@@ -252,11 +253,14 @@ fun MyPageApp(
 //        }
 
         composable("editProfile") {
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val editUiState by editViewModel.uiState.collectAsStateWithLifecycle()
+
             LaunchedEffect(Unit) {
-                viewModel.loadUserInfo()
+                editViewModel.loadUserInfo()
             }
 
-            val user = uiState.userInfo
+            val user = editUiState.userInfo
             if (user != null) {
                 EditProfileScreen(
                     navController = navController,
@@ -267,34 +271,19 @@ fun MyPageApp(
                         // TODO: 프로필 이미지 변경 API 연결
                     },
                     onNicknameInputChanged = { input ->
-                        viewModel.onNicknameChanged(input, originalNickname = user.nickname)
+                        editViewModel.onNicknameChanged(input, originalNickname = user.nickname)
                     },
-                    nicknameCheckState = uiState.nicknameCheckState,
-                    onChangeNickname = { newNickname ->
-                        viewModel.updateUserInfo(
-                            nickname = newNickname,
-                            jobId = user.jobId,
-                            jobName = user.jobName,
-                            purposes = user.purposes,
-                            interests = user.interests,
-                            onSuccess = {
-                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
-                            },
-                            onError = { msg ->
-                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                            }
+                    nicknameCheckState = editUiState.nicknameCheckState,
+                    onSubmit = { newNickname, newJobId ->
+                        editViewModel.onEditUserInfoIntent(
+                            EditUserInfoIntent.UpdateNickname(
+                                newNickname
+                            )
                         )
-                    },
-                    onChangeJob = { newJobName ->
-                        // TODO: jobName -> jobId 매핑 수단이 없어 기존 jobId를 그대로 유지함
-                        viewModel.updateUserInfo(
-                            nickname = user.nickname,
-                            jobId = user.jobId,
-                            jobName = newJobName,
-                            purposes = user.purposes,
-                            interests = user.interests,
+                        editViewModel.onEditUserInfoIntent(EditUserInfoIntent.UpdateJobId(newJobId))
+                        editViewModel.editUserInfo(
                             onSuccess = {
+                                viewModel.loadUserInfo()
                                 Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
                                 navController.popBackStack()
                             },
@@ -304,7 +293,7 @@ fun MyPageApp(
                         )
                     },
                     userNickname = user.nickname,
-                    userJob = user.jobName,
+                    userJobId = user.jobId,
                     userEmail = user.email,
                     userGender = user.gender,
                     userSocialLoginType = session.loginType.name
@@ -328,24 +317,29 @@ fun MyPageApp(
         }
 
         composable("customInfoSetting") {
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val editUiState by editViewModel.uiState.collectAsStateWithLifecycle()
+
             LaunchedEffect(Unit) {
-                viewModel.loadUserInfo()
+                editViewModel.loadUserInfo()
             }
 
-            val user = uiState.userInfo
+            val user = editUiState.userInfo
             if (user != null) {
                 PurposeSelectionScreen(
                     navController = navController,
-                    initialSelected = user.purposes.mapNotNull { Purpose.fromServerKey(it) }
+                    initialSelected = user.purposes.mapNotNull { Purpose.fromDisplayName(it) }
                         .toSet(),
                     onNextClick = { selected ->
-                        viewModel.updateUserInfo(
-                            nickname = user.nickname,
-                            jobId = user.jobId,
-                            jobName = user.jobName,
-                            purposes = selected.map { it.serverKey },
-                            interests = user.interests,
+                        val current =
+                            user.purposes.mapNotNull { Purpose.fromDisplayName(it) }.toSet()
+                        val diff = (current - selected) + (selected - current)
+                        diff.forEach {
+                            editViewModel.onEditUserInfoIntent(EditUserInfoIntent.UpdatePurpose(it))
+                        }
+                        editViewModel.editUserInfo(
                             onSuccess = {
+                                viewModel.loadUserInfo()
                                 navController.navigate("customInfoInterest")
                             },
                             onError = { msg ->
@@ -358,24 +352,29 @@ fun MyPageApp(
         }
 
         composable("customInfoInterest") {
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val editUiState by editViewModel.uiState.collectAsStateWithLifecycle()
+
             LaunchedEffect(Unit) {
-                viewModel.loadUserInfo()
+                editViewModel.loadUserInfo()
             }
 
-            val user = uiState.userInfo
+            val user = editUiState.userInfo
             if (user != null) {
                 InterestSelectionScreen(
                     navController = navController,
-                    initialSelected = user.interests.mapNotNull { Interest.fromServerKey(it) }
+                    initialSelected = user.interests.mapNotNull { Interest.fromDisplayName(it) }
                         .toSet(),
                     onFinishClick = { selected ->
-                        viewModel.updateUserInfo(
-                            nickname = user.nickname,
-                            jobId = user.jobId,
-                            jobName = user.jobName,
-                            purposes = user.purposes,
-                            interests = selected.map { it.serverKey },
+                        val current =
+                            user.interests.mapNotNull { Interest.fromDisplayName(it) }.toSet()
+                        val diff = (current - selected) + (selected - current)
+                        diff.forEach {
+                            editViewModel.onEditUserInfoIntent(EditUserInfoIntent.UpdateInterest(it))
+                        }
+                        editViewModel.editUserInfo(
                             onSuccess = {
+                                viewModel.loadUserInfo()
                                 Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
                                 navController.popBackStack("customInfoSetting", inclusive = true)
                             },
