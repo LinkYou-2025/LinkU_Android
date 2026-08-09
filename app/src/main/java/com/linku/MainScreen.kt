@@ -54,6 +54,10 @@ fun MainScreen(
     // 타이밍에 건드려 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시 보이던 버그).
     hideSystemBars: Boolean = false,
     dimmed : Boolean = false,
+    // Scaffold 바깥(하단 시스템 바 뒤)에 비치는 배경색. 커스텀 바텀바가 없는 화면에서
+    // 시스템 내비게이션 바 뒤 여백이 화면 배경색과 다르게(기본 흰색) 보이는 걸 막기 위해
+    // 화면별로 맞는 색을 전달할 수 있음. 기본값은 기존과 동일한 흰색.
+    containerColor: Color = Color.White,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -78,7 +82,7 @@ fun MainScreen(
                 WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
             ),
             modifier = Modifier.fillMaxSize(),
-            containerColor = Color.White,
+            containerColor = containerColor,
             bottomBar = {
                 if (navigationBarProp != null) {
                     // 내비게이션 바의 위치/사이즈를 캡처

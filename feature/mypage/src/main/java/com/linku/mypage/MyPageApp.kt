@@ -1,9 +1,11 @@
 package com.linku.mypage
 
 import android.widget.Toast
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -14,6 +16,7 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
+import com.linku.design.theme.linkuColors
 import com.linku.mypage.intent.EditUserInfoIntent
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
@@ -39,14 +42,25 @@ fun MyPageApp(
     onImmersiveTransitionChange: (Boolean) -> Unit = {},
     // 내부 NavHost의 현재 화면이 MyPageScreen("mypage")일 때만 true를 전달해
     // 하단 네비게이션 바를 마이페이지 메인 화면에서만 보이게 함.
-    onShowNavBarChange: (Boolean) -> Unit = {}
+    onShowNavBarChange: (Boolean) -> Unit = {},
+    // 하단 네비게이션 바가 없는 화면에서, 안드로이드 시스템 바(하단) 뒤로 비치는 배경색을
+    // 해당 화면의 실제 배경색과 맞추기 위해 MainScreen의 Scaffold containerColor로 전달함.
+    onScaffoldBackgroundChange: (Color) -> Unit = {}
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
+    val colors = MaterialTheme.linkuColors
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     LaunchedEffect(currentBackStackEntry) {
-        onShowNavBarChange(currentBackStackEntry?.destination?.route == "mypage")
+        val route = currentBackStackEntry?.destination?.route
+        onShowNavBarChange(route == "mypage")
+        onScaffoldBackgroundChange(
+            when (route) {
+                "account" -> colors.gray[100]
+                else -> Color.White
+            }
+        )
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
