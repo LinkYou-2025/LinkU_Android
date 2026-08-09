@@ -9,6 +9,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
@@ -35,10 +36,18 @@ fun MyPageApp(
     // 로그아웃/탈퇴 API 응답을 기다리는 동안(성공 전) 로그인 화면 전환 애니메이션이 시작되기도
     // 전에 안드로이드 시스템 바가 잠깐 보였다 사라지는 깜빡임을 없애기 위해, 버튼을 누른 즉시
     // (API 호출 전에) 몰입 모드로 먼저 전환함. 실패해서 계속 MyPage에 남으면 다시 false로 되돌림.
-    onImmersiveTransitionChange: (Boolean) -> Unit = {}
+    onImmersiveTransitionChange: (Boolean) -> Unit = {},
+    // 내부 NavHost의 현재 화면이 MyPageScreen("mypage")일 때만 true를 전달해
+    // 하단 네비게이션 바를 마이페이지 메인 화면에서만 보이게 함.
+    onShowNavBarChange: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
+
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    LaunchedEffect(currentBackStackEntry) {
+        onShowNavBarChange(currentBackStackEntry?.destination?.route == "mypage")
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val session by viewModel.sessionState.collectAsStateWithLifecycle()
@@ -285,7 +294,7 @@ fun MyPageApp(
                             onSuccess = {
                                 viewModel.loadUserInfo()
                                 Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack()
+                                navController.navigate("customInfoSetting")
                             },
                             onError = { msg ->
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -376,7 +385,9 @@ fun MyPageApp(
                             onSuccess = {
                                 viewModel.loadUserInfo()
                                 Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                                navController.popBackStack("customInfoSetting", inclusive = true)
+                                // 내 정보 수정 -> 맞춤정보 설정(목적) -> 맞춤정보 설정(관심사)으로 이어지는
+                                // 흐름이므로, 시작 지점(account)까지 모두 정리하고 계정 설정 화면으로 복귀.
+                                navController.popBackStack("account", inclusive = false)
                             },
                             onError = { msg ->
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()

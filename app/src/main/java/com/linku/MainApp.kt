@@ -34,8 +34,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.linku.core.model.alarm.AlarmType
 import com.linku.core.error.DeepLinkError
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.util.logging.LinkuLog
@@ -647,8 +647,6 @@ fun MainApp(
                 with(NavigationRoute.MyPage) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
-                            showNavBar = true
-
                             mypageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
@@ -657,6 +655,9 @@ fun MainApp(
 
                         MyPageApp(
                             viewModel = mypageViewModel,
+                            // MyPageScreen(마이페이지 메인 화면)일 때만 하단 네비게이션 바를 표시.
+                            // 계정설정/탈퇴/FAQ 등 마이페이지 내부 하위 화면에서는 숨김.
+                            onShowNavBarChange = { showNavBar = it },
                             // 로그아웃/탈퇴 버튼을 누른 "즉시"(API 응답 기다리지 않고) 시스템 바를
                             // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
                             // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
