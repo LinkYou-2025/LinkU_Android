@@ -10,7 +10,7 @@ enum class Purpose(
     INSIGHTS("인사이트\n모으기"),
 
     // 행 2
-    SIDE_PROJECT("사이드 프로젝트\n& 창업"), //TODO : 다인 언니 이것도 줄임말? 주면 좋을 것 같아용
+    SIDE_PROJECT("프로젝트\n& 창업"),
     STUDY("학업\n& 리포트 정리"),
     LATER_READING("나중에\n읽고 싶은 글"),
 

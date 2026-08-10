@@ -17,7 +17,7 @@ enum class Interest(
     // 행 3
     IT("IT\n& 개발"),
     CAREER("커리어\n& 채용"),
-    COLLECT("그냥\n모아두고 싶은 글"),
+    COLLECT("모아두고 싶은\n글"),
 
     // 행 4
     SOCIETY("사회 & 문화\n& 환경"),

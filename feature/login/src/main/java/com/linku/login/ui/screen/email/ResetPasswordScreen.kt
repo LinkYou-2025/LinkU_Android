@@ -101,8 +101,8 @@ fun ResetPasswordScreen(
             // 헤더 밀기
             Spacer(modifier = Modifier.height((59.scaler)))
 
-            // 로고 위 여백 (38 / 917)
-            Spacer(modifier = Modifier.height((38.scaler)))
+            // 로고 위 여백 (48 / 917)
+            Spacer(modifier = Modifier.height((48.scaler)))
 
             Image(
                 painter = painterResource(id = R.drawable.ic_logo_color),
@@ -127,8 +127,8 @@ fun ResetPasswordScreen(
                 modifier = Modifier.offset(x = 4.scaler),
             )
 
-            // 제목-설명 간격 (22 / 917)
-            Spacer(modifier = Modifier.height((22.scaler)))
+            // 제목-설명 간격 (18 / 917)
+            Spacer(modifier = Modifier.height((18.scaler)))
 
             Text(
                 text = "링큐에 가입했던 이메일을 입력해주세요. \n비밀번호를 다시 설정할 수 있는 메일을 보내드릴게요.",
