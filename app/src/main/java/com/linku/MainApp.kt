@@ -22,7 +22,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -169,10 +168,6 @@ fun MainApp(
     val mypageViewModel: MyPageViewModel = hiltViewModel()
 
     var showNavBar by rememberSaveable { mutableStateOf(false) }
-
-    // 마이페이지 하위 화면(계정 설정 등, 커스텀 바텀바 없음)에서 시스템 내비게이션 바 뒤로
-    // 비치는 배경색을 화면 배경색과 맞추기 위한 상태. MyPage 탭이 아닐 때는 기존과 동일한 흰색.
-    var mainScreenContainerColor by remember { mutableStateOf(Color.White) }
 
     val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
 
@@ -343,11 +338,6 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
             hideSystemBars = edgeToEdgeSystemBars,
-            containerColor = if (currentRoute == NavigationRoute.MyPage.route) {
-                mainScreenContainerColor
-            } else {
-                Color.White
-            }
         ) {
             NavHost(
                 navController = navigator,
@@ -671,7 +661,6 @@ fun MainApp(
                             // MyPageScreen(마이페이지 메인 화면)일 때만 하단 네비게이션 바를 표시.
                             // 계정설정/탈퇴/FAQ 등 마이페이지 내부 하위 화면에서는 숨김.
                             onShowNavBarChange = { showNavBar = it },
-                            onScaffoldBackgroundChange = { mainScreenContainerColor = it },
                             // 로그아웃/탈퇴 버튼을 누른 "즉시"(API 응답 기다리지 않고) 시스템 바를
                             // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
                             // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
@@ -720,7 +709,7 @@ fun MainApp(
                         val notificationViewModel: NotificationViewModel = hiltViewModel()
 
                         AlarmSettingScreen(
-                            navController = navigator,
+                            onBackClick = { navigator.popBackStack() },
                             viewModel = notificationViewModel
                         )
                     }
@@ -1114,7 +1103,7 @@ fun MainApp(
                         }
                     }
                 }
-            }
+            } // NavHost 끝
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
 //            val isAtTabRoot = showNavBar && when (currentRoute) {

@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.linku.component.LinkuNavigationBar
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.EdgeToEdgeSystemBars
+import com.linku.design.util.LocalScaffoldBackgroundReporter
 import com.linku.design.util.LocalStatusBarDarkIcons
 import com.linku.navigation.LinkuNavigationItem
 
@@ -54,10 +55,6 @@ fun MainScreen(
     // 타이밍에 건드려 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시 보이던 버그).
     hideSystemBars: Boolean = false,
     dimmed : Boolean = false,
-    // Scaffold 바깥(하단 시스템 바 뒤)에 비치는 배경색. 커스텀 바텀바가 없는 화면에서
-    // 시스템 내비게이션 바 뒤 여백이 화면 배경색과 다르게(기본 흰색) 보이는 걸 막기 위해
-    // 화면별로 맞는 색을 전달할 수 있음. 기본값은 기존과 동일한 흰색.
-    containerColor: Color = Color.White,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -70,12 +67,21 @@ fun MainScreen(
     // MainApp까지 콜백을 relay할 필요 없이 화면이 바로 읽고 쓸 수 있음.
     val statusBarDarkIcons = remember { mutableStateOf(true) }
 
+    // Scaffold 바깥(하단 시스템 바 뒤)에 비치는 배경색. 커스텀 바텀바가 없는 화면에서
+    // 시스템 내비게이션 바 뒤 여백이 화면 배경색과 다르게(기본 흰색) 보이는 걸 막기 위한 상태.
+    // content() 내부 화면들이 ReportScaffoldBackground(LocalScaffoldBackgroundReporter)로
+    // 스스로 보고하며, 그 화면을 벗어나면 자동으로 흰색으로 되돌아감.
+    var containerColor by remember { mutableStateOf(Color.White) }
+
     // 시스템 바 "배경색"은 지정하지 않음 — 각 화면의 상단 색상(gray[100], 그라데이션 등)이
     // 상태바/내비게이션 바까지 자연스럽게 확장되어 보이게(edge-to-edge) 둠.
     // 아이콘 밝기와 바 표시/숨김을 여기서 공통으로 맞춤.
     EdgeToEdgeSystemBars(darkIcons = statusBarDarkIcons.value, hidden = hideSystemBars)
 
-    CompositionLocalProvider(LocalStatusBarDarkIcons provides statusBarDarkIcons) {
+    CompositionLocalProvider(
+        LocalStatusBarDarkIcons provides statusBarDarkIcons,
+        LocalScaffoldBackgroundReporter provides { containerColor = it }
+    ) {
         Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             contentWindowInsets = WindowInsets.safeDrawing.only(
