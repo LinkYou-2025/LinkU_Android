@@ -54,6 +54,21 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 
+/**
+ * 텍스트 입력과 선택적 카테고리 색상 변경을 제공하는 파일 바텀시트입니다.
+ *
+ * @param modifier 바텀시트에 적용할 수정자입니다.
+ * @param title 바텀시트 상단 제목입니다.
+ * @param body 입력 안내 문구입니다.
+ * @param placeholderText 입력값이 없을 때 표시할 문구입니다.
+ * @param isEditable 색상 선택 영역을 표시하고 텍스트 입력을 비활성화할지 여부입니다.
+ * @param visible 바텀시트 표시 여부입니다.
+ * @param sheetState 바텀시트의 펼침 상태입니다.
+ * @param onTextDeliver 저장할 텍스트를 전달하는 콜백입니다.
+ * @param onColorIdDeliver 선택한 색상 식별자를 전달하는 콜백입니다.
+ * @param maxTextLength 입력 및 저장을 허용할 최대 문자 수입니다. `null`이면 길이를 제한하지 않습니다.
+ * @param onDismiss 바텀시트를 닫을 때 호출되는 콜백입니다.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TextFieldFileBottomSheet(
@@ -66,6 +81,7 @@ fun TextFieldFileBottomSheet(
     sheetState: SheetState = rememberModalBottomSheetState(),
     onTextDeliver: (String) -> Unit = {},
     onColorIdDeliver: (Int) -> Unit = {},
+    maxTextLength: Int? = null,
     onDismiss: () -> Unit,
 ){
     val colors = MaterialTheme.linkuColors
@@ -74,6 +90,7 @@ fun TextFieldFileBottomSheet(
     var expanded by remember { mutableStateOf(false) }
     var selectedColor by remember { mutableStateOf(colors.gray[300]) }
     var text by remember { mutableStateOf("") }
+    val isTextLengthValid = maxTextLength == null || text.length <= maxTextLength
 
     LaunchedEffect(visible) {
         if (visible) {
@@ -88,11 +105,13 @@ fun TextFieldFileBottomSheet(
         body = body,
         buttonText = "저장",
         visible = visible,
-        isReady = if(isEditable) colorId != -1 else text.isNotEmpty(),
+        isReady = if(isEditable) colorId != -1 else text.isNotEmpty() && isTextLengthValid,
         onOkay = {
-            onTextDeliver(text)
-            if(isEditable) {
-                onColorIdDeliver(colorId)
+            if (isTextLengthValid) {
+                onTextDeliver(text)
+                if(isEditable) {
+                    onColorIdDeliver(colorId)
+                }
             }
         },
         onDismiss = {
@@ -112,7 +131,11 @@ fun TextFieldFileBottomSheet(
             BasicTextField(
                 enabled = !isEditable,
                 value = text,
-                onValueChange = { text = it },
+                onValueChange = { newText ->
+                    if (maxTextLength == null || newText.length <= maxTextLength) {
+                        text = newText
+                    }
+                },
                 textStyle = TextStyle(
                     fontSize = 14.sp,
                     color = colors.black,

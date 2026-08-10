@@ -5,6 +5,8 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
+private const val FOLDER_NAME_MAX_LENGTH = 10
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomFolderEditBottomSheet(
@@ -19,6 +21,7 @@ fun BottomFolderEditBottomSheet(
         sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true
         ),
+        maxTextLength = FOLDER_NAME_MAX_LENGTH,
         onTextDeliver = { onTextDeliver(it) },
         onDismiss = { folderStateViewModel.updateBottomFolderEditBottomSheetVisible(false) }
     )
