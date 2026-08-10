@@ -41,8 +41,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Gender
 import com.linku.core.model.auth.Job
 import com.linku.core.model.auth.NicknameCheckState
@@ -54,7 +52,7 @@ import com.linku.mypage.R
 
 @Composable
 fun EditProfileScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     onPickProfileImage: () -> Unit,
     onChangeProfileImage: () -> Unit,
     onNicknameInputChanged: (String) -> Unit,
@@ -144,7 +142,7 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -582,11 +580,9 @@ private fun JobDropdownItem(
 @Preview(showBackground = true)
 @Composable
 fun PreviewEditProfileScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         EditProfileScreen(
-            navController = navController,
+            onBackClick = { },
             onPickProfileImage = { },
             onChangeProfileImage = { },
             onNicknameInputChanged = { },

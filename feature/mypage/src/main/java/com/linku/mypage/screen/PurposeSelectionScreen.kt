@@ -18,8 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.BrushText
@@ -30,7 +28,7 @@ import com.linku.mypage.component.CustomInfoSelectionItem
 
 @Composable
 fun PurposeSelectionScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     initialSelected: Set<Purpose>,
     onNextClick: (Set<Purpose>) -> Unit
 ) {
@@ -106,7 +104,7 @@ fun PurposeSelectionScreen(
         },
         buttonText = "다음",
         isButtonEnabled = hasChanges,
-        onBackClick = { navController.popBackStack() },
+        onBackClick = onBackClick,
         onButtonClick = { onNextClick(selectedItems.toSet()) }
     )
 }
@@ -114,11 +112,9 @@ fun PurposeSelectionScreen(
 @Preview(showBackground = true)
 @Composable
 fun PurposeSelectionScreenPreview() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         PurposeSelectionScreen(
-            navController = navController,
+            onBackClick = {},
             initialSelected = emptySet(),
             onNextClick = {}
         )

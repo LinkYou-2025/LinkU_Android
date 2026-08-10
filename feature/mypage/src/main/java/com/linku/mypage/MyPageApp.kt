@@ -1,11 +1,9 @@
 package com.linku.mypage
 
 import android.widget.Toast
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -16,7 +14,6 @@ import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
-import com.linku.design.theme.linkuColors
 import com.linku.mypage.intent.EditUserInfoIntent
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
@@ -42,25 +39,15 @@ fun MyPageApp(
     onImmersiveTransitionChange: (Boolean) -> Unit = {},
     // 내부 NavHost의 현재 화면이 MyPageScreen("mypage")일 때만 true를 전달해
     // 하단 네비게이션 바를 마이페이지 메인 화면에서만 보이게 함.
-    onShowNavBarChange: (Boolean) -> Unit = {},
-    // 하단 네비게이션 바가 없는 화면에서, 안드로이드 시스템 바(하단) 뒤로 비치는 배경색을
-    // 해당 화면의 실제 배경색과 맞추기 위해 MainScreen의 Scaffold containerColor로 전달함.
-    onScaffoldBackgroundChange: (Color) -> Unit = {}
+    onShowNavBarChange: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
-    val colors = MaterialTheme.linkuColors
 
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     LaunchedEffect(currentBackStackEntry) {
         val route = currentBackStackEntry?.destination?.route
         onShowNavBarChange(route == "mypage")
-        onScaffoldBackgroundChange(
-            when (route) {
-                "account" -> colors.gray[100]
-                else -> Color.White
-            }
-        )
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -131,8 +118,8 @@ fun MyPageApp(
         composable("account") {
             if (uiState.userInfo != null) {
                 AccountSettingScreen(
-                    navController = navController,
                     isSocialLogin = session.loginType == LoginType.KAKAO || session.loginType == LoginType.GOOGLE,
+                    onBackClick = { navController.popBackStack() },
                     onEditProfileClick = { navController.navigate("editProfile") },
                     onChangePasswordClick = { navController.navigate("changePassword") },
                     onCustomInfoSettingClick = { navController.navigate("customInfoSetting") }
@@ -155,7 +142,7 @@ fun MyPageApp(
             val user = editUiState.userInfo
             if (user != null) {
                 EditProfileScreen(
-                    navController = navController,
+                    onBackClick = { navController.popBackStack() },
                     onPickProfileImage = {
                         // TODO: 이미지 picker 연결
                     },
@@ -177,7 +164,7 @@ fun MyPageApp(
                             onSuccess = {
                                 viewModel.loadUserInfo()
                                 Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-                                navController.navigate("customInfoSetting")
+                                navController.popBackStack()
                             },
                             onError = { msg ->
                                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -197,7 +184,7 @@ fun MyPageApp(
             val user = uiState.userInfo
             if (user != null) {
                 ChangePasswordScreen(
-                    navController = navController,
+                    onBackClick = { navController.popBackStack() },
                     userEmail = user.email,
                     onClickFinish = { newPassword ->
                         // TODO: 새로운 비밀번호 변경 API 연결
@@ -219,7 +206,7 @@ fun MyPageApp(
             val user = editUiState.userInfo
             if (user != null) {
                 PurposeSelectionScreen(
-                    navController = navController,
+                    onBackClick = { navController.popBackStack() },
                     initialSelected = user.purposes.mapNotNull { Purpose.fromDisplayName(it) }
                         .toSet(),
                     onNextClick = { selected ->
@@ -254,7 +241,7 @@ fun MyPageApp(
             val user = editUiState.userInfo
             if (user != null) {
                 InterestSelectionScreen(
-                    navController = navController,
+                    onBackClick = { navController.popBackStack() },
                     initialSelected = user.interests.mapNotNull { Interest.fromDisplayName(it) }
                         .toSet(),
                     onFinishClick = { selected ->
@@ -268,8 +255,8 @@ fun MyPageApp(
                             onSuccess = {
                                 viewModel.loadUserInfo()
                                 Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                                // 내 정보 수정 -> 맞춤정보 설정(목적) -> 맞춤정보 설정(관심사)으로 이어지는
-                                // 흐름이므로, 시작 지점(account)까지 모두 정리하고 계정 설정 화면으로 복귀.
+                                // 맞춤정보 설정(목적) -> 맞춤정보 설정(관심사)으로 이어지는 별도 흐름이므로,
+                                // 시작 지점(account)까지 모두 정리하고 계정 설정 화면으로 복귀.
                                 navController.popBackStack("account", inclusive = false)
                             },
                             onError = { msg ->
@@ -287,14 +274,14 @@ fun MyPageApp(
 
         composable("alarmSetting") {
             AlarmSettingScreen(
-                navController = navController,
+                onBackClick = { navController.popBackStack() },
                 viewModel = notificationViewModel
             )
         }
 
         composable("quit") {
             ServiceQuitScreen(
-                navController = navController,
+                onBackClick = { navController.popBackStack() },
                 onRequestQuit = { reason ->
                     if (reason.isBlank()) {
                         android.widget.Toast
@@ -330,16 +317,16 @@ fun MyPageApp(
         }
 
         composable("faq") {
-            FaqScreen(navController = navController)
+            FaqScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable("notice") {
-            NoticeScreen(navController = navController)
+            NoticeScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable("terms") {
             ServiceAgreeScreen(
-                navController = navController,
+                onBackClick = { navController.popBackStack() },
                 onMarketingAgreeClick = {
                     navController.navigate("marketingAgree")
                 }
@@ -348,14 +335,14 @@ fun MyPageApp(
 
         composable("marketingAgree") {
             MarketingAgreeScreen(
-                navController = navController
+                onBackClick = { navController.popBackStack() }
             )
         }
 
         // AI 링크 요약 화면은 세션 정보에 링크 리스트가 나오기 전까지 보류
 //        composable ("aisummary") {
 //            AILinkuListScreen(
-//                navController = navController,
+//                onBackClick = { navController.popBackStack() },
 //                initialLinks =
 //            )
 //        }

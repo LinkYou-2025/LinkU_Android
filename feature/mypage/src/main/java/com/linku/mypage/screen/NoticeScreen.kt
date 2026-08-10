@@ -26,8 +26,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -37,7 +35,7 @@ import com.linku.mypage.component.NoticeItem
 
 @Composable
 fun NoticeScreen(
-    navController: NavController
+    onBackClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -92,7 +90,7 @@ fun NoticeScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -133,9 +131,7 @@ fun NoticeScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewNoticeScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
-        NoticeScreen(navController = navController)
+        NoticeScreen(onBackClick = {})
     }
 }

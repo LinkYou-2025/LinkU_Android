@@ -37,11 +37,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.R
 import com.linku.mypage.component.AILinkuItem
 import com.linku.mypage.component.DeleteLinkuModal
@@ -58,10 +57,12 @@ data class AILinkuUiModel(
 
 @Composable
 fun AILinkuListScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     links: List<AILinkuUiModel>
 ) {
     val colors = MaterialTheme.linkuColors
+
+    ReportScaffoldBackground(colors.gray[100])
 
     var selectedCategory by remember { mutableStateOf<String?>(null) }
     var isCategoryMenuExpanded by remember { mutableStateOf(false) }
@@ -102,7 +103,7 @@ fun AILinkuListScreen(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .width(11.dp)
-                        .noRippleClickable { navController.popBackStack() }
+                        .noRippleClickable { onBackClick() }
                 )
 
                 Row(
@@ -395,11 +396,9 @@ private val previewAiLinks = listOf(
 @Preview(showBackground = true)
 @Composable
 fun PreviewAILinkuListScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         AILinkuListScreen(
-            navController = navController,
+            onBackClick = {},
             links = previewAiLinks
         )
     }
@@ -408,11 +407,9 @@ fun PreviewAILinkuListScreen() {
 @Preview(showBackground = true)
 @Composable
 fun PreviewAILinkuEmptyScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         AILinkuListScreen(
-            navController = navController,
+            onBackClick = {},
             links = emptyList()
         )
     }

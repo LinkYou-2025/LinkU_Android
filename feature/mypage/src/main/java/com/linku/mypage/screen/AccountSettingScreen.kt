@@ -27,24 +27,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.R
 import com.linku.design.R as Res
 
 @Composable
 fun AccountSettingScreen(
-    navController: NavController,
     isSocialLogin: Boolean,
+    onBackClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onChangePasswordClick: () -> Unit,
     onCustomInfoSettingClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
+
+    ReportScaffoldBackground(colors.gray[100])
 
     Column(
         modifier = Modifier
@@ -63,7 +64,7 @@ fun AccountSettingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -89,11 +90,11 @@ fun AccountSettingScreen(
                     ambientShadowColor = Color.Black.copy(alpha = 0.02f)
                     spotShadowColor = Color.Black.copy(alpha = 0.02f)
                 }
-                .padding(horizontal = 20.dp, vertical = 19.dp)
+                .padding(horizontal = 20.dp, vertical = 24.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(19.dp)
+                verticalArrangement = Arrangement.spacedBy(27.dp)
             ) {
                 Row(
                     modifier = Modifier
@@ -178,12 +179,10 @@ fun AccountSettingScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewAccountSettingScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         AccountSettingScreen(
-            navController = navController,
             isSocialLogin = false,
+            onBackClick = {},
             onEditProfileClick = {},
             onChangePasswordClick = {},
             onCustomInfoSettingClick = {}

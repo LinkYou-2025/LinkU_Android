@@ -36,8 +36,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -46,7 +44,7 @@ import com.linku.mypage.R
 
 @Composable
 fun ChangePasswordScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     userEmail: String,
     onClickFinish: (String) -> Unit
 ) {
@@ -84,7 +82,7 @@ fun ChangePasswordScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -120,7 +118,11 @@ fun ChangePasswordScreen(
                     .fillMaxWidth()
                     .heightIn(min = 52.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                    .border(
+                        width = 1.dp,
+                        color = colors.gray[200],
+                        shape = RoundedCornerShape(18.dp)
+                    )
                     .background(colors.gray[100])
                     .padding(horizontal = 22.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -157,7 +159,11 @@ fun ChangePasswordScreen(
                     .fillMaxWidth()
                     .heightIn(min = 52.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                    .border(
+                        width = 1.dp,
+                        color = colors.gray[200],
+                        shape = RoundedCornerShape(18.dp)
+                    )
                     .background(colors.white)
                     .padding(horizontal = 22.dp, vertical = 10.dp),
                 contentAlignment = Alignment.CenterStart
@@ -344,7 +350,9 @@ fun ChangePasswordScreen(
                         tint = Color.Unspecified,
                         modifier = Modifier
                             .size(18.dp)
-                            .noRippleClickable { isConfirmPasswordVisible = !isConfirmPasswordVisible }
+                            .noRippleClickable {
+                                isConfirmPasswordVisible = !isConfirmPasswordVisible
+                            }
                     )
                 }
             }
@@ -426,11 +434,9 @@ fun ChangePasswordScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewChangePasswordScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         ChangePasswordScreen(
-            navController = navController,
+            onBackClick = {},
             userEmail = "longtime03@naver.com",
             onClickFinish = { }
         )

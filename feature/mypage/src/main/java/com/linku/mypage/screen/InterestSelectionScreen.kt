@@ -18,8 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.icon.iconRes
 import com.linku.design.BrushText
@@ -30,7 +28,7 @@ import com.linku.mypage.component.CustomInfoSelectionItem
 
 @Composable
 fun InterestSelectionScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     initialSelected: Set<Interest>,
     onFinishClick: (Set<Interest>) -> Unit
 ) {
@@ -97,7 +95,7 @@ fun InterestSelectionScreen(
         },
         buttonText = "완료",
         isButtonEnabled = hasChanges,
-        onBackClick = { navController.popBackStack() },
+        onBackClick = onBackClick,
         onButtonClick = { onFinishClick(selectedItems.toSet()) }
     )
 }
@@ -105,11 +103,9 @@ fun InterestSelectionScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewInterestSelectionScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         InterestSelectionScreen(
-            navController = navController,
+            onBackClick = {},
             initialSelected = emptySet(),
             onFinishClick = {}
         )

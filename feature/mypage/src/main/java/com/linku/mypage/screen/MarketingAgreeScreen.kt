@@ -36,18 +36,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
-import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.font.Paperlogy
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
 @Composable
 fun MarketingAgreeScreen(
-    navController: NavController
+    onBackClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -74,7 +72,7 @@ fun MarketingAgreeScreen(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .width(11.dp)
-                        .noRippleClickable { navController.popBackStack() }
+                        .noRippleClickable { onBackClick() }
                 )
 
                 Text(
@@ -283,9 +281,7 @@ fun MarketingAgreeScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewMarketingAgreeScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
-        MarketingAgreeScreen(navController = navController)
+        MarketingAgreeScreen(onBackClick = {})
     }
 }
