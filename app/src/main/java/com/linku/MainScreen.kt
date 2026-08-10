@@ -82,6 +82,7 @@ fun MainScreen(
         LocalStatusBarDarkIcons provides statusBarDarkIcons,
         LocalScaffoldBackgroundReporter provides { containerColor = it }
     ) {
+        // 박스로 감싼 이유는 추후 토스트/alert 등을 화면 전체 위에 띄우기 쉽게 하기 위함입니다.
         Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             contentWindowInsets = WindowInsets.safeDrawing.only(
