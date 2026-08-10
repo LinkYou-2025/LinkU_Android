@@ -133,7 +133,7 @@ fun MyPageApp(
 
         composable("editProfile") {
             val editViewModel: MyPageEditViewModel = hiltViewModel()
-            val editUiState by editViewModel.uiState.collectAsStateWithLifecycle()
+            val editUiState by editViewModel.uiEditState.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
                 editViewModel.loadUserInfo()
@@ -171,11 +171,8 @@ fun MyPageApp(
                             }
                         )
                     },
-                    userNickname = user.nickname,
-                    userJobId = user.jobId,
-                    userEmail = user.email,
-                    userGender = user.gender,
-                    userSocialLoginType = session.loginType.name
+                    userInfo = user,
+                    userSocialLoginType = session.loginType
                 )
             }
         }
@@ -197,7 +194,7 @@ fun MyPageApp(
 
         composable("customInfoSetting") {
             val editViewModel: MyPageEditViewModel = hiltViewModel()
-            val editUiState by editViewModel.uiState.collectAsStateWithLifecycle()
+            val editUiState by editViewModel.uiEditState.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
                 editViewModel.loadUserInfo()
@@ -232,7 +229,7 @@ fun MyPageApp(
 
         composable("customInfoInterest") {
             val editViewModel: MyPageEditViewModel = hiltViewModel()
-            val editUiState by editViewModel.uiState.collectAsStateWithLifecycle()
+            val editUiState by editViewModel.uiEditState.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
                 editViewModel.loadUserInfo()
@@ -334,8 +331,26 @@ fun MyPageApp(
         }
 
         composable("marketingAgree") {
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val marketingUiState by editViewModel.uiMarketingState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                editViewModel.loadMarketingStatus()   // 화면 진입 시 현재 동의 상태 조회
+            }
+
             MarketingAgreeScreen(
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                isChecked = marketingUiState.isAgreed,
+                onToggleClick = {
+                    editViewModel.updateMarketingStatus(
+                        onSuccess = { agreed ->
+                            Toast.makeText(context, "마케팅 동의가 변경되었습니다.", Toast.LENGTH_SHORT).show()
+                        },
+                        onError = { msg ->
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                },
             )
         }
 

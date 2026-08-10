@@ -1,6 +1,7 @@
 package com.linku.mypage
 
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.ApiError
@@ -9,6 +10,8 @@ import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
 import com.linku.mypage.intent.EditUserInfoIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,8 +46,8 @@ class MyPageEditViewModel @Inject constructor(
         val nicknameCheckState: NicknameCheckState = NicknameCheckState.Idle
     )
 
-    private val _uiState = MutableStateFlow(EditUserInfoUiState())
-    val uiState: StateFlow<EditUserInfoUiState> = _uiState.asStateFlow()
+    private val _uiEditState = MutableStateFlow(EditUserInfoUiState())
+    val uiEditState: StateFlow<EditUserInfoUiState> = _uiEditState.asStateFlow()
 
     // 회원 정보 수정 화면 전용 draft 상태 (EditUserInfoIntent로만 갱신됨 - MVI)
     data class EditUserInfoState(
@@ -53,6 +56,15 @@ class MyPageEditViewModel @Inject constructor(
         val purposes: List<String> = emptyList(),
         val interests: List<String> = emptyList()
     )
+
+    // 마케팅 동의 ui 상태
+    data class MarketingAgreeUiState(
+        val isLoading: Boolean = false,
+        val isAgreed: Boolean = false,
+    )
+
+    private val _uiMarketingState = MutableStateFlow(MarketingAgreeUiState())
+    val uiMarketingState: StateFlow<MarketingAgreeUiState> = _uiMarketingState.asStateFlow()
 
     private val _editUserInfoState = MutableStateFlow(EditUserInfoState())
     val editUserInfoState: StateFlow<EditUserInfoState> = _editUserInfoState.asStateFlow()
@@ -76,21 +88,24 @@ class MyPageEditViewModel @Inject constructor(
         viewModelScope.launch {
             val id = authPreference.getUserId()
             if (id == null || id <= 0L) {
-                _uiState.value = EditUserInfoUiState(error = "로그인이 필요합니다.")
+                _uiEditState.value = EditUserInfoUiState(error = "로그인이 필요합니다.")
                 return@launch
             }
 
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiEditState.value = _uiEditState.value.copy(isLoading = true, error = null)
 
             userRepository.getUserInfo(id).fold(
                 onSuccess = { info ->
-                    _uiState.value =
-                        _uiState.value.copy(isLoading = false, userInfo = info, error = null)
+                    _uiEditState.value =
+                        _uiEditState.value.copy(isLoading = false, userInfo = info, error = null)
                     resetEditUserInfo(info)
                 },
                 onFailure = { e ->
-                    _uiState.value =
-                        _uiState.value.copy(isLoading = false, error = e.message ?: "사용자 정보 조회 실패")
+                    _uiEditState.value =
+                        _uiEditState.value.copy(
+                            isLoading = false,
+                            error = e.message ?: "사용자 정보 조회 실패"
+                        )
                 }
             )
         }
@@ -99,11 +114,12 @@ class MyPageEditViewModel @Inject constructor(
     // 닉네임 입력 변경 - 원래 닉네임과 같으면(변경 없음/원복) 중복 체크를 건너뜀
     fun onNicknameChanged(nickname: String, originalNickname: String) {
         if (nickname == originalNickname) {
-            _uiState.value = _uiState.value.copy(nicknameCheckState = NicknameCheckState.Idle)
+            _uiEditState.value =
+                _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Idle)
             return
         }
 
-        _uiState.value = _uiState.value.copy(nicknameCheckState = NicknameCheckState.Idle)
+        _uiEditState.value = _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Idle)
 
         if (nickname.isNotBlank()) {
             nicknameQuery.value = nickname
@@ -112,12 +128,13 @@ class MyPageEditViewModel @Inject constructor(
 
     private fun checkNickname(nickname: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(nicknameCheckState = NicknameCheckState.Checking)
+            _uiEditState.value =
+                _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Checking)
 
             authRepository.checkNickname(nickname).fold(
                 onSuccess = {
-                    _uiState.value =
-                        _uiState.value.copy(nicknameCheckState = NicknameCheckState.Available)
+                    _uiEditState.value =
+                        _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Available)
                 },
                 onFailure = { exception ->
                     val appError = exception as? AppError
@@ -126,7 +143,7 @@ class MyPageEditViewModel @Inject constructor(
                         is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
                         else -> NicknameCheckState.Error(appError.displayMessage)
                     }
-                    _uiState.value = _uiState.value.copy(nicknameCheckState = nextState)
+                    _uiEditState.value = _uiEditState.value.copy(nicknameCheckState = nextState)
                     Log.e("MyPageEditViewModel", "닉네임 중복 체크 실패", exception)
                 }
             )
@@ -167,7 +184,7 @@ class MyPageEditViewModel @Inject constructor(
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        val original = _uiState.value.userInfo ?: return
+        val original = _uiEditState.value.userInfo ?: return
         val draft = _editUserInfoState.value
 
         val isChanged = draft.nickname != original.nickname ||
@@ -197,4 +214,52 @@ class MyPageEditViewModel @Inject constructor(
             )
         }
     }
+
+    fun loadMarketingStatus() {
+        viewModelScope.launch {
+            userRepository.checkMarketingTermsAgreed().fold(
+                onSuccess = { isAgreed ->
+                    _uiMarketingState.value = _uiMarketingState.value.copy(
+                        isLoading = false,
+                        isAgreed = isAgreed
+                    )
+                },
+                onFailure = { e ->
+                    _uiMarketingState.value = _uiMarketingState.value.copy(
+                        isLoading = false,
+                        isAgreed = false
+                    )
+                    LinkuLog.e("MyPageEditViewModel", "마케팅 동의 상태 조회 실패", e)
+                }
+            )
+        }
+    }
+
+    fun updateMarketingStatus(
+        onSuccess: (agreed: Boolean) -> Unit,
+        onError: (String) -> Unit,
+    ) {
+        viewModelScope.launch {
+            val toggled = !_uiMarketingState.value.isAgreed
+            userRepository.updateMarketingTerms().fold(
+                onSuccess = {
+                    _uiMarketingState.value = _uiMarketingState.value.copy(
+                        isLoading = false,
+                        isAgreed = toggled
+                    )
+                    onSuccess(toggled)
+                },
+                onFailure = { e ->
+                    _uiMarketingState.value = _uiMarketingState.value.copy(
+                        isLoading = false,
+                        isAgreed = !toggled
+                    )
+                    LinkuLog.e("MyPageEditViewModel", "마케팅 동의 업데이트 실패", e)
+                }
+            )
+
+        }
+    }
+
+
 }

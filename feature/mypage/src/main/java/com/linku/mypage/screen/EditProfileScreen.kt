@@ -31,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -41,8 +40,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Gender
 import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
@@ -58,20 +59,19 @@ fun EditProfileScreen(
     onNicknameInputChanged: (String) -> Unit,
     nicknameCheckState: NicknameCheckState,
     onSubmit: (nickname: String, jobId: Long) -> Unit,
-    userNickname: String,
-    userJobId: Long,
-    userEmail: String,
-    userGender: String,
-    userSocialLoginType: String,
+    userInfo: UserInfo,
+    userSocialLoginType: LoginType,
 ) {
     val colors = MaterialTheme.linkuColors
+    val userNickname = userInfo.nickname
+    val userJobId = userInfo.jobId
 
     var isProfileImageChanged by remember { mutableStateOf(false) }
 
     var name by remember(userNickname) { mutableStateOf(userNickname) }
     // 성별은 서버에서 받은 값을 표시만 하고 이 화면에서는 변경하지 않음(변경 불가).
-    // userGender는 서버 원본 값("MALE"/"FEMALE")이라 Gender enum으로 변환해서 비교해야 함.
-    val gender = remember(userGender) { Gender.fromApiValue(userGender) }
+    // userInfo.gender는 서버 원본 값("MALE"/"FEMALE")이라 Gender enum으로 변환해서 비교해야 함.
+    val gender = remember(userInfo.gender) { Gender.fromApiValue(userInfo.gender) }
 
     val jobOptions = remember { Job.getAllJobs() }
     var selectedJob by remember(userJobId) {
@@ -80,10 +80,10 @@ fun EditProfileScreen(
     }
 
     val socialLoginGuideText = when (userSocialLoginType) {
-        "KAKAO" -> "카카오로 가입된 계정이예요."
-        "GOOGLE" -> "구글로 가입된 계정이예요."
-        "EMAIL" -> "이메일로 가입된 계정이예요."
-        else -> null
+        LoginType.KAKAO -> "카카오로 가입된 계정이예요."
+        LoginType.GOOGLE -> "구글로 가입된 계정이예요."
+        LoginType.EMAIL -> "이메일로 가입된 계정이예요."
+        LoginType.NONE -> null
     }
 
     val showSocialLoginGuide = !socialLoginGuideText.isNullOrBlank()
@@ -303,7 +303,7 @@ fun EditProfileScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = userEmail,
+                        text = userInfo.email,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         color = colors.gray[600]
@@ -473,17 +473,13 @@ fun JobDropdownMenu(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(18.dp),
+            containerColor = colors.white,
+            shadowElevation = 10.dp,
             modifier = Modifier
                 .width(372.dp)
                 .heightIn(max = menuMaxHeight)
                 .border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
-                .shadow(
-                    elevation = 10.dp,
-                    shape = RoundedCornerShape(18.dp),
-                    ambientColor = colors.shadowColor.copy(alpha = 0.25f),
-                    spotColor = colors.shadowColor.copy(alpha = 0.25f)
-                )
-                .background(colors.white, RoundedCornerShape(18.dp))
                 .padding(horizontal = 22.dp, vertical = 11.dp),
             offset = DpOffset(x = 0.dp, y = (-302).dp)
         ) {
@@ -588,11 +584,17 @@ fun PreviewEditProfileScreen() {
             onNicknameInputChanged = { },
             nicknameCheckState = NicknameCheckState.Idle,
             onSubmit = { _, _ -> },
-            userNickname = "세나",
-            userJobId = Job.COLLEGE.id.toLong(),
-            userEmail = "longtime03@naver.com",
-            userGender = "FEMALE",
-            userSocialLoginType = "NAVER"
+            userInfo = UserInfo(
+                nickname = "세나",
+                email = "longtime03@naver.com",
+                gender = "FEMALE",
+                jobId = Job.COLLEGE.id.toLong(),
+                jobName = Job.COLLEGE.displayName,
+                myLinku = 0L,
+                myFolder = 0L,
+                myAiLinku = 0L
+            ),
+            userSocialLoginType = LoginType.EMAIL
         )
     }
 }

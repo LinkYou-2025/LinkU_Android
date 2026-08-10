@@ -26,10 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.util.LinkuUrls
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.R
 import com.linku.design.R as Res
 
@@ -39,6 +41,8 @@ fun ServiceAgreeScreen(
     onMarketingAgreeClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
+
+    ReportScaffoldBackground(colors.gray[100])
 
     val uriHandler = LocalUriHandler.current
 
@@ -88,7 +92,7 @@ fun ServiceAgreeScreen(
                     .fillMaxWidth()
                     .padding(end = 5.dp)
                     .noRippleClickable() {
-                        uriHandler.openUri("https://linkuterms.site/terms.html")
+                        uriHandler.openUri(LinkuUrls.TERMS_OF_SERVICE)
                     },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -112,7 +116,7 @@ fun ServiceAgreeScreen(
                     .fillMaxWidth()
                     .padding(end = 5.dp)
                     .noRippleClickable() {
-                        uriHandler.openUri("https://linkuterms.site/privacy.html")
+                        uriHandler.openUri(LinkuUrls.PRIVACY_POLICY)
                     },
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
