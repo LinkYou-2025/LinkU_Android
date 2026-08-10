@@ -1,4 +1,4 @@
-package com.linku.login.ui.terms.data
+package com.linku.core.data.terms
 
 object MarketingTermsData {
 
@@ -6,7 +6,7 @@ object MarketingTermsData {
 
     val INTRODUCTION = """
         링큐(LINK:U)(이하 “회사”)는 서비스와 관련된 이벤트, 혜택, 신규 기능 안내 등 마케팅 정보를 제공하기 위하여 아래와 같이 개인정보를 수집·이용합니다.
-        
+
         본 동의는 선택 사항이며, 이용자는 동의를 거부할 권리가 있습니다. 동의를 거부하더라도 서비스의 기본적인 이용에는 제한이 없습니다.
     """.trimIndent()
 
