@@ -1,7 +1,6 @@
 package com.linku.mypage
 
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.ApiError
@@ -10,8 +9,6 @@ import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
-import com.linku.core.util.logging.LinkuLog
-import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
 import com.linku.mypage.intent.EditUserInfoIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,15 +53,6 @@ class MyPageEditViewModel @Inject constructor(
         val purposes: List<String> = emptyList(),
         val interests: List<String> = emptyList()
     )
-
-    // 마케팅 동의 ui 상태
-    data class MarketingAgreeUiState(
-        val isLoading: Boolean = false,
-        val isAgreed: Boolean = false,
-    )
-
-    private val _uiMarketingState = MutableStateFlow(MarketingAgreeUiState())
-    val uiMarketingState: StateFlow<MarketingAgreeUiState> = _uiMarketingState.asStateFlow()
 
     private val _editUserInfoState = MutableStateFlow(EditUserInfoState())
     val editUserInfoState: StateFlow<EditUserInfoState> = _editUserInfoState.asStateFlow()
@@ -214,52 +202,5 @@ class MyPageEditViewModel @Inject constructor(
             )
         }
     }
-
-    fun loadMarketingStatus() {
-        viewModelScope.launch {
-            userRepository.checkMarketingTermsAgreed().fold(
-                onSuccess = { isAgreed ->
-                    _uiMarketingState.value = _uiMarketingState.value.copy(
-                        isLoading = false,
-                        isAgreed = isAgreed
-                    )
-                },
-                onFailure = { e ->
-                    _uiMarketingState.value = _uiMarketingState.value.copy(
-                        isLoading = false,
-                        isAgreed = false
-                    )
-                    LinkuLog.e("MyPageEditViewModel", "마케팅 동의 상태 조회 실패", e)
-                }
-            )
-        }
-    }
-
-    fun updateMarketingStatus(
-        onSuccess: (agreed: Boolean) -> Unit,
-        onError: (String) -> Unit,
-    ) {
-        viewModelScope.launch {
-            val toggled = !_uiMarketingState.value.isAgreed
-            userRepository.updateMarketingTerms().fold(
-                onSuccess = {
-                    _uiMarketingState.value = _uiMarketingState.value.copy(
-                        isLoading = false,
-                        isAgreed = toggled
-                    )
-                    onSuccess(toggled)
-                },
-                onFailure = { e ->
-                    _uiMarketingState.value = _uiMarketingState.value.copy(
-                        isLoading = false,
-                        isAgreed = !toggled
-                    )
-                    LinkuLog.e("MyPageEditViewModel", "마케팅 동의 업데이트 실패", e)
-                }
-            )
-
-        }
-    }
-
 
 }

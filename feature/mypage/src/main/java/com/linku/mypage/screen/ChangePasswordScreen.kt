@@ -42,6 +42,7 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
+//TODO : api 없음으로 전면 수정하기.
 @Composable
 fun ChangePasswordScreen(
     onBackClick: () -> Unit,

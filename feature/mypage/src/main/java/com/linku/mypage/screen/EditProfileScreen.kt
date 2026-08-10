@@ -172,7 +172,7 @@ fun EditProfileScreen(
                     modifier = Modifier
                         .size(100.dp)
                         .align(Alignment.Center)
-                )
+                ) //TODO : 다인 언니 어떻게 편집할지 생각해보기!
 
                 Box(
                     modifier = Modifier

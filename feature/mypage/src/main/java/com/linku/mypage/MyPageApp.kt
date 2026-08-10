@@ -15,6 +15,7 @@ import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
 import com.linku.mypage.intent.EditUserInfoIntent
+import com.linku.mypage.intent.MarketingAgreeIntent
 import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
@@ -58,6 +59,12 @@ fun MyPageApp(
     // MyPageApp에서 만들어 주입한다.
     val notificationViewModel: NotificationViewModel = hiltViewModel()
 
+    // 마케팅 수신 동의 화면 진입 시 체감 대기시간을 없애기 위해
+    // 마이페이지 진입 시점부터 미리 상태를 조회해 두는 뷰모델.
+    // marketingAgree 라우트가 아닌 이 레벨에서 hiltViewModel()을 호출해
+    // 화면을 오가도 인스턴스와 조회 결과가 유지되게 한다.
+    val marketingViewModel: MarketingAgreeViewModel = hiltViewModel()
+
     // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
@@ -65,6 +72,7 @@ fun MyPageApp(
     LaunchedEffect(Unit) {
         viewModel.loadUserInfo()
         viewModel.checkUnreadAlarm()
+        marketingViewModel.sendIntent(MarketingAgreeIntent.InitialLoad)
     }
     //기존
 //    LaunchedEffect(Unit) {
@@ -331,26 +339,22 @@ fun MyPageApp(
         }
 
         composable("marketingAgree") {
-            val editViewModel: MyPageEditViewModel = hiltViewModel()
-            val marketingUiState by editViewModel.uiMarketingState.collectAsStateWithLifecycle()
+            val marketingState by marketingViewModel.state.collectAsStateWithLifecycle()
 
             LaunchedEffect(Unit) {
-                editViewModel.loadMarketingStatus()   // 화면 진입 시 현재 동의 상태 조회
+                marketingViewModel.sideEffect.collect { effect ->
+                    when (effect) {
+                        is MarketingAgreeSideEffect.ShowToast ->
+                            Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
             }
 
             MarketingAgreeScreen(
                 onBackClick = { navController.popBackStack() },
-                isChecked = marketingUiState.isAgreed,
+                isChecked = marketingState.isAgreed,
                 onToggleClick = {
-                    editViewModel.updateMarketingStatus(
-                        onSuccess = { agreed ->
-                            val message = if (agreed) "마케팅 동의가 선택되었습니다." else "마케팅 동의가 해지되었습니다."
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                        },
-                        onError = { msg ->
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                        }
-                    )
+                    marketingViewModel.sendIntent(MarketingAgreeIntent.ToggleMarketingAgree)
                 },
             )
         }
