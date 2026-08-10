@@ -30,11 +30,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.data.terms.MarketingTermsData
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.login.R
 import com.linku.login.ui.item.AgreeFooterButton
-import com.linku.login.ui.terms.data.MarketingTermsData
 
 private val EXTRA_GAP = 20.dp
 private val FOOTER_HEIGHT = 50.dp  // 본문의 마지막 내용이 하단 버튼
