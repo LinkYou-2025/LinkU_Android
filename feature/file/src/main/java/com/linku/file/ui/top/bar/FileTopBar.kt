@@ -26,12 +26,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.file.FileViewModel
 import com.linku.file.R
 import com.linku.design.modifier.noRippleClickable
-import com.linku.file.ui.top.bar.component.BottomFolderListLayout
-import com.linku.file.ui.top.bar.component.BottomFolderListMenu
+import com.linku.file.ui.top.bar.component.MyListLayout
+import com.linku.file.ui.top.bar.component.MyListMenu
 import com.linku.file.ui.top.bar.component.EditButton
 import com.linku.file.ui.top.bar.component.FileSearchBar
-import com.linku.file.ui.top.bar.component.TopFolderListLayout
-import com.linku.file.ui.top.bar.component.TopFolderListMenu
+import com.linku.file.ui.top.bar.component.FolderScopeListLayout
+import com.linku.file.ui.top.bar.component.FolderScopeListMenu
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -129,11 +129,11 @@ fun FileTopBar(
                     },
             ) {
                 // 폴더 리스트 컴포저블
-                TopFolderListLayout(
+                FolderScopeListLayout(
                     folderStateViewModel = folderStateViewModel
                 )
 
-                TopFolderListMenu(
+                FolderScopeListMenu(
                     folderStateViewModel = folderStateViewModel,
                     fileViewModel = fileViewModel
                 )
@@ -149,12 +149,12 @@ fun FileTopBar(
                         },
                 ) {
                     // 폴더 리스트 컴포저블
-                    BottomFolderListLayout(
+                    MyListLayout(
                         fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel
                     )
 
-                    BottomFolderListMenu(
+                    MyListMenu(
                         fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel,
                         onChangeFolder = {}

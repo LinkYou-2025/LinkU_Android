@@ -49,7 +49,7 @@ import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
-fun BottomFolderListMenu(
+fun MyListMenu(
     modifier: Modifier = Modifier,
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
@@ -63,7 +63,7 @@ fun BottomFolderListMenu(
 
     val colorStyles = fileViewModel.categoryColorMap.collectAsStateWithLifecycle().value
 
-    BottomFolderListMenuLayout(
+    MyListMenuLayout(
         modifier = modifier,
         isLinks = isLinks,
         bottomMenuExpanded = folderStateViewModel.bottomMenuExpanded,
@@ -101,7 +101,7 @@ fun BottomFolderListMenu(
 // private const val BOTTOM_FOLDER_LIST_MENU_HEIGHT = 264F
 
 @Composable
-private fun BottomFolderListMenuLayout(
+private fun MyListMenuLayout(
     modifier: Modifier = Modifier,
     isLinks: Boolean,
     bottomMenuExpanded: Boolean,
@@ -250,7 +250,7 @@ private fun BottomFolderListMenuLayout(
                         val selected = parentFolderSelected(folder)
                         val colorStyle = parentFolderColor(folder)
 
-                        BottomFolderListMenuRow(
+                        MyListMenuRow(
                             leadingColor = colorStyle.color4,
                             text = parentFolderName(folder),
                             enabled = !selected,
@@ -268,7 +268,7 @@ private fun BottomFolderListMenuLayout(
                     subFolders.forEach { folder ->
                         val selected = subFolderSelected(folder)
 
-                        BottomFolderListMenuRow(
+                        MyListMenuRow(
                             leadingColor = null,
                             text = subFolderName(folder),
                             enabled = !selected,
@@ -295,7 +295,7 @@ private fun BottomFolderListMenuLayout(
 private const val MENU_ITEM_HEIGHT = 25
 
 @Composable
-private fun BottomFolderListMenuRow(
+private fun MyListMenuRow(
     modifier: Modifier = Modifier,
     leadingColor: Color?,
     text: String,
@@ -433,9 +433,9 @@ private val folderSimpleInfoList = listOf(
 
 @Preview(heightDp = 1000)
 @Composable
-private fun BottomFolderListMenuLayoutTest(){
+private fun MyListMenuLayoutTest(){
 
-    BottomFolderListMenuLayout(
+    MyListMenuLayout(
         isLinks = false,
         bottomMenuExpanded = true,
         onDismissRequest = {},

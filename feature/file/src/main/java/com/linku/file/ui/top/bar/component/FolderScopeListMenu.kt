@@ -42,14 +42,14 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
  * @param folderStateViewModel 메뉴의 확장 상태 및 폴더 유형 상태를 관리하는 뷰모델.
  * @param fileViewModel 공유 폴더 목록 조회 등 파일 관련 데이터를 처리하는 뷰모델.
  *
- * @see TopFolderListMenuLayout
+ * @see FolderScopeListMenuLayout
  */
 @Composable
-fun TopFolderListMenu(
+fun FolderScopeListMenu(
     folderStateViewModel: FolderStateViewModel,
     fileViewModel: FileViewModel
 ){
-    TopFolderListMenuLayout(
+    FolderScopeListMenuLayout(
         isSharedFolders = folderStateViewModel.isSharedFolders,
         topMenuExpanded = folderStateViewModel.topMenuExpanded,
         onDismissRequest = {
@@ -108,11 +108,11 @@ fun TopFolderListMenu(
  * @param onSelectMyFolders 메뉴에서 "나의 폴더"를 선택했을 때 수행할 동작.
  * @param onSelectSharedFolders 메뉴에서 "공유받은 폴더"를 선택했을 때 수행할 동작.
  *
- * @see TopFolderListMenu
- * @see TopFolderListMenuRow
+ * @see FolderScopeListMenu
+ * @see FolderScopeListMenuRow
  */
 @Composable
-private fun TopFolderListMenuLayout(
+private fun FolderScopeListMenuLayout(
     modifier: Modifier = Modifier,
     isSharedFolders: Boolean,
     topMenuExpanded: Boolean,
@@ -147,13 +147,13 @@ private fun TopFolderListMenuLayout(
         Column(
             verticalArrangement = Arrangement.spacedBy(13.dp, Alignment.CenterVertically),
         ) {
-            TopFolderListMenuRow(
+            FolderScopeListMenuRow(
                 selectedOption = "나의 폴더",
                 selectedText = selectedText,
                 onClick = onSelectMyFolders
             )
 
-            TopFolderListMenuRow(
+            FolderScopeListMenuRow(
                 selectedOption = "공유받은 폴더",
                 selectedText = selectedText,
                 onClick = onSelectSharedFolders
@@ -170,10 +170,10 @@ private fun TopFolderListMenuLayout(
  * @param selectedText 현재 실제로 선택되어 있는 옵션의 명칭.
  * @param onClick 항목이 클릭되었을 때 실행할 콜백 함수. 현재 선택된 옵션과 다를 경우에만 작동합니다.
  *
- * @see TopFolderListMenuLayout
+ * @see FolderScopeListMenuLayout
  */
 @Composable
-private fun TopFolderListMenuRow(
+private fun FolderScopeListMenuRow(
     selectedOption: String,
     selectedText: String,
     onClick: () -> Unit
@@ -252,8 +252,8 @@ private fun TopFolderListMenuRow(
 
 @Preview(heightDp = 900)
 @Composable
-private fun FolderListMenuTest(){
-    TopFolderListMenuLayout(
+private fun FolderScopeListMenuTest(){
+    FolderScopeListMenuLayout(
         isSharedFolders = true,
         topMenuExpanded = true,
         onDismissRequest = {},
