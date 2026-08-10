@@ -54,11 +54,11 @@ interface UserApi {
     ): BaseResponse<*> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
     // 마케팅 동의 여부 업데이트 api
-    @PATCH("users/terms/marketing")
+    @PATCH("users/terms/marketing/toggle")
     suspend fun updateMarketingTerms(
     ): BaseResponse<*> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
-    @PATCH("users/terms/status")
+    @GET("users/terms/status")
     suspend fun checkTermsStatus(
     ): BaseResponse<CheckUserTermsDTO> // BaseResponse 형태임. 별도 클래스 생성 없음.
 

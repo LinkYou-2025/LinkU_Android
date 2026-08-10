@@ -344,7 +344,8 @@ fun MyPageApp(
                 onToggleClick = {
                     editViewModel.updateMarketingStatus(
                         onSuccess = { agreed ->
-                            Toast.makeText(context, "마케팅 동의가 변경되었습니다.", Toast.LENGTH_SHORT).show()
+                            val message = if (agreed) "마케팅 동의가 선택되었습니다." else "마케팅 동의가 해지되었습니다."
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         },
                         onError = { msg ->
                             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
