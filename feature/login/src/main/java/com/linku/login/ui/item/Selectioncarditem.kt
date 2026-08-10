@@ -84,8 +84,8 @@ internal fun SelectionCardItem(
             Text(
                 text = text,
                 fontSize = 12.5.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold,
+                lineHeight = 16.sp,
+                fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
         }
@@ -93,7 +93,7 @@ internal fun SelectionCardItem(
         if (isSelected) {
             Box(
                 modifier = Modifier
-                    .size(25.dp)
+                    .size(20.dp)
                     .align(Alignment.TopEnd)
                     .clip(CircleShape)
                     .background(brush = colorTheme.maincolor),
@@ -103,8 +103,8 @@ internal fun SelectionCardItem(
                     painter = painterResource(id = R.drawable.ic_login_check),
                     contentDescription = null, //이미지는 장식용
                     modifier = Modifier
-                        .width(12.dp)  // 지난 번, 피그마와 크기 차이로 인해 CheckIndicator를 따랐음(실제 10,7)
-                        .height(9.dp)
+                        .width(10.dp)  // 지난 번, 피그마와 크기 차이로 인해 CheckIndicator를 따랐음(실제 10,7)
+                        .height(8.dp)
                 )
             }
         }
@@ -120,7 +120,7 @@ fun SelectionCardItemComparePreview() {
             modifier = Modifier.padding(16.dp)
         ) {
             SelectionCardItem(
-                text = "사이드 프로젝트\n& 창업",
+                text = "프로젝트\n& 창업",
                 isSelected = false,
                 iconRes = R.drawable.ic_purpose_side_project,
                 onClick = {},
