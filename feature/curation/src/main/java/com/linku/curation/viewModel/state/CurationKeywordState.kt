@@ -7,4 +7,5 @@ data class CurationKeywordState(
     val jobName: String = "",
     val keywords: List<KeyWord> = emptyList(),
     val isLoading: Boolean = false,
+    val isError: Boolean = false,
 )

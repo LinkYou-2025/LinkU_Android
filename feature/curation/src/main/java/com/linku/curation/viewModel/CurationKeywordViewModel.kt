@@ -45,7 +45,7 @@ class CurationKeywordViewModel @Inject constructor(
                         )
                     },
                     onFailure = {
-                        _state.value = _state.value.copy(isLoading = false)
+                        _state.value = _state.value.copy(isLoading = false, isError = true)
                         _sideEffect.send(CurationKeyWordSideEffect.ShowToast("큐레이션 키워드를 불러오지 못했어요."))
                     }
                 )

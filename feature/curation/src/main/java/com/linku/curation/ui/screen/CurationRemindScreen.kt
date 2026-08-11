@@ -124,7 +124,7 @@ private fun CurationRemindScreenContent(
 
     CurationGradientCircleBackground {
 
-        // 에러나면 배경만 띄우고 토스트 출력 - 피그마 요구사항
+        // 에러나면 배경만 띄우고 토스트 출력 - 요구사항
         if (isError) return@CurationGradientCircleBackground
 
         if (isLoading) {
@@ -166,7 +166,6 @@ private fun CurationRemindScreenContent(
                     onBackClick = onBack,
                     contentTopOffset = headerContentTopOffset,
                     title = "$remindMonth,\n저장만 하고 열어보지 않은 링크예요",
-                    // TODO: API 연동 후엔 서버가 내려주는 "전체 저장 링크 수" 필드로 교체해야 함
                     description = "총 ${links.size}개의 링크가 쌓여있네요!",
                     titleDescriptionGap = 12.scaler,
                 )

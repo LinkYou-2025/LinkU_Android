@@ -76,6 +76,7 @@ internal fun CurationKeywordDetailScreen(
             jobName = state.jobName,
             keywords = state.keywords.map { it.name },
             isLoading = state.isLoading,
+            isError = state.isError,
             onBack = onBack,
             onGoHome = onGoHome,
             onKeywordClick = onKeywordClick,
@@ -98,6 +99,7 @@ private fun CurationKeywordDetailContent(
     jobName: String,
     keywords: List<String>,
     isLoading: Boolean = false,
+    isError: Boolean = false,
     onBack: () -> Unit = {},
     onGoHome: () -> Unit = {},
     onKeywordClick: (String) -> Unit = {},
@@ -107,6 +109,9 @@ private fun CurationKeywordDetailContent(
     BackHandler { onBack() }
 
     CurationGradientCircleBackground(modifier = Modifier.fillMaxSize()) {
+        // 에러나면 배경만 띄우고 토스트 출력 - 요구사항
+        if (isError) return@CurationGradientCircleBackground
+
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
