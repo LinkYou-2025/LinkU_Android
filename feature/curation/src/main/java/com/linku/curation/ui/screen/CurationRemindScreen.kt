@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -28,7 +27,6 @@ import com.linku.core.model.curation.UnreadLink
 import com.linku.curation.ui.effect.skeleton.CurationTopHeaderSkeleton
 import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.curation.ui.header.CurationTopHeader
-import com.linku.curation.ui.util.CurationErrorLayout
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationRemindViewModel
 import com.linku.curation.viewModel.intent.CurationRemindIntent
@@ -196,10 +194,10 @@ private fun CurationRemindScreenContent(
                             tags = link.categories.take(2),
                             domainName = link.domain,
                             isExternalLink = false,
+                            isMoreVisible = false,
                             linkImageUrl = link.linkuImageUrl ?: "",
                             domainImageUrl = link.domainImageUrl,
                             onCardClick = { onLinkClick(link) },
-                            onDeleteClick = { /* TODO: 삭제 API 연동 전까지는 no-op */ }
                         )
                     }
                 }

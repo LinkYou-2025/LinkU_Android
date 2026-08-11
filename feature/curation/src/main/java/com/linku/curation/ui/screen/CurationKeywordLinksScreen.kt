@@ -154,9 +154,9 @@ private fun CurationKeywordLinksScreenContent(
                             ),
                             domainName = link.domain,
                             isExternalLink = false, // 보통 정해진 도메인일거라 false로 기본값을 둠
+                            isMoreVisible = false,
                             linkImageUrl = link.linkuImageUrl ?: "",
                             domainImageUrl = link.domainImageUrl ?: "",
-                            onDeleteClick = { /* TODO: 삭제 API 연동 전까지는 no-op */ }
                         )
                     }
                 }

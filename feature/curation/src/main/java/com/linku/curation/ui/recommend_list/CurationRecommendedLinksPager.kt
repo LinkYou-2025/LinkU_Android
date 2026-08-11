@@ -87,7 +87,6 @@ fun CurationRecommendedLinksPager(
                     RecommendedLinkCardItem(
                         link = link,
                         onClick = onLinkClick,
-                        onDeleteClick = onDeleteClick
                     )
                 }
             }
@@ -143,7 +142,6 @@ private fun CurationLinksPagerIndicator(
 private fun RecommendedLinkCardItem(
     link: RecommendLink,
     onClick: (RecommendLink) -> Unit,
-    onDeleteClick: (RecommendLink) -> Unit = {},
 ) {
     //LinkCardItem은 지현이가 구현해서 여기서 궁금한거 있으면 그녀에게...
     LinkCardItem(
@@ -152,10 +150,10 @@ private fun RecommendedLinkCardItem(
         tags = link.categories.take(2),
         domainName = link.domain,
         isExternalLink = link.type is LinkType.External,
+        isMoreVisible = false,
         linkImageUrl = link.imageUrl,
         domainImageUrl = link.domainImageUrl,
         onCardClick = { onClick(link) },
-        onDeleteClick = { onDeleteClick(link) }
     )
 }
 
