@@ -186,114 +186,130 @@ fun FileScreen(
                     bottom = 0.dp // bottom만 제거
                 )
         ) {
-            when(folderStateViewModel.currentFolderState) {
-                FolderState.TOP -> {
-                    if(!folderStateViewModel.isSharedFolders){
-                        CategoryGrid(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentPadding = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-                            categories = parentFolders,
-                            categoryColorMap = categoryColorMap,
-                            isEditMode = editStateViewModel.isEditMode,
-                            onFolderClick = { folder ->
-                                fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
-                                folderStateViewModel.updateSelectedTopFolder(folder)
-                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                            },
-                            onFolderEditClick = { folder ->
-                                folderStateViewModel.updateReadyToUpdateTopFolder(folder)
-                                folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
-                            },
-                            onBookmarkClick = { folder ->
-                                fileViewModel.updateBookmark(
-                                    folderId = folder.folderId,
-                                    updateBookmarked = !folder.isBookmarked
-                                )
-                            }
-                        )
-                    }else{
-                        SharedUsersGrid(
-                            folderList = sharedTopFolders,
-                            onMyFoldersClick = {
-                                folderStateViewModel.updateIsSharedFolders(false)
-                                folderStateViewModel.updateSelectedSharedFolder(null)
-                                folderStateViewModel.updateFolderState(FolderState.TOP)
-                            },
-                            onSharedFolderClick = { folder ->
-                                folderStateViewModel.updateSelectedSharedFolder(folder)
-                                fileViewModel.getSharedBottomFolders(folder)
-                                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                            }
-                        )
+            // 로딩창
+            if (fileViewModel.loading.collectAsState().value) {
+                // 로딩 로직
+                LoadingFoldersGrid(
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                when (folderStateViewModel.currentFolderState) {
+                    FolderState.TOP -> {
+                        if (!folderStateViewModel.isSharedFolders) {
+                            CategoryGrid(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentPadding = PaddingValues(
+                                    top = 20.dp,
+                                    start = 20.dp,
+                                    end = 20.dp,
+                                    bottom = 60.dp
+                                ),
+                                categories = parentFolders,
+                                categoryColorMap = categoryColorMap,
+                                isEditMode = editStateViewModel.isEditMode,
+                                onFolderClick = { folder ->
+                                    fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
+                                    folderStateViewModel.updateSelectedTopFolder(folder)
+                                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                                },
+                                onFolderEditClick = { folder ->
+                                    folderStateViewModel.updateReadyToUpdateTopFolder(folder)
+                                    folderStateViewModel.updateTopFolderEditBottomSheetVisible(true)
+                                },
+                                onBookmarkClick = { folder ->
+                                    fileViewModel.updateBookmark(
+                                        folderId = folder.folderId,
+                                        updateBookmarked = !folder.isBookmarked
+                                    )
+                                }
+                            )
+                        } else {
+                            SharedUsersGrid(
+                                folderList = sharedTopFolders,
+                                onMyFoldersClick = {
+                                    folderStateViewModel.updateIsSharedFolders(false)
+                                    folderStateViewModel.updateSelectedSharedFolder(null)
+                                    folderStateViewModel.updateFolderState(FolderState.TOP)
+                                },
+                                onSharedFolderClick = { folder ->
+                                    folderStateViewModel.updateSelectedSharedFolder(folder)
+                                    fileViewModel.getSharedBottomFolders(folder)
+                                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                                }
+                            )
+                        }
                     }
-                }
-                FolderState.BOTTOM -> {
-                    if(!folderStateViewModel.isSharedFolders){
-                        MyFoldersGrid(
-                            folders = subFolders,
-                            notCategorizationLinks = notCategorizationLinks,
-                            selectedTopFolderColorStyle = selectedTopFolderColorStyle,
-                            isEditMode = editStateViewModel.isEditMode,
-                            onAddFolderClick = {
-                                folderStateViewModel.updateNewFolderBottomSheetVisible(true)
-                            },
-                            onFolderClick = { folder ->
-                                fileViewModel.getLinks(folder.folderId)
-                                folderStateViewModel.updateSelectedBottomFolder(folder)
-                                folderStateViewModel.updateFolderState(FolderState.LINKS)
-                            },
-                            onFolderEditClick = { folder ->
-                                folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
-                                folderStateViewModel.updateBottomFolderEditBottomSheetVisible(true)
-                            },
-                            onChangeSharingClick = { folder ->
-                                fileViewModel.folderToPrivate(folder)
-                            },
-                            onDeleteFolder = { folder ->
-                                fileViewModel.deleteSubfolder(folder.folderId)
+
+                    FolderState.BOTTOM -> {
+                        if (!folderStateViewModel.isSharedFolders) {
+                            MyFoldersGrid(
+                                folders = subFolders,
+                                notCategorizationLinks = notCategorizationLinks,
+                                selectedTopFolderColorStyle = selectedTopFolderColorStyle,
+                                isEditMode = editStateViewModel.isEditMode,
+                                onAddFolderClick = {
+                                    folderStateViewModel.updateNewFolderBottomSheetVisible(true)
+                                },
+                                onFolderClick = { folder ->
+                                    fileViewModel.getLinks(folder.folderId)
+                                    folderStateViewModel.updateSelectedBottomFolder(folder)
+                                    folderStateViewModel.updateFolderState(FolderState.LINKS)
+                                },
+                                onFolderEditClick = { folder ->
+                                    folderStateViewModel.updateReadyToUpdateBottomFolder(folder)
+                                    folderStateViewModel.updateBottomFolderEditBottomSheetVisible(
+                                        true
+                                    )
+                                },
+                                onChangeSharingClick = { folder ->
+                                    fileViewModel.folderToPrivate(folder)
+                                },
+                                onDeleteFolder = { folder ->
+                                    fileViewModel.deleteSubfolder(folder.folderId)
+                                },
+                                onLinkClick = onLinkClick,
+                                onDeleteNotCategorizationLink = { linkId ->
+                                    fileViewModel.deleteNotCategorizationLink(linkId)
+                                }
+                            )
+                        } else {
+                            SharedUsersGrid(
+                                folderList = emptyList(),   // TODO
+                                onMyFoldersClick = {
+                                    // TODO
+                                },
+                                onSharedFolderClick = {
+                                    // TODO
+                                }
+                                /*
+                                folderList = sharedBottomFolders,
+                                onFolderClick = { folder ->
+                                    fileViewModel.getLinks(folder.folderId)
+                                    folderStateViewModel.updateSelectedBottomSharedFolder(folder)
+                                    folderStateViewModel.updateFolderState(FolderState.LINKS)
+                                },
+                                onDeleteFolder = { folder ->
+                                    fileViewModel.deleteSharedFolder(folder.folderId)
+                                }*/
+                            )
+                        }
+                    }
+
+                    FolderState.LINKS -> {
+                        ClassifiedLinksGrid(
+                            links = links,
+                            hasNotCategorizationLinks = notCategorizationLinks.isNotEmpty(),
+                            onLinkCategorizationClick = {
+                                folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
                             },
                             onLinkClick = onLinkClick,
-                            onDeleteNotCategorizationLink = { linkId ->
-                                fileViewModel.deleteNotCategorizationLink(linkId)
-                            }
-                        )
-                    }else{
-                        SharedUsersGrid(
-                            folderList = emptyList(),   // TODO
-                            onMyFoldersClick = {
-                            // TODO
+                            onDeleteLink = { linkId ->
+                                fileViewModel.deleteLink(linkId)
                             },
-                            onSharedFolderClick = {
-                            // TODO
-                            }
-                            /*
-                            folderList = sharedBottomFolders,
-                            onFolderClick = { folder ->
-                                fileViewModel.getLinks(folder.folderId)
-                                folderStateViewModel.updateSelectedBottomSharedFolder(folder)
-                                folderStateViewModel.updateFolderState(FolderState.LINKS)
-                            },
-                            onDeleteFolder = { folder ->
-                                fileViewModel.deleteSharedFolder(folder.folderId)
-                            }*/
                         )
                     }
                 }
-                FolderState.LINKS -> {
-                    ClassifiedLinksGrid(
-                        links = links,
-                        hasNotCategorizationLinks = notCategorizationLinks.isNotEmpty(),
-                        onLinkCategorizationClick = {
-                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                        },
-                        onLinkClick = onLinkClick,
-                        onDeleteLink = { linkId ->
-                            fileViewModel.deleteLink(linkId)
-                        },
-                    )
-                }
             }
-
             if (!folderStateViewModel.isSharedFolders) {
                 ShareButton(
                     modifier = Modifier
@@ -317,13 +333,7 @@ fun FileScreen(
             )
         }
 
-        // 로딩창
-        if (fileViewModel.loading.collectAsState().value) {
-            // 로딩 로직
-            LoadingFoldersGrid(
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+
     }
 
     // 소분류 수정/추가 시 이름 중복 경고 모달창 상태

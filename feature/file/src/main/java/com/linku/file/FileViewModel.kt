@@ -801,7 +801,6 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "updateBookmark launch")
 
-            startLoading()
             _errorMessage.value = null
 
             try {
@@ -829,10 +828,6 @@ class FileViewModel @Inject constructor(
                 _errorMessage.value = e.message
 
                 result = updateBookmarked
-            }finally {
-                Log.d("FileViewModel", "updateBookmark finally")
-
-                stopLoading()
             }
 
             Log.d("FileViewModel", "updateBookmark end")

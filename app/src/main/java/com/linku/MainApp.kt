@@ -304,6 +304,10 @@ fun MainApp(
 
 
                     if (currentRoute == route) {
+                        if (item == LinkuNavigationItem.FILE) {
+                            // MainApp 범위 상태는 라우트 재생성 후에도 유지되므로 카테고리 루트로 되돌린다.
+                            folderStateViewModel.resetSharedFolderState()
+                        }
                         // 같은 탭 재선택: 내부 스택 리셋
                         navigator.navigate(route) {
                             // 해당 탭 루트까지 모두 제거하고
