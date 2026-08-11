@@ -17,12 +17,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,7 +65,9 @@ fun FileTopBar(
     onSearchClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val density = LocalDensity.current
     var sortMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var myListAnchorWidth by remember { mutableStateOf(0.dp) }
     val showParentFolderSort =
         folderStateViewModel.currentFolderState == FolderState.TOP &&
             !folderStateViewModel.isSharedFolders
@@ -176,6 +181,9 @@ fun FileTopBar(
                 Box(
                     // 왼쪽 위에 정렬
                     modifier = Modifier
+                        .onSizeChanged { size ->
+                            myListAnchorWidth = with(density) { size.width.toDp() }
+                        }
                         .noRippleClickable {
                             folderStateViewModel.updateBottomMenuExpanded(true)
                         },
@@ -189,6 +197,7 @@ fun FileTopBar(
                     MyListMenu(
                         fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel,
+                        parentFolderAnchorWidth = myListAnchorWidth,
                         onChangeFolder = {}
                     )
                 }
