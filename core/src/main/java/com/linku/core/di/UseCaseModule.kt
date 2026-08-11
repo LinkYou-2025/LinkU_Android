@@ -1,7 +1,12 @@
 package com.linku.core.di
 
 import com.linku.core.repository.AlarmRepository
+import com.linku.core.repository.CurationRepository
+import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.CurationKeywordUseCase
+import com.linku.core.usecase.CurationMainUseCase
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
+import com.linku.core.usecase.MonthlyCurationDetailedUseCase
 import com.linku.core.usecase.ReRegisterFcmTokenUseCase
 import dagger.Module
 import dagger.Provides
@@ -43,6 +48,32 @@ object UseCaseModule {
         alarmRepository: AlarmRepository
     ): ReRegisterFcmTokenUseCase {
         return ReRegisterFcmTokenUseCase(alarmRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMonthlyCurationDetailedUseCase(
+        curationRepository: CurationRepository,
+        userRepository: UserRepository
+    ): MonthlyCurationDetailedUseCase {
+        return MonthlyCurationDetailedUseCase(curationRepository, userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurationMainUseCase(
+        curationRepository: CurationRepository
+    ): CurationMainUseCase {
+        return CurationMainUseCase(curationRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideCurationKeywordUseCase(
+        curationRepository: CurationRepository,
+        userRepository: UserRepository
+    ): CurationKeywordUseCase {
+        return CurationKeywordUseCase(curationRepository, userRepository)
     }
 
 }

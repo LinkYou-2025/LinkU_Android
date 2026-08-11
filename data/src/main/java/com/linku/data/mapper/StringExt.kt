@@ -48,6 +48,23 @@ fun String.toRelativeTime(
 }
 
 /**
+ * "yyyy-MM" 형식의 문자열을 큐레이션 제목 형식으로 변환합니다.
+ *
+ * @receiver "yyyy-MM" 형식의 문자열 (예: "2026-01")
+ * @return 큐레이션 제목 문자열 (예: "2026\n월간 큐레이션 1월호"), 파싱 실패 시 원본 반환
+ */
+fun String.toCurationTitle(): String {
+    val parts = this.split("-")
+
+    if (parts.size != 2) return this
+
+    val year = parts[0].toIntOrNull() ?: return this
+    val month = parts[1].toIntOrNull() ?: return this
+
+    return "$year\n월간 큐레이션 ${month}월호"
+}
+
+/**
  * ISO 8601 형식의 문자열을 "yy.mm.dd" 형식의 날짜 문자열로 변환합니다.
  *
  * 문자열 파싱에 실패하거나 포맷이 올바르지 않은 경우 "알 수 없음"을 반환합니다.

@@ -57,13 +57,13 @@ internal fun MonthlyCurationItem(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
             )
-
-            Image(
-                painter = resolveMonthNumberIcon(month),
-                contentDescription = "${month}월",
-                modifier = Modifier.height(31.11111f.scaler)
-            )
         }
+
+        Image(
+            painter = resolveMonthNumberIcon(month),
+            contentDescription = "${month}월",
+            modifier = Modifier.height(31.11111f.scaler)
+        )
     }
 }
 

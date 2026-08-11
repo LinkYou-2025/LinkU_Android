@@ -28,7 +28,7 @@ private const val MONTH_COUNT = 12
 @Composable
 internal fun MonthlyCurationGrid(
     modifier: Modifier = Modifier,
-    onMonthClick: (Int) -> Unit = {},
+    onMonthClick: (Long) -> Unit = {},
     imageUrlOf: (Int) -> String? = { "" },
 ) {
     Column(
@@ -49,12 +49,9 @@ internal fun MonthlyCurationGrid(
                         imageUrl = imageUrl,
                         modifier = Modifier
                             .weight(1f)
-                            .let { modifier ->
-                                if (hasContent) {
-                                    modifier.noRippleClickable { onMonthClick(month) }
-                                } else {
-                                    modifier
-                                }
+                            .let { m ->
+                                if (hasContent) m.noRippleClickable { onMonthClick(month.toLong()) }
+                                else m
                             }
                     )
                 }

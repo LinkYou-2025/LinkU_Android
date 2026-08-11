@@ -158,9 +158,6 @@ fun MainApp(
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val searchResults = searchViewModel.searchResults
 
-    // 큐레이션 화면에서 사용할 뷰모델
-    val curationViewModel: CurationViewModel = hiltViewModel()
-
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
 
@@ -645,9 +642,9 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
-                    curationViewModel = curationViewModel,
                     showNavBar = { showNavBar = it },
-                    nickname = nickname.orEmpty().ifBlank { "링큐" }
+                    nickname = nickname.orEmpty().ifBlank { "링큐" },
+                    onNavigateToSaveLink = { saveLinkEntryTriggered = true },
                 )
 
 
