@@ -3,6 +3,7 @@ package com.linku.curation.ui.screen
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -24,11 +28,13 @@ import com.linku.core.model.curation.UnreadLink
 import com.linku.curation.ui.effect.skeleton.CurationTopHeaderSkeleton
 import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.curation.ui.header.CurationTopHeader
+import com.linku.curation.ui.util.CurationErrorLayout
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationRemindViewModel
 import com.linku.curation.viewModel.intent.CurationRemindIntent
 import com.linku.curation.viewModel.sideeffect.CurationRemindSideEffect
 import com.linku.design.component.LinkCardItem
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
 import java.time.LocalDate
@@ -41,9 +47,16 @@ fun CurationRemindScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
+
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
+                is CurationRemindSideEffect.ShowToast -> {
+                    toastMessage = effect.message
+                    isToastVisible = true
+                }
                 is CurationRemindSideEffect.NavigateToLinkDetail ->
                     onNavigateToLinkDetail(effect.linkId)
             }
@@ -52,15 +65,27 @@ fun CurationRemindScreen(
 
     BackHandler { onBack() }
 
-    CurationRemindScreenContent(
-        links = state.links,
-        isLoading = state.isLoading,
-        onBack = onBack,
-        onLinkClick = { link ->
-            val linkId = link.userLinkuId ?: return@CurationRemindScreenContent
-            viewModel.handleIntent(CurationRemindIntent.ClickLink(linkId))
-        },
-    )
+    Box {
+        CurationRemindScreenContent(
+            links = state.links,
+            isLoading = state.isLoading,
+            isError = state.isError,
+            onBack = onBack,
+            onLinkClick = { link ->
+                val linkId = link.userLinkuId ?: return@CurationRemindScreenContent
+                viewModel.handleIntent(CurationRemindIntent.ClickLink(linkId))
+            },
+        )
+
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 92.scaler)
+        )
+    }
 }
 
 /**
@@ -90,6 +115,7 @@ private fun CurationRemindEmptyHeader(onBack: () -> Unit) {
 private fun CurationRemindScreenContent(
     links: List<UnreadLink>,
     isLoading: Boolean = false,
+    isError: Boolean = false,
     onBack: () -> Unit,
     onLinkClick: (UnreadLink) -> Unit = {},
 ) {
@@ -97,6 +123,10 @@ private fun CurationRemindScreenContent(
     val isEmpty = links.isEmpty()
 
     CurationGradientCircleBackground {
+
+        // 에러나면 배경만 띄우고 토스트 출력 - 피그마 요구사항
+        if (isError) return@CurationGradientCircleBackground
+
         if (isLoading) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 CurationTopHeaderSkeleton(

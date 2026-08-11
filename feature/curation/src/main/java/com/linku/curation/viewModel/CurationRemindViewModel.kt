@@ -43,11 +43,11 @@ class CurationRemindViewModel @Inject constructor(
             curationRepository.getUnreadLink()
                 .fold(
                     onSuccess = { links ->
-                        _state.value = _state.value.copy(links = links, isLoading = false)
+                        _state.value = _state.value.copy(links = links, isLoading = false, isError = false)
                     },
                     onFailure = {
-                        //TODO: 링큐의 최고 피엠님 ❤️다인눈나❤️ 한테 물어보고 ui 예외처리를 진행해야 할 듯
-                        _state.value = _state.value.copy(isLoading = false)
+                        _state.value = _state.value.copy(isLoading = false, isError = true)
+                        _sideEffect.send(CurationRemindSideEffect.ShowToast("미열람 링크를 불러오지 못했어요."))
                     }
                 )
         }

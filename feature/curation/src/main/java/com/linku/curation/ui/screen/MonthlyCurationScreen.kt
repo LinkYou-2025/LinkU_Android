@@ -1,24 +1,30 @@
 package com.linku.curation.ui.screen
 
-import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.monthly.MonthlyCurationGrid
 import com.linku.curation.viewModel.CurationHistoryViewModel
 import com.linku.curation.viewModel.intent.CurationHistoryIntent
 import com.linku.curation.viewModel.sideeffect.CurationHistorySideEffect
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -39,16 +45,20 @@ fun MonthlyCurationScreen(
     onBackClick: () -> Unit = {},
     onMonthClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
 ) {
-    val context = LocalContext.current
     val state by viewModel.curationHistoryState.collectAsStateWithLifecycle()
+
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is CurationHistorySideEffect.NavigateToCurationDetail ->
                     onMonthClick(effect.month, effect.curationId)
-                is CurationHistorySideEffect.ShowToast ->
-                    Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                is CurationHistorySideEffect.ShowToast -> {
+                    toastMessage = effect.message
+                    isToastVisible = true
+                }
             }
         }
     }
@@ -57,23 +67,35 @@ fun MonthlyCurationScreen(
     val historyMap = state.curationHistory
         .associateBy { it.month.takeLast(2).toIntOrNull() ?: 0 }
 
-    MonthlyCurationScreenContent(
-        modifier = modifier,
-        year = year,
-        onBackClick = onBackClick,
-        onMonthClick = { monthNum ->
-            // 클릭된 월(1~12)로 히스토리 조회. 데이터 없는 달이면 무시
-            val history = historyMap[monthNum.toInt()] ?: return@MonthlyCurationScreenContent
+    Box {
+        MonthlyCurationScreenContent(
+            modifier = modifier,
+            year = year,
+            onBackClick = onBackClick,
+            onMonthClick = { monthNum ->
+                // 클릭된 월(1~12)로 히스토리 조회. 데이터 없는 달이면 무시
+                val history = historyMap[monthNum.toInt()] ?: return@MonthlyCurationScreenContent
 
-            // curationId가 null이면 아직 해당 월 큐레이션이 생성되지 않은 것이므로 무시
-            val curationId = history.curationId ?: return@MonthlyCurationScreenContent
+                // curationId가 null이면 아직 해당 월 큐레이션이 생성되지 않은 것이므로 무시
+                val curationId = history.curationId ?: return@MonthlyCurationScreenContent
 
-            viewModel.handleIntent(
-                CurationHistoryIntent.ClickCurationHistory(curationId, history.month)
-            )
-        },
-        imageUrlOf = { month -> historyMap[month]?.thumbnailUrl }
-    )
+                viewModel.handleIntent(
+                    CurationHistoryIntent.ClickCurationHistory(curationId, history.month)
+                )
+            },
+            imageUrlOf = { month -> historyMap[month]?.thumbnailUrl }
+        )
+
+        // 토스트 사이드이펙트 수신시 커스텀 토스트 출력
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 92.scaler)
+        )
+    }
 }
 
 /**

@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// MonthlyCurationScreen에서 사용
 @HiltViewModel
 class CurationHistoryViewModel @Inject constructor(
     private val curationRepository: CurationRepository,
@@ -58,8 +59,8 @@ class CurationHistoryViewModel @Inject constructor(
                     }
                 }
                 .onFailure {
-                    //TODO: 링큐의 최고 피엠님 ❤️다인눈나❤️ 한테 물어보고 ui 예외처리를 진행해야 할 듯
                     _curationHistoryState.update { it.copy(isLoading = false) }
+                    _sideEffect.send(CurationHistorySideEffect.ShowToast("월간 큐레이션을 불러오지 못했어요."))
                 }
         }
     }

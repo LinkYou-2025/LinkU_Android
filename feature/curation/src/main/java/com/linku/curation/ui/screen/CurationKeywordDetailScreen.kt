@@ -5,18 +5,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.chip.CurationKeywordCloud
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationCircleProgressBar
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationKeywordViewModel
+import com.linku.curation.viewModel.sideeffect.CurationKeyWordSideEffect
 import com.linku.design.component.BottomGradientButton
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
 
@@ -46,15 +54,42 @@ internal fun CurationKeywordDetailScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    CurationKeywordDetailContent(
-        nickname = state.nickname.ifBlank { nickname },
-        jobName = state.jobName,
-        keywords = state.keywords.map { it.name },
-        isLoading = state.isLoading,
-        onBack = onBack,
-        onGoHome = onGoHome,
-        onKeywordClick = onKeywordClick,
-    )
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is CurationKeyWordSideEffect.ShowToast -> {
+                    toastMessage = effect.message
+                    isToastVisible = true
+                }
+                is CurationKeyWordSideEffect.NavigateToCurationKeywordLinks ->
+                    onKeywordClick(effect.keyword)
+            }
+        }
+    }
+
+    Box {
+        CurationKeywordDetailContent(
+            nickname = state.nickname.ifBlank { nickname },
+            jobName = state.jobName,
+            keywords = state.keywords.map { it.name },
+            isLoading = state.isLoading,
+            onBack = onBack,
+            onGoHome = onGoHome,
+            onKeywordClick = onKeywordClick,
+        )
+
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 92.scaler)
+        )
+    }
 }
 
 @Composable
