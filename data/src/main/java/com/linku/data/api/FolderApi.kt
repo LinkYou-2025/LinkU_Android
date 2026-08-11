@@ -38,7 +38,7 @@ interface FolderApi {
     // (중분류) 중분류 폴더 조회
     @GET("folders/parentFolders")
     suspend fun getParentfolders(
-        @Query("sort") sort: String? = "name"
+        @Query("sort") sort: String = "name"
     ): BaseResponse<List<GetParentFoldersDTO>>
 
     /**
