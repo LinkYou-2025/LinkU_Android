@@ -41,6 +41,17 @@ interface FolderApi {
         @Query("sort") sort: String? = "name"
     ): BaseResponse<List<GetParentFoldersDTO>>
 
+    /**
+     * 선택한 정렬 기준으로 중분류 폴더 목록을 조회합니다.
+     *
+     * @param sort `name` 또는 `updatedAt` 정렬 쿼리입니다.
+     * @return 정렬된 중분류 폴더 목록 응답입니다.
+     */
+    @GET("folders/parentFolders")
+    suspend fun getParentFoldersBySort(
+        @Query("sort") sort: String,
+    ): BaseResponse<List<GetParentFoldersDTO>>
+
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
     @GET("folders/{parentFolderId}/subfolders")
     suspend fun getSubfolders(

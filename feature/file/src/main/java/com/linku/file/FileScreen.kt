@@ -87,7 +87,7 @@ fun FileScreen(
     // 한 번만 데이터 로딩 (최초 진입 시)
     LaunchedEffect(Unit) {
         Log.d("FileScreen", "LaunchedEffect")
-        fileViewModel.getParentfolders()
+        fileViewModel.loadParentFoldersBySavedSort()
         fileViewModel.loadNickname()
         fileViewModel.getCategoryColor()
         Log.d("FileScreen", "LaunchedEffect end")
@@ -106,6 +106,7 @@ fun FileScreen(
     val scope = rememberCoroutineScope()
     val categoryColorMap by fileViewModel.categoryColorMap.collectAsStateWithLifecycle()
     val parentFolders by fileViewModel.parentFolders.collectAsStateWithLifecycle()
+    val parentFolderSort by fileViewModel.parentFolderSort.collectAsStateWithLifecycle()
     val subFolders by fileViewModel.subFolders.collectAsStateWithLifecycle()
     val links by fileViewModel.links.collectAsStateWithLifecycle()
     val notCategorizationLinks by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
@@ -148,8 +149,9 @@ fun FileScreen(
         topBar = {
             FileTopBar(
                 fileViewModel = fileViewModel,
-                editStateViewModel = editStateViewModel,
                 folderStateViewModel = folderStateViewModel,
+                parentFolderSort = parentFolderSort,
+                onParentFolderSortSelected = fileViewModel::updateParentFolderSort,
                 onSearchClick = {
                     folderStateViewModel.updateSearchTopSheetVisible(true)
                     onSearchOpen()

@@ -1,3 +1,10 @@
 <resources>
+    <string name="parent_folder_sort_name_label">가나다 순</string>
+    <string name="parent_folder_sort_name_menu">가나다순</string>
+    <string name="parent_folder_sort_latest">최신순</string>
+    <string name="parent_folder_sort_menu_open">정렬 메뉴 열기</string>
+    <string name="parent_folder_sort_menu_close">정렬 메뉴 닫기</string>
+    <string name="parent_folder_sort_menu_expanded">펼쳐짐</string>
+    <string name="parent_folder_sort_menu_collapsed">접힘</string>
     <string name="share_link_create_failed">링크 공유에 실패하였습니다. 다시 시도해주세요.</string>
 </resources>

@@ -7,6 +7,8 @@ import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
 import com.linku.core.model.FolderPermissionInfo
 import com.linku.core.model.LinkItemInfo
+import com.linku.core.model.ParentFolderSort
+import kotlinx.coroutines.flow.Flow
 
 interface FolderRepository {
 
@@ -21,6 +23,26 @@ interface FolderRepository {
 
     // (중분류) 중분류 폴더 조회
     suspend fun getParentfolders(sort: String? = "name"): List<FolderSimpleInfo>
+
+    /** 기기에 저장된 상위 폴더 정렬 기준을 관찰합니다. */
+    val parentFolderSort: Flow<ParentFolderSort>
+
+    /**
+     * 지정한 정렬 기준을 `sort` 쿼리로 전달해 상위 폴더 목록을 조회합니다.
+     *
+     * @param sort 서버에 전달할 상위 폴더 정렬 기준입니다.
+     * @return 서버 정렬이 적용된 상위 폴더 목록입니다.
+     * @throws Exception 네트워크 요청이나 응답 변환에 실패한 경우 발생합니다.
+     */
+    suspend fun getParentFoldersBySort(sort: ParentFolderSort): List<FolderSimpleInfo>
+
+    /**
+     * 다음 화면 진입에도 유지할 상위 폴더 정렬 기준을 기기에 저장합니다.
+     *
+     * @param sort 저장할 상위 폴더 정렬 기준입니다.
+     * @throws Exception 기기 저장소 쓰기에 실패한 경우 발생합니다.
+     */
+    suspend fun setParentFolderSort(sort: ParentFolderSort)
 
     // (소분류) 하위 폴더 조회 (중분류 내부의 하위 폴더 조회)
     suspend fun getSubfolders(

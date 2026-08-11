@@ -8,11 +8,14 @@ import com.linku.core.model.FolderPermissionInfo
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
+import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
 import com.linku.core.repository.FolderRepository
 import com.linku.core.repository.InvitationRepository
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -260,6 +263,15 @@ class AcceptSharedFolderInvitationUseCaseTest {
         ): Boolean = unused()
 
         override suspend fun getParentfolders(sort: String?): List<FolderSimpleInfo> = unused()
+
+        override val parentFolderSort: Flow<ParentFolderSort> =
+            flowOf(ParentFolderSort.NAME)
+
+        override suspend fun getParentFoldersBySort(
+            sort: ParentFolderSort,
+        ): List<FolderSimpleInfo> = unused()
+
+        override suspend fun setParentFolderSort(sort: ParentFolderSort) = unused()
 
         override suspend fun getSubfolders(
             parentFolderId: Long,
