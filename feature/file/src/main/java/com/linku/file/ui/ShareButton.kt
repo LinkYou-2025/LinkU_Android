@@ -1,6 +1,4 @@
-// 공유 버튼 이미지 레이아웃
-
-package com.linku.file.ui.top.bar.component
+package com.linku.file.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +22,7 @@ import com.linku.file.R
 
 @Composable
 internal fun ShareButton(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.Companion
 ) {
     val colors = MaterialTheme.linkuColors
     // 내부 배치 레이아웃

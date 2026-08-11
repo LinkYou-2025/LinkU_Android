@@ -44,14 +44,13 @@ import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
-import com.linku.file.ui.bottom.sheet._ShareBottomSheet
 import com.linku.file.ui.content.CategoryGrid
 import com.linku.file.ui.content.ClassifiedLinksGrid
 import com.linku.file.ui.content.LoadingFoldersGrid
 import com.linku.file.ui.content.MyFoldersGrid
 import com.linku.file.ui.content.SharedUsersGrid
 import com.linku.file.ui.top.bar.FileTopBar
-import com.linku.file.ui.top.bar.component.ShareButton
+import com.linku.file.ui.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
