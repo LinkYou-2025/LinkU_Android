@@ -47,7 +47,10 @@ internal fun CurationKeywordCloud(
         constraintSet = constraints,
         modifier = modifier.fillMaxSize(),
     ) {
-        keywords.zip(chipLevels).forEachIndexed { index, (keyword, level) ->
+        val zipped = keywords.zip(chipLevels)
+        // chip9부터 역순으로 렌더링 -> chip1이 z-top에 오도록
+        zipped.indices.reversed().forEach { index ->
+            val (keyword, level) = zipped[index]
             // 람다를 매번 새로 만들면 modifier가 매번 "바뀐 것"으로 잡혀서 KeywordChip이 스킵되지 않음 -> remember로 고정
             val onClick = remember(index, keyword, onKeywordClick) {
                 { onKeywordClick(index, keyword) }
