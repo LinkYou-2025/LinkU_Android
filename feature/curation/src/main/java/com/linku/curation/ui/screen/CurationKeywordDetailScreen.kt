@@ -40,7 +40,7 @@ private val sampleKeywords = listOf(
  * @param nickname 상단 문구에 쓰일 사용자 닉네임
  * @param month 키워드 조회에 사용할 월 (`yyyy-MM` 형식). ViewModel이 SavedStateHandle로 수신
  * @param onBack 백버튼 클릭 콜백
- * @param onGoHome "링크 저장하러 가기" 버튼 클릭 시 호출. 홈 탭으로 이동
+ * @param onNavigateToSaveLink "링크 저장하러 가기" 버튼 클릭 시 호출. SaveLinkScreen으로 이동
  * @param onKeywordClick 키워드 칩 클릭 시 호출. 클릭된 키워드("#" 없이) 전달
  */
 @Composable
@@ -49,7 +49,7 @@ internal fun CurationKeywordDetailScreen(
     month: String,
     viewModel: CurationKeywordViewModel,
     onBack: () -> Unit = {},
-    onGoHome: () -> Unit = {},
+    onNavigateToSaveLink: () -> Unit = {},
     onKeywordClick: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -78,7 +78,7 @@ internal fun CurationKeywordDetailScreen(
             isLoading = state.isLoading,
             isError = state.isError,
             onBack = onBack,
-            onGoHome = onGoHome,
+            onNavigateToSaveLink = onNavigateToSaveLink,
             onKeywordClick = onKeywordClick,
         )
 
@@ -101,7 +101,7 @@ private fun CurationKeywordDetailContent(
     isLoading: Boolean = false,
     isError: Boolean = false,
     onBack: () -> Unit = {},
-    onGoHome: () -> Unit = {},
+    onNavigateToSaveLink: () -> Unit = {},
     onKeywordClick: (String) -> Unit = {},
 ) {
     val isEmpty = keywords.isEmpty()
@@ -157,7 +157,7 @@ private fun CurationKeywordDetailContent(
             BottomGradientButton(
                 text = "링크 저장하러 가기",
                 enabled = true,
-                onClick = onGoHome,
+                onClick = onNavigateToSaveLink,
             )
         }
     }

@@ -157,7 +157,7 @@ internal fun KeywordChip(
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.widthIn(max = 150.scaler)
+            modifier = Modifier.widthIn(max = 138.scaler)
         ) {
             if (hashTag.isNotEmpty()) {
                 // 해시태그 배치

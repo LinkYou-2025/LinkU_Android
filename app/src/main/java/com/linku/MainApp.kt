@@ -639,7 +639,8 @@ fun MainApp(
                 curationGraph(
                     navigator = navigator,
                     showNavBar = { showNavBar = it },
-                    nickname = nickname.orEmpty().ifBlank { "링큐" }
+                    nickname = nickname.orEmpty().ifBlank { "링큐" },
+                    onNavigateToSaveLink = { saveLinkEntryTriggered = true },
                 )
 
 

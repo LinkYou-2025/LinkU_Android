@@ -25,6 +25,7 @@ fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,
     showNavBar: (Boolean) -> Unit,
     nickname: String,
+    onNavigateToSaveLink: () -> Unit = {},
 ) {
     val goHome: () -> Unit = {
         navigator.navigate("home") {
@@ -89,7 +90,7 @@ fun NavGraphBuilder.curationGraph(
                 month = month,
                 viewModel = viewModel,
                 onBack = { navigator.popBackStack() },
-                onGoHome = goHome,
+                onNavigateToSaveLink = onNavigateToSaveLink,
                 onKeywordClick = { keyword ->
                     navigator.navigate("curation_keyword_links/${Uri.encode(keyword)}")
                 }
