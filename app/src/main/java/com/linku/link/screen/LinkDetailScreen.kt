@@ -71,6 +71,7 @@ import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.link.component.AIArticleModal
 import com.linku.link.component.DeleteLinkModal
 import com.linku.link.component.LinkCategoryOption
@@ -129,6 +130,7 @@ fun LinkDetailScreen(
     onClearAiArticleError: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
     val caller = getCaller()
 
     val clipboard = LocalClipboard.current
@@ -590,6 +592,7 @@ fun LinkDetailScreen(
                             textStyle = TextStyle(
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
+                                fontFamily = font,
                                 lineHeight = 20.sp,
                                 color = colors.black
                             ),
@@ -608,6 +611,7 @@ fun LinkDetailScreen(
                                             text = "메모를 입력해 주세요.",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Normal,
+                                            fontFamily = font,
                                             lineHeight = 20.sp,
                                             color = colors.gray[400]
                                         )
