@@ -100,14 +100,6 @@ class FolderStateViewModel : ViewModel() {
         bottomMenuExpanded = newState
     }
 
-    // 검색창 탑 시트 가시성 상태
-    var searchTopSheetVisible by mutableStateOf(false)
-        private set
-    fun updateSearchTopSheetVisible(newState: Boolean) {
-        Log.d("searchTopSheetVisible", newState.toString())
-        searchTopSheetVisible = newState
-    }
-
     // 중분류 폴더 수정 바텀 시트 가시성 상태
     var topFolderEditBottomSheetVisible by mutableStateOf(false)
         private set
@@ -161,7 +153,6 @@ class FolderStateViewModel : ViewModel() {
         selectedBottomSharedFolder = null
         topMenuExpanded = false
         bottomMenuExpanded = false
-        searchTopSheetVisible = false
         topFolderEditBottomSheetVisible = false
         newFolderBottomSheetVisible = false
         bottomFolderEditBottomSheetVisible = false

@@ -51,6 +51,7 @@ import com.linku.deeplink.openDeepLinkUriPattern
 import com.linku.deeplink.parseOpenDeepLinkToken
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -156,6 +157,7 @@ fun MainApp(
     val searchViewModel: SearchViewModel = hiltViewModel()
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val searchResults = searchViewModel.searchResults
+    val searchVisible by searchViewModel.visible.collectAsStateWithLifecycle()
 
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
@@ -338,6 +340,24 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
             hideSystemBars = edgeToEdgeSystemBars,
+            searchOverlay = {
+                // 검색 탑 시트 호출을 여기 한 곳으로 통일함. Home/File은 각자 데이터로 배선하지
+                // 않고 onSearchOpen()으로 열기만 요청하며, 실제 상태(visible/쿼리/결과)는
+                // searchViewModel(app 모듈)이 전담함.
+                SearchBarTopSheet(
+                    visible = searchVisible,
+                    onDismiss = searchViewModel::dismissSearch,
+                    onQueryChange = searchViewModel::search,
+                    onQueryDelete = searchViewModel::removeRecentQuery,
+                    onQueryClear = searchViewModel::clearRecentQueries,
+                    onLinkClick = { linkuId ->
+                        searchViewModel.dismissSearch()
+                        navigator.navigate("savelinkresult/$linkuId")
+                    },
+                    searchResults = searchResults,
+                    uiState = searchUiState,
+                )
+            },
         ) {
             NavHost(
                 navController = navigator,
@@ -586,13 +606,7 @@ fun MainApp(
 
                         HomeApp(
                             viewModel = homeViewModel,
-                            searchUiState = searchUiState,
-                            searchResults = searchResults,
-                            onSearchQueryChange = searchViewModel::search,
                             onSearchOpen = searchViewModel::openSearch,
-                            onSearchDismiss = searchViewModel::resetSearchResults,
-                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
-                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
@@ -624,13 +638,7 @@ fun MainApp(
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
                             },
-                            searchUiState = searchUiState,
-                            searchResults = searchResults,
-                            onSearchQueryChange = searchViewModel::search,
                             onSearchOpen = searchViewModel::openSearch,
-                            onSearchDismiss = searchViewModel::resetSearchResults,
-                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
-                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                         )
                     }
                 }

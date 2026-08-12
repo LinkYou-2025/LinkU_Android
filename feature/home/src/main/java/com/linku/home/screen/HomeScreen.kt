@@ -44,7 +44,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.paging.PagingData
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.itemContentType
@@ -55,16 +54,12 @@ import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import com.linku.design.top.search.SearchBarUiState
-import com.linku.design.top.search.SearchBarTopSheet
-import com.linku.design.top.search.SearchResultItem
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
 import com.linku.home.component.rememberClipboardUrl
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -85,13 +80,7 @@ fun HomeScreen(
     onLinkClick: (linkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
     onAlarmClick: () -> Unit,
-    searchUiState: SearchBarUiState,
-    searchResults: Flow<PagingData<SearchResultItem>>,
-    onSearchQueryChange: (String) -> Unit,
     onSearchOpen: () -> Unit,
-    onSearchDismiss: () -> Unit,
-    onSearchHistoryDelete: (Long) -> Unit,
-    onSearchHistoryClear: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -306,10 +295,7 @@ fun HomeScreen(
                     },
                     hasRequestedRecommend = hasRequestedRecommend,
                     onAlarmClick = onAlarmClick,
-                    onSearchClick = {
-                        homeViewModel.updateSearchTopSheetVisible(true)
-                        onSearchOpen()
-                    },
+                    onSearchClick = onSearchOpen,
                 )
             }
 
@@ -513,23 +499,6 @@ fun HomeScreen(
             )
         }
     }
-
-    // 검색창 탑 시트
-    SearchBarTopSheet(
-        visible = homeViewModel.searchTopSheetVisible,
-        onLinkClick = { onLinkClick(it) },
-        onDismiss = {
-            if (homeViewModel.searchTopSheetVisible) {
-                homeViewModel.updateSearchTopSheetVisible(false)
-                onSearchDismiss()
-            }
-        },
-        onQueryChange = onSearchQueryChange,
-        onQueryDelete = onSearchHistoryDelete,
-        onQueryClear = onSearchHistoryClear,
-        searchResults = searchResults,
-        uiState = searchUiState,
-    )
 }
 
 @Composable

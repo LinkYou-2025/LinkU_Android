@@ -30,15 +30,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.paging.PagingData
 import com.linku.core.error.SameNameException
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
-import com.linku.design.top.search.SearchBarUiState
-import com.linku.design.top.search.SearchBarTopSheet
-import com.linku.design.top.search.SearchResultItem
 import com.linku.design.util.LocalStatusBarDarkIcons
 import com.linku.file.ui.bottom.sheet.CategoryEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
@@ -55,8 +51,6 @@ import com.linku.file.ui.top.bar.component.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 /**
@@ -69,13 +63,7 @@ import kotlinx.coroutines.launch
  * @param editStateViewModel 폴더 편집 상태를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
  * @param onLinkClick 상세 화면을 열 링크의 ID를 전달하는 콜백
- * @param searchUiState 검색 기록과 검색 UI 상태
- * @param searchResults 검색 결과 페이징 데이터
- * @param onSearchQueryChange 검색어 변경 콜백
  * @param onSearchOpen 검색 UI가 열릴 때 호출되는 콜백
- * @param onSearchDismiss 검색 UI가 닫힐 때 호출되는 콜백
- * @param onSearchHistoryDelete 개별 검색 기록 삭제 콜백
- * @param onSearchHistoryClear 전체 검색 기록 삭제 콜백
  */
 @Composable
 fun FileScreen(
@@ -83,13 +71,7 @@ fun FileScreen(
     editStateViewModel:EditStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onLinkClick: (Long) -> Unit,
-    searchUiState: SearchBarUiState,
-    searchResults: Flow<PagingData<SearchResultItem>>,
-    onSearchQueryChange: (String) -> Unit,
     onSearchOpen: () -> Unit,
-    onSearchDismiss: () -> Unit,
-    onSearchHistoryDelete: (Long) -> Unit,
-    onSearchHistoryClear: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -171,10 +153,7 @@ fun FileScreen(
                 folderStateViewModel = folderStateViewModel,
                 parentFolderSort = parentFolderSort,
                 onParentFolderSortSelected = fileViewModel::updateParentFolderSort,
-                onSearchClick = {
-                    folderStateViewModel.updateSearchTopSheetVisible(true)
-                    onSearchOpen()
-                },
+                onSearchClick = onSearchOpen,
             )},
     ){ innerPadding ->
 
@@ -419,29 +398,6 @@ fun FileScreen(
     )
 
     // ---------- bottom sheets ----------
-
-    // 검색창 탑 시트
-    SearchBarTopSheet(
-        visible = folderStateViewModel.searchTopSheetVisible,
-        onLinkClick = { linkId ->
-            if (folderStateViewModel.searchTopSheetVisible) {
-                folderStateViewModel.updateSearchTopSheetVisible(false)
-                onSearchDismiss()
-            }
-            onLinkClick(linkId)
-        },
-        onDismiss = {
-            if (folderStateViewModel.searchTopSheetVisible) {
-                folderStateViewModel.updateSearchTopSheetVisible(false)
-                onSearchDismiss()
-            }
-        },
-        onQueryChange = onSearchQueryChange,
-        onQueryDelete = onSearchHistoryDelete,
-        onQueryClear = onSearchHistoryClear,
-        searchResults = searchResults,
-        uiState = searchUiState,
-    )
 }
 
 @Preview(
@@ -452,13 +408,7 @@ fun FileScreen(
 @Composable
 private fun PreviewFileScreen() {
     FileScreen(
-        searchUiState = SearchBarUiState(),
-        searchResults = flowOf(PagingData.empty<SearchResultItem>()),
         onLinkClick = {},
-        onSearchQueryChange = {},
         onSearchOpen = {},
-        onSearchDismiss = {},
-        onSearchHistoryDelete = {},
-        onSearchHistoryClear = {},
     )
 }
