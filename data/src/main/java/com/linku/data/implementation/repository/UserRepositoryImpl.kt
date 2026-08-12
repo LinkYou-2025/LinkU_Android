@@ -1,7 +1,6 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
-import com.linku.core.model.LoginResult
 import com.linku.core.model.Nickname
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
@@ -13,11 +12,9 @@ import com.linku.core.util.logging.d
 import com.linku.data.api.ServerApi
 import com.linku.data.api.dto.auth.login.RecoverUserRequestDTO
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
-import com.linku.data.api.dto.user.RecoverUserResponseDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
-import com.linku.data.mapper.toDomain
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
@@ -119,16 +116,6 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-
-//    // BaseResponse<UserInfoDTO> 반환 → withAuth
-//    override suspend fun getNickname(userId: Long): String? {
-//        return try {
-//            serverApi.getUserInfo().result.nickName?.takeIf { it.isNotBlank() }
-//        } catch (e: Exception) {
-//            null
-//        }
-//    }
-
     // 닉네임 조회
     override suspend fun getNickname(): Result<Nickname> {
         LinkuLog.d(TAG, "닉네임 api 호출 시도중")
@@ -161,6 +148,27 @@ class UserRepositoryImpl @Inject constructor(
             Log.e(TAG, "[로그아웃 실패] ${e.message}")
             Result.failure(e)
         }
+    }
+
+    override suspend fun updateMarketingTerms(): Result<Unit> {
+        return safeApiCallUnit { serverApi.updateMarketingTerms() }
+            .onSuccess {
+                LinkuLog.d(TAG, "[마케팅 업데이트 성공]")
+            }.onFailure {
+                LinkuLog.d(TAG, "[마케팅 업데이트 실패]")
+            }
+    }
+
+    override suspend fun checkMarketingTermsAgreed(): Result<Boolean> {
+        return safeApiCall { serverApi.checkTermsStatus() }
+            .map { dto ->
+                dto.termsStatus.marketing
+            }
+            .onSuccess {
+                LinkuLog.d(TAG, "약관 상태 조회 성공")
+            }.onFailure {
+                LinkuLog.d(TAG, "약관 상태 조회 실패")
+            }
     }
 
     companion object {

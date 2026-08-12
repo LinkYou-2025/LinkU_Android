@@ -42,8 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
@@ -62,7 +60,7 @@ private val quitReasons = listOf(
 
 @Composable
 fun ServiceQuitScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     onRequestQuit: (reason: String) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
@@ -109,7 +107,7 @@ fun ServiceQuitScreen(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .width(11.dp)
-                        .noRippleClickable { navController.popBackStack() }
+                        .noRippleClickable { onBackClick() }
                 )
 
                 Text(
@@ -361,11 +359,9 @@ fun ServiceQuitScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewServiceQuitScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         ServiceQuitScreen(
-            navController = navController,
+            onBackClick = {},
             onRequestQuit = { }
         )
     }

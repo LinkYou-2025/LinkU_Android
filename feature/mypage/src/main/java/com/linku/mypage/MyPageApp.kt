@@ -9,11 +9,18 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.linku.mypage.screen.AccountSettingScreen
+import com.linku.core.model.auth.Interest
+import com.linku.core.model.auth.LoginType
+import com.linku.core.model.auth.Purpose
+import com.linku.mypage.intent.EditUserInfoIntent
+import com.linku.mypage.intent.MarketingAgreeIntent
 import com.linku.mypage.screen.AILinkuListRoute
+import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
+import com.linku.mypage.screen.EditProfileScreen
 import com.linku.mypage.screen.FaqScreen
 import com.linku.mypage.screen.InterestSelectionScreen
 import com.linku.mypage.screen.MarketingAgreeScreen
@@ -44,10 +51,19 @@ fun MyPageApp(
     // 로그아웃/탈퇴 API 응답을 기다리는 동안(성공 전) 로그인 화면 전환 애니메이션이 시작되기도
     // 전에 안드로이드 시스템 바가 잠깐 보였다 사라지는 깜빡임을 없애기 위해, 버튼을 누른 즉시
     // (API 호출 전에) 몰입 모드로 먼저 전환함. 실패해서 계속 MyPage에 남으면 다시 false로 되돌림.
-    onImmersiveTransitionChange: (Boolean) -> Unit = {}
+    onImmersiveTransitionChange: (Boolean) -> Unit = {},
+    // 내부 NavHost의 현재 화면이 MyPageScreen("mypage")일 때만 true를 전달해
+    // 하단 네비게이션 바를 마이페이지 메인 화면에서만 보이게 함.
+    onShowNavBarChange: (Boolean) -> Unit = {}
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
+
+    val currentBackStackEntry by navController.currentBackStackEntryAsState()
+    LaunchedEffect(currentBackStackEntry) {
+        val route = currentBackStackEntry?.destination?.route
+        onShowNavBarChange(route == "myPage")
+    }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val session by viewModel.sessionState.collectAsStateWithLifecycle()
@@ -57,6 +73,12 @@ fun MyPageApp(
     // MyPageApp에서 만들어 주입한다.
     val notificationViewModel: NotificationViewModel = hiltViewModel()
 
+    // 마케팅 수신 동의 화면 진입 시 체감 대기시간을 없애기 위해
+    // 마이페이지 진입 시점부터 미리 상태를 조회해 두는 뷰모델.
+    // marketingAgree 라우트가 아닌 이 레벨에서 hiltViewModel()을 호출해
+    // 화면을 오가도 인스턴스와 조회 결과가 유지되게 한다.
+    val marketingViewModel: MarketingAgreeViewModel = hiltViewModel()
+
     // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
 
     // 로그인 시 발급받은 userId 를 보관하고 있다면 그 값을 사용
@@ -64,6 +86,7 @@ fun MyPageApp(
     LaunchedEffect(Unit) {
         viewModel.loadUserInfo()
         viewModel.checkUnreadAlarm()
+        marketingViewModel.sendIntent(MarketingAgreeIntent.InitialLoad)
     }
     //기존
 //    LaunchedEffect(Unit) {
@@ -74,20 +97,21 @@ fun MyPageApp(
 
     NavHost(
         navController = navController,
-        startDestination = "mypage"
+        startDestination = "myPage"
     ) {
-        composable("mypage") {
+        composable("myPage") {
 
             val user = uiState.userInfo
             val isUnreadAlarmExists = uiState.isUnreadAlarmExists
 
             MyPageScreen(
-                nickname = user?.nickname ?: "",
+                nickname = user?.nickname ?: uiState.cachedNickname ?: "",
                 email = user?.email ?: "",
                 isUnreadAlarmExists = isUnreadAlarmExists,
                 myLinku = user?.myLinku ?: 0L,
                 myFolder = user?.myFolder ?: 0L,
                 myAiLinku = user?.myAiLinku ?: 0L,
+                loginType = session.loginType,
                 onNavigateAccount = { navController.navigate("account") },
                 onNavigateAlarm = { onNavigateToAlarm() },
                 onNavigateAlarmSetting = { navController.navigate("alarmSetting") },
@@ -112,47 +136,12 @@ fun MyPageApp(
                 }
             )
         }
-//        composable("mypage") {
-//            ui.userInfo?.let { user ->
-//                MyPageScreen(
-//                    navController = navController,
-//                    nickname = user.nickname,
-//                    email = user.email,
-//                    gender = user.gender,
-//                    jobName = user.jobName,
-//                    myLinku = user.myLinku,
-//                    myFolder = user.myFolder,
-//                    myAiLinku = user.myAiLinku,
-//                    onNavigateAccount = { navController.navigate("account") },
-//                    onNavigateAlarm = { navController.navigate("alarm") },
-//                    onNavigateQuit = { navController.navigate("quit") },
-//                    onRequestLogout = {
-//                        viewModel.logout(
-//                            onSuccess = {
-//                                android.widget.Toast
-//                                    .makeText(context, "로그아웃 되었습니다.", android.widget.Toast.LENGTH_SHORT)
-//                                    .show()
-//
-//                                // 1) 내부 MyPageApp 스택 정리(선택)
-//                                navController.popBackStack(route = "mypage", inclusive = true)
-//                                // 2) 상위 네비게이터에 로그인 화면으로 이동 요청
-//                                onLogoutToLogin()
-//                            },
-//                            onError = { msg ->
-//                                android.widget.Toast
-//                                    .makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
-//                                    .show()
-//                            }
-//                        )
-//                    }
-//                )
-//            }
-//        }
+
         composable("account") {
             if (uiState.userInfo != null) {
                 AccountSettingScreen(
-                    navController = navController,
-                    isSocialLogin = session.isLoggedIn, // TODO: 세션에서 소셜 로그인 여부 가져오기(일단 지금은 로그인 여부로 대체)
+                    isSocialLogin = session.loginType == LoginType.KAKAO || session.loginType == LoginType.GOOGLE,
+                    onBackClick = { navController.popBackStack() },
                     onEditProfileClick = { navController.navigate("editProfile") },
                     onChangePasswordClick = { navController.navigate("changePassword") },
                     onCustomInfoSettingClick = { navController.navigate("customInfoSetting") }
@@ -162,163 +151,66 @@ fun MyPageApp(
                 // 아무것도 안 써두면 데이터가 올 때까지 잠깐 멈춰있다가 나타납니다.
             }
 
-//            nicknamePlaceholder = session.nickname ?: "",
-//            jobPlaceholder = session.jobName ?: "",
-//            initialPurposeTags = session.purposes.toSet(),
-//            initialContentTags = session.interests.toSet(),
-//            onSubmit = { nickname, jobId, jobName, purposes, interests ->
-//                viewModel.updateUserInfo(
-//                    nickname = nickname,
-//                    jobId = jobId,
-//                    jobName = jobName,
-//                    purposes = purposes,
-//                    interests = interests,
-//                    onSuccess = {
-//                        Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-//                        navController.popBackStack("mypage", inclusive = false)
-//                    },
-//                    onError = { msg ->
-//                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-//                    }
-//                )
-//            }
-//
-//            AccountSettingScreen(
-//                navController = navController,
-//                nicknamePlaceholder = session.nickname ?: "",
-//                jobPlaceholder = session.jobName ?: "",
-//                // 세션에서 바로 가져올 수 있음!  api 호출 줄임.
-//                initialPurposeTags = session.purposes.toSet(),    // 세션에서 가져옴
-//                initialContentTags = session.interests.toSet(),   // 세션에서 가져옴
-//                onSubmit = { nickname, jobId, jobName, purposes, interests ->
-//                    /**
-//                     * TODO: 지현이에게 전달
-//                     *
-//                     * [사용자 정보 수정 방법]
-//                     * 아래 함수 호출하면 자동으로:
-//                     * 1. 서버 API 호출 (DB 수정)
-//                     * 2. 로컬 세션 업데이트 (UI 즉시 반영)
-//                     *
-//                     *
-//                     * - nickname: 새 닉네임
-//                     * - jobId: 직업 ID (Long)
-//                     * - jobName: 직업 이름 (UI 표시용)
-//                     * - purposes: 사용 목적 리스트 (한글 그대로 전달)
-//                     *   ex) listOf("취업·커리어 준비", "학업/리포트 정리")
-//                     * - interests: 관심 콘텐츠 리스트 (한글 그대로 전달)
-//                     *   ex) listOf("IT/개발", "비즈니스/마케팅")
-//                     *
-//                     * jobName은 선택한 직업의 이름을 넘겨야 UI에 바로 반영
-//                     */
-//                    viewModel.updateUserInfo(
-//                        nickname = nickname,
-//                        jobId = jobId,
-//                        jobName = jobName,// 직업 이름.
-//                        purposes = purposes,
-//                        interests = interests,
-//                        onSuccess = {
-//                            Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-//                            navController.popBackStack("mypage", inclusive = false)
-//                        },
-//                        onError = { msg ->
-//                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-//                        }
-//                    )
-//                }
-//            )
         }
-//        composable("account") {
-//            ui.userInfo?.let { user ->
-//                AccountSettingScreen(
-//                    navController = navController,
-//                    nicknamePlaceholder = user.nickname,
-//                    jobPlaceholder = user.jobName,
-//                    initialPurposeTags = user.purposes.toSet(),
-//                    initialContentTags = user.interests.toSet(),
-//                    onSubmit = { nickname, jobId, purposes, interests ->
-//                        viewModel.updateUserInfo(
-//                            nickname = nickname,
-//                            jobId = jobId,
-//                            purposes = purposes,
-//                            interests = interests,
-//                            onSuccess = {
-//                                android.widget.Toast
-//                                    .makeText(context, "변경되었습니다.", android.widget.Toast.LENGTH_SHORT)
-//                                    .show()
-//                                // 최신 데이터는 loadUserInfo()에서 이미 갱신됨
-//                                // MyPageScreen 으로 복귀
-//                                navController.popBackStack("mypage", inclusive = false)
-//                            },
-//                            onError = { msg ->
-//                                android.widget.Toast
-//                                    .makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
-//                                    .show()
-//                            }
-//                        )
-//                    }
-//                )
-//            }
-//        }
 
-        // 소셜 로그인 파라미터 때문에 주석처리
-//        composable("editProfile") {
-//            if (session.nickname != null && session.email != null) {
-//                EditProfileScreen(
-//                    navController = navController,
+        composable("editProfile") {
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val editUiState by editViewModel.uiEditState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                editViewModel.loadUserInfo()
+            }
+
+            LaunchedEffect(editUiState.error) {
+                editUiState.error?.let { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            val user = editUiState.userInfo
+            if (user != null) {
+                EditProfileScreen(
+                    onBackClick = { navController.popBackStack() },
 //                    onPickProfileImage = {
 //                        // TODO: 이미지 picker 연결
 //                    },
 //                    onChangeProfileImage = {
 //                        // TODO: 프로필 이미지 변경 API 연결
 //                    },
-//                    onChangeNickname = { newNickname ->
-//                        viewModel.updateUserInfo(
-//                            nickname = newNickname,
-//                            jobId = session.jobId ?: 0L,
-//                            jobName = session.jobName ?: "",
-//                            purposes = session.purposes ?: emptyList(),
-//                            interests = session.interests ?: emptyList(),
-//                            onSuccess = {
-//                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-//                                navController.popBackStack()
-//                            },
-//                            onError = { msg ->
-//                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-//                            }
-//                        )
-//                    },
-//                    onChangeGender = { newGender ->
-//                        // TODO: 성별 변경 API 또는 updateUserInfo에 gender 포함해서 연결
-//                    },
-//                    onChangeJob = { newJob ->
-//                        viewModel.updateUserInfo(
-//                            nickname = session.nickname ?: "",
-//                            jobId = session.jobId ?: 0L,
-//                            jobName = newJob,
-//                            purposes = session.purposes ?: emptyList(),
-//                            interests = session.interests ?: emptyList(),
-//                            onSuccess = {
-//                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
-//                                navController.popBackStack()
-//                            },
-//                            onError = { msg ->
-//                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-//                            }
-//                        )
-//                    },
-//                    userNickname = session.nickname ?: "",
-//                    userJob = session.jobName ?: "",
-//                    userEmail = session.email ?: "",
-//                    userGender = session.gender ?: "",
-//                    userSocialLoginType = session.socialLoginType ?: ""
-//                )
-//            }
+                    onNicknameInputChanged = { input ->
+                        editViewModel.onNicknameChanged(input, originalNickname = user.nickname)
+                    },
+                    nicknameCheckState = editUiState.nicknameCheckState,
+                    onSubmit = { newNickname, newJobId ->
+                        editViewModel.onEditUserInfoIntent(
+                            EditUserInfoIntent.UpdateNickname(
+                                newNickname
+                            )
+                        )
+                        editViewModel.onEditUserInfoIntent(EditUserInfoIntent.UpdateJobId(newJobId))
+                        editViewModel.editUserInfo(
+                            onSuccess = {
+                                viewModel.loadUserInfo()
+                                Toast.makeText(context, "사용자 정보가 변경되었습니다.", Toast.LENGTH_SHORT)
+                                    .show()
+                                navController.popBackStack()
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    },
+                    userInfo = user,
+                    userSocialLoginType = session.loginType
+                )
+            }
+        }
 
         composable("changePassword") {
             val user = uiState.userInfo
             if (user != null) {
                 ChangePasswordScreen(
-                    navController = navController,
+                    onBackClick = { navController.popBackStack() },
                     userEmail = user.email,
                     onClickFinish = { newPassword ->
                         // TODO: 새로운 비밀번호 변경 API 연결
@@ -330,24 +222,88 @@ fun MyPageApp(
         }
 
         composable("customInfoSetting") {
-            PurposeSelectionScreen(
-                navController = navController,
-                onNextClick = {
-                    // TODO: 목적 저장 API 연결
-                    navController.navigate("customInfoInterest")
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val editUiState by editViewModel.uiEditState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                editViewModel.loadUserInfo()
+            }
+
+            LaunchedEffect(editUiState.error) {
+                editUiState.error?.let { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 }
-            )
+            }
+
+            val user = editUiState.userInfo
+            if (user != null) {
+                PurposeSelectionScreen(
+                    onBackClick = { navController.popBackStack() },
+                    initialSelected = user.purposes.mapNotNull { Purpose.fromDisplayName(it) }
+                        .toSet(),
+                    onNextClick = { selected ->
+                        val current =
+                            user.purposes.mapNotNull { Purpose.fromDisplayName(it) }.toSet()
+                        val diff = (current - selected) + (selected - current)
+                        diff.forEach {
+                            editViewModel.onEditUserInfoIntent(EditUserInfoIntent.UpdatePurpose(it))
+                        }
+                        editViewModel.editUserInfo(
+                            onSuccess = {
+                                viewModel.loadUserInfo()
+                                navController.navigate("customInfoInterest")
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                )
+            }
         }
 
         composable("customInfoInterest") {
-            InterestSelectionScreen(
-                navController = navController,
-                onFinishClick = {
-                    // TODO: 목적/관심사 저장 API 연결
-                    Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
-                    navController.popBackStack("customInfoSetting", inclusive = true)
+            val editViewModel: MyPageEditViewModel = hiltViewModel()
+            val editUiState by editViewModel.uiEditState.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                editViewModel.loadUserInfo()
+            }
+
+            LaunchedEffect(editUiState.error) {
+                editUiState.error?.let { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                 }
-            )
+            }
+
+            val user = editUiState.userInfo
+            if (user != null) {
+                InterestSelectionScreen(
+                    onBackClick = { navController.popBackStack() },
+                    initialSelected = user.interests.mapNotNull { Interest.fromDisplayName(it) }
+                        .toSet(),
+                    onFinishClick = { selected ->
+                        val current =
+                            user.interests.mapNotNull { Interest.fromDisplayName(it) }.toSet()
+                        val diff = (current - selected) + (selected - current)
+                        diff.forEach {
+                            editViewModel.onEditUserInfoIntent(EditUserInfoIntent.UpdateInterest(it))
+                        }
+                        editViewModel.editUserInfo(
+                            onSuccess = {
+                                viewModel.loadUserInfo()
+                                Toast.makeText(context, "맞춤정보가 저장되었습니다.", Toast.LENGTH_SHORT).show()
+                                // 맞춤정보 설정(목적) -> 맞춤정보 설정(관심사)으로 이어지는 별도 흐름이므로,
+                                // 시작 지점(account)까지 모두 정리하고 계정 설정 화면으로 복귀.
+                                navController.popBackStack("account", inclusive = false)
+                            },
+                            onError = { msg ->
+                                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
+                )
+            }
         }
 
 //        composable("alarm") {
@@ -356,14 +312,14 @@ fun MyPageApp(
 
         composable("alarmSetting") {
             AlarmSettingScreen(
-                navController = navController,
+                onBackClick = { navController.popBackStack() },
                 viewModel = notificationViewModel
             )
         }
 
         composable("quit") {
             ServiceQuitScreen(
-                navController = navController,
+                onBackClick = { navController.popBackStack() },
                 onRequestQuit = { reason ->
                     if (reason.isBlank()) {
                         android.widget.Toast
@@ -399,16 +355,16 @@ fun MyPageApp(
         }
 
         composable("faq") {
-            FaqScreen(navController = navController)
+            FaqScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable("notice") {
-            NoticeScreen(navController = navController)
+            NoticeScreen(onBackClick = { navController.popBackStack() })
         }
 
         composable("terms") {
             ServiceAgreeScreen(
-                navController = navController,
+                onBackClick = { navController.popBackStack() },
                 onMarketingAgreeClick = {
                     navController.navigate("marketingAgree")
                 }
@@ -416,8 +372,23 @@ fun MyPageApp(
         }
 
         composable("marketingAgree") {
+            val marketingState by marketingViewModel.state.collectAsStateWithLifecycle()
+
+            LaunchedEffect(Unit) {
+                marketingViewModel.sideEffect.collect { effect ->
+                    when (effect) {
+                        is MarketingAgreeSideEffect.ShowToast ->
+                            Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
             MarketingAgreeScreen(
-                navController = navController
+                onBackClick = { navController.popBackStack() },
+                isChecked = marketingState.isAgreed,
+                onToggleClick = {
+                    marketingViewModel.sendIntent(MarketingAgreeIntent.ToggleMarketingAgree)
+                },
             )
         }
 
