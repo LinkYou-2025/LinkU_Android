@@ -315,7 +315,11 @@ fun LinkDetailTopBar(
                                     if(isEditMode) {
                                         Modifier.border(
                                             width = 1.dp,
-                                            color = colors.blue[100],
+                                            color = if (isCategoryDropdownOpen) {
+                                                colors.white
+                                            } else {
+                                                colors.blue[100]
+                                            },
                                             shape = RoundedCornerShape(10.dp)
                                         )
                                     } else {
@@ -368,7 +372,15 @@ fun LinkDetailTopBar(
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
+                                        Modifier.border(
+                                            width = 1.dp,
+                                            color = if (isEmotionDropdownOpen) {
+                                                colors.white
+                                            } else {
+                                                colors.blue[100]
+                                            },
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
                                     } else {
                                         Modifier
                                     }
@@ -418,7 +430,15 @@ fun LinkDetailTopBar(
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
+                                        Modifier.border(
+                                            width = 1.dp,
+                                            color = if (isSituationDropdownOpen) {
+                                                colors.white
+                                            } else {
+                                                colors.blue[100]
+                                            },
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
                                     } else {
                                         Modifier
                                     }
