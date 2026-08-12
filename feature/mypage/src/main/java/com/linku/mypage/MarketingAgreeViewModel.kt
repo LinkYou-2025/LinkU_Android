@@ -56,10 +56,12 @@ class MarketingAgreeViewModel @Inject constructor(
 
         userRepository.checkMarketingTermsAgreed().fold(
             onSuccess = { isAgreed ->
-                _state.update { it.copy(isLoading = false, isAgreed = isAgreed) }
+                _state.update {
+                    it.copy(isLoading = false, isLoaded = true, isAgreed = isAgreed)
+                }
             },
             onFailure = { throwable ->
-                _state.update { it.copy(isLoading = false) }
+                _state.update { it.copy(isLoading = false, isLoaded = false) }
                 LinkuLog.e("MarketingAgreeViewModel", "마케팅 동의 상태 조회 실패", throwable)
                 _sideEffect.send(
                     MarketingAgreeSideEffect.ShowToast("마케팅 동의 상태를 불러오지 못했어요.")
@@ -69,6 +71,11 @@ class MarketingAgreeViewModel @Inject constructor(
     }
 
     private suspend fun toggleMarketingAgree() {
+        if (!_state.value.isLoaded) {
+            loadMarketingStatus()
+            if (!_state.value.isLoaded) return
+        }
+
         // 낙관적 업데이트 후 실패 시 롤백
         val previous = _state.value.isAgreed
         val toggled = !previous
@@ -93,6 +100,7 @@ class MarketingAgreeViewModel @Inject constructor(
 
 data class MarketingAgreeState(
     val isLoading: Boolean = false,
+    val isLoaded: Boolean = false,
     val isAgreed: Boolean = false,
 )
 

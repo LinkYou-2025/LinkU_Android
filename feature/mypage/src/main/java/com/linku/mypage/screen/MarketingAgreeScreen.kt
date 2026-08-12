@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -166,6 +168,11 @@ fun MarketingAgreeScreen(
                 .clip(RoundedCornerShape(22.dp))
                 .border(1.dp, colors.gray[200], RoundedCornerShape(22.dp))
                 .background(colors.white.copy(alpha = 0.9f))
+                .toggleable(
+                    value = isChecked,
+                    role = Role.Checkbox,
+                    onValueChange = { onToggleClick() }
+                )
                 .padding(horizontal = 20.dp, vertical = 18.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -185,9 +192,7 @@ fun MarketingAgreeScreen(
                     else R.drawable.ic_checkbox_empty_white
                 ),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(22.dp)
-                    .noRippleClickable { onToggleClick() }
+                modifier = Modifier.size(22.dp)
             )
         }
     }
