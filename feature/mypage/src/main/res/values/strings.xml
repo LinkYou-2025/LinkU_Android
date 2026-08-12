@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ai_linku_title">AI 요약 링크</string>
+    <string name="ai_linku_filter_all">전체</string>
+    <string name="ai_linku_filter_category">카테고리</string>
+    <string name="ai_linku_back_content_description">AI 요약 링크 목록에서 뒤로가기</string>
+    <string name="ai_linku_category_menu_content_description">카테고리 목록 열기</string>
+    <string name="ai_linku_thumbnail_content_description">%1$s 링크 미리보기 이미지</string>
+    <string name="ai_linku_domain_image_content_description">%1$s 도메인 아이콘</string>
+    <string name="ai_linku_loading">AI 요약 링크를 불러오는 중이에요.</string>
+    <string name="ai_linku_empty_title">아직 생성된 AI 요약 링크가 없어요.</string>
+    <string name="ai_linku_empty_description">링크를 저장하고 AI 요약을 생성해보세요.</string>
+    <string name="ai_linku_load_error">AI 요약 링크를 불러오지 못했어요.</string>
+    <string name="ai_linku_append_loading">다음 링크를 불러오는 중이에요.</string>
+    <string name="ai_linku_append_error">다음 링크를 불러오지 못했어요.</string>
+    <string name="ai_linku_retry">다시 시도</string>
+</resources>
