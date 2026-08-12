@@ -21,7 +21,6 @@ fun HomeApp(
     onNavigateToSetting: () -> Unit,
     onNavigateToSaveLink: (String) -> Unit,
     onNavigateToLinkDetail: (Long) -> Unit,
-    onNavigateToCuration: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     searchUiState: SearchBarUiState,
     searchResults: Flow<PagingData<SearchResultItem>>,

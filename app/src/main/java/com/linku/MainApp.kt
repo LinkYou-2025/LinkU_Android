@@ -187,7 +187,7 @@ fun MainApp(
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavigationRoute.Home.route ||
-            currentRoute == "curation_list"
+            currentRoute == NavigationRoute.Curation.route
         ) {
             viewModel.fetchNickname()
         }
@@ -604,9 +604,6 @@ fun MainApp(
                             },
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
-                            },
-                            onNavigateToCuration = {
-                                navigator.navigate("curation_card1")
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
