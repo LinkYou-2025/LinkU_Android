@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notice_screen_title">공지사항</string>
+    <string name="notice_back_content_description">공지사항에서 뒤로가기</string>
+    <string name="notice_category_system">시스템/공지</string>
+    <string name="notice_service_open_title">서비스 오픈 안내 🚀</string>
+    <string name="notice_service_open_content">안녕하세요, 링큐입니다.\n링큐가 드디어 첫걸음을 내디뎠어요.\n저장으로 끝나는 링크가 아니라, 필요한 순간 다시 만나는 콘텐츠.\n그것이 링큐가 만들고 싶은 경험입니다.\n링큐는 **사용자가 저장한 링크를 기반으로\n관심사와 감정, 그리고 지금의 상황에 맞는 콘텐츠를 다시 추천해주는 서비스**입니다.\n흩어져 있던 정보들이, 더 의미 있는 순간에 연결되도록 돕고자 해요.\n아직은 부족한 점도 있지만,\n더 똑똑하고 자연스러운 추천 경험을 제공하기 위해 꾸준히 발전해 나갈게요.\n사용하시면서 느낀 점이나 아쉬운 점이 있다면 언제든 들려주세요.\n**여러분의 의견 하나하나가 링큐를 더 좋은 서비스로 만들어갑니다.**\n앞으로도 계속 발전하는 링큐가 되겠습니다. 많은 관심과 응원 부탁드립니다.\n감사합니다.</string>
+    <string name="notice_privacy_policy_title">개인정보 처리방침 안내</string>
+    <string name="notice_privacy_policy_content">안녕하세요, 링큐입니다.\n링큐는 **「개인정보보호법」**에 따라\n회원님의 개인정보 수집 및 이용 내역을 투명하게 안내하고 있습니다.\n개인정보 처리방침은 아래 **확인 경로**를 통해 **언제든지 직접 확인하실 수 있어요.**\n\n**확인 경로**\n[마이페이지] → [서비스 약관] → [개인정보 처리방침]\n\n링큐는 회원님의 소중한 개인정보를 안전하게 보호하고,\n신뢰할 수 있는 서비스를 제공하기 위해 지속적으로 노력하겠습니다.\n감사합니다.</string>
+</resources>
