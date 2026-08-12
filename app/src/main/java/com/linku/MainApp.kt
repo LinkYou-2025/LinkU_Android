@@ -187,7 +187,7 @@ fun MainApp(
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavigationRoute.Home.route ||
-            currentRoute == "curation_list"
+            currentRoute == NavigationRoute.Curation.route
         ) {
             viewModel.fetchNickname()
         }
