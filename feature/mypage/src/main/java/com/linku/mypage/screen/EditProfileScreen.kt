@@ -158,7 +158,10 @@ fun EditProfileScreen(
 //        Spacer(modifier = Modifier.height(37.75.dp))
 
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
         ) {
             // 프로필 사진 -> api 부재로 앱 업데이트 이후 api 작업 나오는대로 작업할 예정.(현재 api 없음으로 주석처리함.)
 //            Box(
@@ -424,8 +427,6 @@ fun EditProfileScreen(
                 )
             }
         }
-
-        Spacer(modifier = Modifier.weight(1f))
 
         Box(
             modifier = Modifier

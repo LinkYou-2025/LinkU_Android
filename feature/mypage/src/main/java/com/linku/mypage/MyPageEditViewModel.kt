@@ -16,6 +16,7 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -67,7 +68,7 @@ class MyPageEditViewModel @Inject constructor(
                 .debounce(NICKNAME_DEBOUNCE_TIME)
                 .distinctUntilChanged()
                 .filter { it.isNotBlank() }
-                .collect { query -> checkNickname(query) }
+                .collectLatest { query -> checkNickname(query) }
         }
     }
 
@@ -118,32 +119,30 @@ class MyPageEditViewModel @Inject constructor(
         }
     }
 
-    private fun checkNickname(nickname: String) {
-        viewModelScope.launch {
-            _uiEditState.value =
-                _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Checking)
+    private suspend fun checkNickname(nickname: String) {
+        _uiEditState.value =
+            _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Checking)
 
-            authRepository.checkNickname(nickname).fold(
-                onSuccess = {
-                    _uiEditState.value =
-                        _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Available)
-                },
-                onFailure = { exception ->
-                    val appError: AppError = when (exception) {
-                        is AppError -> exception
-                        else -> ApiError.Unknown(
-                            exception.message ?: "알 수 없는 오류가 발생했습니다."
-                        )
-                    }
-                    val nextState = when (appError) {
-                        is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
-                        else -> NicknameCheckState.Error(appError.displayMessage)
-                    }
-                    _uiEditState.value = _uiEditState.value.copy(nicknameCheckState = nextState)
-                    Log.e("MyPageEditViewModel", "닉네임 중복 체크 실패", exception)
+        authRepository.checkNickname(nickname).fold(
+            onSuccess = {
+                _uiEditState.value =
+                    _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Available)
+            },
+            onFailure = { exception ->
+                val appError: AppError = when (exception) {
+                    is AppError -> exception
+                    else -> ApiError.Unknown(
+                        exception.message ?: "알 수 없는 오류가 발생했습니다."
+                    )
                 }
-            )
-        }
+                val nextState = when (appError) {
+                    is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
+                    else -> NicknameCheckState.Error(appError.displayMessage)
+                }
+                _uiEditState.value = _uiEditState.value.copy(nicknameCheckState = nextState)
+                Log.e("MyPageEditViewModel", "닉네임 중복 체크 실패", exception)
+            }
+        )
     }
 
     private fun resetEditUserInfo(info: UserInfo) {
