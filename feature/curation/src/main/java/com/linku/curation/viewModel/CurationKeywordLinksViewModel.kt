@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.repository.CurationRepository
+import com.linku.curation.viewModel.intent.CurationKeywordLinksIntent
 import com.linku.curation.viewModel.sideeffect.CurationKeywordLinksSideEffect
 import com.linku.curation.viewModel.state.CurationKeywordLinksState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,6 +31,18 @@ class CurationKeywordLinksViewModel @Inject constructor(
 
     init {
         loadLinksByKeyword(keyword = keyword)
+    }
+
+    fun handleIntent(intent: CurationKeywordLinksIntent) {
+        when (intent) {
+            is CurationKeywordLinksIntent.ClickLink -> navigateToLinkDetail(intent.linkId)
+        }
+    }
+
+    private fun navigateToLinkDetail(linkId: Long) {
+        viewModelScope.launch {
+            _sideEffect.send(CurationKeywordLinksSideEffect.NavigateToLinkDetail(linkId))
+        }
     }
 
     private fun loadLinksByKeyword(keyword: String) {
