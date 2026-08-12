@@ -158,9 +158,6 @@ fun MainApp(
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val searchResults = searchViewModel.searchResults
 
-    // 큐레이션 화면에서 사용할 뷰모델
-    val curationViewModel: CurationViewModel = hiltViewModel()
-
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
 
@@ -307,6 +304,10 @@ fun MainApp(
 
 
                     if (currentRoute == route) {
+                        if (item == LinkuNavigationItem.FILE) {
+                            // MainApp 범위 상태는 라우트 재생성 후에도 유지되므로 카테고리 루트로 되돌린다.
+                            folderStateViewModel.resetSharedFolderState()
+                        }
                         // 같은 탭 재선택: 내부 스택 리셋
                         navigator.navigate(route) {
                             // 해당 탭 루트까지 모두 제거하고
@@ -641,9 +642,9 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
-                    curationViewModel = curationViewModel,
                     showNavBar = { showNavBar = it },
-                    nickname = nickname.orEmpty().ifBlank { "링큐" }
+                    nickname = nickname.orEmpty().ifBlank { "링큐" },
+                    onNavigateToSaveLink = { saveLinkEntryTriggered = true },
                 )
 
 
@@ -697,6 +698,9 @@ fun MainApp(
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
+                            },
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
                             }
                         )
                     }

@@ -17,6 +17,7 @@ import com.linku.core.model.auth.Purpose
 import com.linku.mypage.intent.EditUserInfoIntent
 import com.linku.mypage.intent.MarketingAgreeIntent
 import com.linku.mypage.screen.AccountSettingScreen
+import com.linku.mypage.screen.AILinkuListRoute
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
 import com.linku.mypage.screen.EditProfileScreen
@@ -29,11 +30,24 @@ import com.linku.mypage.screen.PurposeSelectionScreen
 import com.linku.mypage.screen.ServiceAgreeScreen
 import com.linku.mypage.screen.ServiceQuitScreen
 
+/**
+ * 마이페이지와 하위 설정 화면의 내부 내비게이션 그래프를 구성합니다.
+ *
+ * 링크 상세 화면은 앱 루트 그래프가 소유하므로 AI 요약 링크 선택은
+ * [onNavigateToLinkDetail]을 통해 상위 내비게이터에 위임합니다.
+ *
+ * @param viewModel 마이페이지 사용자 정보와 세션 상태를 제공하는 ViewModel
+ * @param onLogoutToLogin 로그아웃 또는 탈퇴 완료 후 로그인 화면으로 이동하는 콜백
+ * @param onNavigateToAlarm 앱 루트의 알림 화면으로 이동하는 콜백
+ * @param onNavigateToLinkDetail 선택한 링크 ID를 앱 루트 상세 화면으로 전달하는 콜백
+ * @param onImmersiveTransitionChange 로그아웃 전환 중 시스템 바 몰입 상태를 변경하는 콜백
+ */
 @Composable
 fun MyPageApp(
     viewModel: MyPageViewModel,
     onLogoutToLogin: () -> Unit,
     onNavigateToAlarm: () -> Unit,
+    onNavigateToLinkDetail: (Long) -> Unit,
     // 로그아웃/탈퇴 API 응답을 기다리는 동안(성공 전) 로그인 화면 전환 애니메이션이 시작되기도
     // 전에 안드로이드 시스템 바가 잠깐 보였다 사라지는 깜빡임을 없애기 위해, 버튼을 누른 즉시
     // (API 호출 전에) 몰입 모드로 먼저 전환함. 실패해서 계속 MyPage에 남으면 다시 false로 되돌림.
@@ -378,12 +392,12 @@ fun MyPageApp(
             )
         }
 
-        // AI 링크 요약 화면은 세션 정보에 링크 리스트가 나오기 전까지 보류
-//        composable ("aisummary") {
-//            AILinkuListScreen(
-//                onBackClick = { navController.popBackStack() },
-//                initialLinks =
-//            )
-//        }
+        // AI 요약 링크 목록은 전용 ViewModel이 전체/카테고리별 Paging 요청을 관리합니다.
+        composable("aisummary") {
+            AILinkuListRoute(
+                navController = navController,
+                onNavigateToLinkDetail = onNavigateToLinkDetail,
+            )
+        }
     }
 }

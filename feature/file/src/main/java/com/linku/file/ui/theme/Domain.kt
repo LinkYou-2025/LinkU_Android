@@ -37,23 +37,33 @@ val domainLogoMap: Map<String, Int> = mapOf(
     "x.com"              to R.drawable.domain_x_logo,
 )
 
-// URL 또는 host 문자열에서 host 추출
-private fun extractHost(urlOrHost: String): String? {
-    if (!urlOrHost.contains("://")) {
-        val cleaned = urlOrHost.trim().lowercase()
-        return if (cleaned.contains('.')) cleaned else null
+/**
+ * URL 또는 호스트 문자열에서 경로와 쿼리를 제외한 소문자 호스트를 추출합니다.
+ *
+ * 스킴이 없는 URL도 일관되게 파싱할 수 있도록 HTTPS URL로 정규화합니다.
+ *
+ * @param urlOrHost 전체 URL 또는 호스트 문자열입니다.
+ * @return 추출한 호스트이며, 입력이 비어 있거나 올바르게 파싱되지 않으면 `null`입니다.
+ */
+internal fun extractDomainHost(urlOrHost: String): String? {
+    val trimmed = urlOrHost.trim()
+    if (trimmed.isEmpty()) return null
+
+    val normalized = when {
+        trimmed.startsWith("//") -> "https:$trimmed"
+        trimmed.contains("://") -> trimmed
+        else -> "https://$trimmed"
     }
-    return try {
-        URI(urlOrHost).host?.lowercase()
-    } catch (_: Exception) {
-        null
-    }
+
+    return runCatching { URI(normalized).host?.lowercase() }
+        .getOrNull()
+        ?.takeIf { it.isNotBlank() }
 }
 
 // URL → Painter 변환 함수
 @Composable
 fun domainLogoPainterOrNull(urlOrHost: String): Painter? {
-    val host = extractHost(urlOrHost) ?: return null
+    val host = extractDomainHost(urlOrHost) ?: return null
 
     // 1) 정확 매칭
     domainLogoMap[host]?.let {

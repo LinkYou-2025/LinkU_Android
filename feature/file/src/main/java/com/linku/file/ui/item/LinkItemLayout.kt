@@ -60,8 +60,10 @@ import coil3.request.fallback
 import coil3.request.placeholder
 import com.linku.core.model.LinkItemInfo
 import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.file.R
 import com.linku.file.ui.theme.domainLogoPainterOrNull
+import com.linku.file.ui.theme.extractDomainHost
 
 /**
  * 링크 정보를 카드 형태로 표시합니다.
@@ -91,11 +93,17 @@ fun LinkItemLayout(
     /** 카드 배경, 텍스트, placeholder 색상을 가져오기 위한 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
 
+    /** 태그 텍스트에 적용할 LinkU 테마 폰트입니다. */
+    val font = MaterialTheme.linkuFont.font
+
     /** 링크가 없을 때는 태그 영역을 비워 placeholder 카드로 사용할 수 있게 합니다. */
     val tags = link?.tags ?: emptyList()
 
-    /** 링크 URL에서 도메인을 추출해 로컬 도메인 로고 painter를 찾습니다. */
-    val domainIcon = link?.let { domainLogoPainterOrNull(it.url) }
+    /** 링크 URL에서 하단에 표시할 도메인을 추출합니다. */
+    val domain = link?.url?.let(::extractDomainHost)
+
+    /** 추출한 도메인에 대응하는 로컬 도메인 로고 painter를 찾습니다. */
+    val domainIcon = domain?.let { domainLogoPainterOrNull(it) }
 
     /** 실제 링크 카드와 링크 추가용 placeholder 카드를 구분하는 플래그입니다. */
     val isNotAdder = link != null
@@ -191,6 +199,7 @@ fun LinkItemLayout(
                             .padding(horizontal = s(1.dp), vertical = s(2.dp)),
                         text = tag,
                         fontSize = ssp(12.sp),
+                        fontFamily = font,
                         fontWeight = FontWeight.Normal,
                         color = colors.gray[600],
                         textAlign = TextAlign.Center,
@@ -240,14 +249,18 @@ fun LinkItemLayout(
                     }
                 }
 
+                /** 빈 링크 카드에서는 제목, 태그, 도메인 영역을 구성하지 않습니다. */
+                if (!isNotAdder) return@Column
+
                 /** 썸네일과 제목 사이의 디자인 기준 간격입니다. */
                 Spacer(modifier = Modifier.height(s(10.dp)))
 
                 /** 링크 제목입니다. 긴 제목은 카드 너비 안에서 말줄임 처리합니다. */
                 Text(
                     modifier = Modifier.fillMaxWidth(),
-                    text = link?.title ?: "제목",
+                    text = link.title,
                     fontSize = ssp(15.sp),
+                    lineHeight = ssp(15.sp),
                     fontWeight = FontWeight(500),
                     color = colors.black,
                     maxLines = 1,
@@ -298,11 +311,12 @@ fun LinkItemLayout(
                         }
                     }
 
-                    /** 링크 URL 또는 placeholder 도메인 텍스트입니다. 긴 URL은 말줄임 처리합니다. */
+                    /** 추출한 도메인 또는 placeholder 텍스트입니다. 긴 도메인은 말줄임 처리합니다. */
                     Text(
                         modifier = Modifier.weight(1f),
-                        text = link?.url ?: "도메인",
+                        text = domain ?: "도메인",
                         fontSize = ssp(12.sp),
+                        lineHeight = ssp(12.sp),
                         fontWeight = FontWeight.Bold,
                         color = colors.gray[800],
                         maxLines = 1,
