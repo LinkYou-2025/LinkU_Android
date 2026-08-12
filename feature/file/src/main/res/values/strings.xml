@@ -7,4 +7,27 @@
     <string name="parent_folder_sort_menu_expanded">펼쳐짐</string>
     <string name="parent_folder_sort_menu_collapsed">접힘</string>
     <string name="share_link_create_failed">링크 공유에 실패하였습니다. 다시 시도해주세요.</string>
+    <string name="share_bottom_sheet_copy_completed">링크 복사 완료!</string>
+    <string name="share_bottom_sheet_generation_failed">공유 링크 생성 실패, 다시 시도해주세요!</string>
+    <string name="share_bottom_sheet_chooser_title">링크 공유하기</string>
+    <string name="share_bottom_sheet_clipboard_label">공유 링크</string>
+    <string name="share_bottom_sheet_title">폴더 공유하기</string>
+    <string name="share_bottom_sheet_folder_name">폴더 이름</string>
+    <string name="share_bottom_sheet_select_title">폴더 선택하기</string>
+    <string name="share_bottom_sheet_folder_background_description">폴더 배경</string>
+    <string name="share_bottom_sheet_folder_front_description">폴더 앞면</string>
+    <string name="share_bottom_sheet_folder_placeholder">공유하실 폴더를 선택해주세요</string>
+    <string name="share_bottom_sheet_no_shareable_folder">공유 가능한 폴더가 존재하지 않습니다.</string>
+    <string name="share_bottom_sheet_folder_load_failed">폴더를 불러오지 못했습니다. 다시 시도해주세요.</string>
+    <string name="share_bottom_sheet_open_selection_description">공유 폴더 선택 열기</string>
+    <string name="share_bottom_sheet_generate_link">공유 링크 생성</string>
+    <string name="share_bottom_sheet_copy_icon_description">링크 복사 아이콘</string>
+    <string name="share_bottom_sheet_copy_link">링크 복사</string>
+    <string name="share_bottom_sheet_share_icon_description">링크 공유 아이콘</string>
+    <string name="share_bottom_sheet_share_link">링크 공유</string>
+    <string name="share_bottom_sheet_folder_selection_description">폴더 선택 상태</string>
+    <string name="share_bottom_sheet_selected_folder">선택한 폴더</string>
+    <string name="share_bottom_sheet_remove_selection_description">선택한 폴더 제거</string>
+    <string name="share_bottom_sheet_cancel">취소</string>
+    <string name="share_bottom_sheet_apply">적용</string>
 </resources>

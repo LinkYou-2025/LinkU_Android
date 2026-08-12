@@ -176,6 +176,12 @@ class FileViewModel @Inject constructor(
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
 
+    /** 새 공유 바텀시트 조회가 시작될 때 이전 폴더 트리 응답이 상태를 덮지 않도록 추적합니다. */
+    private var folderTreeLoadJob: Job? = null
+
+    /** 새 링크 생성 요청이 시작될 때 이전 결과가 현재 바텀시트 상태를 덮지 않도록 추적합니다. */
+    private var invitationLinkCreateJob: Job? = null
+
     /** 진행 중인 상위 폴더 정렬 조회 작업입니다. */
     private var parentFoldersLoadJob: Job? = null
 
@@ -762,30 +768,44 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "getSharedBottomFolders return")
     }
 
-    // 폴더 트리 조회
-    fun getFolderTree(){
+    /**
+     * 공유 바텀시트에 표시할 내 폴더 트리를 갱신합니다.
+     *
+     * 조회 진행·실패 상태는 이 요청을 시작한 바텀시트가 표시하므로 파일 화면 전체의 로딩·오류
+     * 상태는 변경하지 않습니다. 요청 생명주기만 [viewModelScope]이 소유합니다.
+     *
+     * @param onSuccess 폴더 트리 갱신이 완료되었을 때 결과와 함께 호출되는 콜백입니다.
+     * @param onFailure 폴더 트리 조회가 실패했을 때 원인과 함께 호출되는 콜백입니다.
+     */
+    fun getFolderTree(
+        onSuccess: (List<FolderSimpleInfo>) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
         Log.d("FileViewModel", "getFolderTree")
 
-        viewModelScope.launch {
+        folderTreeLoadJob?.cancel()
+        val request = viewModelScope.launch {
             Log.d("FileViewModel", "getFolderTree launch")
-
-            startLoading()
-            _errorMessage.value = null
 
             try {
                 Log.d("FileViewModel", "getFolderTree try")
 
-                _folderTree.value = folderRepository.getMyFolderTree()
+                val loadedFolderTree = folderRepository.getMyFolderTree()
+                _folderTree.value = loadedFolderTree
+                onSuccess(loadedFolderTree)
 
                 Log.d("FileViewModel", "getFolderTree try result: ${folderTree.value}")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.d("FileViewModel", "getFolderTree catch: $e.message")
-
-                _errorMessage.value = e.message
-            } finally {
-                Log.d("FileViewModel", "getFolderTree finally")
-
-                stopLoading()
+                onFailure(e)
+            }
+        }
+        folderTreeLoadJob = request
+        request.invokeOnCompletion {
+            if (folderTreeLoadJob === request) {
+                folderTreeLoadJob = null
             }
         }
         Log.d("FileViewModel", "getFolderTree return")
@@ -1308,6 +1328,9 @@ class FileViewModel @Inject constructor(
     /**
      * 지정한 폴더의 초대 토큰을 발급받아 공유 가능한 HTTPS 초대 링크를 비동기로 생성합니다.
      *
+     * 링크 생성 진행·실패 상태는 이 요청을 시작한 공유 바텀시트가 표시하므로 파일 화면 전체의
+     * 로딩·오류 상태는 변경하지 않습니다. 요청 생명주기만 [viewModelScope]이 소유합니다.
+     *
      * @param folderId 초대 링크를 생성할 폴더 ID입니다.
      * @param onSuccess 완성된 HTTPS 초대 링크와 함께 호출되는 콜백입니다.
      * @param onFailure 토큰 발급 또는 링크 정규화에 실패했을 때 원인과 함께 호출되는 콜백입니다.
@@ -1319,11 +1342,9 @@ class FileViewModel @Inject constructor(
     ) {
         Log.d("FileViewModel", "createInvitationLink")
 
-        viewModelScope.launch {
+        invitationLinkCreateJob?.cancel()
+        val request = viewModelScope.launch {
             Log.d("FileViewModel", "createInvitationLink launch")
-
-            startLoading()
-            _errorMessage.value = null
 
             try {
                 val link = buildInvitationLink(folderRepository.makeInvitationLink(folderId))
@@ -1334,10 +1355,13 @@ class FileViewModel @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 Log.e("FileViewModel", "createInvitationLink catch: $e")
-                _errorMessage.value = e.message
                 onFailure(e)
-            } finally {
-                stopLoading()
+            }
+        }
+        invitationLinkCreateJob = request
+        request.invokeOnCompletion {
+            if (invitationLinkCreateJob === request) {
+                invitationLinkCreateJob = null
             }
         }
     }

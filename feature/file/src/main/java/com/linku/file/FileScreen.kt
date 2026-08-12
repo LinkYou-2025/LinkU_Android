@@ -40,11 +40,11 @@ import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.design.top.search.SearchResultItem
 import com.linku.design.util.LocalStatusBarDarkIcons
-import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
+import com.linku.file.ui.bottom.sheet.CategoryEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
-import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
-import com.linku.file.ui.bottom.sheet.TopFolderEditBottomSheet
-import com.linku.file.ui.bottom.sheet._ShareBottomSheet
+import com.linku.file.ui.bottom.sheet.MyFolderEditBottomSheet
+import com.linku.file.ui.bottom.sheet.NewMyFolderBottomSheet
+import com.linku.file.ui.bottom.sheet.ShareBottomSheet
 import com.linku.file.ui.content.CategoryGrid
 import com.linku.file.ui.content.ClassifiedLinksGrid
 import com.linku.file.ui.content.LoadingFoldersGrid
@@ -344,13 +344,13 @@ fun FileScreen(
     // ---------- bottom sheets ----------
 
     // 중분류 폴더 수정 바텀 시트
-    TopFolderEditBottomSheet(
+    CategoryEditBottomSheet(
         folderStateViewModel = folderStateViewModel,
         fileViewModel = fileViewModel
     )
 
     // 소분류 폴더 추가하기 바텀 시트
-    NewBottomFolderBottomSheet(
+    NewMyFolderBottomSheet(
         onTextDeliver = {
             val d = fileViewModel.createSubfolder(folderStateViewModel.selectedTopFolder!!.folderId,it)
 
@@ -370,7 +370,7 @@ fun FileScreen(
     )
 
     // 소분류 폴더 수정 바텀 시트
-    BottomFolderEditBottomSheet(
+    MyFolderEditBottomSheet(
         onTextDeliver = {
             val d = fileViewModel.updateSubfolder(
                 folderStateViewModel.readyToUpdateBottomFolder!!.folderId,
@@ -407,7 +407,7 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    /*_ShareBottomSheet(
+    ShareBottomSheet(
         modifier = Modifier.fillMaxWidth(),
         visible = folderStateViewModel.shareBottomSheetVisible,
         folderTree = folderTree,
@@ -415,8 +415,8 @@ fun FileScreen(
         onDismissRequest = {
             folderStateViewModel.updateShareBottomSheetVisible(false)
         },
-        onLinkGenerate = fileViewModel::shareFolder
-    )*/
+        onLinkGenerate = fileViewModel::createInvitationLink,
+    )
 
     // ---------- bottom sheets ----------
 

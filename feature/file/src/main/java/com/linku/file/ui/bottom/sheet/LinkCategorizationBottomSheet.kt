@@ -52,14 +52,18 @@ import com.linku.file.ui.theme.domainLogoPainterOrNull
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import kotlinx.coroutines.launch
 
+/**
+ * 현재 폴더에 추가할 미분류 링크를 선택하고 순차적으로 분류하는 바텀시트입니다.
+ *
+ * 선택 상태와 분류 작업은 이 기능 진입점이 소유하며, 공통 셸에는 버튼 활성화 여부와
+ * 확인·dismiss 콜백만 전달합니다.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LinkCategorizationBottomSheet(
+internal fun LinkCategorizationBottomSheet(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
 ) {
-    val colors = MaterialTheme.linkuColors
-
     val links by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
 
     //var link by remember { mutableStateOf<LinkItemInfo?>(null) }
@@ -90,130 +94,150 @@ fun LinkCategorizationBottomSheet(
         },
         onDismiss = { folderStateViewModel.updateLinkCategorizationBottomSheetVisible(false) }
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 210.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            items(links) {
-                val link = it
-                val title = it.title
-                val url = it.url
-                val icon = domainLogoPainterOrNull(it.url)?:painterResource(R.drawable.link_categorization_default)
-                val img = painterResource(R.drawable.link_categorization_default)//it.img
+        LinkCategorizationLinkList(
+            links = links,
+            selectedLinks = selectedLinks,
+        )
+    }
+}
 
-                var checked by remember { mutableStateOf(false)}
-                Row(
-                    modifier = Modifier
-                        .height(60.dp)
-                        .offset(x = (-20).dp)
-                        .noRippleClickable{
-                            if(checked){
-                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.remove(link)
-                                checked = selectedLinks.contains(link)
-                            } else {
-                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.add(link)
-                                checked = selectedLinks.contains(link)
-                            }
-                        },
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = checked,
-                        onCheckedChange = {
-                            if(checked){
-                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.remove(link)
-                                checked = selectedLinks.contains(link)
-                            } else {
-                                Log.d("LinkCategorizationBottomSheet", "checked: $it")
-                                selectedLinks.add(link)
-                                checked = selectedLinks.contains(link)
-                            }
-                        },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = colors.purple[200],
-                            uncheckedColor = colors.gray[200],
-                        )
-                    )
+@Composable
+private fun LinkCategorizationLinkList(
+    links: List<LinkItemInfo>,
+    selectedLinks: MutableList<LinkItemInfo>,
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(max = 210.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items(links) { link ->
+            LinkCategorizationLinkItem(
+                link = link,
+                selectedLinks = selectedLinks,
+            )
+        }
+    }
+}
 
-                    Box(
-                        modifier = Modifier
-                            //.height(60.dp)
-                            .background(
-                                color = colors.gray[100],
-                                shape = RoundedCornerShape(18.dp)
-                                )
-                            /*.clip(RoundedCornerShape(18.dp))*/,
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            modifier = Modifier
-                                .fillMaxHeight(),
-                            painter = img,
-                            contentDescription = null
-                        )
-                    }
+@Composable
+private fun LinkCategorizationLinkItem(
+    link: LinkItemInfo,
+    selectedLinks: MutableList<LinkItemInfo>,
+) {
+    val colors = MaterialTheme.linkuColors
+    val title = link.title
+    val url = link.url
+    val icon = domainLogoPainterOrNull(link.url)
+        ?: painterResource(R.drawable.link_categorization_default)
+    val img = painterResource(R.drawable.link_categorization_default) // link.img
 
+    var checked by remember { mutableStateOf(false) }
 
-                    Column(
-                        modifier = Modifier.fillMaxHeight(),
-                        //verticalArrangement = Arrangement.SpaceBetween
-
-                    ) {
-                        // 링크 상단 패딩
-                        Spacer(modifier = Modifier.height(7.dp))
-
-                        Text(
-                            text = title,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight(500),
-                            color = colors.black,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .clip(CircleShape)
-                                    .background(colors.gray[100]),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Image(
-                                    modifier = Modifier
-                                        .size(22.dp)
-                                        .clip(CircleShape),
-                                    painter = icon,
-                                    contentDescription = null
-                                )
-                            }
-
-                            Text(
-                                text = url,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight(400),
-                                color = colors.gray[800],
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                        // 링크 하단 패딩
-                        Spacer(modifier = Modifier.height(7.dp))
-                    }
-
+    Row(
+        modifier = Modifier
+            .height(60.dp)
+            .offset(x = (-20).dp)
+            .noRippleClickable {
+                if (checked) {
+                    Log.d("LinkCategorizationBottomSheet", "checked: $link")
+                    selectedLinks.remove(link)
+                    checked = selectedLinks.contains(link)
+                } else {
+                    Log.d("LinkCategorizationBottomSheet", "checked: $link")
+                    selectedLinks.add(link)
+                    checked = selectedLinks.contains(link)
                 }
+            },
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Checkbox(
+            checked = checked,
+            onCheckedChange = { newChecked ->
+                if (checked) {
+                    Log.d("LinkCategorizationBottomSheet", "checked: $newChecked")
+                    selectedLinks.remove(link)
+                    checked = selectedLinks.contains(link)
+                } else {
+                    Log.d("LinkCategorizationBottomSheet", "checked: $newChecked")
+                    selectedLinks.add(link)
+                    checked = selectedLinks.contains(link)
+                }
+            },
+            colors = CheckboxDefaults.colors(
+                checkedColor = colors.purple[200],
+                uncheckedColor = colors.gray[200],
+            ),
+        )
+
+        Box(
+            modifier = Modifier
+                //.height(60.dp)
+                .background(
+                    color = colors.gray[100],
+                    shape = RoundedCornerShape(18.dp),
+                )
+                /*.clip(RoundedCornerShape(18.dp))*/,
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                modifier = Modifier.fillMaxHeight(),
+                painter = img,
+                contentDescription = null,
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxHeight(),
+            //verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            // 링크 상단 패딩
+            Spacer(modifier = Modifier.height(7.dp))
+
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight(500),
+                color = colors.black,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .clip(CircleShape)
+                        .background(colors.gray[100]),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(CircleShape),
+                        painter = icon,
+                        contentDescription = null,
+                    )
+                }
+
+                Text(
+                    text = url,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight(400),
+                    color = colors.gray[800],
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
+            // 링크 하단 패딩
+            Spacer(modifier = Modifier.height(7.dp))
         }
     }
 }

@@ -5,9 +5,17 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
+private const val FOLDER_NAME_MAX_LENGTH = 10
+
+/**
+ * 선택한 내 폴더의 이름을 변경하는 바텀시트 진입점입니다.
+ *
+ * 이름 변경 작업 자체는 [onTextDeliver]에 위임하고, 표시 상태와 dismiss는
+ * [FolderStateViewModel]의 내 폴더 수정 상태에 연결합니다.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomFolderEditBottomSheet(
+internal fun MyFolderEditBottomSheet(
     onTextDeliver: (String) -> Unit,
     folderStateViewModel: FolderStateViewModel
 ){
@@ -19,7 +27,8 @@ fun BottomFolderEditBottomSheet(
         sheetState = rememberModalBottomSheetState(
             skipPartiallyExpanded = true
         ),
-        onTextDeliver = { onTextDeliver(it) },
+        maxTextLength = FOLDER_NAME_MAX_LENGTH,
+        onTextDeliver = onTextDeliver,
         onDismiss = { folderStateViewModel.updateBottomFolderEditBottomSheetVisible(false) }
     )
 }
