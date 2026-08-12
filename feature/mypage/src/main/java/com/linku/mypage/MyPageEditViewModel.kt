@@ -89,8 +89,10 @@ class MyPageEditViewModel @Inject constructor(
                     resetEditUserInfo(info)
                 },
                 onFailure = { e ->
-                    val appError = e as? AppError
-                        ?: ApiError.Unknown(e.message ?: "알 수 없는 오류가 발생했습니다.")
+                    val appError: AppError = when (e) {
+                        is AppError -> e
+                        else -> ApiError.Unknown(e.message ?: "알 수 없는 오류가 발생했습니다.")
+                    }
                     _uiEditState.value =
                         _uiEditState.value.copy(
                             isLoading = false,
@@ -127,8 +129,12 @@ class MyPageEditViewModel @Inject constructor(
                         _uiEditState.value.copy(nicknameCheckState = NicknameCheckState.Available)
                 },
                 onFailure = { exception ->
-                    val appError = exception as? AppError
-                        ?: ApiError.Unknown(exception.message ?: "알 수 없는 오류가 발생했습니다.")
+                    val appError: AppError = when (exception) {
+                        is AppError -> exception
+                        else -> ApiError.Unknown(
+                            exception.message ?: "알 수 없는 오류가 발생했습니다."
+                        )
+                    }
                     val nextState = when (appError) {
                         is ApiError.User.DuplicateNickname -> NicknameCheckState.Duplicated
                         else -> NicknameCheckState.Error(appError.displayMessage)
@@ -199,8 +205,10 @@ class MyPageEditViewModel @Inject constructor(
                     loadUserInfo()
                 },
                 onFailure = { e ->
-                    val appError = e as? AppError
-                        ?: ApiError.Unknown(e.message ?: "알 수 없는 오류가 발생했습니다.")
+                    val appError: AppError = when (e) {
+                        is AppError -> e
+                        else -> ApiError.Unknown(e.message ?: "알 수 없는 오류가 발생했습니다.")
+                    }
                     onError(appError.displayMessage)
                 }
             )
