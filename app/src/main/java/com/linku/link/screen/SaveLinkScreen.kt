@@ -672,6 +672,7 @@ fun SaveLinkScreen(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = colors.white,
+                        lineHeight = 20.sp,
                         textAlign = TextAlign.Center
                     )
                 }
