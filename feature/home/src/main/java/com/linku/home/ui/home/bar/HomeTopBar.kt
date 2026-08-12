@@ -133,7 +133,9 @@ fun HomeTopBar(
 
         HomeSearchBar(onClick = onSearchClick)
 
-        Spacer(modifier = Modifier.height(18.dp))
+        if (!isCollapsed) {
+            Spacer(modifier = Modifier.height(18.dp))
+        }
 
         AnimatedVisibility(
             visible = !isCollapsed,
@@ -268,7 +270,7 @@ fun HomeTopBar(
     }
 }
 
-@Preview
+@Preview(showBackground = false)
 @Composable
 fun PreviewHomeTopBar() {
     var selectedEmotion by remember { mutableStateOf<Long?>(1L) }
@@ -287,6 +289,33 @@ fun PreviewHomeTopBar() {
         recommendEnabled = (selectedEmotion != null && selectedTask != null),
         onRecommendClick = { },
         isCollapsed = false,
+        expandEnabled = false,
+        onExpandClick = { },
+        hasRequestedRecommend = false,
+        onAlarmClick = { },
+        onSearchClick = { },
+    )
+}
+
+@Preview(showBackground = false)
+@Composable
+fun PreviewHomeTopBarCollapsed() {
+    var selectedEmotion by remember { mutableStateOf<Long?>(1L) }
+    var selectedTask by remember { mutableStateOf<Long?>(null) }
+
+    val sampleSituations = SituationOptions.situationsFor(jobId = 2L)
+
+    HomeTopBar(
+        isNoticeExist = true,
+        userName = "루시",
+        selectedEmotionId = selectedEmotion,
+        onEmotionChange = { selectedEmotion = it },
+        selectedTaskId = selectedTask,
+        onTaskChange = { selectedTask = it },
+        situations = sampleSituations,
+        recommendEnabled = (selectedEmotion != null && selectedTask != null),
+        onRecommendClick = { },
+        isCollapsed = true,
         expandEnabled = true,
         onExpandClick = { },
         hasRequestedRecommend = false,
