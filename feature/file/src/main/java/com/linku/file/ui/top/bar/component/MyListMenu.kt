@@ -2,12 +2,14 @@ package com.linku.file.ui.top.bar.component
 
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -19,7 +21,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,11 +35,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,14 +55,16 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
+import com.linku.file.R
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
-fun BottomFolderListMenu(
+fun MyListMenu(
     modifier: Modifier = Modifier,
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel,
+    parentFolderAnchorWidth: Dp = 0.dp,
     onChangeFolder: () -> Unit
 ){
     val colors = MaterialTheme.linkuColors
@@ -63,9 +75,10 @@ fun BottomFolderListMenu(
 
     val colorStyles = fileViewModel.categoryColorMap.collectAsStateWithLifecycle().value
 
-    BottomFolderListMenuLayout(
+    MyListMenuLayout(
         modifier = modifier,
         isLinks = isLinks,
+        parentFolderAnchorWidth = parentFolderAnchorWidth,
         bottomMenuExpanded = folderStateViewModel.bottomMenuExpanded,
         onDismissRequest = { folderStateViewModel.updateBottomMenuExpanded(false) },
         parentFolders = parentFolders,
@@ -84,6 +97,8 @@ fun BottomFolderListMenu(
         subFolders = subFolders,
         subFolderSelected = { it.folderId == folderStateViewModel.selectedBottomFolder?.folderId },
         subFolderName = { it.folderName },
+        subFolderColorStyle = colorStyles[folderStateViewModel.selectedTopFolder?.folderName]
+            ?: CategoryColorStyle.DEFAULT,
         onSubFolderClick = { folder ->
             if(folder.folderId!=folderStateViewModel.selectedBottomFolder?.folderId){
                 fileViewModel.getLinks(folder.folderId)
@@ -100,10 +115,35 @@ fun BottomFolderListMenu(
 // private const val BOTTOM_FOLDER_LIST_MENU_WIDTH = 205f
 // private const val BOTTOM_FOLDER_LIST_MENU_HEIGHT = 264F
 
+private val subFolderMenuShape = RoundedCornerShape(18.dp)
+private val subFolderMenuShadow = Shadow(
+    radius = 15.dp,
+    spread = 0.dp,
+    offset = DpOffset(x = 0.dp, y = 4.dp),
+    color = Color(0xFF7C7C7C),
+    alpha = 0.25f,
+)
+
+private const val SUB_FOLDER_MENU_WIDTH = 168
+private const val SUB_FOLDER_MENU_MAX_HEIGHT = 234
+private const val SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING = 15
+private const val SUB_FOLDER_MENU_SHADOW_TOP_PADDING = 11
+private const val SUB_FOLDER_MENU_SHADOW_BOTTOM_PADDING = 19
+private const val SUB_FOLDER_MENU_ROW_HEIGHT = 34
+
+private const val PARENT_FOLDER_MENU_WIDTH = 205
+private const val PARENT_FOLDER_MENU_HEIGHT = 264
+private const val PARENT_FOLDER_MENU_CONTENT_VERTICAL_PADDING = 20
+private const val PARENT_FOLDER_MENU_ROW_START_PADDING = 18
+private const val PARENT_FOLDER_MENU_ROW_END_PADDING = 12
+private const val PARENT_FOLDER_MENU_ROW_SPACING = 14.8f
+private const val PARENT_FOLDER_MENU_LEADING_TEXT_SPACING = 12
+
 @Composable
-private fun BottomFolderListMenuLayout(
+private fun MyListMenuLayout(
     modifier: Modifier = Modifier,
     isLinks: Boolean,
+    parentFolderAnchorWidth: Dp,
     bottomMenuExpanded: Boolean,
     onDismissRequest: () -> Unit,
     parentFolders: List<FolderSimpleInfo>,
@@ -114,13 +154,14 @@ private fun BottomFolderListMenuLayout(
     subFolders: List<FolderSimpleInfo>,
     subFolderSelected: (FolderSimpleInfo) -> Boolean,
     subFolderName: (FolderSimpleInfo) -> String,
+    subFolderColorStyle: CategoryColorStyle,
     onSubFolderClick: (FolderSimpleInfo) -> Unit
 ){
     val colors = MaterialTheme.linkuColors
 
     // ----------------------------스크롤 바 추후 수정----------------------------
-    val menuHeight = 264f
-    val menuWidth = 205f
+    val menuHeight = PARENT_FOLDER_MENU_HEIGHT.toFloat()
+    val menuWidth = PARENT_FOLDER_MENU_WIDTH.toFloat()
 
     // 스크롤 바 너비비 = 스크롤 바 너비 / 메뉴 너비
     val scrollBarWidthWeight = 4f / menuWidth
@@ -226,53 +267,199 @@ private fun BottomFolderListMenuLayout(
     }
     // ----------------------------스크롤 바 추후 수정----------------------------
 
+    val parentFolderMenuOffsetX = if (parentFolderAnchorWidth > 0.dp) {
+        (
+            parentFolderAnchorWidth -
+                (PARENT_FOLDER_MENU_WIDTH + SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING * 2).dp
+        ) / 2f
+    } else {
+        (-SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING).dp
+    }
+
     DropdownMenu(
-        modifier = modifier
-            .width(menuWidth.dp)
-            .padding(vertical = 8.dp),
-        shape = RoundedCornerShape(18.dp),
-        offset = DpOffset(0.dp, 10.dp),
+        modifier = if (isLinks) {
+            modifier.width(
+                (SUB_FOLDER_MENU_WIDTH + SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING * 2).dp
+            )
+        } else {
+            modifier.width(
+                (PARENT_FOLDER_MENU_WIDTH + SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING * 2).dp
+            )
+        },
+        shape = RectangleShape,
+        offset = if (isLinks) {
+            DpOffset(
+                x = (-SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING).dp,
+                // DropdownMenu의 기본 상단 패딩 8dp와 그림자 상단 영역 11dp를 보정합니다.
+                y = (-9).dp,
+            )
+        } else {
+            DpOffset(
+                x = parentFolderMenuOffsetX,
+                // 기본 상단 패딩 8dp와 그림자 상단 영역 11dp 뒤에 메뉴가 10dp 아래 오도록 맞춥니다.
+                y = (-9).dp,
+            )
+        },
         expanded = bottomMenuExpanded,
         onDismissRequest = onDismissRequest,
-        containerColor = colors.white,
+        containerColor = Color.Transparent,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
     ) {
 
         // 링크 목록 위 스크롤 바를 띄우는 박스
         Box{
             if (!isLinks) {
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 264.dp)
-                        .verticalScroll(menuScrollState),
-                    verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
-                ) {
-                    parentFolders.forEachIndexed { index, folder ->
-                        val selected = parentFolderSelected(folder)
-                        val colorStyle = parentFolderColor(folder)
+                val dismissAreaModifier = Modifier.pointerInput(onDismissRequest) {
+                    detectTapGestures { onDismissRequest() }
+                }
 
-                        BottomFolderListMenuRow(
-                            leadingColor = colorStyle.color4,
-                            text = parentFolderName(folder),
-                            enabled = !selected,
-                            onClick = { onParentFolderClick(folder) }
+                Box {
+                    Surface(
+                        modifier = Modifier
+                            .padding(
+                                start = SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp,
+                                top = SUB_FOLDER_MENU_SHADOW_TOP_PADDING.dp,
+                                end = SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp,
+                                bottom = SUB_FOLDER_MENU_SHADOW_BOTTOM_PADDING.dp,
+                            )
+                            .width(PARENT_FOLDER_MENU_WIDTH.dp)
+                            .height(PARENT_FOLDER_MENU_HEIGHT.dp)
+                            .dropShadow(
+                                shape = subFolderMenuShape,
+                                shadow = subFolderMenuShadow,
+                            ),
+                        shape = subFolderMenuShape,
+                        color = colors.white,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(menuScrollState)
+                                .padding(
+                                    vertical = PARENT_FOLDER_MENU_CONTENT_VERTICAL_PADDING.dp
+                                ),
+                            verticalArrangement = Arrangement.spacedBy(
+                                PARENT_FOLDER_MENU_ROW_SPACING.dp
+                            ),
+                        ) {
+                            parentFolders.forEach { folder ->
+                                val selected = parentFolderSelected(folder)
+                                val colorStyle = parentFolderColor(folder)
+
+                                MyListMenuRow(
+                                    leadingColor = colorStyle.color4,
+                                    text = parentFolderName(folder),
+                                    enabled = !selected,
+                                    onClick = { onParentFolderClick(folder) },
+                                )
+                            }
+                        }
+                    }
+
+                    // 그림자 여백은 시각적으로 메뉴 바깥이므로 탭하면 메뉴를 닫습니다.
+                    Box(modifier = Modifier.matchParentSize()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .fillMaxWidth()
+                                .height(SUB_FOLDER_MENU_SHADOW_TOP_PADDING.dp)
+                                .then(dismissAreaModifier)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .height(SUB_FOLDER_MENU_SHADOW_BOTTOM_PADDING.dp)
+                                .then(dismissAreaModifier)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .fillMaxHeight()
+                                .width(SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp)
+                                .then(dismissAreaModifier)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .fillMaxHeight()
+                                .width(SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp)
+                                .then(dismissAreaModifier)
                         )
                     }
                 }
             } else {
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 264.dp)
-                        .verticalScroll(menuScrollState),
-                    verticalArrangement = Arrangement.spacedBy(18.dp, Alignment.CenterVertically),
-                ) {
-                    subFolders.forEach { folder ->
-                        val selected = subFolderSelected(folder)
+                val dismissAreaModifier = Modifier.pointerInput(onDismissRequest) {
+                    detectTapGestures { onDismissRequest() }
+                }
 
-                        BottomFolderListMenuRow(
-                            leadingColor = null,
-                            text = subFolderName(folder),
-                            enabled = !selected,
-                            onClick = { onSubFolderClick(folder) }
+                Box {
+                    Surface(
+                        modifier = Modifier
+                            .padding(
+                                start = SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp,
+                                top = SUB_FOLDER_MENU_SHADOW_TOP_PADDING.dp,
+                                end = SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp,
+                                bottom = SUB_FOLDER_MENU_SHADOW_BOTTOM_PADDING.dp,
+                            )
+                            .width(SUB_FOLDER_MENU_WIDTH.dp)
+                            .heightIn(max = SUB_FOLDER_MENU_MAX_HEIGHT.dp)
+                            .dropShadow(
+                                shape = subFolderMenuShape,
+                                shadow = subFolderMenuShadow,
+                            ),
+                        shape = subFolderMenuShape,
+                        color = colors.white,
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .heightIn(max = SUB_FOLDER_MENU_MAX_HEIGHT.dp)
+                                .verticalScroll(menuScrollState)
+                                .padding(vertical = 15.dp),
+                        ) {
+                            subFolders.forEach { folder ->
+                                val selected = subFolderSelected(folder)
+
+                                SubFolderMenuRow(
+                                    colorStyle = subFolderColorStyle,
+                                    text = subFolderName(folder),
+                                    selected = selected,
+                                    onClick = { onSubFolderClick(folder) },
+                                )
+                            }
+                        }
+                    }
+
+                    // 그림자 여백은 시각적으로 메뉴 바깥이므로 탭하면 기존처럼 메뉴를 닫습니다.
+                    Box(modifier = Modifier.matchParentSize()) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .fillMaxWidth()
+                                .height(SUB_FOLDER_MENU_SHADOW_TOP_PADDING.dp)
+                                .then(dismissAreaModifier)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .fillMaxWidth()
+                                .height(SUB_FOLDER_MENU_SHADOW_BOTTOM_PADDING.dp)
+                                .then(dismissAreaModifier)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .fillMaxHeight()
+                                .width(SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp)
+                                .then(dismissAreaModifier)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .fillMaxHeight()
+                                .width(SUB_FOLDER_MENU_SHADOW_HORIZONTAL_PADDING.dp)
+                                .then(dismissAreaModifier)
                         )
                     }
                 }
@@ -295,7 +482,7 @@ private fun BottomFolderListMenuLayout(
 private const val MENU_ITEM_HEIGHT = 25
 
 @Composable
-private fun BottomFolderListMenuRow(
+private fun MyListMenuRow(
     modifier: Modifier = Modifier,
     leadingColor: Color?,
     text: String,
@@ -306,8 +493,12 @@ private fun BottomFolderListMenuRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .height(MENU_ITEM_HEIGHT.dp)
             .noRippleClickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = 12.dp),
+            .padding(
+                start = PARENT_FOLDER_MENU_ROW_START_PADDING.dp,
+                end = PARENT_FOLDER_MENU_ROW_END_PADDING.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (leadingColor != null) {
@@ -317,7 +508,7 @@ private fun BottomFolderListMenuRow(
                     .clip(CircleShape)
                     .background(color = leadingColor)
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(PARENT_FOLDER_MENU_LEADING_TEXT_SPACING.dp))
         }
 
         Text(
@@ -325,9 +516,53 @@ private fun BottomFolderListMenuRow(
             fontSize = 15.sp,
             lineHeight = 22.sp,
             fontWeight = FontWeight(400),
+            letterSpacing = 0.sp,
             color = colors.gray[800],
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun SubFolderMenuRow(
+    colorStyle: CategoryColorStyle,
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.linkuColors
+
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(SUB_FOLDER_MENU_ROW_HEIGHT.dp)
+            .noRippleClickable(enabled = !selected, onClick = onClick)
+            .padding(start = 21.dp, end = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (selected) {
+            Icon(
+                painter = painterResource(R.drawable.ic_top_folders_menu),
+                contentDescription = null,
+                tint = colorStyle.color4,
+                modifier = Modifier.size(width = 15.dp, height = 12.dp),
+            )
+        } else {
+            Spacer(modifier = Modifier.size(width = 15.dp, height = 12.dp))
+        }
+
+        Spacer(modifier = Modifier.width(14.dp))
+
+        Text(
+            text = text,
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            fontWeight = FontWeight(400),
+            color = if (selected) colorStyle.color4 else colors.gray[800],
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -433,10 +668,11 @@ private val folderSimpleInfoList = listOf(
 
 @Preview(heightDp = 1000)
 @Composable
-private fun BottomFolderListMenuLayoutTest(){
+private fun MyListMenuLayoutTest(){
 
-    BottomFolderListMenuLayout(
+    MyListMenuLayout(
         isLinks = false,
+        parentFolderAnchorWidth = 80.289.dp,
         bottomMenuExpanded = true,
         onDismissRequest = {},
         parentFolders = folderSimpleInfoList,
@@ -449,6 +685,7 @@ private fun BottomFolderListMenuLayoutTest(){
         subFolders = folderSimpleInfoList,
         subFolderSelected = { false },
         subFolderName = { "subFolderName" },
+        subFolderColorStyle = CategoryColorStyle.DEFAULT,
         onSubFolderClick = {}
     )
 }

@@ -30,7 +30,7 @@ import com.linku.file.R
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
-fun TopFolderListLayout(
+fun FolderScopeListLayout(
     folderStateViewModel: FolderStateViewModel
 ) {
     val colors = MaterialTheme.linkuColors
@@ -110,6 +110,6 @@ fun TopFolderListLayout(
 
 @Preview(showBackground = true)
 @Composable
-private fun FolderListLayoutTest() {
-    TopFolderListLayout( folderStateViewModel = viewModel())
+private fun FolderScopeListLayoutTest() {
+    FolderScopeListLayout( folderStateViewModel = viewModel())
 }

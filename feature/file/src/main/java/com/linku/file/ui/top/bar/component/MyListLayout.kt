@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -34,7 +35,7 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import kotlin.collections.get
 
 @Composable
-fun BottomFolderListLayout(
+fun MyListLayout(
     fileViewModel: FileViewModel,
     folderStateViewModel: FolderStateViewModel
 ) {
@@ -112,6 +113,8 @@ fun BottomFolderListLayout(
                         fontWeight = FontWeight(500),
                         color = colorStyle.color4,
                         textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -133,10 +136,10 @@ fun BottomFolderListLayout(
 
 @Preview(showBackground = true)
 @Composable
-private fun BottomFolderListLayoutTest() {
+private fun MyListLayoutTest() {
     val folderStateViewModel: FolderStateViewModel = viewModel()
     // folderStateViewModel.updateSelectedBottomFolder("단어장")
-    BottomFolderListLayout(
+    MyListLayout(
         viewModel(),
         folderStateViewModel = folderStateViewModel
     )
