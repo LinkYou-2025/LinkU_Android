@@ -31,7 +31,7 @@ object CurationMapper {
 
     fun SectionDTO.toDomain(): SectionItem = SectionItem(
         section = section,
-        title = title,
+        title = title.replace("\\n", "\n"),
         description = description,
         imageUrl = imageUrl
     )
@@ -79,7 +79,8 @@ object CurationMapper {
         title = title,
         domain = domain,
         domainImageUrl = domainImageUrl,
-        linkuImageUrl = linkuImageUrl
+        linkuImageUrl = linkuImageUrl,
+        aiArticleExists = aiArticleExists
     )
 
     fun MyTopTagDTO.toDomain(): MyTopTag = MyTopTag(
