@@ -762,73 +762,81 @@ fun LinkDetailScreen(
                     }
                 }
 
-                // 기존 메모 여백에 IME 높이의 절반만 동적으로 더해 과도한 빈 공간을 방지합니다.
+                val shouldShowMemo = isEditMode || selectedMemo.isNotBlank()
+
+                // 메모 UI가 숨겨져도 기존 화면 하단 여백은 동일하게 유지합니다.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 22.dp, bottom = 50.dp)
+                        .padding(
+                            top = if (shouldShowMemo) 22.dp else 0.dp,
+                            bottom = 50.dp,
+                        )
                         .padding(bottom = memoImeBottomPadding)
                 ) {
-                    Text(
-                        text = "메모",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colors.black
-                    )
+                    // 조회 모드는 내용이 있을 때만, 수정 모드는 빈 메모여도 입력란을 표시합니다.
+                    if (shouldShowMemo) {
+                        Text(
+                            text = "메모",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.black
+                        )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    if (isEditMode) {
-                        BasicTextField(
-                            value = selectedMemo,
-                            onValueChange = { newMemo ->
-                                selectedMemo = newMemo.take(MAX_MEMO_LENGTH)
-                            },
-                            textStyle = TextStyle(
+                        if (isEditMode) {
+                            BasicTextField(
+                                value = selectedMemo,
+                                onValueChange = { newMemo ->
+                                    selectedMemo = newMemo.take(MAX_MEMO_LENGTH)
+                                },
+                                textStyle = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    fontFamily = font,
+                                    lineHeight = 20.sp,
+                                    color = colors.black
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { isMemoFocused = it.isFocused }
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(colors.gray[100])
+                                    .padding(horizontal = 22.dp, vertical = 15.5.dp),
+                                decorationBox = { innerTextField ->
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        if (selectedMemo.isBlank()) {
+                                            Text(
+                                                text = "메모를 입력해 주세요.",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontFamily = font,
+                                                lineHeight = 20.sp,
+                                                color = colors.gray[400]
+                                            )
+                                        }
+
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                        } else {
+                            Text(
+                                text = selectedMemo,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
-                                fontFamily = font,
                                 lineHeight = 20.sp,
-                                color = colors.black
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .onFocusChanged { isMemoFocused = it.isFocused }
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(colors.gray[100])
-                                .padding(horizontal = 22.dp, vertical = 15.5.dp),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (selectedMemo.isBlank()) {
-                                        Text(
-                                            text = "메모를 입력해 주세요.",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Normal,
-                                            fontFamily = font,
-                                            lineHeight = 20.sp,
-                                            color = colors.gray[400]
-                                        )
-                                    }
-
-                                    innerTextField()
-                                }
-                            }
-                        )
-                    } else {
-                        Text(
-                            text = selectedMemo,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
-                            lineHeight = 20.sp,
-                            color = colors.black,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(colors.gray[100])
-                                .padding(horizontal = 22.dp, vertical = 15.5.dp)
-                        )
+                                color = colors.black,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(colors.gray[100])
+                                    .padding(horizontal = 22.dp, vertical = 15.5.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(40.dp))
