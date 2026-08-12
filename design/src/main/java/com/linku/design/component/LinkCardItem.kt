@@ -104,6 +104,7 @@ fun LinkCardItem(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         color = colors.black,
+                        lineHeight = 22.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         // 폰트 기본 여백 때문에 아이콘이랑 세로 중앙이 안 맞아서 제거함
@@ -123,7 +124,7 @@ fun LinkCardItem(
                         color = colors.gray[100],
                         shape = RoundedCornerShape(6.dp)
                     )
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                    .padding(horizontal = 6.dp, vertical = 3.dp)
 
                 Row(
                     // 태그가 없어도 도메인 행 위치가 밀리지 않도록 최소 높이만 20dp로 고정
@@ -136,6 +137,7 @@ fun LinkCardItem(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.gray[600],
+                            lineHeight = 14.sp,
                             modifier = tagChipModifier
                         )
 
@@ -163,7 +165,8 @@ fun LinkCardItem(
                         text = domainName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colors.gray[800]
+                        color = colors.gray[800],
+                        lineHeight = 14.sp,
                     )
                 }
             }
@@ -205,7 +208,7 @@ fun LinkCardItem(
                 onDeleteClick = onDeleteClick,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(top = 36.dp, end = 12.dp),
+                    .padding(top = 49.dp, end = 15.dp),
             )
         }
     }
