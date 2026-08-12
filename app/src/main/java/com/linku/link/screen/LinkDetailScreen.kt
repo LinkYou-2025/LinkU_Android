@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,18 +34,23 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -73,6 +81,7 @@ import com.linku.link.component.LinkDetailEmotionDropdown
 import com.linku.link.component.LinkDetailSituationDropdown
 import com.linku.link.component.LinkDetailTopBar
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -126,6 +135,20 @@ fun LinkDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val density = LocalDensity.current
+    val detailScrollState = rememberScrollState()
+    val imeInsets = WindowInsets.ime
+    val imeAnimationTargetInsets = WindowInsets.imeAnimationTarget
+
+    var isMemoFocused by remember { mutableStateOf(false) }
+
+    // IME가 표시될 때 메모 하단에는 키보드 높이의 절반만 추가합니다.
+    val imeBottom = imeInsets.getBottom(density)
+    val memoImeBottomPadding = if (isMemoFocused && imeBottom > 0) {
+        with(density) { (imeBottom * 0.5f).toDp() }
+    } else {
+        0.dp
+    }
 
     var isEditMode by rememberSaveable { mutableStateOf(false) }
     var isAiSummaryMode by rememberSaveable(linkuId) { mutableStateOf(aiSummary.isNotBlank()) }
@@ -237,14 +260,47 @@ fun LinkDetailScreen(
         }
     }
 
+    LaunchedEffect(isEditMode, isMemoFocused, density) {
+        if (!isEditMode || !isMemoFocused) return@LaunchedEffect
+
+        snapshotFlow {
+            Triple(
+                imeInsets.getBottom(density),
+                imeAnimationTargetInsets.getBottom(density),
+                detailScrollState.maxValue,
+            )
+        }.collectLatest { (currentImeBottom, targetImeBottom, measuredMaxValue) ->
+            val isImeShown = currentImeBottom > 0
+            val isImeAnimationFinished =
+                targetImeBottom <= 0 || currentImeBottom >= targetImeBottom
+            val isScrollMeasured = measuredMaxValue != Int.MAX_VALUE
+
+            if (!isImeShown || !isImeAnimationFinished || !isScrollMeasured) {
+                return@collectLatest
+            }
+
+            // 최종 IME 여백과 늘어난 메모 높이가 측정된 다음 화면 최하단으로 이동합니다.
+            withFrameNanos { }
+
+            val latestMaxValue = detailScrollState.maxValue
+            if (
+                latestMaxValue != Int.MAX_VALUE &&
+                latestMaxValue > detailScrollState.value
+            ) {
+                detailScrollState.animateScrollTo(latestMaxValue)
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.white)
     ) {
+        // IME가 나타나도 상단바는 고정하고, 아래 본문 영역만 줄어들도록 전체 높이를 점유합니다.
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
         ) {
             LinkDetailTopBar(
                 linkTitle = selectedTitle,
@@ -286,8 +342,9 @@ fun LinkDetailScreen(
 
             Column(
                 modifier = Modifier
+                    .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .verticalScroll(detailScrollState)
                     .padding(top = 25.dp, start = 20.dp, end = 20.dp)
             ) {
                 Box {
@@ -508,10 +565,12 @@ fun LinkDetailScreen(
                     }
                 }
 
+                // 기존 메모 여백에 IME 높이의 절반만 동적으로 더해 과도한 빈 공간을 방지합니다.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 22.dp, bottom = 50.dp)
+                        .padding(bottom = memoImeBottomPadding)
                 ) {
                     Text(
                         text = "메모",
@@ -536,6 +595,7 @@ fun LinkDetailScreen(
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
+                                .onFocusChanged { isMemoFocused = it.isFocused }
                                 .clip(RoundedCornerShape(18.dp))
                                 .background(colors.gray[100])
                                 .padding(horizontal = 22.dp, vertical = 15.5.dp),
