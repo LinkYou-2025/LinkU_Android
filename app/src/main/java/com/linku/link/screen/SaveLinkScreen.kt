@@ -176,13 +176,12 @@ fun SaveLinkScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(bottom = 70.dp)
-                .verticalScroll(rememberScrollState())
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 59.dp, start = 20.dp, end = 20.dp)
-                    .height(24.dp)
+                    .background(colors.white)
+                    .padding(top = 59.dp, start = 20.dp, end = 20.dp, bottom = 22.dp)
             ) {
                 Image(
                     painter = painterResource(R.drawable.ic_back),
@@ -203,298 +202,336 @@ fun SaveLinkScreen(
                 )
             }
 
-            Text(
-                text = "URL 링크",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = colors.black,
-                modifier = Modifier.padding(top = 31.dp, start = 24.dp)
-            )
-
-            Box(
+            Column(
                 modifier = Modifier
+                    .weight(1f)
                     .fillMaxWidth()
-                    .padding(top = 13.dp, start = 20.dp, end = 20.dp)
-                    .then(
-                        if (url == "") {
-                            Modifier.border(1.dp, color = Basic.gray[200], shape = RoundedCornerShape(20.dp))
-                        } else {
-                            Modifier.border(width = 1.dp, brush = Basic.maincolor, shape = RoundedCornerShape(18.dp))
-                        }
-                    )
-                    .padding(horizontal = 22.dp, vertical = 16.dp),
-                contentAlignment = Alignment.CenterStart
+                    .verticalScroll(rememberScrollState())
             ) {
-                if (url.isEmpty()) {
-                    Text(
-                        text = "링크를 입력하거나 붙여넣어 주세요.",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = colors.gray[400]
-                    )
-                }
 
-                BasicTextField(
-                    value = url,
-                    onValueChange = onUrlChange,
-                    singleLine = true,
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = colors.black, fontFamily = LocalFontTheme.current.font),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 17.dp, start = 24.dp, end = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
                 Text(
-                    text = "링크 제목",
+                    text = "URL 링크",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.black,
+                    modifier = Modifier.padding(top = 7.dp, start = 24.dp)
                 )
 
-                Text(
-                    text = "선택",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.blue[200],
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 14.dp, start = 20.dp, end = 20.dp)
-                    .then(
-                        if (title.isEmpty()) {
-                            Modifier.border(1.dp, color = Basic.gray[200], shape = RoundedCornerShape(20.dp))
-                        } else {
-                            Modifier.border(width = 1.dp, brush = Basic.maincolor, shape = RoundedCornerShape(18.dp))
-                        }
-                    )
-                    .padding(horizontal = 22.dp, vertical = 15.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                if (title.isEmpty()) {
-                    Text(
-                        text = "링크 제목을 입력해주세요.",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = colors.gray[400]
-                    )
-                }
-
-                BasicTextField(
-                    value = title,
-                    onValueChange = onTitleChange,
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Normal,
-                        color = colors.black,
-                        fontFamily = LocalFontTheme.current.font
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, top = 19.dp),
-                horizontalAlignment = Alignment.Start
-            ) {
-                if (image != null) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(18.dp))
-                            .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
-                    ) {
-                        Image(
-                            painter = rememberAsyncImagePainter(model = image.file),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(18.dp))
-                                .noRippleClickable(onClick = launchImagePicker)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 13.dp, start = 20.dp, end = 20.dp)
+                        .then(
+                            if (url == "") {
+                                Modifier.border(
+                                    1.dp,
+                                    color = Basic.gray[200],
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                            } else {
+                                Modifier.border(
+                                    width = 1.dp,
+                                    brush = Basic.maincolor,
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                            }
                         )
-
-                        Image(
-                            painter = painterResource(R.drawable.ic_delete_gray),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(top = 16.dp, end = 16.dp)
-                                .size(30.dp)
-                                .noRippleClickable(onClick = onDeleteImage)
-                        )
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(colors.gray[100])
-                            .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
-                            .noRippleClickable { launchImagePicker() }
-                            .padding(38.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_camera),
-                            contentDescription = null,
-                            modifier = Modifier.height(24.dp)
-                        )
-
+                        .padding(horizontal = 22.dp, vertical = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (url.isEmpty()) {
                         Text(
-                            text = "사진 추가",
+                            text = "링크를 입력하거나 붙여넣어 주세요.",
                             fontSize = 14.sp,
-                            fontWeight = FontWeight.Light,
-                            color = colors.gray[500],
-                            modifier = Modifier.padding(top = 7.dp)
+                            fontWeight = FontWeight.Normal,
+                            color = colors.gray[400]
                         )
                     }
+
+                    BasicTextField(
+                        value = url,
+                        onValueChange = onUrlChange,
+                        singleLine = true,
+                        textStyle = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = colors.black,
+                            fontFamily = LocalFontTheme.current.font
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
-            }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 27.dp, start = 24.dp, end = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "메모",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.gray[800],
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 17.dp, start = 24.dp, end = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "링크 제목",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.black,
+                    )
 
-                Text(
-                    text = "선택",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.blue[200]
-                )
-            }
+                    Text(
+                        text = "선택",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = colors.blue[200],
+                    )
+                }
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 13.dp, start = 20.dp, end = 20.dp)
-                    .then(
-                        if (memo.isEmpty()) {
-                            Modifier.border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
-                        } else {
-                            Modifier.border(
-                                border = BorderStroke(width = 1.dp, brush = Basic.maincolor),
-                                shape = RoundedCornerShape(18.dp)
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 14.dp, start = 20.dp, end = 20.dp)
+                        .then(
+                            if (title.isEmpty()) {
+                                Modifier.border(
+                                    1.dp,
+                                    color = Basic.gray[200],
+                                    shape = RoundedCornerShape(20.dp)
+                                )
+                            } else {
+                                Modifier.border(
+                                    width = 1.dp,
+                                    brush = Basic.maincolor,
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                            }
+                        )
+                        .padding(horizontal = 22.dp, vertical = 15.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+                    if (title.isEmpty()) {
+                        Text(
+                            text = "링크 제목을 입력해주세요.",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = colors.gray[400]
+                        )
+                    }
+
+                    BasicTextField(
+                        value = title,
+                        onValueChange = onTitleChange,
+                        singleLine = true,
+                        textStyle = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = colors.black,
+                            fontFamily = LocalFontTheme.current.font
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 20.dp, end = 20.dp, top = 19.dp),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    if (image != null) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(18.dp))
+                                .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
+                        ) {
+                            Image(
+                                painter = rememberAsyncImagePainter(model = image.file),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .noRippleClickable(onClick = launchImagePicker)
+                            )
+
+                            Image(
+                                painter = painterResource(R.drawable.ic_delete_gray),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(top = 16.dp, end = 16.dp)
+                                    .size(30.dp)
+                                    .noRippleClickable(onClick = onDeleteImage)
                             )
                         }
-                    )
-                    .padding(horizontal = 22.dp, vertical = 16.dp),
-                contentAlignment = Alignment.CenterStart
-            ) {
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(colors.gray[100])
+                                .border(1.dp, colors.gray[200], RoundedCornerShape(18.dp))
+                                .noRippleClickable { launchImagePicker() }
+                                .padding(38.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_camera),
+                                contentDescription = null,
+                                modifier = Modifier.height(24.dp)
+                            )
 
-                if (memo.isEmpty()) {
+                            Text(
+                                text = "사진 추가",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Light,
+                                color = colors.gray[500],
+                                modifier = Modifier.padding(top = 7.dp)
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 27.dp, start = 24.dp, end = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
                     Text(
-                        text = "메모할 내용을 입력해주세요.",
+                        text = "메모",
                         fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.gray[800],
+                    )
+
+                    Text(
+                        text = "선택",
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
-                        color = colors.gray[400]
+                        color = colors.blue[200]
                     )
                 }
 
-                BasicTextField(
-                    value = memo,
-                    onValueChange = { if (it.length <= 200) onMemoChange(it) },
-                    textStyle = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Normal, color = colors.black, fontFamily = LocalFontTheme.current.font),
-                    modifier = Modifier.fillMaxWidth()
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 13.dp, start = 20.dp, end = 20.dp)
+                        .then(
+                            if (memo.isEmpty()) {
+                                Modifier.border(
+                                    width = 1.dp,
+                                    color = colors.gray[200],
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                            } else {
+                                Modifier.border(
+                                    border = BorderStroke(width = 1.dp, brush = Basic.maincolor),
+                                    shape = RoundedCornerShape(18.dp)
+                                )
+                            }
+                        )
+                        .padding(horizontal = 22.dp, vertical = 16.dp),
+                    contentAlignment = Alignment.CenterStart
+                ) {
+
+                    if (memo.isEmpty()) {
+                        Text(
+                            text = "메모할 내용을 입력해주세요.",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = colors.gray[400]
+                        )
+                    }
+
+                    BasicTextField(
+                        value = memo,
+                        onValueChange = { if (it.length <= 200) onMemoChange(it) },
+                        textStyle = TextStyle(
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Normal,
+                            color = colors.black,
+                            fontFamily = LocalFontTheme.current.font
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 32.dp, top = 10.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = memo.length.toString(),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = colors.gray[700]
+                    )
+
+                    Text(
+                        text = "/200자",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = colors.gray[400],
+                        modifier = Modifier.padding(start = 1.dp)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp, start = 24.dp, end = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "감정",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.gray[800]
+                    )
+
+                    Text(
+                        text = "선택",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = colors.blue[200]
+                    )
+                }
+
+                EmotionSelect(
+                    selectedEmotionId = selectedEmotionId,
+                    onEmotionSelect = onEmotionSelect
                 )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 25.dp, start = 24.dp, end = 32.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "상황",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = colors.gray[800]
+                    )
+
+                    Text(
+                        text = "선택",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = colors.blue[200]
+                    )
+                }
+
+                SituationSelect(
+                    jobType = jobType,
+                    selectedSituationId = selectedSituationId,
+                    onSituationClick = onSituationClick
+                )
+
+                Spacer(modifier = Modifier.height(70.dp))
             }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 32.dp, top = 10.dp),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = memo.length.toString(),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.gray[700]
-                )
-
-                Text(
-                    text = "/200자",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.gray[400],
-                    modifier = Modifier.padding(start = 1.dp)
-                )
-            }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp, start = 24.dp, end = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "감정",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.gray[800]
-                )
-
-                Text(
-                    text = "선택",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.blue[200]
-                )
-            }
-
-            EmotionSelect(
-                selectedEmotionId = selectedEmotionId,
-                onEmotionSelect = onEmotionSelect
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 25.dp, start = 24.dp, end = 32.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "상황",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.gray[800]
-                )
-
-                Text(
-                    text = "선택",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.blue[200]
-                )
-            }
-
-            SituationSelect(
-                jobType = jobType,
-                selectedSituationId = selectedSituationId,
-                onSituationClick = onSituationClick
-            )
-
-            Spacer(modifier = Modifier.height(70.dp))
         }
 
         Column(
