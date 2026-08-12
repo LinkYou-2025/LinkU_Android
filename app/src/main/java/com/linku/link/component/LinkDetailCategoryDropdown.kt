@@ -48,51 +48,62 @@ fun LinkDetailCategoryDropdown(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.linkuColors
+    val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .heightIn(max = 264.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(start = 12.dp, top = 13.dp, bottom = 13.dp, end = 56.dp),
-        verticalArrangement = Arrangement.spacedBy(1.dp)
+            .heightIn(max = 264.dp),
     ) {
-        categories.forEach { category ->
-            val isSelected = category.id == selectedCategoryId
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(start = 12.dp, top = 13.dp, bottom = 13.dp, end = 56.dp),
+            verticalArrangement = Arrangement.spacedBy(1.dp),
+        ) {
+            categories.forEach { category ->
+                val isSelected = category.id == selectedCategoryId
 
-            Row(
-                modifier = Modifier
-                    .noRippleClickable {
-                        onCategoryClick(category)
-                    }
-                    .padding(horizontal = 6.dp, vertical = 7.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
+                Row(
                     modifier = Modifier
-                        .size(25.dp)
-                        .clip(CircleShape)
-                        .background(category.colorStyle.color4)
-                )
+                        .noRippleClickable {
+                            onCategoryClick(category)
+                        }
+                        .padding(horizontal = 6.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(25.dp)
+                            .clip(CircleShape)
+                            .background(category.colorStyle.color4),
+                    )
 
-                Text(
-                    text = category.name,
-                    fontSize = 15.sp,
-                    fontWeight = if (isSelected) {
-                        FontWeight.Medium
-                    } else {
-                        FontWeight.Normal
-                    },
-                    color = if (isSelected) {
-                        colors.blue[200]
-                    } else {
-                        colors.gray[800]
-                    }
-                )
+                    Text(
+                        text = category.name,
+                        fontSize = 15.sp,
+                        fontWeight = if (isSelected) {
+                            FontWeight.Medium
+                        } else {
+                            FontWeight.Normal
+                        },
+                        color = if (isSelected) {
+                            colors.blue[200]
+                        } else {
+                            colors.gray[800]
+                        },
+                    )
+                }
             }
         }
+
+        LinkDetailDropdownScrollbar(
+            scrollState = scrollState,
+            topInset = 13.dp,
+            bottomInset = 13.dp,
+        )
     }
 }
 

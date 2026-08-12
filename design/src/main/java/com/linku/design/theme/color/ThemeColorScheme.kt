@@ -48,6 +48,9 @@ sealed class ThemeColorScheme(
         800 to Color(0xFF43454B),
     ),
 
+    // 스크롤바 색상
+    val scrollColor: Color = Color(0xFFD9D9D9),
+
     // 비활성화용 단색 브러시 추가 -로그인, 회원가입용
     val inactiveColor: Brush = SolidColor(gray[300]),
 
