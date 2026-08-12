@@ -17,7 +17,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,49 +35,17 @@ import com.linku.curation.ui.mapper.resolveMonthlyCurationImage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
-import java.util.Calendar
-
-// 카드 컨텐츠 데이터 클래스(api 연동XX) -> 현우 오빠 화이팅 🎉
-data class CurationCardContent(
-    val title: String,
-    val description: String
-)
-
-// 큐레이션은 항상 "지난달" 기준으로 보여준다 (1번 카드 멘트 + 이미지가 공유하는 기준월)
-private fun getPreviousMonth(): Int {
-    val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
-    return cal.get(Calendar.MONTH) + 1
-}
-
-// 카드별 고정 컨텐츠 (1번은 동적으로 연도/월 계산) -> 이건 멘트 고정이라고 합니다!(돈 워리)
-internal fun getCurationCardContents(): List<CurationCardContent> {
-    val cal = Calendar.getInstance().apply { add(Calendar.MONTH, -1) }
-    val year = cal.get(Calendar.YEAR).toString()
-    val month = cal.get(Calendar.MONTH) + 1
-
-    return listOf(
-        CurationCardContent(
-            title = "${year}\n월간 큐레이션 ${month}월호",
-            description = "이번 달을 위한 링크, 링큐가 준비했어요"
-        ),
-        CurationCardContent(
-            title = "나와 비슷한 사람들은\n이런 링크를 봤어요",
-            description = "이번 달, 같은 일상을 사는 모두의 관심 키워드"
-        ),
-        CurationCardContent(
-            title = "잊고 있던 '나중에 보기',\n오늘이 그날이에요!",
-            description = "저장만 해두기엔 아까운 링크들이 기다려요"
-        )
-    )
-}
 
 /**
  * 큐레이션 메인 카드 아이템 (이미지 + 타이틀 + 설명 + 페이지 인디케이터 + 체크아웃 버튼)
  *
  * @param modifier 외부에서 전달하는 Modifier (기본값: Modifier)
  * @param imageUrl 카드 배경 이미지 URL. blank / "null" 문자열이면 fallbackImage로 대체됨.
- *                 단, page가 0(월간, 지난달 기준)/1(키워드)/2(리마인드)인 경우 이 값과 무관하게 고정 이미지가 표시됨 (추후 API 확장을 위해 파라미터는 유지)
- * @param page 현재 카드의 0-based 페이지 인덱스. getCurationCardContents()에서 해당 인덱스의 콘텐츠를 가져오는 데도 사용됨
+ *                 단, page가 0(월간)/1(키워드)/2(리마인드)인 경우 이 값과 무관하게 고정 이미지가 표시됨 (추후 API 확장을 위해 파라미터는 유지)
+ * @param title 카드에 표시할 제목 (서버 응답의 SectionItem.title 기준)
+ * @param description 카드에 표시할 설명 (서버 응답의 SectionItem.description 기준)
+ * @param month 0번(월간) 카드의 고정 이미지를 고르는 데 쓰이는 월(1~12). 서버가 내려주는 최신 큐레이션 월 기준.
+ * @param page 현재 카드의 0-based 페이지 인덱스
  * @param totalPage 전체 카드 페이지 수 (페이지 인디케이터 표시용, 기본값: 3)
  * @param onCheckOutClick 카드 우측 하단 체크아웃 버튼 클릭 콜백
  * @param fallbackImage imageUrl이 유효하지 않을 때 표시할 기본 이미지 리소스
@@ -87,6 +54,9 @@ internal fun getCurationCardContents(): List<CurationCardContent> {
 internal fun CurationCardItem(
     modifier: Modifier = Modifier,
     imageUrl: String,
+    title: String,
+    description: String,
+    month: Int = 0,
     page: Int = 0,
     totalPage: Int = 3,
     onCheckOutClick: () -> Unit = {},
@@ -94,14 +64,11 @@ internal fun CurationCardItem(
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val resolvedImageUrl = imageUrl.takeIf { it.isNotBlank() && it != "null" }
-    val contents = getCurationCardContents()
-    val content = contents.getOrNull(page) ?: contents[0]
 
     // 1~3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
-    // 1번(월간)은 큐레이션이 항상 보여주는 "지난달" 기준 이미지
-    val previousMonth = remember { getPreviousMonth() }
+    // 0번(월간)은 서버가 내려주는 최신 큐레이션 월(month) 기준 고정 이미지
     val fixedImagePainter = when (page) {
-        0 -> resolveMonthlyCurationImage(previousMonth)
+        0 -> resolveMonthlyCurationImage(month)
         1 -> painterResource(R.drawable.img_curation_keyword)
         2 -> painterResource(R.drawable.img_curation_remind)
         else -> null
@@ -151,7 +118,7 @@ internal fun CurationCardItem(
                 .align(Alignment.BottomStart) // 하단 고정 앵커: 폰마다 카드 높이/글자 비율이 달라져도 잘리지 않도록 상단 offset 대신 하단 여백으로 배치. 실제 하단 간격은 인디케이터/버튼이 각자 지정
         ) {
             Text(
-                text = content.title,
+                text = title,
                 fontSize = 24.sp,
                 lineHeight = 30.sp,
                 fontWeight = FontWeight(700),
@@ -162,7 +129,7 @@ internal fun CurationCardItem(
             Spacer(modifier = Modifier.height(18.scaler))
 
             Text(
-                text = content.description,
+                text = description,
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight(400),
@@ -215,6 +182,9 @@ private fun PreviewCurationCardItem() {
         CurationCardItem(
             modifier = Modifier.size(width = 346.scaler, height = 432.scaler),
             imageUrl = "",
+            title = "2026\n월간 큐레이션 8월호",
+            description = "이번 달을 위한 링크, 링큐가 준비했어요",
+            month = 8
         )
     }
 }

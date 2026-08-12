@@ -26,7 +26,6 @@ import com.linku.curation.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
-import com.linku.design.util.scaler
 
 @Composable
 internal fun CurationCheckOutButton(
@@ -37,7 +36,7 @@ internal fun CurationCheckOutButton(
 
     Row(
         modifier = modifier
-            .height(40.scaler)
+            .height(40.dp)
             .clip(RoundedCornerShape(size = 23.dp))
             .background(
                 color = colorTheme.curationCheckOutButtonBackground,
