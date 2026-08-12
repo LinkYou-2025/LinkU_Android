@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -45,10 +46,11 @@ fun LinkCardItem(
     isExternalLink: Boolean,
     linkImageUrl: String = "",
     domainImageUrl: String = "",
+    isMoreVisible: Boolean = true, // 점 3개 보여줄지 말지 여부
     isDeleteMenuVisible: Boolean = false,
     onMoreClick: () -> Unit = { },
     onCardClick: () -> Unit = { },  // TODO: 머지 이후 기본값 제거 예정
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit = {} // 안 쓰는 곳(큐레이션)도 있으므로 디폴트값 추가
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -104,7 +106,7 @@ fun LinkCardItem(
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Medium,
                         color = colors.black,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
                         // 폰트 기본 여백 때문에 아이콘이랑 세로 중앙이 안 맞아서 제거함
                         style = LocalTextStyle.current.copy(
@@ -112,6 +114,7 @@ fun LinkCardItem(
                         ),
                         modifier = Modifier
                             .weight(1f)
+                            .widthIn(min = 1.dp)
                             .padding(top = 8.dp)
                     )
                 }
@@ -168,24 +171,26 @@ fun LinkCardItem(
                 }
             }
 
-            Box(
-                modifier = Modifier
-                    .height(85.dp)
-                    .width(22.dp)
-            ) {
+            if (isMoreVisible) {
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
-                        .padding(top = 8.dp, end = 5.dp)
-                        .noRippleClickable(onClick = onMoreClick),
-                    contentAlignment = Alignment.TopEnd
+                        .height(85.dp)
+                        .width(22.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_more),
-                        contentDescription = "더보기",
-                        tint = colors.gray[400],
-                        modifier = Modifier.size(17.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(22.dp)
+                            .padding(top = 8.dp, end = 5.dp)
+                            .noRippleClickable(onClick = onMoreClick),
+                        contentAlignment = Alignment.TopEnd
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_more),
+                            contentDescription = "더보기",
+                            tint = colors.gray[400],
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
                 }
             }
         }

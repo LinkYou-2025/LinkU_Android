@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,7 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 import kotlin.math.absoluteValue
@@ -39,6 +42,9 @@ import kotlin.math.absoluteValue
  * @param modifier 외부에서 전달하는 Modifier
  * @param pagerState HorizontalPager 스크롤 상태. 외부에서 rememberPagerState로 생성해서 전달
  * @param imageUrls 각 카드에 표시할 이미지 URL 리스트. blank / "null" 문자열이면 fallback 이미지 표시
+ * @param titles 각 카드에 표시할 제목 리스트
+ * @param descriptions 각 카드에 표시할 설명 리스트
+ * @param month 0번(월간) 카드의 고정 이미지를 고르는 데 쓰이는 월(1~12). 서버가 내려주는 최신 큐레이션 월 기준.
  * @param onCardClick 카드 하단 체크아웃 버튼 클릭 시 호출. (페이지 인덱스, 이미지 URL) 전달
  */
 @Composable
@@ -46,6 +52,9 @@ internal fun CurationMainCardPager(
     modifier: Modifier = Modifier,
     pagerState: PagerState,
     imageUrls: List<String>,
+    titles: List<String>,
+    descriptions: List<String>,
+    month: Int = 0,
     onCardClick: (index: Int, imageUrl: String) -> Unit = { _, _ -> },
 ) {
     val totalPages = imageUrls.size
@@ -92,6 +101,9 @@ internal fun CurationMainCardPager(
             ) {
                 CurationCardItem(
                     imageUrl = imageUrls[actualPage],
+                    title = titles.getOrElse(actualPage) { "" },
+                    description = descriptions.getOrElse(actualPage) { "" },
+                    month = month,
                     page = actualPage,
                     totalPage = totalPages,
                     onCheckOutClick = { onCardClick(actualPage, imageUrls[actualPage]) },
@@ -151,5 +163,29 @@ internal fun CurationPagerIndicator(
                     )
             )
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewCurationMainCardPager() {
+    val pagerState = rememberPagerState(pageCount = { 3 })
+
+    LinkuPreview {
+        CurationMainCardPager(
+            pagerState = pagerState,
+            imageUrls = listOf("", "", ""),
+            titles = listOf(
+                "2026\n월간 큐레이션 8월호",
+                "나와 비슷한 사람들은\n이런 링크를 봤어요",
+                "잊고 있던 '나중에 보기',\n오늘이 그날이에요!"
+            ),
+            descriptions = listOf(
+                "이번 달을 위한 링크, 링큐가 준비했어요",
+                "이번 달, 같은 일상을 사는 모두의 관심 키워드",
+                "저장만 해두기엔 아까운 링크들이 기다려요"
+            ),
+            month = 8
+        )
     }
 }

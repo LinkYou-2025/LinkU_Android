@@ -15,14 +15,17 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,15 +36,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.linku.core.model.UserInfo
+import com.linku.core.model.auth.Gender
+import com.linku.core.model.auth.Job
+import com.linku.core.model.auth.LoginType
+import com.linku.core.model.auth.NicknameCheckState
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -50,85 +53,76 @@ import com.linku.mypage.R
 
 @Composable
 fun EditProfileScreen(
-    navController: NavController,
-    onPickProfileImage: () -> Unit,
-    onChangeProfileImage: () -> Unit,
-    onChangeNickname: (String) -> Unit,
-    onChangeGender: (String) -> Unit,
-    onChangeJob: (String) -> Unit,
-    userNickname: String,
-    userJob: String,
-    userEmail: String,
-    userGender: String,
-    userSocialLoginType: String,
+    onBackClick: () -> Unit,
+//    onPickProfileImage: () -> Unit, // 나중에 api 나오면 업데이트 진행함.
+//    onChangeProfileImage: () -> Unit, // 나중에 api 나오면 업데이트 진행함.
+    onNicknameInputChanged: (String) -> Unit,
+    nicknameCheckState: NicknameCheckState,
+    onSubmit: (nickname: String, jobId: Long) -> Unit,
+    userInfo: UserInfo,
+    userSocialLoginType: LoginType,
 ) {
     val colors = MaterialTheme.linkuColors
+    val userNickname = userInfo.nickname
+    val userJobId = userInfo.jobId
 
     var isProfileImageChanged by remember { mutableStateOf(false) }
 
     var name by remember(userNickname) { mutableStateOf(userNickname) }
-    var selectedGender by remember(userGender) { mutableStateOf(userGender) }
+    // 성별은 서버에서 받은 값을 표시만 하고 이 화면에서는 변경하지 않음(변경 불가).
+    // userInfo.gender는 서버 원본 값("MALE"/"FEMALE")이라 Gender enum으로 변환해서 비교해야 함.
+    val gender = remember(userInfo.gender) { Gender.fromApiValue(userInfo.gender) }
 
-    val jobOptions = listOf("고등학생", "대학생", "직장인", "자영업자", "프리랜서", "취준생")
-    var selectedJob by remember(userJob) {
-        mutableStateOf(
-            userJob.takeIf { it.isNotBlank() } ?: jobOptions.first()
-        )
+    val jobOptions = remember { Job.getAllJobs() }
+    var selectedJob by remember(userJobId) {
+        mutableStateOf(Job.fromId(userJobId.toInt()).takeIf { it != Job.NONE }
+            ?: jobOptions.first())
     }
 
     val socialLoginGuideText = when (userSocialLoginType) {
-        "KAKAO" -> "카카오로 가입한 계정이에요."
-        "GOOGLE" -> "구글로 가입한 계정이에요."
-//        "NAVER" -> "네이버로 가입한 계정이에요."
-        else -> null
+        LoginType.KAKAO -> "카카오로 가입된 계정이예요."
+        LoginType.GOOGLE -> "구글로 가입된 계정이예요."
+        LoginType.EMAIL -> "이메일로 가입된 계정이예요."
+        LoginType.NONE -> null
     }
 
     val showSocialLoginGuide = !socialLoginGuideText.isNullOrBlank()
 
     val trimmedName = name.trim()
-    val isSubmitEnabled =
-        isProfileImageChanged ||
-                trimmedName != userNickname ||
-                selectedGender != userGender ||
-                selectedJob != userJob
+    val isNicknameChanged = trimmedName != userNickname
 
-    fun isNicknameDuplicated(nickname: String): Boolean {
-        // TODO: 추후 닉네임 중복 확인 API 연결
-        return false
+    LaunchedEffect(trimmedName) {
+        onNicknameInputChanged(trimmedName)
     }
 
-    val showNicknameWarning =
-        trimmedName.isNotBlank() &&
-                trimmedName != userNickname &&
-                isNicknameDuplicated(trimmedName)
+    val isNicknameAvailable =
+        !isNicknameChanged || nicknameCheckState is NicknameCheckState.Available
 
+    val isJobChanged = selectedJob.id.toLong() != userJobId
+
+    val isSubmitEnabled =
+        isProfileImageChanged ||
+                (isNicknameChanged && isNicknameAvailable) ||
+                isJobChanged
+
+    val nicknameWarningText = if (isNicknameChanged && trimmedName.isNotBlank()) {
+        when (val checkState = nicknameCheckState) {
+            is NicknameCheckState.Duplicated -> "이미 존재하는 닉네임이예요."
+            is NicknameCheckState.Error -> checkState.message
+            else -> null
+        }
+    } else {
+        null
+    }
 
     fun handleSubmit() {
-        val nicknameChanged = trimmedName != userNickname
-        val genderChanged = selectedGender != userGender
-        val jobChanged = selectedJob != userJob
-        val profileImageChanged = isProfileImageChanged
+        if (isNicknameChanged && (trimmedName.isBlank() || !isNicknameAvailable)) return
 
-        if (nicknameChanged) {
-            if (trimmedName.isBlank()) return
+        onSubmit(trimmedName, selectedJob.id.toLong())
 
-            val isDuplicated = isNicknameDuplicated(trimmedName)
-            if (isDuplicated) return
-
-            onChangeNickname(trimmedName)
-        }
-
-        if (genderChanged) {
-            onChangeGender(selectedGender)
-        }
-
-        if (jobChanged) {
-            onChangeJob(selectedJob)
-        }
-
-        if (profileImageChanged) {
-            onChangeProfileImage()
-        }
+//        if (isProfileImageChanged) {
+//            onChangeProfileImage()
+//        }
     }
 
     Column(
@@ -148,7 +142,7 @@ fun EditProfileScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -161,43 +155,44 @@ fun EditProfileScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(37.75.dp))
+//        Spacer(modifier = Modifier.height(37.75.dp))
 
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // 프로필 사진
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .align(Alignment.CenterHorizontally)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.img_profile_default),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.Center)
-                )
+            // 프로필 사진 -> api 부재로 앱 업데이트 이후 api 작업 나오는대로 작업할 예정.(현재 api 없음으로 주석처리함.)
+//            Box(
+//                modifier = Modifier
+//                    .size(100.dp)
+//                    .align(Alignment.CenterHorizontally)
+//            ) {
+//                Image(
+//                    painter = painterResource(R.drawable.img_profile_default),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .align(Alignment.Center)
+//                )
+//
+//                Box(
+//                    modifier = Modifier
+//                        .size(30.dp)
+//                        .border(4.dp, colors.white, shape = CircleShape)
+//                        .align(Alignment.BottomEnd)
+//                        .noRippleClickable {
+//                            onPickProfileImage()
+//                            isProfileImageChanged = true
+//                        }
+//                ) {
+//                    Image(
+//                        painter = painterResource(R.drawable.ic_plus),
+//                        contentDescription = null
+//                    )
+//                }
+//            }
 
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .border(4.dp, colors.white, shape = CircleShape)
-                        .align(Alignment.BottomEnd)
-                        .noRippleClickable {
-                            onPickProfileImage()
-                            isProfileImageChanged = true
-                        }
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_plus),
-                        contentDescription = null
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(37.dp))
+//            Spacer(modifier = Modifier.height(37.dp))
+            Spacer(modifier = Modifier.height(43.dp))
 
             // 이름 변경
             Column(
@@ -220,7 +215,11 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                        .border(
+                            width = 1.dp,
+                            color = colors.gray[200],
+                            shape = RoundedCornerShape(18.dp)
+                        )
                         .background(colors.white)
                         .padding(horizontal = 22.dp, vertical = 10.dp),
                     contentAlignment = Alignment.CenterStart
@@ -233,7 +232,7 @@ fun EditProfileScreen(
                             value = name,
                             onValueChange = { name = it },
                             singleLine = true,
-                            textStyle = TextStyle(
+                            textStyle = LocalTextStyle.current.copy(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Normal,
                                 color = colors.black
@@ -257,11 +256,11 @@ fun EditProfileScreen(
                     }
                 }
 
-                if (showNicknameWarning) {
+                if (nicknameWarningText != null) {
                     Spacer(modifier = Modifier.height(6.5.dp))
 
                     Text(
-                        text = "이미 존재하는 닉네임이에요.",
+                        text = nicknameWarningText,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Normal,
                         color = colors.negative,
@@ -295,13 +294,17 @@ fun EditProfileScreen(
                         .fillMaxWidth()
                         .heightIn(min = 52.dp)
                         .clip(RoundedCornerShape(18.dp))
-                        .border( width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
+                        .border(
+                            width = 1.dp,
+                            color = colors.gray[200],
+                            shape = RoundedCornerShape(18.dp)
+                        )
                         .background(colors.gray[100])
                         .padding(horizontal = 22.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = userEmail,
+                        text = userInfo.email,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Normal,
                         color = colors.gray[600]
@@ -345,14 +348,13 @@ fun EditProfileScreen(
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     Row(
-                        modifier = Modifier.noRippleClickable { selectedGender = "남성" },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(20.dp)
                                 .border(
-                                    width = if (selectedGender == "남성") 5.dp else 1.dp,
+                                    width = if (gender == Gender.MALE) 5.dp else 1.dp,
                                     color = colors.blue[200],
                                     shape = CircleShape
                                 )
@@ -370,14 +372,13 @@ fun EditProfileScreen(
                     }
 
                     Row(
-                        modifier = Modifier.noRippleClickable { selectedGender = "여성" },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(
                             modifier = Modifier
                                 .size(20.dp)
                                 .border(
-                                    width = if (selectedGender == "여성") 5.dp else 1.dp,
+                                    width = if (gender == Gender.FEMALE) 5.dp else 1.dp,
                                     color = colors.blue[200],
                                     shape = CircleShape
                                 )
@@ -415,9 +416,11 @@ fun EditProfileScreen(
                 Spacer(modifier = Modifier.height(13.dp))
 
                 JobDropdownMenu(
-                    options = jobOptions,
-                    selectedOption = selectedJob,
-                    onOptionSelected = { selectedJob = it }
+                    options = jobOptions.map { it.displayName },
+                    selectedOption = selectedJob.displayName,
+                    onOptionSelected = { name ->
+                        selectedJob = jobOptions.first { it.displayName == name }
+                    }
                 )
             }
         }
@@ -455,45 +458,52 @@ fun EditProfileScreen(
 fun JobDropdownMenu(
     options: List<String>,
     selectedOption: String,
-    onOptionSelected: (String) -> Unit,
-    menuMaxHeight: Dp = 262.dp
+    onOptionSelected: (String) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
     var expanded by remember { mutableStateOf(false) }
 
-    Box {
+    Column(modifier = Modifier.fillMaxWidth()) {
         JobDropdownField(
             selectedOption = selectedOption,
             onClick = { expanded = !expanded }
         )
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            modifier = Modifier
-                .width(372.dp)
-                .heightIn(max = menuMaxHeight)
-                .border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
-                .shadow(
-                    elevation = 10.dp,
-                    shape = RoundedCornerShape(18.dp),
-                    ambientColor = Color(0xFF7C7C7C).copy(alpha = 0.25f),
-                    spotColor = Color(0xFF7C7C7C).copy(alpha = 0.25f)
-                )
-                .background(colors.white, RoundedCornerShape(18.dp))
-                .padding(horizontal = 22.dp, vertical = 11.dp),
-            offset = DpOffset(x = 0.dp, y = (-302).dp)
-        ) {
-            options.forEach { option ->
-                JobDropdownItem(
-                    text = option,
-                    selected = option == selectedOption,
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
+        if (expanded) {
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 260.dp)
+                    .shadow(
+                        elevation = 10.dp,
+                        shape = RoundedCornerShape(18.dp),
+                        ambientColor = colors.shadowColor,
+                        spotColor = colors.shadowColor
+                    )
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(colors.white)
+                    .border(
+                        width = 1.dp,
+                        color = colors.gray[200],
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 22.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                options.forEach { option ->
+                    JobDropdownItem(
+                        text = option,
+                        selected = option == selectedOption,
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -548,8 +558,7 @@ private fun JobDropdownItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .noRippleClickable { onClick() }
-            .padding(horizontal = 22.dp, vertical = 9.dp),
+            .noRippleClickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -578,21 +587,25 @@ private fun JobDropdownItem(
 @Preview(showBackground = true)
 @Composable
 fun PreviewEditProfileScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
         EditProfileScreen(
-            navController = navController,
-            onPickProfileImage = { },
-            onChangeProfileImage = { },
-            onChangeNickname = { },
-            onChangeGender = { },
-            onChangeJob = { },
-            userNickname = "세나",
-            userJob = "대학생",
-            userEmail = "longtime03@naver.com",
-            userGender = "여성",
-            userSocialLoginType = "NAVER"
+            onBackClick = { },
+//            onPickProfileImage = { },
+//            onChangeProfileImage = { },
+            onNicknameInputChanged = { },
+            nicknameCheckState = NicknameCheckState.Idle,
+            onSubmit = { _, _ -> },
+            userInfo = UserInfo(
+                nickname = "세나",
+                email = "longtime03@naver.com",
+                gender = "FEMALE",
+                jobId = Job.COLLEGE.id.toLong(),
+                jobName = Job.COLLEGE.displayName,
+                myLinku = 0L,
+                myFolder = 0L,
+                myAiLinku = 0L
+            ),
+            userSocialLoginType = LoginType.EMAIL
         )
     }
 }

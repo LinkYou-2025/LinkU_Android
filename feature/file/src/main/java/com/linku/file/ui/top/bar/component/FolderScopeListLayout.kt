@@ -1,0 +1,115 @@
+// 폴더 목록을 보이는 탭의 레이아웃
+
+package com.linku.file.ui.top.bar.component
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.linku.design.theme.linkuColors
+import com.linku.file.R
+import com.linku.file.viewmodel.folder.state.FolderStateViewModel
+
+@Composable
+fun FolderScopeListLayout(
+    folderStateViewModel: FolderStateViewModel
+) {
+    val colors = MaterialTheme.linkuColors
+    val folderName = if (folderStateViewModel.isSharedFolders) "공유받은 폴더" else "나의 폴더"
+
+    // 레이아웃의 배경틀
+    Surface(
+        modifier = Modifier
+            // 세로만 35dp로 전체 크기 지정
+            .height(35.dp),
+
+        // 배경색 (White)
+        color = colors.white,
+
+        // 모서리 둥글게 (14dp)
+        shape = RoundedCornerShape(14.dp),
+    ) {
+
+        // 내부 배치 레이아웃
+        Row(
+            modifier = Modifier
+                // 내부 여백 (양 옆 15dp)
+                .padding(horizontal = 15.dp)
+
+                // 전체 영역을 가득 채우도록
+                .wrapContentSize(),
+
+            // 가로 정렬 방법 (요소 간 10dp 간격, 가로 중앙 정렬)
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+
+            // 세로 정렬 방법 (세로 중앙 정렬)
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+
+            // 현재, 상위 폴더명
+            Text(
+                // 텍스트(그라데이션 및 스타일 지정)
+                text = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            // 폰트 크기 (16sp)
+                            fontSize = 16.sp,
+
+                            // 폰트 굵기 (Bold)
+                            fontWeight = FontWeight.Bold,
+
+                            // 텍스트 그라데이션 색상(링큐 메인 색상)
+                            brush = colors.maincolor,
+                        )
+                    ) {
+                        // 실제 표시할 텍스트
+                        append(folderName)
+                    }
+                },
+
+                // 텍스트 정렬 (정중앙)
+                textAlign = TextAlign.Center,
+
+                // 한 줄 높이 (20sp)
+                lineHeight = 20.sp,
+            )
+
+            // 아래 화살표 모양 아이콘
+            Icon(
+                // 아이콘 색상 (Gray500)
+                tint = colors.gray[500],
+
+                // 사용할 아이콘 이미지 리소스 (drawable/check_img.xml)
+                painter = painterResource(id = R.drawable.check_img),
+
+                // 이미지 설명 ("아래 화살표")
+                contentDescription = "아래 화살표"
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun FolderScopeListLayoutTest() {
+    FolderScopeListLayout( folderStateViewModel = viewModel())
+}

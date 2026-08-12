@@ -6,8 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.remember
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,7 +21,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -123,7 +124,7 @@ private fun KeywordChipLevel.toStyle(
  * 큐레이션 키워드 칩
  *
  * @param level 칩의 우선순위 레벨. [KeywordChipLevel]에 따라 크기/색상/그림자가 달라진다.
- * @param text 표시할 키워드. 한 줄로만 표시되며 줄바꿈·말줄임 없이 전체 텍스트가 노출된다.
+ * @param text 표시할 키워드. "#"과 나머지 텍스트를 Row로 분리해 배치하며, 텍스트 부분은 줄바꿈을 지원한다.
  */
 @Composable
 internal fun KeywordChip(
@@ -135,26 +136,43 @@ internal fun KeywordChip(
     val baseTextStyle = LocalTextStyle.current
     val style = level.toStyle(colorTheme, baseTextStyle)
 
+    // 해시태그 기호와 키워드를 분리
+    val (hashTag, keyword) = remember(text) {
+        if (text.startsWith("#"))
+            "#" to text.drop(1)
+        else "" to text
+    }
+
     Box(
         modifier = modifier
-            .wrapContentWidth(unbounded = true) // 너비 고정을 해지함. 키워드 글자가 모두 보이기 위함.
             .then(style.extraModifier)
             .background(
                 color = colorTheme.white,
                 shape = RoundedCornerShape(style.cornerRadius)
             )
-            // 최소 높이만 지정 -> 평소엔 피그마 값대로, 글자 크기 확대 시엔 안 잘리게 자동으로 늘어남 -> 과한가?
             .heightIn(min = style.minHeight)
             .padding(horizontal = style.horizontalPadding),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = text,
-            maxLines = 1,
-            softWrap = false,
-            overflow = TextOverflow.Visible,
-            style = style.textStyle
-        )
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.widthIn(max = 138.scaler)
+        ) {
+            if (hashTag.isNotEmpty()) {
+                // 해시태그 배치
+                Text(
+                    text = hashTag,
+                    softWrap = false,
+                    style = style.textStyle,
+                )
+            }
+            // 그외 텍스트 배치
+            Text(
+                text = keyword,
+                style = style.textStyle,
+            )
+        }
     }
 }
 
@@ -170,7 +188,7 @@ private fun KeywordChipAllPreview() {
                 .wrapContentWidth()
                 .padding(16.dp)
         ) {
-            KeywordChip(text = "#영어공부", level = KeywordChipLevel.HIGH)
+            KeywordChip(text = "#안드로이드 스튜디오", level = KeywordChipLevel.HIGH)
             KeywordChip(text = "#엑셀꿀팁", level = KeywordChipLevel.MIDDLE)
             KeywordChip(text = "#이직", level = KeywordChipLevel.LOW)
         }

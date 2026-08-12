@@ -32,4 +32,8 @@ interface UserRepository {
     // 닉네임만 호출
     suspend fun getNickname(): Result<Nickname>
 
+    suspend fun updateMarketingTerms(): Result<Unit>
+
+    suspend fun checkMarketingTermsAgreed(): Result<Boolean>
+
 }
