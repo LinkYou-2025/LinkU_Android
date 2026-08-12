@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +41,8 @@ import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.design.top.search.SearchResultItem
 import com.linku.design.util.LocalStatusBarDarkIcons
+import com.linku.file.ui.FileFab
+import com.linku.file.ui.ShareMenuItem
 import com.linku.file.ui.bottom.sheet.BottomFolderEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.NewBottomFolderBottomSheet
@@ -50,7 +53,6 @@ import com.linku.file.ui.content.LoadingFoldersGrid
 import com.linku.file.ui.content.MyFoldersGrid
 import com.linku.file.ui.content.SharedUsersGrid
 import com.linku.file.ui.top.bar.FileTopBar
-import com.linku.file.ui.ShareButton
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -310,13 +312,34 @@ fun FileScreen(
                 }
             }
             if (!folderStateViewModel.isSharedFolders) {
-                ShareButton(
+                var shareMenuExpanded by rememberSaveable { mutableStateOf(false) }
+                val shareMenuItems = remember {
+                    listOf(
+                        ShareMenuItem(
+                            id = "edit-folder",
+                            labelRes = R.string.file_floating_menu_edit_folder,
+                            iconRes = R.drawable.ic_file_floating_menu_edit,
+                            iconSize = 18.001.dp,
+                        ),
+                        ShareMenuItem(
+                            id = "share-folder",
+                            labelRes = R.string.file_floating_menu_share_folder,
+                            iconRes = R.drawable.ic_file_floating_menu_share,
+                            iconSize = 19.dp,
+                            rotationDegrees = -90f,
+                        ),
+                    )
+                }
+
+                FileFab(
+                    items = shareMenuItems,
+                    expanded = shareMenuExpanded,
+                    onExpandedChange = { shareMenuExpanded = it },
+                    // 이번 단계는 UI만 구현하므로 실제 수정·공유 동작은 연결하지 않습니다.
+                    onItemClick = {},
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 19.dp, bottom = 8.dp)
-                        .noRippleClickable {
-                            folderStateViewModel.updateShareBottomSheetVisible(true)
-                        }
+                        .padding(end = 20.dp, bottom = 10.dp),
                 )
             }
         }

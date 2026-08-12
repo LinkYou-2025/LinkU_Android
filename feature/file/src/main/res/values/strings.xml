@@ -1,3 +1,7 @@
 <resources>
+    <string name="file_floating_menu_edit_folder">폴더 수정하기</string>
+    <string name="file_floating_menu_share_folder">폴더 공유하기</string>
+    <string name="file_floating_menu_open_description">플로팅 메뉴 열기</string>
+    <string name="file_floating_menu_close_description">플로팅 메뉴 닫기</string>
     <string name="share_link_create_failed">링크 공유에 실패하였습니다. 다시 시도해주세요.</string>
 </resources>
