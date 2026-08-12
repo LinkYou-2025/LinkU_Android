@@ -13,7 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,7 +24,6 @@ import com.linku.core.model.JobType
 import com.linku.core.model.Situation
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
-import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -63,14 +65,25 @@ private fun SituationChip(
     val colors = MaterialTheme.linkuColors
 
     Text(
-        text = situation.tagName,
+        text = buildAnnotatedString {
+            withStyle(
+                SpanStyle(
+                    brush = if (selected) {
+                        colors.maincolor
+                    } else {
+                        SolidColor(colors.black)
+                    },
+                )
+            ) {
+                append(situation.tagName)
+            }
+        },
         fontSize = 14.sp,
         fontWeight = FontWeight.Normal,
-        color = colors.black,
         modifier = Modifier
             .background(
                 brush = if (selected) {
-                    colors.inactiveColor
+                    colors.backgroundmaincolor
                 } else {
                     SolidColor(colors.white)
                 },
@@ -80,7 +93,7 @@ private fun SituationChip(
                 if (selected) {
                     Modifier.border(
                         width = 1.dp,
-                        brush = Basic.maincolor,
+                        brush = colors.maincolor,
                         shape = RoundedCornerShape(20.dp)
                     )
                 } else {
@@ -92,7 +105,7 @@ private fun SituationChip(
                 }
             )
             .noRippleClickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 9.dp)
+            .padding(horizontal = 12.dp, vertical = 7.dp)
     )
 }
 
