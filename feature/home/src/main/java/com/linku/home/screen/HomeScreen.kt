@@ -463,27 +463,6 @@ fun HomeScreen(
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
                         )
                     }
-
-//                    if (
-//                        isRecommendMode &&
-//                        isLoadingMoreRecommendations
-//                    ) {
-//                        item(key = "recommendation-loading-more") {
-//                            Box(
-//                                modifier = Modifier
-//                                    .fillMaxWidth()
-//                                    .height(80.dp),
-//                                contentAlignment = Alignment.Center,
-//                            ) {
-//                                Text(
-//                                    text = "추천 링크를 더 불러오는 중...",
-//                                    fontSize = 13.sp,
-//                                    fontWeight = FontWeight.Normal,
-//                                    color = colors.gray[600],
-//                                )
-//                            }
-//                        }
-//                    }
                 }
             }
 
