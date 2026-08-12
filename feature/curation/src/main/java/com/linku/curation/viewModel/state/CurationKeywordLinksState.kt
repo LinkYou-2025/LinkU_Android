@@ -7,4 +7,5 @@ data class CurationKeywordLinksState(
     val nickname: String = "",
     val links: List<LinkByKeyWord> = emptyList(),
     val isLoading: Boolean = false,
+    val isError: Boolean = false,
 )

@@ -51,10 +51,10 @@ class CurationKeywordLinksViewModel @Inject constructor(
             curationRepository.getLinksByKeyword(keyword)
                 .fold(
                     onSuccess = { links ->
-                        _state.update { it.copy(links = links, isLoading = false) }
+                        _state.update { it.copy(links = links, isLoading = false, isError = false) }
                     },
                     onFailure = {
-                        _state.update { it.copy(isLoading = false) }
+                        _state.update { it.copy(isLoading = false, isError = true) }
                         _sideEffect.send(CurationKeywordLinksSideEffect.ShowToast("관련 링크를 불러오지 못했어요"))
                     }
                 )

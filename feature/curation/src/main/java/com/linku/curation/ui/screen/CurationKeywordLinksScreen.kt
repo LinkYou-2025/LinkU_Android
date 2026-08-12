@@ -78,6 +78,7 @@ internal fun CurationKeywordLinksScreen(
             nickname = nickname,
             links = state.links,
             isLoading = state.isLoading,
+            isError = state.isError,
             onBack = onBack,
             onLinkClick = { link ->
                 val linkId = link.userLinkuId ?: return@CurationKeywordLinksScreenContent
@@ -116,12 +117,16 @@ private fun CurationKeywordLinksScreenContent(
     nickname: String,
     links: List<LinkByKeyWord>,
     isLoading: Boolean = false,
+    isError: Boolean = false,
     onBack: () -> Unit,
     onLinkClick: (LinkByKeyWord) -> Unit = {},
 ) {
     val isEmpty = links.isEmpty()
 
     CurationGradientCircleBackground {
+        // 에러나면 배경만 띄우고 토스트 출력 - 다른 큐레이션 목록류 화면과 통일
+        if (isError) return@CurationGradientCircleBackground
+
         if (isLoading) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 CurationTopHeaderSkeleton(
