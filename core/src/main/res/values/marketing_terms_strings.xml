@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="marketing_terms_main_title">마케팅 수신 동의서</string>
+    <string name="marketing_terms_introduction">링큐(LINK:U)(이하 “회사”)는 서비스와 관련된 이벤트, 혜택, 신규 기능 안내 등 마케팅 정보를 제공하기 위하여 아래와 같이 개인정보를 수집·이용합니다.\n\n본 동의는 선택 사항이며, 이용자는 동의를 거부할 권리가 있습니다. 동의를 거부하더라도 서비스의 기본적인 이용에는 제한이 없습니다.</string>
+
+    <string-array name="marketing_terms_section_titles">
+        <item>1. 수집 및 이용 항목</item>
+        <item>2. 이용 목적</item>
+        <item>3. 보유 및 이용 기간</item>
+        <item>4. 동의 거부 및 철회 안내</item>
+        <item>5. 발송 방법</item>
+    </string-array>
+
+    <string-array name="marketing_terms_section_bodies">
+        <item>• 이메일 주소\n• 앱 푸시 알림 토큰</item>
+        <item>• 이벤트 및 프로모션 안내\n• 신규 서비스 및 기능 안내\n• 서비스 관련 혜택 및 업데이트 정보 제공</item>
+        <item>마케팅 정보 수신 동의 시점부터 다음 중 하나의 시점까지 보관 및 이용됩니다.\n• 이용자가 수신 동의를 철회한 경우\n• 회원 탈퇴 시</item>
+        <item>이용자는 언제든지 마케팅 정보 수신 동의를 거부하거나 철회할 수 있습니다.\n동의 철회 방법은 다음과 같습니다.\n• 앱 내 설정 메뉴에서 마케팅 수신 동의 해제\n• 고객센터 이메일을 통한 요청\n동의 철회 시 이후부터는 마케팅 정보가 발송되지 않습니다.</item>
+        <item>회사는 다음의 방법으로 마케팅 정보를 발송할 수 있습니다.\n• 이메일\n• 앱 푸시 알림</item>
+    </string-array>
+</resources>

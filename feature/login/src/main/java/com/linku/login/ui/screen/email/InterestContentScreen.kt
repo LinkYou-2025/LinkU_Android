@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.SignUpState
-import com.linku.core.model.auth.icon.iconRes
+import com.linku.core.model.auth.icon.iconPainter
 import com.linku.design.theme.LinkuPreview
 import com.linku.login.ui.layout.SignUpSelectionLayout
 import com.linku.login.viewmodel.SignUpViewModel
@@ -59,7 +59,7 @@ internal fun InterestContentScreen(
         },
         subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
         items = Interest.entries.toList(),
-        iconRes = { it.iconRes },
+        iconPainter = { it.iconPainter },
         selectedItems = selectedInterests,
         buttonText = "다음",
         canProceed = selectedInterests.isNotEmpty() && signUpApiState !is SignUpState.Loading,
@@ -86,7 +86,7 @@ private fun InterestContentScreenPreview() {
             },
             subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
             items = Interest.entries.toList(),
-            iconRes = { it.iconRes },
+            iconPainter = { it.iconPainter },
             selectedItems = selectedInterests,
             buttonText = "다음",
             canProceed = selectedInterests.isNotEmpty(),
@@ -115,7 +115,7 @@ private fun InterestContentScreenSelectedPreview() {
             },
             subText = "선택해주신 관심사에 맞춰 콘텐츠를 추천해드려요",
             items = Interest.entries.toList(),
-            iconRes = { it.iconRes },
+            iconPainter = { it.iconPainter },
             selectedItems = selectedInterests,
             buttonText = "다음",
             canProceed = selectedInterests.isNotEmpty(),

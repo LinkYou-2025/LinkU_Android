@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -33,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SelectionItem
-import com.linku.core.model.auth.icon.iconRes
+import com.linku.core.model.auth.icon.iconPainter
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -42,6 +43,11 @@ import com.linku.login.ui.item.SelectionCardItem
 import com.linku.login.ui.item.StepIndicator
 
 
+/**
+ * 회원가입의 목적 또는 관심사 선택 단계를 공통 그리드 레이아웃으로 표시합니다.
+ *
+ * [iconPainter]는 Compose 리소스를 읽을 수 있도록 Composable 함수 타입으로 전달받습니다.
+ */
 @Composable
 internal fun <T : SelectionItem> SignUpSelectionLayout(
     // 상단 영역
@@ -54,7 +60,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
     selectedItems: List<T>,
 
     // 아이콘
-    iconRes: (T) -> Int,
+    iconPainter: @Composable (T) -> Painter,
 
     // 버튼
     buttonText: String,
@@ -140,7 +146,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                         SelectionCardItem(
                             text = item.displayName,
                             isSelected = selectedItems.contains(item),
-                            iconRes = iconRes(item),
+                            iconPainter = iconPainter(item),
                             onClick = { onToggle(item) },
                             modifier = Modifier
                                 .fillMaxHeight()
@@ -181,7 +187,7 @@ private fun SignUpSelectionLayoutPreview() {
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
             items = Purpose.entries.toList(),
-            iconRes = { it.iconRes },
+            iconPainter = { it.iconPainter },
             selectedItems = selectedItems,
             buttonText = "다음",
             canProceed = selectedItems.isNotEmpty(),
@@ -210,7 +216,7 @@ private fun SignUpSelectionLayoutSelectedPreview() {
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
             items = Purpose.entries.toList(),
-            iconRes = { it.iconRes },
+            iconPainter = { it.iconPainter },
             selectedItems = selectedItems,
             buttonText = "다음",
             canProceed = selectedItems.isNotEmpty(),
@@ -236,7 +242,7 @@ private fun SignUpSelectionLayoutInterestPreview() {
             },
             subText = "선택해주신 목적에 맞춰 콘텐츠를 추천해드려요",
             items = Interest.entries.toList(),
-            iconRes = { it.iconRes },
+            iconPainter = { it.iconPainter },
             selectedItems = selectedItems,
             buttonText = "다음",
             canProceed = selectedItems.isNotEmpty(),

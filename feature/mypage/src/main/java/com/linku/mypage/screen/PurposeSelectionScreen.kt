@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Purpose
-import com.linku.core.model.auth.icon.iconRes
+import com.linku.core.model.auth.icon.iconPainter
 import com.linku.design.BrushText
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -89,7 +89,7 @@ fun PurposeSelectionScreen(
 
                     CustomInfoSelectionItem(
                         text = purpose.displayName.replace("\n", " "),
-                        iconRes = purpose.iconRes,
+                        iconPainter = purpose.iconPainter,
                         isSelected = isSelected,
                         onClick = {
                             if (isSelected) {

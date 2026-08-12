@@ -26,15 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.core.data.terms.MarketingTermsData
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.login.R
 import com.linku.login.ui.item.AgreeFooterButton
+import com.linku.core.R as CoreR
 
 private val EXTRA_GAP = 20.dp
 private val FOOTER_HEIGHT = 50.dp  // 본문의 마지막 내용이 하단 버튼
@@ -50,6 +52,8 @@ fun MarketingTermsScreenComposable(
 ) {
     val colorTheme = MaterialTheme.linkuColors
     val scrollState = rememberScrollState()
+    val sectionTitles = stringArrayResource(CoreR.array.marketing_terms_section_titles)
+    val sectionBodies = stringArrayResource(CoreR.array.marketing_terms_section_bodies)
     val isAtBottom by remember(alreadyAgreed) {
         derivedStateOf {
             if (alreadyAgreed) return@derivedStateOf true
@@ -126,7 +130,7 @@ fun MarketingTermsScreenComposable(
             ) {
                 Column {
                     Text(
-                        text = MarketingTermsData.MAIN_TITLE,
+                        text = stringResource(CoreR.string.marketing_terms_main_title),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = colorTheme.black
@@ -135,12 +139,12 @@ fun MarketingTermsScreenComposable(
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = MarketingTermsData.INTRODUCTION,
+                        text = stringResource(CoreR.string.marketing_terms_introduction),
                         fontSize = 14.sp,
                         lineHeight = 22.sp,
                     )
 
-                    MarketingTermsData.sections.forEach { (title, body) ->
+                    sectionTitles.zip(sectionBodies).forEach { (title, body) ->
                         Spacer(Modifier.height(12.dp))
 
                         Text(

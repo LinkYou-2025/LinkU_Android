@@ -24,15 +24,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.linku.core.data.terms.MarketingTermsData
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
+import com.linku.core.R as CoreR
 
 @Composable
 fun MarketingAgreeScreen(
@@ -41,6 +43,8 @@ fun MarketingAgreeScreen(
     onToggleClick: () -> Unit = {},
 ) {
     val colors = MaterialTheme.linkuColors
+    val sectionTitles = stringArrayResource(CoreR.array.marketing_terms_section_titles)
+    val sectionBodies = stringArrayResource(CoreR.array.marketing_terms_section_bodies)
 
     val cardShape = RoundedCornerShape(22.dp)
 
@@ -117,14 +121,14 @@ fun MarketingAgreeScreen(
                         }
 
                         Text(
-                            text = MarketingTermsData.INTRODUCTION,
+                            text = stringResource(CoreR.string.marketing_terms_introduction),
                             lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
                             fontSize = 12.sp,
                             color = colors.black
                         )
 
-                        MarketingTermsData.sections.forEach { (title, body) ->
+                        sectionTitles.zip(sectionBodies).forEach { (title, body) ->
                             Text(
                                 text = title,
                                 lineHeight = 20.sp,
