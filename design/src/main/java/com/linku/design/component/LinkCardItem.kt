@@ -163,7 +163,7 @@ fun LinkCardItem(
                         text = domainName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        color = colors.gray[600]
+                        color = colors.gray[800]
                     )
                 }
             }
