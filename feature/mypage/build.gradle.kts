@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -64,6 +65,7 @@ dependencies {
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.material3)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -76,6 +78,10 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     implementation(libs.coil.svg)
     implementation(libs.accompanist.systemuicontroller)
+
+    // AI 요약 링크 목록의 커서 페이징 및 Compose 연동
+    implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 
     // 의존성 정의
     implementation(project(":core"))

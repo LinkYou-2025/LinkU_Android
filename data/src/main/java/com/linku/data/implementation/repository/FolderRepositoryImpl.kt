@@ -6,6 +6,7 @@ import com.linku.core.model.FolderPermission
 import com.linku.core.model.FolderPermissionInfo
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.LinkItemInfo
+import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
 import com.linku.core.repository.FolderRepository
@@ -19,11 +20,17 @@ import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.toDomain
 import com.linku.data.mapper.toRequestDto
+import com.linku.data.preference.FolderSortPreference
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class FolderRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
+    private val folderSortPreference: FolderSortPreference,
 ) : FolderRepository {
+
+    override val parentFolderSort: Flow<ParentFolderSort> =
+        folderSortPreference.parentFolderSort
 
     // 폴더 북마크 등록/해제
     override suspend fun updateBookmark(
@@ -71,7 +78,7 @@ class FolderRepositoryImpl @Inject constructor(
             Log.d("FolderRepositoryImpl", "getParentfolders try")
 
             safeApiCall(
-                apiCall = { serverApi.getParentfolders(sort) }
+                apiCall = { serverApi.getParentfolders(sort ?: ParentFolderSort.NAME.query) }
             ).onSuccess { dtoList ->
                 folderList = dtoList.map { it.toDomain() }
             }.onFailure {
@@ -87,6 +94,22 @@ class FolderRepositoryImpl @Inject constructor(
         Log.d("FolderRepositoryImpl", "getParentfolders return: $folderList")
 
         return folderList
+    }
+
+    override suspend fun getParentFoldersBySort(
+        sort: ParentFolderSort,
+    ): List<FolderSimpleInfo> {
+        Log.d("FolderRepositoryImpl", "getParentFoldersBySort sort: ${sort.query}")
+
+        return safeApiCall {
+            serverApi.getParentFoldersBySort(sort.query)
+        }.map { dtoList ->
+            dtoList.map { it.toDomain() }
+        }.getOrThrow()
+    }
+
+    override suspend fun setParentFolderSort(sort: ParentFolderSort) {
+        folderSortPreference.setParentFolderSort(sort)
     }
 
     // 소분류 폴더 조회

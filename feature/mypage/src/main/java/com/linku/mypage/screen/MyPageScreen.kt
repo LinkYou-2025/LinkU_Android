@@ -32,6 +32,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import androidx.compose.ui.zIndex
+import com.linku.core.model.auth.LoginType
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.linkuColors
@@ -46,6 +47,7 @@ fun MyPageScreen(
     myLinku: Long,
     myFolder: Long,
     myAiLinku: Long,
+    loginType: LoginType,
     onNavigateAccount: () -> Unit,
     onNavigateAlarm: () -> Unit,
     onNavigateAlarmSetting: () -> Unit,
@@ -53,7 +55,7 @@ fun MyPageScreen(
     onNavigateFAQ: () -> Unit,
     onNavigateNotice: () -> Unit,
     onNavigateTerms: () -> Unit,
-    onNavigateAISummary: () -> Unit,  // TODO: 윤지언니에게 세션 관련해서 한 번 더 물어보고 작업하기...
+    onNavigateAISummary: () -> Unit,
     onRequestLogout: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
@@ -72,7 +74,7 @@ fun MyPageScreen(
             myLinku = myLinku,
             myFolder = myFolder,
             myAiLinku = myAiLinku,
-            socialLoginType = "kakao", // TODO: 실제 소셜 로그인 타입 연결
+            socialLoginType = loginType.name.lowercase(),
             onAlarmClick = { onNavigateAlarm() },
             onAISummaryClick = { onNavigateAISummary() },
             modifier = Modifier.zIndex(1f)
@@ -296,6 +298,7 @@ fun PreviewMyPageScreen() {
         myLinku = 63,
         myFolder = 5,
         myAiLinku = 48,
+        loginType = LoginType.KAKAO,
         onNavigateAccount = {},
         onNavigateAlarm = {},
         onNavigateAlarmSetting = {},

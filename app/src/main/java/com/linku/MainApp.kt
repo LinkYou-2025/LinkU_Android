@@ -34,14 +34,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.linku.core.model.alarm.AlarmType
 import com.linku.core.error.DeepLinkError
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
-import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.HandleNewIntentDeepLinks
 import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
@@ -162,7 +161,7 @@ fun MainApp(
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
 
     // 마이페이지에서 사용할 뷰모델
-    val mypageViewModel: MyPageViewModel = hiltViewModel()
+    val myPageViewModel: MyPageViewModel = hiltViewModel()
 
     var showNavBar by rememberSaveable { mutableStateOf(false) }
 
@@ -187,7 +186,7 @@ fun MainApp(
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavigationRoute.Home.route ||
-            currentRoute == "curation_list"
+            currentRoute == NavigationRoute.Curation.route
         ) {
             viewModel.fetchNickname()
         }
@@ -338,7 +337,7 @@ fun MainApp(
             ) else null,
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
-            hideSystemBars = edgeToEdgeSystemBars
+            hideSystemBars = edgeToEdgeSystemBars,
         ) {
             NavHost(
                 navController = navigator,
@@ -605,9 +604,6 @@ fun MainApp(
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
                             },
-                            onNavigateToCuration = {
-                                navigator.navigate("curation_card1")
-                            },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
                             }
@@ -651,16 +647,17 @@ fun MainApp(
                 with(NavigationRoute.MyPage) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
-                            showNavBar = true
-
-                            mypageViewModel.loadUserInfo()
+                            myPageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
 
 
 
                         MyPageApp(
-                            viewModel = mypageViewModel,
+                            viewModel = myPageViewModel,
+                            // MyPageScreen(마이페이지 메인 화면)일 때만 하단 네비게이션 바를 표시.
+                            // 계정설정/탈퇴/FAQ 등 마이페이지 내부 하위 화면에서는 숨김.
+                            onShowNavBarChange = { showNavBar = it },
                             // 로그아웃/탈퇴 버튼을 누른 "즉시"(API 응답 기다리지 않고) 시스템 바를
                             // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
                             // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
@@ -697,6 +694,9 @@ fun MainApp(
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
+                            },
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
                             }
                         )
                     }
@@ -709,7 +709,7 @@ fun MainApp(
                         val notificationViewModel: NotificationViewModel = hiltViewModel()
 
                         AlarmSettingScreen(
-                            navController = navigator,
+                            onBackClick = { navigator.popBackStack() },
                             viewModel = notificationViewModel
                         )
                     }
@@ -1103,7 +1103,7 @@ fun MainApp(
                         }
                     }
                 }
-            }
+            } // NavHost 끝
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
 //            val isAtTabRoot = showNavBar && when (currentRoute) {

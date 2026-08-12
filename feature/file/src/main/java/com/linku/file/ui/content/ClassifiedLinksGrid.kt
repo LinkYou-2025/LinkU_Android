@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -37,6 +36,7 @@ import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
+import com.linku.file.ui.item.items.EmptyLinkItemLayout
 
 /**
  * 링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.
@@ -219,14 +219,8 @@ private fun AddLinkItem(
         modifier = modifier,
         contentAlignment = Alignment.TopCenter
     ) {
-        /** 실제 링크 카드와 같은 형태의 placeholder를 배경으로 사용합니다. */
-        Box(
-            modifier = Modifier.alpha(1f),
-        ) {
-            LinkItemLayout(
-                link = null
-            )
-        }
+        /** 실제 링크 카드와 같은 크기의 빈 링크 카드를 배경으로 사용합니다. */
+        EmptyLinkItemLayout()
 
         /** 링크 추가를 나타내는 아이콘을 카드 상단 기준 위치에 배치합니다. */
         Image(

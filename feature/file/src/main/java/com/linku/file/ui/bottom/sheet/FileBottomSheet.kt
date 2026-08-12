@@ -42,9 +42,26 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
 
+/**
+ * 파일 기능의 바텀시트가 공유하는 제목, 본문, 확인 버튼과 ModalBottomSheet 셸입니다.
+ *
+ * 확인 버튼은 [isReady]일 때만 동작하며 [onOkay]를 먼저 호출한 뒤 [onDismiss]를
+ * 호출합니다. 기능별 상태 변경과 비동기 작업은 이 셸이 아니라 호출자가 담당합니다.
+ *
+ * @param modifier ModalBottomSheet에 적용할 수정자입니다.
+ * @param sheetState 바텀시트의 펼침 상태입니다.
+ * @param title 바텀시트 제목입니다.
+ * @param body 제목 아래에 표시할 안내 문구입니다.
+ * @param buttonText 확인 버튼 문구입니다.
+ * @param visible 바텀시트 표시 여부입니다.
+ * @param isReady 확인 버튼 활성화 여부입니다.
+ * @param onOkay 활성화된 확인 버튼을 눌렀을 때 먼저 호출되는 콜백입니다.
+ * @param onDismiss 바텀시트를 닫을 때 호출되는 콜백입니다.
+ * @param content 기능별 본문 UI입니다.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FileBottomSheet(
+internal fun FileBottomSheet(
     modifier: Modifier = Modifier,
     sheetState: SheetState = rememberModalBottomSheetState(),
     title: String,

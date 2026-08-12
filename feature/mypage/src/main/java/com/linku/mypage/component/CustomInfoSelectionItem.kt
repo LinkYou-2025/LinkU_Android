@@ -3,7 +3,6 @@ package com.linku.mypage.component
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,9 +28,18 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.mypage.R
 
+/**
+ * 맞춤정보 항목의 아이콘, 선택 상태, 체크 표시를 한 행으로 표시합니다.
+ *
+ * @param text 사용자에게 표시할 항목 이름
+ * @param iconPainter 항목 종류에 대응하는 아이콘 Painter
+ * @param isSelected 현재 항목의 선택 여부
+ * @param onClick 항목을 눌렀을 때 실행할 콜백
+ */
 @Composable
 fun CustomInfoSelectionItem(
     text: String,
+    iconPainter: Painter,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -53,11 +62,10 @@ fun CustomInfoSelectionItem(
             .padding(horizontal = 18.dp, vertical = 15.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier
-                .size(18.dp)
-                .clip(RoundedCornerShape(6.dp))
-                .background(colors.gray[600])
+        Image(
+            painter = iconPainter,
+            contentDescription = null,
+            modifier = Modifier.size(22.dp)
         )
 
         Spacer(modifier = Modifier.width(8.dp))
@@ -87,6 +95,7 @@ fun PreviewCustomInfoSelectionItem() {
     ThemeProvider {
         CustomInfoSelectionItem(
             text = "비즈니스/마케팅",
+            iconPainter = painterResource(com.linku.design.R.drawable.ic_interest_business),
             isSelected = true,
             onClick = {}
         )

@@ -4,8 +4,8 @@ import android.content.Intent
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,25 +25,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
+import com.linku.core.model.alarm.AlarmSetting
+import com.linku.design.AlarmAllowDialog
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.modifier.skeleton
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
-import androidx.compose.ui.tooling.preview.Preview
-import com.linku.core.model.alarm.AlarmSetting
-import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.OnResumeEffect
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.AlarmSettingUiState
 import com.linku.mypage.NotificationEffect
 import com.linku.mypage.NotificationViewModel
@@ -62,7 +62,7 @@ import com.linku.mypage.intent.ToggleNotice
 
 @Composable
 fun AlarmSettingScreen(
-    navController: NavController,
+    onBackClick: () -> Unit,
     viewModel: NotificationViewModel,
 ) {
     val state by viewModel.notificationState.collectAsStateWithLifecycle()
@@ -101,7 +101,7 @@ fun AlarmSettingScreen(
 
     AlarmSettingScreenContent(
         state = state,
-        onBackClick = { navController.popBackStack() },
+        onBackClick = onBackClick,
         onIntent = { intent ->
             viewModel.sendIntent(intent)
         } // Intent가 발생하면 ViewModel의 Channel로 전달
@@ -114,6 +114,8 @@ private fun AlarmSettingScreenContent(
     onBackClick: () -> Unit,
     onIntent: (NotificationIntent) -> Unit
 ) {
+    ReportScaffoldBackground(LocalColorTheme.current.gray[100])
+
     Column(
         modifier = Modifier
             .fillMaxSize()
