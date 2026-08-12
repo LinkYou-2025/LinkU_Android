@@ -3,6 +3,7 @@ package com.linku.link.screen
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -58,6 +59,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -83,6 +85,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 import com.linku.link.component.AIArticleModal
 import com.linku.link.component.DeleteLinkModal
+import com.linku.link.component.DiscardLinkEditModal
 import com.linku.link.component.LinkCategoryOption
 import com.linku.link.component.LinkDetailAction
 import com.linku.link.component.LinkDetailCategoryDropdown
@@ -171,6 +174,7 @@ fun LinkDetailScreen(
     categoryOptions: List<LinkCategoryOption>,
     onBack: () -> Unit,
     onPickImage: () -> Unit,
+    onDiscardSelectedImage: () -> Unit,
     onSubmitEdit: (
         title: String,
         memo: String?,
@@ -197,6 +201,7 @@ fun LinkDetailScreen(
     val context = LocalContext.current
     val density = LocalDensity.current
     val focusManager = LocalFocusManager.current
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
     val detailScrollState = rememberScrollState()
     val imeInsets = WindowInsets.ime
     val imeAnimationTargetInsets = WindowInsets.imeAnimationTarget
@@ -217,6 +222,7 @@ fun LinkDetailScreen(
     var isDropdownVisible by rememberSaveable { mutableStateOf(false) }
     var isDeleteModalVisible by rememberSaveable { mutableStateOf(false) }
     var isAiArticleModalVisible by rememberSaveable { mutableStateOf(false) }
+    var isDiscardEditModalVisible by rememberSaveable(linkuId) { mutableStateOf(false) }
     var aiArticleProgress by rememberSaveable { mutableFloatStateOf(0f) }
 
     var editToastMessage by rememberSaveable { mutableStateOf("") }
@@ -235,6 +241,18 @@ fun LinkDetailScreen(
     var selectedSituationId by rememberSaveable { mutableStateOf(situationId) }
     var selectedMemo by rememberSaveable { mutableStateOf(memo) }
 
+    // 편집 도중 상세 API가 갱신되어도 비교 기준이 움직이지 않도록 진입 시점의 값을 보관합니다.
+    var editBaselineTitle by rememberSaveable(linkuId) { mutableStateOf(linkTitle) }
+    var editBaselineMemo by rememberSaveable(linkuId) { mutableStateOf(memo) }
+    var editBaselineCategoryId by rememberSaveable(linkuId) { mutableStateOf(categoryId) }
+    var editBaselineEmotionId by rememberSaveable(linkuId) {
+        mutableStateOf(
+            EmotionType.entries.firstOrNull { option -> option.tagName == emotion }?.id?.value
+        )
+    }
+    var editBaselineSituationId by rememberSaveable(linkuId) { mutableStateOf(situationId) }
+    var isEditBaselineCaptured by rememberSaveable(linkuId) { mutableStateOf(false) }
+
     val isTitleValid = selectedTitle.isNotBlank()
     val isSaveButtonEnabled = !isEditMode || isTitleValid
 
@@ -252,6 +270,52 @@ fun LinkDetailScreen(
 
     var openedDropdownType by rememberSaveable {
         mutableStateOf<LinkDetailDropdownType?>(null)
+    }
+
+    // 서버에 실제로 전달되는 정규화 값과 ID를 기준으로 변경 여부를 판단합니다.
+    val hasEditChanges = isEditMode && isEditBaselineCaptured && (
+        selectedImageUri != null ||
+            selectedTitle.trim() != editBaselineTitle.trim() ||
+            selectedMemo.trim() != editBaselineMemo.trim() ||
+            selectedCategoryId != editBaselineCategoryId ||
+            selectedEmotion?.id?.value != editBaselineEmotionId ||
+            selectedSituationId != editBaselineSituationId
+        )
+
+    // 수정 전 값으로 초안을 복원하고 링크 상세 화면을 유지한 채 수정 모드만 종료합니다.
+    val discardEditChanges: () -> Unit = {
+        selectedTitle = editBaselineTitle
+        selectedMemo = editBaselineMemo
+        selectedCategoryId = editBaselineCategoryId
+        selectedEmotion = EmotionType.entries.firstOrNull { option ->
+            option.id.value == editBaselineEmotionId
+        }
+        selectedSituationId = editBaselineSituationId
+        onDiscardSelectedImage()
+        openedDropdownType = null
+        isEditMode = false
+        isEditBaselineCaptured = false
+        isDiscardEditModalVisible = false
+    }
+
+    // 상단 화살표와 시스템 뒤로가기가 동일한 변경 확인 흐름을 사용하도록 통합합니다.
+    val requestBack: () -> Unit = {
+        when {
+            imeBottom > 0 -> {
+                // 입력 중에는 화면 이동보다 키보드와 포커스를 먼저 정리합니다.
+                softwareKeyboardController?.hide()
+                focusManager.clearFocus(force = true)
+            }
+            isDiscardEditModalVisible -> isDiscardEditModalVisible = false
+            openedDropdownType != null -> openedDropdownType = null
+            hasEditChanges -> isDiscardEditModalVisible = true
+            isEditMode -> discardEditChanges()
+            else -> onBack()
+        }
+    }
+
+    BackHandler(enabled = isEditMode) {
+        requestBack()
     }
 
     // 칩과 오버레이가 서로 다른 레이아웃에 있으므로 윈도우 좌표를 공통 기준으로 사용합니다.
@@ -430,7 +494,7 @@ fun LinkDetailScreen(
                     isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
                     isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
                     isSituationDropdownOpen = openedDropdownType == LinkDetailDropdownType.SITUATION,
-                    onBack = { onBack() },
+                    onBack = requestBack,
                     onMoreClick = {
                         isDropdownVisible = !isDropdownVisible
                     },
@@ -793,6 +857,13 @@ fun LinkDetailScreen(
 
                     when (action) {
                         LinkDetailAction.EDIT -> {
+                            // 변경 여부는 편집 진입 당시 화면에 표시된 값을 고정 기준으로 비교합니다.
+                            editBaselineTitle = selectedTitle
+                            editBaselineMemo = selectedMemo
+                            editBaselineCategoryId = selectedCategoryId
+                            editBaselineEmotionId = selectedEmotion?.id?.value
+                            editBaselineSituationId = selectedSituationId
+                            isEditBaselineCaptured = true
                             isEditMode = true
                         }
 
@@ -986,6 +1057,8 @@ fun LinkDetailScreen(
                                     isEditToastVisible = true
 
                                     isEditMode = false
+                                    isEditBaselineCaptured = false
+                                    isDiscardEditModalVisible = false
                                     openedDropdownType = null
                                 },
                                 {
@@ -1044,6 +1117,38 @@ fun LinkDetailScreen(
                 .padding(top = 86.dp)
                 .zIndex(3f)
         )
+
+        if (isDiscardEditModalVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(4f)
+                    .noRippleClickable {
+                        // 딤 배경은 계속 수정하기와 동일하게 초안을 유지하고 모달만 닫습니다.
+                        isDiscardEditModalVisible = false
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp)
+                        .noRippleClickable { },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    DiscardLinkEditModal(
+                        onExit = {
+                            // 나가기는 상세 화면을 유지하고 수정 전 상태로만 돌아갑니다.
+                            discardEditChanges()
+                        },
+                        onContinue = {
+                            // 계속 수정하기는 초안과 비교 기준을 그대로 둔 채 모달만 닫습니다.
+                            isDiscardEditModalVisible = false
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -1078,6 +1183,7 @@ fun PreviewLinkDetailScreen() {
             categoryOptions = categoryOptions,
             onBack = { },
             onPickImage = { },
+            onDiscardSelectedImage = { },
             onSubmitEdit = { _, _, _, _, _, _, _ -> },
             onDeleteLink = { _, _ -> }
         )

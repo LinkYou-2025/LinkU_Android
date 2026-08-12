@@ -924,6 +924,9 @@ fun MainApp(
                         onPickImage = {
                             detailImagePicker.launch("image/*")
                         },
+                        onDiscardSelectedImage = {
+                            selectedDetailImageUri = null
+                        },
                         onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
                             detailCoroutineScope.launch {
                                 val selectedTempImage = runCatching {
