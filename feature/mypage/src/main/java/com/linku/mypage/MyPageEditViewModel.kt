@@ -89,10 +89,12 @@ class MyPageEditViewModel @Inject constructor(
                     resetEditUserInfo(info)
                 },
                 onFailure = { e ->
+                    val appError = e as? AppError
+                        ?: ApiError.Unknown(e.message ?: "알 수 없는 오류가 발생했습니다.")
                     _uiEditState.value =
                         _uiEditState.value.copy(
                             isLoading = false,
-                            error = e.message ?: "사용자 정보 조회 실패"
+                            error = appError.displayMessage
                         )
                 }
             )
@@ -197,7 +199,9 @@ class MyPageEditViewModel @Inject constructor(
                     loadUserInfo()
                 },
                 onFailure = { e ->
-                    onError("변경에 실패했습니다: ${e.message}")
+                    val appError = e as? AppError
+                        ?: ApiError.Unknown(e.message ?: "알 수 없는 오류가 발생했습니다.")
+                    onError(appError.displayMessage)
                 }
             )
         }

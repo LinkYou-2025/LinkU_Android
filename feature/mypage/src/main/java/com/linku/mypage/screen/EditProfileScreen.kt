@@ -15,11 +15,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,13 +33,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.UserInfo
@@ -54,8 +54,8 @@ import com.linku.mypage.R
 @Composable
 fun EditProfileScreen(
     onBackClick: () -> Unit,
-    onPickProfileImage: () -> Unit,
-    onChangeProfileImage: () -> Unit,
+//    onPickProfileImage: () -> Unit, // 나중에 api 나오면 업데이트 진행함.
+//    onChangeProfileImage: () -> Unit, // 나중에 api 나오면 업데이트 진행함.
     onNicknameInputChanged: (String) -> Unit,
     nicknameCheckState: NicknameCheckState,
     onSubmit: (nickname: String, jobId: Long) -> Unit,
@@ -120,9 +120,9 @@ fun EditProfileScreen(
 
         onSubmit(trimmedName, selectedJob.id.toLong())
 
-        if (isProfileImageChanged) {
-            onChangeProfileImage()
-        }
+//        if (isProfileImageChanged) {
+//            onChangeProfileImage()
+//        }
     }
 
     Column(
@@ -155,43 +155,44 @@ fun EditProfileScreen(
             )
         }
 
-        Spacer(modifier = Modifier.height(37.75.dp))
+//        Spacer(modifier = Modifier.height(37.75.dp))
 
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // 프로필 사진
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .align(Alignment.CenterHorizontally)
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.img_profile_default),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(100.dp)
-                        .align(Alignment.Center)
-                ) //TODO : 다인 언니 어떻게 편집할지 생각해보기!
+            // 프로필 사진 -> api 부재로 앱 업데이트 이후 api 작업 나오는대로 작업할 예정.(현재 api 없음으로 주석처리함.)
+//            Box(
+//                modifier = Modifier
+//                    .size(100.dp)
+//                    .align(Alignment.CenterHorizontally)
+//            ) {
+//                Image(
+//                    painter = painterResource(R.drawable.img_profile_default),
+//                    contentDescription = null,
+//                    modifier = Modifier
+//                        .size(100.dp)
+//                        .align(Alignment.Center)
+//                )
+//
+//                Box(
+//                    modifier = Modifier
+//                        .size(30.dp)
+//                        .border(4.dp, colors.white, shape = CircleShape)
+//                        .align(Alignment.BottomEnd)
+//                        .noRippleClickable {
+//                            onPickProfileImage()
+//                            isProfileImageChanged = true
+//                        }
+//                ) {
+//                    Image(
+//                        painter = painterResource(R.drawable.ic_plus),
+//                        contentDescription = null
+//                    )
+//                }
+//            }
 
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .border(4.dp, colors.white, shape = CircleShape)
-                        .align(Alignment.BottomEnd)
-                        .noRippleClickable {
-                            onPickProfileImage()
-                            isProfileImageChanged = true
-                        }
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.ic_plus),
-                        contentDescription = null
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(37.dp))
+//            Spacer(modifier = Modifier.height(37.dp))
+            Spacer(modifier = Modifier.height(43.dp))
 
             // 이름 변경
             Column(
@@ -231,7 +232,7 @@ fun EditProfileScreen(
                             value = name,
                             onValueChange = { name = it },
                             singleLine = true,
-                            textStyle = TextStyle(
+                            textStyle = LocalTextStyle.current.copy(
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Normal,
                                 color = colors.black
@@ -457,41 +458,52 @@ fun EditProfileScreen(
 fun JobDropdownMenu(
     options: List<String>,
     selectedOption: String,
-    onOptionSelected: (String) -> Unit,
-    menuMaxHeight: Dp = 262.dp
+    onOptionSelected: (String) -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
     var expanded by remember { mutableStateOf(false) }
 
-    Box {
+    Column(modifier = Modifier.fillMaxWidth()) {
         JobDropdownField(
             selectedOption = selectedOption,
             onClick = { expanded = !expanded }
         )
 
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(18.dp),
-            containerColor = colors.white,
-            shadowElevation = 10.dp,
-            modifier = Modifier
-                .width(372.dp)
-                .heightIn(max = menuMaxHeight)
-                .border(width = 1.dp, color = colors.gray[200], shape = RoundedCornerShape(18.dp))
-                .padding(horizontal = 22.dp, vertical = 11.dp),
-            offset = DpOffset(x = 0.dp, y = (-302).dp)
-        ) {
-            options.forEach { option ->
-                JobDropdownItem(
-                    text = option,
-                    selected = option == selectedOption,
-                    onClick = {
-                        onOptionSelected(option)
-                        expanded = false
-                    }
-                )
+        if (expanded) {
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 260.dp)
+                    .shadow(
+                        elevation = 10.dp,
+                        shape = RoundedCornerShape(18.dp),
+                        ambientColor = colors.shadowColor,
+                        spotColor = colors.shadowColor
+                    )
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(colors.white)
+                    .border(
+                        width = 1.dp,
+                        color = colors.gray[200],
+                        shape = RoundedCornerShape(18.dp)
+                    )
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 22.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(18.dp)
+            ) {
+                options.forEach { option ->
+                    JobDropdownItem(
+                        text = option,
+                        selected = option == selectedOption,
+                        onClick = {
+                            onOptionSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
@@ -546,8 +558,7 @@ private fun JobDropdownItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .noRippleClickable { onClick() }
-            .padding(horizontal = 22.dp, vertical = 9.dp),
+            .noRippleClickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -579,8 +590,8 @@ fun PreviewEditProfileScreen() {
     ThemeProvider {
         EditProfileScreen(
             onBackClick = { },
-            onPickProfileImage = { },
-            onChangeProfileImage = { },
+//            onPickProfileImage = { },
+//            onChangeProfileImage = { },
             onNicknameInputChanged = { },
             nicknameCheckState = NicknameCheckState.Idle,
             onSubmit = { _, _ -> },

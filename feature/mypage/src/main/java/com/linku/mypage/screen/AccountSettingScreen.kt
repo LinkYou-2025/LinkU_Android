@@ -120,7 +120,10 @@ fun AccountSettingScreen(
                     )
                 }
 
-                if (!isSocialLogin) {
+                // TODO: 비밀번호 변경 API 생성되면 isSocialLogin 조건으로 복구하기 (지금은 API 없어서 이메일 로그인도 소셜 로그인처럼 비밀번호 설정 없이 임시 처리)
+                // 현재 항상 false로 유지함.(api 구현 불가로), 앱 업데이트시 수정 요함.
+                // 항상 false 오류 아님. -> 현재 비밀번호 재설정 ui는 존재하되, 기능적으로 작동하지 않는 상태로 놓기 위함.(앱 업데이트 시, api 생성 후 추후 작업할 예정.)
+                if (false) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -150,7 +153,10 @@ fun AccountSettingScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(end = 5.dp),
+                        .padding(end = 5.dp)
+                        .noRippleClickable {
+                            onCustomInfoSettingClick()
+                        },
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -164,11 +170,7 @@ fun AccountSettingScreen(
                     Image(
                         painter = painterResource(Res.drawable.ic_detail),
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(8.dp, 14.dp)
-                            .noRippleClickable {
-                                onCustomInfoSettingClick()
-                            }
+                        modifier = Modifier.size(8.dp, 14.dp)
                     )
                 }
             }

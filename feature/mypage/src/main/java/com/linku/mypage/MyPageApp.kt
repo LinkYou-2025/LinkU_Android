@@ -147,16 +147,22 @@ fun MyPageApp(
                 editViewModel.loadUserInfo()
             }
 
+            LaunchedEffect(editUiState.error) {
+                editUiState.error?.let { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
+            }
+
             val user = editUiState.userInfo
             if (user != null) {
                 EditProfileScreen(
                     onBackClick = { navController.popBackStack() },
-                    onPickProfileImage = {
-                        // TODO: 이미지 picker 연결
-                    },
-                    onChangeProfileImage = {
-                        // TODO: 프로필 이미지 변경 API 연결
-                    },
+//                    onPickProfileImage = {
+//                        // TODO: 이미지 picker 연결
+//                    },
+//                    onChangeProfileImage = {
+//                        // TODO: 프로필 이미지 변경 API 연결
+//                    },
                     onNicknameInputChanged = { input ->
                         editViewModel.onNicknameChanged(input, originalNickname = user.nickname)
                     },
@@ -171,7 +177,8 @@ fun MyPageApp(
                         editViewModel.editUserInfo(
                             onSuccess = {
                                 viewModel.loadUserInfo()
-                                Toast.makeText(context, "변경되었습니다.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "사용자 정보가 변경되었습니다.", Toast.LENGTH_SHORT)
+                                    .show()
                                 navController.popBackStack()
                             },
                             onError = { msg ->
@@ -208,6 +215,12 @@ fun MyPageApp(
                 editViewModel.loadUserInfo()
             }
 
+            LaunchedEffect(editUiState.error) {
+                editUiState.error?.let { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
+            }
+
             val user = editUiState.userInfo
             if (user != null) {
                 PurposeSelectionScreen(
@@ -241,6 +254,12 @@ fun MyPageApp(
 
             LaunchedEffect(Unit) {
                 editViewModel.loadUserInfo()
+            }
+
+            LaunchedEffect(editUiState.error) {
+                editUiState.error?.let { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                }
             }
 
             val user = editUiState.userInfo
