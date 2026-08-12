@@ -40,10 +40,11 @@ import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.design.top.search.SearchResultItem
 import com.linku.design.util.LocalStatusBarDarkIcons
-import com.linku.file.ui.bottom.sheet.MyFolderEditBottomSheet
-import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
-import com.linku.file.ui.bottom.sheet.NewMyFolderBottomSheet
 import com.linku.file.ui.bottom.sheet.CategoryEditBottomSheet
+import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
+import com.linku.file.ui.bottom.sheet.MyFolderEditBottomSheet
+import com.linku.file.ui.bottom.sheet.NewMyFolderBottomSheet
+import com.linku.file.ui.bottom.sheet.ShareBottomSheet
 import com.linku.file.ui.content.CategoryGrid
 import com.linku.file.ui.content.ClassifiedLinksGrid
 import com.linku.file.ui.content.LoadingFoldersGrid
@@ -394,7 +395,7 @@ fun FileScreen(
     )
 
     // 폴더 공유 바텀 시트
-    /*_ShareBottomSheet(
+    ShareBottomSheet(
         modifier = Modifier.fillMaxWidth(),
         visible = folderStateViewModel.shareBottomSheetVisible,
         folderTree = folderTree,
@@ -402,8 +403,8 @@ fun FileScreen(
         onDismissRequest = {
             folderStateViewModel.updateShareBottomSheetVisible(false)
         },
-        onLinkGenerate = fileViewModel::shareFolder
-    )*/
+        onLinkGenerate = fileViewModel::createInvitationLink,
+    )
 
     // ---------- bottom sheets ----------
 

@@ -2,27 +2,33 @@ package com.linku.file.ui.bottom.sheet
 
 import android.content.ClipData
 import android.content.Intent
-import android.util.Log
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.tappableElement
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,1047 +38,1458 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.FolderSimpleInfo
+import com.linku.design.R as DesignR
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.modifier.skeleton
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.ThemeColorScheme
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.OuterShadowResourceImage
 import com.linku.file.R
-import com.linku.file.ui.bottom.sheet.LinkGenerateState.Before
-import com.linku.file.ui.bottom.sheet.LinkGenerateState.Done
-import com.linku.file.ui.bottom.sheet.LinkGenerateState.Error
-import com.linku.file.ui.bottom.sheet.LinkGenerateState.Loading
-import com.linku.file.ui.bottom.sheet.ScreenState.Main
-import com.linku.file.ui.bottom.sheet.ScreenState.Select
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
 
-// 전체 화면 높이
-private const val FULL_HEIGHT = 917f
+/** Figma 전체 화면 기준 시트 상단 좌표입니다. 시트 높이는 런타임 창 높이에서 이 값을 뺍니다. */
+private val MainSheetTop = 67.dp
+private val SelectSheetTop = 317.dp
+private val ActionBottomSpacing = 10.dp
+private val MainContentBottomReservation = 130.dp
+private val SelectContentBottomReservation = 60.dp
+private val SelectedFolderFooterVisibleHeight = 160.dp
+private val FigmaSystemNavigationOverlayHeight = 60.dp
+private val SheetShape = RoundedCornerShape(topStart = 30.dp, topEnd = 30.dp)
+private val ControlShape = RoundedCornerShape(18.dp)
 
-/*--------------바텀 시트 메인 화면 요소 간 비율 및 상수 --------------*/
-
-// 바텀 시트 메인 화면 크기 상수
-private const val SHEET_MAIN_SCREEN_HEIGHT = 850f   // 바텀 시트 메인 화면 높이
-private const val SHEET_MAIN_SCREEN_WIDTH = 412f    // 바텀 시트 메인 화면 너비
-
-private const val SHEET_MAIN_SCREEN_HEIGHT_RATIO = SHEET_MAIN_SCREEN_HEIGHT / FULL_HEIGHT   // 바텀 시트 메인 화면 높이 비율
-
-// 폴더 모형 크기 상수
-private const val FOLDER_STRUCTURE_HEIGHT = 154.04047f  // 폴더 모형 높이
-private const val FOLDER_STRUCTURE_WIDTH = 174f     // 폴더 모형 너비
-
-private const val FOLDER_STRUCTURE_WIDTH_RATIO = FOLDER_STRUCTURE_WIDTH / SHEET_MAIN_SCREEN_WIDTH   // 폴더 모형 너비 비율
-
-private const val CIRCLE_SIZE_IN_FOLDER = 30.70588f     // 폴더 내 원 크기 상수
-
-private const val FOLDER_STRUCTURE_TOP_MARGIN_RATIO = 45f / SHEET_MAIN_SCREEN_HEIGHT  // 폴더 위 여백 비율
-private const val FOLDER_STRUCTURE_BOTTOM_MARGIN_RATIO = 29.96f / SHEET_MAIN_SCREEN_HEIGHT    // 폴더 아래 여백 비율
-
-// 폴더 공유 메뉴 크기 상수
-private const val SHARE_FOLDER_MENU_WIDTH = 372f - 44f    // 폴더 공유 메뉴 너비 (양 옆 여백 너비 제거)
-
-private const val SHARE_FOLDER_MENU_HEIGHT_RATIO = 52f / SHEET_MAIN_SCREEN_HEIGHT   // 폴더 공유 메뉴 높이 비율
-private const val SHARE_FOLDER_MENU_WIDTH_RATIO = SHARE_FOLDER_MENU_WIDTH / SHEET_MAIN_SCREEN_WIDTH // 폴더 공유 메뉴 너비 비율
-
-private const val SHARE_FOLDER_MENU_ARROW_WIDTH_RATIO = 7f / SHARE_FOLDER_MENU_WIDTH    // 폴더 공유 메뉴바 오른쪽 화살표 이미지 크기 비율
-
-private const val SHARE_FOLDER_MENU_TOP_MARGIN_RATIO = 14f / SHEET_MAIN_SCREEN_HEIGHT   // 폴더 공유 메뉴 위 여백
-private const val SHARE_FOLDER_MENU_BOTTOM_MARGIN_RATIO = 10f / SHEET_MAIN_SCREEN_HEIGHT    // 폴더 공유 메뉴 아래 여백
-
-// 공유 링크 크기 상수
-private const val SHARE_LINK_HEIGHT = 52f    // 공유 링크 높이
-private const val SHARE_LINK_WIDTH = 372f    // 공유 링크 너비
-
-private const val SHARE_LINK_HEIGHT_RATIO = SHARE_LINK_HEIGHT / SHEET_MAIN_SCREEN_HEIGHT    // 공유 링크 높이 비율
-private const val SHARE_LINK_WIDTH_RATIO = SHARE_LINK_WIDTH / SHEET_MAIN_SCREEN_WIDTH   // 공유 링크 너비 비율
-
-// 하단 버튼 크기 상수
-private const val BUTTON_HEIGHT = 50f    // 하단 버튼 높이
-private const val BUTTON_WIDTH = 372f    // 하단 버튼 너비
-
-private const val BUTTON_HEIGHT_RATIO = BUTTON_HEIGHT / SHEET_MAIN_SCREEN_HEIGHT    // 하단 버튼 높이 비율
-private const val BUTTON_WIDTH_RATIO = BUTTON_WIDTH / SHEET_MAIN_SCREEN_WIDTH   // 하단 버튼 너비 비율
-
-private const val SMALL_BUTTON_WIDTH = 181f     // 작은 버튼 너비
-
-private const val SMALL_BUTTON_WIDTH_RATIO = SMALL_BUTTON_WIDTH / BUTTON_WIDTH   // 작은 버튼 너비 비율
-
-private const val COPY_ICON_WIDTH_RATIO = 19.00195f / SMALL_BUTTON_WIDTH  // 복사 아이콘 너비 비율
-
-private const val SHARE_ICON_WIDTH_RATIO = 19.00195f / SMALL_BUTTON_WIDTH  // 공유 아이콘 너비 비율
-
-/*--------------바텀 시트 메인 화면 요소 간 비율 및 상수 --------------*/
-
-/*--------------바텀 시트 폴더 선택 화면 요소 간 비율 및 상수 --------------*/
-
-// 바텀 시트 메인 화면 크기 상수
-private const val SHEET_Select_SCREEN_HEIGHT = 598f // 바텀 시트 메인 화면 높이
-private const val SHEET_Select_SCREEN_WIDTH = 412f  // 바텀 시트 메인 화면 너비
-
-private const val SHEET_SELECT_SCREEN_HEIGHT_RATIO = SHEET_Select_SCREEN_HEIGHT / FULL_HEIGHT   // 바텀 시트 메인 화면 높이 비율
-
-/*--------------바텀 시트 폴더 선택 화면 요소 간 비율 및 상수 --------------*/
-
-
-
-
-/**
- * 공유할 대상의 탐색 깊이와 선택된 폴더 정보를 관리하는 실드 인터페이스(Sealed Interface).
- *
- * 바텀 시트 내에서 사용자가 어느 단계까지 폴더를 탐색했는지, 그리고 어떤 폴더가 최종적으로 선택되었는지를
- * 상태로 나타내기 위해 사용됩니다.
- *
- * - [None]: 아무것도 선택되지 않은 초기 상태.
- * - [Category]: 상위 카테고리만 선택되어 하위 폴더 목록을 탐색 중인 상태.
- * - [Folder]: 상위 카테고리와 그 내부의 특정 폴더까지 모두 선택 완료된 상태.
- *
- * @property depthOrder 계층 간의 비교를 위한 깊이 순서값.
- * [None] < [Category] < [Folder] 순서.
- */
-private sealed interface SelectDepth: Comparable<SelectDepth> {
-    val depthOrder: Int
-
-    override fun compareTo(other: SelectDepth): Int =
-        depthOrder.compareTo(other.depthOrder)
-}
-
-/**
- * 선택된 폴더가 없음을 나타내는 기본 상태 객체입니다.
- * [SelectDepth] 인터페이스를 구현하며, 폴더 공유 프로세스에서 초기 선택 상태를 정의할 때 사용됩니다.
- */
-private object None : SelectDepth{
-    override val depthOrder = 0
-}
-
-/**
- * 선택된 공유 대상의 깊이가 '카테고리' 수준임을 나타내는 데이터 클래스입니다.
- *
- * 사용자가 특정 카테고리를 선택했지만, 그 하위의 구체적인 폴더는 아직 선택하지 않았거나
- * 해당 카테고리 자체를 컨텍스트로 가질 때 사용됩니다.
- *
- * @property category 선택된 카테고리에 대한 간략한 정보 ([FolderSimpleInfo]).
- */
-private open class Category(open val category: FolderSimpleInfo) : SelectDepth{
-    override val depthOrder = 1
-}
-
-/**
- * 사용자가 선택한 폴더의 계층 구조 정보를 나타내는 데이터 클래스입니다.
- * [SelectDepth] 인터페이스의 구현체로, 상위 카테고리와 그 하위의 구체적인 폴더가 모두 선택된 상태를 의미합니다.
- *
- * @property category 선택된 폴더가 속한 상위 카테고리 정보.
- * @property folder 실제 공유 대상으로 선택된 하위 폴더 정보.
- */
-private class Folder(override val category: FolderSimpleInfo, val folder: FolderSimpleInfo) : Category(category) {
-    override val depthOrder = 2
-}
-
-
-
-
-/**
- * 바텀 시트 내에서 전환되는 화면의 종류를 정의하는 열거형 클래스.
- *
- * - [Main]: 폴더 공유를 위한 메인 미리보기 및 링크 생성 화면.
- * - [Select]: 공유할 폴더를 탐색하고 선택하는 화면.
- */
 private enum class ScreenState {
-
-    /**
-     * 폴더 공유를 위한 메인 미리보기 및 링크 생성 화면.
-     */
     Main,
-
-    /**
-     * 공유할 폴더를 탐색하고 선택하는 화면.
-     */
-    Select
+    Select,
 }
-
-
-
 
 /**
- * 공유 링크 생성 프로세스의 현재 상태를 나타내는 열거형 클래스.
+ * 공유 대상 탐색 중인 선택 깊이입니다.
  *
- * 로딩 상태 별 UI 표시(공유 링크 레이아웃 스켈레톤, 하단 버튼 리스트 전환 등)에 활용.
- *
- * - [Before]: 링크 생성이 아직 시작되지 않은 초기 상태.
- * - [Loading]: 링크 생성을 서버나 내부 로직에 요청하여 현재 처리 중인 상태.
- * - [Done]: 공유 링크 생성이 성공적으로 완료된 상태.
- * - [Error]: 공유 링크 생성 중 오류가 발생한 상태.
+ * [Category]와 [Folder]는 서로 독립적인 상태입니다. 이를 상속 관계로 만들면 `when` 분기에서
+ * 폴더 선택이 카테고리 선택으로 먼저 처리되어 전체 경로가 사라질 수 있습니다.
  */
-private enum class LinkGenerateState {
+private sealed interface SelectDepth {
+    data object None : SelectDepth
 
-    /**
-     * 링크 생성이 아직 시작되지 않은 초기 상태.
-     * - **UI 동작**: 사용자에게 '공유 링크 생성' 버튼이 활성화.
-     */
-    Before,
+    data class Category(
+        val category: FolderSimpleInfo,
+    ) : SelectDepth
 
-    /**
-     * 링크 생성을 서버나 내부 로직에 요청하여 현재 처리 중인 상태.
-     * - **UI 동작**: 사용자에게 스켈레톤으로 처리 중임을 표시하고 하단 버튼 비활성화.
-     */
-    Loading,
-
-    /**
-     * 공유 링크 생성이 성공적으로 완료된 상태.
-     * - **UI 동작**: 공유 링크를 보이고, 생성된 링크를 클립보드에 복사하는 버튼과
-     * 시스템 공유 창(Share Sheet)을 띄우는 버튼 활성화.
-     */
-    Done,
-
-    /**
-     * 공유 링크 생성 중 오류가 발생한 상태.
-     * - **UI 동작**: 미정
-     */
-    Error
+    data class Folder(
+        val category: FolderSimpleInfo,
+        val folder: FolderSimpleInfo,
+    ) : SelectDepth
 }
 
+/** 링크 생성 결과가 필요로 하는 데이터까지 함께 소유하는 화면 상태입니다. */
+private sealed interface LinkGenerateState {
+    data object Before : LinkGenerateState
+    data object Loading : LinkGenerateState
+    data class Done(val link: String) : LinkGenerateState
+    data object Error : LinkGenerateState
+}
 
+private enum class ShareFeedback {
+    CopyCompleted,
+    GenerationFailed,
+}
 
+private enum class FolderTreeLoadState {
+    Loading,
+    Loaded,
+    Failed,
+}
 
+/**
+ * 파일 화면에서 공유 바텀시트를 조건부로 표시하고 폴더 트리를 한 번 요청합니다.
+ *
+ * 네트워크 요청의 생명주기는 호출자의 ViewModel이 소유합니다. 이 컴포저블은 요청 시작과 결과
+ * callback만 받아 바텀시트가 열려 있는 동안의 화면 상태를 관리합니다.
+ *
+ * @param visible 바텀시트 표시 여부
+ * @param folderTree 공유 대상으로 선택할 카테고리와 하위 폴더 트리
+ * @param onLoadFolderTree 바텀시트가 열릴 때 폴더 트리를 갱신하고 성공 또는 실패 callback 중
+ * 정확히 하나를 호출하는 함수
+ * @param onDismissRequest 바텀시트 닫기 요청
+ * @param onLinkGenerate 폴더 ID와 성공·실패 callback을 받아 초대 링크 생성을 시작하고 둘 중
+ * 정확히 하나를 호출하는 함수
+ */
 @Composable
 internal fun ShareBottomSheet(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     visible: Boolean,
     folderTree: List<FolderSimpleInfo>,
-    onLoadFolderTree: () -> Unit,
+    onLoadFolderTree: (
+        onSuccess: (List<FolderSimpleInfo>) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) -> Unit,
     onDismissRequest: () -> Unit,
-    onLinkGenerate: (Long) -> String?
-){
-    if(visible){
-        LaunchedEffect(Unit) {
-            onLoadFolderTree()
-        }
+    onLinkGenerate: (
+        folderId: Long,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) -> Unit,
+) {
+    if (!visible) return
 
-        ShareBottomSheetLayout(
-            modifier = modifier,
-            folderTree = folderTree,
-            onDismissRequest = onDismissRequest,
-            onLinkGenerate = onLinkGenerate
+    var folderTreeLoadState by remember { mutableStateOf(FolderTreeLoadState.Loading) }
+    var displayedFolderTree by remember { mutableStateOf(folderTree) }
+
+    LaunchedEffect(folderTree) {
+        displayedFolderTree = folderTree
+    }
+
+    fun loadFolderTree() {
+        folderTreeLoadState = FolderTreeLoadState.Loading
+        onLoadFolderTree(
+            { loadedFolderTree ->
+                displayedFolderTree = loadedFolderTree
+                folderTreeLoadState = FolderTreeLoadState.Loaded
+            },
+            {
+                folderTreeLoadState = if (displayedFolderTree.isEmpty()) {
+                    FolderTreeLoadState.Failed
+                } else {
+                    FolderTreeLoadState.Loaded
+                }
+            },
         )
     }
+
+    LaunchedEffect(Unit) {
+        try {
+            loadFolderTree()
+        } catch (cancellation: CancellationException) {
+            throw cancellation
+        } catch (_: Exception) {
+            folderTreeLoadState = if (displayedFolderTree.isEmpty()) {
+                FolderTreeLoadState.Failed
+            } else {
+                FolderTreeLoadState.Loaded
+            }
+        }
+    }
+
+    ShareBottomSheetLayout(
+        modifier = modifier,
+        folderTree = displayedFolderTree,
+        folderTreeLoadState = folderTreeLoadState,
+        onReloadFolderTree = {
+            try {
+                loadFolderTree()
+            } catch (_: Exception) {
+                folderTreeLoadState = FolderTreeLoadState.Failed
+            }
+        },
+        onDismissRequest = onDismissRequest,
+        onLinkGenerate = onLinkGenerate,
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun ShareBottomSheetLayout(
-    modifier: Modifier = Modifier,
+private fun ShareBottomSheetLayout(
+    modifier: Modifier,
     folderTree: List<FolderSimpleInfo>,
+    folderTreeLoadState: FolderTreeLoadState,
+    onReloadFolderTree: () -> Unit,
     onDismissRequest: () -> Unit,
-    onLinkGenerate: (Long) -> String?
-){
-    // 메인 & 선택 화면 공통 인스턴스
-    /** 색상 공통 인스턴스*/
+    onLinkGenerate: (
+        folderId: Long,
+        onSuccess: (String) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) -> Unit,
+) {
     val colors = MaterialTheme.linkuColors
+    val context = LocalContext.current
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    /** 선택된 폴더의 깊이 ([None], [Category], [Folder])*/
-    var selectDepth: SelectDepth by remember { mutableStateOf(None) }
+    var screenState by remember { mutableStateOf(ScreenState.Main) }
+    var selectedDepth by remember { mutableStateOf<SelectDepth>(SelectDepth.None) }
+    var linkGenerateState by remember {
+        mutableStateOf<LinkGenerateState>(LinkGenerateState.Before)
+    }
+    var feedback by remember { mutableStateOf<ShareFeedback?>(null) }
+    var requestVersion by remember { mutableLongStateOf(0L) }
+    var isOpeningSystemShare by remember { mutableStateOf(false) }
 
-    /** 바텀 시트의 화면 상태 ([Main], [Select])*/
-    var screenState: ScreenState by remember { mutableStateOf(Main) }
+    LaunchedEffect(folderTreeLoadState, folderTree, selectedDepth) {
+        if (folderTreeLoadState != FolderTreeLoadState.Loaded) return@LaunchedEffect
 
-    // 바텀 시트 오픈마다 한 번 초기화
-    LaunchedEffect(Unit) {
-        selectDepth = None
-        screenState = Main
+        val selectedFolder = selectedDepth as? SelectDepth.Folder ?: return@LaunchedEffect
+        val currentCategory = folderTree.firstOrNull {
+            it.folderId == selectedFolder.category.folderId
+        }
+        val currentFolder = currentCategory?.children?.firstOrNull {
+            it.folderId == selectedFolder.folder.folderId
+        }
+        if (currentCategory == null || currentFolder == null) {
+            requestVersion += 1
+            selectedDepth = SelectDepth.None
+            linkGenerateState = LinkGenerateState.Before
+            feedback = null
+        } else {
+            val currentDepth = SelectDepth.Folder(currentCategory, currentFolder)
+            if (currentDepth != selectedFolder) {
+                selectedDepth = currentDepth
+            }
+        }
     }
 
-    /** 바텀 시트 상태 인스턴스*/
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true    // 항상 활짝 펴진 상태로 설정
-    )
+    val sheetTop = when (screenState) {
+        ScreenState.Main -> MainSheetTop
+        ScreenState.Select -> SelectSheetTop
+    }
+    val feedbackMessage = when (feedback) {
+        ShareFeedback.CopyCompleted -> stringResource(R.string.share_bottom_sheet_copy_completed)
+        ShareFeedback.GenerationFailed -> stringResource(R.string.share_bottom_sheet_generation_failed)
+        null -> ""
+    }
+    val chooserTitle = stringResource(R.string.share_bottom_sheet_chooser_title)
+    val shareLaunchFailedMessage = stringResource(R.string.share_link_create_failed)
+    val hasShareableFolder = folderTree.any { it.children.isNotEmpty() }
+    val showFolderTreeFailure = folderTreeLoadState == FolderTreeLoadState.Failed
+    val showNoShareableFolder =
+        folderTreeLoadState == FolderTreeLoadState.Loaded && !hasShareableFolder
+    val folderSelectionEnabled =
+        folderTreeLoadState == FolderTreeLoadState.Loaded && hasShareableFolder
 
-    /**
-     * **내부 컨텐츠 구조 (content)**
-     *
-     * `when(screenState)` 조건문에 따라 두 가지 화면 중 하나를 렌더링:
-     * - [Main]: 메인 공유 설정 화면 (폴더 미리보기, 링크 생성 등).
-     * -Select]: 공유할 폴더를 선택하기 위한 탐색 화면.
-     */
     ModalBottomSheet(
         modifier = modifier
-            .fillMaxWidth(),
-        dragHandle = {
-            BottomSheetDefaults.DragHandle(
-                width = 40.dp,
-                color = colors.gray[300]
-            )
-        },
-        containerColor = colors.white,
+            .fillMaxWidth()
+            .dropShadow(
+                shape = SheetShape,
+                shadow = Shadow(
+                    radius = 15.dp,
+                    spread = 0.dp,
+                    offset = DpOffset(x = 0.dp, y = (-4).dp),
+                    color = Color(0xFF7C7C7C),
+                    alpha = 0.6f,
+                ),
+            ),
+        onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        onDismissRequest = onDismissRequest
+        sheetGesturesEnabled = !isOpeningSystemShare,
+        shape = SheetShape,
+        containerColor = colors.white,
+        tonalElevation = 0.dp,
+        scrimColor = Color.Black.copy(alpha = 0.5f),
+        dragHandle = null,
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
-        // ScreenState에 따른 컨텐츠
-        when (screenState) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+            val density = LocalDensity.current
+            val bottomSystemInset = with(density) {
+                WindowInsets.tappableElement.getBottom(this).toDp()
+            }
+            val resolvedSheetHeight = (maxHeight - sheetTop).coerceAtLeast(0.dp)
 
-            // 폴더 공유 바텀 시트의 메인 화면
-            Main -> ShareBottomSheetMainScreen(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(SHEET_MAIN_SCREEN_HEIGHT_RATIO),
-                colors = colors,
-                selectDepth = selectDepth,
-                onMenuClick = { screenState = Select },
-                onLinkGenerate = onLinkGenerate
-            )
+                    .height(resolvedSheetHeight),
+            ) {
+                when (screenState) {
+                    ScreenState.Main -> ShareBottomSheetMainScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        colors = colors,
+                        selectedDepth = selectedDepth,
+                        linkGenerateState = linkGenerateState,
+                        bottomSystemInset = bottomSystemInset,
+                        showNoShareableFolder = showNoShareableFolder,
+                        showFolderTreeFailure = showFolderTreeFailure,
+                        showFolderMenuArrow = hasShareableFolder || showFolderTreeFailure,
+                        folderSelectionEnabled = folderSelectionEnabled,
+                        onMenuClick = {
+                            if (showFolderTreeFailure) {
+                                onReloadFolderTree()
+                            } else {
+                                feedback = null
+                                screenState = ScreenState.Select
+                            }
+                        },
+                        onGenerateClick = generate@{
+                            val selectedFolder = selectedDepth as? SelectDepth.Folder
+                                ?: return@generate
+                            if (linkGenerateState is LinkGenerateState.Loading) {
+                                return@generate
+                            }
 
-            // 공유할 폴더 선택 화면
-           Select -> SelectFolderToShareScreen(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(SHEET_SELECT_SCREEN_HEIGHT_RATIO),
-                colors = colors,
-                preSelectDepth = selectDepth,
-                categories = folderTree,
-                onSelectDepthChange = {
-                    selectDepth = it
-                    screenState = Main
-                },
-            )
+                            requestVersion += 1
+                            val currentRequest = requestVersion
+                            val folderId = selectedFolder.folder.folderId
+                            feedback = null
+                            linkGenerateState = LinkGenerateState.Loading
+
+                            try {
+                                onLinkGenerate(
+                                    folderId,
+                                    { generatedLink ->
+                                        val currentFolderId =
+                                            (selectedDepth as? SelectDepth.Folder)?.folder?.folderId
+                                        if (requestVersion == currentRequest && currentFolderId == folderId) {
+                                            linkGenerateState = LinkGenerateState.Done(generatedLink)
+                                        }
+                                    },
+                                    {
+                                        val currentFolderId =
+                                            (selectedDepth as? SelectDepth.Folder)?.folder?.folderId
+                                        if (requestVersion == currentRequest && currentFolderId == folderId) {
+                                            linkGenerateState = LinkGenerateState.Error
+                                            feedback = ShareFeedback.GenerationFailed
+                                        }
+                                    },
+                                )
+                            } catch (cancellation: CancellationException) {
+                                throw cancellation
+                            } catch (_: Exception) {
+                                linkGenerateState = LinkGenerateState.Error
+                                feedback = ShareFeedback.GenerationFailed
+                            }
+                        },
+                        onCopyClick = copy@{
+                            val link = (linkGenerateState as? LinkGenerateState.Done)?.link
+                                ?: return@copy
+                            clipboard.nativeClipboard.setPrimaryClip(
+                                ClipData.newPlainText(
+                                    context.getString(R.string.share_bottom_sheet_clipboard_label),
+                                    link,
+                                ),
+                            )
+                            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.S_V2) {
+                                feedback = ShareFeedback.CopyCompleted
+                            }
+                        },
+                        onShareClick = share@{
+                            val link = (linkGenerateState as? LinkGenerateState.Done)?.link
+                                ?: return@share
+                            if (isOpeningSystemShare) return@share
+
+                            isOpeningSystemShare = true
+                            scope.launch {
+                                try {
+                                    sheetState.hide()
+                                    onDismissRequest()
+                                    context.startActivity(createShareChooserIntent(link, chooserTitle))
+                                } catch (cancellation: CancellationException) {
+                                    throw cancellation
+                                } catch (_: Exception) {
+                                    Toast.makeText(
+                                        context,
+                                        shareLaunchFailedMessage,
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
+                                } finally {
+                                    isOpeningSystemShare = false
+                                }
+                            }
+                        },
+                    )
+
+                    ScreenState.Select -> SelectFolderToShareScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        colors = colors,
+                        committedDepth = selectedDepth,
+                        categories = folderTree,
+                        bottomSystemInset = bottomSystemInset,
+                        onCancel = { screenState = ScreenState.Main },
+                        onApply = apply@{ appliedFolder ->
+                            val currentCategory = folderTree.firstOrNull {
+                                it.folderId == appliedFolder.category.folderId
+                            }
+                            val currentFolder = currentCategory?.children?.firstOrNull {
+                                it.folderId == appliedFolder.folder.folderId
+                            }
+                            if (currentCategory == null || currentFolder == null) {
+                                requestVersion += 1
+                                linkGenerateState = LinkGenerateState.Before
+                                feedback = null
+                                selectedDepth = SelectDepth.None
+                                screenState = ScreenState.Main
+                                return@apply
+                            }
+
+                            val currentDepth = SelectDepth.Folder(currentCategory, currentFolder)
+                            if (currentDepth != selectedDepth) {
+                                requestVersion += 1
+                                linkGenerateState = LinkGenerateState.Before
+                                feedback = null
+                            }
+                            selectedDepth = currentDepth
+                            screenState = ScreenState.Main
+                        },
+                    )
+                }
+
+                TimedCustomToastMessage(
+                    visible = feedback != null,
+                    toastMessage = feedbackMessage,
+                    onDismiss = {
+                        val dismissedFeedback = feedback
+                        feedback = null
+                        if (
+                            dismissedFeedback == ShareFeedback.GenerationFailed &&
+                            linkGenerateState is LinkGenerateState.Error
+                        ) {
+                            linkGenerateState = LinkGenerateState.Before
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 27.dp)
+                        .dropShadow(
+                            shape = RoundedCornerShape(14.dp),
+                            shadow = Shadow(
+                                radius = 5.dp,
+                                spread = 0.dp,
+                                offset = DpOffset(x = 0.dp, y = 4.dp),
+                                color = Color(0xFFABABAB),
+                                alpha = 0.2f,
+                            ),
+                        ),
+                )
+            }
         }
     }
 }
 
-
-
-
-/*----------------폴더 공유 바텀 시트 메인 스크린----------------*/
-/**
- * 폴더 공유 바텀 시트의 메인 화면을 구성하는 Composable 함수입니다.
- *
- * 이 화면은 선택된 폴더의 정보를 시각적으로 보여주는 폴더 모형, 폴더 선택을 위한 메뉴 바,
- * 그리고 선택된 폴더의 공유 링크 생성 및 관리(복사, 공유)를 위한 UI 요소들을 포함합니다.
- *
- * @param modifier 이 컴포저블의 레이아웃, 크기, 클릭 이벤트 등을 정의하기 위한 [Modifier].
- * @param colors 앱의 디자인 시스템에 정의된 테마 색상 구성 객체 ([ThemeColorScheme]).
- * @param selectDepth 현재 사용자가 선택한 폴더의 계층 구조 정보를 담고 있는 상태 ([SelectDepth]).
- * @param onMenuClick 폴더 선택 메뉴(경로 표시 바)를 클릭했을 때 호출되는 콜백. 주로 [Select] 화면으로 전환하는 로직이 들어갑니다.
- * @param onLinkGenerate 특정 폴더 ID를 기반으로 공유 링크 생성을 요청하는 람다 함수.
- *                       성공 시 생성된 링크 URL을, 실패 시 null을 반환해야 합니다.
- *
- * @see SelectDepth
- * @see LinkGenerateState
- * @see ShareFolderMenu
- * @see ShareLink
- * @see LinkGenerationButton
- */
 @Composable
 private fun ShareBottomSheetMainScreen(
     modifier: Modifier,
     colors: ThemeColorScheme,
-    selectDepth: SelectDepth,
+    selectedDepth: SelectDepth,
+    linkGenerateState: LinkGenerateState,
+    bottomSystemInset: Dp,
+    showNoShareableFolder: Boolean,
+    showFolderTreeFailure: Boolean,
+    showFolderMenuArrow: Boolean,
+    folderSelectionEnabled: Boolean,
     onMenuClick: () -> Unit,
-    onLinkGenerate: (Long) -> String?
-){
-    /** 링크 생성 프로세스의 현재 진행 상태 ([Before], [Loading], [Done], [Error])*/
-    var linkGenerateState: LinkGenerateState by remember { mutableStateOf(Before) }
+    onGenerateClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    onShareClick: () -> Unit,
+) {
+    val isFolderSelected = selectedDepth is SelectDepth.Folder
+    val contentTop = if (isFolderSelected) 84.dp else 99.dp
 
-    /** 공유 링크 생성 상태에 따른 문자열
-     *
-     * - [Before]: "링크 생성 전"
-     * - [Loading]: "링크 생성 중..."
-     * - [Done]: "링크 생성 완료"
-     * - [Error]: "링크 생성 실패"
-     */
-    var link: String by remember { mutableStateOf("링크 생성 전") }
-
-    LaunchedEffect(selectDepth) {
-        linkGenerateState = Before
-        link = "링크 생성 전"
-    }
-
-    /**
-     * 선택된 폴더의 경로와 상태에 따라 메뉴 바에 표시될 텍스트.
-     * [AnnotatedString]을 사용하여 상위 카테고리는 회색, 현재 폴더는 기본색으로 스타일을 다르게 적용합니다.
-     *
-     * - [None]: 선택된 폴더가 없을 때 안내 문구 표시.
-     * - [Category]: 상위 카테고리만 선택되었을 때 해당 카테고리 이름 표시.
-     * - [Folder]: 카테고리와 하위 폴더가 모두 선택되었을 때 '카테고리 > 폴더' 형식으로 표시.
-     */
-    var menuText: AnnotatedString by remember(selectDepth){ mutableStateOf(
-        buildAnnotatedString {
-            when (selectDepth) {
-                is None -> {
-                    withStyle(SpanStyle(colors.gray[400])) {
-                        append("공유하실 폴더를 선택해주세요.")
-                    }
-                }
-                is Category -> {
-                    append(selectDepth.category.folderName)
-                }
-                is Folder -> {
-                    withStyle(SpanStyle(colors.gray[400])){
-                        append(selectDepth.category.folderName + " > ")
-                    }
-                    append(selectDepth.folder.folderName)
-                }
-            }
-        }
-    )}
-
-    /** 클립보드에 복사를 위한 객체*/
-    val clipboardManager = LocalClipboard.current
-
-    /** 바텀 시트 내 컨텍스트*/
-    val context = LocalContext.current
-
-    /**
-     * 생성된 공유 링크를 시스템 클립보드에 복사하는 람다 함수.
-     * 복사 성공 시 사용자에게 알림 메시지(Toast)를 표시합니다.
-     */
-    val linkCopyToClipboard = {
-        clipboardManager.nativeClipboard.setPrimaryClip(
-            ClipData.newPlainText("label", link)
-        )
-        Toast.makeText(context, "링크가 클립보드에 복사되었습니다.", Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * 안드로이드 시스템 공유 시트(Share Sheet)를 열어 링크를 다른 앱으로 전달하는 람다 함수.
-     * [Intent.ACTION_SEND]를 사용하여 텍스트 형식의 링크를 공유합니다.
-     */
-    val linkShareToShareSheet = {
-        try{
-            Log.d("ShareBottomSheet", "linkShareToShareSheet")
-            
-            val sendIntent = Intent().apply {
-                Log.d("ShareBottomSheet", "linkShareToShareSheet intent")
-
-                action = Intent.ACTION_SEND // 공유 액션 설정
-                putExtra(Intent.EXTRA_TEXT, link)
-                type = "text/plain"
-            }
-            
-            Log.d("ShareBottomSheet", "linkShareToShareSheet intent done")
-
-            val shareIntent = Intent.createChooser(sendIntent, "링크 공유하기")
-            
-            Log.d("ShareBottomSheet", "linkShareToShareSheet shareIntent")
-            
-            context.startActivity(shareIntent)
-            
-            Log.d("ShareBottomSheet", "linkShareToShareSheet context.startActivity")
-        } catch (e: Exception){
-            Log.e("ShareBottomSheet", "linkShareToShareSheet error", e)
-
-            Toast.makeText(context, "링크 공유에 실패하였습니다. 다시 시도해주십시오.", Toast.LENGTH_SHORT).show()
-        }
-
-        Unit
-    }
-
-    // 폴더 공유 바텀 시트 메인 스크린
-    /**
-     * [ShareBottomSheetMainScreen]의 컴포넌트 배치 구조:
-     *
-     * Column (Main Container)
-     * ├── Text ("폴더 공유하기" 타이틀)
-     * ├── FolderStructure (폴더 시각적 모형)
-     * ├── Text ("폴더 이름" 라벨)
-     * ├── ShareFolderMenu (폴더 선택 경로 바)
-     * └── if (selectDepth is Folder) {  // 폴더가 최종 선택된 경우에만 표시
-     *      ├── ShareLink (생성된 링크 표시 바 - Loading/Done/Error 상태 시)
-     *      └── Link Management UI (상태에 따라 [LinkGenerationButton] 또는 [Row(Copy/Share Buttons)] 표시)
-     *     }
-     */
-    Column(
-        modifier = modifier.padding(horizontal = 20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ){
-        // "폴더 공유하기" 타이틀
-        Text(
-            text = "폴더 공유하기",
-            fontSize = 16.sp,
-            fontWeight = FontWeight(500)
-        )
-
-        Spacer(modifier = Modifier.fillMaxHeight(FOLDER_STRUCTURE_TOP_MARGIN_RATIO))
-
-        // 폴더 시각적 모형
-        FolderStructure(
+    Box(modifier = modifier) {
+        SheetHandle(
             modifier = Modifier
-                .fillMaxWidth(FOLDER_STRUCTURE_WIDTH_RATIO),
-            colors = colors
-        )
-
-        Spacer(modifier = Modifier.fillMaxHeight(FOLDER_STRUCTURE_BOTTOM_MARGIN_RATIO))
-
-        // "폴더 이름" 라벨
-        Text(
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .align(Alignment.Start),
-            text = "폴더 이름",
-            fontSize = 15.sp,
-            fontWeight = FontWeight(500)
-        )
-
-        Spacer(modifier = Modifier.fillMaxHeight(SHARE_FOLDER_MENU_TOP_MARGIN_RATIO))
-
-        // 폴더 선택 경로 바
-        ShareFolderMenu(
-            modifier = Modifier
-                .fillMaxWidth(/*SHARE_FOLDER_MENU_WIDTH_RATIO*/)
-                .fillMaxHeight(SHARE_FOLDER_MENU_HEIGHT_RATIO),
+                .align(Alignment.TopCenter)
+                .padding(top = 17.dp),
             colors = colors,
-            menuText = menuText,
-            selectable = true,
-            onClick = onMenuClick
         )
 
-        // 폴더가 최종 선택된 경우에만 표시
-        if(selectDepth is Folder) {
+        Text(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 38.dp),
+            text = stringResource(R.string.share_bottom_sheet_title),
+            color = colors.black,
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+        )
 
-            Spacer(modifier = Modifier.fillMaxHeight(SHARE_FOLDER_MENU_BOTTOM_MARGIN_RATIO))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight()
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 20.dp)
+                .padding(
+                    top = contentTop,
+                    bottom = if (isFolderSelected) {
+                        MainContentBottomReservation + bottomSystemInset
+                    } else {
+                        20.dp
+                    },
+                )
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            FolderStructure(
+                modifier = Modifier.size(width = 174.dp, height = 154.041.dp),
+                colors = colors,
+            )
 
-            // 생성된 링크 표시 바 - Loading/Done/Error 상태 시
-            if(linkGenerateState != Before) {
+            Spacer(modifier = Modifier.height(29.959.dp))
+
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp),
+                text = stringResource(R.string.share_bottom_sheet_folder_name),
+                color = colors.black,
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Medium,
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            ShareFolderMenu(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                colors = colors,
+                selectedDepth = selectedDepth,
+                showNoShareableFolder = showNoShareableFolder,
+                showFolderTreeFailure = showFolderTreeFailure,
+                showArrow = showFolderMenuArrow,
+                enabled = if (showFolderTreeFailure) {
+                    true
+                } else {
+                    folderSelectionEnabled &&
+                        linkGenerateState !is LinkGenerateState.Loading &&
+                        linkGenerateState !is LinkGenerateState.Error
+                },
+                onClick = onMenuClick,
+            )
+
+            if (isFolderSelected && linkGenerateState !is LinkGenerateState.Before) {
+                Spacer(modifier = Modifier.height(10.dp))
                 ShareLink(
                     modifier = Modifier
-                        .fillMaxWidth(SHARE_LINK_WIDTH_RATIO)
-                        .fillMaxHeight(SHARE_LINK_HEIGHT_RATIO),
+                        .fillMaxWidth()
+                        .height(52.dp),
                     colors = colors,
-                    link = link,
-                    isLoading = linkGenerateState == Loading
+                    state = linkGenerateState,
                 )
             }
+        }
 
-            // 상태에 따라 [LinkGenerationButton] 또는 [Row(Copy/Share Buttons)] 표시
-            when(linkGenerateState) {
-                Before -> // [LinkGenerationButton] 표시
-                    // 링크 생성 버튼
-                    LinkGenerationButton(
+        if (isFolderSelected) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        bottom = ActionBottomSpacing + bottomSystemInset,
+                    ),
+            ) {
+                when (linkGenerateState) {
+                    LinkGenerateState.Before -> LinkGenerationButton(
                         modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .fillMaxWidth(BUTTON_WIDTH_RATIO)
-                            .fillMaxHeight(BUTTON_HEIGHT_RATIO),
-                        colors = colors
-                    ){  // 링크 생성 버튼 클릭 콜백
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = colors,
+                        enabled = true,
+                        onClick = onGenerateClick,
+                    )
 
-                        // 링크 생성 시작 시 생성 상태 = Loading
-                        linkGenerateState = Loading
-
-                        // onLinkGenerate 실행 후 링크 대입. null일 경우, 실패 문장 대입.
-                        link = onLinkGenerate(selectDepth.folder.folderId)?:"링크 생성을 실패했습니다. 다시 시도해주십시오.".also {
-
-                            // 또한 null일 경우, 에러 상태로 전환
-                            linkGenerateState = Error
-                            return@LinkGenerationButton
-                        }
-
-                        // 링크 대입 성공 시 생성 상태 = Done
-                        linkGenerateState = Done
-                    }
-
-                Loading -> link = "링크 생성 중..."
-
-                Done -> // [Row(Copy/Share Buttons)] 표시
-                    Row(
+                    LinkGenerateState.Loading,
+                    LinkGenerateState.Error,
+                    -> LinkGenerationButton(
                         modifier = Modifier
-                            .align(Alignment.CenterHorizontally)
-                            .fillMaxWidth(BUTTON_WIDTH_RATIO)
-                            .fillMaxHeight(BUTTON_HEIGHT_RATIO),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ){
-                        // 링크 복사 버튼
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        colors = colors,
+                        enabled = false,
+                        onClick = onGenerateClick,
+                    )
+
+                    is LinkGenerateState.Done -> Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
                         LinkCopyButton(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(SMALL_BUTTON_WIDTH_RATIO),
+                                .weight(1f)
+                                .fillMaxHeight(),
                             colors = colors,
-                            onCopy = linkCopyToClipboard
+                            onCopy = onCopyClick,
                         )
-
-                        // 링크 공유 버튼
                         LinkShareButton(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(SMALL_BUTTON_WIDTH_RATIO),
+                                .weight(1f)
+                                .fillMaxHeight(),
                             colors = colors,
-                            onShare = linkShareToShareSheet
+                            onShare = onShareClick,
                         )
                     }
-
-                Error -> link = "링크 생성을 실패했습니다. 다시 시도해주십시오."
+                }
             }
         }
     }
 }
 
-/**
- * 공유할 폴더의 정보를 시각적으로 나타내는 폴더 모형 UI를 구성하는 Composable 함수입니다.
- *
- * 배경 이미지, 그림자가 적용된 마스크 레이어, 그리고 폴더 내부에 위치한 원형 및 직사각형 형태의
- * 플레이스홀더 요소를 중첩하여 입체적인 폴더 디자인을 구현합니다.
- *
- * @param modifier 이 컴포저블의 레이아웃, 크기 등을 정의하기 위한 [Modifier].
- * @param colors 앱의 디자인 시스템에 정의된 테마 색상 구성 객체 ([ThemeColorScheme]).
- *
- * @see ShareBottomSheetMainScreen
- */
-@Composable
-private fun FolderStructure(
-    modifier: Modifier,
-    colors: ThemeColorScheme,
-){
-    // 폴더 모형 레이아웃
-    Box(
-        modifier = modifier
-    ){
-        Image(
-            contentDescription = "폴더 배경 레이어",
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center),
-            painter = painterResource(id = R.drawable.img_shared_bottom_sheet_folder_background),
-        )
-
-        // TODO: 그림자 해결
-        //val bitmap = ImageBitmap.imageResource(id = R.drawable.img_shared_bottom_sheet_folder_mask)
-        OuterShadowResourceImage(
-            resId = R.drawable.img_shared_bottom_sheet_folder_mask,
-            contentDescription = "폴더 앞 부분 레이어",
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-        )
-
-        /*PngImageWithShadow(
-            contentDescription = "폴더 앞 부분 레이어",
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter),
-            painter = painterResource(id = R.drawable.img_shared_bottom_sheet_folder_mask)
-        )*/
-
-        // 빈 폴더 이름 칸
-        Row(
-            modifier = Modifier
-                .padding(start = 18.42.dp, bottom = 18.93.dp)
-                .fillMaxWidth()
-                .align(Alignment.BottomStart),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(7.87.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(CIRCLE_SIZE_IN_FOLDER.dp)
-                    .background(
-                        shape = CircleShape,
-                        color = colors.gray[400]
-                    )
-            )
-
-            Box(
-                modifier = Modifier
-                    .width(58.dp)
-                    .height(21.dp)
-                    .background(
-                        shape = RoundedCornerShape(size = 8.dp),
-                        color = colors.gray[300]
-                    )
-            )
-        }
-    }
-}
-
-/**
- * 폴더 경로를 표시하고 폴더 선택 화면으로 이동할 수 있는 메뉴 바 컴포저블입니다.
- *
- * 현재 사용자가 선택한 폴더의 계층 구조(카테고리 > 폴더)를 텍스트로 보여주며,
- * 클릭 시 공유할 폴더를 탐색하고 선택할 수 있는 화면으로 전환하는 트리거 역할을 합니다.
- *
- * @param modifier 이 컴포저블의 레이아웃, 크기, 클릭 이벤트 등을 정의하기 위한 [Modifier].
- * @param colors 앱의 디자인 시스템에 정의된 테마 색상 구성 객체 ([ThemeColorScheme]).
- * @param menuText 현재 선택된 폴더 경로를 나타내는 서식 있는 문자열 ([AnnotatedString]).
- * @param selectable 메뉴의 선택 가능 여부.
- * @param onClick 메뉴 바를 클릭했을 때 실행될 콜백 함수.
- *
- * @see ShareBottomSheetMainScreen
- */
-@Composable
-private fun ShareFolderMenu(
-    modifier: Modifier,
-    colors: ThemeColorScheme,
-    menuText: AnnotatedString,
-    selectable: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = modifier
-            .border(
-                width = 1.dp,
-                color = colors.gray[200],
-                shape = RoundedCornerShape(18.dp)
-            )
-            .padding(horizontal = 22.dp)
-            .noRippleClickable { onClick() },
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = menuText,
-            fontSize = 14.sp,
-            fontWeight = FontWeight(400)
-        )
-
-        Image(
-            contentDescription = "메뉴 오른쪽 화살표 이미지",
-            painter = painterResource(R.drawable.img_right_arrow),
-            modifier = Modifier
-                .fillMaxWidth(SHARE_FOLDER_MENU_ARROW_WIDTH_RATIO),
-            colorFilter = ColorFilter.tint(colors.gray[600])
-        )
-    }
-}
-
-/**
- * 생성된 공유 링크를 사용자에게 시각적으로 표시하는 UI 컴포넌트입니다.
- *
- * 링크 생성 상태([LinkGenerateState])가 초기 상태([LinkGenerateState.Before])가 아닐 때 나타나며,
- * 배경색이 있는 둥근 테두리 박스 안에 링크 텍스트를 표시합니다.
- *
- * @param modifier 이 컴포저블의 크기 및 레이아웃을 설정하기 위한 [Modifier].
- * @param colors 앱의 디자인 시스템에 정의된 테마 색상 구성 객체 ([ThemeColorScheme]).
- * @param link 화면에 표시할 공유 링크 문자열 또는 상태 메시지.
- * @param isLoading 현재 링크를 생성 중인지 여부. true일 경우 텍스트 영역에 스켈레톤 애니메이션이 적용됩니다.
- *
- * @see ShareBottomSheetMainScreen
- * @see LinkGenerateState
- * @see LinkGenerationButton
- */
-@Composable
-private fun ShareLink(
-    modifier: Modifier,
-    colors: ThemeColorScheme,
-    link: String,
-    isLoading: Boolean
-){
-    Row(
-        modifier = modifier
-            .border(
-                width = 1.dp,
-                color = colors.gray[200],
-                shape = RoundedCornerShape(18.dp)
-            )
-            .background(colors.gray[100]),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            modifier = Modifier
-                .padding(horizontal = 22.dp)
-                .clip(RoundedCornerShape(18.dp))
-                .skeleton(isLoading = isLoading),
-            text = link,
-            fontSize = 15.sp,
-            fontWeight = FontWeight(400),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1
-        )
-    }
-}
-
-/**
- * 공유 링크 생성을 실행하기 위한 버튼 컴포저블입니다.
- *
- * 사용자가 선택한 폴더에 대한 공유 링크 생성을 요청할 때 사용되며,
- * 클릭 시 전달받은 [onLinkGenerate] 콜백을 실행합니다.
- *
- * @param modifier 버튼의 레이아웃, 크기 등을 설정하기 위한 [Modifier].
- * @param colors 앱의 디자인 시스템 테마 색상을 적용하기 위한 [ThemeColorScheme].
- * @param onLinkGenerate 버튼이 클릭되었을 때 실행될 링크 생성 로직 콜백.
- *
- * @see ShareBottomSheetMainScreen
- */
-@Composable
-private fun LinkGenerationButton(
-    modifier: Modifier,
-    colors: ThemeColorScheme,
-    onLinkGenerate: () -> Unit
-) {
-    Text(
-        modifier = modifier
-            .background(
-                brush = colors.maincolor,
-                shape = RoundedCornerShape(size = 18.dp)
-            )
-            .noRippleClickable {
-                onLinkGenerate()
-            },
-        text = "공유 링크 생성",
-        textAlign = TextAlign.Center,
-        fontSize = 16.sp,
-        color = colors.white
-    )
-}
-
-/**
- * 생성된 공유 링크를 클립보드에 복사하기 위한 버튼 컴포저블입니다.
- *
- * 이 버튼은 테두리가 있는 디자인으로 구성되며, 복사 아이콘과 '링크 복사' 텍스트를 포함합니다.
- * 사용자가 클릭 시 [onCopy] 콜백을 실행하여 외부 로직(클립보드 저장 등)을 처리합니다.
- *
- * @param modifier 이 컴포저블의 레이아웃 크기 및 위치 조정을 위한 [Modifier].
- * @param colors 앱의 테마 색상 구성 객체 ([ThemeColorScheme]).
- * @param onCopy 버튼 클릭 시 호출되는 콜백 함수.
- *
- * @see ShareBottomSheetMainScreen
- */
-@Composable
-private fun LinkCopyButton(
-    modifier: Modifier,
-    colors: ThemeColorScheme,
-    onCopy: () -> Unit
-) {
-    Row(
-        modifier = modifier
-            .border(
-                width = 1.dp,
-                color = colors.gray[300],
-                shape = RoundedCornerShape(size = 18.dp)
-            )
-            .noRippleClickable(onClick = onCopy),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            contentDescription = "링크 복사 이미지",
-            modifier = Modifier
-                .size(20.dp),
-            painter = painterResource(R.drawable.icon_copy),
-            colorFilter = ColorFilter.tint(colors.gray[800])
-        )
-
-        Text(
-            text = "링크 복사",
-            fontSize = 16.sp,
-            color = colors.gray[800]
-        )
-    }
-}
-
-/**
- * 생성된 공유 링크를 외부 앱으로 전달하기 위한 공유 버튼 컴포저블입니다.
- *
- * 버튼 클릭 시 시스템 공유 시트(Share Sheet)를 호출하는 기능을 수행하며,
- * 디자인 시스템의 메인 컬러 그라데이션 배경과 공유 아이콘을 포함합니다.
- *
- * @param modifier 이 컴포저블의 레이아웃, 크기 등을 정의하기 위한 [Modifier].
- * @param colors 앱의 디자인 시스템에 정의된 테마 색상 구성 객체 ([ThemeColorScheme]).
- * @param onShare 버튼을 클릭했을 때 호출되는 콜백 함수. 시스템 공유 액션을 수행하는 로직이 포함되어야 합니다.
- *
- * @see ShareBottomSheetMainScreen
- */
-@Composable
-private fun LinkShareButton(
-    modifier: Modifier,
-    colors: ThemeColorScheme,
-    onShare: () -> Unit
-) {
-    Row(
-        modifier = modifier
-            .background(
-                brush = colors.maincolor,
-                shape = RoundedCornerShape(size = 18.dp)
-            )
-            .noRippleClickable(onClick = onShare),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            contentDescription = "링크 공유 이미지",
-            modifier = Modifier
-                .size(20.dp),
-            painter = painterResource(R.drawable.icon_share),
-            colorFilter = ColorFilter.tint(colors.white)
-        )
-
-        Text(
-            text = "링크 공유",
-            fontSize = 16.sp,
-            color = colors.white
-        )
-    }
-}
-/*----------------폴더 공유 바텀 시트 메인 스크린----------------*/
-
-
-
-
-/*----------------공유 폴더 선택 스크린----------------*/
-// 공유할 폴더 선택 스크린
 @Composable
 private fun SelectFolderToShareScreen(
     modifier: Modifier,
     colors: ThemeColorScheme,
-    preSelectDepth: SelectDepth,
+    committedDepth: SelectDepth,
     categories: List<FolderSimpleInfo>,
-    onSelectDepthChange: (SelectDepth) -> Unit,
-){
-    var newSelectDepth: SelectDepth by remember(preSelectDepth) {
-        mutableStateOf(preSelectDepth)
+    bottomSystemInset: Dp,
+    onCancel: () -> Unit,
+    onApply: (SelectDepth.Folder) -> Unit,
+) {
+    var draftDepth by remember(committedDepth) { mutableStateOf(committedDepth) }
+    val shareableCategories = remember(categories) {
+        categories.filter { it.children.isNotEmpty() }
     }
-    val selectedCategory = when (val depth = newSelectDepth) {
-        is Category -> depth.category
-        is Folder -> depth.category
-        None -> null
-    }
-    val selectedFolder = (newSelectDepth as? Folder)?.folder
 
-    Column(
-        modifier = modifier.padding(horizontal = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ){
-        Text(
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            text = "폴더 선택하기",
-            fontSize = 16.sp,
-            fontWeight = FontWeight(500),
-            color = colors.black,
-        )
-
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // 카테고리 리스트
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
-                items(categories) { category ->
-                    val isSelected = selectedCategory == category
-
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(46.dp)
-                            .padding(start = 15.dp)
-                            .then(
-                                if (isSelected)
-                                    Modifier
-                                        .background(
-                                            color = colors.gray[100],
-                                            shape = RoundedCornerShape(size = 16.dp)
-                                        )
-                                        .noRippleClickable { newSelectDepth = None }
-                                else Modifier.noRippleClickable {
-                                    newSelectDepth = Category(category)
-                                }
-                            ),
-                        text = category.folderName,
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp,
-                        color = if (isSelected) colors.gray[800] else colors.gray[600]
-                    )
-                }
+    LaunchedEffect(shareableCategories) {
+        draftDepth = when (val currentDraft = draftDepth) {
+            SelectDepth.None -> SelectDepth.None
+            is SelectDepth.Category -> {
+                shareableCategories.firstOrNull {
+                    it.folderId == currentDraft.category.folderId
+                }?.let { SelectDepth.Category(it) } ?: SelectDepth.None
             }
 
-            if (selectedCategory != null) {
-
-                val folders = selectedCategory.children
-
-                // 폴더 리스트
-                LazyColumn(
-                    modifier = Modifier
-                        .weight(1f)
-                ) {
-                    items(folders) { folder ->
-                        val isSelected = selectedFolder == folder
-
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(46.dp)
-                                .padding(start = 15.dp)
-                                .then(
-                                    if (isSelected)
-                                        Modifier
-                                            .background(
-                                                color = colors.gray[100],
-                                                shape = RoundedCornerShape(size = 16.dp)
-                                            )
-                                            .noRippleClickable { newSelectDepth = Category(selectedCategory) }
-                                    else Modifier.noRippleClickable {
-                                        val selected = Folder(selectedCategory, folder)
-                                        newSelectDepth = selected
-                                        onSelectDepthChange(selected)
-                                    }
-                                ),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_shared_bottom_sheet_folder_select),
-                                contentDescription = "폴더 아이콘",
-                                tint = if (isSelected) colors.blue[200] else colors.gray[400]
-                            )
-
-                            Text(
-                                text = folder.folderName,
-                                textAlign = TextAlign.Center,
-                                fontSize = 16.sp,
-                                color = if (isSelected) colors.gray[800] else colors.gray[600]
-                            )
-                        }
-                    }
+            is SelectDepth.Folder -> {
+                val currentCategory = shareableCategories.firstOrNull {
+                    it.folderId == currentDraft.category.folderId
+                }
+                val currentFolder = currentCategory?.children?.firstOrNull {
+                    it.folderId == currentDraft.folder.folderId
+                }
+                when {
+                    currentCategory == null -> SelectDepth.None
+                    currentFolder == null -> SelectDepth.Category(currentCategory)
+                    else -> SelectDepth.Folder(currentCategory, currentFolder)
                 }
             }
         }
     }
+    val selectedCategory = when (val depth = draftDepth) {
+        is SelectDepth.Category -> depth.category
+        is SelectDepth.Folder -> depth.category
+        SelectDepth.None -> null
+    }
+    val selectedFolder = (draftDepth as? SelectDepth.Folder)?.folder
+    val selectedFolderDepth = draftDepth as? SelectDepth.Folder
+
+    Box(modifier = modifier) {
+        SheetHandle(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 17.dp),
+            colors = colors,
+        )
+
+        Text(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 38.dp),
+            text = stringResource(R.string.share_bottom_sheet_select_title),
+            color = colors.black,
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp)
+                .padding(
+                    top = 84.dp,
+                    bottom = if (selectedFolderDepth == null) {
+                        SelectContentBottomReservation + bottomSystemInset
+                    } else {
+                        SelectedFolderFooterVisibleHeight + bottomSystemInset
+                    },
+                ),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                items(
+                    items = shareableCategories,
+                    key = { it.folderId },
+                ) { category ->
+                    val isSelected = selectedCategory?.folderId == category.folderId
+                    CategorySelectionRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = colors,
+                        category = category,
+                        selected = isSelected,
+                        onClick = {
+                            draftDepth = if (isSelected) {
+                                SelectDepth.None
+                            } else {
+                                SelectDepth.Category(category)
+                            }
+                        },
+                    )
+                }
+            }
+
+            if (selectedCategory == null) {
+                Spacer(modifier = Modifier.weight(1f))
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    items(
+                        items = selectedCategory.children,
+                        key = { it.folderId },
+                    ) { folder ->
+                        val isSelected = selectedFolder?.folderId == folder.folderId
+                        FolderSelectionRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = colors,
+                            folder = folder,
+                            selected = isSelected,
+                            onClick = {
+                                draftDepth = if (isSelected) {
+                                    SelectDepth.Category(selectedCategory)
+                                } else {
+                                    SelectDepth.Folder(selectedCategory, folder)
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+        }
+
+        if (selectedFolderDepth == null) {
+            SelectActionButtons(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(
+                        start = 20.dp,
+                        end = 20.dp,
+                        bottom = ActionBottomSpacing + bottomSystemInset,
+                    ),
+                colors = colors,
+                applyEnabled = false,
+                onCancel = onCancel,
+                onApply = {},
+            )
+        } else {
+            SelectedFolderFooter(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(SelectedFolderFooterVisibleHeight + bottomSystemInset),
+                colors = colors,
+                selectedFolder = selectedFolderDepth.folder,
+                onRemove = {
+                    draftDepth = SelectDepth.Category(selectedFolderDepth.category)
+                },
+                onCancel = onCancel,
+                onApply = { onApply(selectedFolderDepth) },
+            )
+        }
+    }
 }
-/*----------------공유 폴더 선택 스크린----------------*/
 
-
-
-
-@Preview(showBackground = true)
 @Composable
-private fun ShareBottomSheetMainScreenPreview() {
-    val sampleCategory = FolderSimpleInfo(
-        folderId = 1,
-        folderName = "카테고리",
-        parentFolderId = 0,
-        isBookmarked = false
+private fun SheetHandle(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+) {
+    Box(
+        modifier = modifier
+            .size(width = 40.dp, height = 4.dp)
+            .background(
+                color = colors.gray[300],
+                shape = RoundedCornerShape(2.dp),
+            ),
     )
-    val sampleFolder = FolderSimpleInfo(
-        folderId = 2,
-        folderName = "공유할 폴더",
-        parentFolderId = 1,
-        isBookmarked = false
-    )
-    ThemeProvider {
-        ShareBottomSheetMainScreen(
-            modifier = Modifier.fillMaxWidth(),
-            colors = MaterialTheme.linkuColors,
-            selectDepth = Folder(sampleCategory, sampleFolder),
-            onMenuClick = {},
-            onLinkGenerate = { "https://linku.com/share/test" }
+}
+
+@Composable
+private fun FolderStructure(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+) {
+    Box(modifier = modifier) {
+        Image(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center),
+            painter = painterResource(R.drawable.img_shared_bottom_sheet_folder_background),
+            contentDescription = stringResource(
+                R.string.share_bottom_sheet_folder_background_description,
+            ),
+        )
+
+        OuterShadowResourceImage(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter),
+            resId = R.drawable.img_shared_bottom_sheet_folder_mask,
+            contentDescription = stringResource(
+                R.string.share_bottom_sheet_folder_front_description,
+            ),
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 18.42.dp, bottom = 18.93.dp),
+            horizontalArrangement = Arrangement.spacedBy(7.87.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(30.706.dp)
+                    .background(colors.gray[400], CircleShape),
+            )
+            Box(
+                modifier = Modifier
+                    .size(width = 58.dp, height = 21.dp)
+                    .background(colors.gray[300], RoundedCornerShape(8.dp)),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShareFolderMenu(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    selectedDepth: SelectDepth,
+    showNoShareableFolder: Boolean,
+    showFolderTreeFailure: Boolean,
+    showArrow: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .border(width = 1.dp, color = colors.gray[200], shape = ControlShape)
+            .noRippleClickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .padding(horizontal = 22.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        when (selectedDepth) {
+            SelectDepth.None -> Text(
+                modifier = Modifier.weight(1f),
+                text = stringResource(
+                    when {
+                        showFolderTreeFailure -> {
+                            R.string.share_bottom_sheet_folder_load_failed
+                        }
+
+                        showNoShareableFolder -> {
+                            R.string.share_bottom_sheet_no_shareable_folder
+                        }
+
+                        else -> R.string.share_bottom_sheet_folder_placeholder
+                    },
+                ),
+                color = colors.gray[400],
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            is SelectDepth.Category -> Text(
+                modifier = Modifier.weight(1f),
+                text = selectedDepth.category.folderName,
+                color = colors.black,
+                fontSize = 14.sp,
+                lineHeight = 16.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            is SelectDepth.Folder -> Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = selectedDepth.category.folderName,
+                    color = colors.gray[600],
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Image(
+                    modifier = Modifier.size(width = 5.dp, height = 10.dp),
+                    painter = painterResource(R.drawable.img_right_arrow),
+                    contentDescription = null,
+                    colorFilter = ColorFilter.tint(colors.gray[600]),
+                )
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = selectedDepth.folder.folderName,
+                    color = colors.black,
+                    fontSize = 14.sp,
+                    lineHeight = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+
+        if (showArrow) {
+            Image(
+                modifier = Modifier.size(width = 7.dp, height = 13.171.dp),
+                painter = painterResource(R.drawable.img_right_arrow),
+                contentDescription = stringResource(
+                    R.string.share_bottom_sheet_open_selection_description,
+                ),
+                colorFilter = ColorFilter.tint(colors.gray[600]),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ShareLink(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    state: LinkGenerateState,
+) {
+    Box(
+        modifier = modifier
+            .background(colors.gray[100], ControlShape)
+            .border(width = 1.dp, color = colors.gray[200], shape = ControlShape),
+        contentAlignment = Alignment.Center,
+    ) {
+        when (state) {
+            is LinkGenerateState.Done -> Text(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 22.dp),
+                text = state.link,
+                color = colors.black,
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+
+            LinkGenerateState.Loading,
+            LinkGenerateState.Error,
+            -> Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(21.dp)
+                    .padding(horizontal = 18.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            listOf(colors.gray[200], colors.gray[300]),
+                        ),
+                    ),
+            )
+
+            LinkGenerateState.Before -> Unit
+        }
+    }
+}
+
+@Composable
+private fun LinkGenerationButton(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .background(
+                brush = if (enabled) colors.maincolor else SolidColor(colors.gray[300]),
+                shape = ControlShape,
+            )
+            .noRippleClickable(
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick,
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = stringResource(R.string.share_bottom_sheet_generate_link),
+            color = colors.white,
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center,
         )
     }
+}
+
+@Composable
+private fun LinkCopyButton(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    onCopy: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .border(width = 1.dp, color = colors.gray[300], shape = ControlShape)
+            .noRippleClickable(role = Role.Button, onClick = onCopy),
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            modifier = Modifier.size(19.dp),
+            painter = painterResource(R.drawable.icon_copy),
+            contentDescription = stringResource(
+                R.string.share_bottom_sheet_copy_icon_description,
+            ),
+            colorFilter = ColorFilter.tint(colors.gray[800]),
+        )
+        Text(
+            text = stringResource(R.string.share_bottom_sheet_copy_link),
+            color = colors.gray[800],
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+@Composable
+private fun LinkShareButton(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    onShare: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .background(colors.maincolor, ControlShape)
+            .noRippleClickable(role = Role.Button, onClick = onShare),
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            modifier = Modifier.size(19.dp),
+            painter = painterResource(R.drawable.icon_share),
+            contentDescription = stringResource(
+                R.string.share_bottom_sheet_share_icon_description,
+            ),
+            colorFilter = ColorFilter.tint(colors.white),
+        )
+        Text(
+            text = stringResource(R.string.share_bottom_sheet_share_link),
+            color = colors.white,
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+        )
+    }
+}
+
+@Composable
+private fun CategorySelectionRow(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    category: FolderSimpleInfo,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .height(46.dp)
+            .background(
+                color = if (selected) colors.gray[100] else Color.Transparent,
+                shape = RoundedCornerShape(16.dp),
+            )
+            .noRippleClickable(onClick = onClick)
+            .padding(horizontal = 15.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(
+            text = category.folderName,
+            color = if (selected) colors.gray[800] else colors.gray[600],
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun FolderSelectionRow(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    folder: FolderSimpleInfo,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = modifier
+            .height(46.dp)
+            .noRippleClickable(onClick = onClick)
+            .padding(horizontal = 15.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Icon(
+            modifier = Modifier.size(width = 17.dp, height = 13.dp),
+            painter = painterResource(R.drawable.ic_shared_bottom_sheet_folder_select),
+            contentDescription = stringResource(
+                R.string.share_bottom_sheet_folder_selection_description,
+            ),
+            tint = if (selected) colors.blue[200] else colors.gray[400],
+        )
+        Text(
+            modifier = Modifier.weight(1f),
+            text = folder.folderName,
+            color = if (selected) colors.gray[800] else colors.gray[600],
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun SelectedFolderFooter(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    selectedFolder: FolderSimpleInfo,
+    onRemove: () -> Unit,
+    onCancel: () -> Unit,
+    onApply: () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .dropShadow(
+                shape = RectangleShape,
+                shadow = Shadow(
+                    radius = 15.dp,
+                    spread = 0.dp,
+                    offset = DpOffset(x = 0.dp, y = (-4).dp),
+                    color = Color(0xFF7C7C7C),
+                    alpha = 0.3f,
+                ),
+            )
+            .background(colors.white),
+    ) {
+        Text(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 22.dp, top = 20.dp),
+            text = stringResource(R.string.share_bottom_sheet_selected_folder),
+            color = colors.black,
+            fontSize = 13.sp,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.Normal,
+        )
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(start = 20.dp, top = 47.dp, end = 20.dp)
+                .widthIn(max = 372.dp)
+                .height(38.dp)
+                .background(colors.gray[100], RoundedCornerShape(16.dp))
+                .padding(horizontal = 15.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                modifier = Modifier.weight(1f, fill = false),
+                text = selectedFolder.folderName,
+                color = colors.gray[800],
+                fontSize = 14.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Image(
+                modifier = Modifier
+                    .size(10.dp)
+                    .noRippleClickable(onClick = onRemove),
+                painter = painterResource(DesignR.drawable.ic_recent_search_x),
+                contentDescription = stringResource(
+                    R.string.share_bottom_sheet_remove_selection_description,
+                ),
+            )
+        }
+
+        SelectActionButtons(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp)
+                .padding(top = 100.dp),
+            colors = colors,
+            applyEnabled = true,
+            onCancel = onCancel,
+            onApply = onApply,
+        )
+    }
+}
+
+@Composable
+private fun SelectActionButtons(
+    modifier: Modifier,
+    colors: ThemeColorScheme,
+    applyEnabled: Boolean,
+    onCancel: () -> Unit,
+    onApply: () -> Unit,
+) {
+    Row(
+        modifier = modifier.height(50.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .background(colors.white, ControlShape)
+                .border(width = 1.dp, color = colors.gray[300], shape = ControlShape)
+                .noRippleClickable(role = Role.Button, onClick = onCancel),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.share_bottom_sheet_cancel),
+                color = colors.gray[800],
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .background(
+                    brush = if (applyEnabled) {
+                        colors.maincolor
+                    } else {
+                        SolidColor(colors.gray[300])
+                    },
+                    shape = ControlShape,
+                )
+                .noRippleClickable(
+                    enabled = applyEnabled,
+                    role = Role.Button,
+                    onClick = onApply,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = stringResource(R.string.share_bottom_sheet_apply),
+                color = colors.white,
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+    }
+}
+
+/** 현재 링크를 Android Sharesheet에 전달하는 chooser intent를 만듭니다. */
+private fun createShareChooserIntent(
+    link: String,
+    chooserTitle: String,
+): Intent {
+    val sendIntent = Intent(Intent.ACTION_SEND).apply {
+        putExtra(Intent.EXTRA_TEXT, link)
+        type = "text/plain"
+    }
+    return Intent.createChooser(sendIntent, chooserTitle)
+}
+
+private fun previewFolderTree(): List<FolderSimpleInfo> {
+    val folder = FolderSimpleInfo(
+        folderId = 2,
+        folderName = "K-pop",
+        parentFolderId = 1,
+        isBookmarked = false,
+    )
+    return listOf(
+        FolderSimpleInfo(
+            folderId = 1,
+            folderName = "트렌드",
+            parentFolderId = 0,
+            isBookmarked = false,
+            children = listOf(folder),
+        ),
+    )
+}
+
+@Composable
+private fun ShareBottomSheetMainPreviewContent(
+    selectedDepth: SelectDepth,
+    linkGenerateState: LinkGenerateState,
+    showNoShareableFolder: Boolean = false,
+    showFolderTreeFailure: Boolean = false,
+) {
+    ThemeProvider {
+        ShareBottomSheetMainScreen(
+            modifier = Modifier.fillMaxSize(),
+            colors = MaterialTheme.linkuColors,
+            selectedDepth = selectedDepth,
+            linkGenerateState = linkGenerateState,
+            bottomSystemInset = FigmaSystemNavigationOverlayHeight,
+            showNoShareableFolder = showNoShareableFolder,
+            showFolderTreeFailure = showFolderTreeFailure,
+            showFolderMenuArrow = !showNoShareableFolder || showFolderTreeFailure,
+            folderSelectionEnabled = !showNoShareableFolder && !showFolderTreeFailure,
+            onMenuClick = {},
+            onGenerateClick = {},
+            onCopyClick = {},
+            onShareClick = {},
+        )
+    }
+}
+
+@Composable
+private fun SelectFolderToSharePreviewContent(committedDepth: SelectDepth) {
+    val folderTree = previewFolderTree()
+    ThemeProvider {
+        SelectFolderToShareScreen(
+            modifier = Modifier.fillMaxSize(),
+            colors = MaterialTheme.linkuColors,
+            committedDepth = committedDepth,
+            categories = folderTree,
+            bottomSystemInset = FigmaSystemNavigationOverlayHeight,
+            onCancel = {},
+            onApply = {},
+        )
+    }
+}
+
+@Preview(name = "18134:4082 Main None Before", widthDp = 412, heightDp = 850)
+@Composable
+private fun ShareBottomSheetMainNonePreview() {
+    ShareBottomSheetMainPreviewContent(
+        selectedDepth = SelectDepth.None,
+        linkGenerateState = LinkGenerateState.Before,
+    )
+}
+
+@Preview(name = "18134:4248 Main Empty", widthDp = 412, heightDp = 850)
+@Composable
+private fun ShareBottomSheetMainEmptyPreview() {
+    ShareBottomSheetMainPreviewContent(
+        selectedDepth = SelectDepth.None,
+        linkGenerateState = LinkGenerateState.Before,
+        showNoShareableFolder = true,
+    )
+}
+
+@Preview(name = "18134:8186 Main Folder Before", widthDp = 412, heightDp = 850)
+@Composable
+private fun ShareBottomSheetMainBeforePreview() {
+    val category = previewFolderTree().first()
+    ShareBottomSheetMainPreviewContent(
+        selectedDepth = SelectDepth.Folder(category, category.children.first()),
+        linkGenerateState = LinkGenerateState.Before,
+    )
+}
+
+@Preview(name = "18134:8357 Main Folder Loading", widthDp = 412, heightDp = 850)
+@Composable
+private fun ShareBottomSheetMainLoadingPreview() {
+    val category = previewFolderTree().first()
+    ShareBottomSheetMainPreviewContent(
+        selectedDepth = SelectDepth.Folder(category, category.children.first()),
+        linkGenerateState = LinkGenerateState.Loading,
+    )
+}
+
+@Preview(name = "18134:8530 Main Folder Done", widthDp = 412, heightDp = 850)
+@Composable
+private fun ShareBottomSheetMainDonePreview() {
+    val category = previewFolderTree().first()
+    ShareBottomSheetMainPreviewContent(
+        selectedDepth = SelectDepth.Folder(category, category.children.first()),
+        linkGenerateState = LinkGenerateState.Done(
+            "https://linku.example/open?token=very-long-share-token",
+        ),
+    )
+}
+
+@Preview(name = "18134:7256 Main Folder Error", widthDp = 412, heightDp = 850)
+@Composable
+private fun ShareBottomSheetMainErrorPreview() {
+    val category = previewFolderTree().first()
+    ShareBottomSheetMainPreviewContent(
+        selectedDepth = SelectDepth.Folder(category, category.children.first()),
+        linkGenerateState = LinkGenerateState.Error,
+    )
+}
+
+@Preview(name = "18134:7608 Select None", widthDp = 412, heightDp = 600)
+@Composable
+private fun SelectFolderToShareNonePreview() {
+    SelectFolderToSharePreviewContent(committedDepth = SelectDepth.None)
+}
+
+@Preview(name = "18134:7784 Select Category", widthDp = 412, heightDp = 600)
+@Composable
+private fun SelectFolderToShareCategoryPreview() {
+    val category = previewFolderTree().first()
+    SelectFolderToSharePreviewContent(committedDepth = SelectDepth.Category(category))
+}
+
+@Preview(name = "18134:7981 Select Folder", widthDp = 412, heightDp = 600)
+@Composable
+private fun SelectFolderToShareFolderPreview() {
+    val category = previewFolderTree().first()
+    SelectFolderToSharePreviewContent(
+        committedDepth = SelectDepth.Folder(category, category.children.first()),
+    )
 }
