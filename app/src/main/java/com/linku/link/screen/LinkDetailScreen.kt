@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,11 +47,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -138,6 +141,7 @@ fun LinkDetailScreen(
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
     val density = LocalDensity.current
+    val focusManager = LocalFocusManager.current
     val detailScrollState = rememberScrollState()
     val imeInsets = WindowInsets.ime
     val imeAnimationTargetInsets = WindowInsets.imeAnimationTarget
@@ -298,6 +302,12 @@ fun LinkDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.white)
+            .pointerInput(focusManager) {
+                // 자식이 소비하지 않은 배경 탭에서만 입력 포커스를 해제합니다.
+                detectTapGestures {
+                    focusManager.clearFocus(force = true)
+                }
+            }
     ) {
         // IME가 나타나도 상단바는 고정하고, 아래 본문 영역만 줄어들도록 전체 높이를 점유합니다.
         Column(

@@ -179,8 +179,14 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    // 메모 편집 중에는 카운터가 키보드 상단을 사용할 수 있도록 앱 하단 내비게이션을 숨깁니다.
+    var isSaveLinkMemoImeVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentRoute) {
+        if (currentRoute != "savelink") {
+            isSaveLinkMemoImeVisible = false
+        }
+
         if (currentRoute == NavigationRoute.Home.route ||
             currentRoute == "curation_list"
         ) {
@@ -283,7 +289,7 @@ fun MainApp(
         }
 
         MainScreen(
-            navigationBarProp = if (showNavBar) NavigationBarProp(
+            navigationBarProp = if (showNavBar && !isSaveLinkMemoImeVisible) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
 //                    if (item != currentLinkuNavigationItem) {
@@ -802,6 +808,9 @@ fun MainApp(
                                     )
                                 },
                             )
+                        },
+                        onMemoImeVisibilityChanged = { isVisible ->
+                            isSaveLinkMemoImeVisible = isVisible
                         },
                         toastEvent = linkViewModel.toastEvent,
                     )
