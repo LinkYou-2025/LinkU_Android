@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imeAnimationTarget
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -47,8 +48,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
@@ -59,6 +63,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -73,6 +78,7 @@ import com.linku.core.util.logging.e
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 import com.linku.link.component.AIArticleModal
@@ -87,6 +93,7 @@ import com.linku.link.component.LinkDetailTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 private enum class LinkDetailDropdownType {
@@ -97,12 +104,60 @@ private enum class LinkDetailDropdownType {
 
 private const val MAX_MEMO_LENGTH = 200
 
+/**
+ * 윈도우 기준 칩 영역을 링크 상세 화면 기준 드롭다운 시작 좌표로 변환합니다.
+ *
+ * @param screenBoundsInWindow 링크 상세 화면 컨테이너의 윈도우 기준 영역입니다.
+ * @param chipBoundsInWindow 드롭다운과 연결된 칩의 윈도우 기준 영역입니다.
+ * @param verticalGapPx 칩 하단과 드롭다운 상단 사이의 세로 간격입니다.
+ * @return 화면 컨테이너 기준 드롭다운 좌표이며, 좌표 측정 전에는 `null`입니다.
+ */
+private fun calculateDropdownOffset(
+    screenBoundsInWindow: Rect?,
+    chipBoundsInWindow: Rect?,
+    verticalGapPx: Float,
+): IntOffset? {
+    val screenBounds = screenBoundsInWindow ?: return null
+    val chipBounds = chipBoundsInWindow ?: return null
+
+    return IntOffset(
+        x = (chipBounds.left - screenBounds.left).roundToInt(),
+        y = (chipBounds.bottom - screenBounds.top + verticalGapPx).roundToInt(),
+    )
+}
+
+/**
+ * 상황 드롭다운의 오른쪽 끝을 상황 칩의 오른쪽 끝에 맞추는 좌표를 계산합니다.
+ *
+ * 드롭다운은 화면 컨테이너의 오른쪽 위를 기준으로 배치되므로, 가로 좌표는 화면 오른쪽과
+ * 칩 오른쪽 사이의 차이를 사용합니다. 세로 좌표는 다른 드롭다운과 동일하게 칩 하단에서
+ * 지정된 간격만큼 떨어진 위치를 사용합니다.
+ *
+ * @param screenBoundsInWindow 링크 상세 화면 컨테이너의 윈도우 기준 영역입니다.
+ * @param chipBoundsInWindow 상황 칩의 윈도우 기준 영역입니다.
+ * @param verticalGapPx 상황 칩 하단과 드롭다운 상단 사이의 세로 간격입니다.
+ * @return 화면 오른쪽 위 기준 드롭다운 좌표이며, 좌표 측정 전에는 `null`입니다.
+ */
+private fun calculateEndAlignedDropdownOffset(
+    screenBoundsInWindow: Rect?,
+    chipBoundsInWindow: Rect?,
+    verticalGapPx: Float,
+): IntOffset? {
+    val screenBounds = screenBoundsInWindow ?: return null
+    val chipBounds = chipBoundsInWindow ?: return null
+
+    return IntOffset(
+        x = (chipBounds.right - screenBounds.right).roundToInt(),
+        y = (chipBounds.bottom - screenBounds.top + verticalGapPx).roundToInt(),
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LinkDetailScreen(
     linkuId: Long,
     linkTitle: String,
-    category: String,
+    categoryId: Long?,
     emotion: String,
     situationId: Long?,
     linkUrl: String,
@@ -171,12 +226,7 @@ fun LinkDetailScreen(
     val situationOptions = SituationOptions.allSituations
 
     var selectedTitle by rememberSaveable { mutableStateOf(linkTitle) }
-    var selectedCategory by rememberSaveable { mutableStateOf(category) }
-    var selectedCategoryId by rememberSaveable {
-        mutableStateOf(
-            categoryOptions.firstOrNull { it.name == category }?.id
-        )
-    }
+    var selectedCategoryId by rememberSaveable(linkuId) { mutableStateOf(categoryId) }
     var selectedEmotion by rememberSaveable {
         mutableStateOf(
             EmotionType.entries.firstOrNull { it.tagName == emotion }
@@ -192,8 +242,49 @@ fun LinkDetailScreen(
         it.id.value == selectedSituationId
     }
 
+    // ID를 기준으로 현재 선택 항목을 찾으면 목록이 늦게 도착해도 이름과 색상이 자동으로 갱신됩니다.
+    val selectedCategoryOption = categoryOptions.firstOrNull { option ->
+        option.id == selectedCategoryId
+    }
+    val selectedCategoryName = selectedCategoryOption?.name ?: "카테고리"
+    val selectedCategoryColorStyle =
+        selectedCategoryOption?.colorStyle ?: CategoryColorStyle.DEFAULT
+
     var openedDropdownType by rememberSaveable {
         mutableStateOf<LinkDetailDropdownType?>(null)
+    }
+
+    // 칩과 오버레이가 서로 다른 레이아웃에 있으므로 윈도우 좌표를 공통 기준으로 사용합니다.
+    var screenBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var bodyBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var categoryChipBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var emotionChipBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var situationChipBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+
+    val dropdownVerticalGapPx = with(density) { 12.dp.toPx() }
+    val categoryDropdownOffset = calculateDropdownOffset(
+        screenBoundsInWindow = screenBoundsInWindow,
+        chipBoundsInWindow = categoryChipBoundsInWindow,
+        verticalGapPx = dropdownVerticalGapPx,
+    )
+    val emotionDropdownOffset = calculateDropdownOffset(
+        screenBoundsInWindow = screenBoundsInWindow,
+        chipBoundsInWindow = emotionChipBoundsInWindow,
+        verticalGapPx = dropdownVerticalGapPx,
+    )
+    val situationDropdownOffset = calculateEndAlignedDropdownOffset(
+        screenBoundsInWindow = screenBoundsInWindow,
+        chipBoundsInWindow = situationChipBoundsInWindow,
+        verticalGapPx = dropdownVerticalGapPx,
+    )
+
+    // 본문 시작점을 화면 기준으로 변환해 동적인 헤더 높이만큼 딤 영역을 제외합니다.
+    val dropdownDimTopPadding = screenBoundsInWindow?.let { screenBounds ->
+        bodyBoundsInWindow?.let { bodyBounds ->
+            with(density) {
+                (bodyBounds.top - screenBounds.top).coerceAtLeast(0f).toDp()
+            }
+        }
     }
 
     val visibleTags = tags
@@ -203,11 +294,10 @@ fun LinkDetailScreen(
             if (tag.startsWith("#")) tag else "#$tag"
         }
 
-    LaunchedEffect(linkTitle, category, emotion, situationId, memo, categoryOptions) {
+    LaunchedEffect(linkTitle, categoryId, emotion, situationId, memo) {
         if (!isEditMode) {
             selectedTitle = linkTitle
-            selectedCategory = category
-            selectedCategoryId = categoryOptions.firstOrNull { it.name == category }?.id
+            selectedCategoryId = categoryId
             selectedEmotion = EmotionType.entries.firstOrNull { it.tagName == emotion }
             selectedSituationId = situationId
             selectedMemo = memo
@@ -302,6 +392,9 @@ fun LinkDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.white)
+            .onGloballyPositioned { coordinates ->
+                screenBoundsInWindow = coordinates.boundsInWindow()
+            }
             .pointerInput(focusManager) {
                 // 자식이 소비하지 않은 배경 탭에서만 입력 포커스를 해제합니다.
                 detectTapGestures {
@@ -314,48 +407,76 @@ fun LinkDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            LinkDetailTopBar(
-                linkTitle = selectedTitle,
-                originalLinkTitle = linkTitle,
-                category = selectedCategory,
-                emotion = selectedEmotion?.tagName ?: "감정",
-                situation = selectedSituation?.tagName ?: "상황",
-                isEditMode = isEditMode,
-                isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
-                isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
-                isSituationDropdownOpen = openedDropdownType == LinkDetailDropdownType.SITUATION,
-                onBack = { onBack() },
-                onMoreClick = {
-                    isDropdownVisible = !isDropdownVisible
-                },
-                onLinkGoClick = { uriHandler.openUri(linkUrl) },
-                onCategoryClick = {
-                    openedDropdownType =
-                        if (openedDropdownType == LinkDetailDropdownType.CATEGORY) null
-                        else LinkDetailDropdownType.CATEGORY
-                },
-                onEmotionClick = {
-                    openedDropdownType =
-                        if (openedDropdownType == LinkDetailDropdownType.EMOTION) null
-                        else LinkDetailDropdownType.EMOTION
-                },
-                onSituationClick = {
-                    openedDropdownType =
-                        if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
-                        else LinkDetailDropdownType.SITUATION
-                },
-                onTitleChange = { newTitle ->
-                    selectedTitle = newTitle
-                },
-                onTitleClearClick = {
-                    selectedTitle = ""
-                }
-            )
+            // 헤더의 둥근 하단 모서리 뒤에도 본문과 동일한 딤 배경이 이어지도록 합니다.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        if (openedDropdownType != null) {
+                            colors.black.copy(alpha = 0.5f)
+                        } else {
+                            colors.white
+                        }
+                    )
+            ) {
+                LinkDetailTopBar(
+                    linkTitle = selectedTitle,
+                    originalLinkTitle = linkTitle,
+                    category = selectedCategoryName,
+                    categoryColorStyle = selectedCategoryColorStyle,
+                    emotion = selectedEmotion?.tagName ?: "감정",
+                    situation = selectedSituation?.tagName ?: "상황",
+                    isEditMode = isEditMode,
+                    isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
+                    isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
+                    isSituationDropdownOpen = openedDropdownType == LinkDetailDropdownType.SITUATION,
+                    onBack = { onBack() },
+                    onMoreClick = {
+                        isDropdownVisible = !isDropdownVisible
+                    },
+                    onLinkGoClick = { uriHandler.openUri(linkUrl) },
+                    onCategoryClick = {
+                        if (categoryOptions.isNotEmpty()) {
+                            openedDropdownType =
+                                if (openedDropdownType == LinkDetailDropdownType.CATEGORY) null
+                                else LinkDetailDropdownType.CATEGORY
+                        }
+                    },
+                    onEmotionClick = {
+                        openedDropdownType =
+                            if (openedDropdownType == LinkDetailDropdownType.EMOTION) null
+                            else LinkDetailDropdownType.EMOTION
+                    },
+                    onSituationClick = {
+                        openedDropdownType =
+                            if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
+                            else LinkDetailDropdownType.SITUATION
+                    },
+                    onCategoryChipBoundsChanged = { bounds ->
+                        categoryChipBoundsInWindow = bounds
+                    },
+                    onEmotionChipBoundsChanged = { bounds ->
+                        emotionChipBoundsInWindow = bounds
+                    },
+                    onSituationChipBoundsChanged = { bounds ->
+                        situationChipBoundsInWindow = bounds
+                    },
+                    onTitleChange = { newTitle ->
+                        selectedTitle = newTitle
+                    },
+                    onTitleClearClick = {
+                        selectedTitle = ""
+                    }
+                )
+            }
 
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .onGloballyPositioned { coordinates ->
+                        bodyBoundsInWindow = coordinates.boundsInWindow()
+                    }
                     .verticalScroll(detailScrollState)
                     .padding(top = 25.dp, start = 20.dp, end = 20.dp)
             ) {
@@ -766,56 +887,71 @@ fun LinkDetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .zIndex(1f)
                     .noRippleClickable {
                         openedDropdownType = null
                     }
-            )
+            ) {
+                dropdownDimTopPadding?.let { dimTopPadding ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = dimTopPadding)
+                            .background(colors.black.copy(alpha = 0.5f))
+                    )
+                }
+            }
 
             when (openedDropdownType) {
                 LinkDetailDropdownType.CATEGORY -> {
-                    LinkDetailCategoryDropdown(
-                        categories = categoryOptions,
-                        selectedCategoryId = selectedCategoryId,
-                        onCategoryClick = {
-                            selectedCategoryId = it.id
-                            selectedCategory = it.name
-                            openedDropdownType = null
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 200.dp, start = 24.dp)
-                            .zIndex(1f)
-                    )
+                    categoryDropdownOffset?.let { dropdownOffset ->
+                        LinkDetailCategoryDropdown(
+                            categories = categoryOptions,
+                            selectedCategoryId = selectedCategoryId,
+                            onCategoryClick = {
+                                selectedCategoryId = it.id
+                                openedDropdownType = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset { dropdownOffset }
+                                .zIndex(2f)
+                        )
+                    }
                 }
 
                 LinkDetailDropdownType.EMOTION -> {
-                    LinkDetailEmotionDropdown(
-                        emotions = emotionOptions,
-                        selectedEmotion = selectedEmotion?.tagName.orEmpty(),
-                        onEmotionClick = {
-                            selectedEmotion = it
-                            openedDropdownType = null
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 200.dp, start = 93.dp)
-                            .zIndex(1f)
-                    )
+                    emotionDropdownOffset?.let { dropdownOffset ->
+                        LinkDetailEmotionDropdown(
+                            emotions = emotionOptions,
+                            selectedEmotion = selectedEmotion?.tagName.orEmpty(),
+                            onEmotionClick = {
+                                selectedEmotion = it
+                                openedDropdownType = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset { dropdownOffset }
+                                .zIndex(2f)
+                        )
+                    }
                 }
 
                 LinkDetailDropdownType.SITUATION -> {
-                    LinkDetailSituationDropdown(
-                        situations = situationOptions,
-                        selectedSituation = selectedSituation,
-                        onSituationClick = {
-                            selectedSituationId = it.id.value
-                            openedDropdownType = null
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 200.dp, start = 186.dp)
-                            .zIndex(1f)
-                    )
+                    situationDropdownOffset?.let { dropdownOffset ->
+                        LinkDetailSituationDropdown(
+                            situations = situationOptions,
+                            selectedSituation = selectedSituation,
+                            onSituationClick = {
+                                selectedSituationId = it.id.value
+                                openedDropdownType = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset { dropdownOffset }
+                                .zIndex(2f)
+                        )
+                    }
                 }
 
                 null -> Unit
@@ -916,19 +1052,19 @@ fun LinkDetailScreen(
 fun PreviewLinkDetailScreen() {
     // 카테고리 더미데이터
     val categoryOptions = listOf(
-        LinkCategoryOption(1L, "카테고리2", Color(0xFF55D6C2)),
-        LinkCategoryOption(2L, "카테고리3", Color(0xFFFFBE3D)),
-        LinkCategoryOption(3L, "카테고리4", Color(0xFF2FB4E9)),
-        LinkCategoryOption(4L, "카테고리5", Color(0xFFFF5757)),
-        LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
-        LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
+        LinkCategoryOption(1L, "카테고리2", CategoryColorStyle.categoryStyleList[0]),
+        LinkCategoryOption(2L, "카테고리3", CategoryColorStyle.categoryStyleList[1]),
+        LinkCategoryOption(3L, "카테고리4", CategoryColorStyle.categoryStyleList[2]),
+        LinkCategoryOption(4L, "카테고리5", CategoryColorStyle.categoryStyleList[3]),
+        LinkCategoryOption(5L, "카테고리6", CategoryColorStyle.categoryStyleList[4]),
+        LinkCategoryOption(6L, "카테고리7", CategoryColorStyle.categoryStyleList[5])
     )
 
     ThemeProvider {
         LinkDetailScreen(
             linkuId = 0L,
             linkTitle = "3일만에 오픽 AL 꿀팁",
-            category = "카테고리2",
+            categoryId = 1L,
             emotion = "평온",
             situationId = 10L,
             linkUrl = "https://blog.naver.com/linkU/1234567890",

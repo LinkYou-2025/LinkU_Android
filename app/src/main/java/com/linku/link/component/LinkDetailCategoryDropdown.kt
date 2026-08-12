@@ -18,19 +18,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 
+/**
+ * 링크 수정 카테고리 드롭다운에 표시할 카테고리 항목입니다.
+ *
+ * @property id 링크 수정 요청에 전달할 서버 카테고리 ID입니다.
+ * @property name 서버에서 내려온 카테고리 이름입니다.
+ * @property colorStyle 서버 색상 코드 네 단계를 변환한 카테고리 색상 스타일입니다.
+ */
 data class LinkCategoryOption(
     val id: Long,
     val name: String,
-    val color: Color
+    val colorStyle: CategoryColorStyle
 )
 
 @Composable
@@ -67,7 +74,7 @@ fun LinkDetailCategoryDropdown(
                     modifier = Modifier
                         .size(25.dp)
                         .clip(CircleShape)
-                        .background(category.color)
+                        .background(category.colorStyle.color4)
                 )
 
                 Text(
@@ -95,15 +102,15 @@ fun PreviewLinkDetailCategoryDropdown() {
     ThemeProvider {
         LinkDetailCategoryDropdown(
             categories = listOf(
-                LinkCategoryOption(1L, "카테고리2", Color(0xFF55D6C2)),
-                LinkCategoryOption(2L, "카테고리3", Color(0xFFFFBE3D)),
-                LinkCategoryOption(3L, "카테고리4", Color(0xFF2FB4E9)),
-                LinkCategoryOption(4L, "카테고리5", Color(0xFFFF5757)),
-                LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
-                LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6)),
-                LinkCategoryOption(7L, "카테고리8", Color(0xFFD9DEE6)),
-                LinkCategoryOption(8L, "카테고리9", Color(0xFFD9DEE6)),
-                LinkCategoryOption(9L, "카테고리10", Color(0xFFD9DEE6))
+                LinkCategoryOption(1L, "카테고리2", CategoryColorStyle.categoryStyleList[0]),
+                LinkCategoryOption(2L, "카테고리3", CategoryColorStyle.categoryStyleList[1]),
+                LinkCategoryOption(3L, "카테고리4", CategoryColorStyle.categoryStyleList[2]),
+                LinkCategoryOption(4L, "카테고리5", CategoryColorStyle.categoryStyleList[3]),
+                LinkCategoryOption(5L, "카테고리6", CategoryColorStyle.categoryStyleList[4]),
+                LinkCategoryOption(6L, "카테고리7", CategoryColorStyle.categoryStyleList[5]),
+                LinkCategoryOption(7L, "카테고리8", CategoryColorStyle.categoryStyleList[6]),
+                LinkCategoryOption(8L, "카테고리9", CategoryColorStyle.categoryStyleList[7]),
+                LinkCategoryOption(9L, "카테고리10", CategoryColorStyle.categoryStyleList[8])
             ),
             selectedCategoryId = 1L,
             onCategoryClick = { }
