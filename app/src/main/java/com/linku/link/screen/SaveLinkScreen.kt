@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imeAnimationTarget
 import androidx.compose.foundation.layout.padding
@@ -324,6 +325,7 @@ fun SaveLinkScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 13.dp, start = 20.dp, end = 20.dp)
+                        .height(52.dp)
                         .then(
                             if (url == "") {
                                 Modifier.border(
@@ -346,8 +348,10 @@ fun SaveLinkScreen(
                         Text(
                             text = "링크를 입력하거나 붙여넣어 주세요.",
                             fontSize = 14.sp,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
-                            color = colors.gray[400]
+                            color = colors.gray[400],
+                            maxLines = 1,
                         )
                     }
 
@@ -357,6 +361,7 @@ fun SaveLinkScreen(
                         singleLine = true,
                         textStyle = TextStyle(
                             fontSize = 14.sp,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
                             color = colors.black,
                             fontFamily = LocalFontTheme.current.font
@@ -390,6 +395,7 @@ fun SaveLinkScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 14.dp, start = 20.dp, end = 20.dp)
+                        .height(50.dp)
                         .then(
                             if (title.isEmpty()) {
                                 Modifier.border(
@@ -412,8 +418,10 @@ fun SaveLinkScreen(
                         Text(
                             text = "링크 제목을 입력해주세요.",
                             fontSize = 14.sp,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
-                            color = colors.gray[400]
+                            color = colors.gray[400],
+                            maxLines = 1,
                         )
                     }
 
@@ -423,6 +431,7 @@ fun SaveLinkScreen(
                         singleLine = true,
                         textStyle = TextStyle(
                             fontSize = 14.sp,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
                             color = colors.black,
                             fontFamily = LocalFontTheme.current.font
@@ -517,6 +526,7 @@ fun SaveLinkScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 13.dp, start = 20.dp, end = 20.dp)
+                        .heightIn(min = 52.dp)
                         .then(
                             if (memo.isEmpty()) {
                                 Modifier.border(
@@ -539,6 +549,7 @@ fun SaveLinkScreen(
                         Text(
                             text = "메모할 내용을 입력해주세요.",
                             fontSize = 14.sp,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
                             color = colors.gray[400]
                         )
@@ -549,6 +560,7 @@ fun SaveLinkScreen(
                         onValueChange = { if (it.length <= 200) onMemoChange(it) },
                         textStyle = TextStyle(
                             fontSize = 14.sp,
+                            lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
                             color = colors.black,
                             fontFamily = LocalFontTheme.current.font
