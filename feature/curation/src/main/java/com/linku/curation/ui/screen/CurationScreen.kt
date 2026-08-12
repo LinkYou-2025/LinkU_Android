@@ -40,6 +40,19 @@ import com.linku.design.util.scaler
 private const val CURATION_CARD_COUNT = 3
 private const val PAGER_VIRTUAL_PAGE_COUNT = Int.MAX_VALUE
 
+// 1번(키워드)/2번(리마인드) 카드는 API가 아직 콘텐츠를 내려주지 않을 때 쓰는 고정 멘트.
+// 0번(월간) 카드는 서버 응답(SectionItem)이 항상 있는 걸 기준으로 하므로 별도 고정값을 두지 않는다.
+private val DEFAULT_CARD_TITLES = listOf(
+    "", // 서버에서 내려줌
+    "지난 달의 나를\n가장 잘 보여주는 키워드",
+    "잊고 있던 '나중에 보기',\n오늘이 그날이에요!"
+)
+private val DEFAULT_CARD_DESCRIPTIONS = listOf(
+    "이번 달을 위한 링크, 링큐가 준비했어요",
+    "많이 본 키워드로 링크들을 모아봤어요",
+    "저장만 해두기엔 아까운 링크들이 기다려요"
+)
+
 @Composable
 fun CurationScreen(
     nickname: String,
@@ -97,6 +110,7 @@ fun CurationScreen(
                 CurationScreenContent(
                     nickname = displayNickname,
                     sections = state.curationMain?.sections ?: emptyList(),
+                    latestCurationMonth = state.curationMain?.latestCurationMonth,
                     pagerState = pagerState,
                     onCardClick = { index ->
                         val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
@@ -127,13 +141,30 @@ private fun CurationScreenContent(
     modifier: Modifier = Modifier,
     nickname: String,
     sections: List<SectionItem>,
+    latestCurationMonth: String?,
     pagerState: PagerState,
     onCardClick: (index: Int) -> Unit,
     onMonthlyCurationClick: () -> Unit = {},
 ) {
+    // 섹션별 이미지 URL을 카드 순서에 맞게 구성
     val imageUrls = List(CURATION_CARD_COUNT) { index ->
         sections.find { it.section == index + 1 }?.imageUrl ?: ""
     }
+
+    // 섹션별 제목을 구성하고, 없으면 기본 제목 사용
+    val titles = List(CURATION_CARD_COUNT) { index ->
+        sections.find { it.section == index + 1 }?.title?.takeIf { it.isNotBlank() }
+            ?: DEFAULT_CARD_TITLES.getOrElse(index) { "" }
+    }
+
+    // 섹션별 설명을 구성하고, 없으면 기본 설명 사용
+    val descriptions = List(CURATION_CARD_COUNT) { index ->
+        sections.find { it.section == index + 1 }?.description?.takeIf { it.isNotBlank() }
+            ?: DEFAULT_CARD_DESCRIPTIONS.getOrElse(index) { "" }
+    }
+
+    // "yyyy-MM" 형식의 최신 큐레이션 월에서 월(月) 정수만 추출. 0번(월간) 카드의 고정 이미지 선택에 사용.
+    val month = latestCurationMonth?.substringAfter('-')?.toIntOrNull() ?: 0
 
     val scrollState = rememberScrollState()
 
@@ -144,6 +175,9 @@ private fun CurationScreenContent(
 
         CurationMainCardPager(
             imageUrls = imageUrls,
+            titles = titles,
+            descriptions = descriptions,
+            month = month,
             pagerState = pagerState,
             onCardClick = { index, _ -> onCardClick(index) }
         )
@@ -203,6 +237,7 @@ private fun CurationScreenContentPreview() {
         CurationScreenContent(
             nickname = "테스트",
             sections = sections,
+            latestCurationMonth = "2026-08",
             pagerState = pagerState,
             onCardClick = {},
             onMonthlyCurationClick = {}
