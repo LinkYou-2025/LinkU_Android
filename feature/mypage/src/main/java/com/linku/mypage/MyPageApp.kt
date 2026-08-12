@@ -16,8 +16,8 @@ import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.Purpose
 import com.linku.mypage.intent.EditUserInfoIntent
 import com.linku.mypage.intent.MarketingAgreeIntent
-import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AILinkuListRoute
+import com.linku.mypage.screen.AccountSettingScreen
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.mypage.screen.ChangePasswordScreen
 import com.linku.mypage.screen.EditProfileScreen
@@ -62,7 +62,7 @@ fun MyPageApp(
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     LaunchedEffect(currentBackStackEntry) {
         val route = currentBackStackEntry?.destination?.route
-        onShowNavBarChange(route == "mypage")
+        onShowNavBarChange(route == "myPage")
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,9 +97,9 @@ fun MyPageApp(
 
     NavHost(
         navController = navController,
-        startDestination = "mypage"
+        startDestination = "myPage"
     ) {
-        composable("mypage") {
+        composable("myPage") {
 
             val user = uiState.userInfo
             val isUnreadAlarmExists = uiState.isUnreadAlarmExists
