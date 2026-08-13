@@ -24,17 +24,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
 fun FolderScopeListLayout(
-    folderStateViewModel: FolderStateViewModel
+    folderName: String,
 ) {
     val colors = MaterialTheme.linkuColors
-    val folderName = if (folderStateViewModel.isSharedFolders) "공유받은 폴더" else "나의 폴더"
 
     // 레이아웃의 배경틀
     Surface(
@@ -111,5 +108,5 @@ fun FolderScopeListLayout(
 @Preview(showBackground = true)
 @Composable
 private fun FolderScopeListLayoutTest() {
-    FolderScopeListLayout( folderStateViewModel = viewModel())
+    FolderScopeListLayout(folderName = "나의 폴더")
 }

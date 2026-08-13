@@ -12,6 +12,7 @@ import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.LinkResultInfo
+import com.linku.core.model.OwnedSharedFolderInfo
 import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.repository.AIArticleRepository
@@ -25,12 +26,21 @@ import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.file.viewmodel.folder.state.SharedFolderScope
+import com.linku.file.viewmodel.folder.state.SharedFolderTarget
+import com.linku.file.viewmodel.shared.state.SharedFolderDetailState
+import com.linku.file.viewmodel.shared.state.SharedFolderGroupsContent
+import com.linku.file.viewmodel.shared.state.SharedFolderGroupsState
+import com.linku.file.viewmodel.shared.state.SharedFolderLeaveState
+import com.linku.file.viewmodel.shared.state.SharedFolderListState
+import com.linku.file.viewmodel.shared.state.SharedFolderLoadState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
@@ -78,6 +88,30 @@ class FileViewModel @Inject constructor(
 
     private val _sharedBottomFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
     val sharedBottomFolders: StateFlow<List<FolderSimpleInfo>> = _sharedBottomFolders.asStateFlow()
+
+    private val _sharedFolderGroupsState = MutableStateFlow<SharedFolderGroupsState>(
+        SharedFolderLoadState.Initial,
+    )
+    val sharedFolderGroupsState: StateFlow<SharedFolderGroupsState> =
+        _sharedFolderGroupsState.asStateFlow()
+
+    private val _sharedFolderListState = MutableStateFlow<SharedFolderListState>(
+        SharedFolderLoadState.Initial,
+    )
+    val sharedFolderListState: StateFlow<SharedFolderListState> =
+        _sharedFolderListState.asStateFlow()
+
+    private val _sharedFolderDetailState = MutableStateFlow<SharedFolderDetailState>(
+        SharedFolderLoadState.Initial,
+    )
+    val sharedFolderDetailState: StateFlow<SharedFolderDetailState> =
+        _sharedFolderDetailState.asStateFlow()
+
+    private val _sharedFolderLeaveState = MutableStateFlow<SharedFolderLeaveState>(
+        SharedFolderLeaveState.Idle,
+    )
+    val sharedFolderLeaveState: StateFlow<SharedFolderLeaveState> =
+        _sharedFolderLeaveState.asStateFlow()
 
     private val _invitationInfo = MutableStateFlow<InvitationInfo?>(null)
     val invitationInfo: StateFlow<InvitationInfo?> = _invitationInfo.asStateFlow()
@@ -200,34 +234,16 @@ class FileViewModel @Inject constructor(
      * 새 요청이 시작되거나 공유 폴더 상태가 초기화되면 기존 요청을 취소하기 위해 사용합니다.
      */
     private var receiveSharedFolderInvitationJob: Deferred<AcceptSharedFolderInvitationResult>? = null
+
+    private var sharedFolderGroupsJob: Job? = null
+    private var sharedFolderListJob: Job? = null
+    private var sharedFolderDetailJob: Job? = null
+    private var sharedFolderLeaveJob: Job? = null
     // ---------- field ----------
 
-//    // ==== [카테고리 색상 불러오기 - HomeVM과 이름을 맞춘 alias] ====
-//    fun loadCategoryColors() = getCategoryColor()
-//
-//    // ==== [상세 불러오기 - AI는 자동 호출하지 않고 초기화만] ====
-//    fun loadLinkDetail(linkuId: Long) {
-//        Log.d("FileVM", "loadLinkDetail 시작 -> linkuId=$linkuId")
-//        viewModelScope.launch {
-//            _isLoadingLinkDetail.value = true
-//            try {
-//                val info = linkuRepository.getLinkDetail(linkuId)
-//                Log.d("FileVM", "상세 응답 -> $info")
-//                _linkDetail.value = info
-//                _aiArticleDetail.value = null // 상세 갱신 시 AI 요약 초기화
-//            } catch (e: Exception) {
-//                Log.e("FileVM", "상세 조회 실패", e)
-//                _linkDetail.value = null
-//                _errorMessage.value = e.message
-//            } finally {
-//                _isLoadingLinkDetail.value = false
-//            }
-//        }
-//    }
-
     // ==== [AI 요약 호출] ====
-    fun loadAiArticle(linkuId: Long) {
-        Log.d("FileVM", "loadAiArticle 진입: linkuId=$linkuId, 현재 isLoading=${_isLoadingAiArticle.value}")
+    fun loadAiArticle(userLinkuId: Long) {
+        Log.d("FileVM", "loadAiArticle 진입: userLinkuId=$userLinkuId, 현재 isLoading=${_isLoadingAiArticle.value}")
         if (_isLoadingAiArticle.value) {
             Log.d("FileVM", "이미 로딩중 → 리턴")
             return
@@ -248,7 +264,7 @@ class FileViewModel @Inject constructor(
 
         aiJob?.cancel()
         aiJob = viewModelScope.launch {
-            runCatching { aiArticleRepository.getAiArticle(linkuId) }
+            runCatching { aiArticleRepository.getAiArticle(userLinkuId) }
                 .onSuccess { article ->
                     Log.d("FileVM", "AI API 성공: $article")
                     _aiArticleDetail.value = article
@@ -298,13 +314,13 @@ class FileViewModel @Inject constructor(
         }
         if (isUpdatingLink) return
 
-        val fixedLinkuId = current.linkuId
+        val fixedUserLinkuId = current.userLinkuId
 
         viewModelScope.launch {
             isUpdatingLink = true
             try {
                 val updated = linkuRepository.updateLink(
-                    linkuId = fixedLinkuId,
+                    userLinkuId = fixedUserLinkuId,
                     image = null,
                     memo = memo,
                     emotionId = emotionId ?: current.emotionId,
@@ -326,7 +342,7 @@ class FileViewModel @Inject constructor(
     }
 
     // ---------- get method ----------
-    fun setLinkDetail(linkuId: Long){
+    fun setLinkDetail(userLinkuId: Long){
         Log.d("FileViewModel", "setLinkDetail")
 
         viewModelScope.launch {
@@ -336,16 +352,10 @@ class FileViewModel @Inject constructor(
             _errorMessage.value = null
 
             try {
-                Log.d("FileViewModel", "상세 요청 -> linkuId = $linkuId")
-
-                val userId = authPreference.getUserId()
-
-                if(userId == null){
-                    throw UserIdNullException()
-                }
+                Log.d("FileViewModel", "상세 요청 -> userLinkuId = $userLinkuId")
 
                 // 상세만 로드 (AI 자동 호출 제거)
-                val detail = linkuRepository.getLinkDetailWithShared(userId, linkuId)
+                val detail = linkuRepository.getLinkDetail(userLinkuId)
                 Log.d("FileViewModel", "상세 응답 -> $detail")
                 _linkDetail.value = detail
 
@@ -697,75 +707,195 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "getNotCategorizationLinks return")
     }
 
-    // 공유 폴더 가져오기
-    fun getSharedFolders(){
-        Log.d("FileViewModel", "getSharedFolders")
-
-        viewModelScope.launch {
-
-            Log.d("FileViewModel", "getSharedFolders launch")
-
-            startLoading()
-            _errorMessage.value = null
-
+    /**
+     * 소유 공유폴더와 공유받은 사용자 그룹을 서로 다른 API에서 함께 조회합니다.
+     *
+     * 두 결과가 모두 비어도 `나의 폴더` 그룹 진입점은 항상 존재하므로 성공 상태는
+     * [SharedFolderLoadState.Content]로 유지합니다.
+     */
+    fun loadSharedFolderGroups() {
+        sharedFolderGroupsJob?.cancel()
+        sharedFolderGroupsJob = viewModelScope.launch {
+            _sharedFolderGroupsState.value = SharedFolderLoadState.Loading
             try {
-                Log.d("FileViewModel", "getSharedFolders try")
-
-                _sharedTopFolders.value = folderRepository.getSharedFolders()
-
-                Log.d("FileViewModel", "getSharedFolders try result: ${_sharedTopFolders.value}")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "getSharedFolders catch: $e.message")
-
-                _errorMessage.value = e.message
-            }finally {
-                Log.d("FileViewModel", "getSharedFolders finally")
-
-                stopLoading()
+                val content = coroutineScope {
+                    val ownedFolders = async { folderRepository.getOwnedSharedFolders() }
+                    val receivedGroups = async { folderRepository.getSharedFolders() }
+                    SharedFolderGroupsContent(
+                        ownedFolders = ownedFolders.await(),
+                        receivedGroups = receivedGroups.await(),
+                    )
+                }
+                _sharedTopFolders.value = content.receivedGroups
+                _sharedFolderGroupsState.value = SharedFolderLoadState.Content(content)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _sharedFolderGroupsState.value = SharedFolderLoadState.Error(e.message)
             }
         }
-        Log.d("FileViewModel", "getSharedFolders return")
+    }
+
+    /** 선택한 소유 관계에 해당하는 공유폴더 목록을 서버에서 다시 조회합니다. */
+    fun loadSharedFolderList(scope: SharedFolderScope) {
+        sharedFolderListJob?.cancel()
+        sharedFolderListJob = viewModelScope.launch {
+            _sharedFolderListState.value = SharedFolderLoadState.Loading
+            try {
+                applySharedFolderList(fetchSharedFolderList(scope))
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _sharedFolderListState.value = SharedFolderLoadState.Error(e.message)
+            }
+        }
+    }
+
+    /** 공유 상세의 링크를 개인 링크 목록과 분리된 상태로 조회합니다. */
+    fun loadSharedFolderDetail(target: SharedFolderTarget) {
+        sharedFolderDetailJob?.cancel()
+        sharedFolderDetailJob = viewModelScope.launch {
+            _sharedFolderDetailState.value = SharedFolderLoadState.Loading
+            try {
+                var loadedLinks = emptyList<LinkItemInfo>()
+                folderRepository.getLinksFolders(
+                    folderId = target.folderId,
+                    limit = null,
+                    cursor = null,
+                    onGetFolders = {},
+                    onGetLinks = { loadedLinks = it },
+                )
+                _sharedFolderDetailState.value = if (loadedLinks.isEmpty()) {
+                    SharedFolderLoadState.Empty
+                } else {
+                    SharedFolderLoadState.Content(loadedLinks)
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _sharedFolderDetailState.value = SharedFolderLoadState.Error(e.message)
+            }
+        }
+    }
+
+    /**
+     * 현재 범위에 맞는 API를 한 번만 호출하고, 성공하면 같은 범위 목록을 재조회합니다.
+     *
+     * API 성공 뒤 재조회만 실패한 경우에는 대상이 제거된 낙관적 목록을 보존하고 별도 결과로
+     * 전달합니다. [CancellationException]은 실패 상태로 변환하지 않습니다.
+     */
+    fun leaveSharedFolder(
+        scope: SharedFolderScope,
+        target: SharedFolderTarget,
+    ) {
+        if (_sharedFolderLeaveState.value is SharedFolderLeaveState.InProgress) return
+
+        _sharedFolderLeaveState.value = SharedFolderLeaveState.InProgress(scope, target)
+        sharedFolderLeaveJob = viewModelScope.launch {
+            try {
+                when (scope) {
+                    SharedFolderScope.SharedByMe ->
+                        folderRepository.leaveOwnedSharedFolder(target.folderId)
+                    is SharedFolderScope.SharedWithMeBy ->
+                        folderRepository.leaveReceivedSharedFolder(target.folderId)
+                }
+
+                removeSharedFolderOptimistically(target.folderId)
+
+                try {
+                    val refreshedFolders = fetchSharedFolderList(scope)
+                    check(refreshedFolders.none { it.folderId == target.folderId }) {
+                        "나가기 후 재조회 목록에 대상 폴더가 남아 있습니다: ${target.folderId}"
+                    }
+                    applySharedFolderList(refreshedFolders)
+                    _sharedFolderLeaveState.value = SharedFolderLeaveState.Succeeded(scope, target)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    _sharedFolderLeaveState.value =
+                        SharedFolderLeaveState.SucceededButRefreshFailed(
+                            scope = scope,
+                            target = target,
+                            message = e.message,
+                        )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _sharedFolderLeaveState.value = SharedFolderLeaveState.Failed(
+                    scope = scope,
+                    target = target,
+                    message = e.message,
+                )
+            }
+        }
+    }
+
+    fun consumeSharedFolderLeaveState() {
+        if (_sharedFolderLeaveState.value !is SharedFolderLeaveState.InProgress) {
+            _sharedFolderLeaveState.value = SharedFolderLeaveState.Idle
+        }
+    }
+
+    private suspend fun fetchSharedFolderList(
+        scope: SharedFolderScope,
+    ): List<FolderSimpleInfo> = when (scope) {
+        SharedFolderScope.SharedByMe -> folderRepository.getOwnedSharedFolders().map {
+            it.toFolderSimpleInfo()
+        }
+        is SharedFolderScope.SharedWithMeBy -> folderRepository.getSharedFolders()
+            .firstOrNull { it.userId == scope.ownerUserId }
+            ?.folders
+            .orEmpty()
+    }
+
+    private fun OwnedSharedFolderInfo.toFolderSimpleInfo() = FolderSimpleInfo(
+        folderId = folderId,
+        folderName = folderName,
+        parentFolderId = 0L,
+        isBookmarked = false,
+        isSharing = "SHARED",
+    )
+
+    private fun applySharedFolderList(folders: List<FolderSimpleInfo>) {
+        _sharedBottomFolders.value = folders
+        _sharedFolderListState.value = if (folders.isEmpty()) {
+            SharedFolderLoadState.Empty
+        } else {
+            SharedFolderLoadState.Content(folders)
+        }
+    }
+
+    private fun removeSharedFolderOptimistically(folderId: Long) {
+        val current = _sharedFolderListState.value
+        if (current is SharedFolderLoadState.Content) {
+            applySharedFolderList(current.value.filterNot { it.folderId == folderId })
+        }
     }
 
     fun resetSharedFolderState() {
+        cancelShareBottomSheetSession()
         receiveSharedFolderInvitationJob?.cancel()
         receiveSharedFolderInvitationJob = null
+        sharedFolderGroupsJob?.cancel()
+        sharedFolderGroupsJob = null
+        sharedFolderListJob?.cancel()
+        sharedFolderListJob = null
+        sharedFolderDetailJob?.cancel()
+        sharedFolderDetailJob = null
+        sharedFolderLeaveJob?.cancel()
+        sharedFolderLeaveJob = null
         _sharedTopFolders.value = emptyList()
         _sharedBottomFolders.value = emptyList()
+        _sharedFolderGroupsState.value = SharedFolderLoadState.Initial
+        _sharedFolderListState.value = SharedFolderLoadState.Initial
+        _sharedFolderDetailState.value = SharedFolderLoadState.Initial
+        _sharedFolderLeaveState.value = SharedFolderLeaveState.Idle
         _invitationInfo.value = null
         _links.value = emptyList()
         _notCategorizationLinks.value = emptyList()
         _subFoldersCursor.value = null
         _errorMessage.value = null
-    }
-
-    // 공유 폴더 하위 폴더 가져오기
-    fun getSharedBottomFolders(sharedFolder: SharedFolderInfo){
-        Log.d("FileViewModel", "getSharedBottomFolders")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "getSharedBottomFolders launch")
-
-            startLoading()
-            _errorMessage.value = null
-
-            try {
-                Log.d("FileViewModel", "getSharedBottomFolders try")
-
-                _sharedBottomFolders.value = sharedFolder.folders
-
-                Log.d("FileViewModel", "getSharedBottomFolders try result: ${_sharedBottomFolders.value}")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "getSharedBottomFolders catch: $e.message")
-
-                _errorMessage.value = e.message
-            }finally {
-                Log.d("FileViewModel", "getSharedBottomFolders finally")
-
-                stopLoading()
-            }
-        }
-        Log.d("FileViewModel", "getSharedBottomFolders return")
     }
 
     /**
@@ -1098,7 +1228,9 @@ class FileViewModel @Inject constructor(
                 add(link)
             }
 
-            _notCategorizationLinks.value = _notCategorizationLinks.value.filter { it.linkuId != link.linkuId }
+            _notCategorizationLinks.value = _notCategorizationLinks.value.filter {
+                it.userLinkuId != link.userLinkuId
+            }
 
             Log.d("FileViewModel", "updateLinkFolder try result")
         }catch (e: Exception){
@@ -1160,40 +1292,7 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "deleteSubfolder return")
     }
 
-    // 공유 폴더 삭제
-    fun deleteSharedFolder(folderId: Long){
-        Log.d("FileViewModel", "deleteSharedFolder")
-
-        viewModelScope.launch {
-            Log.d("FileViewModel", "deleteSharedFolder launch")
-
-            startLoading()
-            _errorMessage.value = null
-
-            try {
-                Log.d("FileViewModel", "deleteSharedFolder try")
-
-                folderRepository.deleteSharedFolder(folderId)
-
-                _sharedBottomFolders.update {
-                    it.filter { it.folderId != folderId }
-                }
-
-                Log.d("FileViewModel", "deleteSharedFolder try result")
-            }catch (e: Exception){
-                Log.d("FileViewModel", "deleteSharedFolder catch: $e.message")
-
-                _errorMessage.value = e.message
-            }finally {
-                Log.d("FileViewModel", "deleteSharedFolder finally")
-
-                stopLoading()
-            }
-        }
-        Log.d("FileViewModel", "deleteSharedFolder return")
-    }
-
-    fun deleteLink(linkuId: Long){
+    fun deleteLink(userLinkuId: Long){
         Log.d("FileViewModel", "deleteLink")
 
         startLoading()
@@ -1205,10 +1304,10 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "deleteLink try")
 
-                folderRepository.deleteLink(linkuId)
+                folderRepository.deleteLink(userLinkuId)
 
                 _links.update {
-                    it.filter { it.linkuId != linkuId }
+                    it.filter { it.userLinkuId != userLinkuId }
                 }
 
                 Log.d("FileViewModel", "deleteLink try result")
@@ -1229,7 +1328,7 @@ class FileViewModel @Inject constructor(
     }
 
 
-    fun deleteNotCategorizationLink(linkuId: Long) {
+    fun deleteNotCategorizationLink(userLinkuId: Long) {
         Log.d("FileViewModel", "deleteLink")
 
         startLoading()
@@ -1241,10 +1340,10 @@ class FileViewModel @Inject constructor(
             try {
                 Log.d("FileViewModel", "deleteLink try")
 
-                folderRepository.deleteLink(linkuId)
+                folderRepository.deleteLink(userLinkuId)
 
                 _notCategorizationLinks.update {
-                    it.filter { it.linkuId != linkuId }
+                    it.filter { it.userLinkuId != userLinkuId }
                 }
 
                 Log.d("FileViewModel", "deleteLink try result")
@@ -1396,6 +1495,15 @@ class FileViewModel @Inject constructor(
                 invitationLinkCreateJob = null
             }
         }
+    }
+
+    /** 닫힌 공유 바텀시트 세션으로 폴더 트리나 초대 링크 결과가 전달되지 않게 합니다. */
+    fun cancelShareBottomSheetSession() {
+        folderTreeLoadJob?.cancel()
+        folderTreeLoadJob = null
+        invitationLinkCreateJob?.cancel()
+        invitationLinkCreateJob = null
+        _invitationInfo.value = null
     }
 
     fun deactivateInvitationLink(folderId: Long) {

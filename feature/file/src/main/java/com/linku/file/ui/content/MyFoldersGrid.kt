@@ -211,17 +211,17 @@ internal fun MyFoldersGrid(
                 }
 
                 /** 미분류 링크 목록을 폴더 카드 다음 셀부터 이어서 배치합니다. */
-                items(notCategorizationLinks, key = {it.linkuId}) { link ->
+                items(notCategorizationLinks, key = { it.userLinkuId }) { link ->
                     LinkItemLayout(
                         modifier = Modifier.fillMaxSize(),
                         link = link,
                         onClick = {
                             // 미분류 링크도 일반 링크와 동일하게 상세 화면 이동 콜백으로 위임합니다.
-                            onLinkClick(link.linkuId)
+                            onLinkClick(link.userLinkuId)
                         },
                         onLongClick = {
                             // 길게 누른 링크 ID를 저장한 뒤 삭제 확인 모달을 표시합니다.
-                            selectedLinkId = link.linkuId
+                            selectedLinkId = link.userLinkuId
                             deleteModalWindowVisible = true
                         }
                     )

@@ -45,7 +45,11 @@ object CurationMapper {
         type = if (type == "EXTERNAL") {
             LinkType.External(url)
         } else {
-            LinkType.Internal(userLinkuId ?: 0L)
+            LinkType.Internal(
+                requireNotNull(userLinkuId) {
+                    "내부 큐레이션 링크 응답에 userLinkuId가 없습니다."
+                }
+            )
         }
     )
 

@@ -41,17 +41,8 @@ fun MyListLayout(
 ) {
     val colors = MaterialTheme.linkuColors
 
-    val topFolderText = if (!folderStateViewModel.isSharedFolders) {
-        folderStateViewModel.selectedTopFolder?.folderName.orEmpty()
-    } else {
-        "${folderStateViewModel.selectedTopSharedFolder?.nickname.orEmpty()}의 폴더"
-    }
-
-    val bottomFolderText = if (!folderStateViewModel.isSharedFolders) {
-        folderStateViewModel.selectedBottomFolder?.folderName.orEmpty()
-    } else {
-        folderStateViewModel.selectedBottomSharedFolder?.folderName.orEmpty()
-    }
+    val topFolderText = folderStateViewModel.selectedTopFolder?.folderName.orEmpty()
+    val bottomFolderText = folderStateViewModel.selectedBottomFolder?.folderName.orEmpty()
 
     val colorStyle =
         fileViewModel.categoryColorMap.collectAsState().value[folderStateViewModel.selectedTopFolder?.folderName]

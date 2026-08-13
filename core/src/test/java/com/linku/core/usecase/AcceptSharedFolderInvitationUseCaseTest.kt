@@ -8,6 +8,7 @@ import com.linku.core.model.FolderPermissionInfo
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
+import com.linku.core.model.OwnedSharedFolderInfo
 import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
@@ -304,7 +305,11 @@ class AcceptSharedFolderInvitationUseCaseTest {
             return sharedFolders
         }
 
-        override suspend fun deleteSharedFolder(folderId: Long) = unused()
+        override suspend fun getOwnedSharedFolders(): List<OwnedSharedFolderInfo> = unused()
+
+        override suspend fun leaveOwnedSharedFolder(folderId: Long) = unused()
+
+        override suspend fun leaveReceivedSharedFolder(folderId: Long) = unused()
 
         override suspend fun setFolderViewerPermission(
             folderId: Long,
@@ -329,7 +334,7 @@ class AcceptSharedFolderInvitationUseCaseTest {
             folderId: Long,
         ): LinkItemInfo = unused()
 
-        override suspend fun deleteLink(linkuId: Long) = unused()
+        override suspend fun deleteLink(userLinkuId: Long) = unused()
 
         override suspend fun getMyFolderTree(): List<FolderSimpleInfo> = unused()
 

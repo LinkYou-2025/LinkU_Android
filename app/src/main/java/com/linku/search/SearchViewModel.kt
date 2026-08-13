@@ -55,12 +55,10 @@ class SearchViewModel @Inject constructor(
                     linkuRepository.searchLinks(searchQuery = query)
                         .map { pagingData ->
                             pagingData
-                                .filter { link ->
-                                    link.linkuId != null && link.title != null
-                                }
+                                .filter { link -> link.userLinkuId > 0L && link.title != null }
                                 .map { link ->
                                     SearchResultItem(
-                                        id = requireNotNull(link.linkuId),
+                                        id = link.userLinkuId,
                                         title = requireNotNull(link.title),
                                         domainImageUrl = link.domainImageUrl,
                                     )

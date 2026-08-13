@@ -78,6 +78,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
 
+private const val LINK_DETAIL_USER_LINKU_ID_ARGUMENT = "userLinkuId"
+private const val LINK_DETAIL_ROUTE_PATTERN =
+    "savelinkresult/{$LINK_DETAIL_USER_LINKU_ID_ARGUMENT}"
+
+private fun linkDetailRoute(userLinkuId: Long): String =
+    "savelinkresult/$userLinkuId"
+
 /**
  * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
  *
@@ -202,10 +209,12 @@ fun MainApp(
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
             }
-            AlarmType.LINK ->
-                navigator.navigate("savelinkresult/$targetId") {
+            AlarmType.LINK -> {
+                val userLinkuId = targetId
+                navigator.navigate(linkDetailRoute(userLinkuId)) {
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
+            }
             AlarmType.FOLDER -> { /* TODO */ }
             AlarmType.CURATION -> { /* TODO */ }
             AlarmType.ALL -> Unit
@@ -253,7 +262,7 @@ fun MainApp(
         // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
         isTabRoute(currentRoute, NavigationRoute.Home.route) ||
                 currentRoute == "savelink" ||
-                currentRoute == "savelinkresult/{linkuId}" -> LinkuNavigationItem.HOME
+                currentRoute == LINK_DETAIL_ROUTE_PATTERN -> LinkuNavigationItem.HOME
         isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
         isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
         else -> null
@@ -601,8 +610,8 @@ fun MainApp(
                                 linkViewModel.setSaveUrl(url)
                                 navigator.navigate("savelink")
                             },
-                            onNavigateToLinkDetail = { linkuId ->
-                                navigator.navigate("savelinkresult/$linkuId")
+                            onNavigateToLinkDetail = { userLinkuId ->
+                                navigator.navigate(linkDetailRoute(userLinkuId))
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
@@ -621,8 +630,8 @@ fun MainApp(
                         FileApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel,
-                            onNavigateToLinkDetail = { linkuId ->
-                                navigator.navigate("savelinkresult/$linkuId")
+                            onNavigateToLinkDetail = { userLinkuId ->
+                                navigator.navigate(linkDetailRoute(userLinkuId))
                             },
                             searchUiState = searchUiState,
                             searchResults = searchResults,
@@ -641,6 +650,9 @@ fun MainApp(
                     showNavBar = { showNavBar = it },
                     nickname = nickname.orEmpty().ifBlank { "링큐" },
                     onNavigateToSaveLink = { saveLinkEntryTriggered = true },
+                    onNavigateToLinkDetail = { userLinkuId ->
+                        navigator.navigate(linkDetailRoute(userLinkuId))
+                    },
                 )
 
 
@@ -695,8 +707,8 @@ fun MainApp(
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
                             },
-                            onNavigateToLinkDetail = { linkuId ->
-                                navigator.navigate("savelinkresult/$linkuId")
+                            onNavigateToLinkDetail = { userLinkuId ->
+                                navigator.navigate(linkDetailRoute(userLinkuId))
                             }
                         )
                     }
@@ -729,7 +741,10 @@ fun MainApp(
                                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                                 }
                             },
-                            onNavigateToLinkDetail = { targetId -> navigator.navigate("savelinkresult/$targetId") },
+                            onNavigateToLinkDetail = { targetId ->
+                                val userLinkuId = targetId
+                                navigator.navigate(linkDetailRoute(userLinkuId))
+                            },
                             onNavigateToFolder = { /* TODO */ },
                             onNavigateToCuration = { /* TODO */ },
                             onNavigateToNotice = { targetId ->
@@ -809,12 +824,12 @@ fun MainApp(
                             linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
                                     linkViewModel.loadLinkDetail(
-                                        saved.linkuId,
+                                        saved.userLinkuId,
                                     )
                                     linkViewModel.resetSaveForm()
 
                                     navigator.navigate(
-                                        "savelinkresult/${saved.linkuId}",
+                                        linkDetailRoute(saved.userLinkuId),
                                     )
                                 },
                                 onFailed = { error ->
@@ -832,24 +847,28 @@ fun MainApp(
 
 
                 composable(
-                    route = "savelinkresult/{linkuId}",
-                    arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
+                    route = LINK_DETAIL_ROUTE_PATTERN,
+                    arguments = listOf(
+                        navArgument(LINK_DETAIL_USER_LINKU_ID_ARGUMENT) {
+                            type = NavType.LongType
+                        }
+                    )
                 ) { backStackEntry ->
                     val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
                     val detailCoroutineScope = rememberCoroutineScope()
                     val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
 
-                    val linkuId = backStackEntry.arguments
-                        ?.takeIf { it.containsKey("linkuId") }
-                        ?.getLong("linkuId")
+                    val userLinkuId = backStackEntry.arguments
+                        ?.takeIf { it.containsKey(LINK_DETAIL_USER_LINKU_ID_ARGUMENT) }
+                        ?.getLong(LINK_DETAIL_USER_LINKU_ID_ARGUMENT)
                         ?.takeIf { it > 0L }
                         ?: return@composable
 
                     val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
                     val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
 
-                    var selectedDetailImageUri by rememberSaveable(linkuId) {
+                    var selectedDetailImageUri by rememberSaveable(userLinkuId) {
                         mutableStateOf<Uri?>(null)
                     }
 
@@ -859,8 +878,8 @@ fun MainApp(
                         selectedDetailImageUri = uri
                     }
 
-                    LaunchedEffect(linkuId) {
-                        linkViewModel.loadLinkDetail(linkuId)
+                    LaunchedEffect(userLinkuId) {
+                        linkViewModel.loadLinkDetail(userLinkuId)
                         vm.loadCategoryColors()
                     }
 
@@ -932,7 +951,7 @@ fun MainApp(
                     }
 
                     LinkDetailScreen(
-                        linkuId = linkuId,
+                        userLinkuId = userLinkuId,
                         linkTitle = linkDetail?.title.orEmpty(),
                         category = categoryNameOf(linkDetail?.categoryId),
                         emotion = emotionNameOf(linkDetail?.emotionId),

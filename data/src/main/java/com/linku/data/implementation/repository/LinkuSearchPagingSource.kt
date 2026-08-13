@@ -26,7 +26,7 @@ class LinkuSearchPagingSource(
         return result.fold(
             onSuccess = { response ->
                 LoadResult.Page(
-                    data = response.items.orEmpty().map { it.toDomain() },
+                    data = response.items.orEmpty().mapNotNull { it.toDomain() },
                     prevKey = null,
                     nextKey = if (response.hasNext == true) {
                         response.nextCursor?.takeUnless { it == cursor }

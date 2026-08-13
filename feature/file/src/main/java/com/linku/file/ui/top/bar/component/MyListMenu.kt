@@ -56,7 +56,7 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.file.viewmodel.folder.state.FolderState
+import com.linku.file.viewmodel.folder.state.FileNavigationState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 @Composable
@@ -69,7 +69,7 @@ fun MyListMenu(
 ){
     val colors = MaterialTheme.linkuColors
 
-    val isLinks = folderStateViewModel.currentFolderState == FolderState.LINKS
+    val isLinks = folderStateViewModel.navigationState is FileNavigationState.PersonalLinks
     val parentFolders = fileViewModel.parentFolders.collectAsStateWithLifecycle().value
     val subFolders = fileViewModel.subFolders.collectAsStateWithLifecycle().value
 
@@ -88,8 +88,7 @@ fun MyListMenu(
         onParentFolderClick = { folder ->
             if(folder.folderId!=folderStateViewModel.selectedTopFolder?.folderId){
                 fileViewModel.getFoldersAndNotCategorizationLinks(folder.folderId)
-                folderStateViewModel.updateSelectedTopFolder(folder)
-                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                folderStateViewModel.showPersonalBottom(folder)
                 folderStateViewModel.updateBottomMenuExpanded(false)
                 onChangeFolder()
             }
@@ -102,8 +101,9 @@ fun MyListMenu(
         onSubFolderClick = { folder ->
             if(folder.folderId!=folderStateViewModel.selectedBottomFolder?.folderId){
                 fileViewModel.getLinks(folder.folderId)
-                folderStateViewModel.updateSelectedBottomFolder(folder)
-                folderStateViewModel.updateFolderState(FolderState.LINKS)
+                folderStateViewModel.selectedTopFolder?.let { parentFolder ->
+                    folderStateViewModel.showPersonalLinks(parentFolder, folder)
+                }
                 folderStateViewModel.updateBottomMenuExpanded(false)
                 onChangeFolder()
             }

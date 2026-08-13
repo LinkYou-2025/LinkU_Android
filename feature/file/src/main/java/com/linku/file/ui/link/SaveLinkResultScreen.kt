@@ -1197,7 +1197,6 @@ private fun PreviewSaveLinkResultScreen() {
         link = LinkResultInfo(
             userId = 1L,
             userLinkuId = 1L,
-            linkuId = 2L,
             linkuFolderId = 2L,
             categoryId = 16L,
             linku = "https://blog.naver.com/s2ethan/223941554164",

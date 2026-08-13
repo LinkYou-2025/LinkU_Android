@@ -41,7 +41,8 @@ import com.linku.design.R as Res
  * 이미지가 비어 있거나 로드에 실패하면 기존 기본 이미지를 표시합니다.
  *
  * @param link 표시할 AI 요약 링크
- * @param onClick 선택한 링크의 [AiArticleLink.linkuId]를 전달하는 콜백
+ * @param onClick 선택한 링크의 [AiArticleLink.userLinkuId]를 전달하는 콜백. 서버 전환 중 ID가
+ * 누락된 항목은 클릭 동작을 제공하지 않습니다.
  * @param modifier 카드 외부 레이아웃에 적용할 modifier
  */
 @Composable
@@ -57,10 +58,20 @@ fun AILinkuItem(
         linkImageUrl = link.linkuImageUrl,
         domainImageUrl = link.domainImageUrl,
         domainName = link.domain,
-        onClick = { onClick(link.linkuId) },
+        onClick = aiLinkuClickAction(link.userLinkuId, onClick),
         modifier = modifier,
     )
 }
+
+/** 유효한 사용자 저장 링크 ID가 있을 때만 상세 이동 동작을 만듭니다. */
+internal fun aiLinkuClickAction(
+    userLinkuId: Long?,
+    onClick: (Long) -> Unit,
+): (() -> Unit)? = userLinkuId
+    ?.takeIf { it > 0L }
+    ?.let { validUserLinkuId ->
+        { onClick(validUserLinkuId) }
+    }
 
 /**
  * AI 요약 링크 카드의 순수 표시 영역입니다.
@@ -75,7 +86,7 @@ private fun AILinkuItemContent(
     linkImageUrl: String?,
     domainImageUrl: String?,
     domainName: String,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.linkuColors
@@ -89,7 +100,13 @@ private fun AILinkuItemContent(
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .noRippleClickable(onClick = onClick),
+            .then(
+                if (onClick != null) {
+                    Modifier.noRippleClickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
+            ),
     ) {
         Row(
             modifier = Modifier

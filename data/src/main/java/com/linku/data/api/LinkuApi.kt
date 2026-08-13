@@ -4,8 +4,7 @@ import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.folder.LinkuFolderChangeResultDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
 import com.linku.data.api.dto.search.LinkuSearchResponseDTO
-import com.linku.data.api.dto.server.GetDetailLinkDTO
-import com.linku.data.api.dto.server.LinkCheckDTO
+import com.linku.data.api.dto.server.LinkuIsExistDTO
 import com.linku.data.api.dto.server.LinkuResultDTO
 import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.RecommendLinkPageDTO
@@ -36,28 +35,22 @@ interface LinkuApi {
     ): BaseResponse<LinkuResultDTO>
 
     // 링크 상세보기
-    @GET("linku/{linkuid}")
+    @GET("linku/{userLinkuId}")
     suspend fun viewDetailLink(
-        @Path("linkuid") linkuid: Long
-    ): BaseResponse<LinkuResultDTO>
-
-    @GET("linku/{userId}/{linkuid}")
-    suspend fun viewDetailLink(
-        @Path("userId") userId: Long,
-        @Path("linkuid") linkuid: Long
+        @Path("userLinkuId") userLinkuId: Long
     ): BaseResponse<LinkuResultDTO>
 
     // 링크 체크
     @GET("linku/exist")
     suspend fun checkLink(
         @Query("url") url: String
-    ): BaseResponse<LinkCheckDTO>
+    ): BaseResponse<LinkuIsExistDTO>
 
     // 링크 수정
     @Multipart
-    @PATCH("linku/{linkuId}")
+    @PATCH("linku/{userLinkuId}")
     suspend fun updateLink(
-        @Path("linkuId") linkuId: Long,
+        @Path("userLinkuId") userLinkuId: Long,
         @Query("memo") memo: String?,
         @Query("emotionId") emotionId: Long?,
         @Query("situationId") situationId: Long?,
@@ -69,13 +62,13 @@ interface LinkuApi {
     /**
      * 사용자가 저장한 링크를 지정한 폴더로 이동합니다.
      *
-     * @param linkuId 이동할 링크 ID
+     * @param userLinkuId 이동할 사용자 저장 링크 ID
      * @param body 이동할 폴더 정보
      * @return 변경된 링크 폴더 정보가 포함된 응답
      */
-    @PATCH("linku/{linkuId}/folder")
+    @PATCH("linku/{userLinkuId}/folder")
     suspend fun updateLinkFolder(
-        @Path("linkuId") linkuId: Long,
+        @Path("userLinkuId") userLinkuId: Long,
         @Body body: UpdateLinkFolderDTO
     ): BaseResponse<LinkuFolderChangeResultDTO>
 
@@ -108,9 +101,4 @@ interface LinkuApi {
         @Path("userLinkuId") userLinkuId: Long
     ): Response<Unit>
 
-    // 링크 상세보기(userLinkuId 갖고오기용)
-    @GET("linku/{linkuid}")
-    suspend fun getDetailLink(
-        @Path("linkuid") linkuid: Long
-    ): BaseResponse<GetDetailLinkDTO>
 }

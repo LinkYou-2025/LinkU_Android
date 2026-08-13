@@ -23,7 +23,7 @@ class LinkuSearchPagingSourceTest {
                 result = LinkuSearchResponseDTO(
                     items = listOf(
                         LinkuSearchItemResponseDTO(
-                            linkuId = 1L,
+                            userLinkuId = 1L,
                             title = "Compose",
                         )
                     ),
@@ -50,7 +50,7 @@ class LinkuSearchPagingSourceTest {
             fakeApi.requests,
         )
         val page = result as PagingSource.LoadResult.Page<Long, LinkuSearchInfo>
-        assertEquals(1L, page.data.single().linkuId)
+        assertEquals(1L, page.data.single().userLinkuId)
         assertEquals(20L, page.nextKey)
         assertNull(page.prevKey)
     }

@@ -10,8 +10,8 @@ data class AiArticleResultDTO(
     @field:Json(name = "id")
     val id: Long,
 
-    @field:Json(name = "linkuId")
-    val linkuId: Long,
+    @field:Json(name = "userLinkuId")
+    val userLinkuId: Long?,
 
     @field:Json(name = "emotionId")
     val emotionId: Long,

@@ -35,17 +35,11 @@ interface LinkuRepository {
     suspend fun getRecentLinks(limit: Int = 10): List<LinkSimpleInfo>
 
     // 링크 상세 보기
-    suspend fun getLinkDetail(linkuId: Long): LinkResultInfo
-
-    // 공유받은 링크 상세 보기
-    suspend fun getLinkDetailWithShared(
-        userId: Long,
-        linkuId: Long
-    ): LinkResultInfo
+    suspend fun getLinkDetail(userLinkuId: Long): LinkResultInfo
 
     // 링크 수정
     suspend fun updateLink(
-        linkuId: Long,
+        userLinkuId: Long,
         image: TempImageFile?,
         memo: String?,
         emotionId: Long?,

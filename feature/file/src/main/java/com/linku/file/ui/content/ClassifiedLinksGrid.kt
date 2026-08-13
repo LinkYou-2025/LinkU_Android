@@ -135,17 +135,17 @@ internal fun ClassifiedLinksGrid(
             }
 
             /** 분류된 링크 목록을 링크 카드 레이아웃으로 렌더링합니다. */
-            items(links, key = {it.linkuId}) { link ->
+            items(links, key = { it.userLinkuId }) { link ->
                 LinkItemLayout(
                     modifier = Modifier.fillMaxSize(),
                     link = link,
                     onClick = {
                         // 상세 화면 이동은 상위에서 전달받은 링크 클릭 콜백으로 위임합니다.
-                        onLinkClick(link.linkuId)
+                        onLinkClick(link.userLinkuId)
                     },
                     onLongClick = {
                         // 길게 누른 링크 ID를 저장한 뒤 삭제 확인 모달을 표시합니다.
-                        selectedLinkId = link.linkuId
+                        selectedLinkId = link.userLinkuId
                         deleteModalWindowVisible = true
                     }
                 )
@@ -246,7 +246,7 @@ private fun AddLinkItem(
 private fun ClassifiedLinksGridPreview() {
     val sampleLinks = listOf(
         LinkItemInfo(
-            linkuId = 1L,
+            userLinkuId = 1L,
             parentFolderId = 1L,
             title = "네이버",
             url = "https://www.naver.com",
@@ -255,7 +255,7 @@ private fun ClassifiedLinksGridPreview() {
             createdAt = null
         ),
         LinkItemInfo(
-            linkuId = 2L,
+            userLinkuId = 2L,
             parentFolderId = 1L,
             title = "구글",
             url = "https://www.google.com",
@@ -264,7 +264,7 @@ private fun ClassifiedLinksGridPreview() {
             createdAt = null
         ),
         LinkItemInfo(
-            linkuId = 3L,
+            userLinkuId = 3L,
             parentFolderId = 1L,
             title = "유튜브",
             url = "https://www.youtube.com",

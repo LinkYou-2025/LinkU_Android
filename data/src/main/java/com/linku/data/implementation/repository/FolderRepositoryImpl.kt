@@ -6,6 +6,7 @@ import com.linku.core.model.FolderPermission
 import com.linku.core.model.FolderPermissionInfo
 import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.LinkItemInfo
+import com.linku.core.model.OwnedSharedFolderInfo
 import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
@@ -17,6 +18,7 @@ import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
 import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCall204
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.toDomain
 import com.linku.data.mapper.toRequestDto
@@ -303,23 +305,41 @@ class FolderRepositoryImpl @Inject constructor(
         return folderList
     }
 
-    // 공유 받은 폴더 삭제
-    override suspend fun deleteSharedFolder(folderId: Long) {
-        Log.d("FolderRepositoryImpl", "deleteSharedFolder folderId: $folderId")
+    override suspend fun getOwnedSharedFolders(): List<OwnedSharedFolderInfo> {
+        return safeApiCall { serverApi.getMySharedFolders() }
+            .getOrThrow()
+            .map { response ->
+                OwnedSharedFolderInfo(
+                    folderId = response.folderId,
+                    folderName = response.folderName,
+                    memberCount = response.memberCount,
+                )
+            }
+    }
+
+    override suspend fun leaveOwnedSharedFolder(folderId: Long) {
+        Log.d("FolderRepositoryImpl", "leaveOwnedSharedFolder folderId: $folderId")
+
+        safeApiCallUnit { serverApi.leaveOwnedSharedFolder(folderId) }
+            .getOrThrow()
+    }
+
+    override suspend fun leaveReceivedSharedFolder(folderId: Long) {
+        Log.d("FolderRepositoryImpl", "leaveReceivedSharedFolder folderId: $folderId")
 
         try {
-            Log.d("FolderRepositoryImpl", "deleteSharedFolder try")
+            Log.d("FolderRepositoryImpl", "leaveReceivedSharedFolder try")
 
-            safeApiCallUnit { serverApi.deleteSharedFolder(folderId) }
+            safeApiCallUnit { serverApi.leaveReceivedSharedFolder(folderId) }
                 .onFailure { throw it }
 
-            Log.d("FolderRepositoryImpl", "deleteSharedFolder well done")
+            Log.d("FolderRepositoryImpl", "leaveReceivedSharedFolder well done")
         } catch (e: Exception) {
-            Log.d("FolderRepositoryImpl", "deleteSharedFolder error: $e")
+            Log.d("FolderRepositoryImpl", "leaveReceivedSharedFolder error: $e")
             throw e
         }
 
-        Log.d("FolderRepositoryImpl", "deleteSharedFolder return")
+        Log.d("FolderRepositoryImpl", "leaveReceivedSharedFolder return")
     }
 
     // 폴더 공유(뷰어 권한 설정)
@@ -453,7 +473,7 @@ class FolderRepositoryImpl @Inject constructor(
             safeApiCall(
                 apiCall = {
                     serverApi.updateLinkFolder(
-                        linku.linkuId,
+                        linku.userLinkuId,
                         UpdateLinkFolderDTO(folderId)
                     )
                 }
@@ -472,29 +492,12 @@ class FolderRepositoryImpl @Inject constructor(
     }
 
     // 링크 삭제
-    override suspend fun deleteLink(linkuId: Long) {
-        Log.d("FolderRepositoryImpl", "deleteLink linkuId: $linkuId")
+    override suspend fun deleteLink(userLinkuId: Long) {
+        Log.d("FolderRepositoryImpl", "deleteLink userLinkuId: $userLinkuId")
 
-        try {
-            Log.d("FolderRepositoryImpl", "deleteLink try")
-
-            safeApiCall(
-                apiCall = { serverApi.getDetailLink(linkuId) }
-            ).onSuccess {
-                Log.d("FolderRepositoryImpl", "deleteLink userLinkuId")
-            }.onFailure {
-                throw it
-            }
-
-//            safeApiCall204 { serverApi.deleteLink(userLinkuId) }
-//                .onFailure { throw it }   // 메인 앱에 링크 조회 화면 올리면 이 함수 안쓸 거라고 생각해서 일단 주석처리 해놨습니다.
-
-            Log.d("FolderRepositoryImpl", "deleteLink well done")
-        } catch (e: Exception) {
-            Log.d("FolderRepositoryImpl", "deleteLink error: $e")
-        }
-
-        Log.d("FolderRepositoryImpl", "deleteLink return")
+        safeApiCall204 {
+            serverApi.deleteLink(userLinkuId = userLinkuId)
+        }.getOrThrow()
     }
 
     private fun folderTreeConverter(

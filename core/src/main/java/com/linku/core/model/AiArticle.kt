@@ -2,7 +2,7 @@ package com.linku.core.model
 
 data class AiArticle(
     val id: Long,
-    val linkuId: Long,
+    val userLinkuId: Long,
     val emotionId: Long,
     val emotionName: String,
     val categoryName: String,

@@ -10,6 +10,7 @@ import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
 import com.linku.data.api.dto.folder.GetParentFoldersDTO
 import com.linku.data.api.dto.folder.GetSharedFoldersDTO
 import com.linku.data.api.dto.folder.LinksFoldersResponseDTO
+import com.linku.data.api.dto.folder.MySharedFolderResponseDTO
 import com.linku.data.api.dto.folder.ShareFolderResponseDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkResponseDTO
@@ -93,9 +94,19 @@ interface FolderApi {
 
     // 공유 받은 폴더 삭제
     @DELETE("folders/shared/{folderId}")
-    suspend fun deleteSharedFolder(
+    suspend fun leaveReceivedSharedFolder(
         @Path("folderId") folderId: Long
     ): BaseResponse<*>
+
+    /** 현재 사용자가 소유하면서 다른 멤버와 실제로 공유 중인 폴더를 조회합니다. */
+    @GET("folders/share/my")
+    suspend fun getMySharedFolders(): BaseResponse<List<MySharedFolderResponseDTO>>
+
+    /** 가장 오래 참여한 멤버에게 소유권을 위임하고 현재 소유자가 폴더에서 나갑니다. */
+    @POST("folders/share/{folderId}/leave")
+    suspend fun leaveOwnedSharedFolder(
+        @Path("folderId") folderId: Long,
+    ): BaseResponse<ShareFolderResponseDTO>
 
     // 폴더 공유 (뷰어 권한 설정)
     @POST("folders/share/{folderId}")

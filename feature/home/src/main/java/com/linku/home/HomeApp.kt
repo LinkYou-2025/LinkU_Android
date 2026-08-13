@@ -20,7 +20,7 @@ fun HomeApp(
     nickname: String,
     onNavigateToSetting: () -> Unit,
     onNavigateToSaveLink: (String) -> Unit,
-    onNavigateToLinkDetail: (Long) -> Unit,
+    onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
     onNavigateToAlarm: () -> Unit,
     searchUiState: SearchBarUiState,
     searchResults: Flow<PagingData<SearchResultItem>>,

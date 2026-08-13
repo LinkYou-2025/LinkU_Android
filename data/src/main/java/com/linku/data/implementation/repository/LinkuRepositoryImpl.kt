@@ -91,8 +91,9 @@ class LinkuRepositoryImpl @Inject constructor(
             }
         ).onSuccess { dto ->
             result = LinkSimpleInfo(
-                userLinkuId = dto.userLinkuId,
-                linkuId = dto.linkuId,
+                userLinkuId = requireNotNull(dto.userLinkuId) {
+                    "링크 저장 응답에 userLinkuId가 없습니다."
+                },
                 categoryId = dto.categoryId,
                 memo = dto.memo,
                 emotionId = dto.emotionId,
@@ -116,7 +117,10 @@ class LinkuRepositoryImpl @Inject constructor(
         safeApiCall(
             apiCall = { serverApi.checkLink(url = url) }
         ).onSuccess { dto ->
-            result = if (dto.exist == true) {
+            val isExist = requireNotNull(dto.isExist) {
+                "링크 존재 여부 응답에 isExist가 없습니다."
+            }
+            result = if (isExist) {
                 LinkCheckResult.AlreadySaved
             } else {
                 LinkCheckResult.Available
@@ -150,8 +154,9 @@ class LinkuRepositoryImpl @Inject constructor(
             result = RecommendationPage(
                 items = dto.items.map { item ->
                     LinkSimpleInfo(
-                        userLinkuId = item.userLinkuId,
-                        linkuId = item.linkuId,
+                        userLinkuId = requireNotNull(item.userLinkuId) {
+                            "링크 추천 응답에 userLinkuId가 없습니다."
+                        },
                         categoryId = item.categoryId,
                         memo = item.memo,
                         emotionId = item.emotionId,
@@ -182,8 +187,9 @@ class LinkuRepositoryImpl @Inject constructor(
         ).onSuccess { dtoList ->
             result = dtoList.map { dto ->
                 LinkSimpleInfo(
-                    userLinkuId = dto.userLinkuId,
-                    linkuId = dto.linkuId,
+                    userLinkuId = requireNotNull(dto.userLinkuId) {
+                        "최근 링크 응답에 userLinkuId가 없습니다."
+                    },
                     categoryId = dto.categoryId,
                     memo = dto.memo,
                     emotionId = dto.emotionId,
@@ -202,55 +208,17 @@ class LinkuRepositoryImpl @Inject constructor(
     }
 
     // 링크 상세 보기 구현
-    override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo {
+    override suspend fun getLinkDetail(userLinkuId: Long): LinkResultInfo {
         lateinit var result: LinkResultInfo
 
         safeApiCall(
-            apiCall = { serverApi.viewDetailLink(linkuid = linkuId) }
+            apiCall = { serverApi.viewDetailLink(userLinkuId = userLinkuId) }
         ).onSuccess {
             result = LinkResultInfo(
                 userId = it.userId,
-                userLinkuId = it.userLinkuId,
-                linkuId = it.linkuId,
-                linkuFolderId = it.linkuFolderId,
-                categoryId = it.categoryId,
-                linku = it.linku,
-                memo = it.memo?.takeIf { memo -> memo.isNotBlank() },
-                emotionId = it.emotionId,
-                situationId = it.situationId,
-                isEmotionAi = it.isEmotionAi,
-                isSituationAi = it.isSituationAi,
-                domain = it.domain.orEmpty(),
-                title = it.title,
-                domainImageUrl = it.domainImageUrl,
-                linkuImageUrl = it.linkuImageUrl,
-                aiArticleExists = it.aiArticleExists == true,
-                keyword = it.keyword?.takeIf { keyword -> keyword.isNotBlank() },
-                summary = it.summary?.takeIf { summary -> summary.isNotBlank() },
-                createdAt = it.createdAt,
-                updatedAt = it.updatedAt
-            )
-        }.onFailure {
-            throw it
-        }
-
-        return result
-    }
-
-    // 공유받은 링크 상세 보기
-    override suspend fun getLinkDetailWithShared(
-        userId: Long,
-        linkuId: Long
-    ): LinkResultInfo {
-        lateinit var result: LinkResultInfo
-
-        safeApiCall(
-            apiCall = { serverApi.viewDetailLink(userId = userId, linkuid = linkuId) }
-        ).onSuccess {
-            result = LinkResultInfo(
-                userId = it.userId,
-                userLinkuId = it.userLinkuId,
-                linkuId = it.linkuId,
+                userLinkuId = requireNotNull(it.userLinkuId) {
+                    "링크 상세 응답에 userLinkuId가 없습니다."
+                },
                 linkuFolderId = it.linkuFolderId,
                 categoryId = it.categoryId,
                 linku = it.linku,
@@ -295,7 +263,7 @@ class LinkuRepositoryImpl @Inject constructor(
 
     // 링크 수정
     override suspend fun updateLink(
-        linkuId: Long,
+        userLinkuId: Long,
         image: TempImageFile?,
         memo: String?,
         emotionId: Long?,
@@ -318,7 +286,7 @@ class LinkuRepositoryImpl @Inject constructor(
         safeApiCall(
             apiCall = {
                 serverApi.updateLink(
-                    linkuId = linkuId,
+                    userLinkuId = userLinkuId,
                     memo = memo,
                     emotionId = emotionId,
                     situationId = situationId,
@@ -330,8 +298,9 @@ class LinkuRepositoryImpl @Inject constructor(
         ).onSuccess {
             result = LinkResultInfo(
                 userId = it.userId,
-                userLinkuId = it.userLinkuId,
-                linkuId = it.linkuId,
+                userLinkuId = requireNotNull(it.userLinkuId) {
+                    "링크 수정 응답에 userLinkuId가 없습니다."
+                },
                 linkuFolderId = it.linkuFolderId,
                 categoryId = it.categoryId,
                 linku = it.linku,

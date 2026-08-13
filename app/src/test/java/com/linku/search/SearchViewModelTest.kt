@@ -156,17 +156,17 @@ class SearchViewModelTest {
         }
 
     @Test
-    fun `search maps valid domain items to paging ui items and drops missing required ui fields`() =
+    fun `search maps user linku id and drops invalid id or missing title`() =
         runTest(mainDispatcherRule.testDispatcher) {
             val validItem = searchLink(
-                linkuId = 2L,
+                userLinkuId = 2L,
                 title = "latest",
                 domainImageUrl = "https://example.com/domain.png",
             )
-            val missingId = searchLink(linkuId = null, title = "missing id")
-            val missingTitle = searchLink(linkuId = 3L, title = null)
+            val invalidId = searchLink(userLinkuId = 0L, title = "invalid id")
+            val missingTitle = searchLink(userLinkuId = 3L, title = null)
             linkuRepository.searchHandler = {
-                flowOf(PagingData.from(listOf(validItem, missingId, missingTitle)))
+                flowOf(PagingData.from(listOf(validItem, invalidId, missingTitle)))
             }
             val differ = searchResultDiffer()
 
@@ -397,12 +397,11 @@ class SearchViewModelTest {
         }
 
     private fun searchLink(
-        linkuId: Long?,
+        userLinkuId: Long,
         title: String?,
         domainImageUrl: String? = null,
     ) = LinkuSearchInfo(
-        userLinkuId = 1L,
-        linkuId = linkuId,
+        userLinkuId = userLinkuId,
         title = title,
         linkuImageUrl = null,
         tags = emptyList(),
@@ -506,15 +505,10 @@ private class FakeLinkuRepository : LinkuRepository {
 
     override suspend fun getRecentLinks(limit: Int): List<LinkSimpleInfo> = unused()
 
-    override suspend fun getLinkDetail(linkuId: Long): LinkResultInfo = unused()
-
-    override suspend fun getLinkDetailWithShared(
-        userId: Long,
-        linkuId: Long,
-    ): LinkResultInfo = unused()
+    override suspend fun getLinkDetail(userLinkuId: Long): LinkResultInfo = unused()
 
     override suspend fun updateLink(
-        linkuId: Long,
+        userLinkuId: Long,
         image: TempImageFile?,
         memo: String?,
         emotionId: Long?,

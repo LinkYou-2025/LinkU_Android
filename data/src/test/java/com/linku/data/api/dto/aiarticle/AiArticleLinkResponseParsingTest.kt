@@ -5,6 +5,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -31,6 +32,24 @@ class AiArticleLinkResponseParsingTest {
         assertEquals(4L, item.categoryId)
         assertEquals("IT·개발", item.categoryName)
         assertEquals(1L, item.emotionId)
+        assertEquals(7L, item.userLinkuId)
+    }
+
+    @Test
+    fun `response remains readable while user link id is omitted`() {
+        val responseType = Types.newParameterizedType(
+            BaseResponse::class.java,
+            AiArticleLinkPageDTO::class.java,
+        )
+        val adapter: JsonAdapter<BaseResponse<AiArticleLinkPageDTO>> =
+            Moshi.Builder()
+                .build()
+                .adapter(responseType)
+        val legacyJson = RESPONSE_JSON.replace("\"userLinkuId\": 7,", "")
+
+        val response = requireNotNull(adapter.fromJson(legacyJson))
+
+        assertNull(response.result.linkuList.single().userLinkuId)
     }
 
     private companion object {
@@ -44,7 +63,7 @@ class AiArticleLinkResponseParsingTest {
               "result": {
                 "linkuList": [
                   {
-                    "linkuId": 7,
+                    "userLinkuId": 7,
                     "linku": "https://example.com/article",
                     "emotionId": 1,
                     "domain": "example.com",

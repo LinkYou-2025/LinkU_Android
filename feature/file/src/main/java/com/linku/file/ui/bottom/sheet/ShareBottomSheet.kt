@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -140,6 +141,7 @@ private enum class FolderTreeLoadState {
  * callback만 받아 바텀시트가 열려 있는 동안의 화면 상태를 관리합니다.
  *
  * @param visible 바텀시트 표시 여부
+ * @param sessionId 열기 이벤트마다 증가해 이전 선택과 일회성 상태를 재사용하지 않는 세션 ID
  * @param folderTree 공유 대상으로 선택할 카테고리와 하위 폴더 트리
  * @param onLoadFolderTree 바텀시트가 열릴 때 폴더 트리를 갱신하고 성공 또는 실패 callback 중
  * 정확히 하나를 호출하는 함수
@@ -151,6 +153,7 @@ private enum class FolderTreeLoadState {
 internal fun ShareBottomSheet(
     modifier: Modifier = Modifier,
     visible: Boolean,
+    sessionId: Long,
     folderTree: List<FolderSimpleInfo>,
     onLoadFolderTree: (
         onSuccess: (List<FolderSimpleInfo>) -> Unit,
@@ -165,8 +168,8 @@ internal fun ShareBottomSheet(
 ) {
     if (!visible) return
 
-    var folderTreeLoadState by remember { mutableStateOf(FolderTreeLoadState.Loading) }
-    var displayedFolderTree by remember { mutableStateOf(folderTree) }
+    var folderTreeLoadState by remember(sessionId) { mutableStateOf(FolderTreeLoadState.Loading) }
+    var displayedFolderTree by remember(sessionId) { mutableStateOf(folderTree) }
 
     LaunchedEffect(folderTree) {
         displayedFolderTree = folderTree
@@ -189,7 +192,7 @@ internal fun ShareBottomSheet(
         )
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(sessionId) {
         try {
             loadFolderTree()
         } catch (cancellation: CancellationException) {
@@ -203,20 +206,22 @@ internal fun ShareBottomSheet(
         }
     }
 
-    ShareBottomSheetLayout(
-        modifier = modifier,
-        folderTree = displayedFolderTree,
-        folderTreeLoadState = folderTreeLoadState,
-        onReloadFolderTree = {
-            try {
-                loadFolderTree()
-            } catch (_: Exception) {
-                folderTreeLoadState = FolderTreeLoadState.Failed
-            }
-        },
-        onDismissRequest = onDismissRequest,
-        onLinkGenerate = onLinkGenerate,
-    )
+    key(sessionId) {
+        ShareBottomSheetLayout(
+            modifier = modifier,
+            folderTree = displayedFolderTree,
+            folderTreeLoadState = folderTreeLoadState,
+            onReloadFolderTree = {
+                try {
+                    loadFolderTree()
+                } catch (_: Exception) {
+                    folderTreeLoadState = FolderTreeLoadState.Failed
+                }
+            },
+            onDismissRequest = onDismissRequest,
+            onLinkGenerate = onLinkGenerate,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

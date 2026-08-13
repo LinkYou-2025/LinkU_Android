@@ -68,9 +68,8 @@ class MainActivity : ComponentActivity() {
      */
     private fun handleIntent(intent: Intent) {
 
-        val type = intent.getStringExtra("type")
-            ?.let { runCatching { AlarmType.valueOf(it) }.getOrNull() }
-            ?: return
+        val rawType = intent.getStringExtra("type") ?: return
+        val type = AlarmType.fromOrNull(rawType) ?: return
 
         val targetId = intent.getStringExtra("targetId")?.toLongOrNull() ?: return
         val alarmId = intent.getStringExtra("alarmId")?.toLongOrNull()

@@ -1,14 +1,7 @@
 package com.linku.file
 
-import android.net.Uri
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -17,10 +10,10 @@ import androidx.navigation.compose.rememberNavController
 import androidx.paging.PagingData
 import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchResultItem
-import com.linku.file.ui.link.SaveLinkResultScreen
 import com.linku.file.viewmodel.delete.state.DeleteStateViewModel
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
+import com.linku.file.viewmodel.leave.state.LeaveStateViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
@@ -33,8 +26,9 @@ import kotlinx.coroutines.flow.flowOf
  * @param fileViewModel 파일 및 폴더 데이터를 제공하는 ViewModel
  * @param editStateViewModel 폴더 편집 상태를 관리하는 ViewModel
  * @param deleteStateViewModel 폴더 삭제 대상 선택 상태를 관리하는 ViewModel
+ * @param leaveStateViewModel 공유폴더 나가기 대상 선택 모드를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
- * @param onNavigateToLinkDetail 선택한 링크의 상세 화면으로 이동시키는 콜백
+ * @param onNavigateToLinkDetail 선택한 사용자 링크의 상세 화면으로 이동시키는 콜백
  * @param searchUiState 검색 기록과 검색 UI 상태
  * @param searchResults 검색 결과 페이징 데이터
  * @param onSearchQueryChange 검색어 변경 콜백
@@ -48,6 +42,7 @@ fun FileApp(
     fileViewModel: FileViewModel = hiltViewModel(),
     editStateViewModel: EditStateViewModel = viewModel(),
     deleteStateViewModel: DeleteStateViewModel = viewModel(),
+    leaveStateViewModel: LeaveStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onNavigateToLinkDetail: (Long) -> Unit,
     searchUiState: SearchBarUiState = SearchBarUiState(),
@@ -59,7 +54,6 @@ fun FileApp(
     onSearchHistoryDelete: (Long) -> Unit = {},
     onSearchHistoryClear: () -> Unit = {},
 ) {
-    val context = LocalContext.current
     val navController = rememberNavController()
 
     // 상태바/내비게이션 바는 MainScreen(app 모듈)에서 공통으로 흰색 처리함.
@@ -75,6 +69,7 @@ fun FileApp(
                 fileViewModel = fileViewModel,
                 editStateViewModel = editStateViewModel,
                 deleteStateViewModel = deleteStateViewModel,
+                leaveStateViewModel = leaveStateViewModel,
                 folderStateViewModel = folderStateViewModel,
                 onLinkClick = onNavigateToLinkDetail,
                 searchUiState = searchUiState,
@@ -86,85 +81,5 @@ fun FileApp(
                 onSearchHistoryClear = onSearchHistoryClear,
             )
         }
-
-/*        composable("savelinkresult/{linkuId}") { backStackEntry ->
-            val raw = backStackEntry.arguments?.getString("linkuId")
-            val linkuId = backStackEntry.arguments?.getString("linkuId")?.toLongOrNull()
-
-            val currentLinkuId = rememberUpdatedState(linkuId)
-
-            val aiProgress = fileViewModel.aiProgress.collectAsState().value
-
-            // ✅ 네비게이션으로 넘어온 값(문자열/파싱 결과) 확인
-            Log.d("SaveLinkFlow", "넘어온 값 -> route arg (raw) = $raw")
-            Log.d("SaveLinkFlow", "넘어온 값 -> route arg (parsed) = $linkuId")
-
-            if (linkuId == null) {
-                // 잘못 들어온 경우 안전하게 되돌리기
-                Log.d("HomeAppLinkResult", "id가 null입니다.")
-                LaunchedEffect(Unit) { navController.popBackStack() }
-            } else {
-                // 화면 진입 시 상세 로드
-//                LaunchedEffect(linkuId) {
-//                    viewModel.loadLinkDetail(linkuId) // 상세 안에 있으면 이걸로 표시, 없으면 내부에서 AI 호출
-//                }
-
-                val link = fileViewModel.linkDetail.collectAsState().value
-                val aiArticle = fileViewModel.aiArticleDetail.collectAsState().value
-                val isLoadingLink = fileViewModel.isLoadingLinkDetail.collectAsState().value
-                val isLoadingAi = fileViewModel.isLoadingAiArticle.collectAsState().value
-                val categoryColorMap = fileViewModel.categoryColorMap.collectAsState().value
-*//*
-                // 🔹 상세 데이터 전달 (필요시 로딩 상태 활용)
-                SaveLinkResultScreen(
-                    link = link,
-                    aiArticle = aiArticle,
-                    isLoading = (isLoadingLink || isLoadingAi),
-                    isAiLoading = isLoadingAi,
-                    onBack = { navController.popBackStack() },
-                    onOpenLink = { url ->
-                        Log.d("FileApp", "onOpenLink 호출! url=$url")
-                        val fixed = if (url.startsWith("http")) url else "https://$url"
-                        val intent = android.content.Intent(
-                            android.content.Intent.ACTION_VIEW,
-                            Uri.parse(fixed)
-                        )
-                        try {
-                            context.startActivity(intent)
-                        } catch (t: Throwable) {
-                            Toast.makeText(context, "링크를 열 수 없어요.", Toast.LENGTH_SHORT).show()
-                            Log.e("FileApp", "startActivity 실패", t)
-                        }
-                    },
-                    categoryColorMap = categoryColorMap,
-                    onSubmitEdit = { title, memo, categoryId, emotionId ->
-                        fileViewModel.updateLink(
-                            title = title,
-                            memo = memo,
-                            categoryId = categoryId,
-                            emotionId = emotionId,
-                            onSucceed = {
-                                Toast.makeText(context, "수정 완료", Toast.LENGTH_SHORT).show()
-                            },
-                            onFailed = { e ->
-                                Log.e("SaveLinkFlow", "수정 실패", e)
-                                Toast.makeText(context, e.message ?: "수정에 실패했습니다.", Toast.LENGTH_SHORT).show()
-                            }
-                        )
-                    },
-                    onRequestAiSummary = {
-                        val id = currentLinkuId.value
-                        Log.d("FileApp", "onRequestAiSummary 호출! linkuId=$id, vm=${fileViewModel.hashCode()}")
-                        if (id != null) {
-                            fileViewModel.loadAiArticle(id)
-                        } else {
-                            Log.e("FileApp", "linkuId가 null이라 AI 호출 불가")
-                        }
-                    },
-                    aiProgress = aiProgress,
-                    onCancelAi = { fileViewModel.cancelAiArticleJob() },
-                )*//*
-            }
-        }*/
     }
 }

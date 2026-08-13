@@ -144,7 +144,7 @@ private fun CurationKeywordLinksScreenContent(
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.scaler),
                 ) {
-                    items(items = links, key = { it.linkuId }) { link ->
+                    items(items = links, key = { it.userLinkuId }) { link ->
                         LinkCardItem(
                             hasAiSummary = link.aiArticleExists,
                             linkTitle = link.title,
@@ -184,7 +184,7 @@ private fun CurationKeywordLinksScreenLoadingPreview() {
 private fun CurationKeywordLinksScreenPreview() {
     val sampleLinks = List(6) { index ->
         LinkSimpleInfo(
-            linkuId = index.toLong(),
+            userLinkuId = index.toLong() + 1L,
             categoryId = CategoryType.PRODUCTIVITY_TOOL.id,
             memo = null,
             emotionId = EmotionType.CALM.value,

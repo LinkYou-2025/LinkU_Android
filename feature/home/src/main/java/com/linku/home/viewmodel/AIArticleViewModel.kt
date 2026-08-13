@@ -38,7 +38,7 @@ class AIArticleViewModel @Inject constructor(
         )
     }
 
-    fun getAiArticle(linkuId: Long) {
+    fun getAiArticle(userLinkuId: Long) {
         if (_uiState.value.isLoading) return
 
         viewModelScope.launch {
@@ -50,7 +50,7 @@ class AIArticleViewModel @Inject constructor(
             }
 
             runCatching {
-                aiArticleRepository.getAiArticle(linkuId)
+                aiArticleRepository.getAiArticle(userLinkuId)
             }.onSuccess { aiArticle ->
                 if (aiArticle.summary.isBlank()) {
                     _uiState.update {

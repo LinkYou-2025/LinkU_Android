@@ -13,7 +13,7 @@ data class RecommendLink(
 )
 
 sealed interface LinkType {
-    data class Internal(val linkId: Long) : LinkType
+    data class Internal(val userLinkuId: Long) : LinkType
     data class External(val url: String) : LinkType
 }
 

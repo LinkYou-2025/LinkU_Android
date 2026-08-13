@@ -8,6 +8,7 @@ import com.linku.core.model.SharedFolderSimpleInfo
 import com.linku.core.model.FolderPermissionInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.ParentFolderSort
+import com.linku.core.model.OwnedSharedFolderInfo
 import kotlinx.coroutines.flow.Flow
 
 interface FolderRepository {
@@ -77,8 +78,14 @@ interface FolderRepository {
     // 공유 받은 폴더 목록 조회
     suspend fun getSharedFolders(): List<SharedFolderInfo>
 
-    // 공유 받은 폴더 삭제
-    suspend fun deleteSharedFolder(folderId: Long)
+    /** 현재 사용자가 소유하면서 다른 멤버와 실제로 공유 중인 폴더를 조회합니다. */
+    suspend fun getOwnedSharedFolders(): List<OwnedSharedFolderInfo>
+
+    /** 가장 오래 참여한 멤버에게 소유권을 위임하고 소유 중이던 공유폴더에서 나갑니다. */
+    suspend fun leaveOwnedSharedFolder(folderId: Long)
+
+    /** 공유받은 폴더 관계를 제거해 현재 사용자의 목록에서 나갑니다. */
+    suspend fun leaveReceivedSharedFolder(folderId: Long)
 
     // 폴더 공유 (뷰어 권한 설정)
     suspend fun setFolderViewerPermission(folderId: Long): SharedFolderSimpleInfo
@@ -103,7 +110,7 @@ interface FolderRepository {
     ): LinkItemInfo
 
     suspend fun deleteLink(
-        linkuId: Long
+        userLinkuId: Long
     )
 
     // 폴더 트리 조회

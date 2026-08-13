@@ -82,7 +82,7 @@ fun HomeScreen(
     onExitRecommendMode: () -> Unit,
     needMoreForRecommendation: Boolean,
     jobId: Long,
-    onLinkClick: (linkuId: Long) -> Unit,
+    onLinkClick: (userLinkuId: Long) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
     onAlarmClick: () -> Unit,
     searchUiState: SearchBarUiState,
@@ -372,12 +372,12 @@ fun HomeScreen(
                     items(
                         count = recommendedLinks.itemCount,
                         key = recommendedLinks.itemKey { link ->
-                            "recommend-${link.userLinkuId}-${link.linkuId}"
+                            "recommend-${link.userLinkuId}"
                         },
                         contentType = recommendedLinks.itemContentType { "recommendation-link" },
                     ) { index ->
                         val link = recommendedLinks[index] ?: return@items
-                        val menuId = link.userLinkuId ?: link.linkuId
+                        val menuId = link.userLinkuId
 
                         LinkCard(
                             link = link,
@@ -393,9 +393,9 @@ fun HomeScreen(
                                  * recommendedLinks.refresh()
                                  */
                             },
-                            onCardClick = { linkuId ->
+                            onCardClick = { userLinkuId ->
                                 openedDeleteMenuId = null
-                                onLinkClick(linkuId)
+                                onLinkClick(userLinkuId)
                             },
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
                         )
@@ -419,9 +419,9 @@ fun HomeScreen(
                 else -> {
                     items(
                         items = recentLinks,
-                        key = { link -> "recent-${link.userLinkuId}-${link.linkuId}" },
+                        key = { link -> "recent-${link.userLinkuId}" },
                     ) { link ->
-                        val menuId = link.userLinkuId ?: link.linkuId
+                        val menuId = link.userLinkuId
 
                         LinkCard(
                             link = link,
@@ -439,9 +439,9 @@ fun HomeScreen(
 
                                 // TODO: 삭제 API 연결
                             },
-                            onCardClick = { linkuId ->
+                            onCardClick = { userLinkuId ->
                                 openedDeleteMenuId = null
-                                onLinkClick(linkuId)
+                                onLinkClick(userLinkuId)
                             },
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),
                         )
@@ -722,10 +722,10 @@ private fun LinkCard(
             isDeleteMenuVisible = isDeleteMenuVisible,
             onMoreClick = onMoreClick,
             onCardClick = {
-                onCardClick(link.linkuId)
+                onCardClick(link.userLinkuId)
             },
             onDeleteClick = {
-                link.userLinkuId?.let(onDeleteClick)
+                onDeleteClick(link.userLinkuId)
             },
         )
     }

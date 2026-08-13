@@ -87,7 +87,7 @@ private const val MAX_MEMO_LENGTH = 200
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LinkDetailScreen(
-    linkuId: Long,
+    userLinkuId: Long,
     linkTitle: String,
     category: String,
     emotion: String,
@@ -128,7 +128,7 @@ fun LinkDetailScreen(
     val context = LocalContext.current
 
     var isEditMode by rememberSaveable { mutableStateOf(false) }
-    var isAiSummaryMode by rememberSaveable(linkuId) { mutableStateOf(aiSummary.isNotBlank()) }
+    var isAiSummaryMode by rememberSaveable(userLinkuId) { mutableStateOf(aiSummary.isNotBlank()) }
 
     var isDropdownVisible by rememberSaveable { mutableStateOf(false) }
     var isDeleteModalVisible by rememberSaveable { mutableStateOf(false) }
@@ -790,7 +790,7 @@ fun LinkDetailScreen(
 
                             if (!isAiArticleLoading) {
                                 aiArticleProgress = 0f
-                                onRequestAiArticle(linkuId)
+                                onRequestAiArticle(userLinkuId)
                             }
                         }
                     },
@@ -852,7 +852,7 @@ fun PreviewLinkDetailScreen() {
 
     ThemeProvider {
         LinkDetailScreen(
-            linkuId = 0L,
+            userLinkuId = 1L,
             linkTitle = "3일만에 오픽 AL 꿀팁",
             category = "카테고리2",
             emotion = "평온",

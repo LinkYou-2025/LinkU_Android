@@ -32,7 +32,7 @@ class CurationRemindViewModel @Inject constructor(
     fun handleIntent(intent: CurationRemindIntent) {
         when (intent) {
             is CurationRemindIntent.ClickLink -> {
-                navigateToLinkDetail(intent.linkId)
+                navigateToLinkDetail(intent.userLinkuId)
             }
         }
     }
@@ -53,9 +53,9 @@ class CurationRemindViewModel @Inject constructor(
         }
     }
 
-    private fun navigateToLinkDetail(linkId: Long) {
+    private fun navigateToLinkDetail(userLinkuId: Long) {
         viewModelScope.launch {
-            _sideEffect.send(CurationRemindSideEffect.NavigateToLinkDetail(linkId))
+            _sideEffect.send(CurationRemindSideEffect.NavigateToLinkDetail(userLinkuId))
         }
     }
 

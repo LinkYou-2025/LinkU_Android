@@ -208,17 +208,17 @@ class LinkViewModel @Inject constructor(
      * Link detail
      */
 
-    fun loadLinkDetail(linkuId: Long, forceRefresh: Boolean = false) {
+    fun loadLinkDetail(userLinkuId: Long, forceRefresh: Boolean = false) {
         val now = System.currentTimeMillis()
-        val cached = linkCache[linkuId]
+        val cached = linkCache[userLinkuId]
 
         if (!forceRefresh && cached != null && now - cached.ts < detailTtl) {
             _uiState.update { state -> state.copy(linkDetail = cached.value, isLoadingLinkDetail = false) }
 
             viewModelScope.launch {
                 try {
-                    val refreshed = linkuRepository.getLinkDetail(linkuId)
-                    linkCache[linkuId] = Cached(refreshed)
+                    val refreshed = linkuRepository.getLinkDetail(userLinkuId)
+                    linkCache[userLinkuId] = Cached(refreshed)
                     _uiState.update { state -> state.copy(linkDetail = refreshed) }
                 } catch (error: CancellationException) {
                     throw error
@@ -234,8 +234,8 @@ class LinkViewModel @Inject constructor(
             _uiState.update { state -> state.copy(linkDetail = cached?.value, isLoadingLinkDetail = cached == null) }
 
             try {
-                val detail = linkuRepository.getLinkDetail(linkuId)
-                linkCache[linkuId] = Cached(detail)
+                val detail = linkuRepository.getLinkDetail(userLinkuId)
+                linkCache[userLinkuId] = Cached(detail)
                 _uiState.update { state -> state.copy(linkDetail = detail) }
             } catch (error: CancellationException) {
                 throw error
@@ -269,7 +269,7 @@ class LinkViewModel @Inject constructor(
 
         if (currentState.isUpdatingLink) return
 
-        val linkuId = current.linkuId
+        val userLinkuId = current.userLinkuId
 
         val normalizedTitle = title.trim()
 
@@ -296,7 +296,7 @@ class LinkViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val updated = linkuRepository.updateLink(
-                    linkuId = linkuId,
+                    userLinkuId = userLinkuId,
                     image = image,
                     memo = changedMemo,
                     emotionId = changedEmotionId,
@@ -304,7 +304,7 @@ class LinkViewModel @Inject constructor(
                     categoryId = changedCategoryId,
                     title = changedTitle,
                 )
-                linkCache[linkuId] = Cached(updated)
+                linkCache[userLinkuId] = Cached(updated)
                 _uiState.update { state -> state.copy(linkDetail = updated) }
                 onSucceed(updated)
             } catch (error: CancellationException) {
@@ -324,14 +324,8 @@ class LinkViewModel @Inject constructor(
             return
         }
 
-        val userLinkuId = current.userLinkuId ?: run {
-            onFailed(IllegalStateException("userLinkuId가 없습니다."))
-            return
-        }
-
         deleteLink(
-            userLinkuId = userLinkuId,
-            linkuId = current.linkuId,
+            userLinkuId = current.userLinkuId,
             onSucceed = {
                 _uiState.update { state -> state.copy(linkDetail = null) }
                 onSucceed()
@@ -342,7 +336,6 @@ class LinkViewModel @Inject constructor(
 
     fun deleteLink(
         userLinkuId: Long,
-        linkuId: Long? = null,
         onSucceed: () -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
@@ -353,7 +346,7 @@ class LinkViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 linkuRepository.deleteLink(userLinkuId = userLinkuId)
-                linkuId?.let(linkCache::remove)
+                linkCache.remove(userLinkuId)
                 onSucceed()
             } catch (error: CancellationException) {
                 throw error

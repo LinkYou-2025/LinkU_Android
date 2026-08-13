@@ -29,28 +29,29 @@ import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.gradientTint
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
-import com.linku.file.FileViewModel
 import com.linku.file.R
-import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 /**
  * 폴더 목록의 상단 메뉴를 관리하는 컴포저블 함수입니다.
- * [FolderStateViewModel]과 [FileViewModel]을 사용하여 메뉴의 상태를 제어하고,
+ * [FolderStateViewModel]의 메뉴 상태와 호출자가 제공한 전환 콜백을 사용하여,
  * 사용자의 선택에 따라 "나의 폴더"와 "공유받은 폴더" 사이의 전환 로직을 수행합니다.
  *
  * @param folderStateViewModel 메뉴의 확장 상태 및 폴더 유형 상태를 관리하는 뷰모델.
- * @param fileViewModel 공유 폴더 목록 조회 등 파일 관련 데이터를 처리하는 뷰모델.
- *
  * @see FolderScopeListMenuLayout
  */
 @Composable
 fun FolderScopeListMenu(
     folderStateViewModel: FolderStateViewModel,
-    fileViewModel: FileViewModel
+    personalLabel: String,
+    sharedLabel: String,
+    onSelectMyFolders: () -> Unit,
+    onSelectSharedFolders: () -> Unit,
 ){
     FolderScopeListMenuLayout(
         isSharedFolders = folderStateViewModel.isSharedFolders,
+        personalLabel = personalLabel,
+        sharedLabel = sharedLabel,
         topMenuExpanded = folderStateViewModel.topMenuExpanded,
         onDismissRequest = {
             /*
@@ -60,41 +61,8 @@ fun FolderScopeListMenu(
             // topMenuExpanded를 false로 수정
             folderStateViewModel.updateTopMenuExpanded(false)
        },
-        onSelectMyFolders = {
-            /*
-            * 메뉴를 닫음과 동시에
-            * 공유받은 폴더들을 보이지 않게 하고
-            * 나의 폴더들을 보이게 하는 로직
-            * */
-
-            // isShredFolders를 false로 수정
-            folderStateViewModel.updateIsSharedFolders(false)
-
-            // topMenuExpanded를 false로 수정
-            folderStateViewModel.updateTopMenuExpanded(false)
-
-            // folderState를 TOP으로 수정
-            folderStateViewModel.updateFolderState(FolderState.TOP)
-        },
-        onSelectSharedFolders = {
-            /*
-            * 메뉴를 닫음과 동시에
-            * 나의 폴더들을 보이지 않게 하고
-            * 공유받은 폴더들을 보이게 하는 로직
-            */
-
-            // 공유 폴더를 받아 뷰모델에 저장
-            fileViewModel.getSharedFolders()
-
-            // isShredFolders를 true로 수정
-            folderStateViewModel.updateIsSharedFolders(true)
-
-            // topMenuExpanded를 false로 수정
-            folderStateViewModel.updateTopMenuExpanded(false)
-
-            // folderState를 TOP으로 수정
-            folderStateViewModel.updateFolderState(FolderState.TOP)
-        }
+        onSelectMyFolders = onSelectMyFolders,
+        onSelectSharedFolders = onSelectSharedFolders,
     )
 }
 
@@ -115,6 +83,8 @@ fun FolderScopeListMenu(
 private fun FolderScopeListMenuLayout(
     modifier: Modifier = Modifier,
     isSharedFolders: Boolean,
+    personalLabel: String,
+    sharedLabel: String,
     topMenuExpanded: Boolean,
     onDismissRequest: () -> Unit,
     onSelectMyFolders: () -> Unit,
@@ -122,7 +92,7 @@ private fun FolderScopeListMenuLayout(
 ){
     val colors = MaterialTheme.linkuColors
     // 선택된 폴더
-    val selectedText = if (isSharedFolders) "공유받은 폴더" else "나의 폴더"
+    val selectedText = if (isSharedFolders) sharedLabel else personalLabel
 
     /*
     * 상단 폴더 목록 메뉴
@@ -148,13 +118,13 @@ private fun FolderScopeListMenuLayout(
             verticalArrangement = Arrangement.spacedBy(13.dp, Alignment.CenterVertically),
         ) {
             FolderScopeListMenuRow(
-                selectedOption = "나의 폴더",
+                selectedOption = personalLabel,
                 selectedText = selectedText,
                 onClick = onSelectMyFolders
             )
 
             FolderScopeListMenuRow(
-                selectedOption = "공유받은 폴더",
+                selectedOption = sharedLabel,
                 selectedText = selectedText,
                 onClick = onSelectSharedFolders
             )
@@ -255,6 +225,8 @@ private fun FolderScopeListMenuRow(
 private fun FolderScopeListMenuTest(){
     FolderScopeListMenuLayout(
         isSharedFolders = true,
+        personalLabel = "나의 폴더",
+        sharedLabel = "공유폴더",
         topMenuExpanded = true,
         onDismissRequest = {},
         onSelectMyFolders = {},

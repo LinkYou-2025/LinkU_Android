@@ -191,13 +191,16 @@ fun FolderDTO.toDomain(parentFolderId: Long): FolderSimpleInfo {
  */
 fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
     val caller = getCaller()
+    val requiredUserLinkuId = requireNotNull(userLinkuId) {
+        "폴더 링크 응답에 userLinkuId가 없습니다."
+    }
 
     LinkuLog.d(caller) {
-        "LinkDTO linkuId: $linkuId, parentFolderId: $parentFolderId"
+        "LinkDTO userLinkuId: $requiredUserLinkuId, parentFolderId: $parentFolderId"
     }
 
     val linkItemInfo = LinkItemInfo(
-        linkuId = linkuId,
+        userLinkuId = requiredUserLinkuId,
         parentFolderId = parentFolderId,
         title = title,
         tags = keyword?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty(),
@@ -207,7 +210,7 @@ fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
     )
 
     LinkuLog.d(caller) {
-        "LinkItemInfo linkuId: ${linkItemInfo.linkuId}, " +
+        "LinkItemInfo userLinkuId: ${linkItemInfo.userLinkuId}, " +
             "parentFolderId: ${linkItemInfo.parentFolderId}, tagsCount: ${linkItemInfo.tags.size}"
     }
 

@@ -24,6 +24,7 @@ fun NavGraphBuilder.curationGraph(
     navigator: NavHostController,
     showNavBar: (Boolean) -> Unit,
     nickname: String,
+    onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
     onNavigateToSaveLink: () -> Unit = {},
 ) {
     val goHome: () -> Unit = {
@@ -71,7 +72,7 @@ fun NavGraphBuilder.curationGraph(
             viewModel = viewModel,
             onBack = { navigator.popBackStack() },
             onGoHome = goHome,
-            onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
+            onNavigateToLinkDetail = onNavigateToLinkDetail,
         )
     }
 
@@ -118,7 +119,7 @@ fun NavGraphBuilder.curationGraph(
         CurationRemindScreen(
             viewModel = viewModel,
             onBack = { navigator.popBackStack() },
-            onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
+            onNavigateToLinkDetail = onNavigateToLinkDetail,
         )
     }
 
