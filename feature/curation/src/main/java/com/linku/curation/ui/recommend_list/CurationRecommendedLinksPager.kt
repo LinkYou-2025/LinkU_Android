@@ -20,6 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import com.linku.design.modifier.dropShadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -187,6 +189,12 @@ private fun RecommendedLinkCardItem(
         linkImageUrl = link.imageUrl,
         domainImageUrl = link.domainImageUrl,
         onCardClick = { onClick(link) },
+        modifier = Modifier.dropShadow(
+            shape = RoundedCornerShape(18.dp),
+            color = Color(0x08000000), // rgba(0,0,0,0.03)
+            blur = 15.dp,
+            offsetY = 4.dp,
+        ),
     )
 }
 

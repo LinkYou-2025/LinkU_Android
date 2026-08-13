@@ -41,6 +41,7 @@ import com.linku.design.theme.linkuColors
 fun LinkCardItem(
     hasAiSummary: Boolean,
     linkTitle: String,
+    modifier: Modifier = Modifier,
     tags: List<String> = emptyList(),
     domainName: String = "",
     isExternalLink: Boolean,
@@ -50,12 +51,12 @@ fun LinkCardItem(
     isDeleteMenuVisible: Boolean = false,
     onMoreClick: () -> Unit = { },
     onCardClick: () -> Unit = { },  // TODO: 머지 이후 기본값 제거 예정
-    onDeleteClick: () -> Unit = {} // 안 쓰는 곳(큐레이션)도 있으므로 디폴트값 추가
+    onDeleteClick: () -> Unit = {}, // 안 쓰는 곳(큐레이션)도 있으므로 디폴트값 추가
 ) {
     val colors = MaterialTheme.linkuColors
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
