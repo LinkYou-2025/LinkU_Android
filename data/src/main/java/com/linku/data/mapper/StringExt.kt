@@ -2,6 +2,7 @@ package com.linku.data.mapper
 
 import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 /**
@@ -17,15 +18,17 @@ import java.time.temporal.ChronoUnit
  * clock skew로 인해 diff가 음수일 경우 0으로 처리합니다.
  *
  * @receiver ISO 8601 형식의 UTC 타임스탬프 문자열 (예: "2024-01-01T00:00:00.000Z")
- * @param now 상대 시간을 계산할 기준 시각
  * @return 상대 시간 문자열
  */
 fun String.toRelativeTime(
-    now: Instant = Instant.now()
+    now: Instant = Instant.now(),
+    zoneId: ZoneId = ZoneId.systemDefault()
 ): String {
-    // UTC 오프셋이 포함된 타임스탬프를 시스템 시간대와 무관한 절대 시각으로 파싱합니다.
+    // 파싱
     val parsed = runCatching {
-        Instant.parse(this)
+        LocalDateTime.parse(this)
+            .atZone(zoneId)
+            .toInstant()
     }.getOrElse {
         return "알 수 없음"
     }
