@@ -35,7 +35,7 @@ internal fun CalendarBox(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 84.scaler) // 피그마 대로 하면 때려죽여도 안 맞춰지기 때문에 임의 삽입
+            .heightIn(min = 84.scaler) // 최대한 피그마와 유사하게 크기 조정함
             .background(
                 color = colorTheme.curationCalendarBoxColor,
                 shape = RoundedCornerShape(size = 22.scaler)

@@ -62,7 +62,6 @@ internal fun CalendarIconBox(
         )
 
         // 연도 영역
-        //
         // Figma 디자인 스펙
         // 상단 여백: 4dp
         // 좌우 여백: 13dp
@@ -95,7 +94,6 @@ internal fun CalendarIconBox(
         }
 
         // 월 약어
-        //
         // Figma 디자인 스펙
         // width: 40dp
         // height: 25dp

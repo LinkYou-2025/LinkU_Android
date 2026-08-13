@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -115,7 +116,7 @@ internal fun CurationCardItem(
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomStart) // 하단 고정 앵커: 폰마다 카드 높이/글자 비율이 달라져도 잘리지 않도록 상단 offset 대신 하단 여백으로 배치. 실제 하단 간격은 인디케이터/버튼이 각자 지정
+                .align(Alignment.BottomStart)
         ) {
             Text(
                 text = title,
@@ -123,10 +124,12 @@ internal fun CurationCardItem(
                 lineHeight = 30.sp,
                 fontWeight = FontWeight(700),
                 color = colorTheme.white,
-                modifier = Modifier.padding(start = 35.scaler)
+                modifier = Modifier
+                    .padding(start = 35.scaler)
+                    .offset(y = 5.scaler)
             )
 
-            Spacer(modifier = Modifier.height(18.scaler))
+            Spacer(modifier = Modifier.height(14.scaler))
 
             Text(
                 text = description,
@@ -159,9 +162,18 @@ internal fun CurationCardItem(
                     horizontalArrangement = Arrangement.spacedBy(12.scaler),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = (page + 1).toString().padStart(2, '0'), style = pageIndicatorStyle)
-                    Text(text = "|", style = pageIndicatorStyle)
-                    Text(text = totalPage.toString().padStart(2, '0'), style = pageIndicatorStyle)
+                    Text(
+                        text = (page + 1).toString().padStart(2, '0'),
+                        style = pageIndicatorStyle
+                    )
+                    Text(
+                        text = "|",
+                        style = pageIndicatorStyle
+                    )
+                    Text(
+                        text = totalPage.toString().padStart(2, '0'),
+                        style = pageIndicatorStyle
+                    )
                 }
 
                 CurationCheckOutButton(
