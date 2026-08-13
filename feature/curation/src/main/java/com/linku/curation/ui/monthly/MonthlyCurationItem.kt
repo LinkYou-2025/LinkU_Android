@@ -11,7 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
@@ -73,7 +72,7 @@ internal fun MonthlyCurationItem(
                 Box(
                     modifier = Modifier
                         .matchParentSize()
-                        .background(Color(0xFF000208))
+                        .background(colorTheme.black)
                 )
 
                 // Figma Group 내부의 월 숫자

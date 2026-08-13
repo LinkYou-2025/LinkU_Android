@@ -41,7 +41,7 @@ internal fun CurationEmotionChip(
             .padding(horizontal = 8.dp, vertical = 6.dp)
     ) {
         Text(
-            text = "#${text.removePrefix("#")}",
+            text = "#${text.trimStart('#')}",
             fontSize = 13.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight(400),

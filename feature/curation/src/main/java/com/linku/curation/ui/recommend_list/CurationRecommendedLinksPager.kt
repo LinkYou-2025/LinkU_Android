@@ -63,7 +63,7 @@ fun CurationRecommendedLinksPager(
     val colorTheme = MaterialTheme.linkuColors
 
     // 한 페이지에 최대 3개의 카드 영역을 유지
-    val actualLinksPerPage = linksPerPage.coerceAtMost(MAX_LINKS_PER_PAGE)
+    val actualLinksPerPage = linksPerPage.coerceIn(1, MAX_LINKS_PER_PAGE)
 
     val pages = remember(links, actualLinksPerPage) {
         links.chunked(actualLinksPerPage)
