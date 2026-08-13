@@ -38,6 +38,7 @@ import androidx.paging.compose.itemKey
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.design.theme.LocalColorTheme
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.home.ui.alarm.component.AlarmTopBar
 import com.linku.home.ui.alarm.component.AlarmFilterTabs
 import com.linku.home.ui.alarm.component.AlarmItem
@@ -145,6 +146,10 @@ private fun AlarmScreenContent(
     onNavigateToHome: () -> Unit,
     onIntent: (AlarmIntent) -> Unit
 ) {
+    // 시스템 내비게이션 바 뒤로 비치는 상위 Scaffold 배경색을 이 화면의 실제 배경(gray[100])과
+    // 맞춰서, 다른 화면(기본 흰색)과 전환될 때 배경색이 안 맞아 보이는 것을 막음.
+    ReportScaffoldBackground(LocalColorTheme.current.gray[100])
+
     Column(
         modifier = Modifier
             .fillMaxSize()
