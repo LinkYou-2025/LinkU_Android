@@ -1,5 +1,6 @@
 package com.linku.design.top.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -162,6 +163,11 @@ fun SearchBarTopSheet(
         if (!visible) {
             resetAndDismiss()
         }
+    }
+
+    // 검색창이 열려있을 때 안드로이드 뒤로가기 버튼을 가로채 검색창을 닫음
+    BackHandler(enabled = visible) {
+        resetAndDismiss()
     }
 
     /**
