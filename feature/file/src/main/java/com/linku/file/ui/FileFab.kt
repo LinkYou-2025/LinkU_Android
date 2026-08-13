@@ -50,6 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -83,7 +84,7 @@ internal data class ShareMenuItem(
     val id: String,
     @StringRes val labelRes: Int,
     @DrawableRes val iconRes: Int,
-    val iconSize: Dp,
+    val iconSize: DpSize,
     val enabled: Boolean = true,
     val rotationDegrees: Float = 0f,
 )
@@ -279,7 +280,10 @@ private fun ShareMenuRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier.size(MenuIconSlotSize),
+            modifier = Modifier.size(
+                width = MenuIconSlotSize.width,
+                height = MenuIconSlotSize.height,
+            ),
             contentAlignment = Alignment.CenterStart,
         ) {
             Icon(
@@ -287,7 +291,10 @@ private fun ShareMenuRow(
                 contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier
-                    .size(item.iconSize)
+                    .size(
+                        width = item.iconSize.width,
+                        height = item.iconSize.height,
+                    )
                     .rotate(item.rotationDegrees),
             )
         }
@@ -384,7 +391,7 @@ private val MenuItemHeight = 21.dp
 private val MenuItemSpacing = 15.dp
 private val MenuHorizontalPadding = 24.dp
 private val MenuVerticalPadding = 20.dp
-private val MenuIconSlotSize = 19.dp
+private val MenuIconSlotSize = DpSize(width = 19.dp, height = 21.dp)
 private val MenuIconLabelGap = 13.dp
 private val MenuButtonGap = 12.dp
 private val MenuTopSafetyMargin = 16.dp
@@ -403,43 +410,46 @@ private fun ClosedFileFabPreview() {
 }
 
 @Preview(
-    name = "펼친 플로팅 메뉴 - 2개",
+    name = "TOP 펼친 플로팅 메뉴",
     widthDp = 412,
     heightDp = 917,
     showBackground = true,
 )
 @Composable
-private fun ExpandedFileFabPreview() {
-    FileFabPreview(expanded = true)
+private fun TopExpandedFileFabPreview() {
+    FileFabPreview(
+        expanded = true,
+        includeDeleteItem = false,
+    )
 }
 
 @Preview(
-    name = "펼친 플로팅 메뉴 - 가변 항목",
+    name = "BOTTOM 펼친 플로팅 메뉴",
     widthDp = 412,
     heightDp = 917,
     showBackground = true,
 )
 @Composable
-private fun VariableFileFabPreview() {
+private fun BottomExpandedFileFabPreview() {
     FileFabPreview(
         expanded = true,
-        includeAdditionalItems = true,
+        includeDeleteItem = true,
     )
 }
 
 @Composable
 private fun FileFabPreview(
     expanded: Boolean,
-    includeAdditionalItems: Boolean = false,
+    includeDeleteItem: Boolean = false,
 ) {
-    val items = remember(includeAdditionalItems) {
+    val items = remember(includeDeleteItem) {
         buildList {
             add(
                 ShareMenuItem(
                     id = "edit",
                     labelRes = R.string.file_floating_menu_edit_folder,
                     iconRes = R.drawable.ic_file_floating_menu_edit,
-                    iconSize = 18.001.dp,
+                    iconSize = DpSize(18.001.dp, 18.001.dp),
                 ),
             )
             add(
@@ -447,27 +457,17 @@ private fun FileFabPreview(
                     id = "share",
                     labelRes = R.string.file_floating_menu_share_folder,
                     iconRes = R.drawable.ic_file_floating_menu_share,
-                    iconSize = 19.dp,
+                    iconSize = DpSize(19.dp, 19.dp),
                     rotationDegrees = -90f,
                 ),
             )
-            if (includeAdditionalItems) {
+            if (includeDeleteItem) {
                 add(
                     ShareMenuItem(
-                        id = "edit-disabled",
-                        labelRes = R.string.file_floating_menu_edit_folder,
-                        iconRes = R.drawable.ic_file_floating_menu_edit,
-                        iconSize = 18.001.dp,
-                        enabled = false,
-                    ),
-                )
-                add(
-                    ShareMenuItem(
-                        id = "share-additional",
-                        labelRes = R.string.file_floating_menu_share_folder,
-                        iconRes = R.drawable.ic_file_floating_menu_share,
-                        iconSize = 19.dp,
-                        rotationDegrees = -90f,
+                        id = "delete",
+                        labelRes = R.string.file_floating_menu_delete_folder,
+                        iconRes = R.drawable.ic_file_floating_menu_delete,
+                        iconSize = DpSize(17.5.dp, 21.dp),
                     ),
                 )
             }

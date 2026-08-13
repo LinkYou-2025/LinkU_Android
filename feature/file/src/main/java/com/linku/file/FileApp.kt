@@ -18,6 +18,7 @@ import androidx.paging.PagingData
 import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchResultItem
 import com.linku.file.ui.link.SaveLinkResultScreen
+import com.linku.file.viewmodel.delete.state.DeleteStateViewModel
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.flowOf
  *
  * @param fileViewModel 파일 및 폴더 데이터를 제공하는 ViewModel
  * @param editStateViewModel 폴더 편집 상태를 관리하는 ViewModel
+ * @param deleteStateViewModel 폴더 삭제 대상 선택 상태를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
  * @param onNavigateToLinkDetail 선택한 링크의 상세 화면으로 이동시키는 콜백
  * @param searchUiState 검색 기록과 검색 UI 상태
@@ -44,7 +46,8 @@ import kotlinx.coroutines.flow.flowOf
 @Composable
 fun FileApp(
     fileViewModel: FileViewModel = hiltViewModel(),
-    editStateViewModel:EditStateViewModel = viewModel(),
+    editStateViewModel: EditStateViewModel = viewModel(),
+    deleteStateViewModel: DeleteStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onNavigateToLinkDetail: (Long) -> Unit,
     searchUiState: SearchBarUiState = SearchBarUiState(),
@@ -71,6 +74,7 @@ fun FileApp(
             FileScreen(
                 fileViewModel = fileViewModel,
                 editStateViewModel = editStateViewModel,
+                deleteStateViewModel = deleteStateViewModel,
                 folderStateViewModel = folderStateViewModel,
                 onLinkClick = onNavigateToLinkDetail,
                 searchUiState = searchUiState,

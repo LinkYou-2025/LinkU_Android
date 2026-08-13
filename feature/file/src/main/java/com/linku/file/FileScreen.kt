@@ -1,6 +1,7 @@
 package com.linku.file
 
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -25,8 +26,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -54,12 +57,18 @@ import com.linku.file.ui.content.LoadingFoldersGrid
 import com.linku.file.ui.content.MyFoldersGrid
 import com.linku.file.ui.content.SharedUsersGrid
 import com.linku.file.ui.top.bar.FileTopBar
+import com.linku.file.viewmodel.delete.state.DeleteStateViewModel
 import com.linku.file.viewmodel.edit.state.EditStateViewModel
 import com.linku.file.viewmodel.folder.state.FolderState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+
+private const val FILE_FAB_EDIT_FOLDER_ID = "edit-folder"
+private const val FILE_FAB_SHARE_FOLDER_ID = "share-folder"
+private const val FILE_FAB_DELETE_FOLDER_ID = "delete-folder"
 
 /**
  * 파일 탭의 폴더와 링크 목록, 검색 및 편집 UI를 표시합니다.
@@ -69,6 +78,7 @@ import kotlinx.coroutines.launch
  *
  * @param fileViewModel 파일 및 폴더 데이터를 제공하는 ViewModel
  * @param editStateViewModel 폴더 편집 상태를 관리하는 ViewModel
+ * @param deleteStateViewModel 폴더 삭제 대상 선택 상태를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
  * @param onLinkClick 상세 화면을 열 링크의 ID를 전달하는 콜백
  * @param searchUiState 검색 기록과 검색 UI 상태
@@ -82,7 +92,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun FileScreen(
     fileViewModel: FileViewModel = hiltViewModel(),
-    editStateViewModel:EditStateViewModel = viewModel(),
+    editStateViewModel: EditStateViewModel = viewModel(),
+    deleteStateViewModel: DeleteStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onLinkClick: (Long) -> Unit,
     searchUiState: SearchBarUiState,
@@ -94,6 +105,7 @@ fun FileScreen(
     onSearchHistoryClear: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val context = LocalContext.current
 
     // 상단 그라데이션 헤더가 상태바까지 이어져 보이므로 흰 아이콘이 대비가 더 잘 됨.
     // MainApp을 거치지 않고 MainScreen이 제공한 상태를 직접 읽고 씀.
@@ -138,27 +150,58 @@ fun FileScreen(
         categoryColorMap[folderStateViewModel.selectedTopFolder?.folderName]
             ?: CategoryColorStyle.categoryStyleList[0]
 
-    // 뒤로가기 핸들러
-    BackHandler(enabled = folderStateViewModel.currentFolderState in listOf(FolderState.BOTTOM, FolderState.LINKS)) {
+    /** 편집·삭제 중 어떤 액션 상태였더라도 일반 폴더 상태로 복귀시킵니다. */
+    val returnToNormalFolderMode = {
         editStateViewModel.updateEditMode(false)
-        when (folderStateViewModel.currentFolderState) {
-            FolderState.BOTTOM -> {
-                folderStateViewModel.updateFolderState(FolderState.TOP)
-                if (folderStateViewModel.isSharedFolders) {
-                    folderStateViewModel.updateSelectedSharedFolder(null)
-                } else {
-                    folderStateViewModel.updateSelectedTopFolder(null)
-                }
+        deleteStateViewModel.updateDeleteMode(false)
+    }
+
+    // FAB가 없는 공유 폴더와 LINKS에서는 액션 모드가 잠복하지 않도록 일반 상태로 복귀합니다.
+    // 내 폴더 TOP에서는 수정만, BOTTOM에서는 수정과 삭제 모드가 유효합니다.
+    LaunchedEffect(
+        folderStateViewModel.currentFolderState,
+        folderStateViewModel.isSharedFolders,
+    ) {
+        when {
+            folderStateViewModel.isSharedFolders ||
+                folderStateViewModel.currentFolderState == FolderState.LINKS -> {
+                returnToNormalFolderMode()
             }
-            FolderState.LINKS -> {
-                folderStateViewModel.updateFolderState(FolderState.BOTTOM)
-                if (folderStateViewModel.isSharedFolders) {
-                    folderStateViewModel.updateSelectedBottomSharedFolder(null)
-                } else {
-                    folderStateViewModel.updateSelectedBottomFolder(null)
-                }
+            folderStateViewModel.currentFolderState != FolderState.BOTTOM -> {
+                deleteStateViewModel.updateDeleteMode(false)
             }
-            else -> {}
+        }
+    }
+
+    val isFolderActionMode = editStateViewModel.isEditMode || deleteStateViewModel.isDeleteMode
+
+    // 편집/삭제 모드에서는 화면 단계 이동보다 일반 상태 복귀를 우선합니다.
+    BackHandler(
+        enabled = isFolderActionMode ||
+            folderStateViewModel.currentFolderState in listOf(FolderState.BOTTOM, FolderState.LINKS),
+    ) {
+        if (isFolderActionMode) {
+            returnToNormalFolderMode()
+        } else {
+            when (folderStateViewModel.currentFolderState) {
+                FolderState.BOTTOM -> {
+                    folderStateViewModel.updateFolderState(FolderState.TOP)
+                    if (folderStateViewModel.isSharedFolders) {
+                        folderStateViewModel.updateSelectedSharedFolder(null)
+                    } else {
+                        folderStateViewModel.updateSelectedTopFolder(null)
+                    }
+                }
+                FolderState.LINKS -> {
+                    folderStateViewModel.updateFolderState(FolderState.BOTTOM)
+                    if (folderStateViewModel.isSharedFolders) {
+                        folderStateViewModel.updateSelectedBottomSharedFolder(null)
+                    } else {
+                        folderStateViewModel.updateSelectedBottomFolder(null)
+                    }
+                }
+                else -> {}
+            }
         }
     }
 
@@ -251,6 +294,7 @@ fun FileScreen(
                                 notCategorizationLinks = notCategorizationLinks,
                                 selectedTopFolderColorStyle = selectedTopFolderColorStyle,
                                 isEditMode = editStateViewModel.isEditMode,
+                                isDeleteMode = deleteStateViewModel.isDeleteMode,
                                 onAddFolderClick = {
                                     folderStateViewModel.updateNewFolderBottomSheetVisible(true)
                                 },
@@ -266,10 +310,16 @@ fun FileScreen(
                                     )
                                 },
                                 onChangeSharingClick = { folder ->
-                                    fileViewModel.folderToPrivate(folder)
+                                    fileViewModel.folderToPrivate(
+                                        folder = folder,
+                                        onFinished = returnToNormalFolderMode,
+                                    )
                                 },
                                 onDeleteFolder = { folder ->
-                                    fileViewModel.deleteSubfolder(folder.folderId)
+                                    fileViewModel.deleteSubfolder(
+                                        folderId = folder.folderId,
+                                        onFinished = returnToNormalFolderMode,
+                                    )
                                 },
                                 onLinkClick = onLinkClick,
                                 onDeleteNotCategorizationLink = { linkId ->
@@ -314,32 +364,68 @@ fun FileScreen(
                     }
                 }
             }
-            if (!folderStateViewModel.isSharedFolders) {
-                var shareMenuExpanded by rememberSaveable { mutableStateOf(false) }
-                val shareMenuItems = remember {
-                    listOf(
+            val fileFabItems = remember(folderStateViewModel.currentFolderState) {
+                val editItem = ShareMenuItem(
+                    id = FILE_FAB_EDIT_FOLDER_ID,
+                    labelRes = R.string.file_floating_menu_edit_folder,
+                    iconRes = R.drawable.ic_file_floating_menu_edit,
+                    iconSize = DpSize(18.001.dp, 18.001.dp),
+                )
+                val shareItem = ShareMenuItem(
+                    id = FILE_FAB_SHARE_FOLDER_ID,
+                    labelRes = R.string.file_floating_menu_share_folder,
+                    iconRes = R.drawable.ic_file_floating_menu_share,
+                    iconSize = DpSize(19.dp, 19.dp),
+                    rotationDegrees = -90f,
+                )
+
+                when (folderStateViewModel.currentFolderState) {
+                    FolderState.TOP -> listOf(editItem, shareItem)
+                    FolderState.BOTTOM -> listOf(
+                        editItem,
+                        shareItem,
                         ShareMenuItem(
-                            id = "edit-folder",
-                            labelRes = R.string.file_floating_menu_edit_folder,
-                            iconRes = R.drawable.ic_file_floating_menu_edit,
-                            iconSize = 18.001.dp,
-                        ),
-                        ShareMenuItem(
-                            id = "share-folder",
-                            labelRes = R.string.file_floating_menu_share_folder,
-                            iconRes = R.drawable.ic_file_floating_menu_share,
-                            iconSize = 19.dp,
-                            rotationDegrees = -90f,
+                            id = FILE_FAB_DELETE_FOLDER_ID,
+                            labelRes = R.string.file_floating_menu_delete_folder,
+                            iconRes = R.drawable.ic_file_floating_menu_delete,
+                            iconSize = DpSize(17.5.dp, 21.dp),
                         ),
                     )
+                    FolderState.LINKS -> null
+                }
+            }
+
+            if (!folderStateViewModel.isSharedFolders && fileFabItems != null) {
+                var fileFabExpanded by rememberSaveable(folderStateViewModel.currentFolderState) {
+                    mutableStateOf(false)
                 }
 
                 FileFab(
-                    items = shareMenuItems,
-                    expanded = shareMenuExpanded,
-                    onExpandedChange = { shareMenuExpanded = it },
-                    // 이번 단계는 UI만 구현하므로 실제 수정·공유 동작은 연결하지 않습니다.
-                    onItemClick = {},
+                    items = fileFabItems,
+                    expanded = fileFabExpanded,
+                    onExpandedChange = { fileFabExpanded = it },
+                    onItemClick = { item ->
+                        when (item.id) {
+                            FILE_FAB_EDIT_FOLDER_ID -> {
+                                deleteStateViewModel.updateDeleteMode(false)
+                                editStateViewModel.updateEditMode(true)
+                            }
+                            FILE_FAB_SHARE_FOLDER_ID -> {
+                                editStateViewModel.updateEditMode(false)
+                                deleteStateViewModel.updateDeleteMode(false)
+                                folderStateViewModel.updateShareBottomSheetVisible(true)
+                            }
+                            FILE_FAB_DELETE_FOLDER_ID -> {
+                                editStateViewModel.updateEditMode(false)
+                                deleteStateViewModel.updateDeleteMode(true)
+                                Toast.makeText(
+                                    context,
+                                    R.string.file_delete_folder_long_press_guide,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            }
+                        }
+                    },
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .padding(end = 20.dp, bottom = 10.dp),
@@ -369,7 +455,8 @@ fun FileScreen(
     // 중분류 폴더 수정 바텀 시트
     CategoryEditBottomSheet(
         folderStateViewModel = folderStateViewModel,
-        fileViewModel = fileViewModel
+        fileViewModel = fileViewModel,
+        onUpdateFinished = returnToNormalFolderMode,
     )
 
     // 소분류 폴더 추가하기 바텀 시트
@@ -397,7 +484,8 @@ fun FileScreen(
         onTextDeliver = {
             val d = fileViewModel.updateSubfolder(
                 folderStateViewModel.readyToUpdateBottomFolder!!.folderId,
-                it
+                it,
+                onFinished = returnToNormalFolderMode,
             )
 
             scope.launch {
@@ -405,6 +493,8 @@ fun FileScreen(
                     d.await() // 여기서 예외 전파 받음
                 } catch (e: SameNameException) {
                     sameNameExceptionModalVisible = true
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
                     Log.d("BottomFolderEditBottomSheet", "onTextDeliver catch: $e.message")
                 }

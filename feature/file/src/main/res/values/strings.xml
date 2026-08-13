@@ -1,8 +1,15 @@
 <resources>
     <string name="file_floating_menu_edit_folder">폴더 수정하기</string>
     <string name="file_floating_menu_share_folder">폴더 공유하기</string>
+    <string name="file_floating_menu_delete_folder">폴더 삭제하기</string>
     <string name="file_floating_menu_open_description">플로팅 메뉴 열기</string>
     <string name="file_floating_menu_close_description">플로팅 메뉴 닫기</string>
+    <string name="file_delete_folder_select_action">%1$s 폴더 삭제하기</string>
+    <string name="file_delete_folder_dialog_title">해당 폴더를 삭제하시겠습니까?</string>
+    <string name="file_delete_folder_dialog_message">삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.</string>
+    <string name="file_delete_folder_dialog_confirm">삭제하기</string>
+    <string name="file_delete_folder_dialog_cancel">취소하기</string>
+    <string name="file_delete_folder_long_press_guide">폴더를 길게 눌러 삭제해보세요</string>
     <string name="parent_folder_sort_name_label">가나다 순</string>
     <string name="parent_folder_sort_name_menu">가나다순</string>
     <string name="parent_folder_sort_latest">최신순</string>

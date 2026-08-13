@@ -1,9 +1,7 @@
 package com.linku.file.ui.content
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,8 +23,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -69,8 +73,8 @@ private const val ITEM_RATIO = 10f / 174f
  *
  * 첫 번째 셀에는 하위 폴더 추가 아이템을 배치하고, 이어서 하위 폴더 목록을 표시합니다.
  * 미분류 링크가 존재하면 전체 폭 섹션 제목을 추가한 뒤 링크 카드를 이어서 렌더링합니다.
- * 하위 폴더는 편집 모드에 따라 수정/공유 상태 변경 액션을 제공하고, 링크는 길게 눌러
- * 삭제 확인 모달을 열 수 있습니다.
+ * 하위 폴더는 편집 모드에 따라 수정/공유 상태 변경 액션을 제공하고, 삭제 모드에서는
+ * 폴더 카드를 길게 눌러 기존 삭제 확인 모달을 엽니다. 링크도 길게 눌러 삭제할 수 있습니다.
  *
  * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
  * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
@@ -78,6 +82,7 @@ private const val ITEM_RATIO = 10f / 174f
  * @param notCategorizationLinks 표시할 미분류 링크 목록입니다.
  * @param selectedTopFolderColorStyle 하위 폴더 카드에 적용할 선택된 최상위 폴더 색상 스타일입니다.
  * @param isEditMode 현재 편집 모드 여부입니다.
+ * @param isDeleteMode 현재 폴더 삭제 대상 선택 모드 여부입니다.
  * @param onAddFolderClick 폴더 추가 아이템을 눌렀을 때 실행할 동작입니다.
  * @param onFolderClick 일반 모드에서 하위 폴더 카드를 눌렀을 때 실행할 동작입니다.
  * @param onFolderEditClick 편집 모드에서 하위 폴더 편집 아이콘을 눌렀을 때 실행할 동작입니다.
@@ -94,6 +99,7 @@ internal fun MyFoldersGrid(
     notCategorizationLinks: List<LinkItemInfo>,
     selectedTopFolderColorStyle: CategoryColorStyle,
     isEditMode: Boolean,
+    isDeleteMode: Boolean,
     onAddFolderClick: () -> Unit,
     onFolderClick: (FolderSimpleInfo) -> Unit,
     onFolderEditClick: (FolderSimpleInfo) -> Unit,
@@ -148,12 +154,11 @@ internal fun MyFoldersGrid(
                     modifier = Modifier
                         // 실제 폴더 카드와 동일한 셀 점유율을 사용해 그리드 정렬을 맞춥니다.
                         .fillMaxSize()
-                        .noRippleClickable {
-                            // 편집 모드에서는 카드 내부 편집 액션과 충돌하지 않도록 추가 동작을 막습니다.
-                            if (!isEditMode) {
-                                onAddFolderClick()
-                            }
-                        }
+                        .noRippleClickable(
+                            enabled = !isEditMode && !isDeleteMode,
+                            role = Role.Button,
+                            onClick = onAddFolderClick
+                        )
                 )
             }
 
@@ -164,6 +169,11 @@ internal fun MyFoldersGrid(
                     folder = folder,
                     colorStyle = selectedTopFolderColorStyle,
                     isEditMode = isEditMode,
+                    isDeleteMode = isDeleteMode,
+                    deleteClickLabel = stringResource(
+                        R.string.file_delete_folder_select_action,
+                        folder.folderName
+                    ),
                     onClick = {
                         // 일반 모드에서 하위 폴더를 눌렀을 때의 화면 전환/데이터 로딩은 상위로 위임합니다.
                         onFolderClick(folder)
@@ -293,23 +303,27 @@ private fun AddBottomFolderItem(
  * 하위 폴더 카드의 클릭, 길게 누르기, 삭제 확인 모달을 함께 처리하는 래퍼입니다.
  *
  * 일반 모드에서는 클릭 시 하위 폴더의 링크 화면으로 이동하고, 편집 모드에서는 카드 내부의
- * 편집/공유 아이콘 액션만 활성화합니다. 길게 누르면 삭제 확인 모달을 표시합니다.
+ * 편집/공유 아이콘 액션만 활성화합니다. 삭제 모드에서는 일반 클릭을 소비하되 아무 동작도
+ * 하지 않고, 길게 누른 경우에만 삭제 확인 모달을 표시합니다.
  *
  * @param folder 표시할 하위 폴더 정보입니다.
  * @param colorStyle 선택된 최상위 폴더에서 파생된 폴더 카드 색상 스타일입니다.
  * @param isEditMode 편집 모드 활성화 여부입니다.
+ * @param isDeleteMode 삭제 대상 선택 모드 활성화 여부입니다.
+ * @param deleteClickLabel 접근성 서비스에 제공할 카드 길게 누르기 동작 설명입니다.
  * @param onClick 일반 모드에서 폴더 카드를 눌렀을 때 실행할 동작입니다.
  * @param onEdit 편집 모드에서 편집 아이콘을 눌렀을 때 실행할 동작입니다.
  * @param onChangeSharing 편집 모드에서 공유 상태 아이콘을 눌렀을 때 실행할 동작입니다.
  * @param onDelete 삭제 확인 모달에서 확인을 눌렀을 때 실행할 동작입니다.
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MyFolderItem(
     modifier: Modifier,
     folder: FolderSimpleInfo,
     colorStyle: CategoryColorStyle,
     isEditMode: Boolean,
+    isDeleteMode: Boolean,
+    deleteClickLabel: String,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onChangeSharing: () -> Unit,
@@ -318,31 +332,47 @@ private fun MyFolderItem(
     /** 폴더 삭제 확인 모달 문구에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
 
-    /** ripple 없이 click/long click을 처리하기 위해 공유하는 interaction source입니다. */
-    val interactionSource = remember { MutableInteractionSource() }
-
     /** 하위 폴더를 길게 눌렀을 때 표시되는 삭제 확인 모달 상태입니다. */
-    var deleteModalWindowVisible by remember { mutableStateOf(false) }
+    var deleteModalWindowVisible by remember(isDeleteMode) { mutableStateOf(false) }
+
+    val interactionModifier = when {
+        isDeleteMode -> {
+            Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = {
+                            // 삭제 모드의 일반 클릭은 의도적으로 소비만 합니다.
+                        },
+                        onLongPress = { deleteModalWindowVisible = true },
+                    )
+                }
+                .semantics(mergeDescendants = true) {
+                    role = Role.Button
+                    onLongClick(label = deleteClickLabel) {
+                        deleteModalWindowVisible = true
+                        true
+                    }
+                }
+        }
+
+        // 수정 모드에서는 카드 루트가 입력을 처리하지 않고 내부 수정 아이콘만 활성화합니다.
+        isEditMode -> Modifier
+
+        // 일반 상태에서는 폴더 진입만 허용하며 삭제 long-click semantics를 제공하지 않습니다.
+        else -> Modifier.noRippleClickable(
+            role = Role.Button,
+            onClick = onClick,
+        )
+    }
 
     /** 실제 폴더 카드 UI는 공통 카드 레이아웃 컴포저블에 위임합니다. */
     MyFolderItemLayout(
-        modifier = Modifier.combinedClickable(
-            indication = null,
-            interactionSource = interactionSource,
-            onClick = {
-                // 편집 모드에서는 내부 편집/공유 아이콘 액션만 사용하고 폴더 진입은 막습니다.
-                if (!isEditMode) {
-                    onClick()
-                }
-            },
-            onLongClick = {
-                // 폴더 삭제는 즉시 실행하지 않고 확인 모달을 먼저 표시합니다.
-                deleteModalWindowVisible = true
-            }
-        ),
+        // 기존 카드 측정 순서를 유지하면서 카드 전체에 상태별 입력 정책을 적용합니다.
+        modifier = interactionModifier,
         colorStyle = colorStyle,
         folder = folder,
         isEditMode = isEditMode,
+        isDeleteMode = isDeleteMode,
         onEdit = onEdit,
         onChangeSharing = onChangeSharing
     )
@@ -350,19 +380,19 @@ private fun MyFolderItem(
 
     // 하위 폴더 long click 이후 실제 삭제를 한 번 더 확인하는 모달창입니다.
     ModalWindow(
-        visible = deleteModalWindowVisible,
+        visible = isDeleteMode && deleteModalWindowVisible,
         onOkay = {
-            // 확인을 누른 경우에만 상위에서 전달한 삭제 동작을 실행합니다.
-            onDelete()
+            // 모드가 유지된 상태에서 확인한 경우에만 상위 삭제 동작을 실행합니다.
+            if (isDeleteMode) onDelete()
             deleteModalWindowVisible = false
         },
         onDismiss = { deleteModalWindowVisible = false },
-        positiveText = "삭제하기",
-        negativeText = "취소하기",
-        title = "해당 폴더를 삭제하시겠습니까?"
+        positiveText = stringResource(R.string.file_delete_folder_dialog_confirm),
+        negativeText = stringResource(R.string.file_delete_folder_dialog_cancel),
+        title = stringResource(R.string.file_delete_folder_dialog_title)
     ) {
         Text(
-            text = "삭제 시 폴더 내 모든 링크가 영구적으로\n제거되며 복구가 불가능합니다.",
+            text = stringResource(R.string.file_delete_folder_dialog_message),
             fontSize = 15.sp,
             lineHeight = 22.sp,
             fontWeight = FontWeight(400),
@@ -392,6 +422,7 @@ private fun MyFoldersGridPreview() {
             notCategorizationLinks = links,
             selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
             isEditMode = false,
+            isDeleteMode = false,
             onAddFolderClick = {},
             onFolderClick = {},
             onFolderEditClick = {},
@@ -423,6 +454,34 @@ private fun MyFoldersGridEditModePreview() {
             notCategorizationLinks = links,
             selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
             isEditMode = true,
+            isDeleteMode = false,
+            onAddFolderClick = {},
+            onFolderClick = {},
+            onFolderEditClick = {},
+            onChangeSharingClick = {},
+            onDeleteFolder = {},
+            onLinkClick = {},
+            onDeleteNotCategorizationLink = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 1000)
+@Composable
+private fun MyFoldersGridDeleteModePreview() {
+    val folders = listOf(
+        FolderSimpleInfo(1, "Folder 1", 0, false),
+        FolderSimpleInfo(2, "Folder 2", 0, true),
+        FolderSimpleInfo(3, "Folder 3", 0, false)
+    )
+
+    LinkuPreview {
+        MyFoldersGrid(
+            folders = folders,
+            notCategorizationLinks = emptyList(),
+            selectedTopFolderColorStyle = CategoryColorStyle.DEFAULT,
+            isEditMode = false,
+            isDeleteMode = true,
             onAddFolderClick = {},
             onFolderClick = {},
             onFolderEditClick = {},

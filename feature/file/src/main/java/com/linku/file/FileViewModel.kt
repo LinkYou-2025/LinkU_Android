@@ -912,11 +912,16 @@ class FileViewModel @Inject constructor(
     // ---------- create method ----------
 
     // ---------- update method ----------
-    // 중분류 폴더 색상 수정
+    /**
+     * 중분류 폴더의 대표 색상을 수정합니다.
+     *
+     * @param onFinished 성공 또는 실패로 요청 처리가 끝난 뒤 호출되는 완료 콜백입니다.
+     */
     fun updateCategoryColor(
         categoryName: String,
         colorId: Long,
-        colorStyle: CategoryColorStyle
+        colorStyle: CategoryColorStyle,
+        onFinished: () -> Unit = {},
     ){
         Log.d("FileViewModel", "updateCategoryColor")
 
@@ -945,7 +950,9 @@ class FileViewModel @Inject constructor(
 
                 Log.d("FileViewModel", "updateCategoryColor try result")
 
-            }catch (e: Exception){
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception){
                 Log.d("FileViewModel", "updateCategoryColor catch: $e.message")
 
                 _errorMessage.value = e.message
@@ -953,6 +960,7 @@ class FileViewModel @Inject constructor(
                 Log.d("FileViewModel", "updateCategoryColor finally")
 
                 stopLoading()
+                onFinished()
             }
         }
         Log.d("FileViewModel", "updateCategoryColor return")
@@ -1006,8 +1014,19 @@ class FileViewModel @Inject constructor(
         return result
     }
 
-    // 소분류 폴더 이름 수정
-    fun updateSubfolder(folderId: Long, folderName: String) = viewModelScope.async {
+    /**
+     * 소분류 폴더 이름을 수정하고 호출자가 결과를 기다릴 수 있는 작업을 반환합니다.
+     *
+     * [onFinished]는 요청을 소유한 [viewModelScope]에서 작업이 종료될 때 호출되므로,
+     * 화면의 대기 코루틴이 먼저 취소되더라도 실제 요청 종료 시점과 어긋나지 않습니다.
+     *
+     * @param onFinished 요청 작업이 종료될 때 호출되는 완료 콜백입니다.
+     */
+    fun updateSubfolder(
+        folderId: Long,
+        folderName: String,
+        onFinished: () -> Unit = {},
+    ) = viewModelScope.async {
         Log.d("FileViewModel", "updateSubfolderAsync start")
         startLoading()
         _errorMessage.value = null
@@ -1048,12 +1067,15 @@ class FileViewModel @Inject constructor(
                 // 그 외 HTTP 에러는 내부에서 메시지 처리 (전파하지 않음)
                 _errorMessage.value = e.message()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Log.d("FileViewModel", "updateSubfolderAsync Exception: ${e.message}")
             _errorMessage.value = e.message
             // 필요하면 전파하지 않고 내부 처리로 끝냄
         } finally {
             stopLoading()
+            onFinished()
             Log.d("FileViewModel", "updateSubfolderAsync finally")
         }
     }
@@ -1094,8 +1116,15 @@ class FileViewModel @Inject constructor(
     // ---------- update method ----------
 
     // ---------- delete method ----------
-    // 소분류 폴더 삭제
-    fun deleteSubfolder(folderId: Long) {
+    /**
+     * 소분류 폴더를 삭제합니다.
+     *
+     * @param onFinished 성공 또는 실패로 요청 처리가 끝난 뒤 호출되는 완료 콜백입니다.
+     */
+    fun deleteSubfolder(
+        folderId: Long,
+        onFinished: () -> Unit = {},
+    ) {
         Log.d("FileViewModel", "deleteSubfolder")
 
         viewModelScope.launch {
@@ -1112,6 +1141,8 @@ class FileViewModel @Inject constructor(
 
                 Log.d("FileViewModel", "deleteSubfolder try result")
 
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.d("FileViewModel", "deleteSubfolder catch: $e.message")
 
@@ -1121,6 +1152,7 @@ class FileViewModel @Inject constructor(
                 Log.d("FileViewModel", "deleteSubfolder finally")
 
                 stopLoading()
+                onFinished()
             }
 
             Log.d("FileViewModel", "deleteSubfolder end")
@@ -1580,8 +1612,15 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "folderToShare return")
 
     }
-    // 비공개 전환
-    fun folderToPrivate(folder: FolderSimpleInfo){
+    /**
+     * 공유 중인 소분류 폴더를 비공개 상태로 전환합니다.
+     *
+     * @param onFinished 성공 또는 실패로 요청 처리가 끝난 뒤 호출되는 완료 콜백입니다.
+     */
+    fun folderToPrivate(
+        folder: FolderSimpleInfo,
+        onFinished: () -> Unit = {},
+    ){
         Log.d("FileViewModel", "folderToPrivate")
 
         viewModelScope.launch {
@@ -1612,7 +1651,9 @@ class FileViewModel @Inject constructor(
                 }
 
                 Log.d("FileViewModel", "folderToPrivate try result")
-            }catch (e: Exception){
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception){
                 Log.d("FileViewModel", "folderToPrivate catch: $e.message")
 
                 _errorMessage.value = e.message
@@ -1620,6 +1661,7 @@ class FileViewModel @Inject constructor(
                 Log.d("FileViewModel", "folderToPrivate finally")
 
                 stopLoading()
+                onFinished()
             }
         }
         Log.d("FileViewModel", "folderToPrivate return")
