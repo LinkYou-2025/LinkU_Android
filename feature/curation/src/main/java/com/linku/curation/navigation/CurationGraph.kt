@@ -106,7 +106,6 @@ fun NavGraphBuilder.curationGraph(
 
         CurationKeywordLinksScreen(
             keyword = keyword,
-            nickname = nickname,
             viewModel = viewModel,
             onBack = { navigator.popBackStack() },
             onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
