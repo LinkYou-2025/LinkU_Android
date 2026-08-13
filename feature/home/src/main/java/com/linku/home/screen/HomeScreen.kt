@@ -34,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +53,7 @@ import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 import com.linku.home.HomeViewModel
@@ -116,6 +118,43 @@ fun HomeScreen(
 
     val appendRecommendationError = recommendationAppendState as? LoadState.Error
 
+    var hasObservedRecommendationRefreshLoading by remember { mutableStateOf(false) }
+    var isEmptyRecommendationToastVisible by remember { mutableStateOf(false) }
+
+    /*
+     * 새 추천 요청의 Loading을 실제로 관찰한 뒤 NotLoading으로 바뀐 경우만 완료로 판단합니다.
+     * PagingData가 교체되기 전 잠깐 나타나는 기존 NotLoading + 0건 상태를 빈 결과로 오인하지 않습니다.
+     */
+    LaunchedEffect(
+        isRecommendMode,
+        needMoreForRecommendation,
+        recommendationRefreshState,
+        recommendedLinks.itemCount,
+    ) {
+        when {
+            !isRecommendMode || needMoreForRecommendation -> {
+                hasObservedRecommendationRefreshLoading = false
+                isEmptyRecommendationToastVisible = false
+            }
+
+            recommendationRefreshState is LoadState.Loading -> {
+                hasObservedRecommendationRefreshLoading = true
+                isEmptyRecommendationToastVisible = false
+            }
+
+            recommendationRefreshState is LoadState.Error -> {
+                hasObservedRecommendationRefreshLoading = false
+                isEmptyRecommendationToastVisible = false
+            }
+
+            recommendationRefreshState is LoadState.NotLoading &&
+                hasObservedRecommendationRefreshLoading -> {
+                isEmptyRecommendationToastVisible = recommendedLinks.itemCount == 0
+                hasObservedRecommendationRefreshLoading = false
+            }
+        }
+    }
+
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }
             .distinctUntilChanged()
@@ -171,6 +210,8 @@ fun HomeScreen(
 
     val onRecommendClick: () -> Unit = {
         hasRequestedRecommend = true
+        hasObservedRecommendationRefreshLoading = false
+        isEmptyRecommendationToastVisible = false
 
         val emotionId = selectedEmotion
         val situationId = selectedTask
@@ -449,13 +490,23 @@ fun HomeScreen(
 
         if (isInitialRecommendationLoading) {
             CustomToastMessage(
-                toastMessage = "추천할 링크 분류중..",
+                toastMessage = stringResource(R.string.recommendation_classifying_message),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 22.dp)
                     .zIndex(20f),
             )
         }
+
+        TimedCustomToastMessage(
+            visible = isEmptyRecommendationToastVisible,
+            toastMessage = stringResource(R.string.recommendation_empty_message),
+            onDismiss = { isEmptyRecommendationToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 22.dp)
+                .zIndex(20f),
+        )
 
         Box(
             modifier = Modifier
