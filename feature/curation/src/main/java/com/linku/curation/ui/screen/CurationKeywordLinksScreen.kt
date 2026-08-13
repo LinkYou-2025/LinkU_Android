@@ -47,7 +47,6 @@ import com.linku.design.util.scaler
 @Composable
 internal fun CurationKeywordLinksScreen(
     keyword: String,
-    nickname: String,
     viewModel: CurationKeywordLinksViewModel,
     onBack: () -> Unit = {},
     onNavigateToLinkDetail: (Long) -> Unit = {},
@@ -75,7 +74,7 @@ internal fun CurationKeywordLinksScreen(
     Box {
         CurationKeywordLinksScreenContent(
             keyword = keyword,
-            nickname = nickname,
+            nickname = state.nickname,
             links = state.links,
             isLoading = state.isLoading,
             isError = state.isError,

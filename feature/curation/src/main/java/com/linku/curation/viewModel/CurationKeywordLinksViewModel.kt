@@ -3,7 +3,7 @@ package com.linku.curation.viewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.linku.core.repository.CurationRepository
+import com.linku.core.usecase.GetKeywordLinksUseCase
 import com.linku.curation.viewModel.intent.CurationKeywordLinksIntent
 import com.linku.curation.viewModel.sideeffect.CurationKeywordLinksSideEffect
 import com.linku.curation.viewModel.state.CurationKeywordLinksState
@@ -18,7 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CurationKeywordLinksViewModel @Inject constructor(
-    private val curationRepository: CurationRepository,
+    private val getKeywordLinksUseCase: GetKeywordLinksUseCase,
     private val savedStateHandle: SavedStateHandle
 ): ViewModel() {
     private val keyword = savedStateHandle.get<String>("keyword").orEmpty()
@@ -48,10 +48,17 @@ class CurationKeywordLinksViewModel @Inject constructor(
     private fun loadLinksByKeyword(keyword: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            curationRepository.getLinksByKeyword(keyword)
+            getKeywordLinksUseCase(keyword)
                 .fold(
-                    onSuccess = { links ->
-                        _state.update { it.copy(links = links, isLoading = false, isError = false) }
+                    onSuccess = { result ->
+                        _state.update {
+                            it.copy(
+                                nickname = result.nickname,
+                                links = result.links,
+                                isLoading = false,
+                                isError = false,
+                            )
+                        }
                     },
                     onFailure = {
                         _state.update { it.copy(isLoading = false, isError = true) }
@@ -59,7 +66,6 @@ class CurationKeywordLinksViewModel @Inject constructor(
                     }
                 )
         }
-
     }
 
 }
