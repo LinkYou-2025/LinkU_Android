@@ -224,16 +224,6 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // 검색창 탑 시트 가시성 상태
-    var searchTopSheetVisible by mutableStateOf(false)
-        private set
-
-    fun updateSearchTopSheetVisible(newState: Boolean) {
-        Log.d("searchTopSheetVisible", newState.toString())
-        searchTopSheetVisible = newState
-    }
-
-
     private val _isUnreadAlarmExists = MutableStateFlow(false)
     val isUnreadAlarmExists = _isUnreadAlarmExists.asStateFlow()
 

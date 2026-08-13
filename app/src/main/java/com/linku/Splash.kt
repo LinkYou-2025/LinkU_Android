@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,29 +28,17 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.linku.core.model.SystemBarMode
-import com.linku.core.system.SystemBarController
-import com.linku.data.preference.NotificationPreference
+import com.linku.data.preference.NotificationPreferenceImpl
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
 
 @Composable
 fun Splash(onResult: () -> Unit) {
 
-    //바텀바 숨김
-    val systemBarController =
-        LocalContext.current as? SystemBarController
-    val isPreview = LocalInspectionMode.current
-    // 시스템 바 숨김 : 디자이너와 협의한 내역
-    if (!isPreview && systemBarController != null) {
-        DisposableEffect(Unit) {
-            systemBarController.setSystemBarMode(SystemBarMode.HIDDEN)
-            onDispose { }
-        }
-    }
+    // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
+    // (MainApp.kt가 Splash 진입 시 edgeToEdgeSystemBars=true로 세팅함).
 
     val rotationAnim = remember { Animatable(0f) }
     var isGlowPhase by remember { mutableStateOf(false) }
@@ -71,7 +58,7 @@ fun Splash(onResult: () -> Unit) {
     // 스플래시에서만 일회성으로 사용하는 값이라 Hilt & ViewModel 없이 직접 생성.
     val context = LocalContext.current
     val notificationPreference = remember {
-        NotificationPreference(context)
+        NotificationPreferenceImpl(context)
     }
 
     LaunchedEffect(Unit) {

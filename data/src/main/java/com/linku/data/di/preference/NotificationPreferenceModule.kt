@@ -1,7 +1,8 @@
 package com.linku.data.di.preference
 
 import android.content.Context
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
+import com.linku.data.preference.NotificationPreferenceImpl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,6 +18,6 @@ object NotificationPreferenceModule {
     fun provideNotificationPreference(
         @ApplicationContext context: Context
     ): NotificationPreference {
-        return NotificationPreference(context)
+        return NotificationPreferenceImpl(context)
     }
 }

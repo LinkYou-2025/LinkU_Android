@@ -5,6 +5,7 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.alarm.AlarmType
@@ -12,8 +13,11 @@ import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.RecentSearchRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
+import com.linku.core.usecase.ReRegisterFcmTokenUseCase
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
@@ -35,6 +39,7 @@ class MainViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val userRepository: UserRepository, // 닉네임 호출용
     private val firstPushAlarmAllowedUseCase: FirstPushAlarmAllowedUseCase,
+    private val reRegisterFcmTokenUseCase: ReRegisterFcmTokenUseCase,
     private val alarmRepository: AlarmRepository,
 ) : AndroidViewModel(application) {
 
@@ -55,6 +60,38 @@ class MainViewModel @Inject constructor(
     // 로그인/자동 로그인 성공 시 true, 로그아웃 시 false로 갱신
     fun setAuthenticated(value: Boolean) {
         _isAuthenticated.value = value
+        if (value) {
+            reRegisterFcmToken()
+            syncAlarmSetting()
+        }
+    }
+
+    private fun syncAlarmSetting() {
+        viewModelScope.launch {
+            alarmRepository.getAlarmSetting()
+        }
+    }
+
+    private fun reRegisterFcmToken() {
+        viewModelScope.launch {
+            // FCM 토큰을 서버에 등록한 적이 없거나
+            // 로그아웃을 통해 delete 처리가 되었다면 스킵
+            // 위의 경우에는 푸시알림 팝업을 통해서 토큰을 POST한다.
+            if (!notificationPreference.isFcmTokenRegistered()) return@launch
+
+            // fcm토큰 재등록
+            reRegisterFcmTokenUseCase()
+                //로그인 직후 백그라운드에서 조용히 실행되는 작업이므로
+                //UI 개입을 최소화
+                .fold(
+                    onSuccess ={
+                        Log.d("FCM", "FCM 토큰 재등록 성공")
+                    },
+                    onFailure = {
+                        Log.w("FCM", "FCM 토큰 재등록 실패(다음 로그인 때 재시도)")
+                    }
+                )
+        }
     }
 
     // 로그인 세션 반영함.
@@ -74,11 +111,17 @@ class MainViewModel @Inject constructor(
             }
 
             // 서버에서 최신 닉네임 조회 후, 변경 감지 시 갱신 및 닉네임 캐시 업데이트
-            val fresh = userRepository.getNickname()
-            if (!fresh.isNullOrBlank() && fresh != cachedNickname) {
-                _nickname.value = fresh
-                authPreference.saveNickname(fresh)  // 캐시 갱신
-            }
+            userRepository.getNickname()
+                .onSuccess { result ->
+                    val fresh = result.nickname
+                    if (fresh.isNotBlank() && fresh != cachedNickname) {
+                        _nickname.value = fresh
+                        authPreference.saveNickname(fresh)  // 캐시 갱신
+                    }
+                }
+                .onFailure { e ->
+                    LinkuLog.e("MainViewModel", "[닉네임 조회 실패] ${e.message}")
+                }
         }
     }
 
@@ -192,6 +235,15 @@ class MainViewModel @Inject constructor(
             viewModelScope.launch { alarmRepository.readAlarm(id) }
         }
         return pending
+    }
+
+    // "안하기" 선택 시 서버 알림 설정이 활성화 상태라면 비활성화 API 호출
+    fun denyPushAlarm() {
+        viewModelScope.launch {
+            if (notificationPreference.isMasterNotificationEnabled()) {
+                alarmRepository.updateAlarmSetting(AlarmType.ALL)
+            }
+        }
     }
 
     fun allowPushAlarm() {

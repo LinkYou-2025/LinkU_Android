@@ -11,43 +11,80 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.linku.file.FileViewModel
-import com.linku.file.R
+import com.linku.core.model.ParentFolderSort
 import com.linku.design.modifier.noRippleClickable
-import com.linku.file.ui.top.bar.component.BottomFolderListLayout
-import com.linku.file.ui.top.bar.component.BottomFolderListMenu
-import com.linku.file.ui.top.bar.component.EditButton
-import com.linku.file.ui.top.bar.component.FileSearchBar
-import com.linku.file.ui.top.bar.component.TopFolderListLayout
-import com.linku.file.ui.top.bar.component.TopFolderListMenu
-import com.linku.file.viewmodel.edit.state.EditStateViewModel
-import com.linku.file.viewmodel.folder.state.FolderState
-import com.linku.file.viewmodel.folder.state.FolderStateViewModel
-import androidx.compose.material3.MaterialTheme
 import com.linku.design.theme.font.Taebaek
 import com.linku.design.theme.linkuColors
+import com.linku.file.FileViewModel
+import com.linku.file.R
+import com.linku.file.ui.top.bar.component.FileSearchBar
+import com.linku.file.ui.top.bar.component.FolderScopeListLayout
+import com.linku.file.ui.top.bar.component.FolderScopeListMenu
+import com.linku.file.ui.top.bar.component.MyListLayout
+import com.linku.file.ui.top.bar.component.MyListMenu
+import com.linku.file.ui.top.bar.component.ParentFolderSortMenu
+import com.linku.file.viewmodel.folder.state.FolderState
+import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
-
+/**
+ * 파일 화면의 로고, 검색, 폴더 범위 선택과 상위 폴더 정렬 액션을 표시합니다.
+ *
+ * @param fileViewModel 폴더 범위 메뉴에서 목록을 조회하는 파일 화면 ViewModel입니다.
+ * @param folderStateViewModel 현재 폴더 단계와 상단 메뉴 상태를 관리하는 ViewModel입니다.
+ * @param parentFolderSort 현재 기기에 적용된 상위 폴더 정렬 기준입니다.
+ * @param onParentFolderSortSelected 사용자가 정렬 기준을 선택했을 때 호출되는 콜백입니다.
+ * @param onSearchClick 빠른 링크 검색 영역을 눌렀을 때 호출되는 콜백입니다.
+ */
 @Composable
 fun FileTopBar(
     fileViewModel: FileViewModel,
-    editStateViewModel: EditStateViewModel,
     folderStateViewModel: FolderStateViewModel,
+    parentFolderSort: ParentFolderSort,
+    onParentFolderSortSelected: (ParentFolderSort) -> Unit,
     onSearchClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val density = LocalDensity.current
+    var sortMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var myListAnchorWidth by remember { mutableStateOf(0.dp) }
+    val showParentFolderSort =
+        folderStateViewModel.currentFolderState == FolderState.TOP &&
+            !folderStateViewModel.isSharedFolders
+
+    LaunchedEffect(
+        showParentFolderSort,
+        folderStateViewModel.topMenuExpanded,
+        folderStateViewModel.bottomMenuExpanded,
+    ) {
+        if (
+            !showParentFolderSort ||
+            folderStateViewModel.topMenuExpanded ||
+            folderStateViewModel.bottomMenuExpanded
+        ) {
+            sortMenuExpanded = false
+        }
+    }
 
     // 내부 요소들을 겹쳐서 배치하는 Box
     Box(
@@ -129,11 +166,11 @@ fun FileTopBar(
                     },
             ) {
                 // 폴더 리스트 컴포저블
-                TopFolderListLayout(
+                FolderScopeListLayout(
                     folderStateViewModel = folderStateViewModel
                 )
 
-                TopFolderListMenu(
+                FolderScopeListMenu(
                     folderStateViewModel = folderStateViewModel,
                     fileViewModel = fileViewModel
                 )
@@ -144,19 +181,23 @@ fun FileTopBar(
                 Box(
                     // 왼쪽 위에 정렬
                     modifier = Modifier
+                        .onSizeChanged { size ->
+                            myListAnchorWidth = with(density) { size.width.toDp() }
+                        }
                         .noRippleClickable {
                             folderStateViewModel.updateBottomMenuExpanded(true)
                         },
                 ) {
                     // 폴더 리스트 컴포저블
-                    BottomFolderListLayout(
+                    MyListLayout(
                         fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel
                     )
 
-                    BottomFolderListMenu(
+                    MyListMenu(
                         fileViewModel = fileViewModel,
                         folderStateViewModel = folderStateViewModel,
+                        parentFolderAnchorWidth = myListAnchorWidth,
                         onChangeFolder = {}
                     )
                 }
@@ -181,20 +222,24 @@ fun FileTopBar(
 //            contentDescription = "알람",
 //        )
 
-        // 6. 수정 버튼 (오른쪽 아래)
-        if(folderStateViewModel.isEditable){
+        // 6. 상위 폴더 정렬 메뉴 (오른쪽 아래)
+        if (showParentFolderSort) {
             Box(
-                // 오른쪽 위에 정렬(실제 위치는 아래임)
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    // 오른쪽 30dp, 위 165dp 여백
-                    .padding(end = 30.dp, top = 165.dp)
-                //.noRippleClickable { onOpenBottomSheet() },
+                    .padding(end = 20.dp, top = 153.dp),
             ) {
-                // 수정 버튼 컴포저블
-                EditButton(
-                    editStateViewModel = editStateViewModel,
-                    folderViewModel = folderStateViewModel
+                ParentFolderSortMenu(
+                    selectedSort = parentFolderSort,
+                    expanded = sortMenuExpanded,
+                    onExpandedChange = { expanded ->
+                        if (expanded) {
+                            folderStateViewModel.updateTopMenuExpanded(false)
+                            folderStateViewModel.updateBottomMenuExpanded(false)
+                        }
+                        sortMenuExpanded = expanded
+                    },
+                    onSortSelected = onParentFolderSortSelected,
                 )
             }
         }
@@ -213,7 +258,8 @@ private fun FileTopBarTest() {
     FileTopBar(
         viewModel(),
         viewModel(),
-        viewModel(),
+        ParentFolderSort.NAME,
+        {},
         {},
     )
 }

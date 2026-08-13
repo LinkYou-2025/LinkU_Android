@@ -71,26 +71,39 @@ class AuthRepositoryImpl @Inject constructor(
         ).map { response ->
             Log.d(TAG, "[로그인 성공]")
 
+            val currentStatus = response.status.ifBlank { "ACTIVE" }
+
             // 계정 비활성화 데이터 무결성 검증 규칙 유지
-            if (response.status == "INACTIVE" && response.inactiveDate == null) {
+            if (currentStatus == "INACTIVE" && response.inactiveDate == null) {
                 throw ApiError.User.Inactive(
                     message = "INACTIVE 상태인데 inactiveDate가 없습니다."
                 )
             }
 
-            authPreference.saveTokens(
-                accessToken = response.accessToken,
-                refreshToken = response.refreshToken,
-                userId = response.userId,
-                loginType = LoginType.EMAIL
-            )
-            Log.d(TAG, "[토큰 저장 완료]")
+            if (currentStatus == "INACTIVE") {
+                // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                // 아직 아무 선택도 하지 않았는데도 정식 로그인 상태로 취급될 수 있음. 복구 API
+                // (users/recover) 호출에 필요한 임시 토큰만 저장함. (소셜 로그인과 동일한 처리)
+                authPreference.updateAccessToken(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken
+                )
+                Log.d(TAG, "[이메일 로그인] INACTIVE 상태 - 복구용 토큰 임시 저장 완료")
+            } else {
+                authPreference.saveTokens(
+                    accessToken = response.accessToken,
+                    refreshToken = response.refreshToken,
+                    userId = response.userId,
+                    loginType = LoginType.EMAIL
+                )
+                Log.d(TAG, "[토큰 저장 완료]")
+            }
 
             LoginResult(
                 userId = response.userId,
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
-                status = response.status.ifBlank { "ACTIVE" },
+                status = currentStatus,
                 inactiveDate = response.inactiveDate
             )
         }

@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -32,11 +33,20 @@ import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.login.R
 
+/**
+ * 회원가입 목적·관심사 항목의 아이콘과 선택 상태를 카드 형태로 표시합니다.
+ *
+ * @param text 카드에 표시할 항목 이름
+ * @param isSelected 현재 카드의 선택 여부
+ * @param iconPainter 항목 종류에 대응하는 아이콘 Painter
+ * @param onClick 카드를 눌렀을 때 실행할 콜백
+ * @param modifier 외부에서 전달받는 레이아웃 Modifier
+ */
 @Composable
 internal fun SelectionCardItem(
     text: String,
     isSelected: Boolean,
-    iconRes: Int,
+    iconPainter: Painter,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -75,7 +85,7 @@ internal fun SelectionCardItem(
             verticalArrangement = Arrangement.SpaceBetween
         ) {
             Image(
-                painter = painterResource(id = iconRes),
+                painter = iconPainter,
                 contentDescription = null,
                 modifier = Modifier
                     .width(25.dp)
@@ -84,8 +94,8 @@ internal fun SelectionCardItem(
             Text(
                 text = text,
                 fontSize = 12.5.sp,
-                lineHeight = 20.sp,
-                fontWeight = FontWeight.SemiBold,
+                lineHeight = 16.sp,
+                fontWeight = FontWeight.Bold,
                 color = colorTheme.black
             )
         }
@@ -93,7 +103,7 @@ internal fun SelectionCardItem(
         if (isSelected) {
             Box(
                 modifier = Modifier
-                    .size(25.dp)
+                    .size(20.dp)
                     .align(Alignment.TopEnd)
                     .clip(CircleShape)
                     .background(brush = colorTheme.maincolor),
@@ -103,8 +113,8 @@ internal fun SelectionCardItem(
                     painter = painterResource(id = R.drawable.ic_login_check),
                     contentDescription = null, //이미지는 장식용
                     modifier = Modifier
-                        .width(12.dp)  // 지난 번, 피그마와 크기 차이로 인해 CheckIndicator를 따랐음(실제 10,7)
-                        .height(9.dp)
+                        .width(10.dp)  // 지난 번, 피그마와 크기 차이로 인해 CheckIndicator를 따랐음(실제 10,7)
+                        .height(8.dp)
                 )
             }
         }
@@ -120,16 +130,16 @@ fun SelectionCardItemComparePreview() {
             modifier = Modifier.padding(16.dp)
         ) {
             SelectionCardItem(
-                text = "사이드 프로젝트\n& 창업",
+                text = "프로젝트\n& 창업",
                 isSelected = false,
-                iconRes = R.drawable.ic_purpose_side_project,
+                iconPainter = painterResource(com.linku.design.R.drawable.ic_purpose_side_project),
                 onClick = {},
                 modifier = Modifier.size(130.dp)
             )
             SelectionCardItem(
                 text = "글쓰기\n&콘텐츠\n노하우",
                 isSelected = true,
-                iconRes = R.drawable.ic_purpose_insights,
+                iconPainter = painterResource(com.linku.design.R.drawable.ic_purpose_insights),
                 onClick = {},
                 modifier = Modifier.size(130.dp)
             )

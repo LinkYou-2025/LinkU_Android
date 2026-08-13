@@ -7,6 +7,7 @@ import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.UserSession
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.LogoutUseCase
 import com.linku.data.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,8 +22,10 @@ import javax.inject.Inject
 class MyPageViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val alarmRepository: AlarmRepository,
-    private val authPreference: AuthPreference
+    private val authPreference: AuthPreference,
+    private val logoutUseCase: LogoutUseCase,
 ): ViewModel() {
+
     val sessionState: StateFlow<UserSession> = authPreference.sessionState
         .stateIn(
             scope = viewModelScope,
@@ -35,11 +38,21 @@ class MyPageViewModel @Inject constructor(
         val isLoading: Boolean = false,
         val userInfo: UserInfo? = null,
         val isUnreadAlarmExists: Boolean = false,
-        val error: String? = null
+        val error: String? = null,
+        // 서버 응답 오기 전까지 헤더에 즉시 보여줄 로컬 캐시 닉네임.
+        val cachedNickname: String? = null
     )
 
     private val _uiState = MutableStateFlow(MyPageUiState())
     val uiState: StateFlow<MyPageUiState> = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            authPreference.getCachedNickname()?.takeIf { it.isNotBlank() }?.let { cached ->
+                _uiState.value = _uiState.value.copy(cachedNickname = cached)
+            }
+        }
+    }
 
     fun checkUnreadAlarm() {
         viewModelScope.launch {
@@ -73,85 +86,6 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-//    data class UiState(
-//        val isLoading: Boolean = false,
-//        val userInfo: UserInfo? = null,
-//        val error: String? = null
-//    )
-//
-//    private val _uiState = MutableStateFlow(UiState(isLoading = true))
-//    val uiState: StateFlow<UiState> = _uiState.asStateFlow()
-//
-//    // 마이페이지 조회
-//    private val _userInfo = MutableStateFlow<UserInfo?>(null)
-//    val userInfo: StateFlow<UserInfo?> = _userInfo
-//
-//    private val _isLoading = MutableStateFlow(false)
-//    val isLoading: StateFlow<Boolean> = _isLoading
-//
-//    private val _error = MutableStateFlow<String?>(null)
-//    val error: StateFlow<String?> = _error
-//
-//    // 마이페이지 조회
-//    fun loadUserInfo() {
-//        val id = authPreference.userId
-//        if (id == null || id <= 0L) {
-//            _uiState.value = UiState(
-//                isLoading = false,
-//                userInfo = null,
-//                error = "로그인이 필요합니다."
-//            )
-//            return
-//        }
-////        viewModelScope.launch {
-////            _isLoading.value = true
-////            _error.value = null
-////            runCatching { userRepository.getUserInfo(userId) }
-////                .onSuccess { _userInfo.value = it }
-////                .onFailure { _error.value = it.message ?: "마이페이지 조회 실패" }
-////            _isLoading.value = false
-////        }
-//        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-//        viewModelScope.launch {
-//            runCatching { userRepository.getUserInfo(id) }
-//                .onSuccess { info ->
-//                    _uiState.value = UiState(isLoading = false, userInfo = info)
-//                }
-//                .onFailure { e ->
-//                    _uiState.value = UiState(isLoading = false, error = e.message ?: "마이페이지 조회 실패")
-//                }
-//        }
-//    }
-
-
-    // 마이페이지 계정 정보 수정
-    fun updateUserInfo(
-        nickname: String,
-        jobId: Long,
-        jobName: String,
-        purposes: List<String>,
-        interests: List<String>,
-        onSuccess: () -> Unit,
-        onError: (String) -> Unit
-    ) {
-        viewModelScope.launch {
-            userRepository.updateUserInfo(
-                nickname = nickname,
-                jobId = jobId,
-                purposes = purposes,
-                interests = interests
-            ).fold(
-                onSuccess = {
-                    onSuccess()
-                    loadUserInfo()
-                },
-                onFailure = { e ->
-                    onError("변경에 실패했습니다: ${e.message}")
-                }
-            )
-        }
-    }
-
     // 회원 탈퇴
     fun leaveUser(
         reason: String,
@@ -173,17 +107,16 @@ class MyPageViewModel @Inject constructor(
         }
     }
 
-    // 로그아웃 */
-    // TODO: FCM토큰 삭제 API호출
     fun logout(onSuccess: () -> Unit, onError: (String) -> Unit) {
         viewModelScope.launch {
-            val success = userRepository.logout()
-            if (success) {
-                _uiState.value = MyPageUiState()
-                onSuccess()
-            } else {
-                onError("로그아웃에 실패했습니다.")
-            }
+            logoutUseCase()
+                .fold(
+                    onSuccess = {
+                        _uiState.value = MyPageUiState()
+                        onSuccess()
+                    },
+                    onFailure = { onError("로그아웃에 실패했습니다.") }
+                )
         }
     }
 

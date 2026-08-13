@@ -12,6 +12,7 @@ import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.InvitationInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.LinkResultInfo
+import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
@@ -30,11 +31,14 @@ import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -92,7 +96,8 @@ class FileViewModel @Inject constructor(
 
     // 상위 폴더 리스트
     private val _parentFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
-    // 매번 북마크 우선 정렬
+
+    /** 서버가 정렬한 순서를 각 그룹 안에서 유지하면서 북마크 폴더를 먼저 노출합니다. */
     val parentFolders: StateFlow<List<FolderSimpleInfo>> =
         _parentFolders.asStateFlow()
             .map { list ->
@@ -103,6 +108,11 @@ class FileViewModel @Inject constructor(
                 started = SharingStarted.WhileSubscribed(5000),
                 initialValue = emptyList()
             )
+
+    private val _parentFolderSort = MutableStateFlow(ParentFolderSort.NAME)
+
+    /** 현재 상위 폴더 목록과 기기에 적용된 정렬 기준입니다. */
+    val parentFolderSort: StateFlow<ParentFolderSort> = _parentFolderSort.asStateFlow()
 
     // 하위 폴더 리스트
     private val _subFolders = MutableStateFlow<List<FolderSimpleInfo>>(emptyList())
@@ -129,12 +139,6 @@ class FileViewModel @Inject constructor(
 
     private val _aiArticleDetail = MutableStateFlow<AiArticle?>(null)
     val aiArticleDetail: StateFlow<AiArticle?> = _aiArticleDetail.asStateFlow()
-
-    // 링크 클릭 콜백
-    var onLinkClick: ((Long) -> Unit)? = null
-    fun registeronLinkClick(callback: (Long) -> Unit) {
-        onLinkClick = callback
-    }
 
     // 로딩/에러 상태
     private val _loadingCount = MutableStateFlow(0)
@@ -171,6 +175,24 @@ class FileViewModel @Inject constructor(
 
     private var aiJob: Job? = null
     private var aiProgressJob: Job? = null
+
+    /** 새 공유 바텀시트 조회가 시작될 때 이전 폴더 트리 응답이 상태를 덮지 않도록 추적합니다. */
+    private var folderTreeLoadJob: Job? = null
+
+    /** 새 링크 생성 요청이 시작될 때 이전 결과가 현재 바텀시트 상태를 덮지 않도록 추적합니다. */
+    private var invitationLinkCreateJob: Job? = null
+
+    /** 진행 중인 상위 폴더 정렬 조회 작업입니다. */
+    private var parentFoldersLoadJob: Job? = null
+
+    /** 화면에 적용된 정렬 기준을 순서대로 저장하는 작업입니다. */
+    private var parentFolderSortSaveJob: Job? = null
+
+    /** 연속 선택 시 마지막으로 요청된 정렬 기준입니다. */
+    private var requestedParentFolderSort = ParentFolderSort.NAME
+
+    /** DataStore에 마지막으로 기록된 정렬 기준입니다. */
+    private var persistedParentFolderSort = ParentFolderSort.NAME
 
     /**
      * 현재 진행 중인 공유 폴더 초대 수락 요청입니다.
@@ -370,6 +392,133 @@ class FileViewModel @Inject constructor(
             Log.d("FileViewModel", "loadNickname end")
         }
         Log.d("FileViewModel", "loadNickname return")
+    }
+
+    /**
+     * 선택한 서버 정렬 쿼리로 상위 폴더를 조회해 화면 목록을 교체합니다.
+     *
+     * @param sort 조회에 적용할 상위 폴더 정렬 기준입니다.
+     * @return 목록 교체에 성공했으면 `true`, 기존 목록을 유지했으면 `false`입니다.
+     * @throws CancellationException 더 최신 정렬 요청으로 현재 조회가 취소된 경우 발생합니다.
+     */
+    private suspend fun loadParentFolders(sort: ParentFolderSort): Boolean {
+        Log.d("FileViewModel", "loadParentFolders sort: ${sort.query}")
+
+        startLoading()
+        _errorMessage.value = null
+
+        try {
+            val folders = folderRepository.getParentFoldersBySort(sort)
+            currentCoroutineContext().ensureActive()
+            _parentFolders.value = folders
+            return true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e("FileViewModel", "loadParentFolders catch", e)
+            _errorMessage.value = e.message
+            return false
+        } finally {
+            stopLoading()
+        }
+    }
+
+    /**
+     * 파일 화면 진입 시 기기에 저장된 정렬 기준을 먼저 읽고 상위 폴더를 조회합니다.
+     *
+     * 저장값을 읽기 전에 기본 정렬로 요청하지 않으므로 화면 진입마다 API는 한 번만 호출됩니다.
+     */
+    fun loadParentFoldersBySavedSort() {
+        val pendingSaveJob = parentFolderSortSaveJob
+        parentFoldersLoadJob?.cancel()
+        parentFoldersLoadJob = viewModelScope.launch {
+            try {
+                pendingSaveJob?.join()
+                val savedSort = folderRepository.parentFolderSort.first()
+                persistedParentFolderSort = savedSort
+                requestedParentFolderSort = savedSort
+                if (loadParentFolders(savedSort)) {
+                    _parentFolderSort.value = savedSort
+                } else if (requestedParentFolderSort == savedSort) {
+                    requestedParentFolderSort = _parentFolderSort.value
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "loadParentFoldersBySavedSort catch", e)
+                _errorMessage.value = e.message
+            }
+        }
+    }
+
+    /**
+     * 화면에 적용된 정렬 기준을 이전 저장 작업 다음에 이어서 기기에 기록합니다.
+     *
+     * 네트워크 요청과 저장 작업의 생명주기를 분리해 이후 요청이 실패하더라도 이미 적용된
+     * 정렬 기준의 저장이 취소되지 않도록 합니다.
+     *
+     * @param sort 화면 목록에 성공적으로 적용된 정렬 기준입니다.
+     */
+    private fun persistParentFolderSort(sort: ParentFolderSort) {
+        val previousSaveJob = parentFolderSortSaveJob
+        parentFolderSortSaveJob = viewModelScope.launch {
+            previousSaveJob?.join()
+
+            try {
+                folderRepository.setParentFolderSort(sort)
+                persistedParentFolderSort = sort
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e("FileViewModel", "persistParentFolderSort catch", e)
+                if (
+                    _parentFolderSort.value == sort &&
+                    requestedParentFolderSort == sort
+                ) {
+                    _errorMessage.value = e.message
+                }
+            }
+        }
+    }
+
+    /**
+     * 선택한 기준으로 상위 폴더를 조회하고, 성공한 기준을 기기에 저장합니다.
+     *
+     * API 요청이 실패하면 기존 목록과 적용 중인 정렬 표시는 유지합니다. 새 선택이 들어오면
+     * 진행 중인 이전 요청을 취소해 오래된 응답이 화면 상태를 덮어쓰지 않도록 합니다.
+     *
+     * @param sort 사용자가 선택한 상위 폴더 정렬 기준입니다.
+     */
+    fun updateParentFolderSort(sort: ParentFolderSort) {
+        if (sort == _parentFolderSort.value) {
+            if (sort != requestedParentFolderSort) {
+                requestedParentFolderSort = sort
+                parentFoldersLoadJob?.cancel()
+            }
+            if (
+                sort != persistedParentFolderSort &&
+                parentFolderSortSaveJob?.isActive != true
+            ) {
+                parentFoldersLoadJob?.cancel()
+                _errorMessage.value = null
+                persistParentFolderSort(sort)
+            }
+            return
+        }
+
+        if (sort == requestedParentFolderSort) return
+
+        requestedParentFolderSort = sort
+        parentFoldersLoadJob?.cancel()
+
+        parentFoldersLoadJob = viewModelScope.launch {
+            if (loadParentFolders(sort)) {
+                _parentFolderSort.value = sort
+                persistParentFolderSort(sort)
+            } else if (requestedParentFolderSort == sort) {
+                requestedParentFolderSort = _parentFolderSort.value
+            }
+        }
     }
 
     // 중분류 전체 불러오기
@@ -619,30 +768,44 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "getSharedBottomFolders return")
     }
 
-    // 폴더 트리 조회
-    fun getFolderTree(){
+    /**
+     * 공유 바텀시트에 표시할 내 폴더 트리를 갱신합니다.
+     *
+     * 조회 진행·실패 상태는 이 요청을 시작한 바텀시트가 표시하므로 파일 화면 전체의 로딩·오류
+     * 상태는 변경하지 않습니다. 요청 생명주기만 [viewModelScope]이 소유합니다.
+     *
+     * @param onSuccess 폴더 트리 갱신이 완료되었을 때 결과와 함께 호출되는 콜백입니다.
+     * @param onFailure 폴더 트리 조회가 실패했을 때 원인과 함께 호출되는 콜백입니다.
+     */
+    fun getFolderTree(
+        onSuccess: (List<FolderSimpleInfo>) -> Unit,
+        onFailure: (Throwable) -> Unit,
+    ) {
         Log.d("FileViewModel", "getFolderTree")
 
-        viewModelScope.launch {
+        folderTreeLoadJob?.cancel()
+        val request = viewModelScope.launch {
             Log.d("FileViewModel", "getFolderTree launch")
-
-            startLoading()
-            _errorMessage.value = null
 
             try {
                 Log.d("FileViewModel", "getFolderTree try")
 
-                _folderTree.value = folderRepository.getMyFolderTree()
+                val loadedFolderTree = folderRepository.getMyFolderTree()
+                _folderTree.value = loadedFolderTree
+                onSuccess(loadedFolderTree)
 
                 Log.d("FileViewModel", "getFolderTree try result: ${folderTree.value}")
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.d("FileViewModel", "getFolderTree catch: $e.message")
-
-                _errorMessage.value = e.message
-            } finally {
-                Log.d("FileViewModel", "getFolderTree finally")
-
-                stopLoading()
+                onFailure(e)
+            }
+        }
+        folderTreeLoadJob = request
+        request.invokeOnCompletion {
+            if (folderTreeLoadJob === request) {
+                folderTreeLoadJob = null
             }
         }
         Log.d("FileViewModel", "getFolderTree return")
@@ -807,7 +970,6 @@ class FileViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("FileViewModel", "updateBookmark launch")
 
-            startLoading()
             _errorMessage.value = null
 
             try {
@@ -835,10 +997,6 @@ class FileViewModel @Inject constructor(
                 _errorMessage.value = e.message
 
                 result = updateBookmarked
-            }finally {
-                Log.d("FileViewModel", "updateBookmark finally")
-
-                stopLoading()
             }
 
             Log.d("FileViewModel", "updateBookmark end")
@@ -1170,6 +1328,9 @@ class FileViewModel @Inject constructor(
     /**
      * 지정한 폴더의 초대 토큰을 발급받아 공유 가능한 HTTPS 초대 링크를 비동기로 생성합니다.
      *
+     * 링크 생성 진행·실패 상태는 이 요청을 시작한 공유 바텀시트가 표시하므로 파일 화면 전체의
+     * 로딩·오류 상태는 변경하지 않습니다. 요청 생명주기만 [viewModelScope]이 소유합니다.
+     *
      * @param folderId 초대 링크를 생성할 폴더 ID입니다.
      * @param onSuccess 완성된 HTTPS 초대 링크와 함께 호출되는 콜백입니다.
      * @param onFailure 토큰 발급 또는 링크 정규화에 실패했을 때 원인과 함께 호출되는 콜백입니다.
@@ -1181,11 +1342,9 @@ class FileViewModel @Inject constructor(
     ) {
         Log.d("FileViewModel", "createInvitationLink")
 
-        viewModelScope.launch {
+        invitationLinkCreateJob?.cancel()
+        val request = viewModelScope.launch {
             Log.d("FileViewModel", "createInvitationLink launch")
-
-            startLoading()
-            _errorMessage.value = null
 
             try {
                 val link = buildInvitationLink(folderRepository.makeInvitationLink(folderId))
@@ -1196,10 +1355,13 @@ class FileViewModel @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 Log.e("FileViewModel", "createInvitationLink catch: $e")
-                _errorMessage.value = e.message
                 onFailure(e)
-            } finally {
-                stopLoading()
+            }
+        }
+        invitationLinkCreateJob = request
+        request.invokeOnCompletion {
+            if (invitationLinkCreateJob === request) {
+                invitationLinkCreateJob = null
             }
         }
     }

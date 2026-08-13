@@ -33,14 +33,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
-import com.linku.core.model.alarm.AlarmType
 import com.linku.core.error.DeepLinkError
+import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
-import com.linku.curation.viewModel.CurationViewModel
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.HandleNewIntentDeepLinks
 import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
@@ -53,6 +52,7 @@ import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.data.util.toCategoryColorStyleMap
+import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
@@ -124,9 +124,17 @@ fun MainApp(
     var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(isLoggedIn) {
-        if (previousLoggedIn == true && isLoggedIn == false) {
+        // onLogoutToLogin()이 이미 launchSingleTop으로 NavigationRoute.Login.route에 진입시킨 경우 여기서
+        // 또 navigate하면 같은 목적지로 두 번 이동하게 되어 LoginApp의 "login" 컴포저블이
+        // dispose→재mount되면서 EdgeToEdgeSystemBars의 hidden 값이 순간적으로
+        // true→false→true로 흔들림. 그 결과 OS가 hide() 호출을 애니메이션 중첩으로 무시해서
+        // 탈퇴/로그아웃 후 진입한 로그인 화면에 시스템 바가 계속 보이는 버그가 있었음.
+        if (previousLoggedIn == true && isLoggedIn == false &&
+            navigator.currentDestination?.route != NavigationRoute.Login.route
+        ) {
             navigator.navigate("login_root") {
                 popUpTo(navigator.graph.id) { inclusive = true }
+                launchSingleTop = true
             }
         }
         previousLoggedIn = isLoggedIn
@@ -150,15 +158,13 @@ fun MainApp(
     val searchViewModel: SearchViewModel = hiltViewModel()
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val searchResults = searchViewModel.searchResults
-
-    // 큐레이션 화면에서 사용할 뷰모델
-    val curationViewModel: CurationViewModel = hiltViewModel()
+    val searchVisible by searchViewModel.visible.collectAsStateWithLifecycle()
 
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
 
     // 마이페이지에서 사용할 뷰모델
-    val mypageViewModel: MyPageViewModel = hiltViewModel()
+    val myPageViewModel: MyPageViewModel = hiltViewModel()
 
     var showNavBar by rememberSaveable { mutableStateOf(false) }
 
@@ -189,7 +195,7 @@ fun MainApp(
         }
 
         if (currentRoute == NavigationRoute.Home.route ||
-            currentRoute == "curation_list"
+            currentRoute == NavigationRoute.Curation.route
         ) {
             viewModel.fetchNickname()
         }
@@ -281,7 +287,10 @@ fun MainApp(
         // 다이알로그를 보여줘야 하면 출력.
         if (showPushAlarmDialog) {
             AlarmAllowDialog(
-                onDismissRequest = { showPushAlarmDialog = false },
+                onDismissRequest = {
+                    showPushAlarmDialog = false
+                    viewModel.denyPushAlarm()
+                },
                 onConfirmation = {
                     showPushAlarmDialog = false
                     viewModel.allowPushAlarm() // 성공/실패 토스트는 VM이 쏨
@@ -303,6 +312,10 @@ fun MainApp(
 
 
                     if (currentRoute == route) {
+                        if (item == LinkuNavigationItem.FILE) {
+                            // MainApp 범위 상태는 라우트 재생성 후에도 유지되므로 카테고리 루트로 되돌린다.
+                            folderStateViewModel.resetSharedFolderState()
+                        }
                         // 같은 탭 재선택: 내부 스택 리셋
                         navigator.navigate(route) {
                             // 해당 탭 루트까지 모두 제거하고
@@ -333,7 +346,25 @@ fun MainApp(
             ) else null,
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
-            applyDefaultSystemBarIcons = !edgeToEdgeSystemBars
+            hideSystemBars = edgeToEdgeSystemBars,
+            searchOverlay = {
+                // 검색 탑 시트 호출을 여기 한 곳으로 통일함. Home/File은 각자 데이터로 배선하지
+                // 않고 onSearchOpen()으로 열기만 요청하며, 실제 상태(visible/쿼리/결과)는
+                // searchViewModel(app 모듈)이 전담함.
+                SearchBarTopSheet(
+                    visible = searchVisible,
+                    onDismiss = searchViewModel::dismissSearch,
+                    onQueryChange = searchViewModel::search,
+                    onQueryDelete = searchViewModel::removeRecentQuery,
+                    onQueryClear = searchViewModel::clearRecentQueries,
+                    onLinkClick = { linkuId ->
+                        searchViewModel.dismissSearch()
+                        navigator.navigate("savelinkresult/$linkuId")
+                    },
+                    searchResults = searchResults,
+                    uiState = searchUiState,
+                )
+            },
         ) {
             NavHost(
                 navController = navigator,
@@ -477,7 +508,6 @@ fun MainApp(
                             viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
 
-                            // TODO: 지민님 딥링크 대기 작업 처리 확인 필요 요청하기.
                             // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
                             // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
                             val pendingInvitationToken =
@@ -583,13 +613,7 @@ fun MainApp(
 
                         HomeApp(
                             viewModel = homeViewModel,
-                            searchUiState = searchUiState,
-                            searchResults = searchResults,
-                            onSearchQueryChange = searchViewModel::search,
                             onSearchOpen = searchViewModel::openSearch,
-                            onSearchDismiss = searchViewModel::resetSearchResults,
-                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
-                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
@@ -600,9 +624,6 @@ fun MainApp(
                             },
                             onNavigateToLinkDetail = { linkuId ->
                                 navigator.navigate("savelinkresult/$linkuId")
-                            },
-                            onNavigateToCuration = {
-                                navigator.navigate("curation_card1")
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
@@ -621,13 +642,10 @@ fun MainApp(
                         FileApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel,
-                            searchUiState = searchUiState,
-                            searchResults = searchResults,
-                            onSearchQueryChange = searchViewModel::search,
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
+                            },
                             onSearchOpen = searchViewModel::openSearch,
-                            onSearchDismiss = searchViewModel::resetSearchResults,
-                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
-                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                         )
                     }
                 }
@@ -635,28 +653,38 @@ fun MainApp(
                 // 큐레이션 파트 리팩토링 적용
                 curationGraph(
                     navigator = navigator,
-                    curationViewModel = curationViewModel,
                     showNavBar = { showNavBar = it },
-                    nickname = nickname.orEmpty().ifBlank { "링큐" }
+                    nickname = nickname.orEmpty().ifBlank { "링큐" },
+                    onNavigateToSaveLink = { saveLinkEntryTriggered = true },
                 )
 
 
                 with(NavigationRoute.MyPage) {
                     setNavGraph {
                         LaunchedEffect(Unit) {
-                            showNavBar = true
-
-                            mypageViewModel.loadUserInfo()
+                            myPageViewModel.loadUserInfo()
                         }
                         //FinishHandler()
 
 
 
                         MyPageApp(
-                            viewModel = mypageViewModel,
+                            viewModel = myPageViewModel,
+                            // MyPageScreen(마이페이지 메인 화면)일 때만 하단 네비게이션 바를 표시.
+                            // 계정설정/탈퇴/FAQ 등 마이페이지 내부 하위 화면에서는 숨김.
+                            onShowNavBarChange = { showNavBar = it },
+                            // 로그아웃/탈퇴 버튼을 누른 "즉시"(API 응답 기다리지 않고) 시스템 바를
+                            // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
+                            // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
+                            // MyPageApp이 false로 되돌림.
+                            onImmersiveTransitionChange = { edgeToEdgeSystemBars = it },
                             onLogoutToLogin = {
                                 showNavBar = false
                                 viewModel.setAuthenticated(false)
+                                // onImmersiveTransitionChange(true)가 버튼 클릭 시점에 이미
+                                // 처리했지만, 안전하게 한 번 더 명시함(대칭적으로 로그인 성공 시
+                                // false로 되돌리는 것과 짝).
+                                edgeToEdgeSystemBars = true
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 searchViewModel.reset()
@@ -681,6 +709,9 @@ fun MainApp(
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
+                            },
+                            onNavigateToLinkDetail = { linkuId ->
+                                navigator.navigate("savelinkresult/$linkuId")
                             }
                         )
                     }
@@ -693,7 +724,7 @@ fun MainApp(
                         val notificationViewModel: NotificationViewModel = hiltViewModel()
 
                         AlarmSettingScreen(
-                            navController = navigator,
+                            onBackClick = { navigator.popBackStack() },
                             viewModel = notificationViewModel
                         )
                     }
@@ -1075,7 +1106,7 @@ fun MainApp(
                         }
                     }
                 }
-            }
+            } // NavHost 끝
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
 //            val isAtTabRoot = showNavBar && when (currentRoute) {

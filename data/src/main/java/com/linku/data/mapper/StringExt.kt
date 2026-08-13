@@ -2,7 +2,6 @@ package com.linku.data.mapper
 
 import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 
 /**
@@ -18,17 +17,15 @@ import java.time.temporal.ChronoUnit
  * clock skew로 인해 diff가 음수일 경우 0으로 처리합니다.
  *
  * @receiver ISO 8601 형식의 UTC 타임스탬프 문자열 (예: "2024-01-01T00:00:00.000Z")
+ * @param now 상대 시간을 계산할 기준 시각
  * @return 상대 시간 문자열
  */
 fun String.toRelativeTime(
-    now: Instant = Instant.now(),
-    zoneId: ZoneId = ZoneId.systemDefault()
+    now: Instant = Instant.now()
 ): String {
-    // 파싱
+    // UTC 오프셋이 포함된 타임스탬프를 시스템 시간대와 무관한 절대 시각으로 파싱합니다.
     val parsed = runCatching {
-        LocalDateTime.parse(this)
-            .atZone(zoneId)
-            .toInstant()
+        Instant.parse(this)
     }.getOrElse {
         return "알 수 없음"
     }
@@ -45,6 +42,23 @@ fun String.toRelativeTime(
         diff < 60 * 24 -> "${diff / 60}시간 전"
         else           -> "${diff / (60 * 24)}일 전"
     }
+}
+
+/**
+ * "yyyy-MM" 형식의 문자열을 큐레이션 제목 형식으로 변환합니다.
+ *
+ * @receiver "yyyy-MM" 형식의 문자열 (예: "2026-01")
+ * @return 큐레이션 제목 문자열 (예: "2026\n월간 큐레이션 1월호"), 파싱 실패 시 원본 반환
+ */
+fun String.toCurationTitle(): String {
+    val parts = this.split("-")
+
+    if (parts.size != 2) return this
+
+    val year = parts[0].toIntOrNull() ?: return this
+    val month = parts[1].toIntOrNull() ?: return this
+
+    return "$year\n월간 큐레이션 ${month}월호"
 }
 
 /**

@@ -28,7 +28,7 @@ fun DoubleBackToExitIfTop(navigator: NavController) {
     val isMainTab = when {
         route.startsWith("home") -> true
         route.startsWith("file") -> true
-        route.startsWith("curation") || route == "curation_graph" -> true
+        route.startsWith("curation") -> true
         route.startsWith("mypage") -> true
         else -> false
     }

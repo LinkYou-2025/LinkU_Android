@@ -1,0 +1,152 @@
+package com.linku.curation.ui.screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.curation.ui.header.CurationTopHeader
+import com.linku.curation.ui.monthly.MonthlyCurationGrid
+import com.linku.curation.viewModel.CurationHistoryViewModel
+import com.linku.curation.viewModel.intent.CurationHistoryIntent
+import com.linku.curation.viewModel.sideeffect.CurationHistorySideEffect
+import com.linku.design.component.TimedCustomToastMessage
+import com.linku.design.theme.LinkuPreview
+import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
+
+/**
+ * 월별 큐레이션 모아보기(#41-1) 화면.
+ * ViewModel을 주입받아 [MonthlyCurationScreenContent]에 상태를 전달한다.
+ *
+ * @param year 상단에 표시할 연도. ex) 2026
+ * @param onBackClick 백버튼 클릭 콜백
+ * @param onMonthClick 월 카드 클릭 콜백. 클릭된 월(1~12)을 전달함
+ */
+@Composable
+fun MonthlyCurationScreen(
+    modifier: Modifier = Modifier,
+    viewModel: CurationHistoryViewModel,
+    year: Int = 2026,
+    onBackClick: () -> Unit = {},
+    onMonthClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
+) {
+    val state by viewModel.curationHistoryState.collectAsStateWithLifecycle()
+
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is CurationHistorySideEffect.NavigateToCurationDetail ->
+                    onMonthClick(effect.month, effect.curationId)
+                is CurationHistorySideEffect.ShowToast -> {
+                    toastMessage = effect.message
+                    isToastVisible = true
+                }
+            }
+        }
+    }
+
+    // "yyyy-MM" 형식의 month에서 월(1~12)을 추출해 키로 사용
+    val historyMap = state.curationHistory
+        .associateBy { it.month.takeLast(2).toIntOrNull() ?: 0 }
+
+    Box {
+        MonthlyCurationScreenContent(
+            modifier = modifier,
+            year = year,
+            onBackClick = onBackClick,
+            onMonthClick = { monthNum ->
+                // 클릭된 월(1~12)로 히스토리 조회. 데이터 없는 달이면 무시
+                val history = historyMap[monthNum.toInt()] ?: return@MonthlyCurationScreenContent
+
+                // curationId가 null이면 아직 해당 월 큐레이션이 생성되지 않은 것이므로 무시
+                val curationId = history.curationId ?: return@MonthlyCurationScreenContent
+
+                viewModel.handleIntent(
+                    CurationHistoryIntent.ClickCurationHistory(curationId, history.month)
+                )
+            },
+            imageUrlOf = { month -> historyMap[month]?.thumbnailUrl }
+        )
+
+        // 토스트 사이드이펙트 수신시 커스텀 토스트 출력
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 92.scaler)
+        )
+    }
+}
+
+/**
+ * 월별 큐레이션 모아보기(#41-1) 실제 UI.
+ * [CurationTopHeader](연도 + "월간 큐레이션") 아래 44.49 간격을 두고 [com.linku.curation.ui.monthly.MonthlyCurationGrid]를 보여준다.
+ *
+ * 값 받으면 헤더 뒤에 배경 Box 하나 추가하면 됨.
+ *
+ * @param year 상단에 표시할 연도. ex) 2026
+ * @param onBackClick 백버튼 클릭 콜백
+ * @param onMonthClick 월 카드 클릭 콜백. 클릭된 월(1~12)을 전달함
+ * @param imageUrlOf 월(1~12)에 해당하는 카드 배경 이미지 URL을 반환하는 함수. 없으면 null 반환
+ */
+@Composable
+private fun MonthlyCurationScreenContent(
+    modifier: Modifier = Modifier,
+    year: Int = 2026,
+    onBackClick: () -> Unit = {},
+    onMonthClick: (Long) -> Unit = {},
+    imageUrlOf: (Int) -> String? = { null },
+) {
+    val colorTheme = MaterialTheme.linkuColors
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(colorTheme.white)
+    ) {
+        CurationTopHeader(
+            onBackClick = onBackClick,
+            contentTopOffset = 92.scaler,
+            title = "${year}년",
+            description = "월간 큐레이션",
+            titleDescriptionGap = 8.scaler // 피그마상 12인데 아무리 봐도 12간격으로는... 피그마랑 다른데? 6로 했는데 디자이너와 조정해주세용
+        )
+
+        Spacer(modifier = Modifier.height(44.49f.scaler))
+
+        MonthlyCurationGrid(
+            onMonthClick = onMonthClick,
+            imageUrlOf = imageUrlOf
+        )
+    }
+}
+
+@Preview(name = "월별 큐레이션 모아보기 (#41-1)", showBackground = true)
+@Composable
+private fun MonthlyCurationScreenContentPreview() {
+    LinkuPreview {
+        MonthlyCurationScreenContent(
+            imageUrlOf = { "https://example.com/preview.jpg" }
+        )
+    }
+}

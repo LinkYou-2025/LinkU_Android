@@ -1,11 +1,16 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
+import com.linku.core.model.Nickname
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
+import com.linku.core.model.auth.RecoverResult
 import com.linku.core.repository.UserRepository
+import com.linku.core.util.logging.LinkuLog
+import com.linku.core.util.logging.d
 import com.linku.data.api.ServerApi
+import com.linku.data.api.dto.auth.login.RecoverUserRequestDTO
 import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.safeApiCall
@@ -13,6 +18,7 @@ import com.linku.data.api.safeApiCallUnit
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.CancellationException
 import javax.inject.Inject
+import kotlin.onSuccess
 
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
@@ -82,56 +88,87 @@ class UserRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun recoverUser(): Boolean {
-        return try {
-            // BaseResponse.isSuccess까지 확인. HTTP 2xx여도 응답 바디상 실패일 수 있어 getOrThrow()로 걸러냄.
-            safeApiCallUnit { serverApi.recoverUser() }.getOrThrow()
-            true
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            Log.e(TAG, "[계정 복구 실패] ${e.message}")
-            false
+    override suspend fun recoverUser(): Result<RecoverResult> {
+        LinkuLog.d(TAG, "[계정 복구 시도]")
+
+        val savedDeviceId = authPreference.getDeviceId()
+        val savedDeviceType = authPreference.getDeviceType()
+
+        return safeApiCall {
+            serverApi.recoverUser(
+                RecoverUserRequestDTO(
+                    deviceId = savedDeviceId,
+                    deviceType = savedDeviceType
+                )
+            )
+
+        }.map { dto ->
+            RecoverResult(
+                accessToken = dto.accessToken,
+                refreshToken = dto.refreshToken
+            )
+        }.onSuccess { result ->
+            LinkuLog.d(TAG, "[계정 복구 성공] 정식 토큰 저장")
+            authPreference.updateAccessToken(
+                accessToken = result.accessToken,
+                refreshToken = result.refreshToken
+            )
         }
     }
 
-//    // BaseResponse<UserInfoDTO> 반환 → withAuth
-//    override suspend fun getNickname(userId: Long): String? {
-//        return try {
-//            serverApi.getUserInfo().result.nickName?.takeIf { it.isNotBlank() }
-//        } catch (e: Exception) {
-//            null
-//        }
-//    }
-
-    // 기존 코드 최대한 그대로 사용함.
-    override suspend fun getNickname(): String? {
+    // 닉네임 조회
+    override suspend fun getNickname(): Result<Nickname> {
+        LinkuLog.d(TAG, "닉네임 api 호출 시도중")
         return safeApiCall {
             serverApi.checkNickname()
+        }.map{dto ->
+            Nickname(
+                nickname = dto.nickname,
+            )
         }.onSuccess {
             Log.d(TAG, "[닉네임 조회 성공] nickname=$it")
         }.onFailure {
             Log.e(TAG, "[닉네임 조회 실패] ${it.message}")
-        }.getOrNull()?.nickname
+        }
     }
 
     // logout. deleteUser()와 동일하게 서버 호출이 성공했을 때만 로컬 세션을 지움.
-    override suspend fun logout(): Boolean {
+    override suspend fun logout(): Result<Unit> {
         return try {
-            // getDeviceId() 실패도 try 안에서 잡아야 false로 이어져 onError 처리가 정상 동작함.
             val deviceId = authPreference.getDeviceId()
             Log.d(TAG, "[로그아웃 시도] deviceId=$deviceId")
 
             safeApiCallUnit { serverApi.logout(deviceId) }.getOrThrow()
             authPreference.clear()
             Log.d(TAG, "로그아웃 완료")
-            true
+            Result.success(Unit)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
             Log.e(TAG, "[로그아웃 실패] ${e.message}")
-            false
+            Result.failure(e)
         }
+    }
+
+    override suspend fun updateMarketingTerms(): Result<Unit> {
+        return safeApiCallUnit { serverApi.updateMarketingTerms() }
+            .onSuccess {
+                LinkuLog.d(TAG, "[마케팅 업데이트 성공]")
+            }.onFailure {
+                LinkuLog.d(TAG, "[마케팅 업데이트 실패]")
+            }
+    }
+
+    override suspend fun checkMarketingTermsAgreed(): Result<Boolean> {
+        return safeApiCall { serverApi.checkTermsStatus() }
+            .map { dto ->
+                dto.termsStatus.marketing
+            }
+            .onSuccess {
+                LinkuLog.d(TAG, "약관 상태 조회 성공")
+            }.onFailure {
+                LinkuLog.d(TAG, "약관 상태 조회 실패")
+            }
     }
 
     companion object {

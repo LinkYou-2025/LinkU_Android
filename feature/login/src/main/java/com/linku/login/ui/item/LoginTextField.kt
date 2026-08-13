@@ -94,7 +94,7 @@ internal fun LoginTextField(
             onValueChange = onValueChange,
             textStyle = LocalTextStyle.current.copy(
                 fontSize = 14.sp,
-                lineHeight = 16.sp,
+                lineHeight = 20.sp,
                 fontWeight = FontWeight(500),
                 color = colorTheme.black
             ),

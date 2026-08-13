@@ -40,8 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -49,17 +47,11 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 import com.linku.mypage.R
 import com.linku.mypage.component.FaqItem
-
-data class Faq(
-    val id: Int,
-    val question: String,
-    val answer: String,
-    val category: String
-)
+import com.linku.mypage.model.faqList
 
 @Composable
 fun FaqScreen(
-    navController: NavController
+    onBackClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -71,69 +63,6 @@ fun FaqScreen(
     var feedbackRowHeightPx by remember { mutableIntStateOf(0) }
     val density = LocalDensity.current
     val feedbackRowHeightDp = with(density) { feedbackRowHeightPx.toDp() }
-
-    val faqList = listOf(
-        Faq(
-            id = 1,
-            question = "링크에 붙은 별 표시는 무엇인가요?",
-            answer = "AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다.",
-            category = "링크"
-        ),
-        Faq(
-            id = 2,
-            question = "폴더는 어떻게 추가하나요?",
-            answer = "메인 화면에서 폴더 추가 버튼을 눌러 새 폴더를 만들 수 있습니다.",
-            category = "폴더"
-        ),
-        Faq(
-            id = 3,
-            question = "카테고리는 수정할 수 있나요?",
-            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
-            category = "카테고리"
-        ),
-        Faq(
-            id = 4,
-            question = "링크에 붙은 별 표시는 무엇인가요?",
-            answer = "AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다.",
-            category = "링크"
-        ),
-        Faq(
-            id = 5,
-            question = "폴더는 어떻게 추가하나요?",
-            answer = "메인 화면에서 폴더 추가 버튼을 눌러 새 폴더를 만들 수 있습니다.",
-            category = "폴더"
-        ),
-        Faq(
-            id = 6,
-            question = "카테고리는 수정할 수 있나요?",
-            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
-            category = "카테고리"
-        ),
-        Faq(
-            id = 7,
-            question = "카테고리는 수정할 수 있나요?",
-            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
-            category = "카테고리"
-        ),
-        Faq(
-            id = 8,
-            question = "링크에 붙은 별 표시는 무엇인가요?",
-            answer = "AI 링크 요약이 되어있는 링크임을 표시하는 마크입니다.",
-            category = "링크"
-        ),
-        Faq(
-            id = 9,
-            question = "폴더는 어떻게 추가하나요?",
-            answer = "메인 화면에서 폴더 추가 버튼을 눌러 새 폴더를 만들 수 있습니다.",
-            category = "폴더"
-        ),
-        Faq(
-            id = 10,
-            question = "카테고리는 수정할 수 있나요?",
-            answer = "카테고리 관리 화면에서 이름 변경 및 삭제가 가능합니다.",
-            category = "카테고리"
-        )
-    )
 
     val filteredFaqList = faqList.filter { faq ->
         val matchesFilter = selectedFilter == "전체" || faq.category == selectedFilter
@@ -162,7 +91,7 @@ fun FaqScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { navController.popBackStack() }
+                    .noRippleClickable { onBackClick() }
             )
 
             Text(
@@ -359,9 +288,7 @@ fun FaqScreen(
 @Preview(showBackground = true)
 @Composable
 fun PreviewFaqScreen() {
-    val navController = rememberNavController()
-
     ThemeProvider {
-        FaqScreen(navController = navController)
+        FaqScreen(onBackClick = {})
     }
 }

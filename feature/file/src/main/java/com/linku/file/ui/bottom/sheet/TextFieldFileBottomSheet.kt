@@ -1,28 +1,15 @@
 package com.linku.file.ui.bottom.sheet
 
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
@@ -30,50 +17,45 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cheonjaeung.compose.grid.SimpleGridCells
-import com.cheonjaeung.compose.grid.VerticalGrid
-import com.linku.file.R
-import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 
+/**
+ * 폴더명 입력과 검증을 공통으로 제공하는 파일 바텀시트입니다.
+ *
+ * @param modifier 바텀시트에 적용할 수정자입니다.
+ * @param title 바텀시트 상단 제목입니다.
+ * @param body 입력 안내 문구입니다.
+ * @param placeholderText 입력값이 없을 때 표시할 문구입니다.
+ * @param visible 바텀시트 표시 여부입니다.
+ * @param sheetState 바텀시트의 펼침 상태입니다.
+ * @param onTextDeliver 저장할 텍스트를 전달하는 콜백입니다.
+ * @param maxTextLength 입력 및 저장을 허용할 최대 문자 수입니다. `null`이면 길이를 제한하지 않습니다.
+ * @param onDismiss 바텀시트를 닫을 때 호출되는 콜백입니다.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TextFieldFileBottomSheet(
+internal fun TextFieldFileBottomSheet(
     modifier: Modifier = Modifier,
     title: String,
     body: String,
     placeholderText: String,
-    isEditable: Boolean = false,
     visible: Boolean,
     sheetState: SheetState = rememberModalBottomSheetState(),
-    onTextDeliver: (String) -> Unit = {},
-    onColorIdDeliver: (Int) -> Unit = {},
+    onTextDeliver: (String) -> Unit,
+    maxTextLength: Int? = null,
     onDismiss: () -> Unit,
 ){
-    val colors = MaterialTheme.linkuColors
-
-    var colorId by remember { mutableIntStateOf(-1) }
-    var expanded by remember { mutableStateOf(false) }
-    var selectedColor by remember { mutableStateOf(colors.gray[300]) }
     var text by remember { mutableStateOf("") }
+    val isTextLengthValid = maxTextLength == null || text.length <= maxTextLength
 
     LaunchedEffect(visible) {
         if (visible) {
@@ -88,152 +70,85 @@ fun TextFieldFileBottomSheet(
         body = body,
         buttonText = "저장",
         visible = visible,
-        isReady = if(isEditable) colorId != -1 else text.isNotEmpty(),
+        isReady = text.isNotEmpty() && isTextLengthValid,
         onOkay = {
-            onTextDeliver(text)
-            if(isEditable) {
-                onColorIdDeliver(colorId)
+            if (isTextLengthValid) {
+                onTextDeliver(text)
             }
         },
-        onDismiss = {
-            selectedColor = colors.gray[300]
-            expanded = false
-            onDismiss()
-        }
+        onDismiss = onDismiss,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp)
-                .border(1.dp, colors.maincolor, RoundedCornerShape(18.dp))
-                .padding(horizontal = 21.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            BasicTextField(
-                enabled = !isEditable,
-                value = text,
-                onValueChange = { text = it },
-                textStyle = TextStyle(
-                    fontSize = 14.sp,
-                    color = colors.black,
-                    fontWeight = FontWeight.Normal,
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                decorationBox = { innerTextField ->
-                    Box(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // 입력값이 비어 있으면 placeholder 보여줌
-                        if (text.isEmpty()) {
-                            Text(
-                                text = " $placeholderText", // placeholder
-                                color = colors.gray[400],
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal,
-                            )
-                        }
-                        innerTextField() // 실제 입력란
-                    }
+        FileBottomSheetTextField(
+            value = text,
+            onValueChange = { newText ->
+                if (maxTextLength == null || newText.length <= maxTextLength) {
+                    text = newText
                 }
-            )
+            },
+            placeholderText = placeholderText,
+            enabled = true,
+        )
+    }
+}
 
-        }
+/**
+ * 파일 바텀시트에서 사용하는 테두리형 단일 행 텍스트 필드입니다.
+ *
+ * 입력값과 placeholder가 같은 텍스트 메트릭과 내부 중앙 정렬을 사용하도록 하여
+ * 입력 커서와 안내 문구의 세로 위치를 일치시킵니다.
+ *
+ * @param value 현재 표시할 텍스트입니다.
+ * @param onValueChange 입력값 변경 콜백입니다.
+ * @param placeholderText 입력값이 없을 때 표시할 문구입니다.
+ * @param enabled 사용자 입력 가능 여부입니다.
+ * @param modifier 텍스트 필드 행에 적용할 수정자입니다.
+ */
+@Composable
+internal fun FileBottomSheetTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholderText: String,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val colors = MaterialTheme.linkuColors
+    val inputTextStyle = MaterialTheme.typography.bodyLarge.copy(
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        color = colors.black,
+        fontWeight = FontWeight.Normal,
+    )
 
-        if (isEditable) {
-            Spacer(modifier = Modifier.height(19.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .animateContentSize()
-                    .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "색상 변경",
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = colors.gray[800],
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .border(1.dp, colors.maincolor, RoundedCornerShape(18.dp))
+            .padding(horizontal = 21.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BasicTextField(
+            enabled = enabled,
+            value = value,
+            onValueChange = onValueChange,
+            textStyle = inputTextStyle,
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+            decorationBox = { innerTextField ->
                 Box(
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clip(CircleShape)
-                        .background(selectedColor),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.CenterStart,
                 ) {
-
-                    Icon(
-                        modifier = Modifier.fillMaxWidth(0.45f),
-                        painter = painterResource(R.drawable.ic_top_folders_menu),
-                        tint = colors.white,
-                        contentDescription = null
-                    )
-                }
-
-                val rotation by animateFloatAsState(
-                    targetValue = if (expanded) 180f else 0f,
-                    label = "화살표 회전 애니메이션"
-                )
-
-                val modifier = if(expanded) Modifier
-                    .padding(start = 10.dp)
-                    .graphicsLayer(alpha = 0.99f)
-                    .drawWithCache {
-                        onDrawWithContent {
-                            drawContent()
-                            drawRect(colors.maincolor, blendMode = BlendMode.SrcAtop)
-                        }
-                    } else Modifier.padding(start = 10.dp)
-                Icon(
-                    modifier = modifier
-                        .rotate(rotation)
-                        .noRippleClickable { expanded = !expanded },
-                    tint = colors.gray[600],
-                    painter = painterResource(id = R.drawable.check_img),
-                    contentDescription = "아래 화살표"
-                )
-            }
-            AnimatedVisibility(
-                modifier = Modifier
-                    .padding(horizontal = 26.5.dp),
-                visible = expanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
-                VerticalGrid(
-                    modifier = Modifier
-                        .padding(top = 14.dp),
-                    columns = SimpleGridCells.Fixed(8),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalArrangement = Arrangement.spacedBy(7.5.dp)
-                ) {
-                    for ((i, colorStyle) in CategoryColorStyle.categoryStyleList.withIndex()) {
-
-                        Box(
-                            modifier = Modifier.fillMaxWidth()
-                        ){
-                            Box(
-                                modifier = Modifier
-                                    .size(25.dp)
-                                    .clip(CircleShape)
-                                    .background(colorStyle.color4)
-                                    .align(Alignment.Center)
-                                    .noRippleClickable {
-                                        selectedColor = colorStyle.color4
-                                        colorId = i
-                                   },
-                                contentAlignment = Alignment.Center
-                            ) {}
-                        }
+                    if (value.isEmpty()) {
+                        Text(
+                            text = " $placeholderText",
+                            style = inputTextStyle.copy(color = colors.gray[400]),
+                        )
                     }
+                    innerTextField()
                 }
-            }
-        }
+            },
+        )
     }
 }
 
@@ -243,10 +158,11 @@ fun TextFieldFileBottomSheet(
 private fun TextFieldFileBottomSheetTest(){
     TextFieldFileBottomSheet(
         modifier = Modifier.height(900.dp),
-        "해당 카테고리를 수정하시겠습니까?",
-        "새 카테고리명을 입력하고 대표 색상을 지정해주세요!",
-        "카테고리명은 최대 10자입니다",
-        true,
-        true,
-    ){}
+        title = "폴더명을 변경하시겠습니까?",
+        body = "변경할 폴더명을 입력해주세요!",
+        placeholderText = "폴더명은 최대 10자입니다.",
+        visible = true,
+        onTextDeliver = {},
+        onDismiss = {},
+    )
 }

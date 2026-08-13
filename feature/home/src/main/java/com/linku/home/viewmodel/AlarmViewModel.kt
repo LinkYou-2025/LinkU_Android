@@ -7,7 +7,7 @@ import androidx.paging.cachedIn
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.repository.AlarmRepository
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import com.linku.home.model.AlarmIntent
 import com.linku.home.model.AlarmSideEffect
 import dagger.hilt.android.lifecycle.HiltViewModel

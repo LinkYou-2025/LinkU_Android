@@ -7,7 +7,7 @@ import com.linku.core.model.alarm.AlarmSetting
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.system.PermissionChecker
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
-import com.linku.data.preference.NotificationPreference
+import com.linku.core.preference.NotificationPreference
 import com.linku.mypage.intent.ConfirmFirstPushPermission
 import com.linku.mypage.intent.LinkuNotificationIntent
 import com.linku.mypage.intent.NotificationIntent
