@@ -61,30 +61,34 @@ internal fun MonthlyCurationItem(
             )
 
             // Figma의 Group 2085670159와 동일하게
-            // #000208 오버레이와 월 숫자를 하나의 그룹으로 묶고 그룹 전체에 50% 투명도를 적용
+            // 이미지 위에 #000208 오버레이를 50% 투명도로 적용
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .graphicsLayer {
-                        alpha = 0.5f
-                    }
-            ) {
-                // Figma Rectangle의 Fill: #000208
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(Color(0xFF000208))
-                )
+                    .background(Color(0xFF000208).copy(alpha = 0.5f))
+            )
 
-                // Figma Group 내부의 월 숫자
-                Image(
-                    painter = resolveMonthNumberIcon(month),
-                    contentDescription = "${month}월",
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .height(31.11111f.scaler)
-                )
-            }
+            // 이미지가 있는 월의 숫자는 이미지와 오버레이 위에 표시하며
+            // Figma 디자인에 맞춰 숫자 자체의 투명도를 70%로 적용
+            Image(
+                painter = resolveMonthNumberIcon(month),
+                contentDescription = "${month}월",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .height(31.11111f.scaler)
+                    .graphicsLayer {
+                        alpha = 0.7f
+                    }
+            )
+        } else {
+            // 이미지가 없는 월은 오버레이가 없으므로 숫자를 선명하게 표시
+            Image(
+                painter = resolveMonthNumberIcon(month),
+                contentDescription = "${month}월",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .height(31.11111f.scaler)
+            )
         }
     }
 }
