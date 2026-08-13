@@ -31,7 +31,7 @@ object CurationMapper {
 
     fun SectionDTO.toDomain(): SectionItem = SectionItem(
         section = section,
-        title = title.replace("\\n", "\n"),
+        title = title,
         description = description,
         imageUrl = imageUrl
     )
