@@ -189,7 +189,7 @@ private fun CurationRemindScreenContent(
                     ) { index ->
                         val link = links[index]
                         LinkCardItem(
-                            hasAiSummary = false,
+                            hasAiSummary = link.aiArticleExists,
                             linkTitle = link.title,
                             tags = link.categories.take(2),
                             domainName = link.domain,
@@ -229,6 +229,7 @@ private fun CurationRemindScreenPreview() {
             categories = listOf("생산성·툴", "평온"),
             domainImageUrl = "",
             linkuImageUrl = null,
+            aiArticleExists = index % 2 == 0,
         )
     }
 

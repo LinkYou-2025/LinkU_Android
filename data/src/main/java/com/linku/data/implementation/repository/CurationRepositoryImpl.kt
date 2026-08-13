@@ -13,6 +13,7 @@ import com.linku.data.api.CurationApi
 import com.linku.data.api.safeApiCall
 import com.linku.data.mapper.CurationMapper.toDomain
 import android.util.Log
+import com.linku.core.model.curation.LinkByKeyWord
 import javax.inject.Inject
 
 
@@ -79,6 +80,14 @@ class CurationRepositoryImpl @Inject constructor(
     override suspend fun getJobTopKeywords(month: String, limit: Int): Result<List<KeyWord>> {
         return safeApiCall {
             curationApi.getJobTopKeywords(month, limit)
+        }.map { dtos ->
+            dtos.map { it.toDomain() }
+        }
+    }
+
+    override suspend fun getLinksByKeyword(keyword: String): Result<List<LinkByKeyWord>> {
+        return safeApiCall {
+            curationApi.getLinksByKeyword(keyword)
         }.map { dtos ->
             dtos.map { it.toDomain() }
         }

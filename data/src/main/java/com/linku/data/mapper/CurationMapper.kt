@@ -3,6 +3,7 @@ package com.linku.data.mapper
 import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.History
 import com.linku.core.model.curation.KeyWord
+import com.linku.core.model.curation.LinkByKeyWord
 import com.linku.core.model.curation.LinkType
 import com.linku.core.model.curation.MyLatestCuration
 import com.linku.core.model.curation.MyTopTag
@@ -12,6 +13,7 @@ import com.linku.core.model.curation.UnreadLink
 import com.linku.data.api.dto.server.curation.CurationDetailDTO
 import com.linku.data.api.dto.server.curation.HistoryDTO
 import com.linku.data.api.dto.server.curation.KeywordDTO
+import com.linku.data.api.dto.server.curation.LinkByKeyWordDTO
 import com.linku.data.api.dto.server.curation.MyLatestCurationDTO
 import com.linku.data.api.dto.server.curation.MyTopTagDTO
 import com.linku.data.api.dto.server.curation.RecommendLinkDTO
@@ -61,12 +63,24 @@ object CurationMapper {
         thumbnailUrl = thumbnailUrl
     )
 
+    fun LinkByKeyWordDTO.toDomain(): LinkByKeyWord = LinkByKeyWord(
+        userLinkuId = userLinkuId,
+        title = title,
+        url = url,
+        imageUrl = imageUrl,
+        domain = domain,
+        domainImageUrl = domainImageUrl,
+        categories = categories,
+        aiArticleExists = aiArticleExists
+    )
+
     fun UnreadLinkDTO.toDomain(): UnreadLink = UnreadLink(
         userLinkuId = userLinkuId,
         title = title,
         domain = domain,
         domainImageUrl = domainImageUrl,
-        linkuImageUrl = linkuImageUrl
+        linkuImageUrl = linkuImageUrl,
+        aiArticleExists = aiArticleExists
     )
 
     fun MyTopTagDTO.toDomain(): MyTopTag = MyTopTag(

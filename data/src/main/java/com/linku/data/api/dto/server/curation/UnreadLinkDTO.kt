@@ -19,5 +19,8 @@ data class UnreadLinkDTO(
     val domainImageUrl: String,
 
     @field:Json(name = "linkuImageUrl")
-    val linkuImageUrl: String?
+    val linkuImageUrl: String?,
+
+    @field:Json(name = "aiArticleExists")
+    val aiArticleExists: Boolean
 )

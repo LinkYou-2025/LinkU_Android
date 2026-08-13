@@ -80,7 +80,8 @@ fun CurationRecommendedLinksPager(
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 10.dp
         ) { page ->
             Column(verticalArrangement = Arrangement.spacedBy(10.scaler)) {
                 pages[page].forEach { link ->
@@ -143,13 +144,14 @@ private fun RecommendedLinkCardItem(
     link: RecommendLink,
     onClick: (RecommendLink) -> Unit,
 ) {
-    //LinkCardItem은 지현이가 구현해서 여기서 궁금한거 있으면 그녀에게...
+    val isExternalLink = link.type is LinkType.External
+
     LinkCardItem(
         hasAiSummary = false,
         linkTitle = link.title,
         tags = link.categories.take(2),
-        domainName = link.domain,
-        isExternalLink = link.type is LinkType.External,
+        domainName = if (isExternalLink && link.domain.isBlank()) "웹사이트" else link.domain,
+        isExternalLink = isExternalLink,
         isMoreVisible = false,
         linkImageUrl = link.imageUrl,
         domainImageUrl = link.domainImageUrl,
