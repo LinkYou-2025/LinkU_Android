@@ -80,7 +80,8 @@ fun CurationRecommendedLinksPager(
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 10.dp
         ) { page ->
             Column(verticalArrangement = Arrangement.spacedBy(10.scaler)) {
                 pages[page].forEach { link ->
