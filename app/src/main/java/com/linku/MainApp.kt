@@ -1113,6 +1113,15 @@ fun MainApp(
                 }
             } // NavHost 끝
 
+            // 검색 탑 시트가 열려있을 때 뒤로가기를 최우선으로 가로채 검색창만 닫음.
+            // Scaffold의 content 슬롯(NavHost 포함)은 SubcomposeLayout이라 여기서 등록하는
+            // 콜백이 NavHost 내부의 기본 뒤로가기(스택 pop)보다 항상 나중에 붙어 우선권을 가짐.
+            // searchOverlay()는 Scaffold 바깥의 일반 컴포지션이라 그보다 먼저 등록되어
+            // NavHost의 기본 pop에 밀렸었음 — 그래서 여기(NavHost와 같은 서브컴포지션, 그 뒤)에 둠.
+            BackHandler(enabled = searchVisible) {
+                searchViewModel.dismissSearch()
+            }
+
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
 //            val isAtTabRoot = showNavBar && when (currentRoute) {
 //                NavigationRoute.Home.route,
