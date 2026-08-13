@@ -101,9 +101,7 @@ fun NavGraphBuilder.curationGraph(
         arguments = listOf(navArgument("keyword") { type = NavType.StringType })
     ) { backStackEntry ->
         showNavBar(false)
-        val keyword = backStackEntry.arguments?.getString("keyword")
-            ?.let { Uri.decode(it) }
-            .orEmpty()
+        val keyword = backStackEntry.arguments?.getString("keyword").orEmpty()
         val viewModel = hiltViewModel<CurationKeywordLinksViewModel>()
 
         CurationKeywordLinksScreen(
