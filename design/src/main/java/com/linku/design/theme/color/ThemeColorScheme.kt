@@ -105,7 +105,11 @@ sealed class ThemeColorScheme(
 
     //큐레이션 1번 카드 상세 그라데이션
     val curationFirstCardBackground: Brush = Brush.verticalGradient(
-        listOf(Color(0xFFFFFFFF), Color(0xFFE5EDFF))
+        colorStops = arrayOf(
+            0.0f to Color(0xFFFFFFFF).copy(alpha = 0.4f),
+            0.6f to Color(0xFFFFFFFF).copy(alpha = 0.4f),
+            1.0f to Color(0xFFE5EDFF)
+        )
     ),
 
     // 큐레이션 키워드 칩 텍스트 컬러 (HIGH, MIDDLE)
