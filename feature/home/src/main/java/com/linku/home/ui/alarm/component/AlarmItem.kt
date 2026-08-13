@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -67,8 +69,13 @@ fun AlarmItem(
                     Spacer(modifier = Modifier.width(14.dp))
                     Text(
                         text = alarm.alarmType.displayName,
-                        fontSize = 13.sp,
-                        color = LocalColorTheme.current.gray[600]
+                        style = LocalTextStyle.current.copy(
+                            fontSize = 13.sp,
+                            color = LocalColorTheme.current.gray[600],
+                            fontWeight = FontWeight(400),
+                            lineHeight = 15.sp
+
+                        )
                     )
                 }
 
@@ -76,8 +83,12 @@ fun AlarmItem(
                 Box {
                     Text(
                         text = alarm.whenSubmitted,
-                        fontSize = 13.sp,
-                        color = LocalColorTheme.current.gray[400],
+                        style = LocalTextStyle.current.copy(
+                            fontSize = 13.sp,
+                            color = LocalColorTheme.current.gray[400],
+                            fontWeight = FontWeight(400),
+                            lineHeight = 15.sp
+                        )
                     )
                     if (!isRead) {
                         Box(
@@ -94,12 +105,17 @@ fun AlarmItem(
                 }
             }
 
+            Spacer(Modifier.height(11.dp))
+
             // 본문
             Text(
                 text = alarm.message,
-                fontSize = 15.sp,
-                fontWeight = FontWeight(500),
-                color = LocalColorTheme.current.black,
+                style = LocalTextStyle.current.copy(
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight(500),
+                    color = LocalColorTheme.current.black,
+                    lineHeight = 22.sp
+                ),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier

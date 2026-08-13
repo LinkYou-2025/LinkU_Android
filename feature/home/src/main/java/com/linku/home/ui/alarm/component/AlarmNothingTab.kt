@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -48,10 +49,12 @@ fun AlarmNothingTab(
 
             Text(
                 text = "조용하네요👀\n새로운 알림이 오면 여기에 알려드릴게요",
-                color = LocalColorTheme.current.gray[600],
+                style = LocalTextStyle.current.copy(
+                    color = LocalColorTheme.current.gray[600],
+                    fontSize = 14.sp,
+                ),
                 modifier = Modifier
                     .padding(start = 12.dp),
-                fontSize = 14.sp
             )
         }
 
