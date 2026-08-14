@@ -24,6 +24,7 @@ import com.linku.design.theme.linkuColors
 @Composable
 internal fun LinkCardItemSkeleton() {
     val colors = MaterialTheme.linkuColors
+    val skeletonColors = listOf(colors.gray[100], colors.gray[200])
 
     Box(
         modifier = Modifier
@@ -36,7 +37,8 @@ internal fun LinkCardItemSkeleton() {
             // 썸네일
             SkeletonBox(
                 modifier = Modifier.size(85.dp),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(12.dp),
+                colors = skeletonColors
             )
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -45,47 +47,47 @@ internal fun LinkCardItemSkeleton() {
                 // 제목 1줄
                 SkeletonBox(
                     modifier = Modifier
-                        .height(14.dp)
-                        .fillMaxWidth(0.75f),
-                    shape = RoundedCornerShape(4.dp)
+                        .height(15.dp)
+                        .fillMaxWidth(0.78f),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = skeletonColors
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
-                // 제목 2줄
-                SkeletonBox(
-                    modifier = Modifier
-                        .height(14.dp)
-                        .fillMaxWidth(0.5f),
-                    shape = RoundedCornerShape(4.dp)
-                )
-
-                Spacer(modifier = Modifier.height(10.dp))
-
-                // 태그 칩
-                SkeletonBox(
-                    modifier = Modifier
-                        .height(20.dp)
-                        .fillMaxWidth(0.35f),
-                    shape = RoundedCornerShape(6.dp)
-                )
-
-                Spacer(modifier = Modifier.height(9.dp))
-
-                // 도메인 행
+                // 태그 칩 2개
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     SkeletonBox(
-                        modifier = Modifier.size(22.dp),
-                        shape = CircleShape
+                        modifier = Modifier.size(width = 30.dp, height = 18.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = skeletonColors
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
 
                     SkeletonBox(
-                        modifier = Modifier
-                            .height(12.dp)
-                            .fillMaxWidth(0.3f),
-                        shape = RoundedCornerShape(4.dp)
+                        modifier = Modifier.size(width = 30.dp, height = 18.dp),
+                        shape = RoundedCornerShape(6.dp),
+                        colors = skeletonColors
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // 도메인 행
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SkeletonBox(
+                        modifier = Modifier.size(22.dp),
+                        shape = CircleShape,
+                        colors = skeletonColors
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    SkeletonBox(
+                        modifier = Modifier.size(width = 40.dp, height = 11.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        colors = skeletonColors
                     )
                 }
             }
