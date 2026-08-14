@@ -91,6 +91,11 @@ fun HomeTopBar(
 
     var draggedDistance by remember { mutableFloatStateOf(0f) }
 
+    val shouldShowSelectedSummary =
+        selectedEmotionId != null &&
+                selectedTaskId != null &&
+                hasRequestedRecommend
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -133,7 +138,7 @@ fun HomeTopBar(
 
         HomeSearchBar(onClick = onSearchClick)
 
-        if (!isCollapsed) {
+        if (!isCollapsed || shouldShowSelectedSummary) {
             Spacer(modifier = Modifier.height(18.dp))
         }
 
@@ -203,7 +208,12 @@ fun HomeTopBar(
                     ) {
                         Text(
                             text = "링크 추천해줘!",
-                            style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center, fontFamily = LocalFontTheme.current.font),
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Medium,
+                                textAlign = TextAlign.Center,
+                                fontFamily = LocalFontTheme.current.font
+                            ),
                             color = colors.white
                         )
                     }
@@ -219,7 +229,7 @@ fun HomeTopBar(
             exit = shrinkVertically() + fadeOut()
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                if ((selectedEmotionId != null && selectedTaskId != null) && hasRequestedRecommend) {
+                if (shouldShowSelectedSummary) {
                     SelectedSummaryRow(
                         selectedEmotionId = selectedEmotionId,
                         selectedTaskId = selectedTaskId,
