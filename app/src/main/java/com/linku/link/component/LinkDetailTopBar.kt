@@ -228,7 +228,9 @@ fun LinkDetailTopBar(
                                 BasicTextField(
                                     value = linkTitle,
                                     onValueChange = { newTitle ->
-                                        onTitleChange(newTitle.take(MAX_LINK_TITLE_LENGTH))
+                                        if (newTitle.length <= MAX_LINK_TITLE_LENGTH) {
+                                            onTitleChange(newTitle)
+                                        }
                                     },
                                     textStyle = TextStyle(
                                         fontSize = 22.sp,
