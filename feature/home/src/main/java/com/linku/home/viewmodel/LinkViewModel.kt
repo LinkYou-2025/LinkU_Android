@@ -202,9 +202,9 @@ class LinkViewModel @Inject constructor(
     }
 
     /**
-     * 링크를 저장하고, 성공한 URL을 클립보드 배너 재노출 방지 정보로 함께 기록합니다.
+     * 링크를 저장하고, 성공한 URL과 저장 완료 시각을 클립보드 배너 재노출 방지 정보로 함께 기록합니다.
      *
-     * 배너용 기록 실패는 이미 완료된 서버 저장의 성공 흐름을 막지 않습니다.
+     * ViewModel 작업 취소는 전파하고, 그 외 배너용 기록 실패는 이미 완료된 서버 저장의 성공 흐름을 막지 않습니다.
      *
      * @param state 저장 폼의 클릭 시점 스냅샷
      * @param url 프론트 검증을 통과해 실제 저장에 사용하는 URL
@@ -228,7 +228,11 @@ class LinkViewModel @Inject constructor(
 
         if (userId != null) {
             try {
-                authPreference.saveLastSavedLinkUrl(url = url, userId = userId)
+                authPreference.saveLastSavedLinkUrl(
+                    url = url,
+                    savedAtMillis = System.currentTimeMillis(),
+                    userId = userId,
+                )
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {

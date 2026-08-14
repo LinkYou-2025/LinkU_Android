@@ -60,7 +60,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
-import com.linku.home.component.rememberClipboardUrl
+import com.linku.home.component.rememberClipboardLinkCandidate
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -267,21 +267,22 @@ fun HomeScreen(
             }
         }
 
-    val clipboardUrl by rememberClipboardUrl()
-    val validatedClipboardUrl by homeViewModel.validatedClipboardUrl.collectAsStateWithLifecycle()
+    val clipboardCandidate by rememberClipboardLinkCandidate()
+    val validatedClipboardCandidate by
+        homeViewModel.validatedClipboardCandidate.collectAsStateWithLifecycle()
 
-    LaunchedEffect(clipboardUrl) {
-        homeViewModel.validateClipboardUrl(clipboardUrl)
+    LaunchedEffect(clipboardCandidate) {
+        homeViewModel.validateClipboardCandidate(clipboardCandidate)
     }
 
     DisposableEffect(homeViewModel) {
         onDispose(homeViewModel::endClipboardBannerSession)
     }
 
-    // 프론트와 백엔드 검사를 모두 통과한 현재 클립보드 URL만 배너에 표시합니다.
+    // URL과 복사 시각이 모두 현재 클립보드 항목과 일치하는 검증 완료 후보만 표시합니다.
     val shouldShowClipboardBanner =
-        validatedClipboardUrl != null &&
-            validatedClipboardUrl == clipboardUrl
+        validatedClipboardCandidate != null &&
+            validatedClipboardCandidate == clipboardCandidate
 
     val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
 
@@ -526,15 +527,15 @@ fun HomeScreen(
         ) {
             ClipboardLinkPasteBanner(
                 visible = shouldShowClipboardBanner,
-                link = validatedClipboardUrl.orEmpty(),
+                link = validatedClipboardCandidate?.url.orEmpty(),
                 modifier = Modifier,
                 onDismiss = {
-                    validatedClipboardUrl?.let(homeViewModel::markClipboardUrlHandled)
+                    validatedClipboardCandidate?.let(homeViewModel::markClipboardCandidateHandled)
                 },
                 onPasteClick = {
-                    validatedClipboardUrl?.let { url ->
-                        homeViewModel.markClipboardUrlHandled(url)
-                        onNavigateToSaveLink(url)
+                    validatedClipboardCandidate?.let { candidate ->
+                        homeViewModel.markClipboardCandidateHandled(candidate)
+                        onNavigateToSaveLink(candidate.url)
                     }
                 }
             )
