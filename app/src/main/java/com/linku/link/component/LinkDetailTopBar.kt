@@ -25,6 +25,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -37,14 +40,48 @@ import androidx.compose.ui.unit.sp
 import com.linku.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 
+/** 링크 제목 입력에 허용되는 최대 글자 수입니다. */
+private const val MAX_LINK_TITLE_LENGTH = 60
+
+/**
+ * 칩 내부 패딩과 분리된 레이아웃에서 칩의 전체 외곽 영역을 측정합니다.
+ *
+ * @param onBoundsChanged 칩 외곽의 윈도우 기준 영역이 변경될 때 호출됩니다.
+ * @param content 외곽 영역을 측정할 칩 콘텐츠입니다.
+ */
+@Composable
+private fun DropdownChipBoundsAnchor(
+    onBoundsChanged: (Rect) -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = Modifier.onGloballyPositioned { coordinates ->
+            onBoundsChanged(coordinates.boundsInWindow())
+        }
+    ) {
+        content()
+    }
+}
+
+/**
+ * 링크 상세 정보와 링크 수정 입력 항목을 표시하는 상단 영역입니다.
+ *
+ * @param category 서버에서 내려온 현재 카테고리 이름입니다.
+ * @param categoryColorStyle 현재 카테고리의 배경·텍스트 색상 단계입니다.
+ * @param onCategoryChipBoundsChanged 카테고리 칩의 윈도우 기준 영역이 변경될 때 호출됩니다.
+ * @param onEmotionChipBoundsChanged 감정 칩의 윈도우 기준 영역이 변경될 때 호출됩니다.
+ * @param onSituationChipBoundsChanged 상황 칩의 윈도우 기준 영역이 변경될 때 호출됩니다.
+ */
 @Composable
 fun LinkDetailTopBar(
     linkTitle: String,
     originalLinkTitle: String,
     category: String,
+    categoryColorStyle: CategoryColorStyle,
     emotion: String,
     situation: String,
     isEditMode: Boolean,
@@ -57,6 +94,9 @@ fun LinkDetailTopBar(
     onCategoryClick: () -> Unit,
     onEmotionClick: () -> Unit,
     onSituationClick: () -> Unit,
+    onCategoryChipBoundsChanged: (Rect) -> Unit,
+    onEmotionChipBoundsChanged: (Rect) -> Unit,
+    onSituationChipBoundsChanged: (Rect) -> Unit,
     onTitleChange: (String) -> Unit,
     onTitleClearClick: () -> Unit,
 ) {
@@ -187,7 +227,11 @@ fun LinkDetailTopBar(
                             ) {
                                 BasicTextField(
                                     value = linkTitle,
-                                    onValueChange = onTitleChange,
+                                    onValueChange = { newTitle ->
+                                        if (newTitle.length <= MAX_LINK_TITLE_LENGTH) {
+                                            onTitleChange(newTitle)
+                                        }
+                                    },
                                     textStyle = TextStyle(
                                         fontSize = 22.sp,
                                         fontWeight = FontWeight.Bold,
@@ -260,19 +304,31 @@ fun LinkDetailTopBar(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
+                        DropdownChipBoundsAnchor(
+                            onBoundsChanged = onCategoryChipBoundsChanged,
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
                                         isEditMode && isCategoryDropdownOpen -> colors.white
                                         isEditMode -> colors.blue[200]
-                                        else -> colors.purple[50]
+                                        // 일반 모드에서는 서버 팔레트의 가장 연한 단계를 사용합니다.
+                                        else -> categoryColorStyle.color1
                                     }
-                                )  // 추후 카테고리 API 연동 후 실제 색상으로 변경 예정
+                                )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
+                                        Modifier.border(
+                                            width = 1.dp,
+                                            color = if (isCategoryDropdownOpen) {
+                                                colors.white
+                                            } else {
+                                                colors.blue[100]
+                                            },
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
                                     } else {
                                         Modifier
                                     }
@@ -280,35 +336,40 @@ fun LinkDetailTopBar(
                                 .noRippleClickable(enabled = isEditMode) {
                                     onCategoryClick()
                                 }
-                                .padding(horizontal = 10.dp, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = category,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = when {
-                                    isEditMode && isCategoryDropdownOpen -> colors.blue[300]
-                                    isEditMode -> colors.white
-                                    else -> colors.black  // API 연동 후 수정 예정
-                                }
-                            )
-
-                            if(isEditMode) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_toggle),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .width(12.dp)
-                                        .rotate(if (isCategoryDropdownOpen) 180f else 0f)
+                                    .padding(horizontal = 10.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = category,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = when {
+                                        isEditMode && isCategoryDropdownOpen -> colors.blue[300]
+                                        isEditMode -> colors.white
+                                        // 일반 모드에서는 서버 팔레트의 가장 진한 단계를 사용합니다.
+                                        else -> categoryColorStyle.color4
+                                    }
                                 )
+
+                                if(isEditMode) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_toggle),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .width(12.dp)
+                                            .rotate(if (isCategoryDropdownOpen) 180f else 0f)
+                                    )
+                                }
                             }
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
+                        DropdownChipBoundsAnchor(
+                            onBoundsChanged = onEmotionChipBoundsChanged,
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
                                         isEditMode && isEmotionDropdownOpen -> colors.white
@@ -318,7 +379,15 @@ fun LinkDetailTopBar(
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
+                                        Modifier.border(
+                                            width = 1.dp,
+                                            color = if (isEmotionDropdownOpen) {
+                                                colors.white
+                                            } else {
+                                                colors.blue[100]
+                                            },
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
                                     } else {
                                         Modifier
                                     }
@@ -326,35 +395,39 @@ fun LinkDetailTopBar(
                                 .noRippleClickable(enabled = isEditMode) {
                                     onEmotionClick()
                                 }
-                                .padding(horizontal = 10.dp, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = emotion,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = when {
-                                    isEditMode && isEmotionDropdownOpen -> colors.blue[300]
-                                    isEditMode -> colors.white
-                                    else -> colors.blue[300]
-                                }
-                            )
-
-                            if(isEditMode) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_toggle),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .width(12.dp)
-                                        .rotate(if (isEmotionDropdownOpen) 180f else 0f)
+                                    .padding(horizontal = 10.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = emotion,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = when {
+                                        isEditMode && isEmotionDropdownOpen -> colors.blue[300]
+                                        isEditMode -> colors.white
+                                        else -> colors.blue[300]
+                                    }
                                 )
+
+                                if(isEditMode) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_toggle),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .width(12.dp)
+                                            .rotate(if (isEmotionDropdownOpen) 180f else 0f)
+                                    )
+                                }
                             }
                         }
 
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
+                        DropdownChipBoundsAnchor(
+                            onBoundsChanged = onSituationChipBoundsChanged,
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
                                         isEditMode && isSituationDropdownOpen -> colors.white
@@ -364,7 +437,15 @@ fun LinkDetailTopBar(
                                 )
                                 .then(
                                     if(isEditMode) {
-                                        Modifier.border(1.dp, colors.blue[100], RoundedCornerShape(10.dp))
+                                        Modifier.border(
+                                            width = 1.dp,
+                                            color = if (isSituationDropdownOpen) {
+                                                colors.white
+                                            } else {
+                                                colors.blue[100]
+                                            },
+                                            shape = RoundedCornerShape(10.dp)
+                                        )
                                     } else {
                                         Modifier
                                     }
@@ -372,29 +453,30 @@ fun LinkDetailTopBar(
                                 .noRippleClickable(enabled = isEditMode) {
                                     onSituationClick()
                                 }
-                                .padding(horizontal = 10.dp, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = situation,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = when {
-                                    isEditMode && isSituationDropdownOpen -> colors.blue[300]
-                                    isEditMode -> colors.white
-                                    else -> colors.purple[300]
-                                }
-                            )
-
-                            if(isEditMode) {
-                                Image(
-                                    painter = painterResource(R.drawable.ic_toggle),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .width(12.dp)
-                                        .rotate(if (isSituationDropdownOpen) 180f else 0f)
+                                    .padding(horizontal = 10.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Text(
+                                    text = situation,
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = when {
+                                        isEditMode && isSituationDropdownOpen -> colors.blue[300]
+                                        isEditMode -> colors.white
+                                        else -> colors.purple[300]
+                                    }
                                 )
+
+                                if(isEditMode) {
+                                    Image(
+                                        painter = painterResource(R.drawable.ic_toggle),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .width(12.dp)
+                                            .rotate(if (isSituationDropdownOpen) 180f else 0f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -428,6 +510,7 @@ fun PreviewLinkDetailTopBar() {
             linkTitle = "3일만에 오픽 AL 꿀팁",
             originalLinkTitle = "3일만에 오픽 AL 꿀팁",
             category = "어학",
+            categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
             emotion = "평온",
             situation = "통학 중",
             isEditMode = true,
@@ -440,6 +523,9 @@ fun PreviewLinkDetailTopBar() {
             onEmotionClick = { },
             onCategoryClick = { },
             onSituationClick = { },
+            onCategoryChipBoundsChanged = { },
+            onEmotionChipBoundsChanged = { },
+            onSituationChipBoundsChanged = { },
             onTitleChange = { },
             onTitleClearClick = { }
         )

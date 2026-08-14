@@ -10,11 +10,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -36,14 +40,16 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.linkuColors
+import com.linku.home.R
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -99,6 +105,8 @@ fun rememberClipboardUrl(
 /**
  * 상단 배너 UI:
  * - link가 있을 때 노출
+ * - 링크는 안내 문구를 제외한 가용 너비 안에서 말줄임표로 표시
+ * - 안내 문구는 항상 한 줄 전체를 표시
  * - 아래로 드래그(일정 거리 이상)하면 onDismiss 호출
  * - 탭하면 onPasteClick 호출(원하는 동작 연결)
  */
@@ -117,12 +125,6 @@ fun ClipboardLinkPasteBanner(
     // 드래그 오프셋(px)
     var offsetYPx by remember { mutableStateOf(0f) }
     val dismissThresholdPx = with(density) { 30.dp.toPx() } // 이 이상 아래로 끌면 닫기
-
-    // 표시용 링크 26자 제한(넘치면 ... 으로 표시)
-    val displayLink = remember(link) {
-        val trimmed = link.trim()
-        if (trimmed.length <= 26) trimmed else trimmed.take(26) + "..."
-    }
 
     AnimatedVisibility(
         visible = visible,
@@ -164,7 +166,7 @@ fun ClipboardLinkPasteBanner(
                     }
                 }
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(50))
@@ -184,17 +186,33 @@ fun ClipboardLinkPasteBanner(
                         }
                     )
                     .clickable(enabled = onPasteClick != null) { onPasteClick?.invoke() }
-                    .padding(horizontal = 21.dp, vertical = 10.dp)
+                    .padding(horizontal = 21.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "$displayLink 링크를 붙여넣을까요?",
+                    text = link.trim(),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     color = colors.white,
                     fontFamily = LocalFontTheme.current.font,
                     maxLines = 1,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(
+                        weight = 1f,
+                        fill = false,
+                    ),
+                )
+
+                Spacer(modifier = Modifier.width(4.dp))
+
+                Text(
+                    text = stringResource(R.string.clipboard_link_paste_prompt),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = colors.white,
+                    fontFamily = LocalFontTheme.current.font,
+                    maxLines = 1,
                 )
             }
         }
@@ -211,7 +229,7 @@ private fun PreviewClipboardLinkPasteBannerVisible() {
     ) {
         ClipboardLinkPasteBanner(
             visible = true,
-            link = "https://blog.naver.com/linku/",
+            link = "https://blog.naver.com/linku/a-very-long-link-that-needs-ellipsis",
             onDismiss = {},
             onPasteClick = {}
         )

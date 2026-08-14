@@ -102,40 +102,33 @@ fun CurationScreen(
                 onRetry = { viewModel.handleIntent(CurationMainIntent.Retry) }
             )
         } else {
-            Column(modifier = Modifier.fillMaxSize()) {
-                TopBar(showSearchBar = false, backgroundColor = null)
-
-                Spacer(modifier = Modifier.height(12.scaler))
-
-                CurationScreenContent(
-                    nickname = displayNickname,
-                    sections = state.curationMain?.sections ?: emptyList(),
-                    latestCurationMonth = state.curationMain?.latestCurationMonth,
-                    pagerState = pagerState,
-                    onCardClick = { index ->
-                        val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
-                        when (index) {
-                            0 -> viewModel.handleIntent(
-                                CurationMainIntent.ClickCurationSection(
-                                    curationId = state.curationMain?.latestCurationId ?: return@CurationScreenContent,
-                                    month = month
-                                )
+            CurationScreenContent(
+                nickname = displayNickname,
+                sections = state.curationMain?.sections ?: emptyList(),
+                latestCurationMonth = state.curationMain?.latestCurationMonth,
+                pagerState = pagerState,
+                onCardClick = { index ->
+                    val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
+                    when (index) {
+                        0 -> viewModel.handleIntent(
+                            CurationMainIntent.ClickCurationSection(
+                                curationId = state.curationMain?.latestCurationId ?: return@CurationScreenContent,
+                                month = month
                             )
-                            1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
-                            2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
-                        }
-                    },
-                    onMonthlyCurationClick = {
-                        state.curationMain?.latestCurationMonth?.let { month ->
-                            viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
-                        }
+                        )
+                        1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
+                        2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
                     }
-                )
-            }
+                },
+                onMonthlyCurationClick = {
+                    state.curationMain?.latestCurationMonth?.let { month ->
+                        viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
+                    }
+                }
+            )
         }
     }
 }
-
 @Composable
 private fun CurationScreenContent(
     modifier: Modifier = Modifier,
@@ -169,6 +162,10 @@ private fun CurationScreenContent(
     val scrollState = rememberScrollState()
 
     Column(modifier = modifier.fillMaxWidth().verticalScroll(scrollState)) {
+        TopBar(showSearchBar = false, backgroundColor = null)
+
+        Spacer(modifier = Modifier.height(12.scaler))
+
         CurationHeader(nickname = nickname)
 
         Spacer(modifier = Modifier.height(26.scaler))
@@ -244,4 +241,3 @@ private fun CurationScreenContentPreview() {
         )
     }
 }
-

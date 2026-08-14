@@ -1,6 +1,5 @@
 package com.linku
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -57,6 +56,11 @@ fun MainScreen(
     statusBarDarkIcons: Boolean = true,
     navigationBarDarkIcons: Boolean? = null,
     dimmed: Boolean = false,
+    // 검색 탑 시트처럼 하단 내비게이션 바까지 덮으며 화면 전체 위에 떠야 하는 오버레이.
+    // Scaffold 콘텐츠 영역(content) 안에서 그리면 하단 바 뒤까지 덮이지 않아서, outer Box
+    // 레벨(dimmed와 같은 레벨)에서 별도로 그림. app 모듈이 소유한 검색 상태를 그대로 넘겨받아
+    // 그리기만 하므로 이 화면은 검색이 무엇인지 몰라도 됨.
+    searchOverlay: @Composable () -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -145,6 +149,8 @@ fun MainScreen(
                         .background(Color.Black.copy(alpha = 0.5f))
                 )
             }
+
+            searchOverlay()
         }
     }
 }

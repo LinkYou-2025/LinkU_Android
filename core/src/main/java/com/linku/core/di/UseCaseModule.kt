@@ -6,6 +6,7 @@ import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.CurationKeywordUseCase
 import com.linku.core.usecase.CurationMainUseCase
 import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
+import com.linku.core.usecase.GetKeywordLinksUseCase
 import com.linku.core.usecase.MonthlyCurationDetailedUseCase
 import com.linku.core.usecase.ReRegisterFcmTokenUseCase
 import dagger.Module
@@ -74,6 +75,15 @@ object UseCaseModule {
         userRepository: UserRepository
     ): CurationKeywordUseCase {
         return CurationKeywordUseCase(curationRepository, userRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetKeywordLinksUseCase(
+        curationRepository: CurationRepository,
+        userRepository: UserRepository
+    ): GetKeywordLinksUseCase {
+        return GetKeywordLinksUseCase(curationRepository, userRepository)
     }
 
 }

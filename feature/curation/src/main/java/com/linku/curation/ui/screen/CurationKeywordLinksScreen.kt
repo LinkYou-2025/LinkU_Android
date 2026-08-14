@@ -3,6 +3,7 @@ package com.linku.curation.ui.screen
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -10,24 +11,28 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
-import com.linku.core.model.CategoryType
-import com.linku.core.model.EmotionType
-import com.linku.core.model.LinkSimpleInfo
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.curation.LinkByKeyWord
 import com.linku.curation.ui.effect.skeleton.CurationTopHeaderSkeleton
 import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
-import com.linku.curation.viewModel.CurationViewModel
+import com.linku.curation.viewModel.CurationKeywordLinksViewModel
+import com.linku.curation.viewModel.intent.CurationKeywordLinksIntent
+import com.linku.curation.viewModel.sideeffect.CurationKeywordLinksSideEffect
 import com.linku.design.component.LinkCardItem
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler
 
@@ -42,23 +47,55 @@ import com.linku.design.util.scaler
 @Composable
 internal fun CurationKeywordLinksScreen(
     keyword: String,
-    nickname: String,
-    viewModel: CurationViewModel = hiltViewModel(),
+    viewModel: CurationKeywordLinksViewModel,
     onBack: () -> Unit = {},
+    onNavigateToLinkDetail: (Long) -> Unit = {},
 ) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    var toastMessage by remember { mutableStateOf("") }
+    var isToastVisible by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        viewModel.sideEffect.collect { effect ->
+            when (effect) {
+                is CurationKeywordLinksSideEffect.ShowToast -> {
+                    toastMessage = effect.message
+                    isToastVisible = true
+                }
+                is CurationKeywordLinksSideEffect.NavigateToLinkDetail ->
+                    onNavigateToLinkDetail(effect.linkId)
+            }
+        }
+    }
+
     BackHandler { onBack() }
 
-    // TODO: viewModel에서 keyword 기준 링크 목록 API 연동
-    val links: List<LinkSimpleInfo> = emptyList()
-    val isLoading = false
+    Box {
+        CurationKeywordLinksScreenContent(
+            keyword = keyword,
+            nickname = state.nickname,
+            links = state.links,
+            isLoading = state.isLoading,
+            isError = state.isError,
+            onBack = onBack,
+            onLinkClick = { link ->
+                val linkId = link.userLinkuId
+                    ?.takeIf { it > 0L }
+                    ?: return@CurationKeywordLinksScreenContent
+                viewModel.handleIntent(CurationKeywordLinksIntent.ClickLink(linkId))
+            },
+        )
 
-    CurationKeywordLinksScreenContent(
-        keyword = keyword,
-        nickname = nickname,
-        links = links,
-        isLoading = isLoading,
-        onBack = onBack,
-    )
+        TimedCustomToastMessage(
+            visible = isToastVisible,
+            toastMessage = toastMessage,
+            onDismiss = { isToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 92.scaler)
+        )
+    }
 }
 
 /**
@@ -79,13 +116,18 @@ private fun CurationKeywordLinksEmptyHeader(keyword: String, onBack: () -> Unit)
 private fun CurationKeywordLinksScreenContent(
     keyword: String,
     nickname: String,
-    links: List<LinkSimpleInfo>,
+    links: List<LinkByKeyWord>,
     isLoading: Boolean = false,
+    isError: Boolean = false,
     onBack: () -> Unit,
+    onLinkClick: (LinkByKeyWord) -> Unit = {},
 ) {
     val isEmpty = links.isEmpty()
 
     CurationGradientCircleBackground {
+        // 에러나면 배경만 띄우고 토스트 출력 - 다른 큐레이션 목록류 화면과 통일
+        if (isError) return@CurationGradientCircleBackground
+
         if (isLoading) {
             Column(modifier = Modifier.fillMaxWidth()) {
                 CurationTopHeaderSkeleton(
@@ -144,19 +186,25 @@ private fun CurationKeywordLinksScreenContent(
                     ),
                     verticalArrangement = Arrangement.spacedBy(10.scaler),
                 ) {
-                    items(items = links, key = { it.userLinkuId }) { link ->
+                    items(
+                        count = links.size,
+                        key = { index ->
+                            links[index].userLinkuId
+                                ?.let { userLinkuId -> "curation-keyword-user-$userLinkuId" }
+                                ?: "curation-keyword-index-$index"
+                        },
+                    ) { index ->
+                        val link = links[index]
                         LinkCardItem(
                             hasAiSummary = link.aiArticleExists,
                             linkTitle = link.title,
-                            tags = listOfNotNull(
-                                link.categoryType?.tagName,
-                                link.emotionType?.tagName
-                            ),
+                            tags = link.categories.take(2),
                             domainName = link.domain,
                             isExternalLink = false, // 보통 정해진 도메인일거라 false로 기본값을 둠
                             isMoreVisible = false,
-                            linkImageUrl = link.linkuImageUrl ?: "",
+                            linkImageUrl = link.imageUrl ?: "",
                             domainImageUrl = link.domainImageUrl ?: "",
+                            onCardClick = { onLinkClick(link) },
                         )
                     }
                 }
@@ -183,15 +231,14 @@ private fun CurationKeywordLinksScreenLoadingPreview() {
 @Composable
 private fun CurationKeywordLinksScreenPreview() {
     val sampleLinks = List(6) { index ->
-        LinkSimpleInfo(
+        LinkByKeyWord(
             userLinkuId = index.toLong() + 1L,
-            categoryId = CategoryType.PRODUCTIVITY_TOOL.id,
-            memo = null,
-            emotionId = EmotionType.CALM.value,
             title = "오픽 AL 따는 꿀팁 얻고 보러오세요",
+            url = "https://blog.naver.com/example$index",
+            imageUrl = null,
             domain = "BLOG",
             domainImageUrl = null,
-            linkuImageUrl = null,
+            categories = listOf("생산성·툴", "평온"),
             aiArticleExists = index % 2 == 0,
         )
     }

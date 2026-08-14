@@ -69,6 +69,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.AILinkuListViewModel
 import com.linku.mypage.R
 import com.linku.mypage.component.AILinkuItem
@@ -158,6 +159,10 @@ private fun AILinkuListFrame(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+
+    // 시스템 내비게이션 바 뒤로 비치는 상위 Scaffold 배경색을 이 화면의 실제 배경(gray[100])과
+    // 맞춰서, 다른 화면(기본 흰색)과 전환될 때 배경색이 안 맞아 보이는 것을 막음.
+    ReportScaffoldBackground(colors.gray[100])
 
     Column(
         modifier = Modifier

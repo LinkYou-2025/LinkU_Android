@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -36,7 +35,7 @@ internal fun CalendarBox(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 98.scaler) // 피그마 대로 하면 때려죽여도 안 맞춰지기 때문에 임의 삽입
+            .heightIn(min = 84.scaler) // 최대한 피그마와 유사하게 크기 조정함
             .background(
                 color = colorTheme.curationCalendarBoxColor,
                 shape = RoundedCornerShape(size = 22.scaler)
@@ -46,9 +45,9 @@ internal fun CalendarBox(
 
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // 캘린더 아이콘 영역 TODO : 피그마 대비 좀 사이즈가 작아보임. 디자이너와 협의 후 사이즈 조정 필요.
+        // 캘린더 아이콘 영역
         CalendarIconBox(
-            modifier = Modifier.padding(top = 7.scaler)
+            modifier = Modifier.padding(top = 4.scaler)
         )
 
         Spacer(modifier = Modifier.width(15.scaler))

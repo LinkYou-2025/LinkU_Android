@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.linku.design.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
@@ -42,6 +43,8 @@ import com.linku.design.theme.color.Basic
  * @param positiveText 확인 버튼에 표시될 텍스트.
  * @param title 모달 상단에 표시될 강조된 제목 텍스트.
  * @param isLogoDimmed 상단 로고를 연한 이미지로 표시할지 여부. 기본값은 false이며, 이 경우 진한 로고 이미지가 표시됩니다.
+ * @param showLogo 상단 로고 표시 여부. 기본값은 true이며, false면 로고 없이 그만큼(로고+간격) 위쪽
+ * 여백을 넓혀 제목이 로고가 있을 때와 같은 위치에 오도록 함(Figma의 "AI 요약 링크 삭제" 등 로고 없는 변형).
  * @param textBody 모달 중앙에 배치될 사용자 정의 Composable 본문 내용.
  *
  * @see Dialog
@@ -54,6 +57,7 @@ fun ModalWindow(
     positiveText: String,
     title: String,
     isLogoDimmed: Boolean = false,
+    showLogo: Boolean = true,
     textBody: @Composable () -> Unit
 ) {
     ModalWindowScaffold(
@@ -61,6 +65,7 @@ fun ModalWindow(
         onDismiss = onDismiss,
         title = title,
         isLogoDimmed = isLogoDimmed,
+        showLogo = showLogo,
         textBody = textBody
     ) {
         // 버튼이 확인 하나뿐이므로 전체 너비로 확장
@@ -86,6 +91,8 @@ fun ModalWindow(
  * @param negativeText 취소 버튼에 표시될 텍스트.
  * @param title 모달 상단에 표시될 강조된 제목 텍스트.
  * @param isLogoDimmed 상단 로고를 연한 이미지로 표시할지 여부. 기본값은 false이며, 이 경우 진한 로고 이미지가 표시됩니다.
+ * @param showLogo 상단 로고 표시 여부. 기본값은 true이며, false면 로고 없이 그만큼(로고+간격) 위쪽
+ * 여백을 넓혀 제목이 로고가 있을 때와 같은 위치에 오도록 함(Figma의 "AI 요약 링크 삭제" 등 로고 없는 변형).
  * @param textBody 모달 중앙에 배치될 사용자 정의 Composable 본문 내용.
  *
  * @see Dialog
@@ -100,6 +107,7 @@ fun ModalWindow(
     negativeText: String,
     title: String,
     isLogoDimmed: Boolean = false,
+    showLogo: Boolean = true,
     textBody: @Composable () -> Unit
 ) {
     ModalWindowScaffold(
@@ -107,6 +115,7 @@ fun ModalWindow(
         onDismiss = onDismiss,
         title = title,
         isLogoDimmed = isLogoDimmed,
+        showLogo = showLogo,
         textBody = textBody
     ) {
         // 취소/확인 버튼 두 개를 절반씩 나란히 배치
@@ -146,32 +155,51 @@ private fun ModalWindowScaffold(
     onDismiss: () -> Unit,
     title: String,
     isLogoDimmed: Boolean,
+    showLogo: Boolean,
     textBody: @Composable () -> Unit,
     buttons: @Composable () -> Unit
 ) {
     if (visible) {
-        Dialog(onDismissRequest = { onDismiss() }) {
+        // usePlatformDefaultWidth를 꺼서 카드 자체의 fillMaxWidth/widthIn(max)로 반응형 너비를 직접 제어함.
+        // 기본값(true)로 두면 플랫폼이 부여하는 다이얼로그 최대 너비 제약과 겹쳐 큰 화면에서
+        // Figma 시안(372dp 고정 폭)보다 훨씬 넓게 늘어나는 문제가 있었음.
+        Dialog(
+            onDismissRequest = { onDismiss() },
+            properties = DialogProperties(usePlatformDefaultWidth = false)
+        ) {
             Surface(
-                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp)
+                    .widthIn(max = 372.dp),
+                shape = RoundedCornerShape(22.dp),
                 color = Basic.white
             ){
                 Column(
                     modifier = Modifier
-                        .widthIn(min = 372.dp) //TODO : 유지민 - max 지정해주기.
-                        .padding(top = 25.dp, bottom = 28.dp, start = 28.dp, end = 28.dp),
+                        .padding(
+                            // 로고가 없으면(showLogo = false) 로고(37dp)+간격(8.5dp)만큼을 상단
+                            // 패딩에 더해서, 제목이 로고 있을 때와 같은 위치(카드 상단에서 64.5dp)에 오게 함.
+                            top = if (showLogo) 19.dp else 64.5.dp,
+                            bottom = 28.dp,
+                            start = 27.dp,
+                            end = 27.dp
+                        ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 상단 로고 (isLogoDimmed = true일 때 연한 이미지, 기본값(false)일 때 진한 이미지)
-                    Image(
-                        painter = painterResource(
-                            id = if (isLogoDimmed) R.drawable.ic_transparent_logo else R.drawable.ic_logo_color
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .height(32.dp) //TODO : 유지민 - 일요일에 사이즈 체크하기
-                    )
+                    if (showLogo) {
+                        // 상단 로고 (isLogoDimmed = true일 때 연한 이미지, 기본값(false)일 때 진한 이미지)
+                        Image(
+                            painter = painterResource(
+                                id = if (isLogoDimmed) R.drawable.ic_transparent_logo else R.drawable.ic_modal_logo
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .height(37.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(20.dp)) //TODO : 맘대로 수정하기
+                        Spacer(modifier = Modifier.height(8.5.dp))
+                    }
 
                     Text(
                         text = title,
@@ -183,11 +211,11 @@ private fun ModalWindowScaffold(
                         textAlign = TextAlign.Center,
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(7.dp))
 
                     textBody()
 
-                    Spacer(modifier = Modifier.height(28.dp))
+                    Spacer(modifier = Modifier.height(27.dp))
 
                     // 버튼 높이를 고정하지 않고 텍스트 위아래 패딩으로 보장하여 폰트 확대 시에도 잘리지 않도록 함
                     buttons()
@@ -214,7 +242,7 @@ private fun ModalPrimaryButton(
                 shape = RoundedCornerShape(size = 14.dp)
             )
             .noRippleClickable(onClick = onClick)
-            .padding(vertical = 18.dp),
+            .padding(vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -249,7 +277,7 @@ private fun ModalSecondaryButton(
                 shape = RoundedCornerShape(size = 14.dp)
             )
             .noRippleClickable(onClick = onClick)
-            .padding(vertical = 18.dp),
+            .padding(vertical = 14.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
@@ -336,6 +364,30 @@ private fun ModalWindowDimmedLogoPreview() {
     ) {
         Text(
             text = "연한 로고 이미지가 적용된 예시입니다.",
+            fontSize = 15.sp,
+            lineHeight = 22.sp,
+            fontFamily = LocalFontTheme.current.font,
+            fontWeight = FontWeight(400),
+            color = Basic.gray[600],
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "로고 없음 (showLogo = false)")
+@Composable
+private fun ModalWindowNoLogoPreview() {
+    ModalWindow(
+        visible = true,
+        onOkay = {},
+        onDismiss = {},
+        positiveText = "삭제하기",
+        negativeText = "취소하기",
+        title = "해당 링크를 삭제하시겠습니까?",
+        showLogo = false
+    ) {
+        Text(
+            text = "AI 요약이 포함된 링크입니다.\n삭제 시 링크와 요약 내용이 영구적으로 삭제됩니다.",
             fontSize = 15.sp,
             lineHeight = 22.sp,
             fontFamily = LocalFontTheme.current.font,

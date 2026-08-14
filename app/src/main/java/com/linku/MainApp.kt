@@ -14,7 +14,6 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,6 +50,9 @@ import com.linku.deeplink.openDeepLinkUriPattern
 import com.linku.deeplink.parseOpenDeepLinkToken
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.color.CategoryColorStyle
+import com.linku.data.util.toCategoryColorStyleMap
+import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
 import com.linku.file.viewmodel.folder.state.FileNavigationState
@@ -164,6 +166,7 @@ fun MainApp(
     val searchViewModel: SearchViewModel = hiltViewModel()
     val searchUiState by searchViewModel.uiState.collectAsStateWithLifecycle()
     val searchResults = searchViewModel.searchResults
+    val searchVisible by searchViewModel.visible.collectAsStateWithLifecycle()
 
     // 딥링크 접속 시 사용할 뷰모델
     val deepLinkViewModel: DeepLinkHandlerViewModel = hiltViewModel()
@@ -191,8 +194,14 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    // 메모 편집 중에는 카운터가 키보드 상단을 사용할 수 있도록 앱 하단 내비게이션을 숨깁니다.
+    var isSaveLinkMemoImeVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(currentRoute) {
+        if (currentRoute != "savelink") {
+            isSaveLinkMemoImeVisible = false
+        }
+
         if (currentRoute == NavigationRoute.Home.route ||
             currentRoute == NavigationRoute.Curation.route
         ) {
@@ -306,7 +315,7 @@ fun MainApp(
         }
 
         MainScreen(
-            navigationBarProp = if (showNavBar) NavigationBarProp(
+            navigationBarProp = if (showNavBar && !isSaveLinkMemoImeVisible) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
 //                    if (item != currentLinkuNavigationItem) {
@@ -358,6 +367,24 @@ fun MainApp(
             // File은 흰 상태바 아이콘과 검은 내비게이션 아이콘을 서로 독립적으로 유지합니다.
             navigationBarDarkIcons = if (isFileTab) true else null,
             dimmed = shouldDimMyListMenu,
+            searchOverlay = {
+                // 검색 탑 시트 호출을 여기 한 곳으로 통일함. Home/File은 각자 데이터로 배선하지
+                // 않고 onSearchOpen()으로 열기만 요청하며, 실제 상태(visible/쿼리/결과)는
+                // searchViewModel(app 모듈)이 전담함.
+                SearchBarTopSheet(
+                    visible = searchVisible,
+                    onDismiss = searchViewModel::dismissSearch,
+                    onQueryChange = searchViewModel::search,
+                    onQueryDelete = searchViewModel::removeRecentQuery,
+                    onQueryClear = searchViewModel::clearRecentQueries,
+                    onLinkClick = { userLinkuId ->
+                        searchViewModel.dismissSearch()
+                        navigator.navigate(linkDetailRoute(userLinkuId))
+                    },
+                    searchResults = searchResults,
+                    uiState = searchUiState,
+                )
+            },
         ) {
             NavHost(
                 navController = navigator,
@@ -606,13 +633,7 @@ fun MainApp(
 
                         HomeApp(
                             viewModel = homeViewModel,
-                            searchUiState = searchUiState,
-                            searchResults = searchResults,
-                            onSearchQueryChange = searchViewModel::search,
                             onSearchOpen = searchViewModel::openSearch,
-                            onSearchDismiss = searchViewModel::resetSearchResults,
-                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
-                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
@@ -644,13 +665,7 @@ fun MainApp(
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
                             },
-                            searchUiState = searchUiState,
-                            searchResults = searchResults,
-                            onSearchQueryChange = searchViewModel::search,
                             onSearchOpen = searchViewModel::openSearch,
-                            onSearchDismiss = searchViewModel::resetSearchResults,
-                            onSearchHistoryDelete = searchViewModel::removeRecentQuery,
-                            onSearchHistoryClear = searchViewModel::clearRecentQueries,
                         )
                     }
                 }
@@ -852,6 +867,9 @@ fun MainApp(
                                 },
                             )
                         },
+                        onMemoImeVisibilityChanged = { isVisible ->
+                            isSaveLinkMemoImeVisible = isVisible
+                        },
                         toastEvent = linkViewModel.toastEvent,
                     )
                 }
@@ -865,7 +883,6 @@ fun MainApp(
                         }
                     )
                 ) { backStackEntry ->
-                    val vm: HomeViewModel = homeViewModel
                     val context = LocalContext.current
                     val detailCoroutineScope = rememberCoroutineScope()
                     val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
@@ -891,7 +908,7 @@ fun MainApp(
 
                     LaunchedEffect(userLinkuId) {
                         linkViewModel.loadLinkDetail(userLinkuId)
-                        vm.loadCategoryColors()
+                        linkViewModel.loadLinkEditCategories()
                     }
 
                     fun emotionNameOf(id: Long?): String {
@@ -906,47 +923,30 @@ fun MainApp(
                         }
                     }
 
-                    // TODO: 카테고리 API 연동 후 categoryId 기준 실제 카테고리명/색상 매핑으로 교체
-                    val CATEGORY_MAP = linkedMapOf(
-                        1L to "어학",
-                        2L to "뉴스",
-                        3L to "공부법",
-                        4L to "IT·개발",
-                        5L to "자기계발",
-                        6L to "취업·이직",
-                        7L to "비즈니스 인사이트",
-                        8L to "생산성·툴",
-                        9L to "라이프스타일",
-                        10L to "심리·자기이해",
-                        11L to "에세이·칼럼",
-                        12L to "트렌드",
-                        13L to "디자인·예술",
-                        14L to "영상·뮤직",
-                        15L to "맛집·여행",
-                        16L to "기타"
-                    )
+                    val linkEditCategories = linkUiState.linkEditCategories
+                    val fallbackCategoryColorStyle = CategoryColorStyle.DEFAULT
 
-                    fun categoryNameOf(id: Long?): String {
-                        return CATEGORY_MAP[id] ?: "카테고리"
+                    // 기존 공통 매핑을 읽기 전용으로 재사용해 서버의 네 가지 색상 단계를 보존합니다.
+                    val categoryColorMap = remember(linkEditCategories) {
+                        runCatching {
+                            linkEditCategories.toCategoryColorStyleMap()
+                        }.getOrDefault(emptyMap())
                     }
 
-                    fun categoryIdOf(name: String): Long? {
-                        return CATEGORY_MAP.entries
-                            .firstOrNull { it.value == name }
-                            ?.key
-                    }
-
-                    // 색상 맵 수집
-                    val categoryColorMap = vm.categoryColorMap.collectAsState().value
-
-                    val categoryOptions = categoryColorMap.mapNotNull { (name, style) ->
-                        val id = categoryIdOf(name) ?: return@mapNotNull null
-
-                        LinkCategoryOption(
-                            id = id,
-                            name = name,
-                            color = style.color4
-                        )
+                    // 원본 목록 순서와 실제 ID를 유지하면서 이름과 색상 스타일을 UI 항목으로 묶습니다.
+                    val categoryOptions = remember(
+                        linkEditCategories,
+                        categoryColorMap,
+                        fallbackCategoryColorStyle,
+                    ) {
+                        linkEditCategories.map { category ->
+                            LinkCategoryOption(
+                                id = category.categoryId,
+                                name = category.categoryName,
+                                colorStyle = categoryColorMap[category.categoryName]
+                                    ?: fallbackCategoryColorStyle,
+                            )
+                        }
                     }
 
                     val linkDetail = linkUiState.linkDetail
@@ -964,7 +964,7 @@ fun MainApp(
                     LinkDetailScreen(
                         userLinkuId = userLinkuId,
                         linkTitle = linkDetail?.title.orEmpty(),
-                        category = categoryNameOf(linkDetail?.categoryId),
+                        categoryId = linkDetail?.categoryId,
                         emotion = emotionNameOf(linkDetail?.emotionId),
                         situationId = linkDetail?.situationId,
                         linkUrl = linkDetail?.linku.orEmpty(),
@@ -984,6 +984,9 @@ fun MainApp(
                         },
                         onPickImage = {
                             detailImagePicker.launch("image/*")
+                        },
+                        onDiscardSelectedImage = {
+                            selectedDetailImageUri = null
                         },
                         onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
                             detailCoroutineScope.launch {
@@ -1134,6 +1137,15 @@ fun MainApp(
                     }
                 }
             } // NavHost 끝
+
+            // 검색 탑 시트가 열려있을 때 뒤로가기를 최우선으로 가로채 검색창만 닫음.
+            // Scaffold의 content 슬롯(NavHost 포함)은 SubcomposeLayout이라 여기서 등록하는
+            // 콜백이 NavHost 내부의 기본 뒤로가기(스택 pop)보다 항상 나중에 붙어 우선권을 가짐.
+            // searchOverlay()는 Scaffold 바깥의 일반 컴포지션이라 그보다 먼저 등록되어
+            // NavHost의 기본 pop에 밀렸었음 — 그래서 여기(NavHost와 같은 서브컴포지션, 그 뒤)에 둠.
+            BackHandler(enabled = searchVisible) {
+                searchViewModel.dismissSearch()
+            }
 
             // 바텀탭의 루트 라우트인지 판정 (바텀바가 보일 때만)
 //            val isAtTabRoot = showNavBar && when (currentRoute) {

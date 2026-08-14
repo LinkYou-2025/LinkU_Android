@@ -48,8 +48,16 @@ sealed class ThemeColorScheme(
         800 to Color(0xFF43454B),
     ),
 
+    // 스크롤바 색상
+    val scrollColor: Color = Color(0xFFD9D9D9),
+
     // 비활성화용 단색 브러시 추가 -로그인, 회원가입용
     val inactiveColor: Brush = SolidColor(gray[300]),
+
+    // 링큐 비활성화 그라데이션
+    val linkuInactiveGradient: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
+    ),
 
     // 감정 선택 칩 배경 그라데이션 (선택 상태)
     val selectedChipGradient: Brush = Brush.horizontalGradient(
@@ -70,6 +78,9 @@ sealed class ThemeColorScheme(
     val accentColor: Color = Color(0xFFC800FF),
     // 회원가입 그림자용
     val shadowColor: Color = Color(0x1A7C7C7C),
+
+    /** 링크 아이템 삭제 메뉴의 그림자에 사용하는 기본 색상입니다. */
+    val deleteLinkItemModalShadowColor: Color = Color(0xFF7C7C7C),
 
     // 구글 로그인 버튼 컬러용
     val googleLoginColor: Color = Color(0xFF1F1F1F),
@@ -105,7 +116,11 @@ sealed class ThemeColorScheme(
 
     //큐레이션 1번 카드 상세 그라데이션
     val curationFirstCardBackground: Brush = Brush.verticalGradient(
-        listOf(Color(0xFFFFFFFF), Color(0xFFE5EDFF))
+        colorStops = arrayOf(
+            0.0f to Color(0xFFFFFFFF).copy(alpha = 0.4f),
+            0.6f to Color(0xFFFFFFFF).copy(alpha = 0.4f),
+            1.0f to Color(0xFFE5EDFF)
+        )
     ),
 
     // 큐레이션 키워드 칩 텍스트 컬러 (HIGH, MIDDLE)

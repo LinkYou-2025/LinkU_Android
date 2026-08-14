@@ -1,5 +1,6 @@
 package com.linku.design.top.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -29,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +65,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.color.Basic
+import com.linku.design.util.LocalStatusBarDarkIcons
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
@@ -131,6 +134,19 @@ fun SearchBarTopSheet(
     // 기본적으로 수정 모드는 꺼져있음
     var isEditMode by remember { mutableStateOf(false) }
 
+    // 흰 배경 탑 시트가 상태바까지 덮으므로, 열려있는 동안은 상태바 아이콘을 검정으로 고정.
+    // 닫히면 이 화면 밑에 깔린 화면(File 탭 등)이 원래 쓰던 값으로 복귀시킴.
+    val statusBarDarkIcons = LocalStatusBarDarkIcons.current
+    DisposableEffect(visible) {
+        val previousDarkIcons = statusBarDarkIcons.value
+        if (visible) {
+            statusBarDarkIcons.value = true
+        }
+        onDispose {
+            statusBarDarkIcons.value = previousDarkIcons
+        }
+    }
+
     /**
      * 공통 초기화 + 닫기 처리
      * (뒤로가기 / 딤 클릭 / 닫기 버튼에서 중복 제거)
@@ -147,6 +163,11 @@ fun SearchBarTopSheet(
         if (!visible) {
             resetAndDismiss()
         }
+    }
+
+    // 검색창이 열려있을 때 안드로이드 뒤로가기 버튼을 가로채 검색창을 닫음
+    BackHandler(enabled = visible) {
+        resetAndDismiss()
     }
 
     /**
@@ -483,9 +504,8 @@ fun SearchBarTopSheet(
                                     singleLine = true,
                                     decorationBox = { innerTextField ->
                                         Box(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .align(Alignment.CenterVertically)
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.CenterStart,
                                         ) {
                                             // 입력값이 없을 때만 placeholder 보임
                                             if (text.isEmpty()) {

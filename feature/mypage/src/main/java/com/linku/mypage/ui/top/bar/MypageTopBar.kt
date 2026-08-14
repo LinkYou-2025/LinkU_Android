@@ -4,7 +4,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
@@ -221,7 +220,7 @@ fun MypageTopBar(
                         .background(colors.backgroundmaincolor)
                         .border(
                             1.dp,
-                            colors.inactiveColor,
+                            colors.linkuInactiveGradient,
                             RoundedCornerShape(14.dp)
                         )
                         .padding(vertical = 14.dp)
@@ -233,7 +232,7 @@ fun MypageTopBar(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(R.drawable.ic_sparkle),
+                            painter = painterResource(R.drawable.ic_sparkle_blue),
                             contentDescription = null,
                             modifier = Modifier.size(11.31.dp, 13.21.dp)
                         )

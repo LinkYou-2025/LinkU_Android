@@ -43,6 +43,11 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchBarUiState())
     val uiState: StateFlow<SearchBarUiState> = _uiState.asStateFlow()
 
+    // 검색 탑 시트 가시성. Home/File 등 화면은 이 상태를 직접 갖지 않고 openSearch()/dismissSearch()로만
+    // 열고 닫으며, 실제 렌더링은 app 모듈(MainScreen)에서 한 곳으로 통일해서 처리함.
+    private val _visible = MutableStateFlow(false)
+    val visible: StateFlow<Boolean> = _visible.asStateFlow()
+
     private val searchQuery = MutableStateFlow("")
     val searchResults: Flow<PagingData<SearchResultItem>> =
         searchQuery
@@ -84,8 +89,14 @@ class SearchViewModel @Inject constructor(
     private var historyGeneration: Long = 0L
 
     fun openSearch() {
+        _visible.value = true
         resetSearchResults()
         loadRecentQueries()
+    }
+
+    fun dismissSearch() {
+        _visible.value = false
+        resetSearchResults()
     }
 
     fun search(rawKeyword: String) {
@@ -145,6 +156,7 @@ class SearchViewModel @Inject constructor(
         activeHistoryActionCount = 0
         searchQuery.value = ""
         _uiState.value = SearchBarUiState()
+        _visible.value = false
     }
 
     /**

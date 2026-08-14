@@ -9,8 +9,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 /**
  * 마크다운 형식의 텍스트를 구조화된 레이아웃으로 렌더링하는 컴포저블 함수입니다.
@@ -94,4 +96,25 @@ fun LinkUMarkdownText(
             }
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LinkUMarkdownTextPreview() {
+    LinkUMarkdownText(
+        modifier = Modifier.padding(16.dp),
+        text = """
+            마크다운 텍스트를 렌더링합니다.
+            
+            * 첫 번째 항목입니다.
+            * 두 번째 항목입니다.
+            * 세 번째 항목입니다.
+            
+            1. Android
+            2. Kotlin
+            3. Jetpack Compose
+        """.trimIndent(),
+        color = Color.Black,
+        fontSize = 16.sp,
+    )
 }

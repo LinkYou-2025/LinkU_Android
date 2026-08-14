@@ -7,12 +7,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.linku.design.top.search.SearchBarUiState
-import com.linku.design.top.search.SearchResultItem
 import com.linku.home.screen.HomeScreen
-import kotlinx.coroutines.flow.Flow
 
 @Composable
 fun HomeApp(
@@ -22,13 +18,7 @@ fun HomeApp(
     onNavigateToSaveLink: (String) -> Unit,
     onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
     onNavigateToAlarm: () -> Unit,
-    searchUiState: SearchBarUiState,
-    searchResults: Flow<PagingData<SearchResultItem>>,
-    onSearchQueryChange: (String) -> Unit,
     onSearchOpen: () -> Unit,
-    onSearchDismiss: () -> Unit,
-    onSearchHistoryDelete: (Long) -> Unit,
-    onSearchHistoryClear: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
     val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
@@ -60,13 +50,7 @@ fun HomeApp(
                 onLinkClick = onNavigateToLinkDetail,
                 onNavigateToSaveLink = onNavigateToSaveLink,
                 onAlarmClick = onNavigateToAlarm,
-                searchUiState = searchUiState,
-                searchResults = searchResults,
-                onSearchQueryChange = onSearchQueryChange,
                 onSearchOpen = onSearchOpen,
-                onSearchDismiss = onSearchDismiss,
-                onSearchHistoryDelete = onSearchHistoryDelete,
-                onSearchHistoryClear = onSearchHistoryClear,
             )
         }
     }

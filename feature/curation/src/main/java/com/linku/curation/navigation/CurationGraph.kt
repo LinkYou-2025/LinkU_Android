@@ -16,6 +16,7 @@ import com.linku.curation.ui.screen.CurationScreen
 import com.linku.curation.ui.screen.MonthlyCurationScreen
 import com.linku.curation.viewModel.CurationDetailViewModel
 import com.linku.curation.viewModel.CurationHistoryViewModel
+import com.linku.curation.viewModel.CurationKeywordLinksViewModel
 import com.linku.curation.viewModel.CurationKeywordViewModel
 import com.linku.curation.viewModel.CurationRemindViewModel
 import com.linku.curation.viewModel.CurationViewModel
@@ -101,14 +102,14 @@ fun NavGraphBuilder.curationGraph(
         arguments = listOf(navArgument("keyword") { type = NavType.StringType })
     ) { backStackEntry ->
         showNavBar(false)
-        val keyword = backStackEntry.arguments?.getString("keyword")
-            ?.let { Uri.decode(it) }
-            .orEmpty()
+        val keyword = backStackEntry.arguments?.getString("keyword").orEmpty()
+        val viewModel = hiltViewModel<CurationKeywordLinksViewModel>()
 
         CurationKeywordLinksScreen(
             keyword = keyword,
-            nickname = nickname,
-            onBack = { navigator.popBackStack() }
+            viewModel = viewModel,
+            onBack = { navigator.popBackStack() },
+            onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
         )
     }
 

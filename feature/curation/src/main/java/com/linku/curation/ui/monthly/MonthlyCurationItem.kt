@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import coil3.compose.AsyncImage
@@ -57,13 +58,44 @@ internal fun MonthlyCurationItem(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.matchParentSize()
             )
-        }
 
-        Image(
-            painter = resolveMonthNumberIcon(month),
-            contentDescription = "${month}월",
-            modifier = Modifier.height(31.11111f.scaler)
-        )
+            // Figma의 Group 2085670159와 동일하게
+            // #000208 오버레이와 월 숫자를 하나의 그룹으로 묶고 그룹 전체에 50% 투명도를 적용
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        alpha = 0.5f
+                    }
+            ) {
+                // Figma Rectangle의 Fill: #000208
+                Box(
+                    modifier = Modifier
+                        .matchParentSize()
+                        .background(colorTheme.black)
+                )
+
+                // Figma Group 내부의 월 숫자
+                // 이미지가 있는 월
+                Image(
+                    painter = resolveMonthNumberIcon(month),
+                    contentDescription = "${month}월",
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .height(31.11111f.scaler)
+                )
+            }
+        } else {
+            // 이미지가 없는 월은 Figma의 그룹 투명도 영향을 받지 않도록
+            // 숫자를 별도로 표시하여 선명하게 유지
+            Image(
+                painter = resolveMonthNumberIcon(month),
+                contentDescription = "${month}월",
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .height(31.11111f.scaler)
+            )
+        }
     }
 }
 

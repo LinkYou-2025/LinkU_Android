@@ -38,10 +38,10 @@ internal fun CurationEmotionChip(
                 color = colorTheme.blue[200],
                 shape = RoundedCornerShape(10.dp)
             )
-            .padding(horizontal = 8.dp, vertical = 10.dp)
+            .padding(horizontal = 8.dp, vertical = 6.dp)
     ) {
         Text(
-            text = text,
+            text = "#${text.trimStart('#')}",
             fontSize = 13.sp,
             lineHeight = 15.sp,
             fontWeight = FontWeight(400),

@@ -4,6 +4,7 @@ import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.curation.CurationDetailDTO
 import com.linku.data.api.dto.server.curation.HistoryDTO
 import com.linku.data.api.dto.server.curation.KeywordDTO
+import com.linku.data.api.dto.server.curation.LinkByKeyWordDTO
 import com.linku.data.api.dto.server.curation.MyLatestCurationDTO
 import com.linku.data.api.dto.server.curation.MyTopTagDTO
 import com.linku.data.api.dto.server.curation.RecommendLinkDTO
@@ -58,5 +59,11 @@ interface CurationApi {
         @Query("month") month: String,
         @Query("limit") limit: Int = 10,
     ): BaseResponse<List<KeywordDTO>>
+
+    // 키워드 태그 -> 링크 목록 조회
+    @GET("keywords/{keyword}/linkus")
+    suspend fun getLinksByKeyword(
+        @Path("keyword") keyword: String,
+    ): BaseResponse<List<LinkByKeyWordDTO>>
 
 }

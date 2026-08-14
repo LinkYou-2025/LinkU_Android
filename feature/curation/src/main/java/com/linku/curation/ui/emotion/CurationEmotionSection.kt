@@ -48,7 +48,7 @@ internal fun CurationEmotionSection(
 
     Column(modifier = modifier) {
         Text(
-            text = "${month}월 상황/감정 요약",
+            text = "${month}월 감정/상황 요약",
             style = LocalTextStyle.current.copy(
                 brush = colorTheme.emotionTitleGradient,
                 fontSize = 18.sp,

@@ -30,16 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.paging.PagingData
 import com.linku.core.error.SameNameException
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
-import com.linku.design.top.search.SearchBarUiState
-import com.linku.design.top.search.SearchBarTopSheet
-import com.linku.design.top.search.SearchResultItem
 import com.linku.file.ui.FileFab
 import com.linku.file.ui.ShareMenuItem
 import com.linku.file.ui.bottom.sheet.CategoryEditBottomSheet
@@ -70,8 +66,6 @@ import com.linku.file.viewmodel.leave.state.LeaveStateViewModel
 import com.linku.file.viewmodel.shared.state.SharedFolderLeaveState
 import com.linku.file.viewmodel.shared.state.SharedFolderLoadState
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 private const val FILE_FAB_EDIT_FOLDER_ID = "edit-folder"
@@ -96,13 +90,7 @@ private data class PendingSharedFolderLeave(
  * @param leaveStateViewModel 공유폴더 나가기 대상 선택 모드를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
  * @param onLinkClick 상세 화면을 열 사용자 링크 ID를 전달하는 콜백
- * @param searchUiState 검색 기록과 검색 UI 상태
- * @param searchResults 검색 결과 페이징 데이터
- * @param onSearchQueryChange 검색어 변경 콜백
  * @param onSearchOpen 검색 UI가 열릴 때 호출되는 콜백
- * @param onSearchDismiss 검색 UI가 닫힐 때 호출되는 콜백
- * @param onSearchHistoryDelete 개별 검색 기록 삭제 콜백
- * @param onSearchHistoryClear 전체 검색 기록 삭제 콜백
  */
 @Composable
 fun FileScreen(
@@ -112,13 +100,7 @@ fun FileScreen(
     leaveStateViewModel: LeaveStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onLinkClick: (Long) -> Unit,
-    searchUiState: SearchBarUiState,
-    searchResults: Flow<PagingData<SearchResultItem>>,
-    onSearchQueryChange: (String) -> Unit,
     onSearchOpen: () -> Unit,
-    onSearchDismiss: () -> Unit,
-    onSearchHistoryDelete: (Long) -> Unit,
-    onSearchHistoryClear: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
     val context = LocalContext.current
@@ -212,6 +194,14 @@ fun FileScreen(
         folderStateViewModel.updateShareBottomSheetVisible(false)
         fileViewModel.cancelShareBottomSheetSession()
     }
+    val openSearch = {
+        leaveStateViewModel.updateLeaveMode(false)
+        fileFabExpanded = false
+        detailMenuExpanded = false
+        pendingSharedFolderLeave = null
+        leaveDialogVisible = false
+        onSearchOpen()
+    }
 
     LaunchedEffect(navigationState) {
         noLeaveNotice = null
@@ -259,22 +249,17 @@ fun FileScreen(
     }
 
     LaunchedEffect(
-        folderStateViewModel.searchTopSheetVisible,
         folderStateViewModel.topFolderEditBottomSheetVisible,
         folderStateViewModel.newFolderBottomSheetVisible,
         folderStateViewModel.bottomFolderEditBottomSheetVisible,
         folderStateViewModel.linkCategorizationBottomSheetVisible,
     ) {
         if (
-            folderStateViewModel.searchTopSheetVisible ||
             folderStateViewModel.topFolderEditBottomSheetVisible ||
             folderStateViewModel.newFolderBottomSheetVisible ||
             folderStateViewModel.bottomFolderEditBottomSheetVisible ||
             folderStateViewModel.linkCategorizationBottomSheetVisible
         ) {
-            if (folderStateViewModel.searchTopSheetVisible) {
-                leaveStateViewModel.updateLeaveMode(false)
-            }
             fileFabExpanded = false
             detailMenuExpanded = false
             pendingSharedFolderLeave = null
@@ -391,10 +376,7 @@ fun FileScreen(
                     folderStateViewModel = folderStateViewModel,
                     parentFolderSort = parentFolderSort,
                     onParentFolderSortSelected = fileViewModel::updateParentFolderSort,
-                    onSearchClick = {
-                        folderStateViewModel.updateSearchTopSheetVisible(true)
-                        onSearchOpen()
-                    },
+                    onSearchClick = openSearch,
                     personalScopeLabel = personalScopeLabel,
                     sharedScopeLabel = sharedScopeLabel,
                     sharedListScopeLabel = if (
@@ -845,29 +827,6 @@ fun FileScreen(
     )
 
     // ---------- bottom sheets ----------
-
-    // 검색창 탑 시트
-    SearchBarTopSheet(
-        visible = folderStateViewModel.searchTopSheetVisible,
-        onLinkClick = { linkId ->
-            if (folderStateViewModel.searchTopSheetVisible) {
-                folderStateViewModel.updateSearchTopSheetVisible(false)
-                onSearchDismiss()
-            }
-            onLinkClick(linkId)
-        },
-        onDismiss = {
-            if (folderStateViewModel.searchTopSheetVisible) {
-                folderStateViewModel.updateSearchTopSheetVisible(false)
-                onSearchDismiss()
-            }
-        },
-        onQueryChange = onSearchQueryChange,
-        onQueryDelete = onSearchHistoryDelete,
-        onQueryClear = onSearchHistoryClear,
-        searchResults = searchResults,
-        uiState = searchUiState,
-    )
 }
 
 @Preview(
@@ -878,13 +837,7 @@ fun FileScreen(
 @Composable
 private fun PreviewFileScreen() {
     FileScreen(
-        searchUiState = SearchBarUiState(),
-        searchResults = flowOf(PagingData.empty<SearchResultItem>()),
         onLinkClick = {},
-        onSearchQueryChange = {},
         onSearchOpen = {},
-        onSearchDismiss = {},
-        onSearchHistoryDelete = {},
-        onSearchHistoryClear = {},
     )
 }

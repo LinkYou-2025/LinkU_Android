@@ -1,8 +1,15 @@
 package com.linku.home.viewmodel
 
+import com.linku.core.model.CategoryColorList
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.TempImageFile
 
+/**
+ * 링크 저장과 상세·수정 화면에서 사용하는 상태를 보관합니다.
+ *
+ * @property linkEditCategories 링크 수정 카테고리 드롭다운에 표시할 서버 카테고리 목록입니다.
+ * @property isLoadingLinkEditCategories 링크 수정용 카테고리 목록을 불러오는 중인지 나타냅니다.
+ */
 data class LinkUiState(
     val saveImage: TempImageFile?,
     val saveUrl: String,
@@ -16,6 +23,8 @@ data class LinkUiState(
     val isLoadingLinkDetail: Boolean,
     val isUpdatingLink: Boolean,
     val isDeletingLink: Boolean,
+    val linkEditCategories: List<CategoryColorList> = emptyList(),
+    val isLoadingLinkEditCategories: Boolean = false,
 ) {
     val isSaveButtonEnabled: Boolean
         get() = saveUrl.isNotBlank() && !isSaving

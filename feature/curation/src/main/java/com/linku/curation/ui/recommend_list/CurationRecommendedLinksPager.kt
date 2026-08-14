@@ -19,6 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import com.linku.design.modifier.dropShadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,9 +35,11 @@ import com.linku.design.util.scaler
 
 //인디케이터 도트는 최대 이 개수만큼만 보여줌
 private const val MAX_INDICATOR_DOTS = 9
+
 // 기획상으로 9개씩 제공해주는 것으로 알고 있는데 혹시 모를 이슈 대응을 위해 1~9개까지 대응되게 구현했습니다.
 //추후 9개 이상도 가능하게 확장성 고려했습니다. 나중에 숫자 변경을 하면 됩니다.
 // 현재 스웨거상 4개 내려주는 것을 확인해서 유동적으로 사용할 수 있게 확장해서 짰습니다:)
+private const val MAX_LINKS_PER_PAGE = 3
 
 /**
  * 큐레이션 카드 상세(#42-1)의 "추천 링크" 섹션.
@@ -58,7 +63,14 @@ fun CurationRecommendedLinksPager(
     if (links.isEmpty()) return
 
     val colorTheme = MaterialTheme.linkuColors
-    val pages = remember(links, linksPerPage) { links.chunked(linksPerPage) }
+
+    // 한 페이지에 최대 3개의 카드 영역을 유지
+    val actualLinksPerPage = linksPerPage.coerceIn(1, MAX_LINKS_PER_PAGE)
+
+    val pages = remember(links, actualLinksPerPage) {
+        links.chunked(actualLinksPerPage)
+    }
+
     val pagerState = rememberPagerState(pageCount = { pages.size })
 
     Column(
@@ -80,14 +92,36 @@ fun CurationRecommendedLinksPager(
 
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            pageSpacing = 10.dp
         ) { page ->
-            Column(verticalArrangement = Arrangement.spacedBy(10.scaler)) {
-                pages[page].forEach { link ->
+            val pageLinks = pages[page]
+
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.scaler)
+            ) {
+                pageLinks.forEach { link ->
                     RecommendedLinkCardItem(
                         link = link,
                         onClick = onLinkClick,
                     )
+                }
+
+                // 3개보다 적은 경우에도 3번째 카드가 차지할 영역을 유지
+                // 실제 카드의 높이를 사용하므로 기기별 카드 크기 차이에 대응 가능
+                if (pageLinks.isNotEmpty()) {
+                    val placeholderLink = pageLinks.last()
+
+                    repeat(actualLinksPerPage - pageLinks.size) {
+                        Box(
+                            modifier = Modifier.alpha(0f)
+                        ) {
+                            RecommendedLinkCardItem(
+                                link = placeholderLink,
+                                onClick = {},
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -143,17 +177,24 @@ private fun RecommendedLinkCardItem(
     link: RecommendLink,
     onClick: (RecommendLink) -> Unit,
 ) {
-    //LinkCardItem은 지현이가 구현해서 여기서 궁금한거 있으면 그녀에게...
+    val isExternalLink = link.type is LinkType.External
+
     LinkCardItem(
         hasAiSummary = false,
         linkTitle = link.title,
         tags = link.categories.take(2),
-        domainName = link.domain,
-        isExternalLink = link.type is LinkType.External,
+        domainName = if (isExternalLink && link.domain.isBlank()) "웹사이트" else link.domain,
+        isExternalLink = isExternalLink,
         isMoreVisible = false,
         linkImageUrl = link.imageUrl,
         domainImageUrl = link.domainImageUrl,
         onCardClick = { onClick(link) },
+        modifier = Modifier.dropShadow(
+            shape = RoundedCornerShape(18.dp),
+            color = Color(0x08000000), // rgba(0,0,0,0.03)
+            blur = 15.dp,
+            offsetY = 4.dp,
+        ),
     )
 }
 

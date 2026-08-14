@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -27,16 +28,22 @@ fun NoticeTitleSection(
     ) {
         Text(
             text = title,
-            fontSize = 16.sp,
-            fontWeight = FontWeight(500),
+            style = LocalTextStyle.current.copy(
+                fontSize = 16.sp,
+                fontWeight = FontWeight(500),
+                lineHeight = 20.sp
+            )
         )
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(6.dp))
 
         Text(
             text = noticeDate,
-            fontSize = 12.sp,
-            fontWeight = FontWeight(300)
+            style = LocalTextStyle.current.copy(
+                fontSize = 12.sp,
+                fontWeight = FontWeight(300),
+                lineHeight = 20.sp
+            )
         )
     }
 }
