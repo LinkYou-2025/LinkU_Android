@@ -3,15 +3,16 @@ package com.linku.data.mapper
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
+import java.time.ZoneOffset
 
 class StringExtTest {
 
     @Test
     fun `방금 전 테스트`() {
         val now = Instant.parse("2026-01-01T00:10:00Z")
-        val input = "2026-01-01T00:09:30Z"
+        val input = "2026-01-01T00:09:30"
 
-        val result = input.toRelativeTime(now)
+        val result = input.toRelativeTime(now, ZoneOffset.UTC)
 
         assertEquals("방금 전", result)
     }
@@ -19,9 +20,9 @@ class StringExtTest {
     @Test
     fun `분 전 테스트`() {
         val now = Instant.parse("2026-01-01T00:10:00Z")
-        val input = "2026-01-01T00:05:00Z"
+        val input = "2026-01-01T00:05:00"
 
-        val result = input.toRelativeTime(now)
+        val result = input.toRelativeTime(now, ZoneOffset.UTC)
 
         assertEquals("5분 전", result)
     }
@@ -29,9 +30,9 @@ class StringExtTest {
     @Test
     fun `시간 전 테스트`() {
         val now = Instant.parse("2026-01-01T03:00:00Z")
-        val input = "2026-01-01T01:00:00Z"
+        val input = "2026-01-01T01:00:00"
 
-        val result = input.toRelativeTime(now)
+        val result = input.toRelativeTime(now, ZoneOffset.UTC)
 
         assertEquals("2시간 전", result)
     }
@@ -39,9 +40,9 @@ class StringExtTest {
     @Test
     fun `일 전 테스트`() {
         val now = Instant.parse("2026-01-05T00:00:00Z")
-        val input = "2026-01-03T00:00:00Z"
+        val input = "2026-01-03T00:00:00"
 
-        val result = input.toRelativeTime(now)
+        val result = input.toRelativeTime(now, ZoneOffset.UTC)
 
         assertEquals("2일 전", result)
     }

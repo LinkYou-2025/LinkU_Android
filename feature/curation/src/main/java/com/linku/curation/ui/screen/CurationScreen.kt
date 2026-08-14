@@ -129,7 +129,6 @@ fun CurationScreen(
         }
     }
 }
-
 @Composable
 private fun CurationScreenContent(
     modifier: Modifier = Modifier,
@@ -242,4 +241,3 @@ private fun CurationScreenContentPreview() {
         )
     }
 }
-

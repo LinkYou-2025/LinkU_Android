@@ -7,10 +7,6 @@ import com.linku.core.model.FolderSimpleInfo
 import com.linku.core.model.LinkItemInfo
 import com.linku.core.model.SharedFolderInfo
 import com.linku.core.model.SharedFolderSimpleInfo
-import com.linku.core.util.caller.getCaller
-import com.linku.core.util.logging.LinkuLog
-import com.linku.core.util.logging.d
-import com.linku.core.util.logging.e
 import com.linku.data.api.dto.folder.FolderDTO
 import com.linku.data.api.dto.folder.FolderListResponseDTO
 import com.linku.data.api.dto.folder.FolderPermissionRequestDTO
@@ -28,17 +24,7 @@ import com.linku.data.api.dto.folder.ViewerResponseDTO
  * @receiver API 값으로 변환할 폴더 권한
  * @return 권한 이름을 소문자로 변환한 문자열
  */
-fun FolderPermission.toApiValue(): String {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) { "permission: $this" }
-
-    val apiValue = name.lowercase()
-
-    LinkuLog.d(caller) { "apiValue: $apiValue" }
-
-    return apiValue
-}
+fun FolderPermission.toApiValue(): String = name.lowercase()
 
 /**
  * 권한 문자열을 대소문자 구분 없이 [FolderPermission]으로 변환합니다.
@@ -49,23 +35,11 @@ fun FolderPermission.toApiValue(): String {
  * @return 변환된 폴더 권한 또는 일치하는 권한이 없을 때 [FolderPermission.NONE]
  */
 fun String.toFolderPermission(): FolderPermission {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) { "string: $this" }
-
-    val permission = try{
-        LinkuLog.d(caller) {"Enter try"}
-
+    return try {
         FolderPermission.valueOf(this.uppercase())
-    } catch (e: Exception){
-        LinkuLog.e(caller, e) {"Enter catch"}
-
+    } catch (_: Exception) {
         FolderPermission.NONE
     }
-
-    LinkuLog.d(caller) {"permission: $permission"}
-
-    return permission
 }
 
 /**
@@ -74,17 +48,8 @@ fun String.toFolderPermission(): FolderPermission {
  * @receiver 요청 DTO로 변환할 폴더 권한
  * @return 소문자 API 권한 값을 포함한 요청 DTO
  */
-fun FolderPermission.toRequestDto(): FolderPermissionRequestDTO {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) { "permission: $this" }
-
-    val requestDto = FolderPermissionRequestDTO(permission = toApiValue())
-
-    LinkuLog.d(caller) { "requestPermission: ${requestDto.permission}" }
-
-    return requestDto
-}
+fun FolderPermission.toRequestDto(): FolderPermissionRequestDTO =
+    FolderPermissionRequestDTO(permission = toApiValue())
 
 /**
  * 상위 폴더 응답 DTO를 간단한 폴더 도메인 모델로 변환합니다.
@@ -95,25 +60,12 @@ fun FolderPermission.toRequestDto(): FolderPermissionRequestDTO {
  * @return 상위 폴더 정보가 반영된 [FolderSimpleInfo]
  */
 fun GetParentFoldersDTO.toDomain(): FolderSimpleInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "GetParentFoldersDTO folderId: $folderId, parentFolderId: $parentFolderId"
-    }
-
-    val folderInfo = FolderSimpleInfo(
+    return FolderSimpleInfo(
         folderId = folderId,
         folderName = folderName,
         parentFolderId = parentFolderId ?: 0,
         isBookmarked = isBookmarked
     )
-
-    LinkuLog.d(caller) {
-        "FolderSimpleInfo folderId: ${folderInfo.folderId}, " +
-            "parentFolderId: ${folderInfo.parentFolderId}"
-    }
-
-    return folderInfo
 }
 
 /**
@@ -126,28 +78,13 @@ fun GetParentFoldersDTO.toDomain(): FolderSimpleInfo {
  * @return 상위 폴더 ID와 공유 상태가 반영된 [FolderSimpleInfo]
  */
 fun FolderListResponseDTO.toDomain(parentFolderIdFallback: Long): FolderSimpleInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "FolderListResponseDTO folderId: $folderId, "+
-                "parentFolderId: $parentFolderId, " +
-                "parentFolderIdFallback: $parentFolderIdFallback"
-    }
-
-    val folderInfo = FolderSimpleInfo(
+    return FolderSimpleInfo(
         folderId = folderId,
         folderName = folderName,
         parentFolderId = parentFolderId ?: parentFolderIdFallback,
         isBookmarked = isBookmarked,
         isSharing = isSharing
     )
-
-    LinkuLog.d(caller) {
-        "FolderSimpleInfo folderId: ${folderInfo.folderId}, " +
-            "parentFolderId: ${folderInfo.parentFolderId}"
-    }
-
-    return folderInfo
 }
 
 /**
@@ -158,26 +95,13 @@ fun FolderListResponseDTO.toDomain(parentFolderIdFallback: Long): FolderSimpleIn
  * @return 전달받은 상위 폴더 ID가 반영된 [FolderSimpleInfo]
  */
 fun FolderDTO.toDomain(parentFolderId: Long): FolderSimpleInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "FolderDTO folderId: $folderId, parentFolderId: $parentFolderId"
-    }
-
-    val folderInfo = FolderSimpleInfo(
+    return FolderSimpleInfo(
         folderId = folderId,
         folderName = folderName,
         parentFolderId = parentFolderId,
         isBookmarked = isBookmarked,
         isSharing = isSharing
     )
-
-    LinkuLog.d(caller) {
-        "FolderSimpleInfo folderId: ${folderInfo.folderId}, " +
-            "parentFolderId: ${folderInfo.parentFolderId}"
-    }
-
-    return folderInfo
 }
 
 /**
@@ -190,13 +114,7 @@ fun FolderDTO.toDomain(parentFolderId: Long): FolderSimpleInfo {
  * @return 정리된 태그와 상위 폴더 ID가 반영된 [LinkItemInfo]
  */
 fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "LinkDTO linkuId: $linkuId, parentFolderId: $parentFolderId"
-    }
-
-    val linkItemInfo = LinkItemInfo(
+    return LinkItemInfo(
         linkuId = linkuId,
         parentFolderId = parentFolderId,
         title = title,
@@ -205,13 +123,6 @@ fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
         linkuImageUrl = linkuImageUrl,
         createdAt = createdAt
     )
-
-    LinkuLog.d(caller) {
-        "LinkItemInfo linkuId: ${linkItemInfo.linkuId}, " +
-            "parentFolderId: ${linkItemInfo.parentFolderId}, tagsCount: ${linkItemInfo.tags.size}"
-    }
-
-    return linkItemInfo
 }
 
 /**
@@ -221,14 +132,7 @@ fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
  * @return 폴더와 카테고리 정보가 반영된 [FolderInfo]
  */
 fun FolderResponseDTO.toDomain(): FolderInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "FolderResponseDTO folderId: $folderId, categoryId: $categoryId, " +
-            "parentFolderId: $parentFolderId"
-    }
-
-    val folderInfo = FolderInfo(
+    return FolderInfo(
         folderId = folderId,
         folderName = folderName,
         categoryId = categoryId,
@@ -237,13 +141,6 @@ fun FolderResponseDTO.toDomain(): FolderInfo {
         createdAt = createdAt,
         updatedAt = updatedAt
     )
-
-    LinkuLog.d(caller) {
-        "FolderInfo folderId: ${folderInfo.folderId}, categoryId: ${folderInfo.categoryId}, " +
-            "parentFolderId: ${folderInfo.parentFolderId}"
-    }
-
-    return folderInfo
 }
 
 /**
@@ -256,28 +153,13 @@ fun FolderResponseDTO.toDomain(): FolderInfo {
  * @return 하위 폴더까지 변환된 [FolderSimpleInfo]
  */
 fun FolderTreeResponseDTO.toDomain(parentFolderId: Long = categoryId): FolderSimpleInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "FolderTreeResponseDTO folderId: $folderId, parentFolderId: $parentFolderId, " +
-            "childrenCount: ${children.orEmpty().size}"
-    }
-
-    val folderInfo = FolderSimpleInfo(
+    return FolderSimpleInfo(
         folderId = folderId,
         folderName = folderName,
         parentFolderId = parentFolderId,
         isBookmarked = isBookmarked,
         children = children.orEmpty().map { it.toDomain(parentFolderId = folderId) }
     )
-
-    LinkuLog.d(caller) {
-        "FolderSimpleInfo folderId: ${folderInfo.folderId}, " +
-            "parentFolderId: ${folderInfo.parentFolderId}, " +
-            "childrenCount: ${folderInfo.children.size}"
-    }
-
-    return folderInfo
 }
 
 /**
@@ -287,21 +169,11 @@ fun FolderTreeResponseDTO.toDomain(parentFolderId: Long = categoryId): FolderSim
  * @return 하위 폴더 트리가 변환된 [SharedFolderInfo]
  */
 fun GetSharedFoldersDTO.toDomain(): SharedFolderInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) { "GetSharedFoldersDTO foldersCount: ${folders.size}" }
-
-    val sharedFolderInfo = SharedFolderInfo(
+    return SharedFolderInfo(
         userId = userId,
         nickname = nickname,
         folders = folders.map { it.toDomain() }
     )
-
-    LinkuLog.d(caller) {
-        "SharedFolderInfo foldersCount: ${sharedFolderInfo.folders.size}"
-    }
-
-    return sharedFolderInfo
 }
 
 /**
@@ -313,25 +185,12 @@ fun GetSharedFoldersDTO.toDomain(): SharedFolderInfo {
  * @return 폴더 권한이 변환된 [SharedFolderSimpleInfo]
  */
 fun ShareFolderResponseDTO.toDomain(): SharedFolderSimpleInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) {
-        "ShareFolderResponseDTO folderId: $folderId, permission: $permission"
-    }
-
-    val sharedFolderInfo = SharedFolderSimpleInfo(
+    return SharedFolderSimpleInfo(
         folderId = folderId,
         userId = userId,
         permission = permission.toFolderPermission(),
         sharedAt = sharedAt
     )
-
-    LinkuLog.d(caller) {
-        "SharedFolderSimpleInfo folderId: ${sharedFolderInfo.folderId}, " +
-            "permission: ${sharedFolderInfo.permission}"
-    }
-
-    return sharedFolderInfo
 }
 
 /**
@@ -343,17 +202,9 @@ fun ShareFolderResponseDTO.toDomain(): SharedFolderSimpleInfo {
  * @return 사용자 권한이 변환된 [FolderPermissionInfo]
  */
 fun ViewerResponseDTO.toDomain(): FolderPermissionInfo {
-    val caller = getCaller()
-
-    LinkuLog.d(caller) { "ViewerResponseDTO permission: $permission" }
-
-    val permissionInfo = FolderPermissionInfo(
+    return FolderPermissionInfo(
         userId = userId,
         userName = userName,
         permission = permission.toFolderPermission()
     )
-
-    LinkuLog.d(caller) { "FolderPermissionInfo permission: ${permissionInfo.permission}" }
-
-    return permissionInfo
 }

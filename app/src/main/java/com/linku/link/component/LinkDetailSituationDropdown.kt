@@ -1,6 +1,7 @@
 package com.linku.link.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -30,38 +31,49 @@ fun LinkDetailSituationDropdown(
     modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.linkuColors
+    val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .heightIn(max = 264.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 38.dp)
+            .heightIn(max = 264.dp),
     ) {
-        situations.forEach { situation ->
-            val isSelected = situation.id == selectedSituation?.id
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .padding(start = 12.dp, top = 12.dp, bottom = 12.dp, end = 38.dp),
+        ) {
+            situations.forEach { situation ->
+                val isSelected = situation.id == selectedSituation?.id
 
-            Text(
-                text = situation.tagName,
-                fontSize = 15.sp,
-                fontWeight = if (isSelected) {
-                    FontWeight.Medium
-                } else {
-                    FontWeight.Normal
-                },
-                color = if (isSelected) {
-                    colors.blue[200]
-                } else {
-                    colors.gray[800]
-                },
-                modifier = Modifier
-                    .noRippleClickable {
-                        onSituationClick(situation)
-                    }
-                    .padding(horizontal = 4.dp, vertical = 9.dp)
-            )
+                Text(
+                    text = situation.tagName,
+                    fontSize = 15.sp,
+                    fontWeight = if (isSelected) {
+                        FontWeight.Medium
+                    } else {
+                        FontWeight.Normal
+                    },
+                    color = if (isSelected) {
+                        colors.blue[200]
+                    } else {
+                        colors.gray[800]
+                    },
+                    modifier = Modifier
+                        .noRippleClickable {
+                            onSituationClick(situation)
+                        }
+                        .padding(horizontal = 4.dp, vertical = 9.dp),
+                )
+            }
         }
+
+        LinkDetailDropdownScrollbar(
+            scrollState = scrollState,
+            topInset = 12.dp,
+            bottomInset = 12.dp,
+        )
     }
 }
 

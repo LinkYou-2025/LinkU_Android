@@ -3,9 +3,11 @@ package com.linku.link.screen
 import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,10 +15,14 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imeAnimationTarget
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -31,23 +37,36 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -62,9 +81,12 @@ import com.linku.core.util.logging.e
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.link.component.AIArticleModal
 import com.linku.link.component.DeleteLinkModal
+import com.linku.link.component.DiscardLinkEditModal
 import com.linku.link.component.LinkCategoryOption
 import com.linku.link.component.LinkDetailAction
 import com.linku.link.component.LinkDetailCategoryDropdown
@@ -73,7 +95,9 @@ import com.linku.link.component.LinkDetailEmotionDropdown
 import com.linku.link.component.LinkDetailSituationDropdown
 import com.linku.link.component.LinkDetailTopBar
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 private enum class LinkDetailDropdownType {
@@ -84,12 +108,60 @@ private enum class LinkDetailDropdownType {
 
 private const val MAX_MEMO_LENGTH = 200
 
+/**
+ * 윈도우 기준 칩 영역을 링크 상세 화면 기준 드롭다운 시작 좌표로 변환합니다.
+ *
+ * @param screenBoundsInWindow 링크 상세 화면 컨테이너의 윈도우 기준 영역입니다.
+ * @param chipBoundsInWindow 드롭다운과 연결된 칩의 윈도우 기준 영역입니다.
+ * @param verticalGapPx 칩 하단과 드롭다운 상단 사이의 세로 간격입니다.
+ * @return 화면 컨테이너 기준 드롭다운 좌표이며, 좌표 측정 전에는 `null`입니다.
+ */
+private fun calculateDropdownOffset(
+    screenBoundsInWindow: Rect?,
+    chipBoundsInWindow: Rect?,
+    verticalGapPx: Float,
+): IntOffset? {
+    val screenBounds = screenBoundsInWindow ?: return null
+    val chipBounds = chipBoundsInWindow ?: return null
+
+    return IntOffset(
+        x = (chipBounds.left - screenBounds.left).roundToInt(),
+        y = (chipBounds.bottom - screenBounds.top + verticalGapPx).roundToInt(),
+    )
+}
+
+/**
+ * 상황 드롭다운의 오른쪽 끝을 상황 칩의 오른쪽 끝에 맞추는 좌표를 계산합니다.
+ *
+ * 드롭다운은 화면 컨테이너의 오른쪽 위를 기준으로 배치되므로, 가로 좌표는 화면 오른쪽과
+ * 칩 오른쪽 사이의 차이를 사용합니다. 세로 좌표는 다른 드롭다운과 동일하게 칩 하단에서
+ * 지정된 간격만큼 떨어진 위치를 사용합니다.
+ *
+ * @param screenBoundsInWindow 링크 상세 화면 컨테이너의 윈도우 기준 영역입니다.
+ * @param chipBoundsInWindow 상황 칩의 윈도우 기준 영역입니다.
+ * @param verticalGapPx 상황 칩 하단과 드롭다운 상단 사이의 세로 간격입니다.
+ * @return 화면 오른쪽 위 기준 드롭다운 좌표이며, 좌표 측정 전에는 `null`입니다.
+ */
+private fun calculateEndAlignedDropdownOffset(
+    screenBoundsInWindow: Rect?,
+    chipBoundsInWindow: Rect?,
+    verticalGapPx: Float,
+): IntOffset? {
+    val screenBounds = screenBoundsInWindow ?: return null
+    val chipBounds = chipBoundsInWindow ?: return null
+
+    return IntOffset(
+        x = (chipBounds.right - screenBounds.right).roundToInt(),
+        y = (chipBounds.bottom - screenBounds.top + verticalGapPx).roundToInt(),
+    )
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LinkDetailScreen(
     linkuId: Long,
     linkTitle: String,
-    category: String,
+    categoryId: Long?,
     emotion: String,
     situationId: Long?,
     linkUrl: String,
@@ -103,6 +175,7 @@ fun LinkDetailScreen(
     categoryOptions: List<LinkCategoryOption>,
     onBack: () -> Unit,
     onPickImage: () -> Unit,
+    onDiscardSelectedImage: () -> Unit,
     onSubmitEdit: (
         title: String,
         memo: String?,
@@ -120,12 +193,29 @@ fun LinkDetailScreen(
     onClearAiArticleError: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
     val caller = getCaller()
 
     val clipboard = LocalClipboard.current
     val coroutineScope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val context = LocalContext.current
+    val density = LocalDensity.current
+    val focusManager = LocalFocusManager.current
+    val softwareKeyboardController = LocalSoftwareKeyboardController.current
+    val detailScrollState = rememberScrollState()
+    val imeInsets = WindowInsets.ime
+    val imeAnimationTargetInsets = WindowInsets.imeAnimationTarget
+
+    var isMemoFocused by remember { mutableStateOf(false) }
+
+    // IME가 표시될 때 메모 하단에는 키보드 높이의 절반만 추가합니다.
+    val imeBottom = imeInsets.getBottom(density)
+    val memoImeBottomPadding = if (isMemoFocused && imeBottom > 0) {
+        with(density) { (imeBottom * 0.5f).toDp() }
+    } else {
+        0.dp
+    }
 
     var isEditMode by rememberSaveable { mutableStateOf(false) }
     var isAiSummaryMode by rememberSaveable(linkuId) { mutableStateOf(aiSummary.isNotBlank()) }
@@ -133,6 +223,7 @@ fun LinkDetailScreen(
     var isDropdownVisible by rememberSaveable { mutableStateOf(false) }
     var isDeleteModalVisible by rememberSaveable { mutableStateOf(false) }
     var isAiArticleModalVisible by rememberSaveable { mutableStateOf(false) }
+    var isDiscardEditModalVisible by rememberSaveable(linkuId) { mutableStateOf(false) }
     var aiArticleProgress by rememberSaveable { mutableFloatStateOf(0f) }
 
     var editToastMessage by rememberSaveable { mutableStateOf("") }
@@ -142,12 +233,7 @@ fun LinkDetailScreen(
     val situationOptions = SituationOptions.allSituations
 
     var selectedTitle by rememberSaveable { mutableStateOf(linkTitle) }
-    var selectedCategory by rememberSaveable { mutableStateOf(category) }
-    var selectedCategoryId by rememberSaveable {
-        mutableStateOf(
-            categoryOptions.firstOrNull { it.name == category }?.id
-        )
-    }
+    var selectedCategoryId by rememberSaveable(linkuId) { mutableStateOf(categoryId) }
     var selectedEmotion by rememberSaveable {
         mutableStateOf(
             EmotionType.entries.firstOrNull { it.tagName == emotion }
@@ -156,6 +242,18 @@ fun LinkDetailScreen(
     var selectedSituationId by rememberSaveable { mutableStateOf(situationId) }
     var selectedMemo by rememberSaveable { mutableStateOf(memo) }
 
+    // 편집 도중 상세 API가 갱신되어도 비교 기준이 움직이지 않도록 진입 시점의 값을 보관합니다.
+    var editBaselineTitle by rememberSaveable(linkuId) { mutableStateOf(linkTitle) }
+    var editBaselineMemo by rememberSaveable(linkuId) { mutableStateOf(memo) }
+    var editBaselineCategoryId by rememberSaveable(linkuId) { mutableStateOf(categoryId) }
+    var editBaselineEmotionId by rememberSaveable(linkuId) {
+        mutableStateOf(
+            EmotionType.entries.firstOrNull { option -> option.tagName == emotion }?.id?.value
+        )
+    }
+    var editBaselineSituationId by rememberSaveable(linkuId) { mutableStateOf(situationId) }
+    var isEditBaselineCaptured by rememberSaveable(linkuId) { mutableStateOf(false) }
+
     val isTitleValid = selectedTitle.isNotBlank()
     val isSaveButtonEnabled = !isEditMode || isTitleValid
 
@@ -163,8 +261,95 @@ fun LinkDetailScreen(
         it.id.value == selectedSituationId
     }
 
+    // ID를 기준으로 현재 선택 항목을 찾으면 목록이 늦게 도착해도 이름과 색상이 자동으로 갱신됩니다.
+    val selectedCategoryOption = categoryOptions.firstOrNull { option ->
+        option.id == selectedCategoryId
+    }
+    val selectedCategoryName = selectedCategoryOption?.name ?: "카테고리"
+    val selectedCategoryColorStyle =
+        selectedCategoryOption?.colorStyle ?: CategoryColorStyle.DEFAULT
+
     var openedDropdownType by rememberSaveable {
         mutableStateOf<LinkDetailDropdownType?>(null)
+    }
+
+    // 서버에 실제로 전달되는 정규화 값과 ID를 기준으로 변경 여부를 판단합니다.
+    val hasEditChanges = isEditMode && isEditBaselineCaptured && (
+        selectedImageUri != null ||
+            selectedTitle.trim() != editBaselineTitle.trim() ||
+            selectedMemo.trim() != editBaselineMemo.trim() ||
+            selectedCategoryId != editBaselineCategoryId ||
+            selectedEmotion?.id?.value != editBaselineEmotionId ||
+            selectedSituationId != editBaselineSituationId
+        )
+
+    // 수정 전 값으로 초안을 복원하고 링크 상세 화면을 유지한 채 수정 모드만 종료합니다.
+    val discardEditChanges: () -> Unit = {
+        selectedTitle = editBaselineTitle
+        selectedMemo = editBaselineMemo
+        selectedCategoryId = editBaselineCategoryId
+        selectedEmotion = EmotionType.entries.firstOrNull { option ->
+            option.id.value == editBaselineEmotionId
+        }
+        selectedSituationId = editBaselineSituationId
+        onDiscardSelectedImage()
+        openedDropdownType = null
+        isEditMode = false
+        isEditBaselineCaptured = false
+        isDiscardEditModalVisible = false
+    }
+
+    // 상단 화살표와 시스템 뒤로가기가 동일한 변경 확인 흐름을 사용하도록 통합합니다.
+    val requestBack: () -> Unit = {
+        when {
+            imeBottom > 0 -> {
+                // 입력 중에는 화면 이동보다 키보드와 포커스를 먼저 정리합니다.
+                softwareKeyboardController?.hide()
+                focusManager.clearFocus(force = true)
+            }
+            isDiscardEditModalVisible -> isDiscardEditModalVisible = false
+            openedDropdownType != null -> openedDropdownType = null
+            hasEditChanges -> isDiscardEditModalVisible = true
+            isEditMode -> discardEditChanges()
+            else -> onBack()
+        }
+    }
+
+    BackHandler(enabled = isEditMode) {
+        requestBack()
+    }
+
+    // 칩과 오버레이가 서로 다른 레이아웃에 있으므로 윈도우 좌표를 공통 기준으로 사용합니다.
+    var screenBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var bodyBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var categoryChipBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var emotionChipBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+    var situationChipBoundsInWindow by remember { mutableStateOf<Rect?>(null) }
+
+    val dropdownVerticalGapPx = with(density) { 12.dp.toPx() }
+    val categoryDropdownOffset = calculateDropdownOffset(
+        screenBoundsInWindow = screenBoundsInWindow,
+        chipBoundsInWindow = categoryChipBoundsInWindow,
+        verticalGapPx = dropdownVerticalGapPx,
+    )
+    val emotionDropdownOffset = calculateDropdownOffset(
+        screenBoundsInWindow = screenBoundsInWindow,
+        chipBoundsInWindow = emotionChipBoundsInWindow,
+        verticalGapPx = dropdownVerticalGapPx,
+    )
+    val situationDropdownOffset = calculateEndAlignedDropdownOffset(
+        screenBoundsInWindow = screenBoundsInWindow,
+        chipBoundsInWindow = situationChipBoundsInWindow,
+        verticalGapPx = dropdownVerticalGapPx,
+    )
+
+    // 본문 시작점을 화면 기준으로 변환해 동적인 헤더 높이만큼 딤 영역을 제외합니다.
+    val dropdownDimTopPadding = screenBoundsInWindow?.let { screenBounds ->
+        bodyBoundsInWindow?.let { bodyBounds ->
+            with(density) {
+                (bodyBounds.top - screenBounds.top).coerceAtLeast(0f).toDp()
+            }
+        }
     }
 
     val visibleTags = tags
@@ -174,11 +359,10 @@ fun LinkDetailScreen(
             if (tag.startsWith("#")) tag else "#$tag"
         }
 
-    LaunchedEffect(linkTitle, category, emotion, situationId, memo, categoryOptions) {
+    LaunchedEffect(linkTitle, categoryId, emotion, situationId, memo) {
         if (!isEditMode) {
             selectedTitle = linkTitle
-            selectedCategory = category
-            selectedCategoryId = categoryOptions.firstOrNull { it.name == category }?.id
+            selectedCategoryId = categoryId
             selectedEmotion = EmotionType.entries.firstOrNull { it.tagName == emotion }
             selectedSituationId = situationId
             selectedMemo = memo
@@ -237,57 +421,128 @@ fun LinkDetailScreen(
         }
     }
 
+    LaunchedEffect(isEditMode, isMemoFocused, density) {
+        if (!isEditMode || !isMemoFocused) return@LaunchedEffect
+
+        snapshotFlow {
+            Triple(
+                imeInsets.getBottom(density),
+                imeAnimationTargetInsets.getBottom(density),
+                detailScrollState.maxValue,
+            )
+        }.collectLatest { (currentImeBottom, targetImeBottom, measuredMaxValue) ->
+            val isImeShown = currentImeBottom > 0
+            val isImeAnimationFinished =
+                targetImeBottom <= 0 || currentImeBottom >= targetImeBottom
+            val isScrollMeasured = measuredMaxValue != Int.MAX_VALUE
+
+            if (!isImeShown || !isImeAnimationFinished || !isScrollMeasured) {
+                return@collectLatest
+            }
+
+            // 최종 IME 여백과 늘어난 메모 높이가 측정된 다음 화면 최하단으로 이동합니다.
+            withFrameNanos { }
+
+            val latestMaxValue = detailScrollState.maxValue
+            if (
+                latestMaxValue != Int.MAX_VALUE &&
+                latestMaxValue > detailScrollState.value
+            ) {
+                detailScrollState.animateScrollTo(latestMaxValue)
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.white)
+            .onGloballyPositioned { coordinates ->
+                screenBoundsInWindow = coordinates.boundsInWindow()
+            }
+            .pointerInput(focusManager) {
+                // 자식이 소비하지 않은 배경 탭에서만 입력 포커스를 해제합니다.
+                detectTapGestures {
+                    focusManager.clearFocus(force = true)
+                }
+            }
     ) {
+        // IME가 나타나도 상단바는 고정하고, 아래 본문 영역만 줄어들도록 전체 높이를 점유합니다.
         Column(
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
         ) {
-            LinkDetailTopBar(
-                linkTitle = selectedTitle,
-                originalLinkTitle = linkTitle,
-                category = selectedCategory,
-                emotion = selectedEmotion?.tagName ?: "감정",
-                situation = selectedSituation?.tagName ?: "상황",
-                isEditMode = isEditMode,
-                isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
-                isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
-                isSituationDropdownOpen = openedDropdownType == LinkDetailDropdownType.SITUATION,
-                onBack = { onBack() },
-                onMoreClick = {
-                    isDropdownVisible = !isDropdownVisible
-                },
-                onLinkGoClick = { uriHandler.openUri(linkUrl) },
-                onCategoryClick = {
-                    openedDropdownType =
-                        if (openedDropdownType == LinkDetailDropdownType.CATEGORY) null
-                        else LinkDetailDropdownType.CATEGORY
-                },
-                onEmotionClick = {
-                    openedDropdownType =
-                        if (openedDropdownType == LinkDetailDropdownType.EMOTION) null
-                        else LinkDetailDropdownType.EMOTION
-                },
-                onSituationClick = {
-                    openedDropdownType =
-                        if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
-                        else LinkDetailDropdownType.SITUATION
-                },
-                onTitleChange = { newTitle ->
-                    selectedTitle = newTitle
-                },
-                onTitleClearClick = {
-                    selectedTitle = ""
-                }
-            )
+            // 헤더의 둥근 하단 모서리 뒤에도 본문과 동일한 딤 배경이 이어지도록 합니다.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        if (openedDropdownType != null) {
+                            colors.black.copy(alpha = 0.5f)
+                        } else {
+                            colors.white
+                        }
+                    )
+            ) {
+                LinkDetailTopBar(
+                    linkTitle = selectedTitle,
+                    originalLinkTitle = linkTitle,
+                    category = selectedCategoryName,
+                    categoryColorStyle = selectedCategoryColorStyle,
+                    emotion = selectedEmotion?.tagName ?: "감정",
+                    situation = selectedSituation?.tagName ?: "상황",
+                    isEditMode = isEditMode,
+                    isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
+                    isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
+                    isSituationDropdownOpen = openedDropdownType == LinkDetailDropdownType.SITUATION,
+                    onBack = requestBack,
+                    onMoreClick = {
+                        isDropdownVisible = !isDropdownVisible
+                    },
+                    onLinkGoClick = { uriHandler.openUri(linkUrl) },
+                    onCategoryClick = {
+                        if (categoryOptions.isNotEmpty()) {
+                            openedDropdownType =
+                                if (openedDropdownType == LinkDetailDropdownType.CATEGORY) null
+                                else LinkDetailDropdownType.CATEGORY
+                        }
+                    },
+                    onEmotionClick = {
+                        openedDropdownType =
+                            if (openedDropdownType == LinkDetailDropdownType.EMOTION) null
+                            else LinkDetailDropdownType.EMOTION
+                    },
+                    onSituationClick = {
+                        openedDropdownType =
+                            if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
+                            else LinkDetailDropdownType.SITUATION
+                    },
+                    onCategoryChipBoundsChanged = { bounds ->
+                        categoryChipBoundsInWindow = bounds
+                    },
+                    onEmotionChipBoundsChanged = { bounds ->
+                        emotionChipBoundsInWindow = bounds
+                    },
+                    onSituationChipBoundsChanged = { bounds ->
+                        situationChipBoundsInWindow = bounds
+                    },
+                    onTitleChange = { newTitle ->
+                        selectedTitle = newTitle
+                    },
+                    onTitleClearClick = {
+                        selectedTitle = ""
+                    }
+                )
+            }
 
             Column(
                 modifier = Modifier
+                    .weight(1f)
                     .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
+                    .onGloballyPositioned { coordinates ->
+                        bodyBoundsInWindow = coordinates.boundsInWindow()
+                    }
+                    .verticalScroll(detailScrollState)
                     .padding(top = 25.dp, start = 20.dp, end = 20.dp)
             ) {
                 Box {
@@ -381,6 +636,9 @@ fun LinkDetailScreen(
                             fontWeight = FontWeight.Normal,
                             lineHeight = 24.sp,
                             color = if (isEditMode) colors.gray[400] else colors.black,
+                            maxLines = 1,
+                            softWrap = false,
+                            overflow = TextOverflow.Ellipsis,
                             modifier = Modifier
                                 .weight(1f)
                                 .then(
@@ -508,68 +766,81 @@ fun LinkDetailScreen(
                     }
                 }
 
+                val shouldShowMemo = isEditMode || selectedMemo.isNotBlank()
+
+                // 메모 UI가 숨겨져도 기존 화면 하단 여백은 동일하게 유지합니다.
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 22.dp, bottom = 50.dp)
+                        .padding(
+                            top = if (shouldShowMemo) 22.dp else 0.dp,
+                            bottom = 50.dp,
+                        )
+                        .padding(bottom = memoImeBottomPadding)
                 ) {
-                    Text(
-                        text = "메모",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colors.black
-                    )
+                    // 조회 모드는 내용이 있을 때만, 수정 모드는 빈 메모여도 입력란을 표시합니다.
+                    if (shouldShowMemo) {
+                        Text(
+                            text = "메모",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.black
+                        )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    if (isEditMode) {
-                        BasicTextField(
-                            value = selectedMemo,
-                            onValueChange = { newMemo ->
-                                selectedMemo = newMemo.take(MAX_MEMO_LENGTH)
-                            },
-                            textStyle = TextStyle(
+                        if (isEditMode) {
+                            BasicTextField(
+                                value = selectedMemo,
+                                onValueChange = { newMemo ->
+                                    selectedMemo = newMemo.take(MAX_MEMO_LENGTH)
+                                },
+                                textStyle = TextStyle(
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    fontFamily = font,
+                                    lineHeight = 20.sp,
+                                    color = colors.black
+                                ),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .onFocusChanged { isMemoFocused = it.isFocused }
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(colors.gray[100])
+                                    .padding(horizontal = 22.dp, vertical = 15.5.dp),
+                                decorationBox = { innerTextField ->
+                                    Box(
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        if (selectedMemo.isBlank()) {
+                                            Text(
+                                                text = "메모를 입력해 주세요.",
+                                                fontSize = 14.sp,
+                                                fontWeight = FontWeight.Normal,
+                                                fontFamily = font,
+                                                lineHeight = 20.sp,
+                                                color = colors.gray[400]
+                                            )
+                                        }
+
+                                        innerTextField()
+                                    }
+                                }
+                            )
+                        } else {
+                            Text(
+                                text = selectedMemo,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
                                 lineHeight = 20.sp,
-                                color = colors.black
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(colors.gray[100])
-                                .padding(horizontal = 22.dp, vertical = 15.5.dp),
-                            decorationBox = { innerTextField ->
-                                Box(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    if (selectedMemo.isBlank()) {
-                                        Text(
-                                            text = "메모를 입력해 주세요.",
-                                            fontSize = 14.sp,
-                                            fontWeight = FontWeight.Normal,
-                                            lineHeight = 20.sp,
-                                            color = colors.gray[400]
-                                        )
-                                    }
-
-                                    innerTextField()
-                                }
-                            }
-                        )
-                    } else {
-                        Text(
-                            text = selectedMemo,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Normal,
-                            lineHeight = 20.sp,
-                            color = colors.black,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(18.dp))
-                                .background(colors.gray[100])
-                                .padding(horizontal = 22.dp, vertical = 15.5.dp)
-                        )
+                                color = colors.black,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(colors.gray[100])
+                                    .padding(horizontal = 22.dp, vertical = 15.5.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(40.dp))
@@ -598,6 +869,13 @@ fun LinkDetailScreen(
 
                     when (action) {
                         LinkDetailAction.EDIT -> {
+                            // 변경 여부는 편집 진입 당시 화면에 표시된 값을 고정 기준으로 비교합니다.
+                            editBaselineTitle = selectedTitle
+                            editBaselineMemo = selectedMemo
+                            editBaselineCategoryId = selectedCategoryId
+                            editBaselineEmotionId = selectedEmotion?.id?.value
+                            editBaselineSituationId = selectedSituationId
+                            isEditBaselineCaptured = true
                             isEditMode = true
                         }
 
@@ -692,56 +970,71 @@ fun LinkDetailScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .zIndex(1f)
                     .noRippleClickable {
                         openedDropdownType = null
                     }
-            )
+            ) {
+                dropdownDimTopPadding?.let { dimTopPadding ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(top = dimTopPadding)
+                            .background(colors.black.copy(alpha = 0.5f))
+                    )
+                }
+            }
 
             when (openedDropdownType) {
                 LinkDetailDropdownType.CATEGORY -> {
-                    LinkDetailCategoryDropdown(
-                        categories = categoryOptions,
-                        selectedCategoryId = selectedCategoryId,
-                        onCategoryClick = {
-                            selectedCategoryId = it.id
-                            selectedCategory = it.name
-                            openedDropdownType = null
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 200.dp, start = 24.dp)
-                            .zIndex(1f)
-                    )
+                    categoryDropdownOffset?.let { dropdownOffset ->
+                        LinkDetailCategoryDropdown(
+                            categories = categoryOptions,
+                            selectedCategoryId = selectedCategoryId,
+                            onCategoryClick = {
+                                selectedCategoryId = it.id
+                                openedDropdownType = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset { dropdownOffset }
+                                .zIndex(2f)
+                        )
+                    }
                 }
 
                 LinkDetailDropdownType.EMOTION -> {
-                    LinkDetailEmotionDropdown(
-                        emotions = emotionOptions,
-                        selectedEmotion = selectedEmotion?.tagName.orEmpty(),
-                        onEmotionClick = {
-                            selectedEmotion = it
-                            openedDropdownType = null
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 200.dp, start = 93.dp)
-                            .zIndex(1f)
-                    )
+                    emotionDropdownOffset?.let { dropdownOffset ->
+                        LinkDetailEmotionDropdown(
+                            emotions = emotionOptions,
+                            selectedEmotion = selectedEmotion?.tagName.orEmpty(),
+                            onEmotionClick = {
+                                selectedEmotion = it
+                                openedDropdownType = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .offset { dropdownOffset }
+                                .zIndex(2f)
+                        )
+                    }
                 }
 
                 LinkDetailDropdownType.SITUATION -> {
-                    LinkDetailSituationDropdown(
-                        situations = situationOptions,
-                        selectedSituation = selectedSituation,
-                        onSituationClick = {
-                            selectedSituationId = it.id.value
-                            openedDropdownType = null
-                        },
-                        modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(top = 200.dp, start = 186.dp)
-                            .zIndex(1f)
-                    )
+                    situationDropdownOffset?.let { dropdownOffset ->
+                        LinkDetailSituationDropdown(
+                            situations = situationOptions,
+                            selectedSituation = selectedSituation,
+                            onSituationClick = {
+                                selectedSituationId = it.id.value
+                                openedDropdownType = null
+                            },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .offset { dropdownOffset }
+                                .zIndex(2f)
+                        )
+                    }
                 }
 
                 null -> Unit
@@ -776,6 +1069,8 @@ fun LinkDetailScreen(
                                     isEditToastVisible = true
 
                                     isEditMode = false
+                                    isEditBaselineCaptured = false
+                                    isDiscardEditModalVisible = false
                                     openedDropdownType = null
                                 },
                                 {
@@ -834,6 +1129,38 @@ fun LinkDetailScreen(
                 .padding(top = 86.dp)
                 .zIndex(3f)
         )
+
+        if (isDiscardEditModalVisible) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color(0x66000000))
+                    .zIndex(4f)
+                    .noRippleClickable {
+                        // 딤 배경은 계속 수정하기와 동일하게 초안을 유지하고 모달만 닫습니다.
+                        isDiscardEditModalVisible = false
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 20.dp)
+                        .noRippleClickable { },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    DiscardLinkEditModal(
+                        onExit = {
+                            // 나가기는 상세 화면을 유지하고 수정 전 상태로만 돌아갑니다.
+                            discardEditChanges()
+                        },
+                        onContinue = {
+                            // 계속 수정하기는 초안과 비교 기준을 그대로 둔 채 모달만 닫습니다.
+                            isDiscardEditModalVisible = false
+                        },
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -842,19 +1169,19 @@ fun LinkDetailScreen(
 fun PreviewLinkDetailScreen() {
     // 카테고리 더미데이터
     val categoryOptions = listOf(
-        LinkCategoryOption(1L, "카테고리2", Color(0xFF55D6C2)),
-        LinkCategoryOption(2L, "카테고리3", Color(0xFFFFBE3D)),
-        LinkCategoryOption(3L, "카테고리4", Color(0xFF2FB4E9)),
-        LinkCategoryOption(4L, "카테고리5", Color(0xFFFF5757)),
-        LinkCategoryOption(5L, "카테고리6", Color(0xFF67D414)),
-        LinkCategoryOption(6L, "카테고리7", Color(0xFFD9DEE6))
+        LinkCategoryOption(1L, "카테고리2", CategoryColorStyle.categoryStyleList[0]),
+        LinkCategoryOption(2L, "카테고리3", CategoryColorStyle.categoryStyleList[1]),
+        LinkCategoryOption(3L, "카테고리4", CategoryColorStyle.categoryStyleList[2]),
+        LinkCategoryOption(4L, "카테고리5", CategoryColorStyle.categoryStyleList[3]),
+        LinkCategoryOption(5L, "카테고리6", CategoryColorStyle.categoryStyleList[4]),
+        LinkCategoryOption(6L, "카테고리7", CategoryColorStyle.categoryStyleList[5])
     )
 
     ThemeProvider {
         LinkDetailScreen(
             linkuId = 0L,
             linkTitle = "3일만에 오픽 AL 꿀팁",
-            category = "카테고리2",
+            categoryId = 1L,
             emotion = "평온",
             situationId = 10L,
             linkUrl = "https://blog.naver.com/linkU/1234567890",
@@ -868,6 +1195,7 @@ fun PreviewLinkDetailScreen() {
             categoryOptions = categoryOptions,
             onBack = { },
             onPickImage = { },
+            onDiscardSelectedImage = { },
             onSubmitEdit = { _, _, _, _, _, _, _ -> },
             onDeleteLink = { _, _ -> }
         )

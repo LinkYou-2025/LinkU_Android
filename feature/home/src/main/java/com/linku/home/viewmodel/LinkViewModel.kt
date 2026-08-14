@@ -9,6 +9,7 @@ import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.TempImageFile
 import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.model.link.ToastEvent
+import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.preference.AuthPreference
@@ -31,6 +32,7 @@ class LinkViewModel @Inject constructor(
     private val linkuRepository: LinkuRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
+    private val categoryRepository: CategoryRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -207,6 +209,46 @@ class LinkViewModel @Inject constructor(
     /*
      * Link detail
      */
+
+    /**
+     * 링크 수정 카테고리 드롭다운에 사용할 카테고리 목록을 불러옵니다.
+     *
+     * 서버가 제공하는 카테고리 ID, 이름, 색상 코드를 그대로 보존하며, 이미 목록이 있거나
+     * 요청이 진행 중이면 중복 호출하지 않습니다. 빈 목록을 받으면 다음 화면 진입에서 다시
+     * 시도할 수 있도록 로드 완료 상태로 캐시하지 않습니다.
+     *
+     * @param forceRefresh 기존 목록이 있어도 서버에서 다시 조회할지 여부입니다.
+     */
+    fun loadLinkEditCategories(forceRefresh: Boolean = false) {
+        val currentState = _uiState.value
+
+        if (currentState.isLoadingLinkEditCategories) return
+        if (!forceRefresh && currentState.linkEditCategories.isNotEmpty()) return
+
+        _uiState.update { state ->
+            state.copy(isLoadingLinkEditCategories = true)
+        }
+
+        viewModelScope.launch {
+            try {
+                val categories = categoryRepository.getCategoryColor()
+
+                if (categories.isNotEmpty()) {
+                    _uiState.update { state ->
+                        state.copy(linkEditCategories = categories)
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("LinkViewModel", "load link edit categories failed", error)
+            } finally {
+                _uiState.update { state ->
+                    state.copy(isLoadingLinkEditCategories = false)
+                }
+            }
+        }
+    }
 
     fun loadLinkDetail(linkuId: Long, forceRefresh: Boolean = false) {
         val now = System.currentTimeMillis()

@@ -20,16 +20,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.EmotionType
 import com.linku.design.modifier.noRippleClickable
-import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
-import com.linku.design.theme.color.Basic
 import com.linku.design.theme.linkuColors
 import com.linku.link.util.imgRes
 
@@ -87,30 +87,34 @@ private fun EmotionBadgeImage(
             )
             .border(
                 width = 1.dp,
-                brush = if (selected) Basic.maincolor else SolidColor(colors.gray[200]),
+                brush = if (selected) colors.maincolor else SolidColor(colors.gray[200]),
                 shape = RoundedCornerShape(20.dp)
             )
-
             .noRippleClickable { onClick() }
-            .padding(horizontal = 15.dp, vertical = 10.dp),
+            .padding(horizontal = 10.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = emotion.imgRes,
             contentDescription = emotion.tagName,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(30.dp)
         )
 
         Spacer(modifier = Modifier.width(5.dp))
 
         Text(
-            text = emotion.tagName,
-            style = TextStyle(
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                color = colors.black,
-                fontFamily = LocalFontTheme.current.font
-            )
+            text = buildAnnotatedString {
+                if (selected) {
+                    withStyle(SpanStyle(brush = colors.maincolor)) {
+                        append(emotion.tagName)
+                    }
+                } else {
+                    append(emotion.tagName)
+                }
+            },
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Normal,
+            color = colors.black,
         )
     }
 }
