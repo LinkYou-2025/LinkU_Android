@@ -53,6 +53,7 @@ import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
+import com.linku.file.viewmodel.folder.state.FileNavigationState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
@@ -178,7 +179,7 @@ fun MainApp(
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
     // Splash가 시작 화면이라 초기값만 true.
     var edgeToEdgeSystemBars by rememberSaveable { mutableStateOf(true) }
-    // 상태바 아이콘 밝기(File 탭 등)는 LocalStatusBarDarkIcons로 화면이 직접 제어함 (MainScreen.kt 참고).
+    // 활성 탭의 시스템 바 아이콘 기본값은 아래 MainScreen 호출부에서 route 기준으로 결정합니다.
 
     // TODO : 로그인 뷰모델에서 Success 상태로 바꾸기 전에 세션 갱신하게 수정해야함.
     // 기기가 3대라 이렇게 되면 사용자 정보가 따로 놀 수 있음.
@@ -268,6 +269,12 @@ fun MainApp(
         else -> null
     }
 
+    val isFileTab = currentLinkuNavigationItem == LinkuNavigationItem.FILE
+    val shouldDimMyListMenu = isFileTab &&
+        folderStateViewModel.bottomMenuExpanded &&
+        (folderStateViewModel.navigationState is FileNavigationState.PersonalBottom ||
+            folderStateViewModel.navigationState is FileNavigationState.PersonalLinks)
+
     // 액티비티 참조 + 두번뒤로 시간 기록
     // NOTE : 이미 구현된 DoubleBackToExitIfTop이 있어서 불필요함. 일단 주석 처리 후 추후 삭제?
 //    val activity = remember(context) { context.findActivity() }
@@ -347,6 +354,10 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
             hideSystemBars = edgeToEdgeSystemBars,
+            statusBarDarkIcons = !isFileTab,
+            // File은 흰 상태바 아이콘과 검은 내비게이션 아이콘을 서로 독립적으로 유지합니다.
+            navigationBarDarkIcons = if (isFileTab) true else null,
+            dimmed = shouldDimMyListMenu,
         ) {
             NavHost(
                 navController = navigator,

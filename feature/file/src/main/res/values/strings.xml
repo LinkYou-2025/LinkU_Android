@@ -10,6 +10,10 @@
     <string name="file_delete_folder_dialog_confirm">삭제하기</string>
     <string name="file_delete_folder_dialog_cancel">취소하기</string>
     <string name="file_delete_folder_long_press_guide">폴더를 길게 눌러 삭제해보세요</string>
+    <string name="link_categorization_bottom_sheet_title">%1$s 폴더의 미분류 링크 목록</string>
+    <string name="link_categorization_bottom_sheet_body">하위폴더에 추가하실 링크를 선택해주세요!</string>
+    <string name="link_categorization_bottom_sheet_add">추가</string>
+    <string name="link_categorization_domain_placeholder">도메인</string>
     <string name="parent_folder_sort_name_label">가나다 순</string>
     <string name="parent_folder_sort_name_menu">가나다순</string>
     <string name="parent_folder_sort_latest">최신순</string>

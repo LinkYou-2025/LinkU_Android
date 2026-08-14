@@ -159,8 +159,9 @@ fun FileTopBar(
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                // 왼쪽 20dp, 위쪽 153dp 여백
-                .padding(start = 20.dp, top = 153.dp),
+                .fillMaxWidth()
+                // 좌우 20dp, 위쪽 153dp 여백
+                .padding(start = 20.dp, top = 153.dp, end = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ){
             Box(

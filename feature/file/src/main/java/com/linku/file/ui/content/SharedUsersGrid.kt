@@ -108,7 +108,7 @@ internal fun SharedUsersGrid(
                         top = SECTION_TITLE_TOP_PADDING.dp,
                         bottom = SECTION_TITLE_BOTTOM_PADDING.dp,
                     ),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -119,7 +119,6 @@ internal fun SharedUsersGrid(
                         color = colors.black,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f),
                     )
                     Text(
                         text = receivedCountText,

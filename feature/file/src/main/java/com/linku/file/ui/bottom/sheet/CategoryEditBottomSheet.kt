@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -160,19 +161,24 @@ private fun CategoryColorSelector(
             label = "화살표 회전 애니메이션",
         )
 
-        val arrowModifier = if (expanded) {
-            Modifier
-                .padding(start = 10.dp)
-                .graphicsLayer(alpha = 0.99f)
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawRect(colors.maincolor, blendMode = BlendMode.SrcAtop)
+        val arrowModifier = Modifier
+            .padding(start = 10.dp)
+            .graphicsLayer {
+                // 상태 전환에도 modifier 구조를 유지하되, 그라데이션을 그릴 때만 합성을 격리합니다.
+                compositingStrategy = if (expanded) {
+                    CompositingStrategy.Offscreen
+                } else {
+                    CompositingStrategy.Auto
+                }
+            }
+            .drawWithCache {
+                onDrawWithContent {
+                    drawContent()
+                    if (expanded) {
+                        drawRect(colors.maincolor, blendMode = BlendMode.SrcIn)
                     }
                 }
-        } else {
-            Modifier.padding(start = 10.dp)
-        }
+            }
 
         Icon(
             modifier = arrowModifier

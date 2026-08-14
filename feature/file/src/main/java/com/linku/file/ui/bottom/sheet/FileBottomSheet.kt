@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -31,16 +30,44 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.dropShadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
 import com.linku.file.R
+
+private val FileBottomSheetShape = RoundedCornerShape(
+    topStart = 30.dp,
+    topEnd = 30.dp,
+)
+private val FileBottomSheetControlShape = RoundedCornerShape(18.dp)
+
+private val FileBottomSheetShadow = Shadow(
+    radius = 15.dp,
+    spread = 0.dp,
+    offset = DpOffset(x = 0.dp, y = (-4).dp),
+    color = Color(0xFF7C7C7C),
+    alpha = 0.6f,
+)
+
+private val FileBottomSheetButtonShadow = Shadow(
+    radius = 10.dp,
+    spread = 0.dp,
+    offset = DpOffset(x = 0.dp, y = 4.dp),
+    color = Color(0xFF7C7C7C),
+    alpha = 0.25f,
+)
 
 /**
  * 파일 기능의 바텀시트가 공유하는 제목, 본문, 확인 버튼과 ModalBottomSheet 셸입니다.
@@ -77,11 +104,17 @@ internal fun FileBottomSheet(
     
     if(visible) {
         ModalBottomSheet(
-            modifier = modifier,
+            modifier = modifier.dropShadow(
+                shape = FileBottomSheetShape,
+                shadow = FileBottomSheetShadow,
+            ),
             dragHandle = {
-                BottomSheetDefaults.DragHandle(
-                    width = 40.dp,
-                    color = colors.gray[300]
+                Box(
+                    modifier = Modifier
+                        .padding(top = 15.dp, bottom = 16.dp)
+                        .size(width = 40.dp, height = 4.dp)
+                        .clip(CircleShape)
+                        .background(colors.gray[300]),
                 )
             },
 
@@ -89,7 +122,8 @@ internal fun FileBottomSheet(
             scrimColor = colors.black.copy(alpha = 0.5f),
             sheetState = sheetState,
             onDismissRequest = onDismiss,
-            tonalElevation = 8.dp,
+            shape = FileBottomSheetShape,
+            tonalElevation = 0.dp,
             containerColor = colors.white,
         ) {
             Column(
@@ -105,31 +139,47 @@ internal fun FileBottomSheet(
                         .padding(start = 10.dp),
                     text = title,
                     fontSize = 18.sp,
+                    lineHeight = 22.sp,
                     fontWeight = FontWeight(500),
                     color = colors.black,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
-                Spacer(modifier = Modifier.height(11.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Text(
                     modifier = Modifier
                         .padding(start = 10.dp),
                     text = body,
                     fontSize = 15.sp,
+                    lineHeight = 22.sp,
                     fontWeight = FontWeight.Normal,
                     color = colors.gray[600],
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(19.dp))
 
                 content()
 
-                Spacer(modifier = Modifier.height(35.dp))
+                Spacer(modifier = Modifier.height(40.dp))
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp)
-                        .clip(shape = RoundedCornerShape(18.dp))
+                        .then(
+                            if (isReady) {
+                                Modifier.dropShadow(
+                                    shape = FileBottomSheetControlShape,
+                                    shadow = FileBottomSheetButtonShadow,
+                                )
+                            } else {
+                                Modifier
+                            }
+                        )
+                        .clip(shape = FileBottomSheetControlShape)
                         .then(
                             if (isReady) {
                                 Modifier.background(colors.maincolor)
@@ -137,11 +187,12 @@ internal fun FileBottomSheet(
                                 Modifier.background(colors.gray[300])
                             }
                         )
-                        .noRippleClickable {
-                            if (isReady){
-                                onOkay()
-                                onDismiss()
-                            }
+                        .noRippleClickable(
+                            enabled = isReady,
+                            role = Role.Button,
+                        ) {
+                            onOkay()
+                            onDismiss()
                         }
                 ){
                     Text(

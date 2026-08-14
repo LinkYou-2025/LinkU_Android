@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,7 +40,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.design.top.search.SearchBarUiState
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.design.top.search.SearchResultItem
-import com.linku.design.util.LocalStatusBarDarkIcons
 import com.linku.file.ui.FileFab
 import com.linku.file.ui.ShareMenuItem
 import com.linku.file.ui.bottom.sheet.CategoryEditBottomSheet
@@ -124,15 +122,6 @@ fun FileScreen(
 ) {
     val colors = MaterialTheme.linkuColors
     val context = LocalContext.current
-
-    // 상단 그라데이션 헤더가 상태바까지 이어져 보이므로 흰 아이콘이 대비가 더 잘 됨.
-    // MainApp을 거치지 않고 MainScreen이 제공한 상태를 직접 읽고 씀.
-    // 이 화면을 벗어나면(상세 화면 등으로 이동) 자동으로 원래대로(검정) 복귀.
-    val statusBarDarkIcons = LocalStatusBarDarkIcons.current
-    DisposableEffect(Unit) {
-        statusBarDarkIcons.value = false
-        onDispose { statusBarDarkIcons.value = true }
-    }
 
     Log.d("FileScreen", "FileScreen")
     // 한 번만 데이터 로딩 (최초 진입 시)

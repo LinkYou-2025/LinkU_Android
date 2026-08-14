@@ -1,5 +1,9 @@
 package com.linku.file.ui
 
+import android.os.Build
+import android.view.View
+import android.view.Window
+import android.view.WindowManager
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -24,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,12 +38,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -51,15 +58,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupPositionProvider
-import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -92,8 +97,9 @@ internal data class ShareMenuItem(
 /**
  * 파일 화면의 상태 호이스팅형 플로팅 메뉴를 표시합니다.
  *
- * 닫힌 상태에서는 Figma의 그라데이션 추가 버튼을 표시합니다. 펼친 상태에서는 전체 윈도우에
- * scrim을 표시하고, 실제 버튼 위치를 기준으로 가변 항목 메뉴와 닫기 버튼을 배치합니다.
+ * 닫힌 상태에서는 Figma의 그라데이션 추가 버튼을 표시합니다. 펼친 상태에서는 별도 Dialog
+ * Window의 platform dim으로 시스템 바 뒤까지 어둡게 만들고, 실제 버튼 위치를 기준으로 가변
+ * 항목 메뉴와 닫기 버튼을 배치합니다.
  *
  * @param items 외부에서 제공하는 가변 메뉴 항목 목록
  * @param expanded 메뉴가 펼쳐져 있는지 여부
@@ -111,12 +117,20 @@ internal fun FileFab(
 ) {
     var buttonBounds by remember { mutableStateOf(Rect.Zero) }
     val positionModifier = Modifier.onGloballyPositioned { coordinates ->
-        buttonBounds = coordinates.boundsInWindow(clipBounds = false)
+        // Activity와 Dialog의 콘텐츠 원점은 Android 버전/시스템 inset에 따라 다를 수 있으므로,
+        // 공통 기준인 화면 좌표로 저장한 뒤 Dialog 쪽 원점을 빼서 로컬 좌표로 변환합니다.
+        val topLeft = coordinates.positionOnScreen()
+        buttonBounds = Rect(
+            left = topLeft.x,
+            top = topLeft.y,
+            right = topLeft.x + coordinates.size.width,
+            bottom = topLeft.y + coordinates.size.height,
+        )
     }
 
     Box(modifier = modifier) {
         if (expanded) {
-            // Popup이 나타나는 동안 원래 버튼은 그리지 않고 배치와 anchor 좌표만 유지합니다.
+            // Dialog가 나타나는 동안 원래 버튼은 그리지 않고 배치와 anchor 좌표만 유지합니다.
             Spacer(
                 modifier = positionModifier.size(FloatingButtonSize),
             )
@@ -129,7 +143,7 @@ internal fun FileFab(
         }
 
         if (expanded && buttonBounds.width > 0f && buttonBounds.height > 0f) {
-            ShareMenuPopup(
+            ShareMenuDialog(
                 items = items,
                 buttonBounds = buttonBounds,
                 onDismissRequest = { onExpandedChange(false) },
@@ -145,42 +159,50 @@ internal fun FileFab(
 }
 
 @Composable
-private fun ShareMenuPopup(
+private fun ShareMenuDialog(
     items: List<ShareMenuItem>,
     buttonBounds: Rect,
     onDismissRequest: () -> Unit,
     onItemClick: (ShareMenuItem) -> Unit,
 ) {
-    val colors = MaterialTheme.linkuColors
     val density = LocalDensity.current
     val closeDescription = stringResource(R.string.file_floating_menu_close_description)
-    val buttonLeft = with(density) { buttonBounds.left.toDp() }
-    val buttonTop = with(density) { buttonBounds.top.toDp() }
-    val buttonRight = with(density) { buttonBounds.right.toDp() }
-
     val itemSpacingCount = (items.size - 1).coerceAtLeast(0)
     val naturalMenuHeight = MenuVerticalPadding * 2 +
         MenuItemHeight * items.size +
         MenuItemSpacing * itemSpacingCount
-    val availableMenuHeight =
-        (buttonTop - MenuButtonGap - MenuTopSafetyMargin).coerceAtLeast(0.dp)
-    val menuHeight = minOf(naturalMenuHeight, availableMenuHeight)
+    var dialogOriginOnScreen by remember { mutableStateOf<Offset?>(null) }
 
-    Popup(
-        popupPositionProvider = WindowOriginPopupPositionProvider,
+    Dialog(
         onDismissRequest = onDismissRequest,
-        properties = PopupProperties(
-            focusable = true,
+        properties = DialogProperties(
             dismissOnBackPress = true,
-            dismissOnClickOutside = true,
-            clippingEnabled = true,
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false,
         ),
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        val dialogView = LocalView.current
+        val dialogWindow = (dialogView.parent as? DialogWindowProvider)?.window
+        SideEffect {
+            dialogWindow?.let { window ->
+                configureShareMenuDialogWindow(window, dialogView)
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coordinates ->
+                    val origin = coordinates.positionOnScreen()
+                    if (dialogOriginOnScreen != origin) {
+                        dialogOriginOnScreen = origin
+                    }
+                },
+        ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(colors.black.copy(alpha = ScrimAlpha))
                     .noRippleClickable(
                         role = Role.Button,
                         onClick = onDismissRequest,
@@ -190,26 +212,41 @@ private fun ShareMenuPopup(
                     },
             )
 
-            if (items.isNotEmpty() && menuHeight > 0.dp) {
-                ShareMenuPanel(
-                    items = items,
-                    onItemClick = onItemClick,
+            dialogOriginOnScreen?.let { dialogOrigin ->
+                val buttonLeft = with(density) {
+                    (buttonBounds.left - dialogOrigin.x).toDp()
+                }
+                val buttonTop = with(density) {
+                    (buttonBounds.top - dialogOrigin.y).toDp()
+                }
+                val buttonRight = with(density) {
+                    (buttonBounds.right - dialogOrigin.x).toDp()
+                }
+                val availableMenuHeight =
+                    (buttonTop - MenuButtonGap - MenuTopSafetyMargin).coerceAtLeast(0.dp)
+                val menuHeight = minOf(naturalMenuHeight, availableMenuHeight)
+
+                if (items.isNotEmpty() && menuHeight > 0.dp) {
+                    ShareMenuPanel(
+                        items = items,
+                        onItemClick = onItemClick,
+                        modifier = Modifier.absoluteOffset(
+                            x = buttonRight - MenuWidth,
+                            y = buttonTop - MenuButtonGap - menuHeight,
+                        ),
+                        height = menuHeight,
+                    )
+                }
+
+                ShareFloatingActionButton(
+                    expanded = true,
+                    onClick = onDismissRequest,
                     modifier = Modifier.absoluteOffset(
-                        x = buttonRight - MenuWidth,
-                        y = buttonTop - MenuButtonGap - menuHeight,
+                        x = buttonLeft,
+                        y = buttonTop,
                     ),
-                    height = menuHeight,
                 )
             }
-
-            ShareFloatingActionButton(
-                expanded = true,
-                onClick = onDismissRequest,
-                modifier = Modifier.absoluteOffset(
-                    x = buttonLeft,
-                    y = buttonTop,
-                ),
-            )
         }
     }
 }
@@ -376,13 +413,32 @@ private fun ShareFloatingActionButton(
     }
 }
 
-private object WindowOriginPopupPositionProvider : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize,
-    ): IntOffset = IntOffset.Zero
+@Suppress("DEPRECATION")
+private fun configureShareMenuDialogWindow(
+    window: Window,
+    view: View,
+) {
+    // 콘텐츠가 시스템 바를 제외해 측정되는 구형 Android에서도 Dialog Window의 dim layer는
+    // 뒤쪽 Activity와 투명 시스템 바 배경 전체에 동일한 50% 딤을 적용합니다.
+    window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+    window.setDimAmount(ScrimAlpha)
+    window.setLayout(
+        WindowManager.LayoutParams.MATCH_PARENT,
+        WindowManager.LayoutParams.MATCH_PARENT,
+    )
+    WindowCompat.setDecorFitsSystemWindows(window, false)
+    window.statusBarColor = android.graphics.Color.TRANSPARENT
+    window.navigationBarColor = android.graphics.Color.TRANSPARENT
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        window.isStatusBarContrastEnforced = false
+        window.isNavigationBarContrastEnforced = false
+    }
+
+    WindowInsetsControllerCompat(window, view).apply {
+        isAppearanceLightStatusBars = false
+        isAppearanceLightNavigationBars = true
+    }
 }
 
 private val FloatingButtonSize = 60.dp

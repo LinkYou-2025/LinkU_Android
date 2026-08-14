@@ -3,12 +3,11 @@
 package com.linku.file.ui.top.bar.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,71 +58,61 @@ fun MyListLayout(
             .padding(horizontal = 15.dp),
         contentAlignment = Alignment.Center
     ) {
-
-        // 내부 배치 레이아웃
+        // 오른쪽 화살표의 폭과 앞 간격을 먼저 예약해 긴 폴더명이 화살표를 밀어내지 못하게 합니다.
         Row(
             modifier = Modifier
-                // 전체 영역을 가득 채우도록
-                .wrapContentSize(),
-
-            // 가로 정렬 방법 (요소 간 10dp 간격, 가로 중앙 정렬)
-            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
-
-            // 세로 정렬 방법 (세로 중앙 정렬)
+                .align(Alignment.CenterStart)
+                .padding(end = MyListArrowWidth + MyListArrowSpacing),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Text(
+                text = topFolderText,
+                fontSize = 16.sp,
+                lineHeight = 20.sp,
+                fontWeight = FontWeight(500),
+                color = colorStyle.color4,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
+            if (folderStateViewModel.currentFolderState == FolderState.LINKS) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = colorStyle.color3,
+                    modifier = Modifier
+                        .padding(horizontal = MyListPathSpacing)
+                        .size(width = 7.dp, height = 13.dp),
+                )
 
-                // 현재, 상위 폴더명
                 Text(
-                    text = topFolderText,
+                    text = bottomFolderText,
                     fontSize = 16.sp,
                     lineHeight = 20.sp,
                     fontWeight = FontWeight(500),
                     color = colorStyle.color4,
                     textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-
-                if (folderStateViewModel.currentFolderState == FolderState.LINKS) {
-
-                    // '>' 문자열을 상·하위 폴더를 구분하는 아이콘으로 변경
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_chevron_right),
-                        contentDescription = null,
-                        tint = colorStyle.color3
-                    )
-
-                    Text(
-                        text = bottomFolderText,
-                        fontSize = 16.sp,
-                        lineHeight = 20.sp,
-                        fontWeight = FontWeight(500),
-                        color = colorStyle.color4,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
             }
-
-            // 아래 화살표 모양 아이콘
-            Icon(
-                // 아이콘 색상 (Gray500)
-                tint = colorStyle.color3,
-
-                // 사용할 아이콘 이미지 리소스 (drawable/check_img.xml)
-                painter = painterResource(id = R.drawable.check_img),
-
-                // 이미지 설명 ("아래 화살표")
-                contentDescription = "아래 화살표"
-            )
         }
+
+        Icon(
+            tint = colorStyle.color3,
+            painter = painterResource(id = R.drawable.check_img),
+            contentDescription = "아래 화살표",
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(width = MyListArrowWidth, height = 7.dp),
+        )
     }
 }
+
+private val MyListArrowWidth = 13.dp
+private val MyListArrowSpacing = 10.dp
+private val MyListPathSpacing = 4.dp
 
 @Preview(showBackground = true)
 @Composable

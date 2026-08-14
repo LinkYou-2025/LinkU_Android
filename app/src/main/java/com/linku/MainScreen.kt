@@ -54,7 +54,9 @@ fun MainScreen(
     // 통일함 — 예전엔 SystemBarController가 화면별로 별도 호출되면서 같은 Window를 서로 다른
     // 타이밍에 건드려 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시 보이던 버그).
     hideSystemBars: Boolean = false,
-    dimmed : Boolean = false,
+    statusBarDarkIcons: Boolean = true,
+    navigationBarDarkIcons: Boolean? = null,
+    dimmed: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val density = LocalDensity.current
@@ -62,10 +64,12 @@ fun MainScreen(
     var navBarTopPx by remember { mutableFloatStateOf(0f) }     // ⬅️ 바의 top 좌표
     var navBarSizePx by remember { mutableStateOf(Size.Zero) }
 
-    // File 탭처럼 상태바 뒤로 어두운 배경(그라데이션 등)이 비치는 화면은 이 값을 직접
-    // false로 바꿔서 아이콘을 흰색으로 전환함(LocalStatusBarDarkIcons로 하위에 제공).
-    // MainApp까지 콜백을 relay할 필요 없이 화면이 바로 읽고 쓸 수 있음.
-    val statusBarDarkIcons = remember { mutableStateOf(true) }
+    // 활성 route가 상태바 기본값을 소유합니다. route 기본값이 바뀌면 새 상태 객체를 만들어
+    // 이전 화면의 DisposableEffect.onDispose가 현재 화면의 아이콘 정책을 덮어쓰지 못하게 합니다.
+    // 하위 화면은 로딩/다이얼로그 같은 일시적인 상태에서만 이 값을 override합니다.
+    val statusBarDarkIconsState = remember(statusBarDarkIcons) {
+        mutableStateOf(statusBarDarkIcons)
+    }
 
     // Scaffold 바깥(하단 시스템 바 뒤)에 비치는 배경색. 커스텀 바텀바가 없는 화면에서
     // 시스템 내비게이션 바 뒤 여백이 화면 배경색과 다르게(기본 흰색) 보이는 걸 막기 위한 상태.
@@ -76,67 +80,72 @@ fun MainScreen(
     // 시스템 바 "배경색"은 지정하지 않음 — 각 화면의 상단 색상(gray[100], 그라데이션 등)이
     // 상태바/내비게이션 바까지 자연스럽게 확장되어 보이게(edge-to-edge) 둠.
     // 아이콘 밝기와 바 표시/숨김을 여기서 공통으로 맞춤.
-    EdgeToEdgeSystemBars(darkIcons = statusBarDarkIcons.value, hidden = hideSystemBars)
+    EdgeToEdgeSystemBars(
+        statusBarDarkIcons = statusBarDarkIconsState.value,
+        // 별도 정책이 없는 화면은 기존처럼 상태바의 일시적 아이콘 변경을 함께 따릅니다.
+        navigationBarDarkIcons = navigationBarDarkIcons ?: statusBarDarkIconsState.value,
+        hidden = hideSystemBars,
+    )
 
     CompositionLocalProvider(
-        LocalStatusBarDarkIcons provides statusBarDarkIcons,
+        LocalStatusBarDarkIcons provides statusBarDarkIconsState,
         LocalScaffoldBackgroundReporter provides { containerColor = it }
     ) {
         // 박스로 감싼 이유는 추후 토스트/alert 등을 화면 전체 위에 띄우기 쉽게 하기 위함입니다.
         Box(modifier = Modifier.fillMaxSize()) {
-        Scaffold(
-            contentWindowInsets = WindowInsets.safeDrawing.only(
-                WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
-            ),
-            modifier = Modifier.fillMaxSize(),
-            containerColor = containerColor,
-            bottomBar = {
-                if (navigationBarProp != null) {
-                    // 내비게이션 바의 위치/사이즈를 캡처
-                    Box(
-                        modifier = Modifier.onGloballyPositioned { coords ->
-                            val pos = coords.positionInRoot()
-                            navBarTopPx = pos.y
-                            navBarSizePx = Size(
-                                coords.size.width.toFloat(),
-                                coords.size.height.toFloat()
-                            )
-                            navBarCenter = with(density) {
-                                Offset(
-                                    x = pos.x + coords.size.width / 2f,
-                                    y = pos.y + coords.size.height / 2f
+            Scaffold(
+                contentWindowInsets = WindowInsets.safeDrawing.only(
+                    WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal
+                ),
+                modifier = Modifier.fillMaxSize(),
+                containerColor = containerColor,
+                bottomBar = {
+                    if (navigationBarProp != null) {
+                        // 내비게이션 바의 위치/사이즈를 캡처
+                        Box(
+                            modifier = Modifier.onGloballyPositioned { coords ->
+                                val pos = coords.positionInRoot()
+                                navBarTopPx = pos.y
+                                navBarSizePx = Size(
+                                    coords.size.width.toFloat(),
+                                    coords.size.height.toFloat()
                                 )
+                                navBarCenter = with(density) {
+                                    Offset(
+                                        x = pos.x + coords.size.width / 2f,
+                                        y = pos.y + coords.size.height / 2f
+                                    )
+                                }
                             }
+                        ) {
+                            LinkuNavigationBar(
+                                currentLinkuNavigationItem = navigationBarProp.currentLinkuNavigationItem,
+                                onNavigate = navigationBarProp.onNavigate,
+                                onFABClick = onFABClick
+                            )
                         }
-                    ) {
-                        LinkuNavigationBar(
-                            currentLinkuNavigationItem = navigationBarProp.currentLinkuNavigationItem,
-                            onNavigate = navigationBarProp.onNavigate,
-                            onFABClick = onFABClick
-                        )
                     }
+                }
+
+            ) { innerPadding ->
+                // 컨텐츠
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    content()
                 }
             }
 
-        ) { innerPadding ->
-            // 컨텐츠
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                content()
-            }
-        }
-            if(dimmed) {
+            if (dimmed) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.5f))
                 )
             }
-
-    }
+        }
     }
 }
 
