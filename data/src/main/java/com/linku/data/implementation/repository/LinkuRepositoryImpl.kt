@@ -261,7 +261,12 @@ class LinkuRepositoryImpl @Inject constructor(
             },
         ).flow
 
-    // 링크 수정
+    /**
+     * 전달받은 변경값을 multipart form-data part로 변환하여 링크를 수정합니다.
+     *
+     * `null`은 변경하지 않은 필드를 뜻하며, 빈 메모는 기존 메모를 삭제하는 값이므로
+     * 빈 문자열이어도 part 생성을 생략하지 않습니다.
+     */
     override suspend fun updateLink(
         userLinkuId: Long,
         image: TempImageFile?,
@@ -271,6 +276,26 @@ class LinkuRepositoryImpl @Inject constructor(
         categoryId: Long?,
         title: String?,
     ): LinkResultInfo {
+        require(
+            image != null ||
+                memo != null ||
+                emotionId != null ||
+                situationId != null ||
+                categoryId != null ||
+                title != null
+        ) {
+            "링크 수정 요청에는 이미지 또는 변경된 필드가 하나 이상 필요합니다."
+        }
+
+        val textMediaType = "text/plain".toMediaType()
+
+        // 빈 문자열도 메모 삭제를 의미하므로 null인 경우에만 part를 생략합니다.
+        val memoBody = memo?.toRequestBody(textMediaType)
+        val emotionBody = emotionId?.toString()?.toRequestBody(textMediaType)
+        val situationBody = situationId?.toString()?.toRequestBody(textMediaType)
+        val categoryBody = categoryId?.toString()?.toRequestBody(textMediaType)
+        val titleBody = title?.toRequestBody(textMediaType)
+
         val imagePart: MultipartBody.Part? = image?.let { tempImage ->
             MultipartBody.Part.createFormData(
                 name = "image",
@@ -287,11 +312,11 @@ class LinkuRepositoryImpl @Inject constructor(
             apiCall = {
                 serverApi.updateLink(
                     userLinkuId = userLinkuId,
-                    memo = memo,
-                    emotionId = emotionId,
-                    situationId = situationId,
-                    categoryId = categoryId,
-                    title = title,
+                    memo = memoBody,
+                    emotionId = emotionBody,
+                    situationId = situationBody,
+                    categoryId = categoryBody,
+                    title = titleBody,
                     image = imagePart,
                 )
             }
