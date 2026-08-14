@@ -51,6 +51,11 @@ sealed class ThemeColorScheme(
     // 비활성화용 단색 브러시 추가 -로그인, 회원가입용
     val inactiveColor: Brush = SolidColor(gray[300]),
 
+    // 링큐 비활성화 그라데이션
+    val linkuInactiveGradient: Brush = Brush.horizontalGradient(
+        listOf(Color(0xFFD4E1FF), Color(0xFFF2CCFF))
+    ),
+
     // 감정 선택 칩 배경 그라데이션 (선택 상태)
     val selectedChipGradient: Brush = Brush.horizontalGradient(
         listOf(
