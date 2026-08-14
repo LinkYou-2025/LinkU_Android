@@ -31,6 +31,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.R
 import com.linku.mypage.component.NoticeItem
 import com.linku.mypage.model.noticeList
@@ -41,6 +42,8 @@ fun NoticeScreen(
     onBackClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
+
+    ReportScaffoldBackground(colors.gray[100]) // 안드 하단바 컬러 정의
 
     var expandedNoticeId by rememberSaveable { mutableStateOf<String?>(null) }
 
