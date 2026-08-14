@@ -71,11 +71,11 @@ fun NoticeScreenContent(
             noticeDate = uiState.detail.noticeDate
         )
 
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(12.dp))
 
         HorizontalDivider(color = LocalColorTheme.current.gray[300])
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(23.dp))
 
         LinkUMarkdownText(
             text = uiState.detail.content,

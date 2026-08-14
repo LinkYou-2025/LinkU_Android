@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +31,7 @@ import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.font.Paperlogy
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.core.model.alarm.AlarmType
+import com.linku.design.util.scaler
 import com.linku.home.ui.alarm.util.iconRes
 
 @Composable
@@ -80,7 +81,7 @@ fun AlarmItem(
                 }
 
                 // 오른쪽: 시간 + 빨간 점
-                Box {
+                Row(verticalAlignment = Alignment.Top) {
                     Text(
                         text = alarm.whenSubmitted,
                         style = LocalTextStyle.current.copy(
@@ -93,9 +94,21 @@ fun AlarmItem(
                     if (!isRead) {
                         Box(
                             modifier = Modifier
+                                .layout { measurable, constraints ->
+                                    // 빨간 점의 실제 크기를 측정
+                                    val placeable = measurable.measure(
+                                        constraints.copy(minWidth = 0, maxWidth = 7.dp.roundToPx())
+                                    )
+                                    // 부모에게는 0x0 크기로 보고하여 Row의 공간을 차지하지 않도록 함
+                                    // 측정된 빨간 점은 실제 위치에 따로 배치
+                                    layout(width = 0, height = 0) {
+                                        placeable.place(
+                                            x = 4.dp.roundToPx(),
+                                            y = (-4.5).dp.roundToPx() // -1(피그마 값) + (-3.5)원의 반지름
+                                        )
+                                    }
+                                }
                                 .size(7.dp)
-                                .align(Alignment.TopEnd)
-                                .offset(x = 8.dp, y = (-4).dp)
                                 .background(
                                     color = LocalColorTheme.current.negative,
                                     shape = RoundedCornerShape(50)
