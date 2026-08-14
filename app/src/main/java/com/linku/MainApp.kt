@@ -654,7 +654,8 @@ fun MainApp(
                 curationGraph(
                     navigator = navigator,
                     showNavBar = { showNavBar = it },
-                    nickname = nickname.orEmpty().ifBlank { "링큐" },
+                    // 그래프 빌더는 최초 1회만 실행되므로 값이 아닌 람다로 넘겨 매번 최신 nickname을 읽게 함.
+                    nickname = { nickname.orEmpty().ifBlank { "링큐" } },
                     onNavigateToSaveLink = { saveLinkEntryTriggered = true },
                 )
 
