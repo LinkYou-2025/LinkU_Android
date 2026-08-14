@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.SectionItem
+import com.linku.curation.ui.bar.CurationTopBar
 import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.header.CurationHeader
 import com.linku.curation.ui.main_card.CurationMainCardPager
@@ -34,7 +35,6 @@ import com.linku.curation.viewModel.sideeffect.CurationMainSideEffect
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
-import com.linku.design.top.bar.TopBar
 import com.linku.design.util.scaler
 
 private const val CURATION_CARD_COUNT = 3
@@ -96,36 +96,43 @@ fun CurationScreen(
     Box(modifier = Modifier.fillMaxSize()) {
         CurationBackground(modifier = Modifier.fillMaxSize(), showLogo = true)
 
-        if (state.errorMessage.isNotEmpty()) {
-            CurationErrorLayout(
-                errorMessage = state.errorMessage,
-                onRetry = { viewModel.handleIntent(CurationMainIntent.Retry) }
-            )
-        } else {
-            CurationScreenContent(
-                nickname = displayNickname,
-                sections = state.curationMain?.sections ?: emptyList(),
-                latestCurationMonth = state.curationMain?.latestCurationMonth,
-                pagerState = pagerState,
-                onCardClick = { index ->
-                    val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
-                    when (index) {
-                        0 -> viewModel.handleIntent(
-                            CurationMainIntent.ClickCurationSection(
-                                curationId = state.curationMain?.latestCurationId ?: return@CurationScreenContent,
-                                month = month
+        // 스크롤 시 함께 밀려 올라가면 안 되는 상단 로고 바이므로 스크롤 영역 밖에서 고정 배치한다.
+        Column(modifier = Modifier.fillMaxSize()) {
+            CurationTopBar()
+
+            if (state.errorMessage.isNotEmpty()) {
+                CurationErrorLayout(
+                    modifier = Modifier.weight(1f),
+                    errorMessage = state.errorMessage,
+                    onRetry = { viewModel.handleIntent(CurationMainIntent.Retry) }
+                )
+            } else {
+                CurationScreenContent(
+                    nickname = displayNickname,
+                    sections = state.curationMain?.sections ?: emptyList(),
+                    latestCurationMonth = state.curationMain?.latestCurationMonth,
+                    isLoading = state.isLoading,
+                    pagerState = pagerState,
+                    onCardClick = { index ->
+                        val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
+                        when (index) {
+                            0 -> viewModel.handleIntent(
+                                CurationMainIntent.ClickCurationSection(
+                                    curationId = state.curationMain?.latestCurationId ?: return@CurationScreenContent,
+                                    month = month
+                                )
                             )
-                        )
-                        1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
-                        2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
+                            1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
+                            2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
+                        }
+                    },
+                    onMonthlyCurationClick = {
+                        state.curationMain?.latestCurationMonth?.let { month ->
+                            viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
+                        }
                     }
-                },
-                onMonthlyCurationClick = {
-                    state.curationMain?.latestCurationMonth?.let { month ->
-                        viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
-                    }
-                }
-            )
+                )
+            }
         }
     }
 }
@@ -135,6 +142,7 @@ private fun CurationScreenContent(
     nickname: String,
     sections: List<SectionItem>,
     latestCurationMonth: String?,
+    isLoading: Boolean = false,
     pagerState: PagerState,
     onCardClick: (index: Int) -> Unit,
     onMonthlyCurationClick: () -> Unit = {},
@@ -162,8 +170,6 @@ private fun CurationScreenContent(
     val scrollState = rememberScrollState()
 
     Column(modifier = modifier.fillMaxWidth().verticalScroll(scrollState)) {
-        TopBar(showSearchBar = false, backgroundColor = null)
-
         Spacer(modifier = Modifier.height(12.scaler))
 
         CurationHeader(nickname = nickname)
@@ -175,6 +181,7 @@ private fun CurationScreenContent(
             titles = titles,
             descriptions = descriptions,
             month = month,
+            isLoading = isLoading,
             pagerState = pagerState,
             onCardClick = { index, _ -> onCardClick(index) }
         )

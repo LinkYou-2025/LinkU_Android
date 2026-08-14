@@ -51,7 +51,7 @@ import androidx.compose.ui.graphics.Shape
  
  *
  * @param shape 스켈레톤 영역의 모양 (원형, 라운드, 사각형 등 자유롭게 지정)
- * @param colors 쉬머 그라데이션 색상 목록 (기본값: [MaterialTheme.grayShimmerColors])
+ * @param colors 베이스 그라데이션 색상 목록. 흐르는 하이라이트 띠는 테마 white로 고정 (기본값: [MaterialTheme.grayShimmerColors])
  */
 @Composable
 fun SkeletonBox(
@@ -59,5 +59,5 @@ fun SkeletonBox(
     shape: Shape = RectangleShape,
     colors: List<Color> = MaterialTheme.grayShimmerColors
 ) {
-    Box(modifier = modifier.shimmer(shape = shape, colors = colors))
+    Box(modifier = modifier.shimmer(shape = shape, baseColors = colors))
 }

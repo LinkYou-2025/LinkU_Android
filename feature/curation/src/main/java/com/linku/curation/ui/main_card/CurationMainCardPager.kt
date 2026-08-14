@@ -45,6 +45,7 @@ import kotlin.math.absoluteValue
  * @param titles 각 카드에 표시할 제목 리스트
  * @param descriptions 각 카드에 표시할 설명 리스트
  * @param month 0번(월간) 카드의 고정 이미지를 고르는 데 쓰이는 월(1~12). 서버가 내려주는 최신 큐레이션 월 기준.
+ * @param isLoading 큐레이션 메인 API 응답 대기 중이면 true. 모든 카드를 스켈레톤 + 쉬머로 대체 표시.
  * @param onCardClick 카드 하단 체크아웃 버튼 클릭 시 호출. (페이지 인덱스, 이미지 URL) 전달
  */
 @Composable
@@ -55,6 +56,7 @@ internal fun CurationMainCardPager(
     titles: List<String>,
     descriptions: List<String>,
     month: Int = 0,
+    isLoading: Boolean = false,
     onCardClick: (index: Int, imageUrl: String) -> Unit = { _, _ -> },
 ) {
     val totalPages = imageUrls.size
@@ -106,6 +108,7 @@ internal fun CurationMainCardPager(
                     month = month,
                     page = actualPage,
                     totalPage = totalPages,
+                    isLoading = isLoading,
                     onCheckOutClick = { onCardClick(actualPage, imageUrls[actualPage]) },
                     modifier = Modifier
                         .fillMaxSize()

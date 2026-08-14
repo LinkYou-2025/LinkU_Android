@@ -16,6 +16,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.linku.design.modifier.noRippleClickable
@@ -33,7 +34,11 @@ fun NoAnimBottomSheet(
     val containerColor = colorTheme.white
 
     Box(
-        modifier = Modifier.fillMaxSize(),
+        // Surface의 shadowElevation이 콘텐츠 영역(시스템 내비게이션 바 바로 위) 밖으로
+        // 번져서, 그 아래 시스템 내비게이션 바 자리에 회색 그라데이션처럼 비치는 걸 막음.
+        modifier = Modifier
+            .fillMaxSize()
+            .clipToBounds(),
         contentAlignment = Alignment.BottomCenter
     ) {
 

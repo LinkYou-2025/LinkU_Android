@@ -22,18 +22,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.font.Taebaek
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
 import com.linku.mypage.R
-import com.linku.design.R as Res
 
 @Composable
 fun MypageTopBar(
@@ -61,18 +64,27 @@ fun MypageTopBar(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 52.dp, start = 20.dp, end = 20.dp, bottom = 20.dp)
+                .padding(top = 49.dp, start = 16.dp, end = 16.dp, bottom = 20.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 10.dp, end = 6.dp),
+                    .padding(start = 19.dp, end = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(Res.drawable.ic_linkukor),
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp, 24.dp)
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            SpanStyle(
+                                fontSize = 24.sp,
+                                fontFamily = Taebaek.font,
+                                fontWeight = FontWeight.Normal,
+                                brush = colors.maincolor,
+                            )
+                        ) {
+                            append("링큐")
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.weight(1f))

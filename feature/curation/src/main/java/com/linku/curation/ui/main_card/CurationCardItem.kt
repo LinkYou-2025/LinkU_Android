@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.linku.curation.R
+import com.linku.curation.ui.effect.skeleton.SkeletonBox
 import com.linku.curation.ui.item.CurationCheckOutButton
 import com.linku.curation.ui.mapper.resolveMonthlyCurationImage
 import com.linku.design.theme.LinkuPreview
@@ -48,6 +49,7 @@ import com.linku.design.util.scaler
  * @param month 0번(월간) 카드의 고정 이미지를 고르는 데 쓰이는 월(1~12). 서버가 내려주는 최신 큐레이션 월 기준.
  * @param page 현재 카드의 0-based 페이지 인덱스
  * @param totalPage 전체 카드 페이지 수 (페이지 인디케이터 표시용, 기본값: 3)
+ * @param isLoading true면 카드 내용 대신 스켈레톤 + 쉬머를 표시
  * @param onCheckOutClick 카드 우측 하단 체크아웃 버튼 클릭 콜백
  * @param fallbackImage imageUrl이 유효하지 않을 때 표시할 기본 이미지 리소스
  */
@@ -60,10 +62,27 @@ internal fun CurationCardItem(
     month: Int = 0,
     page: Int = 0,
     totalPage: Int = 3,
+    isLoading: Boolean = false,
     onCheckOutClick: () -> Unit = {},
     @DrawableRes fallbackImage: Int = R.drawable.img_curation_example // 일단 프리뷰 테스트를 위해 기본 이미지 넣어두었습니다~!
 ) {
     val colorTheme = MaterialTheme.linkuColors
+
+    // 0번(월간) 카드는 month가 큐레이션 메인 API 응답으로 내려오는데, 응답 도착 전에는
+    // month가 0이라 resolveMonthlyCurationImage(0)가 투명 이미지를 반환해 카드가 비어 보인다.
+    // API 응답 대기 중에는 카드 전체를 SkeletonBox(기존 grayShimmerColors)로 대체해
+    // 쉬머가 좌우로 움직이며 로딩 중임을 보여준다.
+    if (isLoading) {
+        Box(
+            modifier = modifier.clip(RoundedCornerShape(24.scaler))
+        ) {
+            SkeletonBox(
+                modifier = Modifier.matchParentSize(),
+                shape = RoundedCornerShape(24.scaler)
+            )
+        }
+        return
+    }
     val resolvedImageUrl = imageUrl.takeIf { it.isNotBlank() && it != "null" }
 
     // 1~3번째 카드는 API 이미지 대신 고정 이미지 사용 (imageUrl 파라미터는 추후 API 확장을 위해 유지)
@@ -104,7 +123,13 @@ internal fun CurationCardItem(
                 model = resolvedImageUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
+                modifier = Modifier.matchParentSize(),
+                loading = {
+                    SkeletonBox(
+                        modifier = Modifier.matchParentSize(),
+                        shape = RoundedCornerShape(24.scaler)
+                    )
+                }
             )
         }
 

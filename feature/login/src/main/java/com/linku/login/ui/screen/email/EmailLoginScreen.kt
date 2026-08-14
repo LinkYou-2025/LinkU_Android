@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -79,6 +80,15 @@ fun EmailLoginScreen(
 
     // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
     // (LoginApp.kt가 "login" 화면을 벗어날 때 edgeToEdgeSystemBars=false로 되돌림).
+
+    // loginViewModel은 auth_graph 전체에 스코프돼 있어 이 화면을 벗어나도(뒤로가기, 회원가입/
+    // 비밀번호 재설정 이동 등) 입력값이 그대로 남아있음. 이 화면이 컴포지션에서 사라질 때
+    // 이메일/비밀번호를 초기화해서, 다시 들어왔을 때 이전 입력값이 보이지 않게 한다.
+    DisposableEffect(Unit) {
+        onDispose {
+            loginViewModel?.clearInput()
+        }
+    }
 
     val isEmailValid = Patterns.EMAIL_ADDRESS.matcher(uiState.email).matches()
     val isFormValid = uiState.email.isNotBlank() && uiState.password.isNotBlank() && isEmailValid

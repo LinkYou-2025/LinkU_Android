@@ -58,6 +58,15 @@ open class LoginViewModel @Inject constructor(
         }
     }
 
+    /**
+     * EmailLoginScreen을 벗어날 때(뒤로가기, 회원가입/비밀번호 재설정 이동 등) 호출됨.
+     * loginViewModel은 auth_graph 전체에 스코프돼 있어 화면을 나가도 값이 그대로 남아있으므로,
+     * 다시 이메일 로그인 화면에 들어왔을 때 이전에 입력했던 이메일/비밀번호가 보이지 않도록 초기화한다.
+     */
+    fun clearInput() {
+        updateState { copy(email = "", password = "", loginState = LoginState.Idle) }
+    }
+
     fun login(
         email: String = state.value.email.trim(),
         password: String = state.value.password.trim()
