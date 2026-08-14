@@ -398,7 +398,7 @@ fun SaveLinkScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 14.dp, start = 20.dp, end = 20.dp)
-                        .height(50.dp)
+                        .heightIn(min = 50.dp)
                         .then(
                             if (title.isEmpty()) {
                                 Modifier.border(
@@ -424,7 +424,6 @@ fun SaveLinkScreen(
                             lineHeight = 20.sp,
                             fontWeight = FontWeight.Normal,
                             color = colors.gray[400],
-                            maxLines = 1,
                         )
                     }
 
@@ -433,7 +432,6 @@ fun SaveLinkScreen(
                         onValueChange = { newTitle ->
                             onTitleChange(newTitle.take(MAX_LINK_TITLE_LENGTH))
                         },
-                        singleLine = true,
                         textStyle = TextStyle(
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
