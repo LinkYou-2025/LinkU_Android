@@ -52,6 +52,7 @@ private const val TOPBAR_SEARCH_HEIGHT = 139f    // 검색바 포함 //기존 �
 private val DEFAULT_BACKGROUND = Color.White // 기본 배경 흰색
 
 //아 이것도 리펙해야하나...?
+@Deprecated("더 이상 사용되지 않습니다. 각 화면(홈/마이페이지/큐레이션 등)은 전용 TopBar 컴포넌트를 사용하세요.")
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
@@ -174,18 +175,21 @@ fun TopBar(
     }
 }
 
+@Suppress("DEPRECATION")
 @Preview(showBackground = true, name = "기본 (검색바 포함)")
 @Composable
 fun PreviewCurationTopBar() {
     TopBar()
 }
 
+@Suppress("DEPRECATION")
 @Preview(showBackground = true, name = "로고 + 알림만")
 @Composable
 fun PreviewCurationTopBarSimple() {
     TopBar(showSearchBar = false)
 }
 
+@Suppress("DEPRECATION")
 @Preview(showBackground = true, name = "커스텀 컬러 (FileTopBar 스타일 프리뷰)")
 @Composable
 fun PreviewCurationTopBarCustom() {

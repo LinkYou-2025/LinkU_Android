@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.SectionItem
+import com.linku.curation.ui.bar.CurationTopBar
 import com.linku.curation.ui.calendar.CalendarBox
 import com.linku.curation.ui.header.CurationHeader
 import com.linku.curation.ui.main_card.CurationMainCardPager
@@ -34,7 +35,6 @@ import com.linku.curation.viewModel.sideeffect.CurationMainSideEffect
 import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
-import com.linku.design.top.bar.TopBar
 import com.linku.design.util.scaler
 
 private const val CURATION_CARD_COUNT = 3
@@ -162,7 +162,7 @@ private fun CurationScreenContent(
     val scrollState = rememberScrollState()
 
     Column(modifier = modifier.fillMaxWidth().verticalScroll(scrollState)) {
-        TopBar(showSearchBar = false, backgroundColor = null)
+        CurationTopBar()
 
         Spacer(modifier = Modifier.height(12.scaler))
 
