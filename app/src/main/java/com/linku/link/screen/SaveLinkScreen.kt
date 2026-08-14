@@ -87,6 +87,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
 
+/** 링크 제목 입력에 허용되는 최대 글자 수입니다. */
+private const val MAX_LINK_TITLE_LENGTH = 60
+
 /**
  * 새 링크에 필요한 URL, 제목, 이미지, 메모 및 분류 정보를 입력하는 화면입니다.
  *
@@ -427,7 +430,9 @@ fun SaveLinkScreen(
 
                     BasicTextField(
                         value = title,
-                        onValueChange = onTitleChange,
+                        onValueChange = { newTitle ->
+                            onTitleChange(newTitle.take(MAX_LINK_TITLE_LENGTH))
+                        },
                         singleLine = true,
                         textStyle = TextStyle(
                             fontSize = 14.sp,

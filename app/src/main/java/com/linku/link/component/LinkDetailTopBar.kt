@@ -44,6 +44,9 @@ import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 
+/** 링크 제목 입력에 허용되는 최대 글자 수입니다. */
+private const val MAX_LINK_TITLE_LENGTH = 60
+
 /**
  * 칩 내부 패딩과 분리된 레이아웃에서 칩의 전체 외곽 영역을 측정합니다.
  *
@@ -224,7 +227,9 @@ fun LinkDetailTopBar(
                             ) {
                                 BasicTextField(
                                     value = linkTitle,
-                                    onValueChange = onTitleChange,
+                                    onValueChange = { newTitle ->
+                                        onTitleChange(newTitle.take(MAX_LINK_TITLE_LENGTH))
+                                    },
                                     textStyle = TextStyle(
                                         fontSize = 22.sp,
                                         fontWeight = FontWeight.Bold,
