@@ -26,15 +26,17 @@ enum class AlarmType(
 
     companion object {
 
-        // api로 오는 문자열에 따라 해당하는 enum으로 매핑하는 함수
-        fun from(apiValue: String): AlarmType = when (apiValue) {
+        /** API 문자열을 알림 유형으로 변환하고, 지원하지 않는 값이면 `null`을 반환합니다. */
+        fun fromOrNull(apiValue: String): AlarmType? = when (apiValue) {
             "ALL" -> ALL
-            "LINK" -> LINK
+            "LINK", "LINK_SUMMARY_COMPLETE" -> LINK
             "FOLDER" -> FOLDER
             "CURATION" -> CURATION
             "NOTICE" -> NOTICE
-            else -> ALL
+            else -> null
         }
 
+        /** 알림 목록의 기존 정책에 따라 지원하지 않는 API 값은 [ALL]로 표시합니다. */
+        fun from(apiValue: String): AlarmType = fromOrNull(apiValue) ?: ALL
     }
 }

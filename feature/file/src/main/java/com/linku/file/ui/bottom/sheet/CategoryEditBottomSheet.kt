@@ -35,6 +35,7 @@ import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,12 +55,15 @@ import com.linku.file.viewmodel.folder.state.FolderStateViewModel
  *
  * 카테고리 이름은 안내용으로만 표시하며, 선택한 색상 index를 서버용 ID와
  * 화면용 [CategoryColorStyle]로 변환하는 기능 로직은 이 진입점에 유지합니다.
+ *
+ * @param onUpdateFinished 색상 수정 요청이 성공 또는 실패로 끝났을 때 호출되는 콜백입니다.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun CategoryEditBottomSheet(
     folderStateViewModel: FolderStateViewModel,
-    fileViewModel: FileViewModel
+    fileViewModel: FileViewModel,
+    onUpdateFinished: () -> Unit,
 ){
     val colors = MaterialTheme.linkuColors
     var colorId by remember { mutableIntStateOf(-1) }
@@ -79,10 +83,12 @@ internal fun CategoryEditBottomSheet(
             fileViewModel.updateCategoryColor(
                 categoryName = folderStateViewModel.readyToUpdateTopFolder!!.folderName,
                 colorId = (colorId + 1).toLong(),
-                colorStyle = CategoryColorStyle.categoryStyleList[colorId]
+                colorStyle = CategoryColorStyle.categoryStyleList[colorId],
+                onFinished = onUpdateFinished,
             )
         },
         onDismiss = {
+            colorId = -1
             selectedColor = colors.gray[300]
             expanded = false
             folderStateViewModel.updateTopFolderEditBottomSheetVisible(false)
@@ -155,19 +161,24 @@ private fun CategoryColorSelector(
             label = "화살표 회전 애니메이션",
         )
 
-        val arrowModifier = if (expanded) {
-            Modifier
-                .padding(start = 10.dp)
-                .graphicsLayer(alpha = 0.99f)
-                .drawWithCache {
-                    onDrawWithContent {
-                        drawContent()
-                        drawRect(colors.maincolor, blendMode = BlendMode.SrcAtop)
+        val arrowModifier = Modifier
+            .padding(start = 10.dp)
+            .graphicsLayer {
+                // 상태 전환에도 modifier 구조를 유지하되, 그라데이션을 그릴 때만 합성을 격리합니다.
+                compositingStrategy = if (expanded) {
+                    CompositingStrategy.Offscreen
+                } else {
+                    CompositingStrategy.Auto
+                }
+            }
+            .drawWithCache {
+                onDrawWithContent {
+                    drawContent()
+                    if (expanded) {
+                        drawRect(colors.maincolor, blendMode = BlendMode.SrcIn)
                     }
                 }
-        } else {
-            Modifier.padding(start = 10.dp)
-        }
+            }
 
         Icon(
             modifier = arrowModifier

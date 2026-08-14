@@ -14,7 +14,7 @@ import com.linku.data.api.dto.aiarticle.AiArticleLinkItemDTO
  */
 internal fun AiArticleLinkItemDTO.toDomain(): AiArticleLink =
     AiArticleLink(
-        linkuId = linkuId,
+        userLinkuId = userLinkuId,
         linku = linku,
         emotionId = emotionId,
         domain = domain,

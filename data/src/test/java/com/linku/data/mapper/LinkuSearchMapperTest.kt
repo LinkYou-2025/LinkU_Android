@@ -11,7 +11,6 @@ class LinkuSearchMapperTest {
     fun `maps all search fields to domain`() {
         val dto = LinkuSearchItemResponseDTO(
             userLinkuId = 1L,
-            linkuId = 2L,
             title = "Compose",
             linkuImageUrl = "https://example.com/link.png",
             tags = listOf("Android", "Kotlin"),
@@ -19,10 +18,9 @@ class LinkuSearchMapperTest {
             domainName = "example.com",
         )
 
-        val result = dto.toDomain()
+        val result = requireNotNull(dto.toDomain())
 
         assertEquals(1L, result.userLinkuId)
-        assertEquals(2L, result.linkuId)
         assertEquals("Compose", result.title)
         assertEquals("https://example.com/link.png", result.linkuImageUrl)
         assertEquals(listOf("Android", "Kotlin"), result.tags)
@@ -31,15 +29,9 @@ class LinkuSearchMapperTest {
     }
 
     @Test
-    fun `maps omitted optional search fields safely`() {
+    fun `drops search item without user link id`() {
         val result = LinkuSearchItemResponseDTO().toDomain()
 
-        assertNull(result.userLinkuId)
-        assertNull(result.linkuId)
-        assertNull(result.title)
-        assertNull(result.linkuImageUrl)
-        assertEquals(emptyList<String>(), result.tags)
-        assertNull(result.domainImageUrl)
-        assertNull(result.domainName)
+        assertNull(result)
     }
 }

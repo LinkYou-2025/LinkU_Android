@@ -125,7 +125,7 @@ private class RecordingAIArticleRepository : AIArticleRepository {
     val requestedCategories = mutableListOf<CategoryType?>()
 
     /** 목록 ViewModel 테스트에서는 상세 조회를 사용하지 않습니다. */
-    override suspend fun getAiArticle(linkuId: Long): AiArticle =
+    override suspend fun getAiArticle(userLinkuId: Long): AiArticle =
         error("AI article detail is not used by this ViewModel test.")
 
     /** 요청 조건을 기록하고 검증에 충분한 빈 Paging 데이터를 반환합니다. */

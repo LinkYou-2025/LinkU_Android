@@ -40,7 +40,7 @@ import java.time.LocalDate
 @Composable
 fun CurationRemindScreen(
     onBack: () -> Unit,
-    onNavigateToLinkDetail: (Long) -> Unit = {},
+    onNavigateToLinkDetail: (userLinkuId: Long) -> Unit = {},
     viewModel: CurationRemindViewModel,
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -56,7 +56,7 @@ fun CurationRemindScreen(
                     isToastVisible = true
                 }
                 is CurationRemindSideEffect.NavigateToLinkDetail ->
-                    onNavigateToLinkDetail(effect.linkId)
+                    onNavigateToLinkDetail(effect.userLinkuId)
             }
         }
     }
@@ -70,8 +70,10 @@ fun CurationRemindScreen(
             isError = state.isError,
             onBack = onBack,
             onLinkClick = { link ->
-                val linkId = link.userLinkuId ?: return@CurationRemindScreenContent
-                viewModel.handleIntent(CurationRemindIntent.ClickLink(linkId))
+                val userLinkuId = link.userLinkuId
+                    ?.takeIf { it > 0L }
+                    ?: return@CurationRemindScreenContent
+                viewModel.handleIntent(CurationRemindIntent.ClickLink(userLinkuId))
             },
         )
 
@@ -185,7 +187,12 @@ private fun CurationRemindScreenContent(
                 ) {
                     items(
                         count = links.size,
-                        key = { index -> links[index].userLinkuId ?: index.toLong() }
+                        key = { index ->
+                            links[index].userLinkuId
+                                ?.takeIf { it > 0L }
+                                ?.let { userLinkuId -> "curation-remind-user-$userLinkuId" }
+                                ?: "curation-remind-index-$index"
+                        }
                     ) { index ->
                         val link = links[index]
                         LinkCardItem(
@@ -223,7 +230,7 @@ private fun CurationRemindScreenLoadingPreview() {
 private fun CurationRemindScreenPreview() {
     val sampleLinks = List(6) { index ->
         UnreadLink(
-            userLinkuId = index.toLong(),
+            userLinkuId = index.toLong() + 1L,
             title = "오픽 AL 따는 꿀팁 얻고 보러오세요",
             domain = "BLOG",
             categories = listOf("생산성·툴", "평온"),

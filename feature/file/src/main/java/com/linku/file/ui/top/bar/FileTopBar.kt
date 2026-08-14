@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -44,13 +45,13 @@ import com.linku.file.ui.top.bar.component.FolderScopeListMenu
 import com.linku.file.ui.top.bar.component.MyListLayout
 import com.linku.file.ui.top.bar.component.MyListMenu
 import com.linku.file.ui.top.bar.component.ParentFolderSortMenu
-import com.linku.file.viewmodel.folder.state.FolderState
+import com.linku.file.viewmodel.folder.state.FileNavigationState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 
 /**
  * 파일 화면의 로고, 검색, 폴더 범위 선택과 상위 폴더 정렬 액션을 표시합니다.
  *
- * @param fileViewModel 폴더 범위 메뉴에서 목록을 조회하는 파일 화면 ViewModel입니다.
+ * @param fileViewModel 개인 breadcrumb 메뉴에 표시할 폴더 데이터를 제공하는 ViewModel입니다.
  * @param folderStateViewModel 현재 폴더 단계와 상단 메뉴 상태를 관리하는 ViewModel입니다.
  * @param parentFolderSort 현재 기기에 적용된 상위 폴더 정렬 기준입니다.
  * @param onParentFolderSortSelected 사용자가 정렬 기준을 선택했을 때 호출되는 콜백입니다.
@@ -63,14 +64,18 @@ fun FileTopBar(
     parentFolderSort: ParentFolderSort,
     onParentFolderSortSelected: (ParentFolderSort) -> Unit,
     onSearchClick: () -> Unit,
+    personalScopeLabel: String,
+    sharedScopeLabel: String,
+    sharedListScopeLabel: String?,
+    onSelectPersonalScope: () -> Unit,
+    onSelectSharedScope: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
     val density = LocalDensity.current
     var sortMenuExpanded by rememberSaveable { mutableStateOf(false) }
     var myListAnchorWidth by remember { mutableStateOf(0.dp) }
     val showParentFolderSort =
-        folderStateViewModel.currentFolderState == FolderState.TOP &&
-            !folderStateViewModel.isSharedFolders
+        folderStateViewModel.navigationState == FileNavigationState.PersonalTop
 
     LaunchedEffect(
         showParentFolderSort,
@@ -154,8 +159,9 @@ fun FileTopBar(
         Row(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                // 왼쪽 20dp, 위쪽 153dp 여백
-                .padding(start = 20.dp, top = 153.dp),
+                .fillMaxWidth()
+                // 좌우 20dp, 위쪽 153dp 여백
+                .padding(start = 20.dp, top = 153.dp, end = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ){
             Box(
@@ -167,17 +173,26 @@ fun FileTopBar(
             ) {
                 // 폴더 리스트 컴포저블
                 FolderScopeListLayout(
-                    folderStateViewModel = folderStateViewModel
+                    folderName = if (folderStateViewModel.isSharedFolders) {
+                        sharedScopeLabel
+                    } else {
+                        personalScopeLabel
+                    },
                 )
 
                 FolderScopeListMenu(
                     folderStateViewModel = folderStateViewModel,
-                    fileViewModel = fileViewModel
+                    personalLabel = personalScopeLabel,
+                    sharedLabel = sharedScopeLabel,
+                    onSelectMyFolders = onSelectPersonalScope,
+                    onSelectSharedFolders = onSelectSharedScope,
                 )
 
             }
 
-            if (folderStateViewModel.currentFolderState != FolderState.TOP) {
+            if (folderStateViewModel.navigationState is FileNavigationState.PersonalBottom ||
+                folderStateViewModel.navigationState is FileNavigationState.PersonalLinks
+            ) {
                 Box(
                     // 왼쪽 위에 정렬
                     modifier = Modifier
@@ -201,6 +216,8 @@ fun FileTopBar(
                         onChangeFolder = {}
                     )
                 }
+            } else if (sharedListScopeLabel != null) {
+                SharedScopeListLayout(label = sharedListScopeLabel)
             }
         }
 
@@ -247,6 +264,30 @@ fun FileTopBar(
 
 }
 
+/** Figma 공유 목록의 현재 범위를 표시하는 비대화형 분홍색 칩입니다. */
+@Composable
+private fun SharedScopeListLayout(
+    label: String,
+) {
+    Box(
+        modifier = Modifier
+            .height(35.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(Color(0xFFFFE9F3))
+            .padding(horizontal = 15.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            color = Color(0xFFFF459C),
+            fontSize = 16.sp,
+            lineHeight = 20.sp,
+            fontWeight = FontWeight.Medium,
+            maxLines = 1,
+        )
+    }
+}
+
 
 @Preview(
     name = "Pixel 8 Size",
@@ -259,6 +300,11 @@ private fun FileTopBarTest() {
         viewModel(),
         viewModel(),
         ParentFolderSort.NAME,
+        {},
+        {},
+        "나의 폴더",
+        "공유폴더",
+        null,
         {},
         {},
     )

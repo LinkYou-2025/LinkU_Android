@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.linku.core.model.FolderSimpleInfo
-import com.linku.core.model.SharedFolderInfo
 
 enum class FolderState {
     TOP,        // 최상위 폴더(TopFolderGrid)
@@ -17,29 +16,102 @@ enum class FolderState {
 // FolderState 뷰 모델
 class FolderStateViewModel : ViewModel() {
 
-    // 공유 폴더인지 내 폴더인지
-    var isSharedFolders by mutableStateOf(false)
+    /** 개인 및 공유 탐색에서 유효한 조합만 표현하는 현재 상태입니다. */
+    var navigationState by mutableStateOf<FileNavigationState>(FileNavigationState.PersonalTop)
         private set
+
+    /** 기존 상단 범위 UI가 읽을 수 있도록 제공하는 파생 호환 프로퍼티입니다. */
+    val isSharedFolders: Boolean
+        get() = navigationState !is FileNavigationState.Personal
+
+    /** 기존 개인 컴포넌트가 읽을 수 있도록 탐색 상태를 3단계로 투영합니다. */
+    val currentFolderState: FolderState
+        get() = when (navigationState) {
+            FileNavigationState.PersonalTop,
+            FileNavigationState.SharedFolderGroups,
+            -> FolderState.TOP
+
+            is FileNavigationState.PersonalBottom,
+            is FileNavigationState.SharedFolderList,
+            -> FolderState.BOTTOM
+
+            is FileNavigationState.PersonalLinks,
+            is FileNavigationState.SharedFolderDetail,
+            -> FolderState.LINKS
+        }
+
+    /**
+     * 루트 내비게이션의 기존 호출부를 위한 범위 전환 경계입니다.
+     *
+     * 새 파일 화면 코드는 의미가 분명한 [showPersonalTop]과 [showSharedFolderGroups]를 사용합니다.
+     */
     fun updateIsSharedFolders(newState: Boolean) {
-        Log.d("isSharedFolders", newState.toString())
-        isSharedFolders = newState
+        if (newState) showSharedFolderGroups() else showPersonalTop()
     }
 
-    // 현재 폴더 단계
-    var currentFolderState by mutableStateOf<FolderState>(FolderState.TOP)
-        private set
-    fun updateFolderState(newState: FolderState) {
-        Log.d("currentFolderState", newState.toString())
-        currentFolderState = newState
+    fun showPersonalTop() {
+        navigationState = FileNavigationState.PersonalTop
+        closeNavigationMenus()
     }
 
-    // 선택한 중분류 폴더, null이면 대분류 단계
-    var selectedTopFolder by mutableStateOf<FolderSimpleInfo?>(null)
-        private set
-    fun updateSelectedTopFolder(newFolder: FolderSimpleInfo?) {
-        Log.d("selectedTopFolder", newFolder.toString())
-        selectedTopFolder = newFolder
+    fun showPersonalBottom(parentFolder: FolderSimpleInfo) {
+        navigationState = FileNavigationState.PersonalBottom(parentFolder)
+        closeNavigationMenus()
     }
+
+    fun showPersonalLinks(
+        parentFolder: FolderSimpleInfo,
+        folder: FolderSimpleInfo,
+    ) {
+        navigationState = FileNavigationState.PersonalLinks(parentFolder, folder)
+        closeNavigationMenus()
+    }
+
+    fun showSharedFolderGroups() {
+        navigationState = FileNavigationState.SharedFolderGroups
+        closeNavigationMenus()
+    }
+
+    fun showSharedFolderList(scope: SharedFolderScope) {
+        navigationState = FileNavigationState.SharedFolderList(scope)
+        closeNavigationMenus()
+    }
+
+    fun showSharedFolderDetail(
+        scope: SharedFolderScope,
+        folder: SharedFolderTarget,
+    ) {
+        navigationState = FileNavigationState.SharedFolderDetail(scope, folder)
+        closeNavigationMenus()
+    }
+
+    /** 현재 상태에서 한 단계 뒤로 이동하고, 이동할 단계가 없으면 false를 반환합니다. */
+    fun navigateBack(): Boolean {
+        navigationState = when (val current = navigationState) {
+            FileNavigationState.PersonalTop,
+            FileNavigationState.SharedFolderGroups,
+            -> return false
+
+            is FileNavigationState.PersonalBottom -> FileNavigationState.PersonalTop
+            is FileNavigationState.PersonalLinks ->
+                FileNavigationState.PersonalBottom(current.parentFolder)
+            is FileNavigationState.SharedFolderList -> FileNavigationState.SharedFolderGroups
+            is FileNavigationState.SharedFolderDetail ->
+                FileNavigationState.SharedFolderList(current.scope)
+        }
+        closeNavigationMenus()
+        return true
+    }
+
+    val selectedTopFolder: FolderSimpleInfo?
+        get() = when (val current = navigationState) {
+            is FileNavigationState.PersonalBottom -> current.parentFolder
+            is FileNavigationState.PersonalLinks -> current.parentFolder
+            else -> null
+        }
+
+    val selectedBottomFolder: FolderSimpleInfo?
+        get() = (navigationState as? FileNavigationState.PersonalLinks)?.folder
 
     // 수정할 중분류 폴더
     var readyToUpdateTopFolder by mutableStateOf<FolderSimpleInfo?>(null)
@@ -47,14 +119,6 @@ class FolderStateViewModel : ViewModel() {
     fun updateReadyToUpdateTopFolder(newFolder: FolderSimpleInfo?) {
         Log.d("readyToUpdateTopFolder", newFolder.toString())
         readyToUpdateTopFolder = newFolder
-    }
-
-    // 선택한 소분류 폴더, null이면 중분류 이상 단계
-    var selectedBottomFolder by mutableStateOf<FolderSimpleInfo?>(null)
-        private set
-    fun updateSelectedBottomFolder(newFolder: FolderSimpleInfo?) {
-        Log.d("selectedBottomFolder", newFolder.toString())
-        selectedBottomFolder = newFolder
     }
 
     // 수정할 소분류 폴더
@@ -65,24 +129,10 @@ class FolderStateViewModel : ViewModel() {
         readyToUpdateBottomFolder = newFolder
     }
 
-    // 선택한 공유 폴더, null이면 나의 폴더 보는 중
-    var selectedTopSharedFolder by mutableStateOf<SharedFolderInfo?>(null)
-        private set
-    fun updateSelectedSharedFolder(newFolder: SharedFolderInfo?){
-        Log.d("selectedTopSharedFolder", newFolder.toString())
-        selectedTopSharedFolder = newFolder
-    }
-
-    var selectedBottomSharedFolder by mutableStateOf<FolderSimpleInfo?>(null)
-        private set
-    fun updateSelectedBottomSharedFolder(newFolder: FolderSimpleInfo?){
-        Log.d("selectedBottomSharedFolder", newFolder.toString())
-        selectedBottomSharedFolder = newFolder
-    }
-
     // 수정 가능 상태 확인
     val isEditable: Boolean
-        get() = currentFolderState in listOf(FolderState.TOP, FolderState.BOTTOM)
+        get() = navigationState == FileNavigationState.PersonalTop ||
+            navigationState is FileNavigationState.PersonalBottom
 
     // 대분류 폴더 메뉴 가시성 상태
     var topMenuExpanded by mutableStateOf(false)
@@ -100,6 +150,10 @@ class FolderStateViewModel : ViewModel() {
         bottomMenuExpanded = newState
     }
 
+    private fun closeNavigationMenus() {
+        topMenuExpanded = false
+        bottomMenuExpanded = false
+    }
     // 중분류 폴더 수정 바텀 시트 가시성 상태
     var topFolderEditBottomSheetVisible by mutableStateOf(false)
         private set
@@ -135,22 +189,27 @@ class FolderStateViewModel : ViewModel() {
     // 폴더 공유 바텀 시트 가시성 상태
     var shareBottomSheetVisible by mutableStateOf(false)
         private set
+    var shareBottomSheetSessionId by mutableStateOf(0L)
+        private set
+
+    /** 이전 선택·링크·피드백과 분리된 새 공유 시트 세션을 엽니다. */
+    fun openShareBottomSheet() {
+        shareBottomSheetSessionId += 1L
+        shareBottomSheetVisible = true
+        closeNavigationMenus()
+    }
+
     fun updateShareBottomSheetVisible(newState: Boolean) {
         Log.d("shareBottomSheetVisible", newState.toString())
-        shareBottomSheetVisible = newState
+        if (newState) openShareBottomSheet() else shareBottomSheetVisible = false
     }
 
     fun resetSharedFolderState() {
         Log.d("FolderStateViewModel", "resetSharedFolderState")
 
-        isSharedFolders = false
-        currentFolderState = FolderState.TOP
-        selectedTopFolder = null
+        navigationState = FileNavigationState.PersonalTop
         readyToUpdateTopFolder = null
-        selectedBottomFolder = null
         readyToUpdateBottomFolder = null
-        selectedTopSharedFolder = null
-        selectedBottomSharedFolder = null
         topMenuExpanded = false
         bottomMenuExpanded = false
         topFolderEditBottomSheetVisible = false
@@ -158,5 +217,6 @@ class FolderStateViewModel : ViewModel() {
         bottomFolderEditBottomSheetVisible = false
         linkCategorizationBottomSheetVisible = false
         shareBottomSheetVisible = false
+        shareBottomSheetSessionId = 0L
     }
 }

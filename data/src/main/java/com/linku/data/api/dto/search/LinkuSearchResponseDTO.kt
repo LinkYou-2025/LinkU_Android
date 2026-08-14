@@ -17,8 +17,6 @@ data class LinkuSearchResponseDTO(
 data class LinkuSearchItemResponseDTO(
     @field:Json(name = "userLinkuId")
     val userLinkuId: Long? = null,
-    @field:Json(name = "linkuId")
-    val linkuId: Long? = null,
     @field:Json(name = "title")
     val title: String? = null,
     @field:Json(name = "linkuImageUrl")

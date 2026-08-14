@@ -1,7 +1,6 @@
 package com.linku.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.gradientTint
+import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
@@ -140,8 +140,8 @@ private fun RowScope.NavItem(
             // Row의 IntrinsicSize.Min과 맞물려 동일 높이 보장
             .fillMaxHeight()
 
-            // 매개변수로 받은 콜백 함수 등록
-            .clickable(onClick = onClick)
+            // 매개변수로 받은 콜백 함수 등록 (클릭 시 리플/박스 효과 없음)
+            .noRippleClickable(onClick = onClick)
 
             // 위 아래 여백
             .padding(top = topPadding, bottom = 3.dp),

@@ -209,7 +209,7 @@ private fun demoLinks(count: Int): List<RecommendLink> {
             domain = "blog.naver.com",
             domainImageUrl = "",
             categories = listOf("생산성·툴", "평온"),
-            type = LinkType.Internal(linkId = 1L)
+            type = LinkType.Internal(userLinkuId = 1L)
         ),
         RecommendLink(
             userLinkuId = 2L,
@@ -219,7 +219,7 @@ private fun demoLinks(count: Int): List<RecommendLink> {
             domain = "github.com",
             domainImageUrl = "",
             categories = listOf("여행", "행복"),
-            type = LinkType.Internal(linkId = 2L)
+            type = LinkType.Internal(userLinkuId = 2L)
         ),
         RecommendLink(
             userLinkuId = null,

@@ -48,7 +48,7 @@ class AiArticleLinkPagingSourceTest {
             fakeApi.requests,
         )
         val loadedPage = result as PagingSource.LoadResult.Page<String, AiArticleLink>
-        assertEquals(1L, loadedPage.data.single().linkuId)
+        assertEquals(1L, loadedPage.data.single().userLinkuId)
         assertEquals(CategoryType.IT_DEV, loadedPage.data.single().categoryType)
         assertEquals("next-cursor", loadedPage.nextKey)
         assertNull(loadedPage.prevKey)
@@ -226,7 +226,7 @@ class AiArticleLinkPagingSourceTest {
         /** 검증에 사용할 기본 AI 요약 링크 항목을 생성합니다. */
         fun item(): AiArticleLinkItemDTO =
             AiArticleLinkItemDTO(
-                linkuId = 1L,
+                userLinkuId = 1L,
                 linku = "https://example.com/article",
                 emotionId = 1L,
                 domain = "example.com",

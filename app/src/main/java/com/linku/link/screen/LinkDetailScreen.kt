@@ -159,7 +159,7 @@ private fun calculateEndAlignedDropdownOffset(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LinkDetailScreen(
-    linkuId: Long,
+    userLinkuId: Long,
     linkTitle: String,
     categoryId: Long?,
     emotion: String,
@@ -218,12 +218,12 @@ fun LinkDetailScreen(
     }
 
     var isEditMode by rememberSaveable { mutableStateOf(false) }
-    var isAiSummaryMode by rememberSaveable(linkuId) { mutableStateOf(aiSummary.isNotBlank()) }
+    var isAiSummaryMode by rememberSaveable(userLinkuId) { mutableStateOf(aiSummary.isNotBlank()) }
 
     var isDropdownVisible by rememberSaveable { mutableStateOf(false) }
     var isDeleteModalVisible by rememberSaveable { mutableStateOf(false) }
     var isAiArticleModalVisible by rememberSaveable { mutableStateOf(false) }
-    var isDiscardEditModalVisible by rememberSaveable(linkuId) { mutableStateOf(false) }
+    var isDiscardEditModalVisible by rememberSaveable(userLinkuId) { mutableStateOf(false) }
     var aiArticleProgress by rememberSaveable { mutableFloatStateOf(0f) }
 
     var editToastMessage by rememberSaveable { mutableStateOf("") }
@@ -233,7 +233,7 @@ fun LinkDetailScreen(
     val situationOptions = SituationOptions.allSituations
 
     var selectedTitle by rememberSaveable { mutableStateOf(linkTitle) }
-    var selectedCategoryId by rememberSaveable(linkuId) { mutableStateOf(categoryId) }
+    var selectedCategoryId by rememberSaveable(userLinkuId) { mutableStateOf(categoryId) }
     var selectedEmotion by rememberSaveable {
         mutableStateOf(
             EmotionType.entries.firstOrNull { it.tagName == emotion }
@@ -243,16 +243,16 @@ fun LinkDetailScreen(
     var selectedMemo by rememberSaveable { mutableStateOf(memo) }
 
     // 편집 도중 상세 API가 갱신되어도 비교 기준이 움직이지 않도록 진입 시점의 값을 보관합니다.
-    var editBaselineTitle by rememberSaveable(linkuId) { mutableStateOf(linkTitle) }
-    var editBaselineMemo by rememberSaveable(linkuId) { mutableStateOf(memo) }
-    var editBaselineCategoryId by rememberSaveable(linkuId) { mutableStateOf(categoryId) }
-    var editBaselineEmotionId by rememberSaveable(linkuId) {
+    var editBaselineTitle by rememberSaveable(userLinkuId) { mutableStateOf(linkTitle) }
+    var editBaselineMemo by rememberSaveable(userLinkuId) { mutableStateOf(memo) }
+    var editBaselineCategoryId by rememberSaveable(userLinkuId) { mutableStateOf(categoryId) }
+    var editBaselineEmotionId by rememberSaveable(userLinkuId) {
         mutableStateOf(
             EmotionType.entries.firstOrNull { option -> option.tagName == emotion }?.id?.value
         )
     }
-    var editBaselineSituationId by rememberSaveable(linkuId) { mutableStateOf(situationId) }
-    var isEditBaselineCaptured by rememberSaveable(linkuId) { mutableStateOf(false) }
+    var editBaselineSituationId by rememberSaveable(userLinkuId) { mutableStateOf(situationId) }
+    var isEditBaselineCaptured by rememberSaveable(userLinkuId) { mutableStateOf(false) }
 
     val isTitleValid = selectedTitle.isNotBlank()
     val isSaveButtonEnabled = !isEditMode || isTitleValid
@@ -1085,7 +1085,7 @@ fun LinkDetailScreen(
 
                             if (!isAiArticleLoading) {
                                 aiArticleProgress = 0f
-                                onRequestAiArticle(linkuId)
+                                onRequestAiArticle(userLinkuId)
                             }
                         }
                     },
@@ -1179,7 +1179,7 @@ fun PreviewLinkDetailScreen() {
 
     ThemeProvider {
         LinkDetailScreen(
-            linkuId = 0L,
+            userLinkuId = 1L,
             linkTitle = "3일만에 오픽 AL 꿀팁",
             categoryId = 1L,
             emotion = "평온",

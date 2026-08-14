@@ -45,7 +45,7 @@ import com.linku.design.util.scaler
 fun CurationMonthlyDetailScreen(
     onBack: () -> Unit,
     onGoHome: () -> Unit = {},
-    onNavigateToLinkDetail: (Long) -> Unit = {},
+    onNavigateToLinkDetail: (userLinkuId: Long) -> Unit = {},
     viewModel: CurationDetailViewModel,
 ) {
     val context = LocalContext.current
@@ -58,7 +58,7 @@ fun CurationMonthlyDetailScreen(
         viewModel.sideEffect.collect { effect ->
             when (effect) {
                 is CurationDetailedSideEffect.NavigateToLinkDetail ->
-                    onNavigateToLinkDetail(effect.linkId)
+                    onNavigateToLinkDetail(effect.userLinkuId)
 
                 is CurationDetailedSideEffect.OpenBrowser -> {
                     runCatching {
@@ -222,7 +222,7 @@ private fun CurationMonthlyDetailScreenPreview() {
             domain = "blog.naver.com",
             domainImageUrl = "",
             categories = listOf("생산성·툴", "평온"),
-            type = LinkType.Internal(linkId = 1L)
+            type = LinkType.Internal(userLinkuId = 1L)
         ),
         RecommendLink(
             userLinkuId = 2L,
@@ -232,7 +232,7 @@ private fun CurationMonthlyDetailScreenPreview() {
             domain = "github.com",
             domainImageUrl = "",
             categories = listOf("여행", "행복"),
-            type = LinkType.Internal(linkId = 2L)
+            type = LinkType.Internal(userLinkuId = 2L)
         ),
         RecommendLink(
             userLinkuId = null,

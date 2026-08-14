@@ -22,60 +22,63 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
+import com.linku.design.theme.linkuFont
 import com.linku.file.R
 
-
 /**
- * 공유 중인 폴더가 없을 때 표시되는 빈 화면 컴포저블입니다.
+ * 공유폴더 그룹 또는 폴더 목록 조회가 성공했지만 결과가 비어 있을 때 표시하는 화면입니다.
  *
- * 사용자가 공유 중인 폴더가 없음을 알리는 이미지와 안내 문구를 화면 중앙에 배치합니다.
- *
- * @param modifier 이 컴포저블의 레이아웃에 적용할 [Modifier]
+ * loading과 error 판단은 상태 소유자가 담당하며, 이 컴포넌트는 호출자가 전달한 문구만
+ * 렌더링합니다.
  */
 @Composable
-internal fun EmptySharedUsersGrid(
-    modifier: Modifier = Modifier
+internal fun SharedFolderEmptyState(
+    title: String,
+    subtitle: String,
+    modifier: Modifier = Modifier,
 ) {
-    /** 섹션 제목과 삭제 모달 문구에 사용할 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
+    val font = MaterialTheme.linkuFont.font
 
     Box(
         modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 painter = painterResource(R.drawable.ic_empty_shared_users_grid),
                 contentDescription = null,
-                modifier = Modifier.size(width = 85.dp, height = 60.55f.dp)
+                modifier = Modifier.size(width = 85.dp, height = 60.55.dp),
             )
 
             Spacer(modifier = Modifier.height(20.dp))
 
             Text(
-                text = "아직 공유중인 폴더가 없어요!",
+                text = title,
                 style = TextStyle(
                     fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    fontFamily = font,
                     fontWeight = FontWeight.Medium,
-                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
                 ),
                 color = colors.gray[800],
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "지금 폴더를 공유해보세요",
+                text = subtitle,
                 style = TextStyle(
                     fontSize = 13.sp,
+                    lineHeight = 15.sp,
+                    fontFamily = font,
                     fontWeight = FontWeight.Normal,
-                    platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
                 ),
                 color = colors.gray[600],
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }
@@ -83,8 +86,11 @@ internal fun EmptySharedUsersGrid(
 
 @Preview(showBackground = true)
 @Composable
-private fun EmptySharedUsersGridPreview() {
+private fun SharedFolderEmptyStatePreview() {
     LinkuPreview {
-        EmptySharedUsersGrid()
+        SharedFolderEmptyState(
+            title = "아직 공유중인 폴더가 없어요!",
+            subtitle = "지금 폴더를 공유해보세요",
+        )
     }
 }

@@ -11,10 +11,10 @@ interface AIArticleRepository {
     /**
      * 해당 링크의 AI 요약 상세를 조회합니다.
      *
-     * @param linkuId 조회할 링크 ID
+     * @param userLinkuId 조회할 사용자 저장 링크 ID
      * @return 생성된 AI 요약 상세
      */
-    suspend fun getAiArticle(linkuId: Long): AiArticle
+    suspend fun getAiArticle(userLinkuId: Long): AiArticle
 
     /**
      * AI 요약이 생성된 저장 링크를 최신 저장 순으로 페이징하여 조회합니다.

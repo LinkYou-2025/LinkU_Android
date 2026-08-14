@@ -24,6 +24,7 @@ class AiArticleLinkMapperTest {
         assertEquals(CategoryType.IT_DEV, result.categoryType)
         assertEquals(EmotionType.JOY, result.emotionType)
         assertEquals(CategoryType.IT_DEV.tagName, result.displayCategoryName)
+        assertEquals(7L, result.userLinkuId)
     }
 
     /** ID/이름 불일치 시 원본을 보존하면서 ID의 표준 이름을 표시하는지 검증합니다. */
@@ -58,14 +59,22 @@ class AiArticleLinkMapperTest {
         assertEquals(serverCategoryName, result.displayCategoryName)
     }
 
+    @Test
+    fun `missing user link id remains absent without a fallback`() {
+        val result = createItem(userLinkuId = null).toDomain()
+
+        assertNull(result.userLinkuId)
+    }
+
     /** 매퍼 검증에 사용할 기본 AI 요약 링크 DTO를 생성합니다. */
     private fun createItem(
+        userLinkuId: Long? = 7L,
         emotionId: Long = EmotionType.CALM.value,
         categoryId: Long = CategoryType.LANGUAGE.id,
         categoryName: String = CategoryType.LANGUAGE.tagName,
     ): AiArticleLinkItemDTO =
         AiArticleLinkItemDTO(
-            linkuId = 7L,
+            userLinkuId = userLinkuId,
             linku = "https://example.com/article",
             emotionId = emotionId,
             domain = "example.com",

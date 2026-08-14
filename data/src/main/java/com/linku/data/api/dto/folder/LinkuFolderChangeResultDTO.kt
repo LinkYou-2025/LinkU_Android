@@ -9,7 +9,7 @@ import java.time.OffsetDateTime
  *
  * OpenAPI 응답 스키마가 개별 필드를 필수로 선언하지 않으므로 각 필드를 nullable로 유지합니다.
  *
- * @property linkuId 이동한 링크 ID
+ * @property userLinkuId 이동한 사용자 저장 링크 ID
  * @property folderId 이동 대상 폴더 ID
  * @property folderName 이동 대상 폴더 이름
  * @property createdAt 링크 폴더 매핑 생성 시각
@@ -17,8 +17,8 @@ import java.time.OffsetDateTime
  */
 @JsonClass(generateAdapter = true)
 data class LinkuFolderChangeResultDTO(
-    @field:Json(name = "linkuId")
-    val linkuId: Long?,
+    @field:Json(name = "userLinkuId")
+    val userLinkuId: Long?,
 
     @field:Json(name = "folderId")
     val folderId: Long?,

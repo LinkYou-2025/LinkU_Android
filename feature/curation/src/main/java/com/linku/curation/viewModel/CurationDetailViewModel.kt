@@ -41,7 +41,7 @@ class CurationDetailViewModel @Inject constructor(
             is CurationDetailedIntent.ClickLink -> viewModelScope.launch {
                 when (val type = intent.link.type) {
                     is LinkType.Internal -> _sideEffect.send(
-                        CurationDetailedSideEffect.NavigateToLinkDetail(type.linkId)
+                        CurationDetailedSideEffect.NavigateToLinkDetail(type.userLinkuId)
                     )
                     is LinkType.External -> {
                         val url = if (type.url.startsWith("http://") || type.url.startsWith("https://")) {

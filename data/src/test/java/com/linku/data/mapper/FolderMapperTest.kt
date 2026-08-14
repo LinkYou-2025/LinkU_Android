@@ -2,6 +2,7 @@ package com.linku.data.mapper
 
 import com.linku.core.model.FolderPermission
 import com.linku.data.api.dto.folder.FolderTreeResponseDTO
+import com.linku.data.api.dto.folder.LinkDTO
 import com.linku.data.api.dto.folder.ShareFolderResponseDTO
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -61,5 +62,23 @@ class FolderMapperTest {
         assertEquals(100L, domain.parentFolderId)
         assertEquals(1L, domain.children.single().parentFolderId)
         assertEquals("child", domain.children.single().folderName)
+    }
+
+    @Test
+    fun `folder link maps user link id as saved link identity`() {
+        val dto = LinkDTO(
+            linkuId = 99L,
+            userLinkuId = 123L,
+            title = "saved link",
+            url = "https://example.com",
+            keyword = null,
+            linkuImageUrl = null,
+            createdAt = null,
+        )
+
+        val domain = dto.toDomain(parentFolderId = 10L)
+
+        assertEquals(123L, domain.userLinkuId)
+        assertEquals(10L, domain.parentFolderId)
     }
 }

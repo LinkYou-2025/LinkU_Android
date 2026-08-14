@@ -62,7 +62,6 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemKey
 import com.linku.core.error.AppError
 import com.linku.core.model.AiArticleLink
 import com.linku.core.model.CategoryType
@@ -79,13 +78,13 @@ import com.linku.mypage.component.AILinkuItem
  * AI 요약 링크 화면의 ViewModel과 Compose Paging 수집을 연결합니다.
  *
  * @param navController 마이페이지 내부 뒤로가기를 처리할 내비게이션 컨트롤러
- * @param onNavigateToLinkDetail 선택한 링크 ID를 앱 루트 상세 화면으로 전달하는 콜백
+ * @param onNavigateToLinkDetail 선택한 사용자 저장 링크 ID를 앱 루트 상세 화면으로 전달하는 콜백
  * @param viewModel 카테고리 선택과 Paging Flow를 관리하는 ViewModel
  */
 @Composable
 fun AILinkuListRoute(
     navController: NavController,
-    onNavigateToLinkDetail: (Long) -> Unit,
+    onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
     viewModel: AILinkuListViewModel = hiltViewModel(),
 ) {
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
@@ -109,7 +108,7 @@ fun AILinkuListRoute(
  * @param onBack 뒤로가기 요청
  * @param onSelectAll 전체 필터 선택 요청
  * @param onSelectCategory 카테고리 선택 요청
- * @param onLinkClick 선택한 링크 ID를 상세 화면 이동 콜백에 전달
+ * @param onLinkClick 선택한 사용자 저장 링크 ID를 상세 화면 이동 콜백에 전달
  */
 @Composable
 fun AILinkuListScreen(
@@ -118,7 +117,7 @@ fun AILinkuListScreen(
     onBack: () -> Unit,
     onSelectAll: () -> Unit,
     onSelectCategory: (CategoryType) -> Unit,
-    onLinkClick: (Long) -> Unit,
+    onLinkClick: (userLinkuId: Long) -> Unit,
 ) {
     var isCategoryMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -512,7 +511,7 @@ private fun AILinkuCategoryMenuItem(
 @Composable
 private fun BoxScope.AILinkuPagingContent(
     links: LazyPagingItems<AiArticleLink>,
-    onLinkClick: (Long) -> Unit,
+    onLinkClick: (userLinkuId: Long) -> Unit,
 ) {
     val refreshState = links.loadState.refresh
 
@@ -552,7 +551,7 @@ private fun BoxScope.AILinkuPagingContent(
 @Composable
 private fun AILinkuPagingList(
     links: LazyPagingItems<AiArticleLink>,
-    onLinkClick: (Long) -> Unit,
+    onLinkClick: (userLinkuId: Long) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -561,7 +560,7 @@ private fun AILinkuPagingList(
     ) {
         items(
             count = links.itemCount,
-            key = links.itemKey { link -> link.linkuId },
+            key = { index -> aiLinkuItemKey(index, links.peek(index)?.userLinkuId) },
         ) { index ->
             links[index]?.let { link ->
                 AILinkuItem(
@@ -601,6 +600,13 @@ private fun AILinkuPagingList(
         }
     }
 }
+
+/** ID가 누락된 과도기 응답도 Paging 슬롯별로 충돌하지 않도록 안정적인 키를 만듭니다. */
+internal fun aiLinkuItemKey(index: Int, userLinkuId: Long?): String =
+    userLinkuId
+        ?.takeIf { it > 0L }
+        ?.let { "ai-linku-user-$it" }
+        ?: "ai-linku-index-$index"
 
 /** 최초 페이지를 불러오는 동안 표시하는 상태입니다. */
 @Composable

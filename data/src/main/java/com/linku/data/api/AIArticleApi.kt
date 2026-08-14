@@ -13,12 +13,12 @@ interface AIArticleApi {
     /**
      * 선택한 링크의 AI 요약 상세를 조회합니다.
      *
-     * @param linkuid 조회할 링크 ID
+     * @param userLinkuId 조회할 사용자 저장 링크 ID
      * @return AI 요약 상세를 포함한 공통 응답
      */
-    @POST("aiarticle/{linkuid}")
+    @POST("aiarticle/{userLinkuId}")
     suspend fun getAiArticle(
-        @Path("linkuid") linkuid: Long
+        @Path("userLinkuId") userLinkuId: Long
     ): BaseResponse<AiArticleResultDTO>
 
     /**

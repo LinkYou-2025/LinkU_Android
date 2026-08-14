@@ -1,8 +1,8 @@
 package com.linku.core.model
 
+/** 홈 목록에 표시하는 저장 링크이며 [userLinkuId]가 상세 화면 이동의 식별자입니다. */
 data class LinkSimpleInfo(
-    val userLinkuId: Long? = null,  // TODO: 추후 null값 및 nullable 제거 예정
-    val linkuId: Long,
+    val userLinkuId: Long,
     val categoryId: Long?,
     val memo: String?,
     val emotionId: Long?,

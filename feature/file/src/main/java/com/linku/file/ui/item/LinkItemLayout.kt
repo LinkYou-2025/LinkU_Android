@@ -76,7 +76,8 @@ import com.linku.file.ui.theme.extractDomainHost
  * @param modifier 카드의 외부 크기와 배치를 결정하는 [Modifier]입니다.
  * @param link 표시할 링크 정보입니다. `null`이면 placeholder 상태로 표시합니다.
  * @param onClick 링크 카드 클릭 시 호출되는 콜백입니다.
- * @param onLongClick 링크 카드 길게 누르기 시 링크 ID를 전달하는 콜백입니다.
+ * @param onLongClick 링크 카드 길게 누르기 시 링크 ID를 전달하는 선택적 콜백입니다.
+ * `null`이면 long-click 동작과 접근성 액션을 등록하지 않습니다.
  */
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -88,7 +89,7 @@ fun LinkItemLayout(
     modifier: Modifier = Modifier,
     link: LinkItemInfo? = null,
     onClick: (LinkItemInfo?) -> Unit = {},
-    onLongClick: (Long) -> Unit = {},
+    onLongClick: ((Long) -> Unit)? = null,
 ) {
     /** 카드 배경, 텍스트, placeholder 색상을 가져오기 위한 LinkU 테마 색상 팔레트입니다. */
     val colors = MaterialTheme.linkuColors
@@ -131,14 +132,14 @@ fun LinkItemLayout(
             indication = null,
             interactionSource = remember { MutableInteractionSource() },
             onClick = {
-                link.linkuId.let {
+                link.userLinkuId.let {
                     Log.d("LinkItemLayout", "아이템 클릭: \"savelinkresult/${it}\"")
                     onClick(link)
                 }
             },
-            onLongClick = {
-                onLongClick(link.linkuId)
-            }
+            onLongClick = onLongClick?.let { callback ->
+                { callback(link.userLinkuId) }
+            },
         )
     else Modifier
 

@@ -22,16 +22,18 @@ class AIArticleRepositoryImpl @Inject constructor(
 ) : AIArticleRepository {
 
     /** 선택한 링크의 AI 요약 상세를 조회합니다. */
-    override suspend fun getAiArticle(linkuId: Long): AiArticle {
+    override suspend fun getAiArticle(userLinkuId: Long): AiArticle {
         return safeApiCall(
             apiCall = {
-                serverApi.getAiArticle(linkuid = linkuId)
+                serverApi.getAiArticle(userLinkuId = userLinkuId)
             }
         ).fold(
             onSuccess = { dto ->
                 AiArticle(
                     id = dto.id,
-                    linkuId = dto.linkuId,
+                    userLinkuId = requireNotNull(dto.userLinkuId) {
+                        "AI 요약 응답에 userLinkuId가 없습니다."
+                    },
                     emotionId = dto.emotionId,
                     emotionName = dto.emotionName,
                     categoryName = dto.categoryName,

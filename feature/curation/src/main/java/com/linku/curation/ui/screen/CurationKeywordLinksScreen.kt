@@ -80,7 +80,9 @@ internal fun CurationKeywordLinksScreen(
             isError = state.isError,
             onBack = onBack,
             onLinkClick = { link ->
-                val linkId = link.userLinkuId ?: return@CurationKeywordLinksScreenContent
+                val linkId = link.userLinkuId
+                    ?.takeIf { it > 0L }
+                    ?: return@CurationKeywordLinksScreenContent
                 viewModel.handleIntent(CurationKeywordLinksIntent.ClickLink(linkId))
             },
         )
@@ -186,7 +188,11 @@ private fun CurationKeywordLinksScreenContent(
                 ) {
                     items(
                         count = links.size,
-                        key = { index -> links[index].userLinkuId ?: index.toLong() }
+                        key = { index ->
+                            links[index].userLinkuId
+                                ?.let { userLinkuId -> "curation-keyword-user-$userLinkuId" }
+                                ?: "curation-keyword-index-$index"
+                        },
                     ) { index ->
                         val link = links[index]
                         LinkCardItem(
@@ -226,7 +232,7 @@ private fun CurationKeywordLinksScreenLoadingPreview() {
 private fun CurationKeywordLinksScreenPreview() {
     val sampleLinks = List(6) { index ->
         LinkByKeyWord(
-            userLinkuId = index.toLong(),
+            userLinkuId = index.toLong() + 1L,
             title = "오픽 AL 따는 꿀팁 얻고 보러오세요",
             url = "https://blog.naver.com/example$index",
             imageUrl = null,

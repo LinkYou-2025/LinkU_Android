@@ -115,7 +115,9 @@ fun FolderDTO.toDomain(parentFolderId: Long): FolderSimpleInfo {
  */
 fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
     return LinkItemInfo(
-        linkuId = linkuId,
+        userLinkuId = requireNotNull(userLinkuId) {
+            "폴더 링크 응답에 userLinkuId가 없습니다."
+        },
         parentFolderId = parentFolderId,
         title = title,
         tags = keyword?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty(),

@@ -27,6 +27,7 @@ fun NavGraphBuilder.curationGraph(
     // NavHost의 그래프 빌더는 최초 1회만 실행되므로, 값(String)을 그대로 받으면 그 시점의
     // 스냅샷에 고정된다. 각 composable 진입 시점(리컴포지션 시점)에 최신 값을 읽도록 람다로 받는다.
     nickname: () -> String,
+    onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
     onNavigateToSaveLink: () -> Unit = {},
 ) {
     val goHome: () -> Unit = {
@@ -74,7 +75,7 @@ fun NavGraphBuilder.curationGraph(
             viewModel = viewModel,
             onBack = { navigator.popBackStack() },
             onGoHome = goHome,
-            onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
+            onNavigateToLinkDetail = onNavigateToLinkDetail,
         )
     }
 
@@ -121,7 +122,7 @@ fun NavGraphBuilder.curationGraph(
         CurationRemindScreen(
             viewModel = viewModel,
             onBack = { navigator.popBackStack() },
-            onNavigateToLinkDetail = { linkId -> navigator.navigate("savelinkresult/$linkId") }
+            onNavigateToLinkDetail = onNavigateToLinkDetail,
         )
     }
 

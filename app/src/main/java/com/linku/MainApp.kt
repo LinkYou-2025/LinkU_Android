@@ -55,6 +55,7 @@ import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.top.search.SearchBarTopSheet
 import com.linku.file.FileApp
 import com.linku.file.FileViewModel
+import com.linku.file.viewmodel.folder.state.FileNavigationState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
@@ -79,6 +80,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
+
+private const val LINK_DETAIL_USER_LINKU_ID_ARGUMENT = "userLinkuId"
+private const val LINK_DETAIL_ROUTE_PATTERN =
+    "savelinkresult/{$LINK_DETAIL_USER_LINKU_ID_ARGUMENT}"
+
+private fun linkDetailRoute(userLinkuId: Long): String =
+    "savelinkresult/$userLinkuId"
 
 /**
  * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
@@ -174,7 +182,7 @@ fun MainApp(
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
     // Splash가 시작 화면이라 초기값만 true.
     var edgeToEdgeSystemBars by rememberSaveable { mutableStateOf(true) }
-    // 상태바 아이콘 밝기(File 탭 등)는 LocalStatusBarDarkIcons로 화면이 직접 제어함 (MainScreen.kt 참고).
+    // 활성 탭의 시스템 바 아이콘 기본값은 아래 MainScreen 호출부에서 route 기준으로 결정합니다.
 
     // TODO : 로그인 뷰모델에서 Success 상태로 바꾸기 전에 세션 갱신하게 수정해야함.
     // 기기가 3대라 이렇게 되면 사용자 정보가 따로 놀 수 있음.
@@ -211,10 +219,12 @@ fun MainApp(
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
             }
-            AlarmType.LINK ->
-                navigator.navigate("savelinkresult/$targetId") {
+            AlarmType.LINK -> {
+                val userLinkuId = targetId
+                navigator.navigate(linkDetailRoute(userLinkuId)) {
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
+            }
             AlarmType.FOLDER -> { /* TODO */ }
             AlarmType.CURATION -> { /* TODO */ }
             AlarmType.ALL -> Unit
@@ -262,11 +272,17 @@ fun MainApp(
         // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
         isTabRoute(currentRoute, NavigationRoute.Home.route) ||
                 currentRoute == "savelink" ||
-                currentRoute == "savelinkresult/{linkuId}" -> LinkuNavigationItem.HOME
+                currentRoute == LINK_DETAIL_ROUTE_PATTERN -> LinkuNavigationItem.HOME
         isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
         isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
         else -> null
     }
+
+    val isFileTab = currentLinkuNavigationItem == LinkuNavigationItem.FILE
+    val shouldDimMyListMenu = isFileTab &&
+        folderStateViewModel.bottomMenuExpanded &&
+        (folderStateViewModel.navigationState is FileNavigationState.PersonalBottom ||
+            folderStateViewModel.navigationState is FileNavigationState.PersonalLinks)
 
     // 액티비티 참조 + 두번뒤로 시간 기록
     // NOTE : 이미 구현된 DoubleBackToExitIfTop이 있어서 불필요함. 일단 주석 처리 후 추후 삭제?
@@ -347,6 +363,10 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
             hideSystemBars = edgeToEdgeSystemBars,
+            statusBarDarkIcons = !isFileTab,
+            // File은 흰 상태바 아이콘과 검은 내비게이션 아이콘을 서로 독립적으로 유지합니다.
+            navigationBarDarkIcons = if (isFileTab) true else null,
+            dimmed = shouldDimMyListMenu,
             searchOverlay = {
                 // 검색 탑 시트 호출을 여기 한 곳으로 통일함. Home/File은 각자 데이터로 배선하지
                 // 않고 onSearchOpen()으로 열기만 요청하며, 실제 상태(visible/쿼리/결과)는
@@ -357,9 +377,9 @@ fun MainApp(
                     onQueryChange = searchViewModel::search,
                     onQueryDelete = searchViewModel::removeRecentQuery,
                     onQueryClear = searchViewModel::clearRecentQueries,
-                    onLinkClick = { linkuId ->
+                    onLinkClick = { userLinkuId ->
                         searchViewModel.dismissSearch()
-                        navigator.navigate("savelinkresult/$linkuId")
+                        navigator.navigate(linkDetailRoute(userLinkuId))
                     },
                     searchResults = searchResults,
                     uiState = searchUiState,
@@ -622,8 +642,8 @@ fun MainApp(
                                 linkViewModel.setSaveUrl(url)
                                 navigator.navigate("savelink")
                             },
-                            onNavigateToLinkDetail = { linkuId ->
-                                navigator.navigate("savelinkresult/$linkuId")
+                            onNavigateToLinkDetail = { userLinkuId ->
+                                navigator.navigate(linkDetailRoute(userLinkuId))
                             },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
@@ -642,8 +662,8 @@ fun MainApp(
                         FileApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel,
-                            onNavigateToLinkDetail = { linkuId ->
-                                navigator.navigate("savelinkresult/$linkuId")
+                            onNavigateToLinkDetail = { userLinkuId ->
+                                navigator.navigate(linkDetailRoute(userLinkuId))
                             },
                             onSearchOpen = searchViewModel::openSearch,
                         )
@@ -657,6 +677,9 @@ fun MainApp(
                     // 그래프 빌더는 최초 1회만 실행되므로 값이 아닌 람다로 넘겨 매번 최신 nickname을 읽게 함.
                     nickname = { nickname.orEmpty().ifBlank { "링큐" } },
                     onNavigateToSaveLink = { saveLinkEntryTriggered = true },
+                    onNavigateToLinkDetail = { userLinkuId ->
+                        navigator.navigate(linkDetailRoute(userLinkuId))
+                    },
                 )
 
 
@@ -711,8 +734,8 @@ fun MainApp(
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
                             },
-                            onNavigateToLinkDetail = { linkuId ->
-                                navigator.navigate("savelinkresult/$linkuId")
+                            onNavigateToLinkDetail = { userLinkuId ->
+                                navigator.navigate(linkDetailRoute(userLinkuId))
                             }
                         )
                     }
@@ -745,7 +768,10 @@ fun MainApp(
                                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                                 }
                             },
-                            onNavigateToLinkDetail = { targetId -> navigator.navigate("savelinkresult/$targetId") },
+                            onNavigateToLinkDetail = { targetId ->
+                                val userLinkuId = targetId
+                                navigator.navigate(linkDetailRoute(userLinkuId))
+                            },
                             onNavigateToFolder = { /* TODO */ },
                             onNavigateToCuration = { /* TODO */ },
                             onNavigateToNotice = { targetId ->
@@ -825,12 +851,12 @@ fun MainApp(
                             linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
                                     linkViewModel.loadLinkDetail(
-                                        saved.linkuId,
+                                        saved.userLinkuId,
                                     )
                                     linkViewModel.resetSaveForm()
 
                                     navigator.navigate(
-                                        "savelinkresult/${saved.linkuId}",
+                                        linkDetailRoute(saved.userLinkuId),
                                     )
                                 },
                                 onFailed = { error ->
@@ -851,23 +877,27 @@ fun MainApp(
 
 
                 composable(
-                    route = "savelinkresult/{linkuId}",
-                    arguments = listOf(navArgument("linkuId") { type = NavType.LongType })
+                    route = LINK_DETAIL_ROUTE_PATTERN,
+                    arguments = listOf(
+                        navArgument(LINK_DETAIL_USER_LINKU_ID_ARGUMENT) {
+                            type = NavType.LongType
+                        }
+                    )
                 ) { backStackEntry ->
                     val context = LocalContext.current
                     val detailCoroutineScope = rememberCoroutineScope()
                     val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
 
-                    val linkuId = backStackEntry.arguments
-                        ?.takeIf { it.containsKey("linkuId") }
-                        ?.getLong("linkuId")
+                    val userLinkuId = backStackEntry.arguments
+                        ?.takeIf { it.containsKey(LINK_DETAIL_USER_LINKU_ID_ARGUMENT) }
+                        ?.getLong(LINK_DETAIL_USER_LINKU_ID_ARGUMENT)
                         ?.takeIf { it > 0L }
                         ?: return@composable
 
                     val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
                     val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
 
-                    var selectedDetailImageUri by rememberSaveable(linkuId) {
+                    var selectedDetailImageUri by rememberSaveable(userLinkuId) {
                         mutableStateOf<Uri?>(null)
                     }
 
@@ -877,8 +907,8 @@ fun MainApp(
                         selectedDetailImageUri = uri
                     }
 
-                    LaunchedEffect(linkuId) {
-                        linkViewModel.loadLinkDetail(linkuId)
+                    LaunchedEffect(userLinkuId) {
+                        linkViewModel.loadLinkDetail(userLinkuId)
                         linkViewModel.loadLinkEditCategories()
                     }
 
@@ -933,7 +963,7 @@ fun MainApp(
                     }
 
                     LinkDetailScreen(
-                        linkuId = linkuId,
+                        userLinkuId = userLinkuId,
                         linkTitle = linkDetail?.title.orEmpty(),
                         categoryId = linkDetail?.categoryId,
                         emotion = emotionNameOf(linkDetail?.emotionId),

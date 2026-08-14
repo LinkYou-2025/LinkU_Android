@@ -29,6 +29,8 @@ import androidx.core.view.WindowInsetsControllerCompat
  * 자연스럽게 이어져 보이게(edge-to-edge) 두는 기본 프리셋. 아이콘 밝기와 표시 여부만 맞춤.
  * 이 프로젝트의 "일반 화면(스플래시/로그인 그라데이션 제외)" 기본값으로 사용됨.
  *
+ * @param statusBarDarkIcons 상태바 아이콘을 어둡게 표시할지 여부
+ * @param navigationBarDarkIcons 내비게이션 바 아이콘을 어둡게 표시할지 여부
  * @param hidden true면 상태바/내비게이션 바를 완전히 숨김(스플래시, 로그인 그라데이션 화면 등
  * 몰입형 화면 전용). 예전엔 별도의 [com.linku.core.system.SystemBarController]로 숨김/복원을
  * 처리했는데, 같은 Window를 두 체계가 각자 다른 타이밍에 건드리면서 경합이 생겨(로그아웃/탈퇴
@@ -36,14 +38,18 @@ import androidx.core.view.WindowInsetsControllerCompat
  * 있었음. 이 파라미터로 흡수해서 시스템 바 제어를 이 한 곳으로 통일함.
  */
 @Composable
-fun EdgeToEdgeSystemBars(darkIcons: Boolean = true, hidden: Boolean = false) {
+fun EdgeToEdgeSystemBars(
+    statusBarDarkIcons: Boolean = true,
+    navigationBarDarkIcons: Boolean = true,
+    hidden: Boolean = false,
+) {
     val view = LocalView.current
     val isPreview = LocalInspectionMode.current
     if (isPreview) return
 
     // SideEffect는 리컴포지션마다 실행되는데, Window/시스템 서버와 통신하는 호출들이라
-    // darkIcons/hidden이 실제로 바뀔 때(+최초 진입)만 실행되도록 key로 제한함.
-    DisposableEffect(darkIcons, hidden) {
+    // 아이콘 밝기/hidden이 실제로 바뀔 때(+최초 진입)만 실행되도록 key로 제한함.
+    DisposableEffect(statusBarDarkIcons, navigationBarDarkIcons, hidden) {
         val activity = view.context.findActivityOrNull()
         if (activity == null) {
             return@DisposableEffect onDispose {}
@@ -84,8 +90,8 @@ fun EdgeToEdgeSystemBars(darkIcons: Boolean = true, hidden: Boolean = false) {
                 controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             }
 
-            controller.isAppearanceLightStatusBars = darkIcons
-            controller.isAppearanceLightNavigationBars = darkIcons
+            controller.isAppearanceLightStatusBars = statusBarDarkIcons
+            controller.isAppearanceLightNavigationBars = navigationBarDarkIcons
 
             // OS가 자동으로 그려주는 반투명 명암 보정 스크림을 꺼서, 화면 색이 흐려지지 않고
             // 그대로 비치게 함. (API 29+)
@@ -98,7 +104,7 @@ fun EdgeToEdgeSystemBars(darkIcons: Boolean = true, hidden: Boolean = false) {
         applySystemBars()
 
         // hidden=true인 상태에서 Toast(탈퇴 완료 안내 등)가 뜨면 별도 Window가 잠깐
-        // 포커스를 가져가면서 OS가 숨겼던 시스템 바를 다시 보여줌. darkIcons/hidden 값 자체는
+        // 포커스를 가져가면서 OS가 숨겼던 시스템 바를 다시 보여줌. 아이콘 밝기/hidden 값 자체는
         // 안 바뀌므로 위 DisposableEffect는 재실행되지 않아 숨김이 복구되지 않았음(탈퇴 →
         // 로그인 화면 진입 시 내비게이션 바가 계속 떠 있던 버그의 원인). 윈도우 포커스를 다시
         // 얻는 시점마다 재적용해서 복구함.
