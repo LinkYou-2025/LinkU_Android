@@ -85,6 +85,9 @@ private const val LINK_DETAIL_USER_LINKU_ID_ARGUMENT = "userLinkuId"
 private const val LINK_DETAIL_ROUTE_PATTERN =
     "savelinkresult/{$LINK_DETAIL_USER_LINKU_ID_ARGUMENT}"
 
+/** 새 링크 정보를 입력하는 앱 루트 경로입니다. */
+private const val SAVE_LINK_ROUTE = "savelink"
+
 private fun linkDetailRoute(userLinkuId: Long): String =
     "savelinkresult/$userLinkuId"
 
@@ -194,14 +197,11 @@ fun MainApp(
     // 현재 라우트 관찰
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    // 메모 편집 중에는 카운터가 키보드 상단을 사용할 수 있도록 앱 하단 내비게이션을 숨깁니다.
-    var isSaveLinkMemoImeVisible by remember { mutableStateOf(false) }
+
+    // 탭별 showNavBar 상태는 보존하고 링크 저장 입력 화면에서만 하단 네비게이션을 가립니다.
+    val shouldShowNavigationBar = showNavBar && currentRoute != SAVE_LINK_ROUTE
 
     LaunchedEffect(currentRoute) {
-        if (currentRoute != "savelink") {
-            isSaveLinkMemoImeVisible = false
-        }
-
         if (currentRoute == NavigationRoute.Home.route ||
             currentRoute == NavigationRoute.Curation.route
         ) {
@@ -271,7 +271,7 @@ fun MainApp(
 
         // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
         isTabRoute(currentRoute, NavigationRoute.Home.route) ||
-                currentRoute == "savelink" ||
+                currentRoute == SAVE_LINK_ROUTE ||
                 currentRoute == LINK_DETAIL_ROUTE_PATTERN -> LinkuNavigationItem.HOME
         isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
         isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
@@ -291,7 +291,7 @@ fun MainApp(
 
     LaunchedEffect(saveLinkEntryTriggered) {
         if (saveLinkEntryTriggered) {
-            navigator.navigate("savelink")
+            navigator.navigate(SAVE_LINK_ROUTE)
             saveLinkEntryTriggered = false
         }
     }
@@ -315,7 +315,7 @@ fun MainApp(
         }
 
         MainScreen(
-            navigationBarProp = if (showNavBar && !isSaveLinkMemoImeVisible) NavigationBarProp(
+            navigationBarProp = if (shouldShowNavigationBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
 //                    if (item != currentLinkuNavigationItem) {
@@ -640,7 +640,7 @@ fun MainApp(
                             },
                             onNavigateToSaveLink = { url ->
                                 linkViewModel.setSaveUrl(url)
-                                navigator.navigate("savelink")
+                                navigator.navigate(SAVE_LINK_ROUTE)
                             },
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
@@ -796,7 +796,7 @@ fun MainApp(
                     )
                 }
 
-                composable("savelink") {
+                composable(SAVE_LINK_ROUTE) {
                     val context = LocalContext.current
                     val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
 
@@ -873,9 +873,6 @@ fun MainApp(
                                     )
                                 },
                             )
-                        },
-                        onMemoImeVisibilityChanged = { isVisible ->
-                            isSaveLinkMemoImeVisible = isVisible
                         },
                         toastEvent = linkViewModel.toastEvent,
                     )
