@@ -34,6 +34,14 @@ class AuthPreferenceImpl @Inject constructor(
         val DEVICE_TYPE = stringPreferencesKey("device_type")
         val NICKNAME = stringPreferencesKey("nickname")
 
+        /** 마지막 배너 노출 URL과 해당 URL을 기록한 사용자 ID입니다. */
+        val LAST_PRESENTED_CLIPBOARD_URL = stringPreferencesKey("last_presented_clipboard_url")
+        val LAST_PRESENTED_CLIPBOARD_USER_ID = longPreferencesKey("last_presented_clipboard_user_id")
+
+        /** 마지막 링크 저장 URL과 해당 URL을 저장한 사용자 ID입니다. */
+        val LAST_SAVED_LINK_URL = stringPreferencesKey("last_saved_link_url")
+        val LAST_SAVED_LINK_USER_ID = longPreferencesKey("last_saved_link_user_id")
+
         // 로그아웃(clear) 시에도 남겨둘 키. 디바이스 정보와 마지막 로그인 수단은 유저 세션이 아니라 기기/이력 정보라 보존함.
         val PRESERVED_ON_CLEAR = setOf(DEVICE_ID, DEVICE_TYPE, LOGIN_TYPE)
     }
@@ -140,5 +148,47 @@ class AuthPreferenceImpl @Inject constructor(
         context.authDataStore.edit { prefs ->
             prefs[Keys.NICKNAME] = nickname
         }
+    }
+
+    override suspend fun getLastPresentedClipboardUrl(userId: Long): String? =
+        context.authDataStore.data.map { prefs ->
+            val isCurrentUser = prefs[Keys.LOGGED_IN] == true &&
+                prefs[Keys.USER_ID] == userId &&
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_USER_ID] == userId
+
+            if (isCurrentUser) prefs[Keys.LAST_PRESENTED_CLIPBOARD_URL] else null
+        }.first()
+
+    override suspend fun saveLastPresentedClipboardUrl(url: String, userId: Long): Boolean {
+        var isSaved = false
+        context.authDataStore.edit { prefs ->
+            if (prefs[Keys.LOGGED_IN] == true && prefs[Keys.USER_ID] == userId) {
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_URL] = url
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_USER_ID] = userId
+                isSaved = true
+            }
+        }
+        return isSaved
+    }
+
+    override suspend fun getLastSavedLinkUrl(userId: Long): String? =
+        context.authDataStore.data.map { prefs ->
+            val isCurrentUser = prefs[Keys.LOGGED_IN] == true &&
+                prefs[Keys.USER_ID] == userId &&
+                prefs[Keys.LAST_SAVED_LINK_USER_ID] == userId
+
+            if (isCurrentUser) prefs[Keys.LAST_SAVED_LINK_URL] else null
+        }.first()
+
+    override suspend fun saveLastSavedLinkUrl(url: String, userId: Long): Boolean {
+        var isSaved = false
+        context.authDataStore.edit { prefs ->
+            if (prefs[Keys.LOGGED_IN] == true && prefs[Keys.USER_ID] == userId) {
+                prefs[Keys.LAST_SAVED_LINK_URL] = url
+                prefs[Keys.LAST_SAVED_LINK_USER_ID] = userId
+                isSaved = true
+            }
+        }
+        return isSaved
     }
 }

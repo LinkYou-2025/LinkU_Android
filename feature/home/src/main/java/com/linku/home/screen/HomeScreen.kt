@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -268,17 +269,19 @@ fun HomeScreen(
 
     val clipboardUrl by rememberClipboardUrl()
     val validatedClipboardUrl by homeViewModel.validatedClipboardUrl.collectAsStateWithLifecycle()
-    var dismissedClipboardUrl by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(clipboardUrl) {
         homeViewModel.validateClipboardUrl(clipboardUrl)
     }
 
-    // 프론트와 백엔드 검사를 모두 통과하고 사용자가 닫지 않은 현재 URL만 배너에 표시합니다.
+    DisposableEffect(homeViewModel) {
+        onDispose(homeViewModel::endClipboardBannerSession)
+    }
+
+    // 프론트와 백엔드 검사를 모두 통과한 현재 클립보드 URL만 배너에 표시합니다.
     val shouldShowClipboardBanner =
         validatedClipboardUrl != null &&
-            validatedClipboardUrl == clipboardUrl &&
-            validatedClipboardUrl != dismissedClipboardUrl
+            validatedClipboardUrl == clipboardUrl
 
     val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
 
@@ -526,12 +529,12 @@ fun HomeScreen(
                 link = validatedClipboardUrl.orEmpty(),
                 modifier = Modifier,
                 onDismiss = {
-                    dismissedClipboardUrl = validatedClipboardUrl
+                    validatedClipboardUrl?.let(homeViewModel::markClipboardUrlHandled)
                 },
                 onPasteClick = {
                     validatedClipboardUrl?.let { url ->
+                        homeViewModel.markClipboardUrlHandled(url)
                         onNavigateToSaveLink(url)
-                        dismissedClipboardUrl = url
                     }
                 }
             )

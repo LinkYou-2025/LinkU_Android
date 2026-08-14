@@ -848,8 +848,10 @@ fun MainApp(
                         isSaveButtonEnabled =
                             linkUiState.isSaveButtonEnabled,
                         onSaveButtonClick = {
+                            val submittedUrl = linkUiState.saveUrl
                             linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
+                                    homeViewModel.markClipboardUrlHandled(submittedUrl)
                                     linkViewModel.loadLinkDetail(
                                         saved.userLinkuId,
                                     )

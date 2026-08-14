@@ -157,6 +157,15 @@ class LinkViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                val savingUserId = try {
+                    authPreference.getUserId()
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.e("LinkViewModel", "failed to read user before saving link", error)
+                    null
+                }
+
                 val linkCheckResult = try {
                     checkLinkUseCase(currentUrl)
                 } catch (error: CancellationException) {
@@ -171,7 +180,12 @@ class LinkViewModel @Inject constructor(
                     LinkCheckResult.Available,
                     LinkCheckResult.AlreadySaved -> {
                         try {
-                            saveLink(state = currentState, url = currentUrl, onSucceed = onSucceed)
+                            saveLink(
+                                state = currentState,
+                                url = currentUrl,
+                                userId = savingUserId,
+                                onSucceed = onSucceed,
+                            )
                         } catch (error: CancellationException) {
                             throw error
                         } catch (error: Exception) {
@@ -187,7 +201,22 @@ class LinkViewModel @Inject constructor(
         }
     }
 
-    private suspend fun saveLink(state: LinkUiState, url: String, onSucceed: (LinkSimpleInfo) -> Unit) {
+    /**
+     * 링크를 저장하고, 성공한 URL을 클립보드 배너 재노출 방지 정보로 함께 기록합니다.
+     *
+     * 배너용 기록 실패는 이미 완료된 서버 저장의 성공 흐름을 막지 않습니다.
+     *
+     * @param state 저장 폼의 클릭 시점 스냅샷
+     * @param url 프론트 검증을 통과해 실제 저장에 사용하는 URL
+     * @param userId 저장 요청을 시작한 사용자 ID. 조회하지 못한 경우 `null`
+     * @param onSucceed 서버 저장 성공 후 호출할 콜백
+     */
+    private suspend fun saveLink(
+        state: LinkUiState,
+        url: String,
+        userId: Long?,
+        onSucceed: (LinkSimpleInfo) -> Unit,
+    ) {
         val saved = linkuRepository.saveNewLink(
             image = state.saveImage,
             url = url,
@@ -196,6 +225,16 @@ class LinkViewModel @Inject constructor(
             emotionId = state.selectedSaveEmotionId,
             situationId = state.selectedSaveSituationId,
         )
+
+        if (userId != null) {
+            try {
+                authPreference.saveLastSavedLinkUrl(url = url, userId = userId)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("LinkViewModel", "failed to persist saved link URL", error)
+            }
+        }
 
         sendToast("링크가 저장되었어요.")
         onSucceed(saved)

@@ -77,11 +77,16 @@ class HomeViewModel @Inject constructor(
     /** 취소 시점과 겹쳐 완료된 이전 요청의 결과 반영을 차단하는 요청 식별자입니다. */
     private var clipboardValidationRequestId = 0L
 
+    /** 현재 홈 화면이 전달한 가장 최신의 유효한 클립보드 후보입니다. */
+    private var currentClipboardCandidateUrl: String? = null
+
     /**
      * 클립보드 URL을 프론트에서 먼저 검사하고, 통과한 경우에만 백엔드 검사를 실행합니다.
      *
-     * 새 후보를 검사하기 시작하면 기존 배너 URL을 즉시 제거합니다. 백엔드가 신규 링크 또는
+     * 새 후보를 검사하기 시작하면 기존 배너 URL을 즉시 제거합니다. 이전 화면 세션에서 이미 노출했거나
+     * 최근 저장에 성공한 URL이면 백엔드 호출 없이 종료합니다. 새 URL에 대해 백엔드가 신규 링크 또는
      * 이미 저장한 링크로 응답하면 중복 저장 가능 정책에 따라 모두 유효한 URL로 공개합니다.
+     * 공개 전에 URL을 영속화하므로 화면 재진입과 앱 재실행에서도 같은 값은 반복 노출되지 않습니다.
      * 프론트 검사 실패와 백엔드·네트워크 오류는 배너를 노출하지 않고 종료합니다.
      *
      * @param candidateUrl 시스템 클립보드에서 읽은 URL 후보. 후보가 없으면 `null`
@@ -96,15 +101,45 @@ class HomeViewModel @Inject constructor(
         val frontendValidationResult = validateUrlInput(normalizedUrl)
 
         if (frontendValidationResult != UrlValidationResult.Valid) {
+            currentClipboardCandidateUrl = null
             return
         }
 
+        currentClipboardCandidateUrl = normalizedUrl
+
         clipboardValidationJob = viewModelScope.launch {
             try {
+                val userId = authPreference.getUserId() ?: return@launch
+
+                if (!isCurrentClipboardValidation(requestId, normalizedUrl)) {
+                    return@launch
+                }
+
+                val lastPresentedUrl = authPreference.getLastPresentedClipboardUrl(userId)
+                if (!isCurrentClipboardValidation(requestId, normalizedUrl)) {
+                    return@launch
+                }
+
+                val lastSavedUrl = authPreference.getLastSavedLinkUrl(userId)
+                if (!isCurrentClipboardValidation(requestId, normalizedUrl)) {
+                    return@launch
+                }
+
+                if (normalizedUrl == lastPresentedUrl || normalizedUrl == lastSavedUrl) {
+                    return@launch
+                }
+
                 when (checkLinkUseCase(normalizedUrl)) {
                     LinkCheckResult.Available,
                     LinkCheckResult.AlreadySaved -> {
-                        if (requestId == clipboardValidationRequestId) {
+                        if (!isCurrentClipboardValidation(requestId, normalizedUrl)) {
+                            return@launch
+                        }
+
+                        val isPresentationSaved =
+                            authPreference.saveLastPresentedClipboardUrl(normalizedUrl, userId)
+
+                        if (isPresentationSaved && isCurrentClipboardValidation(requestId, normalizedUrl)) {
                             _validatedClipboardUrl.value = normalizedUrl
                         }
                     }
@@ -116,6 +151,38 @@ class HomeViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * 현재 클립보드 후보가 사용자 동작으로 처리되었음을 반영하고 배너를 즉시 숨깁니다.
+     *
+     * 배너 닫기·붙여넣기와 링크 저장 성공이 모두 이 진입점을 사용합니다. 전달된 URL이 최신
+     * 클립보드 후보와 다르면 무관한 링크 저장으로 판단해 현재 배너 상태를 변경하지 않습니다.
+     *
+     * @param url 사용자가 닫거나 저장한 URL
+     */
+    fun markClipboardUrlHandled(url: String) {
+        val normalizedUrl = url.trim()
+        if (currentClipboardCandidateUrl != normalizedUrl) {
+            return
+        }
+
+        clipboardValidationJob?.cancel()
+        clipboardValidationJob = null
+        clipboardValidationRequestId++
+        _validatedClipboardUrl.value = null
+    }
+
+    /** 홈 화면 Composition이 종료될 때 이전 세션의 배너 상태가 남지 않도록 정리합니다. */
+    fun endClipboardBannerSession() {
+        clipboardValidationJob?.cancel()
+        clipboardValidationJob = null
+        clipboardValidationRequestId++
+        _validatedClipboardUrl.value = null
+    }
+
+    /** 요청 식별자와 URL이 모두 최신 클립보드 후보를 가리키는지 확인합니다. */
+    private fun isCurrentClipboardValidation(requestId: Long, url: String): Boolean =
+        requestId == clipboardValidationRequestId && currentClipboardCandidateUrl == url
 
     // 직업 ID 보관
     private val jobIdState = mutableStateOf<Long?>(null)
@@ -189,6 +256,7 @@ class HomeViewModel @Inject constructor(
         clipboardValidationJob?.cancel()
         clipboardValidationJob = null
         clipboardValidationRequestId++
+        currentClipboardCandidateUrl = null
         _validatedClipboardUrl.value = null
     }
 
