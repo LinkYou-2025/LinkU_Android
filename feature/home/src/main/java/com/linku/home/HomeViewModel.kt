@@ -12,15 +12,21 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationRequest
+import com.linku.core.model.link.LinkCheckResult
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.CheckLinkUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.home.paging.RecommendationPagingSource
+import com.linku.home.util.UrlValidationResult
+import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -37,6 +43,7 @@ class HomeViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val alarmRepository: AlarmRepository,
+    private val checkLinkUseCase: CheckLinkUseCase,
 ) : ViewModel() {
 
     private companion object {
@@ -52,6 +59,62 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadCategoryColors()
+    }
+
+    /** 백엔드 검사까지 통과하여 클립보드 배너에 표시할 수 있는 URL입니다. */
+    private val _validatedClipboardUrl = MutableStateFlow<String?>(null)
+
+    /**
+     * 프론트 및 백엔드 유효성 검사를 모두 통과한 클립보드 URL입니다.
+     *
+     * `null`이면 검사할 후보가 없거나, 검사 중이거나, 검사에 실패한 상태를 의미합니다.
+     */
+    val validatedClipboardUrl: StateFlow<String?> = _validatedClipboardUrl.asStateFlow()
+
+    /** 새 클립보드 후보가 들어왔을 때 이전 백엔드 검사를 취소하기 위한 작업입니다. */
+    private var clipboardValidationJob: Job? = null
+
+    /** 취소 시점과 겹쳐 완료된 이전 요청의 결과 반영을 차단하는 요청 식별자입니다. */
+    private var clipboardValidationRequestId = 0L
+
+    /**
+     * 클립보드 URL을 프론트에서 먼저 검사하고, 통과한 경우에만 백엔드 검사를 실행합니다.
+     *
+     * 새 후보를 검사하기 시작하면 기존 배너 URL을 즉시 제거합니다. 백엔드가 신규 링크 또는
+     * 이미 저장한 링크로 응답하면 중복 저장 가능 정책에 따라 모두 유효한 URL로 공개합니다.
+     * 프론트 검사 실패와 백엔드·네트워크 오류는 배너를 노출하지 않고 종료합니다.
+     *
+     * @param candidateUrl 시스템 클립보드에서 읽은 URL 후보. 후보가 없으면 `null`
+     */
+    fun validateClipboardUrl(candidateUrl: String?) {
+        clipboardValidationJob?.cancel()
+        clipboardValidationJob = null
+        _validatedClipboardUrl.value = null
+
+        val requestId = ++clipboardValidationRequestId
+        val normalizedUrl = candidateUrl?.trim().orEmpty()
+        val frontendValidationResult = validateUrlInput(normalizedUrl)
+
+        if (frontendValidationResult != UrlValidationResult.Valid) {
+            return
+        }
+
+        clipboardValidationJob = viewModelScope.launch {
+            try {
+                when (checkLinkUseCase(normalizedUrl)) {
+                    LinkCheckResult.Available,
+                    LinkCheckResult.AlreadySaved -> {
+                        if (requestId == clipboardValidationRequestId) {
+                            _validatedClipboardUrl.value = normalizedUrl
+                        }
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("HomeVM", "clipboard link validation failed", error)
+            }
+        }
     }
 
     // 직업 ID 보관
@@ -122,6 +185,11 @@ class HomeViewModel @Inject constructor(
         isRecommendModeState.value = false
         needMoreForRecommendationState.value = false
         recommendationRequestState.value = null
+
+        clipboardValidationJob?.cancel()
+        clipboardValidationJob = null
+        clipboardValidationRequestId++
+        _validatedClipboardUrl.value = null
     }
 
     // 사용자가 저장한 링크 개수

@@ -12,6 +12,7 @@ import com.linku.core.model.link.ToastEvent
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.usecase.CheckLinkUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.home.util.UrlValidationResult
 import com.linku.home.util.toToastMessage
@@ -33,6 +34,7 @@ class LinkViewModel @Inject constructor(
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
+    private val checkLinkUseCase: CheckLinkUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -156,7 +158,7 @@ class LinkViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val linkCheckResult = try {
-                    linkuRepository.checkLink(currentUrl)
+                    checkLinkUseCase(currentUrl)
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: AppError) {
@@ -166,9 +168,8 @@ class LinkViewModel @Inject constructor(
                 }
 
                 when (linkCheckResult) {
-                    LinkCheckResult.AlreadySaved -> sendToast("이미 저장된 링크예요.")
-
-                    LinkCheckResult.Available -> {
+                    LinkCheckResult.Available,
+                    LinkCheckResult.AlreadySaved -> {
                         try {
                             saveLink(state = currentState, url = currentUrl, onSucceed = onSucceed)
                         } catch (error: CancellationException) {

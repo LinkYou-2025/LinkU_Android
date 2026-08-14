@@ -267,11 +267,18 @@ fun HomeScreen(
         }
 
     val clipboardUrl by rememberClipboardUrl()
+    val validatedClipboardUrl by homeViewModel.validatedClipboardUrl.collectAsStateWithLifecycle()
     var dismissedClipboardUrl by remember { mutableStateOf<String?>(null) }
 
-    // 클립보드 배너(사용자가 "아래로 밀어서 닫기" 전까지 유지)
+    LaunchedEffect(clipboardUrl) {
+        homeViewModel.validateClipboardUrl(clipboardUrl)
+    }
+
+    // 프론트와 백엔드 검사를 모두 통과하고 사용자가 닫지 않은 현재 URL만 배너에 표시합니다.
     val shouldShowClipboardBanner =
-        clipboardUrl != null && clipboardUrl != dismissedClipboardUrl
+        validatedClipboardUrl != null &&
+            validatedClipboardUrl == clipboardUrl &&
+            validatedClipboardUrl != dismissedClipboardUrl
 
     val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
 
@@ -516,15 +523,15 @@ fun HomeScreen(
         ) {
             ClipboardLinkPasteBanner(
                 visible = shouldShowClipboardBanner,
-                link = clipboardUrl.orEmpty(),
+                link = validatedClipboardUrl.orEmpty(),
                 modifier = Modifier,
                 onDismiss = {
-                    dismissedClipboardUrl = clipboardUrl  // 사용자가 닫은 링크는 동일 값이면 다시 안 띄움
+                    dismissedClipboardUrl = validatedClipboardUrl
                 },
                 onPasteClick = {
-                    clipboardUrl?.let { url ->
-                        onNavigateToSaveLink(url)  // 저장 화면으로 이동
-                        dismissedClipboardUrl = url  // 눌렀으면 배너는 닫아버리기
+                    validatedClipboardUrl?.let { url ->
+                        onNavigateToSaveLink(url)
+                        dismissedClipboardUrl = url
                     }
                 }
             )
