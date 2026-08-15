@@ -1,5 +1,6 @@
 package com.linku.data.implementation.repository
 
+import com.linku.core.model.TempImageFile
 import com.linku.data.api.ServerApi
 import com.linku.data.di.repository.MoshiModule
 import com.squareup.moshi.Moshi
@@ -8,78 +9,88 @@ import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.Buffer
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import java.io.IOException
+import java.nio.file.Files
 
 /**
- * 링크 수정값이 실제 multipart part로 조립되는지 검증합니다.
+ * 링크 수정값이 이미지 유무에 맞는 query 및 multipart 요청으로 조립되는지 검증합니다.
  *
  * OkHttp interceptor에서 외부 통신 직전에 요청을 가로채므로 네트워크 연결 없이
- * Retrofit의 요청 생성 과정과 Repository의 RequestBody 변환을 함께 확인할 수 있습니다.
+ * Retrofit의 요청 생성 과정과 Repository의 전송 경로 선택을 함께 확인할 수 있습니다.
  */
-class LinkuRepositoryMultipartTest {
+class LinkuRepositoryUpdateRequestTest {
 
     @Test
-    fun `제목만 변경해도 비어 있지 않은 multipart 요청을 생성한다`() = runTest {
+    fun `이미지 없이 제목만 변경하면 query 요청을 생성한다`() = runTest {
         val request = captureUpdateRequest(title = "변경한 제목")
 
         assertEquals("PATCH", request.method)
-        assertNull(request.url.queryParameter("title"))
-
-        val multipartBody = request.requireMultipartBody()
-        assertEquals(1, multipartBody.parts.size)
-        assertEquals("변경한 제목", multipartBody.readPartText("title"))
+        assertEquals("변경한 제목", request.url.queryParameter("title"))
+        assertFalse(request.body is MultipartBody)
     }
 
     @Test
-    fun `빈 메모는 삭제를 위한 빈 multipart part로 유지한다`() = runTest {
+    fun `빈 메모는 삭제를 위한 빈 query 값으로 유지한다`() = runTest {
         val request = captureUpdateRequest(memo = "")
 
-        val multipartBody = request.requireMultipartBody()
-        assertEquals(1, multipartBody.parts.size)
-        assertEquals("", multipartBody.readPartText("memo"))
+        assertTrue("memo" in request.url.queryParameterNames)
+        assertEquals("", request.url.queryParameter("memo"))
     }
 
     @Test
-    fun `카테고리만 변경해도 ID를 multipart part로 전송한다`() = runTest {
+    fun `카테고리만 변경하면 ID를 query로 전송한다`() = runTest {
         val request = captureUpdateRequest(categoryId = 31L)
 
-        val multipartBody = request.requireMultipartBody()
-        assertEquals(1, multipartBody.parts.size)
-        assertEquals("31", multipartBody.readPartText("categoryId"))
+        assertEquals("31", request.url.queryParameter("categoryId"))
     }
 
     @Test
-    fun `변경값이 하나도 없으면 Retrofit 호출 전에 거부한다`() = runTest {
-        var requestCreated = false
-        val repository = createRepository { requestCreated = true }
+    fun `이미지를 변경하면 query와 image multipart part를 함께 전송한다`() = runTest {
+        val imageBytes = byteArrayOf(1, 2, 3)
+        val imageFile = Files.createTempFile("linku-update-", ".png").toFile()
 
-        val failure = runCatching {
-            repository.updateLink(
-                userLinkuId = TEST_USER_LINKU_ID,
-                image = null,
-                memo = null,
-                emotionId = null,
-                situationId = null,
-                categoryId = null,
-                title = null,
+        try {
+            imageFile.writeBytes(imageBytes)
+
+            val request = captureUpdateRequest(
+                image = TempImageFile(
+                    file = imageFile,
+                    mimeType = "image/png",
+                ),
+                title = "이미지와 함께 변경한 제목",
             )
-        }.exceptionOrNull()
 
-        assertTrue(failure is IllegalArgumentException)
-        assertFalse(requestCreated)
+            assertEquals("이미지와 함께 변경한 제목", request.url.queryParameter("title"))
+
+            val multipartBody = request.requireMultipartBody()
+            assertEquals(1, multipartBody.parts.size)
+
+            val imagePart = multipartBody.parts.single()
+            val contentDisposition = imagePart.headers?.get("Content-Disposition").orEmpty()
+            assertTrue(contentDisposition.contains("name=\"image\""))
+            assertTrue(contentDisposition.contains("filename=\"${imageFile.name}\""))
+            assertEquals("image/png", imagePart.body.contentType()?.toString())
+
+            val imageBuffer = Buffer()
+            imagePart.body.writeTo(imageBuffer)
+            assertArrayEquals(imageBytes, imageBuffer.readByteArray())
+        } finally {
+            imageFile.delete()
+        }
     }
 
     /**
      * 주어진 변경값으로 Repository를 호출하고 OkHttp에 도달한 요청을 반환합니다.
      */
     private suspend fun captureUpdateRequest(
+        image: TempImageFile? = null,
         memo: String? = null,
         emotionId: Long? = null,
         situationId: Long? = null,
@@ -92,21 +103,22 @@ class LinkuRepositoryMultipartTest {
         }
 
         // 요청 캡처 interceptor가 IOException으로 통신을 중단하므로 결과 예외는 의도적으로 무시합니다.
-        runCatching {
+        val failure = runCatching {
             repository.updateLink(
                 userLinkuId = TEST_USER_LINKU_ID,
-                image = null,
+                image = image,
                 memo = memo,
                 emotionId = emotionId,
                 situationId = situationId,
                 categoryId = categoryId,
                 title = title,
             )
-        }
+        }.exceptionOrNull()
 
-        return requireNotNull(capturedRequest) {
-            "Retrofit이 링크 수정 요청을 생성하지 못했습니다."
-        }
+        return capturedRequest ?: throw AssertionError(
+            "Retrofit이 링크 수정 요청을 생성하지 못했습니다.",
+            failure,
+        )
     }
 
     /**
@@ -148,20 +160,6 @@ class LinkuRepositoryMultipartTest {
             "링크 수정 요청 본문이 multipart가 아닙니다."
         }
         return requestBody
-    }
-
-    /**
-     * 지정한 이름의 multipart part 본문을 UTF-8 문자열로 읽습니다.
-     */
-    private fun MultipartBody.readPartText(name: String): String {
-        val part = parts.single { candidate ->
-            candidate.headers
-                ?.get("Content-Disposition")
-                ?.contains("name=\"$name\"") == true
-        }
-        val buffer = Buffer()
-        part.body.writeTo(buffer)
-        return buffer.readUtf8()
     }
 
     private companion object {

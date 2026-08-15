@@ -47,30 +47,54 @@ interface LinkuApi {
     ): BaseResponse<LinkuIsExistDTO>
 
     /**
-     * 사용자가 저장한 링크의 변경값을 multipart form-data로 수정합니다.
+     * 이미지 변경 없이 전달된 query parameter만 수정합니다.
      *
      * 변경되지 않은 값은 `null`로 생략하며, 메모의 빈 문자열은 기존 메모를 지우는
-     * 유효한 변경값이므로 비어 있는 part로 전달합니다.
+     * 유효한 변경값이므로 빈 query 값으로 전달합니다.
      *
      * @param userLinkuId 수정할 사용자 저장 링크 ID
-     * @param memo 변경할 메모 본문. `null`이면 변경하지 않습니다.
+     * @param memo 변경할 메모. `null`이면 변경하지 않습니다.
      * @param emotionId 변경할 감정 ID. `null`이면 변경하지 않습니다.
      * @param situationId 변경할 상황 ID. `null`이면 변경하지 않습니다.
      * @param categoryId 변경할 카테고리 ID. `null`이면 변경하지 않습니다.
      * @param title 변경할 제목. `null`이면 변경하지 않습니다.
-     * @param image 새로 등록할 이미지. `null`이면 이미지를 변경하지 않습니다.
+     * @return 수정된 링크 상세 정보가 포함된 응답
+     */
+    @PATCH("linku/{userLinkuId}")
+    suspend fun updateLink(
+        @Path("userLinkuId") userLinkuId: Long,
+        @Query("memo") memo: String?,
+        @Query("emotionId") emotionId: Long?,
+        @Query("situationId") situationId: Long?,
+        @Query("categoryId") categoryId: Long?,
+        @Query("title") title: String?,
+    ): BaseResponse<LinkuResultDTO>
+
+    /**
+     * 전달된 query parameter와 새 이미지를 함께 수정합니다.
+     *
+     * multipart body가 비어 요청 생성에 실패하지 않도록 이 메서드의 이미지 part는
+     * null을 허용하지 않습니다.
+     *
+     * @param userLinkuId 수정할 사용자 저장 링크 ID
+     * @param memo 변경할 메모. `null`이면 변경하지 않습니다.
+     * @param emotionId 변경할 감정 ID. `null`이면 변경하지 않습니다.
+     * @param situationId 변경할 상황 ID. `null`이면 변경하지 않습니다.
+     * @param categoryId 변경할 카테고리 ID. `null`이면 변경하지 않습니다.
+     * @param title 변경할 제목. `null`이면 변경하지 않습니다.
+     * @param image 새로 등록할 이미지
      * @return 수정된 링크 상세 정보가 포함된 응답
      */
     @Multipart
     @PATCH("linku/{userLinkuId}")
-    suspend fun updateLink(
+    suspend fun updateLinkWithImage(
         @Path("userLinkuId") userLinkuId: Long,
-        @Query("memo") memo: RequestBody?,
-        @Query("emotionId") emotionId: RequestBody?,
-        @Query("situationId") situationId: RequestBody?,
-        @Query("categoryId") categoryId: RequestBody?,
-        @Query("title") title: RequestBody?,
-        @Part image: MultipartBody.Part?,
+        @Query("memo") memo: String?,
+        @Query("emotionId") emotionId: Long?,
+        @Query("situationId") situationId: Long?,
+        @Query("categoryId") categoryId: Long?,
+        @Query("title") title: String?,
+        @Part image: MultipartBody.Part,
     ): BaseResponse<LinkuResultDTO>
 
     /**
