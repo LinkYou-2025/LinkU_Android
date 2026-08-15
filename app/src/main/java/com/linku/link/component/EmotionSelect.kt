@@ -7,11 +7,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,7 +29,7 @@ import com.linku.core.model.EmotionType
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import com.linku.link.util.imgRes
+import com.linku.link.util.imgResNoBorder
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -92,15 +90,14 @@ private fun EmotionBadgeImage(
             )
             .noRippleClickable { onClick() }
             .padding(horizontal = 10.dp, vertical = 5.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Image(
-            painter = emotion.imgRes,
+            painter = emotion.imgResNoBorder,
             contentDescription = emotion.tagName,
-            modifier = Modifier.size(30.dp)
+            modifier = Modifier.size(20.dp)
         )
-
-        Spacer(modifier = Modifier.width(5.dp))
 
         Text(
             text = buildAnnotatedString {
