@@ -13,5 +13,5 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class LinkuIsExistDTO(
     @field:Json(name = "isExist")
-    val isExist: Boolean? = null,
+    val isExist: Boolean,
 )
