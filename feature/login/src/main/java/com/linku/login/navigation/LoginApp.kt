@@ -409,14 +409,21 @@ fun LoginApp(
                     .getStateFlow("show_terms_sheet", true)
                     .collectAsStateWithLifecycle()
 
+                // 약관 동의를 거부(뒤로가기)한 것은 곧 이 소셜(카카오/구글) 가입 자체를 취소한다는
+                // 뜻이므로, 시트만 닫으면 버튼이 모두 비활성화된 LoginScreen만 남아 먹통처럼 보임.
+                // 최초 로그인 화면으로 완전히 되돌아가 다른 수단(구글/이메일)을 바로 쓸 수 있게 함.
                 BackHandler(enabled = showTermsSheet) {
-                    entry.savedStateHandle["show_terms_sheet"] = false
+                    navController.popBackStack()
                 }
 
                 // 이 화면도 그라데이션 배경이 상태바까지 비치는 edge-to-edge 화면.
+                // onDispose에서 false로 되돌리지 않음: 뒤로가기로 나가면 "login" 화면이 다시
+                // 켜지며 자체적으로 true를 세팅하므로, 여기서 false를 세팅하면 그 사이 한 프레임
+                // 동안 시스템 바가 깜빡이며 노출되는 문제가 있었음. 로그인 성공 후 Home으로 갈 때는
+                // MainApp.kt의 onLoginSuccess에서 별도로 false 처리함.
                 DisposableEffect(Unit) {
                     onEdgeToEdgeChange(true)
-                    onDispose { onEdgeToEdgeChange(false) }
+                    onDispose { }
                 }
 
                 LoginScreen(
@@ -460,7 +467,7 @@ fun LoginApp(
                         onAgreeTermsChange = { socialAuthVm.setAgreeTerms(it) },
                         onAgreePrivacyChange = { socialAuthVm.setAgreePrivacy(it) },
                         onAgreeMarketingChange = { socialAuthVm.setAgreeMarketing(it) },
-                        onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
+                        onClose = { navController.popBackStack() },
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
                             navController.navigate("social_terms/service")
