@@ -67,6 +67,15 @@ sealed class ThemeColorScheme(
         )
     ),
 
+    // 배경 그라데이션 (선형 · 6%)
+    // 알림함 에러 레이아웃에서 사용
+    val backgroundGradient6: Brush = Brush.horizontalGradient(
+        listOf(
+            Color(0xFF2C6FFF).copy(alpha = 0.06f),
+            Color(0xFFC800FF).copy(alpha = 0.06f)
+        )
+    ),
+
     val black: Color = Color(0xFF000208),
     val white: Color = Color(0xFFFFFFFF),
     val positive: Color = Color(0xFF35DF79),

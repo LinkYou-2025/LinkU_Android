@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -18,12 +20,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -36,6 +35,7 @@ import com.linku.core.error.NetworkError
 import com.linku.core.model.alarm.AlarmSummary
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
+import com.linku.design.util.scaler
 import com.linku.home.R
 import kotlinx.coroutines.flow.flowOf
 
@@ -55,35 +55,15 @@ fun AlarmErrorLayout(
     errorState: LoadState.Error,
     modifier: Modifier = Modifier
 ) {
-    val colorTheme = MaterialTheme.linkuColors
-
-    // 텍스트 스타일 따로 분리
-    val titleStyle = SpanStyle(
-        fontWeight = FontWeight(600),
-        fontSize = 18.sp,
-        color = colorTheme.black
-    )
-
-    val subStyle = SpanStyle(
-        fontWeight = FontWeight(500),
-        fontSize = 14.sp,
-        color = colorTheme.gray[500]
-    )
-
-    // 에러 유형에 따라 출력 메세지 스타일 분기처리.
-    val message = when (val error = errorState.error as AppError) {
-        is NetworkError -> buildAnnotatedString {
-            withStyle(titleStyle) { append("네트워크 연결이 불안정해요.") }
-            withStyle(subStyle) { append("\n인터넷 연결 상태를 확인한 후 다시 시도해주세요.") }
-        }
-
-        else -> buildAnnotatedString {
-            withStyle(titleStyle) { append(error.displayMessage) }
-        }
+    // 에러 유형에 따라 출력 메세지 분기처리.
+    val (title, subtitle) = when (val error = errorState.error as AppError) {
+        is NetworkError -> "네트워크 연결이 불안정해요." to "인터넷 연결 상태를 확인한 후 다시 시도해주세요."
+        else -> error.displayMessage to null
     }
 
     AlarmErrorLayoutContent(
-        message = message,
+        title = title,
+        subtitle = subtitle,
         onRetry = { alarmPagingItems.retry() },
         modifier = modifier
     )
@@ -91,7 +71,8 @@ fun AlarmErrorLayout(
 
 @Composable
 private fun AlarmErrorLayoutContent(
-    message: AnnotatedString,
+    title: String,
+    subtitle: String?,
     onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -108,7 +89,10 @@ private fun AlarmErrorLayoutContent(
             modifier = Modifier
                 .size(68.dp)
                 .clip(RoundedCornerShape(24.dp))
-                .background(colorTheme.purple[50]),
+                .background(
+                    brush = colorTheme.backgroundGradient6,
+                    shape = RoundedCornerShape(24.dp)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -122,13 +106,34 @@ private fun AlarmErrorLayoutContent(
 
         // 출력 메세지
         Text(
-            text = message,
-            color = colorTheme.gray[600],
-            textAlign = TextAlign.Center,
-            lineHeight = 28.sp
+            text = title,
+            style = LocalTextStyle.current.copy(
+                fontWeight = FontWeight(600),
+                fontSize = 18.sp,
+                lineHeight = 27.sp,
+                letterSpacing = -(0.839).sp,
+                color = colorTheme.black,
+                textAlign = TextAlign.Center
+            )
         )
 
-        Spacer(Modifier.size(26.dp))
+        Spacer(Modifier.height(4.5.dp))
+
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                style = LocalTextStyle.current.copy(
+                    fontWeight = FontWeight(500),
+                    fontSize = 14.sp,
+                    color = colorTheme.gray[500],
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.4.sp,
+                    letterSpacing = -(0.35).sp
+                )
+            )
+        }
+
+        Spacer(Modifier.size(26.5.dp))
 
         // 다시 시도 버튼
         TextButton(
@@ -139,12 +144,16 @@ private fun AlarmErrorLayoutContent(
                     brush = colorTheme.maincolor,
                     shape = RoundedCornerShape(16.dp)
                 ),
+            contentPadding = PaddingValues(0.dp),
         ) {
             Text(
                 text = "다시 시도",
-                color = colorTheme.white,
-                fontWeight = FontWeight(500),
-                fontSize = 16.sp
+                style = LocalTextStyle.current.copy(
+                    color = colorTheme.white,
+                    fontWeight = FontWeight(500),
+                    fontSize = 16.sp,
+                    lineHeight = 20.sp
+                )
             )
         }
     }
