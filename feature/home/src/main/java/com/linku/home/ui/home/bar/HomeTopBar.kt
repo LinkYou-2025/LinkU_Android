@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -29,8 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -47,7 +44,6 @@ import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
-import com.linku.design.theme.color.Basic
 import com.linku.design.theme.font.Taebaek
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
@@ -81,13 +77,8 @@ fun HomeTopBar(
     val expandDragThreshold = with(density) { 20.dp.toPx() }
 
     val buttonBrush =
-        if (recommendEnabled) Basic.maincolor
-        else Brush.horizontalGradient(
-            listOf(
-                Color(0xFF2C6FFF).copy(alpha = 0.2f),
-                Color(0xFFC800FF).copy(alpha = 0.2f)
-            )
-        )
+        if (recommendEnabled) colors.maincolor
+        else colors.inactiveColor
 
     var draggedDistance by remember { mutableFloatStateOf(0f) }
 
