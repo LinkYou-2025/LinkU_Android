@@ -37,7 +37,21 @@ interface LinkuRepository {
     // 링크 상세 보기
     suspend fun getLinkDetail(userLinkuId: Long): LinkResultInfo
 
-    // 링크 수정
+    /**
+     * 사용자가 저장한 링크에서 전달된 필드만 수정합니다.
+     *
+     * nullable 변경값의 `null`은 해당 필드를 변경하지 않는다는 의미입니다. 메모는
+     * 빈 문자열을 전달하여 기존 값을 삭제할 수 있으므로 `null`과 빈 문자열을 구분합니다.
+     *
+     * @param userLinkuId 수정할 사용자 저장 링크 ID
+     * @param image 새로 등록할 이미지. `null`이면 이미지를 변경하지 않습니다.
+     * @param memo 변경할 메모. `null`이면 변경하지 않고, 빈 문자열이면 기존 메모를 삭제합니다.
+     * @param emotionId 변경할 감정 ID. `null`이면 변경하지 않습니다.
+     * @param situationId 변경할 상황 ID. `null`이면 변경하지 않습니다.
+     * @param categoryId 변경할 카테고리 ID. `null`이면 변경하지 않습니다.
+     * @param title 변경할 제목. `null`이면 변경하지 않습니다.
+     * @return 수정된 링크 상세 정보
+     */
     suspend fun updateLink(
         userLinkuId: Long,
         image: TempImageFile?,

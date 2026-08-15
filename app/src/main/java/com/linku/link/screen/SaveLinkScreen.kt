@@ -93,10 +93,7 @@ private const val MAX_LINK_TITLE_LENGTH = 60
 /**
  * 새 링크에 필요한 URL, 제목, 이미지, 메모 및 분류 정보를 입력하는 화면입니다.
  *
- * 메모를 편집할 때는 글자 수 카운터가 IME 상단에 정렬될 수 있도록 스크롤 위치를 조정하고,
- * 화면 바깥의 하단 내비게이션 표시 여부는 [onMemoImeVisibilityChanged]를 통해 전달합니다.
- *
- * @param onMemoImeVisibilityChanged 메모가 포커스된 상태에서 IME가 표시되는지 전달하는 콜백
+ * 메모를 편집할 때는 글자 수 카운터가 IME 상단에 정렬될 수 있도록 스크롤 위치를 조정합니다.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -120,7 +117,6 @@ fun SaveLinkScreen(
     onBack: () -> Unit,
     isSaveButtonEnabled: Boolean,
     onSaveButtonClick: () -> Unit,
-    onMemoImeVisibilityChanged: (Boolean) -> Unit,
     toastEvent: Flow<ToastEvent>,
 ) {
     val colors = MaterialTheme.linkuColors
@@ -135,9 +131,6 @@ fun SaveLinkScreen(
     val currentOnImageSelected by rememberUpdatedState(onImageSelected)
     val currentOnPermissionDenied by rememberUpdatedState(onPermissionDenied)
     val currentOnImageLoadFailed by rememberUpdatedState(onImageLoadFailed)
-    val currentOnMemoImeVisibilityChanged by rememberUpdatedState(
-        onMemoImeVisibilityChanged,
-    )
 
     var isMemoFocused by remember { mutableStateOf(false) }
     var scrollViewportBottomInWindow by remember { mutableFloatStateOf(Float.NaN) }
@@ -211,10 +204,6 @@ fun SaveLinkScreen(
             toastMessage = event.message
             isToastVisible = true
         }
-    }
-
-    LaunchedEffect(shouldPrioritizeMemoAboveIme) {
-        currentOnMemoImeVisibilityChanged(shouldPrioritizeMemoAboveIme)
     }
 
     LaunchedEffect(isMemoFocused, density) {
@@ -731,7 +720,6 @@ fun PreviewSaveLinkScreen() {
             onBack = { },
             isSaveButtonEnabled = false,
             onSaveButtonClick = { },
-            onMemoImeVisibilityChanged = { },
             toastEvent = emptyFlow()
         )
     }

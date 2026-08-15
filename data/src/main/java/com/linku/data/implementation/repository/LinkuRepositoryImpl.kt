@@ -261,7 +261,12 @@ class LinkuRepositoryImpl @Inject constructor(
             },
         ).flow
 
-    // 링크 수정
+    /**
+     * 텍스트 변경값은 query parameter로, 새 이미지는 multipart part로 전달합니다.
+     *
+     * 이미지가 없을 때는 빈 multipart body 생성을 피하도록 일반 PATCH 요청을 사용하며,
+     * `null`인 변경값은 전송하지 않습니다. 빈 메모는 삭제 요청이므로 그대로 전달합니다.
+     */
     override suspend fun updateLink(
         userLinkuId: Long,
         image: TempImageFile?,
@@ -285,15 +290,26 @@ class LinkuRepositoryImpl @Inject constructor(
 
         safeApiCall(
             apiCall = {
-                serverApi.updateLink(
-                    userLinkuId = userLinkuId,
-                    memo = memo,
-                    emotionId = emotionId,
-                    situationId = situationId,
-                    categoryId = categoryId,
-                    title = title,
-                    image = imagePart,
-                )
+                if (imagePart == null) {
+                    serverApi.updateLink(
+                        userLinkuId = userLinkuId,
+                        memo = memo,
+                        emotionId = emotionId,
+                        situationId = situationId,
+                        categoryId = categoryId,
+                        title = title,
+                    )
+                } else {
+                    serverApi.updateLinkWithImage(
+                        userLinkuId = userLinkuId,
+                        memo = memo,
+                        emotionId = emotionId,
+                        situationId = situationId,
+                        categoryId = categoryId,
+                        title = title,
+                        image = imagePart,
+                    )
+                }
             }
         ).onSuccess {
             result = LinkResultInfo(

@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,7 +60,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
-import com.linku.home.component.rememberClipboardUrl
+import com.linku.home.component.rememberClipboardLinkCandidate
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -266,12 +267,22 @@ fun HomeScreen(
             }
         }
 
-    val clipboardUrl by rememberClipboardUrl()
-    var dismissedClipboardUrl by remember { mutableStateOf<String?>(null) }
+    val clipboardCandidate by rememberClipboardLinkCandidate()
+    val validatedClipboardCandidate by
+        homeViewModel.validatedClipboardCandidate.collectAsStateWithLifecycle()
 
-    // 클립보드 배너(사용자가 "아래로 밀어서 닫기" 전까지 유지)
+    LaunchedEffect(clipboardCandidate) {
+        homeViewModel.validateClipboardCandidate(clipboardCandidate)
+    }
+
+    DisposableEffect(homeViewModel) {
+        onDispose(homeViewModel::endClipboardBannerSession)
+    }
+
+    // URL과 복사 시각이 모두 현재 클립보드 항목과 일치하는 검증 완료 후보만 표시합니다.
     val shouldShowClipboardBanner =
-        clipboardUrl != null && clipboardUrl != dismissedClipboardUrl
+        validatedClipboardCandidate != null &&
+            validatedClipboardCandidate == clipboardCandidate
 
     val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
 
@@ -516,15 +527,15 @@ fun HomeScreen(
         ) {
             ClipboardLinkPasteBanner(
                 visible = shouldShowClipboardBanner,
-                link = clipboardUrl.orEmpty(),
+                link = validatedClipboardCandidate?.url.orEmpty(),
                 modifier = Modifier,
                 onDismiss = {
-                    dismissedClipboardUrl = clipboardUrl  // 사용자가 닫은 링크는 동일 값이면 다시 안 띄움
+                    validatedClipboardCandidate?.let(homeViewModel::markClipboardCandidateHandled)
                 },
                 onPasteClick = {
-                    clipboardUrl?.let { url ->
-                        onNavigateToSaveLink(url)  // 저장 화면으로 이동
-                        dismissedClipboardUrl = url  // 눌렀으면 배너는 닫아버리기
+                    validatedClipboardCandidate?.let { candidate ->
+                        homeViewModel.markClipboardCandidateHandled(candidate)
+                        onNavigateToSaveLink(candidate.url)
                     }
                 }
             )

@@ -34,6 +34,17 @@ class AuthPreferenceImpl @Inject constructor(
         val DEVICE_TYPE = stringPreferencesKey("device_type")
         val NICKNAME = stringPreferencesKey("nickname")
 
+        /** 마지막 배너 노출 URL, 복사 시각, 해당 URL을 기록한 사용자 ID입니다. */
+        val LAST_PRESENTED_CLIPBOARD_URL = stringPreferencesKey("last_presented_clipboard_url")
+        val LAST_PRESENTED_CLIPBOARD_TIMESTAMP =
+            longPreferencesKey("last_presented_clipboard_timestamp")
+        val LAST_PRESENTED_CLIPBOARD_USER_ID = longPreferencesKey("last_presented_clipboard_user_id")
+
+        /** 마지막 링크 저장 URL, 저장 완료 시각, 해당 URL을 저장한 사용자 ID입니다. */
+        val LAST_SAVED_LINK_URL = stringPreferencesKey("last_saved_link_url")
+        val LAST_SAVED_LINK_SAVED_AT = longPreferencesKey("last_saved_link_saved_at")
+        val LAST_SAVED_LINK_USER_ID = longPreferencesKey("last_saved_link_user_id")
+
         // 로그아웃(clear) 시에도 남겨둘 키. 디바이스 정보와 마지막 로그인 수단은 유저 세션이 아니라 기기/이력 정보라 보존함.
         val PRESERVED_ON_CLEAR = setOf(DEVICE_ID, DEVICE_TYPE, LOGIN_TYPE)
     }
@@ -140,5 +151,78 @@ class AuthPreferenceImpl @Inject constructor(
         context.authDataStore.edit { prefs ->
             prefs[Keys.NICKNAME] = nickname
         }
+    }
+
+    override suspend fun wasClipboardLinkPresented(
+        url: String,
+        copiedAtMillis: Long,
+        userId: Long,
+    ): Boolean =
+        context.authDataStore.data.map { prefs ->
+            val isCurrentUser = prefs[Keys.LOGGED_IN] == true &&
+                prefs[Keys.USER_ID] == userId &&
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_USER_ID] == userId
+            val presentedAtMillis = prefs[Keys.LAST_PRESENTED_CLIPBOARD_TIMESTAMP]
+
+            isCurrentUser &&
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_URL] == url &&
+                presentedAtMillis != null &&
+                presentedAtMillis == copiedAtMillis
+        }.first()
+
+    override suspend fun savePresentedClipboardLink(
+        url: String,
+        copiedAtMillis: Long,
+        userId: Long,
+    ): Boolean {
+        var isSaved = false
+        context.authDataStore.edit { prefs ->
+            if (prefs[Keys.LOGGED_IN] == true && prefs[Keys.USER_ID] == userId) {
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_URL] = url
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_TIMESTAMP] = copiedAtMillis
+                prefs[Keys.LAST_PRESENTED_CLIPBOARD_USER_ID] = userId
+                isSaved = true
+            }
+        }
+        return isSaved
+    }
+
+    override suspend fun wasLinkSavedAfterClipboardCopy(
+        url: String,
+        copiedAtMillis: Long,
+        userId: Long,
+    ): Boolean =
+        context.authDataStore.data.map { prefs ->
+            val isCurrentUser = prefs[Keys.LOGGED_IN] == true &&
+                prefs[Keys.USER_ID] == userId &&
+                prefs[Keys.LAST_SAVED_LINK_USER_ID] == userId
+            val savedAtMillis = prefs[Keys.LAST_SAVED_LINK_SAVED_AT]
+            val wasSavedAfterCopy = when {
+                savedAtMillis == null -> false
+                copiedAtMillis == 0L -> true
+                savedAtMillis == 0L -> true
+                else -> copiedAtMillis <= savedAtMillis
+            }
+
+            isCurrentUser &&
+                prefs[Keys.LAST_SAVED_LINK_URL] == url &&
+                wasSavedAfterCopy
+        }.first()
+
+    override suspend fun saveLastSavedLinkUrl(
+        url: String,
+        savedAtMillis: Long,
+        userId: Long,
+    ): Boolean {
+        var isSaved = false
+        context.authDataStore.edit { prefs ->
+            if (prefs[Keys.LOGGED_IN] == true && prefs[Keys.USER_ID] == userId) {
+                prefs[Keys.LAST_SAVED_LINK_URL] = url
+                prefs[Keys.LAST_SAVED_LINK_SAVED_AT] = savedAtMillis
+                prefs[Keys.LAST_SAVED_LINK_USER_ID] = userId
+                isSaved = true
+            }
+        }
+        return isSaved
     }
 }
