@@ -45,7 +45,8 @@ fun EmotionSelect(
             .fillMaxWidth()
             .padding(top = 13.dp, start = 20.dp, end = 20.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        maxItemsInEachRow = 3
     ) {
         emotions.forEach { emotion ->
             val emotionId = emotion.value
@@ -89,7 +90,7 @@ private fun EmotionBadgeImage(
                 shape = RoundedCornerShape(20.dp)
             )
             .noRippleClickable { onClick() }
-            .padding(horizontal = 10.dp, vertical = 5.dp),
+            .padding(horizontal = 10.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
