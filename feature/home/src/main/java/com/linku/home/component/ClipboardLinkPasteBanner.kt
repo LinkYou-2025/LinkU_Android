@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -59,7 +61,7 @@ import kotlin.math.roundToInt
 /**
  * 클립보드에서 http/https 링크와 해당 복사 시각을 함께 감지합니다.
  *
- * 최초 진입, 클립보드 변경 알림, 앱 복귀 시점에 같은 `ClipData`에서 URL과 timestamp를 함께 읽습니다.
+ * 최초 진입, 클립보드 변경 알림, 앱 복귀 및 창 포커스 획득 시점에 같은 `ClipData`에서 URL과 timestamp를 함께 읽습니다.
  * 따라서 앱이 종료된 동안 유지된 기존 항목과 동일 URL을 다시 복사한 새 항목을 구분할 수 있습니다.
  *
  * @param schemes 클립보드 링크 후보로 허용할 URL 스킴 목록
@@ -69,6 +71,7 @@ fun rememberClipboardLinkCandidate(
     schemes: List<String> = listOf("https://", "http://"),
 ): State<ClipboardLinkCandidate?> {
     val context = LocalContext.current
+    val isWindowFocused = LocalWindowInfo.current.isWindowFocused
 
     val clipboard =
         remember(context) { context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager }
@@ -111,8 +114,17 @@ fun rememberClipboardLinkCandidate(
     }
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        // 백그라운드에서 복사한 항목도 홈으로 돌아올 때 반드시 다시 읽습니다.
-        candidateState.value = readClipboardCandidate()
+        // 포커스가 있을 때만 읽어 접근 제한으로 반환된 null을 빈 클립보드로 오인하지 않습니다.
+        if (isWindowFocused) {
+            candidateState.value = readClipboardCandidate()
+        }
+    }
+
+    LaunchedEffect(isWindowFocused) {
+        // Android 10 이상에서는 창 포커스를 획득한 뒤에만 클립보드를 정상적으로 읽을 수 있습니다.
+        if (isWindowFocused) {
+            candidateState.value = readClipboardCandidate()
+        }
     }
 
     return candidateState
