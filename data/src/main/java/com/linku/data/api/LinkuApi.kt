@@ -65,11 +65,11 @@ interface LinkuApi {
     @PATCH("linku/{userLinkuId}")
     suspend fun updateLink(
         @Path("userLinkuId") userLinkuId: Long,
-        @Part("memo") memo: RequestBody?,
-        @Part("emotionId") emotionId: RequestBody?,
-        @Part("situationId") situationId: RequestBody?,
-        @Part("categoryId") categoryId: RequestBody?,
-        @Part("title") title: RequestBody?,
+        @Query("memo") memo: RequestBody?,
+        @Query("emotionId") emotionId: RequestBody?,
+        @Query("situationId") situationId: RequestBody?,
+        @Query("categoryId") categoryId: RequestBody?,
+        @Query("title") title: RequestBody?,
         @Part image: MultipartBody.Part?,
     ): BaseResponse<LinkuResultDTO>
 
