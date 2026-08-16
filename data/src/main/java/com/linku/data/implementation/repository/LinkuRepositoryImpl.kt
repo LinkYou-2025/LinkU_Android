@@ -262,10 +262,11 @@ class LinkuRepositoryImpl @Inject constructor(
         ).flow
 
     /**
-     * 텍스트 변경값은 query parameter로, 새 이미지는 multipart part로 전달합니다.
+     * 변경된 텍스트, ID 및 이미지를 multipart part로 전달합니다.
      *
-     * 이미지가 없을 때는 빈 multipart body 생성을 피하도록 일반 PATCH 요청을 사용하며,
-     * `null`인 변경값은 전송하지 않습니다. 빈 메모는 삭제 요청이므로 그대로 전달합니다.
+     * 서버가 모든 링크 수정 요청에 `multipart/form-data`를 요구하므로 이미지 유무와 관계없이
+     * 하나의 API를 호출합니다. `null`인 값은 part에서 생략하고 빈 메모는 삭제 요청을 나타내는
+     * 길이 0의 `text/plain` part로 유지합니다.
      */
     override suspend fun updateLink(
         userLinkuId: Long,
@@ -276,6 +277,13 @@ class LinkuRepositoryImpl @Inject constructor(
         categoryId: Long?,
         title: String?,
     ): LinkResultInfo {
+        val textPlainMediaType = "text/plain".toMediaType()
+        val memoPart = memo?.toRequestBody(textPlainMediaType)
+        val emotionPart = emotionId?.toString()?.toRequestBody(textPlainMediaType)
+        val situationPart = situationId?.toString()?.toRequestBody(textPlainMediaType)
+        val categoryPart = categoryId?.toString()?.toRequestBody(textPlainMediaType)
+        val titlePart = title?.toRequestBody(textPlainMediaType)
+
         val imagePart: MultipartBody.Part? = image?.let { tempImage ->
             MultipartBody.Part.createFormData(
                 name = "image",
@@ -290,26 +298,15 @@ class LinkuRepositoryImpl @Inject constructor(
 
         safeApiCall(
             apiCall = {
-                if (imagePart == null) {
-                    serverApi.updateLink(
-                        userLinkuId = userLinkuId,
-                        memo = memo,
-                        emotionId = emotionId,
-                        situationId = situationId,
-                        categoryId = categoryId,
-                        title = title,
-                    )
-                } else {
-                    serverApi.updateLinkWithImage(
-                        userLinkuId = userLinkuId,
-                        memo = memo,
-                        emotionId = emotionId,
-                        situationId = situationId,
-                        categoryId = categoryId,
-                        title = title,
-                        image = imagePart,
-                    )
-                }
+                serverApi.updateLink(
+                    userLinkuId = userLinkuId,
+                    memo = memoPart,
+                    emotionId = emotionPart,
+                    situationId = situationPart,
+                    categoryId = categoryPart,
+                    title = titlePart,
+                    image = imagePart,
+                )
             }
         ).onSuccess {
             result = LinkResultInfo(
