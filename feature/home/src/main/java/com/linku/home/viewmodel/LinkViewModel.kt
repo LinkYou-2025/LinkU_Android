@@ -501,6 +501,12 @@ class LinkViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 현재 화면에 표시 중인 링크를 삭제합니다.
+     *
+     * @param onSucceed 삭제와 상세 캐시 정리가 완료됐을 때 호출할 콜백
+     * @param onFailed 삭제할 상세 정보가 없거나 서버 요청이 실패했을 때 호출할 콜백
+     */
     fun deleteCurrentLink(onSucceed: () -> Unit = {}, onFailed: (Throwable) -> Unit = {}) {
         val current = _uiState.value.linkDetail ?: run {
             onFailed(IllegalStateException("링크 상세가 없습니다."))
@@ -517,12 +523,25 @@ class LinkViewModel @Inject constructor(
         )
     }
 
+    /**
+     * 지정한 사용자 링크를 삭제하고 상세 캐시에서도 제거합니다.
+     *
+     * 이미 다른 삭제 요청이 실행 중이면 새 요청을 시작하지 않고 [onFailed]를 호출해,
+     * 호출 화면이 자체 로딩 상태를 반드시 해제할 수 있도록 합니다.
+     *
+     * @param userLinkuId 삭제할 사용자 저장 링크 ID
+     * @param onSucceed 서버 삭제와 캐시 정리가 완료됐을 때 호출할 콜백
+     * @param onFailed 중복 요청 또는 서버 요청 실패 시 호출할 콜백
+     */
     fun deleteLink(
         userLinkuId: Long,
         onSucceed: () -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
-        if (_uiState.value.isDeletingLink) return
+        if (_uiState.value.isDeletingLink) {
+            onFailed(IllegalStateException("링크 삭제 요청이 이미 진행 중입니다."))
+            return
+        }
 
         _uiState.update { state -> state.copy(isDeletingLink = true) }
 

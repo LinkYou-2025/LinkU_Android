@@ -12,6 +12,7 @@ import com.linku.core.model.search.LinkuSearchInfo
 import com.linku.core.repository.LinkuRepository
 import com.linku.data.api.ServerApi
 import com.linku.data.api.safeApiCall
+import com.linku.data.api.safeApiCallUnit
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -339,12 +340,14 @@ class LinkuRepositoryImpl @Inject constructor(
         return result
     }
 
-    // 링크 삭제
+    /**
+     * 링크 삭제 응답의 공통 성공 여부와 서버 오류 코드를 검사합니다.
+     *
+     * @param userLinkuId 삭제할 사용자 저장 링크 ID
+     */
     override suspend fun deleteLink(userLinkuId: Long) {
-        val response = serverApi.deleteLink(userLinkuId = userLinkuId)
-
-        if (!response.isSuccessful) {
-            throw IllegalStateException("링크 삭제에 실패했습니다. code=${response.code()}")
-        }
+        safeApiCallUnit {
+            serverApi.deleteLink(userLinkuId = userLinkuId)
+        }.getOrThrow()
     }
 }

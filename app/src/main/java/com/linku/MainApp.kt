@@ -661,6 +661,13 @@ fun MainApp(
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
                             },
+                            onDeleteLink = { userLinkuId, onSuccess, onFailed ->
+                                linkViewModel.deleteLink(
+                                    userLinkuId = userLinkuId,
+                                    onSucceed = onSuccess,
+                                    onFailed = onFailed,
+                                )
+                            },
                             onNavigateToAlarm = {
                                 navigator.navigate(NavigationRoute.Alarm.route)
                             }

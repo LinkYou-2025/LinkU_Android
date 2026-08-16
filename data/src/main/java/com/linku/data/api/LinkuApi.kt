@@ -10,7 +10,6 @@ import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.RecommendLinkPageDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -110,10 +109,18 @@ interface LinkuApi {
         @Query("size") size: Int = 10,
     ): BaseResponse<LinkuSearchResponseDTO>
 
-    // 링크 삭제
+    /**
+     * 사용자가 저장한 링크를 삭제합니다.
+     *
+     * 서버는 삭제 결과 데이터 대신 빈 객체를 [BaseResponse.result]에 담아 반환하므로,
+     * 호출자는 응답 본문을 공통 성공·오류 계약으로 검사한 뒤 결과 값 자체는 사용하지 않습니다.
+     *
+     * @param userLinkuId 삭제할 사용자 저장 링크 ID
+     * @return 성공 여부와 서버 응답 코드를 포함한 공통 응답
+     */
     @DELETE("linku/{userLinkuId}")
     suspend fun deleteLink(
-        @Path("userLinkuId") userLinkuId: Long
-    ): Response<Unit>
+        @Path("userLinkuId") userLinkuId: Long,
+    ): BaseResponse<Any?>
 
 }

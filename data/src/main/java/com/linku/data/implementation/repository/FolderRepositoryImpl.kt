@@ -18,7 +18,6 @@ import com.linku.data.api.dto.folder.FolderUpdateRequestDTO
 import com.linku.data.api.dto.folder.UpdateBookmarkRequestDTO
 import com.linku.data.api.dto.folder.UpdateLinkFolderDTO
 import com.linku.data.api.safeApiCall
-import com.linku.data.api.safeApiCall204
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.toDomain
 import com.linku.data.mapper.toRequestDto
@@ -491,11 +490,15 @@ class FolderRepositoryImpl @Inject constructor(
         return linku //TODO: 지민님께 왜 result를 안 던지고 이걸 던진 이유 물어보기!
     }
 
-    // 링크 삭제
+    /**
+     * 링크 삭제 응답의 공통 성공 여부와 서버 오류 코드를 검사합니다.
+     *
+     * @param userLinkuId 삭제할 사용자 저장 링크 ID
+     */
     override suspend fun deleteLink(userLinkuId: Long) {
         Log.d("FolderRepositoryImpl", "deleteLink userLinkuId: $userLinkuId")
 
-        safeApiCall204 {
+        safeApiCallUnit {
             serverApi.deleteLink(userLinkuId = userLinkuId)
         }.getOrThrow()
     }

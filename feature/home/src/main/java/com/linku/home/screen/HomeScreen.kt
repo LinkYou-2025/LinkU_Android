@@ -86,6 +86,11 @@ fun HomeScreen(
     needMoreForRecommendation: Boolean,
     jobId: Long,
     onLinkClick: (userLinkuId: Long) -> Unit,
+    onDeleteLink: (
+        userLinkuId: Long,
+        onSuccess: () -> Unit,
+        onFailed: (Throwable) -> Unit,
+    ) -> Unit,
     onNavigateToSaveLink: (url: String) -> Unit,
     onAlarmClick: () -> Unit,
     onSearchOpen: () -> Unit,
@@ -127,6 +132,46 @@ fun HomeScreen(
 
     var hasObservedRecommendationRefreshLoading by remember { mutableStateOf(false) }
     var isEmptyRecommendationToastVisible by remember { mutableStateOf(false) }
+    var deletingLinkId by remember { mutableStateOf<Long?>(null) }
+    var deleteToastMessage by remember { mutableStateOf("") }
+    var isDeleteToastVisible by remember { mutableStateOf(false) }
+
+    val deleteSuccessMessage = stringResource(R.string.link_delete_success)
+    val deleteFailureMessage = stringResource(R.string.link_delete_failure)
+
+    /**
+     * 하나의 삭제 요청만 전달하고, 결과에 맞춰 홈 목록과 사용자 피드백을 갱신합니다.
+     */
+    val requestLinkDeletion: (Long, Boolean) -> Unit =
+        { userLinkuId, shouldRefreshRecommendedLinks ->
+            openedDeleteMenuId = null
+
+            if (deletingLinkId == null) {
+                deletingLinkId = userLinkuId
+
+                onDeleteLink(
+                    userLinkuId,
+                    {
+                        homeViewModel.onLinkDeleted(userLinkuId)
+
+                        if (shouldRefreshRecommendedLinks) {
+                            recommendedLinks.refresh()
+                        }
+
+                        deletingLinkId = null
+                        isEmptyRecommendationToastVisible = false
+                        deleteToastMessage = deleteSuccessMessage
+                        isDeleteToastVisible = true
+                    },
+                    { _ ->
+                        deletingLinkId = null
+                        isEmptyRecommendationToastVisible = false
+                        deleteToastMessage = deleteFailureMessage
+                        isDeleteToastVisible = true
+                    },
+                )
+            }
+        }
 
     /*
      * 새 추천 요청의 Loading을 실제로 관찰한 뒤 NotLoading으로 바뀐 경우만 완료로 판단합니다.
@@ -465,13 +510,11 @@ fun HomeScreen(
                             onMoreClick = {
                                 openedDeleteMenuId = if (openedDeleteMenuId == menuId) null else menuId
                             },
-                            onDeleteClick = {
-                                openedDeleteMenuId = null
-
-                                /*
-                                 * TODO 삭제 API 성공 후:
-                                 * recommendedLinks.refresh()
-                                 */
+                            onDeleteClick = { userLinkuId ->
+                                requestLinkDeletion(
+                                    userLinkuId,
+                                    true,
+                                )
                             },
                             onCardClick = { userLinkuId ->
                                 openedDeleteMenuId = null
@@ -515,9 +558,10 @@ fun HomeScreen(
                                     }
                             },
                             onDeleteClick = { userLinkuId ->
-                                openedDeleteMenuId = null
-
-                                // TODO: 삭제 API 연결
+                                requestLinkDeletion(
+                                    userLinkuId,
+                                    false,
+                                )
                             },
                             onCardClick = { userLinkuId ->
                                 openedDeleteMenuId = null
@@ -559,6 +603,16 @@ fun HomeScreen(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 22.dp)
                 .zIndex(20f),
+        )
+
+        TimedCustomToastMessage(
+            visible = isDeleteToastVisible,
+            toastMessage = deleteToastMessage,
+            onDismiss = { isDeleteToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 22.dp)
+                .zIndex(21f),
         )
 
         Box(

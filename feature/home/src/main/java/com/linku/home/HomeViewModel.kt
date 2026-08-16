@@ -441,6 +441,29 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 삭제 완료된 링크를 홈 목록에서 즉시 제거하고 사용자 기본 정보와 최근 링크를 재조회합니다.
+     *
+     * 삭제 전에 시작한 최근 링크 요청이 늦게 완료되어 삭제된 항목을 다시 노출하지 않도록
+     * 실행 중인 작업을 취소하고 요청 식별자를 무효화한 뒤 최신 서버 상태를 불러옵니다.
+     *
+     * @param userLinkuId 삭제 완료된 사용자 링크 식별자
+     */
+    fun onLinkDeleted(userLinkuId: Long) {
+        recentLinksLoadJob?.cancel()
+        recentLinksLoadJob = null
+        recentLinksRequestId++
+
+        _recentLinksUiState.value = _recentLinksUiState.value.copy(
+            links = _recentLinksUiState.value.links.filterNot { link ->
+                link.userLinkuId == userLinkuId
+            },
+        )
+
+        loadUserBasics()
+        loadRecentLinks()
+    }
+
     private val _isUnreadAlarmExists = MutableStateFlow(false)
     val isUnreadAlarmExists = _isUnreadAlarmExists.asStateFlow()
 

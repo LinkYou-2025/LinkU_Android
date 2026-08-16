@@ -8,6 +8,7 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okio.Buffer
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
