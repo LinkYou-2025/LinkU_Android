@@ -17,5 +17,8 @@ fun getTypography(currentTypography: Typography, font: FontFamily): Typography {
         bodyLarge = currentTypography.bodyLarge.copy(fontFamily = font),
         bodyMedium = currentTypography.bodyMedium.copy(fontFamily = font),
         bodySmall = currentTypography.bodySmall.copy(fontFamily = font),
+        labelLarge = currentTypography.labelLarge.copy(fontFamily = font),
+        labelMedium = currentTypography.labelMedium.copy(fontFamily = font),
+        labelSmall = currentTypography.labelSmall.copy(fontFamily = font),
     )
 }

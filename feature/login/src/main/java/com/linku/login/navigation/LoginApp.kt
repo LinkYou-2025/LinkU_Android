@@ -61,7 +61,9 @@ fun LoginApp(
     loginViewModel: LoginViewModel,
     // 그라데이션 배경(AnimatedLoginScreen/LoginScreen)이 보이는 동안에만 true를 전달해서
     // 상위(MainScreen)의 흰색 상태바 스크림을 끔. 그 외 로그인 하위 화면은 흰 상태바가 기본.
-    onEdgeToEdgeChange: (Boolean) -> Unit = {}
+    // (hideStatusBar, hideNavigationBar) 쌍으로 전달함 — 약관 동의 바텀시트처럼 상태바는
+    // 숨긴 배경을 유지하면서도 내비게이션 바는 항상 보여야 하는 화면이 있어서 분리함.
+    onEdgeToEdgeChange: (hideStatusBar: Boolean, hideNavigationBar: Boolean) -> Unit = { _, _ -> }
 ) {
     val navController = rememberNavController()
 
@@ -133,8 +135,8 @@ fun LoginApp(
                 // 각자 다른 타이밍에 건드리면서 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시
                 // 보이던 버그의 원인).
                 DisposableEffect(Unit) {
-                    onEdgeToEdgeChange(true)
-                    onDispose { onEdgeToEdgeChange(false) }
+                    onEdgeToEdgeChange(true, true) // 로그인 쪽에서 상태바, 하단바 별도 제어가 필요했음.
+                    onDispose { onEdgeToEdgeChange(false, false) }
                 }
 
                 AnimatedLoginScreen(
@@ -409,14 +411,23 @@ fun LoginApp(
                     .getStateFlow("show_terms_sheet", true)
                     .collectAsStateWithLifecycle()
 
+                // 약관 동의를 거부(뒤로가기)한 것은 곧 이 소셜(카카오/구글) 가입 자체를 취소한다는
+                // 뜻이므로, 시트만 닫으면 버튼이 모두 비활성화된 LoginScreen만 남아 먹통처럼 보임.
+                // 최초 로그인 화면으로 완전히 되돌아가 다른 수단(구글/이메일)을 바로 쓸 수 있게 함.
                 BackHandler(enabled = showTermsSheet) {
-                    entry.savedStateHandle["show_terms_sheet"] = false
+                    navController.popBackStack()
                 }
 
-                // 이 화면도 그라데이션 배경이 상태바까지 비치는 edge-to-edge 화면.
+                // 이 화면도 그라데이션 배경이 상태바까지 비치는 edge-to-edge 화면. 다만 약관 동의
+                // 바텀시트가 떠 있는 화면이라 내비게이션 바는 항상 보여야 함(바텀시트 위에서
+                // 시스템 바가 없으면 어색함) — 상태바만 숨기고 내비게이션 바는 false로 유지함.
+                // onDispose에서 상태바를 false로 되돌리지 않음: 뒤로가기로 나가면 "login" 화면이
+                // 다시 켜지며 자체적으로 true를 세팅하므로, 여기서 false를 세팅하면 그 사이 한
+                // 프레임 동안 시스템 바가 깜빡이며 노출되는 문제가 있었음. 로그인 성공 후 Home으로
+                // 갈 때는 MainApp.kt의 onLoginSuccess에서 별도로 false 처리함.
                 DisposableEffect(Unit) {
-                    onEdgeToEdgeChange(true)
-                    onDispose { onEdgeToEdgeChange(false) }
+                    onEdgeToEdgeChange(true, false)
+                    onDispose { }
                 }
 
                 LoginScreen(
@@ -460,7 +471,7 @@ fun LoginApp(
                         onAgreeTermsChange = { socialAuthVm.setAgreeTerms(it) },
                         onAgreePrivacyChange = { socialAuthVm.setAgreePrivacy(it) },
                         onAgreeMarketingChange = { socialAuthVm.setAgreeMarketing(it) },
-                        onClose = { entry.savedStateHandle["show_terms_sheet"] = false },
+                        onClose = { navController.popBackStack() },
                         onClickTerms = {
                             entry.savedStateHandle["show_terms_sheet"] = false
                             navController.navigate("social_terms/service")
@@ -526,6 +537,17 @@ fun LoginApp(
             // 소셜 회원가입 입력 플로우
             socialComposable("social_nickname") { parentEntry, _ ->
                 val vm: SocialAuthViewModel = hiltViewModel(parentEntry)
+
+                // social_login_gate(약관 바텀시트)는 뒤로가기로 login 화면에 돌아갈 때의
+                // 깜빡임을 막기 위해 onDispose에서 상태바를 끄지 않음(위 주석 참고). 그 결과
+                // 여기로 전진 네비게이션해도 상태바 숨김이 그대로 이어져 있던 문제가 있었음.
+                // 정상 화면인 여기서 명시적으로 꺼줌 — 뒤로가기로 시트에 돌아가면 그 화면 자체의
+                // mount effect가 상태바를 다시 켜주므로 문제 없음.
+                DisposableEffect(Unit) {
+                    onEdgeToEdgeChange(false, false)
+                    onDispose { }
+                }
+
                 SocialNicknameScreen(
                     onBackClick = { navController.popBackStack() },
                     onNavigateToGender = {

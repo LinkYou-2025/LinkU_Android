@@ -54,6 +54,10 @@ fun MainScreen(
     // 통일함 — 예전엔 SystemBarController가 화면별로 별도 호출되면서 같은 Window를 서로 다른
     // 타이밍에 건드려 경합이 있었음(로그아웃/탈퇴 직후 시스템 바가 다시 보이던 버그).
     hideSystemBars: Boolean = false,
+    // 내비게이션 바만 별도로 숨길지 여부. 기본값은 hideSystemBars와 동일해서 대부분의 화면은
+    // 상태바/내비게이션 바를 함께 숨기지만, 약관 동의 바텀시트처럼 상태바는 숨긴 배경을
+    // 유지하면서도 내비게이션 바는 항상 보여야 하는 화면에서 따로 지정할 수 있게 분리함.
+    hideNavigationBar: Boolean = hideSystemBars,
     statusBarDarkIcons: Boolean = true,
     navigationBarDarkIcons: Boolean? = null,
     dimmed: Boolean = false,
@@ -90,6 +94,7 @@ fun MainScreen(
         // 별도 정책이 없는 화면은 기존처럼 상태바의 일시적 아이콘 변경을 함께 따릅니다.
         navigationBarDarkIcons = navigationBarDarkIcons ?: statusBarDarkIconsState.value,
         hidden = hideSystemBars,
+        hideNavigationBar = hideNavigationBar,
     )
 
     CompositionLocalProvider(

@@ -178,7 +178,7 @@ private fun CurationMonthlyDetailScreenContent(
                             brush = colorTheme.emotionTitleGradient,
                             fontSize = 16.sp,
                             lineHeight = 25.sp,
-                            fontWeight = FontWeight(700),
+                            fontWeight = FontWeight(600),
                         )
                     )
 
