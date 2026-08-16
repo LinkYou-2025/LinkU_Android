@@ -32,8 +32,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -302,20 +302,25 @@ class HomeViewModel @Inject constructor(
     private val isRecommendModeState = mutableStateOf(false)
     val isRecommendMode get() = isRecommendModeState.value
 
-    /*
-     * null이면 추천 목록을 수집하지 않습니다.
+    /**
+     * 추천 요청을 시작하거나 해제하기 위한 상태입니다.
      *
-     * requestId가 있으므로 동일한 감정/상황으로 다시 요청해도
-     * 새로운 PagingSource가 생성됩니다.
+     * [RecommendationRequest.requestId]가 있으므로 동일한 감정과 상황으로 다시 요청해도
+     * 새로운 [RecommendationPagingSource]가 생성됩니다.
      */
     private val recommendationRequestState =
         MutableStateFlow<RecommendationRequest?>(null)
 
+    /**
+     * 활성 추천 요청의 페이징 데이터를 제공하고, 요청이 없으면 이전 추천 결과를 비웁니다.
+     *
+     * 추천 모드를 종료하면 빈 [PagingData]를 방출해 수집 중인 목록을 즉시 초기화합니다.
+     */
     val recommendedLinks: Flow<PagingData<LinkSimpleInfo>> =
         recommendationRequestState
             .flatMapLatest { request ->
                 if (request == null) {
-                    emptyFlow()
+                    flowOf(PagingData.empty())
                 } else {
                     Pager(
                         config = PagingConfig(

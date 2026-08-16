@@ -186,6 +186,9 @@ fun HomeScreen(
         if (isRecommendMode) {
             isTopBarLockedCollapsed = true
             hasRequestedRecommend = true
+
+            // sticky header인 0번 탑바를 기준으로 맞춰 제목이 탑바 아래에 배치되도록 합니다.
+            listState.scrollToItem(0)
         }
     }
 
@@ -228,10 +231,6 @@ fun HomeScreen(
             )
 
             isTopBarLockedCollapsed = true
-
-            coroutineScope.launch {
-                listState.animateScrollToItem(1)
-            }
         }
     }
 
@@ -336,12 +335,13 @@ fun HomeScreen(
 
                             onExitRecommendMode()
 
-                            isTopBarLockedCollapsed = false
                             selectedEmotion = null
                             selectedTask = null
 
                             coroutineScope.launch {
-                                listState.animateScrollToItem(0)
+                                // 먼저 최상단으로 이동해야 스크롤 감지가 탑바를 다시 잠그지 않습니다.
+                                listState.scrollToItem(0)
+                                isTopBarLockedCollapsed = false
                             }
                         }
                     },
