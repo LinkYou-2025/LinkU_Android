@@ -371,8 +371,7 @@ fun LoginScreen(
             onDismiss = { viewModel.dismissRecoverModal() },
             positiveText = "계정 복구",
             negativeText = "탈퇴 유지",
-            title = "탈퇴 처리 중인 계정입니다.",
-            isLogoDimmed = true
+            title = "탈퇴 처리 중인 계정입니다."
         ) {
             Text(
                 text = "지금 로그인하면 계정이 즉시 복구됩니다.\n14일이 지나면 모든 정보가 삭제돼요.",

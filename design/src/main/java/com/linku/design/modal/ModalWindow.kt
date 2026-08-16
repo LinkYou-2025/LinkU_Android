@@ -191,14 +191,14 @@ private fun ModalWindowScaffold(
                         // 상단 로고 (isLogoDimmed = true일 때 연한 이미지, 기본값(false)일 때 진한 이미지)
                         Image(
                             painter = painterResource(
-                                id = if (isLogoDimmed) R.drawable.ic_transparent_logo else R.drawable.ic_modal_logo
+                                id = if (isLogoDimmed) R.drawable.ic_transparent_logo else R.drawable.ic_alert_logo
                             ),
                             contentDescription = null,
                             modifier = Modifier
-                                .height(37.dp)
+                                .height(24.06.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(8.5.dp))
+                        Spacer(modifier = Modifier.height(18.dp))
                     }
 
                     Text(
@@ -211,7 +211,7 @@ private fun ModalWindowScaffold(
                         textAlign = TextAlign.Center,
                     )
 
-                    Spacer(modifier = Modifier.height(7.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     textBody()
 
