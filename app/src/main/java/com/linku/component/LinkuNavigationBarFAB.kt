@@ -1,18 +1,20 @@
 package com.linku.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,14 +41,7 @@ fun LinkuNavigationBarFAB(
     val isPressed by interactionSource.collectIsPressedAsState()
 
     // 링크 추가 버튼
-    IconButton(
-        // TODO: 링크 추가 버튼 넣기, 클릭 시 그라데이션으로 색 바뀌어야 하나?
-        // 클릭 시 링크 추가 페이지로 이동
-        onClick = onClick,
-
-        // 클릭 상태 반영
-        interactionSource = interactionSource,
-
+    Box(
         modifier = Modifier
             .width(57.6.dp)
             .height(48.dp)
@@ -55,7 +50,16 @@ fun LinkuNavigationBarFAB(
             .background(
                 color = LocalColorTheme.current.gray[100],
                 shape = RoundedCornerShape(14.dp)
+            )
+
+            // 클릭 시 링크 추가 페이지로 이동 (리플 효과 없음)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
             ),
+
+        contentAlignment = Alignment.Center,
     ) {
         // 더하기 아이콘
         Icon(
