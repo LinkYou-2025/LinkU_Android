@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -358,6 +359,16 @@ fun LinkDetailScreen(
         .map { tag ->
             if (tag.startsWith("#")) tag else "#$tag"
         }
+
+    // AI 결과는 수정 대상이 아니므로 편집 중에는 비활성 스타일로 일관되게 표시합니다.
+    val aiSectionContentColor = if (isEditMode) colors.gray[400] else colors.black
+    val aiSectionBorderBrush = if (isEditMode) {
+        SolidColor(colors.gray[200])
+    } else {
+        colors.linkuInactiveGradient
+    }
+    val aiSectionSparkleRes =
+        if (isEditMode) R.drawable.ic_sparkle_gray else R.drawable.ic_sparkles_colored
 
     LaunchedEffect(linkTitle, categoryId, emotion, situationId, memo) {
         if (!isEditMode) {
@@ -689,7 +700,7 @@ fun LinkDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.ic_sparkles_colored),
+                                painter = painterResource(aiSectionSparkleRes),
                                 contentDescription = null,
                                 modifier = Modifier.height(15.dp)
                             )
@@ -698,7 +709,7 @@ fun LinkDetailScreen(
                                 text = "AI 태그",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = colors.black
+                                color = aiSectionContentColor
                             )
                         }
 
@@ -713,10 +724,11 @@ fun LinkDetailScreen(
                                         text = tag,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
-                                        color = colors.black,
+                                        color = aiSectionContentColor,
+                                        lineHeight = 20.sp,
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .border(1.dp, colors.linkuInactiveGradient, RoundedCornerShape(20.dp))
+                                            .border(1.dp, aiSectionBorderBrush, RoundedCornerShape(20.dp))
                                             .background(colors.white)
                                             .padding(horizontal = 15.dp, vertical = 9.dp)
                                     )
@@ -737,7 +749,7 @@ fun LinkDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.ic_sparkles_colored),
+                                painter = painterResource(aiSectionSparkleRes),
                                 contentDescription = null,
                                 modifier = Modifier.height(15.dp)
                             )
@@ -746,7 +758,7 @@ fun LinkDetailScreen(
                                 text = "AI 링크 요약",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = colors.black
+                                color = aiSectionContentColor
                             )
                         }
 
@@ -754,12 +766,12 @@ fun LinkDetailScreen(
                             text = aiSummary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
-                            color = colors.black,
+                            color = aiSectionContentColor,
                             lineHeight = 20.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
-                                .border(1.dp, colors.linkuInactiveGradient, RoundedCornerShape(18.dp))
+                                .border(1.dp, aiSectionBorderBrush, RoundedCornerShape(18.dp))
                                 .background(colors.white)
                                 .padding(horizontal = 22.dp, vertical = 16.dp)
                         )
