@@ -19,6 +19,7 @@ import com.linku.home.util.toToastMessage
 import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,7 +49,9 @@ class LinkViewModel @Inject constructor(
             jobId = null,
             isSaving = false,
             linkDetail = null,
+            requestedLinkDetailId = null,
             isLoadingLinkDetail = false,
+            linkDetailLoadError = null,
             isUpdatingLink = false,
             isDeletingLink = false,
         ),
@@ -67,6 +70,12 @@ class LinkViewModel @Inject constructor(
     private val linkCache = mutableMapOf<Long, Cached<LinkResultInfo>>()
 
     private val detailTtl = 60_000L
+
+    /** 현재 서버 상세 조회를 수행하는 작업입니다. 다른 링크 요청이 시작되면 취소합니다. */
+    private var linkDetailRequestJob: Job? = null
+
+    /** 동일 ID 요청까지 구분하여 취소된 작업이 최신 상태를 덮어쓰지 못하게 하는 세대 값입니다. */
+    private var linkDetailRequestGeneration: Long = 0L
 
     init {
         loadUserBasics()
@@ -294,18 +303,66 @@ class LinkViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 지정한 링크의 상세 정보를 불러옵니다.
+     *
+     * 현재 화면에 동일한 링크가 표시 중이면 서버 갱신 중에도 해당 콘텐츠를 유지합니다. 다른 링크를
+     * 요청할 때는 과거 캐시가 있더라도 새 응답이 도착할 때까지 이전 링크를 숨기고 스켈레톤을 표시할
+     * 수 있도록 요청 대상 ID를 먼저 반영합니다.
+     * 새 요청이 시작되면 기존 요청을 취소하고 요청 세대를 함께 확인해 늦게 끝난 응답이 최신 상세를
+     * 덮어쓰지 않도록 합니다.
+     *
+     * @param userLinkuId 조회할 사용자 링크 ID입니다.
+     * @param forceRefresh 유효한 캐시가 있어도 서버 조회를 강제로 수행할지 여부입니다.
+     */
     fun loadLinkDetail(userLinkuId: Long, forceRefresh: Boolean = false) {
+        val currentState = _uiState.value
+
+        // 저장 직후 선조회와 상세 라우트 진입이 연달아 호출되어도 같은 요청을 중복 실행하지 않습니다.
+        if (
+            !forceRefresh &&
+            currentState.requestedLinkDetailId == userLinkuId &&
+            linkDetailRequestJob?.isActive == true
+        ) {
+            return
+        }
+
         val now = System.currentTimeMillis()
         val cached = linkCache[userLinkuId]
+        val visibleDetail = currentState.linkDetail
+        val detailToKeep = visibleDetail?.takeIf { detail ->
+            detail.userLinkuId == userLinkuId
+        }
 
-        if (!forceRefresh && cached != null && now - cached.ts < detailTtl) {
-            _uiState.update { state -> state.copy(linkDetail = cached.value, isLoadingLinkDetail = false) }
+        linkDetailRequestGeneration += 1L
+        val requestGeneration = linkDetailRequestGeneration
 
-            viewModelScope.launch {
+        linkDetailRequestJob?.cancel()
+
+        if (
+            !forceRefresh &&
+            detailToKeep != null &&
+            cached != null &&
+            now - cached.ts < detailTtl
+        ) {
+            _uiState.update { state ->
+                state.copy(
+                    linkDetail = detailToKeep,
+                    requestedLinkDetailId = userLinkuId,
+                    isLoadingLinkDetail = false,
+                    linkDetailLoadError = null,
+                )
+            }
+
+            // 유효한 캐시는 즉시 표시하고, 최신 값 확인은 화면을 가리지 않는 백그라운드 갱신으로 처리합니다.
+            linkDetailRequestJob = viewModelScope.launch {
                 try {
                     val refreshed = linkuRepository.getLinkDetail(userLinkuId)
-                    linkCache[userLinkuId] = Cached(refreshed)
-                    _uiState.update { state -> state.copy(linkDetail = refreshed) }
+
+                    if (isCurrentLinkDetailRequest(userLinkuId, requestGeneration)) {
+                        linkCache[userLinkuId] = Cached(refreshed)
+                        _uiState.update { state -> state.copy(linkDetail = refreshed) }
+                    }
                 } catch (error: CancellationException) {
                     throw error
                 } catch (error: Exception) {
@@ -316,26 +373,66 @@ class LinkViewModel @Inject constructor(
             return
         }
 
-        viewModelScope.launch {
-            _uiState.update { state -> state.copy(linkDetail = cached?.value, isLoadingLinkDetail = cached == null) }
+        _uiState.update { state ->
+            state.copy(
+                // 다른 링크의 마지막 콘텐츠는 상태에 보존하되 route ID 필터로 가려 빠른 뒤로가기를 지원합니다.
+                linkDetail = detailToKeep ?: visibleDetail,
+                requestedLinkDetailId = userLinkuId,
+                isLoadingLinkDetail = detailToKeep == null,
+                linkDetailLoadError = null,
+            )
+        }
 
+        linkDetailRequestJob = viewModelScope.launch {
             try {
                 val detail = linkuRepository.getLinkDetail(userLinkuId)
-                linkCache[userLinkuId] = Cached(detail)
-                _uiState.update { state -> state.copy(linkDetail = detail) }
+
+                if (isCurrentLinkDetailRequest(userLinkuId, requestGeneration)) {
+                    linkCache[userLinkuId] = Cached(detail)
+                    _uiState.update { state ->
+                        state.copy(
+                            linkDetail = detail,
+                            linkDetailLoadError = null,
+                        )
+                    }
+                }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
                 Log.e("LinkViewModel", "load detail failed", error)
 
-                if (cached == null) {
-                    _uiState.update { state -> state.copy(linkDetail = null) }
+                if (isCurrentLinkDetailRequest(userLinkuId, requestGeneration)) {
+                    _uiState.update { state ->
+                        // 동일 링크의 콘텐츠가 있으면 일시적인 갱신 실패로 화면을 대체하지 않습니다.
+                        if (state.linkDetail?.userLinkuId == userLinkuId) {
+                            state.copy(linkDetailLoadError = null)
+                        } else {
+                            state.copy(
+                                linkDetailLoadError = error,
+                            )
+                        }
+                    }
                 }
             } finally {
-                _uiState.update { state -> state.copy(isLoadingLinkDetail = false) }
+                if (isCurrentLinkDetailRequest(userLinkuId, requestGeneration)) {
+                    _uiState.update { state -> state.copy(isLoadingLinkDetail = false) }
+                }
             }
         }
     }
+
+    /**
+     * 완료된 상세 요청이 현재 화면이 기다리는 최신 요청인지 확인합니다.
+     *
+     * @param userLinkuId 완료된 요청의 사용자 링크 ID입니다.
+     * @param requestGeneration 완료된 요청이 시작될 때 부여된 세대 값입니다.
+     */
+    private fun isCurrentLinkDetailRequest(
+        userLinkuId: Long,
+        requestGeneration: Long,
+    ): Boolean =
+        _uiState.value.requestedLinkDetailId == userLinkuId &&
+            linkDetailRequestGeneration == requestGeneration
 
     fun updateLink(
         image: TempImageFile?,
@@ -446,6 +543,17 @@ class LinkViewModel @Inject constructor(
     }
 
     fun clearLinkDetail() {
-        _uiState.update { state -> state.copy(linkDetail = null, isLoadingLinkDetail = false) }
+        linkDetailRequestGeneration += 1L
+        linkDetailRequestJob?.cancel()
+        linkDetailRequestJob = null
+
+        _uiState.update { state ->
+            state.copy(
+                linkDetail = null,
+                requestedLinkDetailId = null,
+                isLoadingLinkDetail = false,
+                linkDetailLoadError = null,
+            )
+        }
     }
 }

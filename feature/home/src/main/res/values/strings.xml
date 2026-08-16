@@ -3,4 +3,7 @@
     <string name="clipboard_link_paste_prompt">링크를 붙여넣을까요?</string>
     <string name="recommendation_classifying_message">추천할 링크 분류중..</string>
     <string name="recommendation_empty_message">추천 링크를 불러오지 못했어요.</string>
+    <string name="recent_links_load_error">최근 조회 링크를 불러오지 못했어요.</string>
+    <string name="recommendation_load_error">추천 링크를 불러오지 못했어요.</string>
+    <string name="retry">다시 시도하기</string>
 </resources>

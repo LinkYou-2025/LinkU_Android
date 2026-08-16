@@ -21,7 +21,7 @@ fun HomeApp(
     onSearchOpen: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
-    val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
+    val recentLinksUiState by viewModel.recentLinksUiState.collectAsStateWithLifecycle()
     val recommendedLinks = viewModel.recommendedLinks.collectAsLazyPagingItems()
     val navController = rememberNavController()
 
@@ -36,7 +36,7 @@ fun HomeApp(
                 homeViewModel = viewModel,
                 userName = nickname,
                 recommendedLinks = recommendedLinks,
-                recentLinks = recentLinks,
+                recentLinksUiState = recentLinksUiState,
                 isRecommendMode = viewModel.isRecommendMode,
                 onRecommendRequest = { emotionId, situationId ->
                     viewModel.fetchRecommendations(

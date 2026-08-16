@@ -64,6 +64,8 @@ import com.linku.home.screen.NoticeScreen
 import com.linku.home.viewmodel.AIArticleViewModel
 import com.linku.home.viewmodel.LinkViewModel
 import com.linku.link.component.LinkCategoryOption
+import com.linku.link.screen.LinkDetailLoadErrorScreen
+import com.linku.link.screen.LinkDetailLoadingScreen
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
 import com.linku.link.util.toTempFile
@@ -971,7 +973,10 @@ fun MainApp(
                         }
                     }
 
-                    val linkDetail = linkUiState.linkDetail
+                    // 라우트 ID와 일치하는 상세만 실제 화면에 전달해 이전 링크가 한 프레임도 노출되지 않게 합니다.
+                    val linkDetail = linkUiState.linkDetail?.takeIf { detail ->
+                        detail.userLinkuId == userLinkuId
+                    }
 
                     LaunchedEffect(
                         linkDetail?.keyword,
@@ -983,84 +988,114 @@ fun MainApp(
                         )
                     }
 
-                    LinkDetailScreen(
-                        userLinkuId = userLinkuId,
-                        linkTitle = linkDetail?.title.orEmpty(),
-                        categoryId = linkDetail?.categoryId,
-                        emotion = emotionNameOf(linkDetail?.emotionId),
-                        situationId = linkDetail?.situationId,
-                        linkUrl = linkDetail?.linku.orEmpty(),
-                        imageUrl = linkDetail?.linkuImageUrl.toImageUrl(),
-                        selectedImageUri = selectedDetailImageUri,
-                        memo = linkDetail?.memo.orEmpty(),
-                        tags = aiArticleUiState.displayTags,
-                        aiSummary = aiArticleUiState.displaySummary,
-                        isAiArticleLoading = aiArticleUiState.isLoading,
-                        aiArticleErrorMessage = aiArticleUiState.errorMessage,
-                        onRequestAiArticle = aiArticleViewModel::getAiArticle,
-                        onClearAiArticleError =
-                            aiArticleViewModel::clearErrorMessage,
-                        categoryOptions = categoryOptions,
-                        onBack = {
-                            navigator.popBackStack()
-                        },
-                        onPickImage = {
-                            detailImagePicker.launch("image/*")
-                        },
-                        onDiscardSelectedImage = {
-                            selectedDetailImageUri = null
-                        },
-                        onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
-                            detailCoroutineScope.launch {
-                                val selectedTempImage = runCatching {
-                                    withContext(Dispatchers.IO) {
-                                        selectedDetailImageUri?.toTempFile(context)
-                                    }
-                                }.getOrElse { error ->
-                                    LinkuLog.e(
-                                        "LinkDetail",
-                                        "selected image conversion failed",
-                                        error,
-                                    )
-                                    onFailed()
-                                    return@launch
-                                }
-
-                                linkViewModel.updateLink(
-                                    image = selectedTempImage,
-                                    title = title,
-                                    memo = memo,
-                                    categoryId = categoryId,
-                                    emotionId = emotionId,
-                                    situationId = situationId,
-                                    onSucceed = {
-                                        selectedDetailImageUri = null
-                                        homeViewModel.loadRecentLinks()
-                                        onSuccess()
-                                    },
-                                    onFailed = { error ->
-                                        LinkuLog.e(
-                                            "LinkDetail",
-                                            "update failed",
-                                            error,
-                                        )
-                                        onFailed()
-                                    },
-                                )
-                            }
-                        },
-                        onDeleteLink = { onSuccess, onFailed ->
-                            linkViewModel.deleteCurrentLink(
-                                onSucceed = {
-                                    homeViewModel.refreshHomeData()
-                                    onSuccess()
+                    when {
+                        linkDetail != null -> {
+                            // 동일 ID 콘텐츠는 서버 재검증 중에도 유지하며 스켈레톤으로 다시 덮지 않습니다.
+                            LinkDetailScreen(
+                                userLinkuId = userLinkuId,
+                                linkTitle = linkDetail.title,
+                                categoryId = linkDetail.categoryId,
+                                emotion = emotionNameOf(linkDetail.emotionId),
+                                situationId = linkDetail.situationId,
+                                linkUrl = linkDetail.linku,
+                                imageUrl = linkDetail.linkuImageUrl.toImageUrl(),
+                                selectedImageUri = selectedDetailImageUri,
+                                memo = linkDetail.memo.orEmpty(),
+                                tags = aiArticleUiState.displayTags,
+                                aiSummary = aiArticleUiState.displaySummary,
+                                isAiArticleLoading = aiArticleUiState.isLoading,
+                                aiArticleErrorMessage = aiArticleUiState.errorMessage,
+                                onRequestAiArticle = aiArticleViewModel::getAiArticle,
+                                onClearAiArticleError =
+                                    aiArticleViewModel::clearErrorMessage,
+                                categoryOptions = categoryOptions,
+                                onBack = {
+                                    navigator.popBackStack()
                                 },
-                                onFailed = {
-                                    onFailed()
+                                onPickImage = {
+                                    detailImagePicker.launch("image/*")
+                                },
+                                onDiscardSelectedImage = {
+                                    selectedDetailImageUri = null
+                                },
+                                onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
+                                    detailCoroutineScope.launch {
+                                        val selectedTempImage = runCatching {
+                                            withContext(Dispatchers.IO) {
+                                                selectedDetailImageUri?.toTempFile(context)
+                                            }
+                                        }.getOrElse { error ->
+                                            LinkuLog.e(
+                                                "LinkDetail",
+                                                "selected image conversion failed",
+                                                error,
+                                            )
+                                            onFailed()
+                                            return@launch
+                                        }
+
+                                        linkViewModel.updateLink(
+                                            image = selectedTempImage,
+                                            title = title,
+                                            memo = memo,
+                                            categoryId = categoryId,
+                                            emotionId = emotionId,
+                                            situationId = situationId,
+                                            onSucceed = {
+                                                selectedDetailImageUri = null
+                                                homeViewModel.loadRecentLinks()
+                                                onSuccess()
+                                            },
+                                            onFailed = { error ->
+                                                LinkuLog.e(
+                                                    "LinkDetail",
+                                                    "update failed",
+                                                    error,
+                                                )
+                                                onFailed()
+                                            },
+                                        )
+                                    }
+                                },
+                                onDeleteLink = { onSuccess, onFailed ->
+                                    linkViewModel.deleteCurrentLink(
+                                        onSucceed = {
+                                            homeViewModel.refreshHomeData()
+                                            onSuccess()
+                                        },
+                                        onFailed = {
+                                            onFailed()
+                                        },
+                                    )
+                                }
+                            )
+                        }
+
+                        linkUiState.requestedLinkDetailId == userLinkuId &&
+                            !linkUiState.isLoadingLinkDetail &&
+                            linkUiState.linkDetailLoadError != null -> {
+                            LinkDetailLoadErrorScreen(
+                                onBack = {
+                                    navigator.popBackStack()
+                                },
+                                onRetry = {
+                                    linkViewModel.loadLinkDetail(
+                                        userLinkuId = userLinkuId,
+                                        forceRefresh = true,
+                                    )
                                 },
                             )
                         }
-                    )
+
+                        else -> {
+                            // 첫 composition에서도 ID가 다른 이전 상세 대신 곧바로 스켈레톤을 렌더링합니다.
+                            LinkDetailLoadingScreen(
+                                onBack = {
+                                    navigator.popBackStack()
+                                },
+                            )
+                        }
+                    }
                 }
 
                 composable(

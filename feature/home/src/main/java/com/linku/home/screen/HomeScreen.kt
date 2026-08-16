@@ -60,10 +60,15 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
+import com.linku.home.component.HomeLinkCardSkeleton
 import com.linku.home.component.rememberClipboardLinkCandidate
+import com.linku.home.model.RecentLinksUiState
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+
+/** 최초 목록 로딩 중 화면에 배치할 링크 카드 스켈레톤 개수입니다. */
+private const val HOME_LINK_SKELETON_COUNT = 3
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -71,7 +76,7 @@ fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
     recommendedLinks: LazyPagingItems<LinkSimpleInfo>,
-    recentLinks: List<LinkSimpleInfo>,
+    recentLinksUiState: RecentLinksUiState,
     isRecommendMode: Boolean,
     onRecommendRequest: (
         emotionId: Long,
@@ -86,6 +91,7 @@ fun HomeScreen(
     onSearchOpen: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
+    val recentLinks = recentLinksUiState.links
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         homeViewModel.refreshHomeData()
@@ -367,6 +373,33 @@ fun HomeScreen(
             }
 
             when {
+                // 표시할 기존 데이터가 없는 최초 최근 링크 요청에서만 스켈레톤을 노출합니다.
+                !isRecommendMode && recentLinksUiState.isInitialLoading -> {
+                    items(
+                        count = HOME_LINK_SKELETON_COUNT,
+                        key = { index -> "recent-skeleton-$index" },
+                        contentType = { "home-link-skeleton" },
+                    ) {
+                        HomeLinkCardSkeleton(
+                            modifier = Modifier.padding(
+                                start = 20.dp,
+                                end = 20.dp,
+                                bottom = 10.dp,
+                            ),
+                        )
+                    }
+                }
+
+                // 최초 요청 실패를 실제 빈 목록과 구분해 사용자가 다시 시도할 수 있게 합니다.
+                !isRecommendMode && recentLinksUiState.isInitialError -> {
+                    item(key = "recent-links-load-error") {
+                        LinkListLoadError(
+                            message = stringResource(R.string.recent_links_load_error),
+                            onRetry = homeViewModel::loadRecentLinks,
+                        )
+                    }
+                }
+
                 // 최근 열람 링크가 없는 경우
                 !isRecommendMode && recentLinks.isEmpty() -> {
                     item(key = "empty-recent") {
@@ -391,16 +424,25 @@ fun HomeScreen(
 
                 // 최초 추천 데이터를 불러오는 경우
                 isInitialRecommendationLoading -> {
-                    /*
-                     * 기존 정책대로 목록 영역은 비웁니다.
-                     * 하단 CustomToastMessage에서 로딩을 표시합니다.
-                     */
+                    items(
+                        count = HOME_LINK_SKELETON_COUNT,
+                        key = { index -> "recommendation-skeleton-$index" },
+                        contentType = { "home-link-skeleton" },
+                    ) {
+                        HomeLinkCardSkeleton(
+                            modifier = Modifier.padding(
+                                start = 20.dp,
+                                end = 20.dp,
+                                bottom = 10.dp,
+                            ),
+                        )
+                    }
                 }
 
                 isRecommendMode && initialRecommendationError != null -> {
                     item(key = "recommendation-refresh-error") {
-                        RecommendationLoadError(
-                            message = "추천 링크를 불러오지 못했어요.",
+                        LinkListLoadError(
+                            message = stringResource(R.string.recommendation_load_error),
                             onRetry = recommendedLinks::retry,
                         )
                     }
@@ -669,9 +711,14 @@ private fun RecommendationAppendError(  // TODO: 다인언니에게 물어본 �
     }
 }
 
-// 최초 로딩 실패 UI
+/**
+ * 링크 목록의 최초 요청이 실패했을 때 안내 문구와 재시도 동작을 제공합니다.
+ *
+ * @param message 실패 원인을 설명하는 사용자 안내 문구
+ * @param onRetry 목록 요청을 다시 실행하는 콜백
+ */
 @Composable
-private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 확정 예정, 지금은 임시
+private fun LinkListLoadError(
     message: String,
     onRetry: () -> Unit,
 ) {
@@ -680,7 +727,7 @@ private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp,vertical = 65.dp),
+            .padding(horizontal = 20.dp, vertical = 65.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
@@ -693,7 +740,7 @@ private fun RecommendationLoadError(  // TODO: 다인언니에게 물어본 후 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = "다시 시도하기",
+            text = stringResource(R.string.retry),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = colors.black,

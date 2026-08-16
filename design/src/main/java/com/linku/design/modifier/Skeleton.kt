@@ -105,11 +105,12 @@ fun Modifier.skeleton(
                     baseColor
                 ),
                 start = Offset(
-                    x = progress.value * width - width,
+                    // 하이라이트가 왼쪽 바깥에서 시작해 오른쪽 바깥까지 완전히 통과하도록 이동합니다.
+                    x = progress.value * width * 2f - width,
                     y = 0f
                 ),
                 end = Offset(
-                    x = progress.value * width,
+                    x = progress.value * width * 2f,
                     y = height
                 )
             )
