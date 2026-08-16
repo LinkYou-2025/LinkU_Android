@@ -202,8 +202,11 @@ fun MainApp(
     val navBackStackEntry by navigator.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // 탭별 showNavBar 상태는 보존하고 링크 저장 입력 화면에서만 하단 네비게이션을 가립니다.
-    val shouldShowNavigationBar = showNavBar && currentRoute != SAVE_LINK_ROUTE
+    // 탭별 showNavBar 상태는 보존하고 앱 루트의 링크 저장·상세 화면에서는 하단 네비게이션을 가립니다.
+    val shouldShowNavigationBar =
+        showNavBar &&
+                currentRoute != SAVE_LINK_ROUTE &&
+                currentRoute != LINK_DETAIL_ROUTE_PATTERN
 
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavigationRoute.Home.route ||
