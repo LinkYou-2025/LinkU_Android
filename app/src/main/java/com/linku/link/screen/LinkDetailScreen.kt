@@ -256,7 +256,6 @@ fun LinkDetailScreen(
     var isEditBaselineCaptured by rememberSaveable(userLinkuId) { mutableStateOf(false) }
 
     val isTitleValid = selectedTitle.isNotBlank()
-    val isSaveButtonEnabled = !isEditMode || isTitleValid
     // 수정 모드에서는 저장 액션을 항상 제공하고, 조회 모드에서는 AI 요약이 없을 때만 생성 액션을 표시합니다.
     val shouldShowBottomAction = isEditMode || !isAiSummaryMode
 
@@ -285,6 +284,9 @@ fun LinkDetailScreen(
             selectedEmotion?.id?.value != editBaselineEmotionId ||
             selectedSituationId != editBaselineSituationId
         )
+
+    // 수정 모드에서는 유효한 제목과 실제 변경사항이 모두 있을 때만 완료 액션을 활성화합니다.
+    val isSaveButtonEnabled = !isEditMode || (isTitleValid && hasEditChanges)
 
     // 수정 전 값으로 초안을 복원하고 링크 상세 화면을 유지한 채 수정 모드만 종료합니다.
     val discardEditChanges: () -> Unit = {
