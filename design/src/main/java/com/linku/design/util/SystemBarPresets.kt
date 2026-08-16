@@ -31,17 +31,22 @@ import androidx.core.view.WindowInsetsControllerCompat
  *
  * @param statusBarDarkIcons 상태바 아이콘을 어둡게 표시할지 여부
  * @param navigationBarDarkIcons 내비게이션 바 아이콘을 어둡게 표시할지 여부
- * @param hidden true면 상태바/내비게이션 바를 완전히 숨김(스플래시, 로그인 그라데이션 화면 등
- * 몰입형 화면 전용). 예전엔 별도의 [com.linku.core.system.SystemBarController]로 숨김/복원을
- * 처리했는데, 같은 Window를 두 체계가 각자 다른 타이밍에 건드리면서 경합이 생겨(로그아웃/탈퇴
- * 직후 Toast로 윈도우 포커스가 흔들리는 시점 등) 시스템 바가 다시 보이는 채로 남는 문제가
- * 있었음. 이 파라미터로 흡수해서 시스템 바 제어를 이 한 곳으로 통일함.
+ * @param hidden true면 상태바를 완전히 숨김(스플래시, 로그인 그라데이션 화면 등 몰입형 화면
+ * 전용). 예전엔 별도의 [com.linku.core.system.SystemBarController]로 숨김/복원을 처리했는데,
+ * 같은 Window를 두 체계가 각자 다른 타이밍에 건드리면서 경합이 생겨(로그아웃/탈퇴 직후 Toast로
+ * 윈도우 포커스가 흔들리는 시점 등) 시스템 바가 다시 보이는 채로 남는 문제가 있었음. 이
+ * 파라미터로 흡수해서 시스템 바 제어를 이 한 곳으로 통일함.
+ * @param hideNavigationBar true면 내비게이션 바를 완전히 숨김. 기본값은 [hidden]과 동일해서
+ * 대부분의 화면(스플래시 등)은 상태바/내비게이션 바를 함께 숨기지만, 약관 동의 바텀시트처럼
+ * 상태바는 숨긴 배경을 유지하면서도 내비게이션 바는 항상 보여야 하는 화면에서 따로 지정할 수
+ * 있게 분리함.
  */
 @Composable
 fun EdgeToEdgeSystemBars(
     statusBarDarkIcons: Boolean = true,
     navigationBarDarkIcons: Boolean = true,
     hidden: Boolean = false,
+    hideNavigationBar: Boolean = hidden,
 ) {
     val view = LocalView.current
     val isPreview = LocalInspectionMode.current
@@ -49,7 +54,7 @@ fun EdgeToEdgeSystemBars(
 
     // SideEffect는 리컴포지션마다 실행되는데, Window/시스템 서버와 통신하는 호출들이라
     // 아이콘 밝기/hidden이 실제로 바뀔 때(+최초 진입)만 실행되도록 key로 제한함.
-    DisposableEffect(statusBarDarkIcons, navigationBarDarkIcons, hidden) {
+    DisposableEffect(statusBarDarkIcons, navigationBarDarkIcons, hidden, hideNavigationBar) {
         val activity = view.context.findActivityOrNull()
         if (activity == null) {
             return@DisposableEffect onDispose {}
@@ -76,18 +81,21 @@ fun EdgeToEdgeSystemBars(
             window.navigationBarColor = android.graphics.Color.TRANSPARENT
 
             if (hidden) {
-                controller.hide(
-                    WindowInsetsCompat.Type.statusBars() or
-                            WindowInsetsCompat.Type.navigationBars()
-                )
-                controller.systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(WindowInsetsCompat.Type.statusBars())
             } else {
-                controller.show(
-                    WindowInsetsCompat.Type.statusBars() or
-                            WindowInsetsCompat.Type.navigationBars()
-                )
-                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+                controller.show(WindowInsetsCompat.Type.statusBars())
+            }
+
+            if (hideNavigationBar) {
+                controller.hide(WindowInsetsCompat.Type.navigationBars())
+            } else {
+                controller.show(WindowInsetsCompat.Type.navigationBars())
+            }
+
+            controller.systemBarsBehavior = if (hidden || hideNavigationBar) {
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            } else {
+                WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
             }
 
             controller.isAppearanceLightStatusBars = statusBarDarkIcons

@@ -185,6 +185,10 @@ fun MainApp(
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
     // Splash가 시작 화면이라 초기값만 true.
     var edgeToEdgeSystemBars by rememberSaveable { mutableStateOf(true) }
+    // 내비게이션 바 숨김 여부는 기본적으로 edgeToEdgeSystemBars와 함께 움직이지만, 약관 동의
+    // 바텀시트(social_login_gate)처럼 상태바는 숨긴 배경을 유지하면서도 내비게이션 바는 항상
+    // 보여야 하는 화면에서만 따로 false로 둠.
+    var hideNavigationBar by rememberSaveable { mutableStateOf(true) }
     // 활성 탭의 시스템 바 아이콘 기본값은 아래 MainScreen 호출부에서 route 기준으로 결정합니다.
 
     // TODO : 로그인 뷰모델에서 Success 상태로 바꾸기 전에 세션 갱신하게 수정해야함.
@@ -363,6 +367,7 @@ fun MainApp(
             centerButtonProp = null, // 바로 이동하므로 null
             onFABClick = { saveLinkEntryTriggered = true },
             hideSystemBars = edgeToEdgeSystemBars,
+            hideNavigationBar = hideNavigationBar,
             statusBarDarkIcons = !isFileTab,
             // File은 흰 상태바 아이콘과 검은 내비게이션 아이콘을 서로 독립적으로 유지합니다.
             navigationBarDarkIcons = if (isFileTab) true else null,
@@ -401,6 +406,7 @@ fun MainApp(
                         LaunchedEffect(Unit) {
                             showNavBar = false
                             edgeToEdgeSystemBars = true // 스플래시: 상태/내비게이션 바 완전히 숨김
+                            hideNavigationBar = true
                         }
 
                         var autoLoginTried by rememberSaveable {
@@ -417,6 +423,7 @@ fun MainApp(
                                     showNavBar = true
                                     viewModel.setAuthenticated(true)
                                     edgeToEdgeSystemBars = false
+                                    hideNavigationBar = false
                                     homeViewModel.refreshAfterLogin()
                                     navigator.navigate(NavigationRoute.Home.route) {
                                         popUpTo(NavigationRoute.Splash.route) { inclusive = true }
@@ -522,11 +529,15 @@ fun MainApp(
                     LoginApp(
                         //navController = navigator,
                         loginViewModel = loginViewModel,
-                        onEdgeToEdgeChange = { edgeToEdgeSystemBars = it },
+                        onEdgeToEdgeChange = { hideStatusBar, hideNavBar ->
+                            edgeToEdgeSystemBars = hideStatusBar
+                            hideNavigationBar = hideNavBar
+                        },
                         onLoginSuccess = {
                             showNavBar = true
                             viewModel.setAuthenticated(true)
                             edgeToEdgeSystemBars = false
+                            hideNavigationBar = false
 
                             // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
                             // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
@@ -701,7 +712,10 @@ fun MainApp(
                             // 몰입 모드로 전환함 — API 호출 및 Toast 표시 사이에 시스템 바가
                             // 잠깐 보였다가 사라지는 깜빡임을 없애기 위함. 실패해서 MyPage에 남으면
                             // MyPageApp이 false로 되돌림.
-                            onImmersiveTransitionChange = { edgeToEdgeSystemBars = it },
+                            onImmersiveTransitionChange = {
+                                edgeToEdgeSystemBars = it
+                                hideNavigationBar = it
+                            },
                             onLogoutToLogin = {
                                 showNavBar = false
                                 viewModel.setAuthenticated(false)
@@ -709,6 +723,7 @@ fun MainApp(
                                 // 처리했지만, 안전하게 한 번 더 명시함(대칭적으로 로그인 성공 시
                                 // false로 되돌리는 것과 짝).
                                 edgeToEdgeSystemBars = true
+                                hideNavigationBar = true
 
                                 homeViewModel.clearData()// 모든 홈 데이터를 초기화 - 이전 데이터 방지.
                                 searchViewModel.reset()
