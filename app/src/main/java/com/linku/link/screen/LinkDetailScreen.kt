@@ -257,6 +257,8 @@ fun LinkDetailScreen(
 
     val isTitleValid = selectedTitle.isNotBlank()
     val isSaveButtonEnabled = !isEditMode || isTitleValid
+    // 수정 모드에서는 저장 액션을 항상 제공하고, 조회 모드에서는 AI 요약이 없을 때만 생성 액션을 표시합니다.
+    val shouldShowBottomAction = isEditMode || !isAiSummaryMode
 
     val selectedSituation = situationOptions.firstOrNull {
         it.id.value == selectedSituationId
@@ -857,7 +859,7 @@ fun LinkDetailScreen(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    if (!isAiSummaryMode) {
+                    if (shouldShowBottomAction) {
                         Spacer(modifier = Modifier.height(50.dp))
                     }
                 }
@@ -1053,7 +1055,7 @@ fun LinkDetailScreen(
             }
         }
 
-        if (!isAiSummaryMode) {
+        if (shouldShowBottomAction) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
