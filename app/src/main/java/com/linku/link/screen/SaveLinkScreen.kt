@@ -660,7 +660,7 @@ fun SaveLinkScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(18.dp))
-                        .noRippleClickable {
+                        .noRippleClickable(enabled = isSaveButtonEnabled) {
                             onSaveButtonClick()
                         }
                         .then(
