@@ -52,6 +52,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
+import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.component.TimedCustomToastMessage
@@ -60,7 +61,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
-import com.linku.home.component.HomeLinkCardSkeleton
 import com.linku.home.component.rememberClipboardLinkCandidate
 import com.linku.home.model.RecentLinksUiState
 import com.linku.home.ui.home.bar.HomeTopBar
@@ -380,7 +380,7 @@ fun HomeScreen(
                         key = { index -> "recent-skeleton-$index" },
                         contentType = { "home-link-skeleton" },
                     ) {
-                        HomeLinkCardSkeleton(
+                        LinkCardItemSkeleton(
                             modifier = Modifier.padding(
                                 start = 20.dp,
                                 end = 20.dp,
@@ -429,7 +429,7 @@ fun HomeScreen(
                         key = { index -> "recommendation-skeleton-$index" },
                         contentType = { "home-link-skeleton" },
                     ) {
-                        HomeLinkCardSkeleton(
+                        LinkCardItemSkeleton(
                             modifier = Modifier.padding(
                                 start = 20.dp,
                                 end = 20.dp,
