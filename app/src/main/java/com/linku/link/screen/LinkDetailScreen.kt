@@ -716,7 +716,7 @@ fun LinkDetailScreen(
                                         color = colors.black,
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .border(1.dp, colors.inactiveColor, RoundedCornerShape(20.dp))
+                                            .border(1.dp, colors.linkuInactiveGradient, RoundedCornerShape(20.dp))
                                             .background(colors.white)
                                             .padding(horizontal = 15.dp, vertical = 9.dp)
                                     )
@@ -759,7 +759,7 @@ fun LinkDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
-                                .border(1.dp, colors.inactiveColor, RoundedCornerShape(18.dp))
+                                .border(1.dp, colors.linkuInactiveGradient, RoundedCornerShape(18.dp))
                                 .background(colors.white)
                                 .padding(horizontal = 22.dp, vertical = 16.dp)
                         )
