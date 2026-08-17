@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -53,6 +55,7 @@ import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
 import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
+import com.linku.curation.ui.effect.skeleton.SkeletonBox
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.component.TimedCustomToastMessage
@@ -75,6 +78,7 @@ private const val HOME_LINK_SKELETON_COUNT = 3
 fun HomeScreen(
     homeViewModel: HomeViewModel,
     userName: String,
+    isNicknameLoading: Boolean = false,
     recommendedLinks: LazyPagingItems<LinkSimpleInfo>,
     recentLinksUiState: RecentLinksUiState,
     isRecommendMode: Boolean,
@@ -362,6 +366,7 @@ fun HomeScreen(
                 HomeTopBar(
                     isNoticeExist = isUnreadAlarmExists,
                     userName = userName,
+                    isNicknameLoading = isNicknameLoading,
                     selectedEmotionId = selectedEmotion,
                     onEmotionChange = { id -> selectedEmotion = id },
                     selectedTaskId = selectedTask,
@@ -403,18 +408,43 @@ fun HomeScreen(
             }
 
             item(key = "home-title") {
-                Text(
-                    text = titleText,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = colors.black,
-                    modifier = Modifier.padding(
-                        start = 24.dp,
-                        end = 20.dp,
-                        top = 20.dp,
-                        bottom = 20.dp,
-                    ),
-                )
+                if (isNicknameLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(
+                            start = 24.dp,
+                            end = 20.dp,
+                            top = 20.dp,
+                            bottom = 20.dp,
+                        ),
+                    ) {
+                        SkeletonBox(
+                            modifier = Modifier.size(width = 64.dp, height = 22.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = listOf(colors.gray[100], colors.gray[200])
+                        )
+
+                        Text(
+                            text = if (isRecommendMode) "님에게 딱 맞는 링크" else "님이 최근에 열람한 링크",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = colors.black,
+                        )
+                    }
+                } else {
+                    Text(
+                        text = titleText,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = colors.black,
+                        modifier = Modifier.padding(
+                            start = 24.dp,
+                            end = 20.dp,
+                            top = 20.dp,
+                            bottom = 20.dp,
+                        ),
+                    )
+                }
             }
 
             when {

@@ -14,6 +14,7 @@ import com.linku.home.screen.HomeScreen
 fun HomeApp(
     viewModel: HomeViewModel,
     nickname: String,
+    isNicknameLoading: Boolean = false,
     onNavigateToSetting: () -> Unit,
     onNavigateToSaveLink: (String) -> Unit,
     onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
@@ -40,6 +41,7 @@ fun HomeApp(
             HomeScreen(
                 homeViewModel = viewModel,
                 userName = nickname,
+                isNicknameLoading = isNicknameLoading,
                 recommendedLinks = recommendedLinks,
                 recentLinksUiState = recentLinksUiState,
                 isRecommendMode = viewModel.isRecommendMode,

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
+import com.linku.curation.ui.effect.skeleton.SkeletonBox
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.font.Taebaek
@@ -58,6 +60,7 @@ import com.linku.home.ui.home.bar.component.TaskSelector
 fun HomeTopBar(
     isNoticeExist: Boolean,  // 알림 존재 여부
     userName: String,  // 사용자 이름
+    isNicknameLoading: Boolean = false,
     selectedEmotionId: Long?,
     onEmotionChange: (Long?) -> Unit,
     selectedTaskId: Long?,
@@ -139,14 +142,35 @@ fun HomeTopBar(
             exit = shrinkVertically() + fadeOut()
         ) {
             Column {
-                Text(
-                    text = "${userName}님의 감정과 상황을 알려주세요!",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = LocalFontTheme.current.font,
-                    color = colors.black,
-                    modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
-                )
+                if (isNicknameLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                    ) {
+                        SkeletonBox(
+                            modifier = Modifier.size(width = 64.dp, height = 22.dp),
+                            shape = RoundedCornerShape(6.dp),
+                            colors = listOf(colors.gray[100], colors.gray[200])
+                        )
+
+                        Text(
+                            text = "님의 감정과 상황을 알려주세요!",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = LocalFontTheme.current.font,
+                            color = colors.black,
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "${userName}님의 감정과 상황을 알려주세요!",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = LocalFontTheme.current.font,
+                        color = colors.black,
+                        modifier = Modifier.padding(start = 8.dp, bottom = 16.dp)
+                    )
+                }
 
                 Text(
                     text = "오늘의 감정은 어때요?",

@@ -122,6 +122,7 @@ fun MainApp(
 
     // 닉네임 최상단 뒤치(사용하는 스크린)
     val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+    val isNicknameLoading by viewModel.isNicknameLoading.collectAsStateWithLifecycle()
 
 
     LaunchedEffect(Unit) {
@@ -210,6 +211,8 @@ fun MainApp(
                 currentRoute != SAVE_LINK_ROUTE &&
                 currentRoute != LINK_DETAIL_ROUTE_PATTERN
 
+    // 기기 3대까지 지원하므로 다른 기기에서 닉네임을 바꾸면 즉시 반영되도록 Home/Curation
+    // 진입마다 재호출함. 로그인 시점 선호출(MainViewModel.setAuthenticated)과 별개로 유지.
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavigationRoute.Home.route ||
             currentRoute == NavigationRoute.Curation.route
@@ -411,6 +414,9 @@ fun MainApp(
                                 is AutoLoginState.Success -> {
                                     showNavBar = true
                                     viewModel.setAuthenticated(true)
+                                    // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
+                                    // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
+                                    viewModel.awaitCachedNickname()
                                     edgeToEdgeSystemBars = false
                                     hideNavigationBar = false
                                     homeViewModel.refreshAfterLogin()
@@ -604,20 +610,30 @@ fun MainApp(
 
                             // 수동 로그인 성공 후 pending 알림 처리
                             viewModel.consumePendingNotification()?.let {
-                                navigator.navigate(NavigationRoute.Home.route) {
-                                    popUpTo("login_root") { inclusive = true }
-                                    launchSingleTop = true
+                                loginScope.launch {
+                                    // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
+                                    // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
+                                    viewModel.awaitCachedNickname()
+                                    navigator.navigate(NavigationRoute.Home.route) {
+                                        popUpTo("login_root") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                    navigateByNotification(it.type, it.targetId)
                                 }
-                                navigateByNotification(it.type, it.targetId)
                                 return@LoginApp
                             }
 
                             // pending 알림이 없는 경우의 기본 동작
 
                             showNavBar = true
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
+                            loginScope.launch {
+                                // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
+                                // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
+                                viewModel.awaitCachedNickname()
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     )
@@ -635,6 +651,7 @@ fun MainApp(
                             viewModel = homeViewModel,
                             onSearchOpen = searchViewModel::openSearch,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
+                            isNicknameLoading = isNicknameLoading,
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
