@@ -9,12 +9,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -24,11 +29,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.paging.LoadState
+import androidx.paging.PagingData
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.linku.core.model.LinkItemInfo
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
@@ -37,6 +47,7 @@ import com.linku.design.theme.linkuColors
 import com.linku.file.R
 import com.linku.file.ui.item.LinkItemLayout
 import com.linku.file.ui.item.items.EmptyLinkItemLayout
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * 링크 카드 행 사이에 적용되는 기본 세로 간격(dp)입니다.
@@ -57,7 +68,8 @@ private const val ITEM_RATIO = 10f / 174f
  *
  * @param modifier 그리드 전체 컨테이너에 적용할 [Modifier]입니다.
  * @param contentPadding 그리드 내부 콘텐츠에 적용할 여백입니다.
- * @param links 표시할 분류된 링크 목록입니다.
+ * @param links 현재 폴더에서 커서 기반으로 불러온 분류 링크 Paging 항목입니다.
+ * @param optimisticLinks 분류 성공 후 서버 페이지에서 확인되기 전까지 먼저 표시할 링크입니다.
  * @param hasNotCategorizationLinks 분류 바텀시트에 전달할 미분류 링크가 존재하는지 여부입니다.
  * @param onLinkCategorizationClick 링크 분류 추가 아이템을 눌렀을 때 실행할 동작입니다.
  * @param onLinkClick 링크 카드를 눌렀을 때 링크 ID를 전달하는 콜백입니다.
@@ -67,7 +79,8 @@ private const val ITEM_RATIO = 10f / 174f
 internal fun ClassifiedLinksGrid(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(top = 20.dp, start = 20.dp, end = 20.dp, bottom = 60.dp),
-    links: List<LinkItemInfo>,
+    links: LazyPagingItems<LinkItemInfo>,
+    optimisticLinks: List<LinkItemInfo> = emptyList(),
     hasNotCategorizationLinks: Boolean,
     onLinkCategorizationClick: () -> Unit,
     onLinkClick: (Long) -> Unit,
@@ -134,21 +147,76 @@ internal fun ClassifiedLinksGrid(
                 )
             }
 
-            /** 분류된 링크 목록을 링크 카드 레이아웃으로 렌더링합니다. */
-            items(links, key = { it.userLinkuId }) { link ->
-                LinkItemLayout(
-                    modifier = Modifier.fillMaxSize(),
+            /** 서버 응답에 아직 나타나지 않은 분류 성공 링크를 먼저 표시합니다. */
+            items(
+                items = optimisticLinks,
+                key = { link -> "classified-link-${link.userLinkuId}" },
+            ) { link ->
+                ClassifiedLinkCard(
                     link = link,
-                    onClick = {
-                        // 상세 화면 이동은 상위에서 전달받은 링크 클릭 콜백으로 위임합니다.
-                        onLinkClick(link.userLinkuId)
-                    },
-                    onLongClick = {
-                        // 길게 누른 링크 ID를 저장한 뒤 삭제 확인 모달을 표시합니다.
-                        selectedLinkId = link.userLinkuId
+                    onLinkClick = onLinkClick,
+                    onLongClick = { userLinkuId ->
+                        selectedLinkId = userLinkuId
                         deleteModalWindowVisible = true
-                    }
+                    },
                 )
+            }
+
+            /** 현재까지 로드된 분류 링크를 안정적인 사용자 링크 ID 키로 렌더링합니다. */
+            items(
+                count = links.itemCount,
+                key = { index ->
+                    links.peek(index)?.userLinkuId
+                        ?.let { userLinkuId -> "classified-link-$userLinkuId" }
+                        ?: "classified-link-index-$index"
+                },
+            ) { index ->
+                links[index]?.let { link ->
+                    ClassifiedLinkCard(
+                        link = link,
+                        onLinkClick = onLinkClick,
+                        onLongClick = { userLinkuId ->
+                            // 길게 누른 링크 ID를 저장한 뒤 삭제 확인 모달을 표시합니다.
+                            selectedLinkId = userLinkuId
+                            deleteModalWindowVisible = true
+                        },
+                    )
+                }
+            }
+
+            when (links.loadState.append) {
+                is LoadState.Loading -> {
+                    item(
+                        key = "classified-links-append-loading",
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) {
+                        ClassifiedLinksPagingLoadingFooter()
+                    }
+                }
+                is LoadState.Error -> {
+                    item(
+                        key = "classified-links-append-error",
+                        span = { GridItemSpan(maxLineSpan) },
+                    ) {
+                        ClassifiedLinksPagingRetryFooter(
+                            label = stringResource(R.string.classified_links_append_retry),
+                            onRetry = links::retry,
+                        )
+                    }
+                }
+                is LoadState.NotLoading -> {
+                    if (links.loadState.refresh is LoadState.Error) {
+                        item(
+                            key = "classified-links-refresh-error",
+                            span = { GridItemSpan(maxLineSpan) },
+                        ) {
+                            ClassifiedLinksPagingRetryFooter(
+                                label = stringResource(R.string.classified_links_refresh_retry),
+                                onRetry = links::retry,
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -194,6 +262,65 @@ internal fun ClassifiedLinksGrid(
             lineHeight = 22.sp,
             fontWeight = FontWeight(400),
             color = colors.gray[600],
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+/** Paging 항목과 optimistic 항목에 동일한 링크 카드 동작을 적용합니다. */
+@Composable
+private fun ClassifiedLinkCard(
+    link: LinkItemInfo,
+    onLinkClick: (Long) -> Unit,
+    onLongClick: (Long) -> Unit,
+) {
+    LinkItemLayout(
+        modifier = Modifier.fillMaxSize(),
+        link = link,
+        onClick = {
+            // 상세 화면 이동은 상위에서 전달받은 링크 클릭 콜백으로 위임합니다.
+            onLinkClick(link.userLinkuId)
+        },
+        onLongClick = onLongClick,
+    )
+}
+
+/** 다음 커서 페이지를 요청하는 동안 두 열 전체 폭에 작은 진행 표시를 제공합니다. */
+@Composable
+private fun ClassifiedLinksPagingLoadingFooter() {
+    val colors = MaterialTheme.linkuColors
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(24.dp),
+            color = colors.blue[200],
+            strokeWidth = 2.dp,
+        )
+    }
+}
+
+/** 페이지 요청 실패를 기존 링크 아래에 유지하면서 같은 요청을 다시 실행할 수 있게 합니다. */
+@Composable
+private fun ClassifiedLinksPagingRetryFooter(
+    label: String,
+    onRetry: () -> Unit,
+) {
+    val colors = MaterialTheme.linkuColors
+
+    TextButton(
+        onClick = onRetry,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = label,
+            color = colors.blue[200],
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
             textAlign = TextAlign.Center,
         )
     }
@@ -275,8 +402,9 @@ private fun ClassifiedLinksGridPreview() {
     )
 
     LinkuPreview {
+        val pagingLinks = flowOf(PagingData.from(sampleLinks)).collectAsLazyPagingItems()
         ClassifiedLinksGrid(
-            links = sampleLinks,
+            links = pagingLinks,
             hasNotCategorizationLinks = true,
             onLinkCategorizationClick = {},
             onLinkClick = {},
@@ -289,8 +417,10 @@ private fun ClassifiedLinksGridPreview() {
 @Composable
 private fun ClassifiedLinksGridEmptyPreview() {
     LinkuPreview {
+        val pagingLinks =
+            flowOf(PagingData.empty<LinkItemInfo>()).collectAsLazyPagingItems()
         ClassifiedLinksGrid(
-            links = emptyList(),
+            links = pagingLinks,
             hasNotCategorizationLinks = false,
             onLinkCategorizationClick = {},
             onLinkClick = {},

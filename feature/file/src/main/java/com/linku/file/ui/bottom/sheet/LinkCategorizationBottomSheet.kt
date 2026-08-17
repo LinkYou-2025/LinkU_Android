@@ -117,6 +117,9 @@ internal fun LinkCategorizationBottomSheet(
                     fileViewModel.updateLinkFolder(it, folderId)
                 }
 
+                // 여러 링크를 순차 분류한 뒤 한 번만 새 Pager를 만들어 중복 네트워크 요청을 피합니다.
+                fileViewModel.refreshLinks(folderId)
+
                 selectedLinks.clear()
             }
         },
