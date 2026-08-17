@@ -4,6 +4,9 @@ import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import androidx.paging.filter
 import com.linku.core.error.SameNameException
 import com.linku.core.error.UserIdNullException
 import com.linku.core.model.AiArticle
@@ -23,6 +26,7 @@ import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
+import com.linku.core.usecase.GetFolderLinksUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
@@ -38,17 +42,22 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -62,7 +71,9 @@ import javax.inject.Inject
  *
  * @property acceptSharedFolderInvitationUseCase 초대 토큰을 사용해 공유 폴더 초대를 수락하고
  * 최신 공유 폴더 목록을 함께 반환하는 UseCase입니다.
+ * @property getFolderLinksUseCase 선택한 소분류 폴더의 링크를 커서 Paging 스트림으로 조회합니다.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class FileViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
@@ -75,6 +86,7 @@ class FileViewModel @Inject constructor(
 
     private val aiArticleRepository: AIArticleRepository,
     private val acceptSharedFolderInvitationUseCase: AcceptSharedFolderInvitationUseCase,
+    private val getFolderLinksUseCase: GetFolderLinksUseCase,
 ) : ViewModel() {
 
     // ---------- field ----------
@@ -159,9 +171,58 @@ class FileViewModel @Inject constructor(
     private val _subFoldersCursor = MutableStateFlow<String?>(null)
     val subFoldersCursor: StateFlow<String?> = _subFoldersCursor.asStateFlow()
 
-    // 링크 리스트
-    private val _links = MutableStateFlow<List<LinkItemInfo>>(emptyList())
-    val links: StateFlow<List<LinkItemInfo>> = _links.asStateFlow()
+    /** 폴더 ID가 같아도 재진입과 명시적 갱신을 새 Pager 요청으로 구분하는 조회 조건입니다. */
+    internal data class FolderLinksRequest(
+        val folderId: Long,
+        val generation: Long,
+    )
+
+    private val _folderLinksRequest = MutableStateFlow<FolderLinksRequest?>(null)
+
+    /** 화면의 탐색 폴더와 실제 Paging 요청 대상을 대조하기 위한 현재 조회 조건입니다. */
+    internal val folderLinksRequest: StateFlow<FolderLinksRequest?> =
+        _folderLinksRequest.asStateFlow()
+
+    /** 서버에서 삭제된 링크가 Paging 새로고침 실패로 다시 노출되지 않게 하는 세션 오버레이입니다. */
+    private val _deletedFolderLinkIds = MutableStateFlow<Set<Long>>(emptySet())
+
+    /** 분류 성공 직후 서버 재조회 결과와 무관하게 대상 폴더에 표시할 링크 오버레이입니다. */
+    private val _categorizedFolderLinks =
+        MutableStateFlow<Map<Long, List<LinkItemInfo>>>(emptyMap())
+
+    /** 서버 페이지에서 확인되기 전까지 UI가 먼저 표시할 폴더별 분류 성공 링크입니다. */
+    internal val categorizedFolderLinks: StateFlow<Map<Long, List<LinkItemInfo>>> =
+        _categorizedFolderLinks.asStateFlow()
+
+    /**
+     * 삭제 오버레이 변경으로 동일한 원본 PagingData가 다시 제출되어도 페이지 이벤트를 안전하게
+     * 재수집할 수 있도록 Pager 스트림을 먼저 캐시합니다.
+     */
+    private val pagedFolderLinks: Flow<PagingData<LinkItemInfo>> =
+        _folderLinksRequest
+            .flatMapLatest { request ->
+                request?.let { getFolderLinksUseCase(it.folderId) }
+                    ?: flowOf(PagingData.empty())
+            }
+            .cachedIn(viewModelScope)
+
+    /**
+     * 현재 선택한 하위 폴더의 분류 링크 Paging 스트림입니다.
+     *
+     * 폴더 또는 [FolderLinksRequest.generation]이 바뀌면 이전 Pager 수집을 취소합니다. 조회 대상이
+     * 없을 때는 빈 PagingData를 내보냅니다. 삭제 성공 ID는 이후 서버 페이지에서도 걸러
+     * 새로고침 실패 시 삭제된 카드가 다시 나타나지 않게 합니다. 분류 성공 항목은
+     * [categorizedFolderLinks]를 통해 UI가 서버 응답과 조정합니다.
+     */
+    val links: Flow<PagingData<LinkItemInfo>> =
+        combine(
+            pagedFolderLinks,
+            _deletedFolderLinkIds,
+        ) { pagingData, deletedIds ->
+            pagingData.filter { link ->
+                link.userLinkuId !in deletedIds
+            }
+        }.cachedIn(viewModelScope)
 
     // 분류되지않은 링크 리스트
     private val _notCategorizationLinks = MutableStateFlow<List<LinkItemInfo>>(emptyList())
@@ -631,41 +692,61 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "getSubfolders return")
     }
 
-    // 링크 불러오기
+    /**
+     * 선택한 하위 폴더의 링크 Pager를 첫 커서부터 새로 시작합니다.
+     *
+     * 동일한 폴더에 다시 진입해도 [FolderLinksRequest.generation]을 증가시켜 서버의 최신 첫
+     * 페이지를 조회합니다. 실제 로딩·오류 상태는 Paging 스트림이 소유합니다.
+     */
     fun getLinks(folderId: Long) {
-        Log.d("FileViewModel", "getLinks")
+        _folderLinksRequest.update { current ->
+            FolderLinksRequest(
+                folderId = folderId,
+                generation = (current?.generation ?: 0L) + 1L,
+            )
+        }
+    }
 
-        viewModelScope.launch {
-            Log.d("FileViewModel", "getLinks launch")
-
-            startLoading()
-            _errorMessage.value = null
-
-            try {
-                Log.d("FileViewModel", "getLinks try")
-
-                _subFoldersCursor.value = folderRepository.getLinksFolders(
-                    folderId = folderId,
-                    limit = null,
-                    cursor = _subFoldersCursor.value,
-                    onGetFolders = { },
-                    onGetLinks = { list -> _links.value = list.map { it.copy() } }
-                )
-
-                Log.d("FileViewModel", "getLinks try result: ${_links.value}")
-
-            } catch (e: Exception) {
-                Log.d("FileViewModel", "getLinks catch: $e.message")
-
-                _errorMessage.value = e.message
-
-            } finally {
-                Log.d("FileViewModel", "getLinks finally")
-
-                stopLoading()
+    /**
+     * [folderId]가 현재 표시 중인 폴더일 때만 새 Pager를 생성합니다.
+     *
+     * 삭제나 분류 요청 도중 사용자가 다른 폴더로 이동했을 경우, 완료가 늦은 이전 작업이 현재
+     * 화면의 Pager를 불필요하게 교체하지 않도록 폴더 ID를 함께 검사합니다.
+     */
+    fun refreshLinks(folderId: Long) {
+        _folderLinksRequest.update { current ->
+            if (current?.folderId == folderId) {
+                current.copy(generation = current.generation + 1L)
+            } else {
+                current
             }
         }
-        Log.d("FileViewModel", "getLinks return")
+    }
+
+    /**
+     * 서버 페이지에 도착한 링크는 optimistic 분류 목록에서 제거합니다.
+     *
+     * 이후 렌더링은 서버 모델과 서버 정렬 순서를 사용합니다. 다른 폴더의 이전 snapshot을 현재
+     * 폴더 데이터로 오인하지 않도록 호출자는 snapshot 소속을 먼저 확인해야 합니다.
+     */
+    internal fun reconcileCategorizedFolderLinks(
+        folderId: Long,
+        loadedLinkIds: Set<Long>,
+    ) {
+        if (loadedLinkIds.isEmpty()) return
+
+        _categorizedFolderLinks.update { linksByFolder ->
+            val currentLinks = linksByFolder[folderId].orEmpty()
+            val remainingLinks = currentLinks.filterNot { link ->
+                link.userLinkuId in loadedLinkIds
+            }
+
+            when {
+                remainingLinks.size == currentLinks.size -> linksByFolder
+                remainingLinks.isEmpty() -> linksByFolder - folderId
+                else -> linksByFolder + (folderId to remainingLinks)
+            }
+        }
     }
 
     // 링크, 폴더 불러오기
@@ -892,7 +973,9 @@ class FileViewModel @Inject constructor(
         _sharedFolderDetailState.value = SharedFolderLoadState.Initial
         _sharedFolderLeaveState.value = SharedFolderLeaveState.Idle
         _invitationInfo.value = null
-        _links.value = emptyList()
+        _folderLinksRequest.value = null
+        _deletedFolderLinkIds.value = emptySet()
+        _categorizedFolderLinks.value = emptyMap()
         _notCategorizationLinks.value = emptyList()
         _subFoldersCursor.value = null
         _errorMessage.value = null
@@ -1224,8 +1307,14 @@ class FileViewModel @Inject constructor(
 
             folderRepository.updateLinkFolder(link, folderId)
 
-            _links.value = _links.value.toMutableList().apply {
-                add(link)
+            _categorizedFolderLinks.update { linksByFolder ->
+                val categorizedLink = link.copy(parentFolderId = folderId)
+                val updatedFolderLinks = linksByFolder[folderId]
+                    .orEmpty()
+                    .filterNot { existing ->
+                        existing.userLinkuId == categorizedLink.userLinkuId
+                    } + categorizedLink
+                linksByFolder + (folderId to updatedFolderLinks)
             }
 
             _notCategorizationLinks.value = _notCategorizationLinks.value.filter {
@@ -1233,11 +1322,13 @@ class FileViewModel @Inject constructor(
             }
 
             Log.d("FileViewModel", "updateLinkFolder try result")
-        }catch (e: Exception){
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
             Log.d("FileViewModel", "updateLinkFolder catch: $e.message")
 
             _errorMessage.value = e.message
-        }finally {
+        } finally {
             Log.d("FileViewModel", "updateLinkFolder finally")
 
             stopLoading()
@@ -1292,13 +1383,15 @@ class FileViewModel @Inject constructor(
         Log.d("FileViewModel", "deleteSubfolder return")
     }
 
-    fun deleteLink(userLinkuId: Long){
+    fun deleteLink(userLinkuId: Long) {
         Log.d("FileViewModel", "deleteLink")
+
+        val requestedFolderId = _folderLinksRequest.value?.folderId
 
         startLoading()
         _errorMessage.value = null
 
-        viewModelScope.launch{
+        viewModelScope.launch {
             Log.d("FileViewModel", "deleteLink launch")
 
             try {
@@ -1306,12 +1399,20 @@ class FileViewModel @Inject constructor(
 
                 folderRepository.deleteLink(userLinkuId)
 
-                _links.update {
-                    it.filter { it.userLinkuId != userLinkuId }
+                _deletedFolderLinkIds.update { deletedIds -> deletedIds + userLinkuId }
+                _categorizedFolderLinks.update { linksByFolder ->
+                    linksByFolder
+                        .mapValues { (_, links) ->
+                            links.filterNot { link -> link.userLinkuId == userLinkuId }
+                        }
+                        .filterValues { links -> links.isNotEmpty() }
                 }
+                requestedFolderId?.let(::refreshLinks)
 
                 Log.d("FileViewModel", "deleteLink try result")
 
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Log.d("FileViewModel", "deleteLink catch: $e.message")
 
