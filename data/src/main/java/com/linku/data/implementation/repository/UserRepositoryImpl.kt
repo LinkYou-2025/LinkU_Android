@@ -17,6 +17,9 @@ import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import kotlin.onSuccess
 
@@ -25,6 +28,8 @@ class UserRepositoryImpl @Inject constructor(
     private val authPreference: AuthPreference,
 ) : UserRepository {
 
+    private val _cachedUserInfo = MutableStateFlow<UserInfo?>(null)
+    override val cachedUserInfo: StateFlow<UserInfo?> = _cachedUserInfo.asStateFlow()
 
     override suspend fun getUserInfo(userId: Long): Result<UserInfo> {
         Log.d(TAG, "[유저 정보 가져오기 시도] userId=$userId")
@@ -46,6 +51,8 @@ class UserRepositoryImpl @Inject constructor(
                     Interest.fromServerKey(it)?.displayName ?: it
                 }
             )
+        }.onSuccess { info ->
+            _cachedUserInfo.value = info
         }
     }
 
@@ -79,6 +86,7 @@ class UserRepositoryImpl @Inject constructor(
         // DataStore I/O 예외가 여기서 나면 Result 계약 밖으로 새지 않도록 잡아서 failure로 변환함.
         return try {
             authPreference.clear()
+            _cachedUserInfo.value = null
             result
         } catch (e: CancellationException) {
             throw e
@@ -140,6 +148,7 @@ class UserRepositoryImpl @Inject constructor(
 
             safeApiCallUnit { serverApi.logout(deviceId) }.getOrThrow()
             authPreference.clear()
+            _cachedUserInfo.value = null
             Log.d(TAG, "로그아웃 완료")
             Result.success(Unit)
         } catch (e: CancellationException) {

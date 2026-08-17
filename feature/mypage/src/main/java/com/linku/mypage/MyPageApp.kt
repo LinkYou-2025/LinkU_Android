@@ -112,6 +112,7 @@ fun MyPageApp(
                 myFolder = user?.myFolder ?: 0L,
                 myAiLinku = user?.myAiLinku ?: 0L,
                 loginType = session.loginType,
+                isHeaderLoading = user == null,
                 onNavigateAccount = { navController.navigate("account") },
                 onNavigateAlarm = { onNavigateToAlarm() },
                 onNavigateAlarmSetting = { navController.navigate("alarmSetting") },

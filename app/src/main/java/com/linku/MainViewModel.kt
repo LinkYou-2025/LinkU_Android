@@ -69,6 +69,17 @@ class MainViewModel @Inject constructor(
             reRegisterFcmToken()
             syncAlarmSetting()
             fetchNickname()
+            prefetchMyPageHeader()
+        }
+    }
+
+    // 마이페이지 진입 시 헤더(닉네임/이메일/링크·폴더·AI링크 개수)를 API 응답을 기다리지 않고
+    // 바로 그릴 수 있도록, 로그인 직후 미리 조회해 UserRepository의 캐시를 채워둠.
+    // 실패해도 마이페이지 진입 시 loadUserInfo()가 다시 조회하므로 별도 에러 처리는 하지 않음.
+    private fun prefetchMyPageHeader() {
+        viewModelScope.launch {
+            val id = authPreference.getUserId() ?: return@launch
+            userRepository.getUserInfo(id)
         }
     }
 

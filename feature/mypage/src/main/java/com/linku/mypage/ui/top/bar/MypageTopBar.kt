@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.BrushText
+import com.linku.design.component.SkeletonBox
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.font.Taebaek
@@ -49,9 +51,12 @@ fun MypageTopBar(
     socialLoginType: String,
     onAlarmClick: () -> Unit,
     onAISummaryClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    // 서버 응답 오기 전(닉네임/이메일/카운트) 영역을 스켈레톤으로 대체할지 여부.
+    isLoading: Boolean = false,
 ) {
     val colors = MaterialTheme.linkuColors
+    val skeletonColor = colors.gray[200]
 
     Column(
         modifier = modifier
@@ -103,12 +108,20 @@ fun MypageTopBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // 사용자 프로필
-                Image(
-                    painter = painterResource(R.drawable.ic_profile_default),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(70.dp)
-                )
+                if (isLoading) {
+                    SkeletonBox(
+                        modifier = Modifier.size(70.dp),
+                        shape = CircleShape,
+                        color = skeletonColor,
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(R.drawable.ic_profile_default),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(70.dp)
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(18.dp))
 
@@ -116,40 +129,60 @@ fun MypageTopBar(
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Row(
-                        modifier = Modifier.padding(bottom = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        val iconRes = when (socialLoginType.lowercase()) {
-                            "kakao" -> R.drawable.ic_kakao_logo
-                            "google" -> R.drawable.ic_google_logo  // TODO: 구글 로고 리소스 수정 필요 (다현이에게 svg 파일로 받기)
-                            else -> null
-                        }
+                    if (isLoading) {
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(20.dp)
+                                .fillMaxWidth(0.4f),
+                            shape = RoundedCornerShape(4.dp),
+                            color = skeletonColor,
+                        )
 
-                        if (iconRes != null) {
-                            Image(
-                                painter = painterResource(iconRes),
-                                contentDescription = socialLoginType,
-                                modifier = Modifier.size(22.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        SkeletonBox(
+                            modifier = Modifier
+                                .height(13.dp)
+                                .fillMaxWidth(0.6f),
+                            shape = RoundedCornerShape(4.dp),
+                            color = skeletonColor,
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier.padding(bottom = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val iconRes = when (socialLoginType.lowercase()) {
+                                "kakao" -> R.drawable.ic_kakao_logo
+                                "google" -> R.drawable.ic_google_logo  // TODO: 구글 로고 리소스 수정 필요 (다현이에게 svg 파일로 받기)
+                                else -> null
+                            }
+
+                            if (iconRes != null) {
+                                Image(
+                                    painter = painterResource(iconRes),
+                                    contentDescription = socialLoginType,
+                                    modifier = Modifier.size(22.dp)
+                                )
+
+                                Spacer(modifier = Modifier.width(6.dp))
+                            }
+
+                            Text(
+                                text = nickname,
+                                color = colors.black,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
                             )
-
-                            Spacer(modifier = Modifier.width(6.dp))
                         }
 
                         Text(
-                            text = nickname,
-                            color = colors.black,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            text = email,
+                            color = colors.gray[600],
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
                         )
                     }
-
-                    Text(
-                        text = email,
-                        color = colors.gray[600],
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
                 }
             }
 
@@ -183,12 +216,20 @@ fun MypageTopBar(
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
 
-                    Text(
-                        text = myLinku.toString(),
-                        color = colors.black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    if (isLoading) {
+                        SkeletonBox(
+                            modifier = Modifier.size(width = 24.dp, height = 16.dp),
+                            shape = RoundedCornerShape(4.dp),
+                            color = skeletonColor,
+                        )
+                    } else {
+                        Text(
+                            text = myLinku.toString(),
+                            color = colors.black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(9.dp))
@@ -215,12 +256,20 @@ fun MypageTopBar(
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
 
-                    Text(
-                        text = myFolder.toString(),
-                        color = colors.black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    if (isLoading) {
+                        SkeletonBox(
+                            modifier = Modifier.size(width = 24.dp, height = 16.dp),
+                            shape = RoundedCornerShape(4.dp),
+                            color = skeletonColor,
+                        )
+                    } else {
+                        Text(
+                            text = myFolder.toString(),
+                            color = colors.black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(9.dp))
@@ -261,14 +310,22 @@ fun MypageTopBar(
                         )
                     }
 
-                    BrushText(
-                        text = myAiLinku.toString(),
-                        brush = colors.maincolor,
-                        style = TextStyle(
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                    if (isLoading) {
+                        SkeletonBox(
+                            modifier = Modifier.size(width = 24.dp, height = 16.dp),
+                            shape = RoundedCornerShape(4.dp),
+                            color = skeletonColor,
                         )
-                    )
+                    } else {
+                        BrushText(
+                            text = myAiLinku.toString(),
+                            brush = colors.maincolor,
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        )
+                    }
                 }
             }
         }
