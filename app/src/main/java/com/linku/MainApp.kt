@@ -322,34 +322,19 @@ fun MainApp(
             navigationBarProp = if (shouldShowNavigationBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
-//                    if (item != currentLinkuNavigationItem) {
-                    val route = when (item) {
-                        LinkuNavigationItem.HOME -> NavigationRoute.Home.route
-                        LinkuNavigationItem.FILE -> NavigationRoute.File.route
-                        LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
-                        LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
-                    }
+                    // 같은 탭 재클릭 시엔 동작 X
+                    if (currentLinkuNavigationItem != item) {
+                        // 목표 라우트
+                        val route = when (item) {
+                            LinkuNavigationItem.HOME -> NavigationRoute.Home.route
+                            LinkuNavigationItem.FILE -> NavigationRoute.File.route
+                            LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
+                            LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                        }
 
-
-                    if (currentRoute == route) {
-                        if (item == LinkuNavigationItem.FILE) {
-                            // MainApp 범위 상태는 라우트 재생성 후에도 유지되므로 카테고리 루트로 되돌린다.
-                            folderStateViewModel.resetSharedFolderState()
-                        }
-                        // 같은 탭 재선택: 내부 스택 리셋
+                        // 홈 화면만 백스택에 남겨두고 이동
                         navigator.navigate(route) {
-                            // 해당 탭 루트까지 모두 제거하고
-                            popUpTo(route) { inclusive = true }
-                        }
-                        // 다시 동일 라우트 진입 (깨끗한 초기 상태)
-                        navigator.navigate(route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    } else {
-                        // 다른 탭으로 이동: 기존 로직 유지
-                        navigator.navigate(route) {
-                            popUpTo(navigator.graph.findStartDestination().id) {
+                            popUpTo(NavigationRoute.Home.route) {
                                 saveState = true
                                 inclusive = false
                             }
@@ -357,7 +342,6 @@ fun MainApp(
                             restoreState = true
                         }
                     }
-
                 },
                 onCenterButtonClicked = {
                     // 여기에 중앙 버튼 눌렀을 때 로직 넣기
