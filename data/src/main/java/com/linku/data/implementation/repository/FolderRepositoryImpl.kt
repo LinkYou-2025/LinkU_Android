@@ -1,6 +1,9 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.linku.core.model.FolderInfo
 import com.linku.core.model.FolderPermission
 import com.linku.core.model.FolderPermissionInfo
@@ -187,6 +190,22 @@ class FolderRepositoryImpl @Inject constructor(
 
         return nextCursor
     }
+
+    /** 지정한 소분류 폴더의 저장 링크를 독립된 커서 페이징 스트림으로 제공합니다. */
+    override fun getFolderLinks(folderId: Long): Flow<PagingData<LinkItemInfo>> =
+        Pager(
+            config = PagingConfig(
+                pageSize = FOLDER_LINK_PAGE_SIZE,
+                initialLoadSize = FOLDER_LINK_PAGE_SIZE,
+                enablePlaceholders = false,
+            ),
+            pagingSourceFactory = {
+                FolderLinksPagingSource(
+                    folderApi = serverApi,
+                    folderId = folderId,
+                )
+            },
+        ).flow
 
     // 하위 폴더 생성
     override suspend fun createSubfolder(
@@ -600,5 +619,9 @@ class FolderRepositoryImpl @Inject constructor(
         }
 
         Log.d("FolderRepositoryImpl", "deactivateInvitationLink return")
+    }
+
+    private companion object {
+        const val FOLDER_LINK_PAGE_SIZE = 20
     }
 }

@@ -1,5 +1,6 @@
 package com.linku.core.usecase
 
+import androidx.paging.PagingData
 import com.linku.core.error.ApiError
 import com.linku.core.error.NetworkError
 import com.linku.core.model.FolderInfo
@@ -286,6 +287,8 @@ class AcceptSharedFolderInvitationUseCaseTest {
             onGetFolders: (List<FolderSimpleInfo>) -> Unit,
             onGetLinks: (List<LinkItemInfo>) -> Unit,
         ): String? = unused()
+
+        override fun getFolderLinks(folderId: Long): Flow<PagingData<LinkItemInfo>> = unused()
 
         override suspend fun createSubfolder(
             parentFolderId: Long,

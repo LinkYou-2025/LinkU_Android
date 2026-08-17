@@ -100,7 +100,6 @@ fun MyListMenu(
             ?: CategoryColorStyle.DEFAULT,
         onSubFolderClick = { folder ->
             if(folder.folderId!=folderStateViewModel.selectedBottomFolder?.folderId){
-                fileViewModel.getLinks(folder.folderId)
                 folderStateViewModel.selectedTopFolder?.let { parentFolder ->
                     folderStateViewModel.showPersonalLinks(parentFolder, folder)
                 }

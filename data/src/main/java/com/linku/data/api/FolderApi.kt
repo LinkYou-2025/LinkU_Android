@@ -65,7 +65,8 @@ interface FolderApi {
         @Path("folderId") folderId: Long,
         @Query("limit") limit: Int? = 20,
         @Query("cursor") cursor: String? = null,
-        @Query("sort") sort: String? = "name"
+        @Query("sort") sort: String? = "name",
+        @Query("includeLinks") includeLinks: Boolean = true,
     ): BaseResponse<LinksFoldersResponseDTO>
 
     // (소분류) 폴더 생성 (소분류 폴더 생성)

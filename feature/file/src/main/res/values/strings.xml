@@ -14,6 +14,10 @@
     <string name="link_categorization_bottom_sheet_body">하위폴더에 추가하실 링크를 선택해주세요!</string>
     <string name="link_categorization_bottom_sheet_add">추가</string>
     <string name="link_categorization_domain_placeholder">도메인</string>
+    <string name="classified_links_load_failed">폴더의 링크를 불러오지 못했습니다.</string>
+    <string name="classified_links_retry">다시 시도</string>
+    <string name="classified_links_append_retry">링크를 더 불러오지 못했습니다. 다시 시도</string>
+    <string name="classified_links_refresh_retry">링크를 새로고침하지 못했습니다. 다시 시도</string>
     <string name="parent_folder_sort_name_label">가나다 순</string>
     <string name="parent_folder_sort_name_menu">가나다순</string>
     <string name="parent_folder_sort_latest">최신순</string>
