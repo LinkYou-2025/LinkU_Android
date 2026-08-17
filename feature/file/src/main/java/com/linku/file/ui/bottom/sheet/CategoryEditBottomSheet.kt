@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,7 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -161,33 +162,38 @@ private fun CategoryColorSelector(
             label = "화살표 회전 애니메이션",
         )
 
-        val arrowModifier = Modifier
-            .padding(start = 10.dp)
-            .graphicsLayer {
-                // 상태 전환에도 modifier 구조를 유지하되, 그라데이션을 그릴 때만 합성을 격리합니다.
-                compositingStrategy = if (expanded) {
-                    CompositingStrategy.Offscreen
-                } else {
-                    CompositingStrategy.Auto
-                }
-            }
-            .drawWithCache {
-                onDrawWithContent {
-                    drawContent()
-                    if (expanded) {
-                        drawRect(colors.maincolor, blendMode = BlendMode.SrcIn)
-                    }
-                }
-            }
-
-        Icon(
-            modifier = arrowModifier
-                .rotate(rotation)
+        Box(
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .size(width = 13.dp, height = 15.dp)
                 .noRippleClickable { onExpandedChange(!expanded) },
-            tint = colors.gray[600],
-            painter = painterResource(id = R.drawable.check_img),
-            contentDescription = "아래 화살표",
-        )
+            contentAlignment = Alignment.Center,
+        ) {
+            Box(
+                modifier = Modifier
+                    // Row의 기존 가로 배치는 유지하고 회전 합성 버퍼만 15×15dp로 확장합니다.
+                    .requiredSize(15.dp)
+                    .graphicsLayer {
+                        compositingStrategy = CompositingStrategy.Offscreen
+                    }
+                    .drawWithContent {
+                        drawContent()
+                        if (expanded) {
+                            drawRect(colors.maincolor, blendMode = BlendMode.SrcIn)
+                        }
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(width = 13.dp, height = 7.dp)
+                        .rotate(rotation),
+                    tint = colors.gray[600],
+                    painter = painterResource(id = R.drawable.check_img),
+                    contentDescription = "아래 화살표",
+                )
+            }
+        }
     }
 
     AnimatedVisibility(
