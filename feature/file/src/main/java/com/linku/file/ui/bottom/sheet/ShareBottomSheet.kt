@@ -295,18 +295,9 @@ private fun ShareBottomSheetLayout(
         folderTreeLoadState == FolderTreeLoadState.Loaded && hasShareableFolder
 
     ModalBottomSheet(
+        // 시트 외곽 그림자는 내부 드래그 위치를 따라가지 않고 Dialog 원점에 남을 수 있습니다.
         modifier = modifier
-            .fillMaxWidth()
-            .dropShadow(
-                shape = SheetShape,
-                shadow = Shadow(
-                    radius = 15.dp,
-                    spread = 0.dp,
-                    offset = DpOffset(x = 0.dp, y = (-4).dp),
-                    color = Color(0xFF7C7C7C),
-                    alpha = 0.6f,
-                ),
-            ),
+            .fillMaxWidth(),
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
         sheetGesturesEnabled = !isOpeningSystemShare,

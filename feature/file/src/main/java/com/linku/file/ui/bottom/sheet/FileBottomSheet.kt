@@ -53,14 +53,6 @@ private val FileBottomSheetShape = RoundedCornerShape(
 )
 private val FileBottomSheetControlShape = RoundedCornerShape(18.dp)
 
-private val FileBottomSheetShadow = Shadow(
-    radius = 15.dp,
-    spread = 0.dp,
-    offset = DpOffset(x = 0.dp, y = (-4).dp),
-    color = Color(0xFF7C7C7C),
-    alpha = 0.6f,
-)
-
 private val FileBottomSheetButtonShadow = Shadow(
     radius = 10.dp,
     spread = 0.dp,
@@ -104,10 +96,9 @@ internal fun FileBottomSheet(
     
     if(visible) {
         ModalBottomSheet(
-            modifier = modifier.dropShadow(
-                shape = FileBottomSheetShape,
-                shadow = FileBottomSheetShadow,
-            ),
+            // ModalBottomSheet는 전달된 modifier 뒤에 드래그 위치 보정을 추가합니다.
+            // 여기서 외곽 그림자를 그리면 닫힘 중 Dialog 원점에 남으므로 적용하지 않습니다.
+            modifier = modifier,
             dragHandle = {
                 Box(
                     modifier = Modifier
