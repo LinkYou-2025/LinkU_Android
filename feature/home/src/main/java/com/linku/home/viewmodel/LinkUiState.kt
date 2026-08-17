@@ -9,6 +9,8 @@ import com.linku.core.model.TempImageFile
  *
  * @property linkEditCategories 링크 수정 카테고리 드롭다운에 표시할 서버 카테고리 목록입니다.
  * @property isLoadingLinkEditCategories 링크 수정용 카테고리 목록을 불러오는 중인지 나타냅니다.
+ * @property requestedLinkDetailId 현재 상세 조회가 대상으로 삼는 사용자 링크 ID입니다.
+ * @property linkDetailLoadError 현재 상세 조회 대상의 로딩 실패 원인입니다.
  */
 data class LinkUiState(
     val saveImage: TempImageFile?,
@@ -20,7 +22,9 @@ data class LinkUiState(
     val jobId: Long?,
     val isSaving: Boolean,
     val linkDetail: LinkResultInfo?,
+    val requestedLinkDetailId: Long?,
     val isLoadingLinkDetail: Boolean,
+    val linkDetailLoadError: Throwable?,
     val isUpdatingLink: Boolean,
     val isDeletingLink: Boolean,
     val linkEditCategories: List<CategoryColorList> = emptyList(),

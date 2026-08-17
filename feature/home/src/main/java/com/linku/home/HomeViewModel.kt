@@ -22,6 +22,8 @@ import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.home.model.ClipboardLinkCandidate
+import com.linku.home.model.RecentLinksLoadStatus
+import com.linku.home.model.RecentLinksUiState
 import com.linku.home.paging.RecommendationPagingSource
 import com.linku.home.util.UrlValidationResult
 import com.linku.home.util.validateUrlInput
@@ -32,8 +34,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -274,7 +276,10 @@ class HomeViewModel @Inject constructor(
         // 모든 상태값 초기화
 //        userNameState.value = null
         jobIdState.value = null
-        _recentLinks.value = emptyList()
+        recentLinksLoadJob?.cancel()
+        recentLinksLoadJob = null
+        recentLinksRequestId++
+        _recentLinksUiState.value = RecentLinksUiState()
         _categoryColorMap.value = emptyMap()
         _isUnreadAlarmExists.value = false
         categoryLoaded = false
@@ -302,20 +307,25 @@ class HomeViewModel @Inject constructor(
     private val isRecommendModeState = mutableStateOf(false)
     val isRecommendMode get() = isRecommendModeState.value
 
-    /*
-     * null이면 추천 목록을 수집하지 않습니다.
+    /**
+     * 추천 요청을 시작하거나 해제하기 위한 상태입니다.
      *
-     * requestId가 있으므로 동일한 감정/상황으로 다시 요청해도
-     * 새로운 PagingSource가 생성됩니다.
+     * [RecommendationRequest.requestId]가 있으므로 동일한 감정과 상황으로 다시 요청해도
+     * 새로운 [RecommendationPagingSource]가 생성됩니다.
      */
     private val recommendationRequestState =
         MutableStateFlow<RecommendationRequest?>(null)
 
+    /**
+     * 활성 추천 요청의 페이징 데이터를 제공하고, 요청이 없으면 이전 추천 결과를 비웁니다.
+     *
+     * 추천 모드를 종료하면 빈 [PagingData]를 방출해 수집 중인 목록을 즉시 초기화합니다.
+     */
     val recommendedLinks: Flow<PagingData<LinkSimpleInfo>> =
         recommendationRequestState
             .flatMapLatest { request ->
                 if (request == null) {
-                    emptyFlow()
+                    flowOf(PagingData.empty())
                 } else {
                     Pager(
                         config = PagingConfig(
@@ -374,21 +384,84 @@ class HomeViewModel @Inject constructor(
         recommendationRequestState.value = null
     }
 
-    // 최근 조회 링크 상태
-    private val _recentLinks = MutableStateFlow<List<LinkSimpleInfo>>(emptyList())
-    val recentLinks: StateFlow<List<LinkSimpleInfo>> = _recentLinks.asStateFlow()
+    /** 최근 조회 링크 목록과 로딩 결과를 함께 보관하는 내부 상태입니다. */
+    private val _recentLinksUiState = MutableStateFlow(RecentLinksUiState())
 
-    // 최근 조회 링크 로딩
-    // 가장 먼저 호출되는 api? 토큰 달고 요청을 함.
+    /** 홈 화면에 노출할 최근 조회 링크 목록과 현재 요청 상태입니다. */
+    val recentLinksUiState: StateFlow<RecentLinksUiState> =
+        _recentLinksUiState.asStateFlow()
+
+    /** 동시에 실행되는 최근 조회 링크 요청을 하나로 제한하기 위한 작업입니다. */
+    private var recentLinksLoadJob: Job? = null
+
+    /** 취소 이후 늦게 도착한 이전 요청 결과를 무시하기 위한 요청 식별자입니다. */
+    private var recentLinksRequestId = 0L
+
+    /**
+     * 최근 조회 링크를 갱신합니다.
+     *
+     * 이미 요청이 실행 중이면 중복 요청을 시작하지 않습니다. 재조회 중에는 기존 링크를 유지하며,
+     * 요청 실패 시에도 마지막 성공 목록을 보존해 화면이 빈 상태로 되돌아가지 않도록 합니다.
+     */
     fun loadRecentLinks() {
-        viewModelScope.launch {
-            runCatching { linkuRepository.getRecentLinks(limit = 10) }
-                .onSuccess { _recentLinks.value = it }
-                .onFailure {
-                    Log.e("HomeVM", "loadRecentLinks failed", it)
-                    _recentLinks.value = emptyList()
-                }
+        if (recentLinksLoadJob?.isActive == true) {
+            return
         }
+
+        val requestId = ++recentLinksRequestId
+
+        // 기존 링크는 유지하고 요청 단계만 갱신해 재조회 중 카드가 사라지지 않게 합니다.
+        _recentLinksUiState.value = _recentLinksUiState.value.copy(
+            loadStatus = RecentLinksLoadStatus.Loading,
+        )
+
+        recentLinksLoadJob = viewModelScope.launch {
+            try {
+                val links = linkuRepository.getRecentLinks(limit = 10)
+
+                if (requestId != recentLinksRequestId) {
+                    return@launch
+                }
+
+                _recentLinksUiState.value = RecentLinksUiState(
+                    links = links,
+                    loadStatus = RecentLinksLoadStatus.Success,
+                )
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                Log.e("HomeVM", "loadRecentLinks failed", error)
+
+                if (requestId == recentLinksRequestId) {
+                    _recentLinksUiState.value = _recentLinksUiState.value.copy(
+                        loadStatus = RecentLinksLoadStatus.Error,
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * 삭제 완료된 링크를 홈 목록에서 즉시 제거하고 사용자 기본 정보와 최근 링크를 재조회합니다.
+     *
+     * 삭제 전에 시작한 최근 링크 요청이 늦게 완료되어 삭제된 항목을 다시 노출하지 않도록
+     * 실행 중인 작업을 취소하고 요청 식별자를 무효화한 뒤 최신 서버 상태를 불러옵니다.
+     *
+     * @param userLinkuId 삭제 완료된 사용자 링크 식별자
+     */
+    fun onLinkDeleted(userLinkuId: Long) {
+        recentLinksLoadJob?.cancel()
+        recentLinksLoadJob = null
+        recentLinksRequestId++
+
+        _recentLinksUiState.value = _recentLinksUiState.value.copy(
+            links = _recentLinksUiState.value.links.filterNot { link ->
+                link.userLinkuId == userLinkuId
+            },
+        )
+
+        loadUserBasics()
+        loadRecentLinks()
     }
 
     private val _isUnreadAlarmExists = MutableStateFlow(false)

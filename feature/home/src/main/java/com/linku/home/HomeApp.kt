@@ -17,11 +17,16 @@ fun HomeApp(
     onNavigateToSetting: () -> Unit,
     onNavigateToSaveLink: (String) -> Unit,
     onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
+    onDeleteLink: (
+        userLinkuId: Long,
+        onSuccess: () -> Unit,
+        onFailed: (Throwable) -> Unit,
+    ) -> Unit,
     onNavigateToAlarm: () -> Unit,
     onSearchOpen: () -> Unit,
     onShowNavBar: (Boolean) -> Unit = {},
 ) {
-    val recentLinks by viewModel.recentLinks.collectAsStateWithLifecycle()
+    val recentLinksUiState by viewModel.recentLinksUiState.collectAsStateWithLifecycle()
     val recommendedLinks = viewModel.recommendedLinks.collectAsLazyPagingItems()
     val navController = rememberNavController()
 
@@ -36,7 +41,7 @@ fun HomeApp(
                 homeViewModel = viewModel,
                 userName = nickname,
                 recommendedLinks = recommendedLinks,
-                recentLinks = recentLinks,
+                recentLinksUiState = recentLinksUiState,
                 isRecommendMode = viewModel.isRecommendMode,
                 onRecommendRequest = { emotionId, situationId ->
                     viewModel.fetchRecommendations(
@@ -48,6 +53,7 @@ fun HomeApp(
                 needMoreForRecommendation = viewModel.needMoreForRecommendation,
                 jobId = viewModel.jobId ?: 2L,
                 onLinkClick = onNavigateToLinkDetail,
+                onDeleteLink = onDeleteLink,
                 onNavigateToSaveLink = onNavigateToSaveLink,
                 onAlarmClick = onNavigateToAlarm,
                 onSearchOpen = onSearchOpen,

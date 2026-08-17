@@ -8,10 +8,10 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.RequestBody
 import okio.Buffer
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Retrofit
@@ -20,7 +20,7 @@ import java.io.IOException
 import java.nio.file.Files
 
 /**
- * 링크 수정값이 이미지 유무에 맞는 query 및 multipart 요청으로 조립되는지 검증합니다.
+ * 링크 수정값이 이미지 유무와 관계없이 multipart 요청으로 조립되는지 검증합니다.
  *
  * OkHttp interceptor에서 외부 통신 직전에 요청을 가로채므로 네트워크 연결 없이
  * Retrofit의 요청 생성 과정과 Repository의 전송 경로 선택을 함께 확인할 수 있습니다.
@@ -28,31 +28,36 @@ import java.nio.file.Files
 class LinkuRepositoryUpdateRequestTest {
 
     @Test
-    fun `이미지 없이 제목만 변경하면 query 요청을 생성한다`() = runTest {
+    fun `이미지 없이 제목만 변경해도 multipart part로 전송한다`() = runTest {
         val request = captureUpdateRequest(title = "변경한 제목")
 
         assertEquals("PATCH", request.method)
-        assertEquals("변경한 제목", request.url.queryParameter("title"))
-        assertFalse(request.body is MultipartBody)
+        assertTrue(request.url.queryParameterNames.isEmpty())
+
+        val multipartBody = request.requireMultipartBody()
+        assertEquals(1, multipartBody.parts.size)
+        assertEquals("변경한 제목", multipartBody.requirePart("title").body.readUtf8())
     }
 
     @Test
-    fun `빈 메모는 삭제를 위한 빈 query 값으로 유지한다`() = runTest {
+    fun `빈 메모는 삭제를 위한 길이 0의 multipart part로 유지한다`() = runTest {
         val request = captureUpdateRequest(memo = "")
 
-        assertTrue("memo" in request.url.queryParameterNames)
-        assertEquals("", request.url.queryParameter("memo"))
+        val memoPart = request.requireMultipartBody().requirePart("memo")
+        assertEquals(0L, memoPart.body.contentLength())
+        assertEquals("", memoPart.body.readUtf8())
     }
 
     @Test
-    fun `카테고리만 변경하면 ID를 query로 전송한다`() = runTest {
+    fun `카테고리만 변경하면 ID를 multipart part로 전송한다`() = runTest {
         val request = captureUpdateRequest(categoryId = 31L)
 
-        assertEquals("31", request.url.queryParameter("categoryId"))
+        val categoryPart = request.requireMultipartBody().requirePart("categoryId")
+        assertEquals("31", categoryPart.body.readUtf8())
     }
 
     @Test
-    fun `이미지를 변경하면 query와 image multipart part를 함께 전송한다`() = runTest {
+    fun `이미지를 변경하면 텍스트와 image multipart part를 함께 전송한다`() = runTest {
         val imageBytes = byteArrayOf(1, 2, 3)
         val imageFile = Files.createTempFile("linku-update-", ".png").toFile()
 
@@ -67,12 +72,16 @@ class LinkuRepositoryUpdateRequestTest {
                 title = "이미지와 함께 변경한 제목",
             )
 
-            assertEquals("이미지와 함께 변경한 제목", request.url.queryParameter("title"))
+            assertTrue(request.url.queryParameterNames.isEmpty())
 
             val multipartBody = request.requireMultipartBody()
-            assertEquals(1, multipartBody.parts.size)
+            assertEquals(2, multipartBody.parts.size)
+            assertEquals(
+                "이미지와 함께 변경한 제목",
+                multipartBody.requirePart("title").body.readUtf8(),
+            )
 
-            val imagePart = multipartBody.parts.single()
+            val imagePart = multipartBody.requirePart("image")
             val contentDisposition = imagePart.headers?.get("Content-Disposition").orEmpty()
             assertTrue(contentDisposition.contains("name=\"image\""))
             assertTrue(contentDisposition.contains("filename=\"${imageFile.name}\""))
@@ -160,6 +169,25 @@ class LinkuRepositoryUpdateRequestTest {
             "링크 수정 요청 본문이 multipart가 아닙니다."
         }
         return requestBody
+    }
+
+    /**
+     * multipart body에서 지정한 form-data 이름의 part를 반환합니다.
+     */
+    private fun MultipartBody.requirePart(name: String): MultipartBody.Part =
+        parts.singleOrNull { part ->
+            part.headers
+                ?.get("Content-Disposition")
+                ?.contains("name=\"$name\"") == true
+        } ?: throw AssertionError("multipart 요청에 '$name' part가 없습니다.")
+
+    /**
+     * text part의 원문을 UTF-8 문자열로 읽습니다.
+     */
+    private fun RequestBody.readUtf8(): String {
+        val buffer = Buffer()
+        writeTo(buffer)
+        return buffer.readUtf8()
     }
 
     private companion object {

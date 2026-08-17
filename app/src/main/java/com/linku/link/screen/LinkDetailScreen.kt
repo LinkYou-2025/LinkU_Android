@@ -49,6 +49,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -255,7 +256,8 @@ fun LinkDetailScreen(
     var isEditBaselineCaptured by rememberSaveable(userLinkuId) { mutableStateOf(false) }
 
     val isTitleValid = selectedTitle.isNotBlank()
-    val isSaveButtonEnabled = !isEditMode || isTitleValid
+    // 수정 모드에서는 저장 액션을 항상 제공하고, 조회 모드에서는 AI 요약이 없을 때만 생성 액션을 표시합니다.
+    val shouldShowBottomAction = isEditMode || !isAiSummaryMode
 
     val selectedSituation = situationOptions.firstOrNull {
         it.id.value == selectedSituationId
@@ -282,6 +284,9 @@ fun LinkDetailScreen(
             selectedEmotion?.id?.value != editBaselineEmotionId ||
             selectedSituationId != editBaselineSituationId
         )
+
+    // 수정 모드에서는 유효한 제목과 실제 변경사항이 모두 있을 때만 완료 액션을 활성화합니다.
+    val isSaveButtonEnabled = !isEditMode || (isTitleValid && hasEditChanges)
 
     // 수정 전 값으로 초안을 복원하고 링크 상세 화면을 유지한 채 수정 모드만 종료합니다.
     val discardEditChanges: () -> Unit = {
@@ -358,6 +363,16 @@ fun LinkDetailScreen(
         .map { tag ->
             if (tag.startsWith("#")) tag else "#$tag"
         }
+
+    // AI 결과는 수정 대상이 아니므로 편집 중에는 비활성 스타일로 일관되게 표시합니다.
+    val aiSectionContentColor = if (isEditMode) colors.gray[400] else colors.black
+    val aiSectionBorderBrush = if (isEditMode) {
+        SolidColor(colors.gray[200])
+    } else {
+        colors.linkuInactiveGradient
+    }
+    val aiSectionSparkleRes =
+        if (isEditMode) R.drawable.ic_sparkle_gray else R.drawable.ic_sparkles_colored
 
     LaunchedEffect(linkTitle, categoryId, emotion, situationId, memo) {
         if (!isEditMode) {
@@ -689,7 +704,7 @@ fun LinkDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.ic_sparkles_colored),
+                                painter = painterResource(aiSectionSparkleRes),
                                 contentDescription = null,
                                 modifier = Modifier.height(15.dp)
                             )
@@ -698,7 +713,7 @@ fun LinkDetailScreen(
                                 text = "AI 태그",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = colors.black
+                                color = aiSectionContentColor
                             )
                         }
 
@@ -713,10 +728,11 @@ fun LinkDetailScreen(
                                         text = tag,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
-                                        color = colors.black,
+                                        color = aiSectionContentColor,
+                                        lineHeight = 20.sp,
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(20.dp))
-                                            .border(1.dp, colors.inactiveColor, RoundedCornerShape(20.dp))
+                                            .border(1.dp, aiSectionBorderBrush, RoundedCornerShape(20.dp))
                                             .background(colors.white)
                                             .padding(horizontal = 15.dp, vertical = 9.dp)
                                     )
@@ -737,7 +753,7 @@ fun LinkDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.ic_sparkles_colored),
+                                painter = painterResource(aiSectionSparkleRes),
                                 contentDescription = null,
                                 modifier = Modifier.height(15.dp)
                             )
@@ -746,7 +762,7 @@ fun LinkDetailScreen(
                                 text = "AI 링크 요약",
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = colors.black
+                                color = aiSectionContentColor
                             )
                         }
 
@@ -754,12 +770,12 @@ fun LinkDetailScreen(
                             text = aiSummary,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
-                            color = colors.black,
+                            color = aiSectionContentColor,
                             lineHeight = 20.sp,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(18.dp))
-                                .border(1.dp, colors.inactiveColor, RoundedCornerShape(18.dp))
+                                .border(1.dp, aiSectionBorderBrush, RoundedCornerShape(18.dp))
                                 .background(colors.white)
                                 .padding(horizontal = 22.dp, vertical = 16.dp)
                         )
@@ -845,7 +861,7 @@ fun LinkDetailScreen(
 
                     Spacer(modifier = Modifier.height(40.dp))
 
-                    if (!isAiSummaryMode) {
+                    if (shouldShowBottomAction) {
                         Spacer(modifier = Modifier.height(50.dp))
                     }
                 }
@@ -1041,7 +1057,7 @@ fun LinkDetailScreen(
             }
         }
 
-        if (!isAiSummaryMode) {
+        if (shouldShowBottomAction) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -20,14 +20,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.linku.design.theme.linkuColors
 
-/** [com.linku.design.component.LinkCardItem] 레이아웃을 그대로 따라 만든 shimmer 스켈레톤 플레이스홀더 */
+/**
+ * [com.linku.design.component.LinkCardItem] 레이아웃을 그대로 따라 만든 shimmer 스켈레톤 플레이스홀더입니다.
+ *
+ * @param modifier 카드의 외부 배치와 간격을 지정하는 modifier입니다.
+ */
 @Composable
-internal fun LinkCardItemSkeleton() {
+fun LinkCardItemSkeleton(
+    modifier: Modifier = Modifier,
+) {
     val colors = MaterialTheme.linkuColors
     val skeletonColors = listOf(colors.gray[100], colors.gray[200])
 
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)

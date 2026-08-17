@@ -8,5 +8,10 @@
     <string name="link_edit_discard_body">지금 나가면 변경사항이\n저장되지 않고 사라져요.</string>
     <string name="link_edit_discard_exit">나가기</string>
     <string name="link_edit_discard_continue">계속 수정하기</string>
+    <string name="link_detail_back">뒤로가기</string>
+    <string name="link_detail_screen_title">저장된 링크</string>
+    <string name="link_detail_load_error_title">링크를 불러오지 못했어요.</string>
+    <string name="link_detail_load_error_body">잠시 후 다시 시도해 주세요.</string>
+    <string name="link_detail_load_retry">다시 시도</string>
     <string name="app_name">링큐</string>
 </resources>

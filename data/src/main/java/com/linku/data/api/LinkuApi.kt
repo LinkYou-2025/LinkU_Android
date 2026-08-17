@@ -10,7 +10,6 @@ import com.linku.data.api.dto.server.LinkuSimpleDTO
 import com.linku.data.api.dto.server.RecommendLinkPageDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -47,34 +46,11 @@ interface LinkuApi {
     ): BaseResponse<LinkuIsExistDTO>
 
     /**
-     * 이미지 변경 없이 전달된 query parameter만 수정합니다.
+     * 변경된 링크 값을 multipart part로 전달해 수정합니다.
      *
-     * 변경되지 않은 값은 `null`로 생략하며, 메모의 빈 문자열은 기존 메모를 지우는
-     * 유효한 변경값이므로 빈 query 값으로 전달합니다.
-     *
-     * @param userLinkuId 수정할 사용자 저장 링크 ID
-     * @param memo 변경할 메모. `null`이면 변경하지 않습니다.
-     * @param emotionId 변경할 감정 ID. `null`이면 변경하지 않습니다.
-     * @param situationId 변경할 상황 ID. `null`이면 변경하지 않습니다.
-     * @param categoryId 변경할 카테고리 ID. `null`이면 변경하지 않습니다.
-     * @param title 변경할 제목. `null`이면 변경하지 않습니다.
-     * @return 수정된 링크 상세 정보가 포함된 응답
-     */
-    @PATCH("linku/{userLinkuId}")
-    suspend fun updateLink(
-        @Path("userLinkuId") userLinkuId: Long,
-        @Query("memo") memo: String?,
-        @Query("emotionId") emotionId: Long?,
-        @Query("situationId") situationId: Long?,
-        @Query("categoryId") categoryId: Long?,
-        @Query("title") title: String?,
-    ): BaseResponse<LinkuResultDTO>
-
-    /**
-     * 전달된 query parameter와 새 이미지를 함께 수정합니다.
-     *
-     * multipart body가 비어 요청 생성에 실패하지 않도록 이 메서드의 이미지 part는
-     * null을 허용하지 않습니다.
+     * 서버가 이미지 유무와 관계없이 `multipart/form-data` 요청만 허용하므로 텍스트와 ID도
+     * 모두 part로 전송합니다. 변경되지 않은 값은 `null`로 생략하고, 빈 메모 RequestBody는
+     * 기존 메모를 지우는 유효한 part로 유지합니다.
      *
      * @param userLinkuId 수정할 사용자 저장 링크 ID
      * @param memo 변경할 메모. `null`이면 변경하지 않습니다.
@@ -82,19 +58,19 @@ interface LinkuApi {
      * @param situationId 변경할 상황 ID. `null`이면 변경하지 않습니다.
      * @param categoryId 변경할 카테고리 ID. `null`이면 변경하지 않습니다.
      * @param title 변경할 제목. `null`이면 변경하지 않습니다.
-     * @param image 새로 등록할 이미지
+     * @param image 새로 등록할 이미지. `null`이면 기존 이미지를 유지합니다.
      * @return 수정된 링크 상세 정보가 포함된 응답
      */
     @Multipart
     @PATCH("linku/{userLinkuId}")
-    suspend fun updateLinkWithImage(
+    suspend fun updateLink(
         @Path("userLinkuId") userLinkuId: Long,
-        @Query("memo") memo: String?,
-        @Query("emotionId") emotionId: Long?,
-        @Query("situationId") situationId: Long?,
-        @Query("categoryId") categoryId: Long?,
-        @Query("title") title: String?,
-        @Part image: MultipartBody.Part,
+        @Part("memo") memo: RequestBody?,
+        @Part("emotionId") emotionId: RequestBody?,
+        @Part("situationId") situationId: RequestBody?,
+        @Part("categoryId") categoryId: RequestBody?,
+        @Part("title") title: RequestBody?,
+        @Part image: MultipartBody.Part?,
     ): BaseResponse<LinkuResultDTO>
 
     /**
@@ -133,10 +109,18 @@ interface LinkuApi {
         @Query("size") size: Int = 10,
     ): BaseResponse<LinkuSearchResponseDTO>
 
-    // 링크 삭제
+    /**
+     * 사용자가 저장한 링크를 삭제합니다.
+     *
+     * 서버는 삭제 결과 데이터 대신 빈 객체를 [BaseResponse.result]에 담아 반환하므로,
+     * 호출자는 응답 본문을 공통 성공·오류 계약으로 검사한 뒤 결과 값 자체는 사용하지 않습니다.
+     *
+     * @param userLinkuId 삭제할 사용자 저장 링크 ID
+     * @return 성공 여부와 서버 응답 코드를 포함한 공통 응답
+     */
     @DELETE("linku/{userLinkuId}")
     suspend fun deleteLink(
-        @Path("userLinkuId") userLinkuId: Long
-    ): Response<Unit>
+        @Path("userLinkuId") userLinkuId: Long,
+    ): BaseResponse<Any?>
 
 }
