@@ -117,7 +117,6 @@ fun LinkCardItem(
                         modifier = Modifier
                             .weight(1f)
                             .widthIn(min = 1.dp)
-                            .padding(top = 8.dp)
                     )
                 }
 
