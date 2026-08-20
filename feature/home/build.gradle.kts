@@ -87,7 +87,6 @@ dependencies {
     implementation(project(":design"))
     implementation(project(":data"))
     implementation(project(":feature:file"))
-    implementation(project(":feature:curation"))
 
     // Hilt
     implementation(libs.hilt.android)

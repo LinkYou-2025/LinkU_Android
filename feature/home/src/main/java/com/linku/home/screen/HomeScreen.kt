@@ -54,10 +54,10 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
-import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
-import com.linku.curation.ui.effect.skeleton.SkeletonBox
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
+import com.linku.design.component.LinkCardItemSkeleton
+import com.linku.design.component.SkeletonBox
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -421,7 +421,7 @@ fun HomeScreen(
                         SkeletonBox(
                             modifier = Modifier.size(width = 64.dp, height = 22.dp),
                             shape = RoundedCornerShape(6.dp),
-                            colors = listOf(colors.gray[100], colors.gray[200])
+                            color = colors.gray[200]
                         )
 
                         Text(

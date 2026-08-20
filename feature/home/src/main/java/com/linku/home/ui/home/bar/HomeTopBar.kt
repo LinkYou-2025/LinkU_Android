@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
-import com.linku.curation.ui.effect.skeleton.SkeletonBox
+import com.linku.design.component.SkeletonBox
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.font.Taebaek
@@ -150,7 +150,7 @@ fun HomeTopBar(
                         SkeletonBox(
                             modifier = Modifier.size(width = 64.dp, height = 22.dp),
                             shape = RoundedCornerShape(6.dp),
-                            colors = listOf(colors.gray[100], colors.gray[200])
+                            color = colors.gray[200]
                         )
 
                         Text(

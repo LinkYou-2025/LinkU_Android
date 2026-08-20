@@ -25,13 +25,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.core.model.curation.UnreadLink
 import com.linku.curation.ui.effect.skeleton.CurationTopHeaderSkeleton
-import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.curation.ui.header.CurationTopHeader
 import com.linku.curation.ui.util.CurationGradientCircleBackground
 import com.linku.curation.viewModel.CurationRemindViewModel
 import com.linku.curation.viewModel.intent.CurationRemindIntent
 import com.linku.curation.viewModel.sideeffect.CurationRemindSideEffect
 import com.linku.design.component.LinkCardItem
+import com.linku.design.component.LinkCardItemSkeleton
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.util.scaler

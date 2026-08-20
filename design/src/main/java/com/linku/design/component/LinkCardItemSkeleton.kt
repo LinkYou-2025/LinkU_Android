@@ -1,4 +1,4 @@
-package com.linku.curation.ui.effect.skeleton
+package com.linku.design.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,7 +30,6 @@ fun LinkCardItemSkeleton(
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.linkuColors
-    val skeletonColors = listOf(colors.gray[100], colors.gray[200])
 
     Box(
         modifier = modifier
@@ -44,7 +43,6 @@ fun LinkCardItemSkeleton(
             SkeletonBox(
                 modifier = Modifier.size(85.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = skeletonColors
             )
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -56,7 +54,6 @@ fun LinkCardItemSkeleton(
                         .height(15.dp)
                         .fillMaxWidth(0.78f),
                     shape = RoundedCornerShape(4.dp),
-                    colors = skeletonColors
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -66,7 +63,6 @@ fun LinkCardItemSkeleton(
                     SkeletonBox(
                         modifier = Modifier.size(width = 30.dp, height = 18.dp),
                         shape = RoundedCornerShape(6.dp),
-                        colors = skeletonColors
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
@@ -74,7 +70,6 @@ fun LinkCardItemSkeleton(
                     SkeletonBox(
                         modifier = Modifier.size(width = 30.dp, height = 18.dp),
                         shape = RoundedCornerShape(6.dp),
-                        colors = skeletonColors
                     )
                 }
 
@@ -85,7 +80,6 @@ fun LinkCardItemSkeleton(
                     SkeletonBox(
                         modifier = Modifier.size(22.dp),
                         shape = CircleShape,
-                        colors = skeletonColors
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
@@ -93,7 +87,6 @@ fun LinkCardItemSkeleton(
                     SkeletonBox(
                         modifier = Modifier.size(width = 40.dp, height = 11.dp),
                         shape = RoundedCornerShape(4.dp),
-                        colors = skeletonColors
                     )
                 }
             }

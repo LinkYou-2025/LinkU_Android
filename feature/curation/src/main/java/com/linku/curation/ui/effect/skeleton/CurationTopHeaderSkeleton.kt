@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,7 +17,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.linku.curation.R
+import com.linku.design.component.SkeletonBox
 import com.linku.design.modifier.noRippleClickable
+import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
 /**
@@ -32,6 +35,8 @@ internal fun CurationTopHeaderSkeleton(
     onBack: () -> Unit,
     contentTopOffset: Dp,
 ) {
+    val skeletonColor = MaterialTheme.linkuColors.gray[300]
+
     Box(modifier = Modifier.fillMaxWidth()) {
         // 백버튼 — 로딩 중에도 실제 아이콘으로 유지
         Image(
@@ -59,7 +64,8 @@ internal fun CurationTopHeaderSkeleton(
                 modifier = Modifier
                     .height(22.scaler)
                     .fillMaxWidth(0.55f),
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(6.dp),
+                color = skeletonColor
             )
 
             Spacer(modifier = Modifier.height(6.scaler))
@@ -69,7 +75,8 @@ internal fun CurationTopHeaderSkeleton(
                 modifier = Modifier
                     .height(22.scaler)
                     .fillMaxWidth(0.8f),
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(6.dp),
+                color = skeletonColor
             )
 
             Spacer(modifier = Modifier.height(12.scaler))
@@ -79,7 +86,8 @@ internal fun CurationTopHeaderSkeleton(
                 modifier = Modifier
                     .height(16.scaler)
                     .fillMaxWidth(0.45f),
-                shape = RoundedCornerShape(4.dp)
+                shape = RoundedCornerShape(4.dp),
+                color = skeletonColor
             )
         }
     }
