@@ -1,5 +1,5 @@
 [versions]
-compileSdk = "36"
+compileSdk = "37"
 minSdk = "26"
 targetSdk = "35"
 appVersionCode = "1"
@@ -9,7 +9,7 @@ kotlinJvmTarget = "11"
 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
 accompanistSystemuicontroller = "0.36.0"
-agp = "9.0.1"
+agp = "9.3.1"
 browser = "1.9.0"
 coilCompose = "2.7.0"
 coilComposeVersion = "3.4.0"
