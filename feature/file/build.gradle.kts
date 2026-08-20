@@ -1,6 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
-import kotlin.apply
 
 plugins {
     alias(libs.plugins.android.library)
@@ -12,15 +11,15 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) load(file.inputStream())
-}
+val localProperties = rootProject.extra["localProperties"] as Properties
 
 val serverHost = localProperties.getProperty("SERVER_HOST")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("SERVER_HOST is missing or blank in local.properties")
+    ?: throw GradleException(
+        "SERVER_HOST is missing or blank. Set it in local.properties, " +
+            "or set the SERVER_HOST environment variable."
+    )
 
 android {
     namespace = "com.linku.file"

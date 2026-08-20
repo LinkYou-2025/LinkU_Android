@@ -1,3 +1,5 @@
+import java.util.Properties
+
 // Top-level build file where you can add configuration options common to all subprojects/modules.
 plugins {
     alias(libs.plugins.android.application) apply false
@@ -13,3 +15,35 @@ plugins {
     // Add the dependency for the Google services Gradle plugin
     id("com.google.gms.google-services") version "4.5.0" apply false
 }
+
+val localPropertyNames = listOf(
+    "KAKAO_NATIVE_APP_KEY",
+    "GOOGLE_WEB_CLIENT_ID",
+    "SERVER_DOMAIN",
+    "SERVER_HOST",
+    "API_VERSION",
+)
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties().apply {
+    if (localPropertiesFile.isFile) {
+        localPropertiesFile.inputStream().use { load(it) }
+    }
+
+    localPropertyNames.forEach { propertyName ->
+        val propertyValue = getProperty(propertyName)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?: project.providers.environmentVariable(propertyName).orNull
+                ?.trim()
+                ?.takeIf { it.isNotEmpty() }
+
+        if (propertyValue == null) {
+            remove(propertyName)
+        } else {
+            setProperty(propertyName, propertyValue)
+        }
+    }
+}
+
+rootProject.extra["localProperties"] = localProperties

@@ -10,20 +10,15 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) {
-        file.inputStream().use { inputStream ->
-            load(inputStream)
-        }
-    }
-
-}
+val localProperties = rootProject.extra["localProperties"] as Properties
 
 val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
+    ?: throw GradleException(
+        "GOOGLE_WEB_CLIENT_ID is missing or blank. Set it in local.properties, " +
+            "or set the GOOGLE_WEB_CLIENT_ID environment variable."
+    )
 
 
 android {

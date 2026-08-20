@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -12,15 +11,23 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    load(FileInputStream(rootProject.file("local.properties")))
-}
+val localProperties = rootProject.extra["localProperties"] as Properties
 
 val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
-    ?: throw GradleException("SERVER_DOMAIN is not set in local.properties")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException(
+        "SERVER_DOMAIN is missing or blank. Set it in local.properties, " +
+            "or set the SERVER_DOMAIN environment variable."
+    )
 
 val apiVersion = localProperties.getProperty("API_VERSION")
-    ?: throw GradleException("API_VERSION is not set in local.properties")
+    ?.trim()
+    ?.takeIf { it.isNotEmpty() }
+    ?: throw GradleException(
+        "API_VERSION is missing or blank. Set it in local.properties, " +
+            "or set the API_VERSION environment variable."
+    )
 
 val serverBaseUrl = "$serverDomain/$apiVersion/"
 

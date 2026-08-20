@@ -14,31 +14,40 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) load(file.inputStream())
-}
+val localProperties = rootProject.extra["localProperties"] as Properties
 
 val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing or blank in local.properties")
+    ?: throw GradleException(
+        "KAKAO_NATIVE_APP_KEY is missing or blank. Set it in local.properties, " +
+            "or set the KAKAO_NATIVE_APP_KEY environment variable."
+    )
 
 // 구글 소셜 로그인 로컬 프로퍼티
 val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
+    ?: throw GradleException(
+        "GOOGLE_WEB_CLIENT_ID is missing or blank. Set it in local.properties, " +
+            "or set the GOOGLE_WEB_CLIENT_ID environment variable."
+    )
 
 val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("SERVER_DOMAIN is missing or blank in local.properties")
+    ?: throw GradleException(
+        "SERVER_DOMAIN is missing or blank. Set it in local.properties, " +
+            "or set the SERVER_DOMAIN environment variable."
+    )
 
 val serverHost = localProperties.getProperty("SERVER_HOST")
     ?.trim()
     ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("SERVER_HOST is missing or blank in local.properties")
+    ?: throw GradleException(
+        "SERVER_HOST is missing or blank. Set it in local.properties, " +
+            "or set the SERVER_HOST environment variable."
+    )
 
 android {
     namespace = "com.linku"
