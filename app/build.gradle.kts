@@ -171,9 +171,6 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
 
-    // Paging
-    implementation(libs.paging.runtime)
-
     implementation(libs.lottie)
 
     // coil 의존성 추가 -> 추후 리팩토링 진행 시 feature 모듈로 따로 이동할 때 삭제할 예정
