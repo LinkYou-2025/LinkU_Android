@@ -3,9 +3,14 @@ package com.linku.core.repository
 import com.linku.core.model.Nickname
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.RecoverResult
+import kotlinx.coroutines.flow.StateFlow
 
 
 interface UserRepository {
+
+    // 가장 최근에 성공한 getUserInfo() 응답을 담아두는 인메모리 캐시.
+    // 로그인 직후 미리 채워두면 마이페이지 진입 시 API 응답을 기다리지 않고 헤더를 바로 그릴 수 있음.
+    val cachedUserInfo: StateFlow<UserInfo?>
 
     suspend fun deleteUser(reason: String): Result<Unit>
 

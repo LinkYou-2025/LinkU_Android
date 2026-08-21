@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.linku.core.error.SameNameException
 import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modal.ModalWindow
@@ -131,7 +134,10 @@ fun FileScreen(
     val parentFolders by fileViewModel.parentFolders.collectAsStateWithLifecycle()
     val parentFolderSort by fileViewModel.parentFolderSort.collectAsStateWithLifecycle()
     val subFolders by fileViewModel.subFolders.collectAsStateWithLifecycle()
-    val links by fileViewModel.links.collectAsStateWithLifecycle()
+    val links = fileViewModel.links.collectAsLazyPagingItems()
+    val folderLinksRequest by fileViewModel.folderLinksRequest.collectAsStateWithLifecycle()
+    val categorizedFolderLinks by
+        fileViewModel.categorizedFolderLinks.collectAsStateWithLifecycle()
     val notCategorizationLinks by fileViewModel.notCategorizationLinks.collectAsStateWithLifecycle()
     val folderTree by fileViewModel.folderTree.collectAsStateWithLifecycle()
     val isPersonalLoading by fileViewModel.loading.collectAsStateWithLifecycle()
@@ -217,7 +223,10 @@ fun FileScreen(
             is FileNavigationState.PersonalBottom -> {
                 leaveStateViewModel.updateLeaveMode(false)
             }
-            is FileNavigationState.PersonalLinks -> exitAllFolderModes()
+            is FileNavigationState.PersonalLinks -> {
+                exitAllFolderModes()
+                fileViewModel.getLinks(navigationState.folder.folderId)
+            }
             FileNavigationState.SharedFolderGroups -> {
                 exitAllFolderModes()
                 fileViewModel.loadSharedFolderGroups()
@@ -453,7 +462,6 @@ fun FileScreen(
                             folderStateViewModel.updateNewFolderBottomSheetVisible(true)
                         },
                         onFolderClick = { folder ->
-                            fileViewModel.getLinks(folder.folderId)
                             folderStateViewModel.showPersonalLinks(
                                 navigationState.parentFolder,
                                 folder,
@@ -481,18 +489,73 @@ fun FileScreen(
                     )
                 }
 
-                is FileNavigationState.PersonalLinks -> if (isPersonalLoading) {
-                    LoadingFoldersGrid(modifier = Modifier.fillMaxSize())
-                } else {
-                    ClassifiedLinksGrid(
-                        links = links,
-                        hasNotCategorizationLinks = notCategorizationLinks.isNotEmpty(),
-                        onLinkCategorizationClick = {
-                            folderStateViewModel.updateLinkCategorizationBottomSheetVisible(true)
-                        },
-                        onLinkClick = onLinkClick,
-                        onDeleteLink = fileViewModel::deleteLink,
-                    )
+                is FileNavigationState.PersonalLinks -> key(navigationState.folder.folderId) {
+                    val refreshState = links.loadState.refresh
+                    val loadedServerLinks = links.itemSnapshotList.items
+                    val snapshotBelongsToCurrentFolder = loadedServerLinks.all { link ->
+                        link.parentFolderId == navigationState.folder.folderId
+                    }
+                    val loadedServerLinkIds = loadedServerLinks
+                        .mapTo(mutableSetOf()) { link -> link.userLinkuId }
+                    val categorizedLinksForCurrentFolder =
+                        categorizedFolderLinks[navigationState.folder.folderId].orEmpty()
+                    val categorizedLinkIds = categorizedLinksForCurrentFolder
+                        .mapTo(mutableSetOf()) { link -> link.userLinkuId }
+                    val optimisticLinks = categorizedLinksForCurrentFolder
+                        .filterNot { link -> link.userLinkuId in loadedServerLinkIds }
+                    val hasVisibleLinks = links.itemCount > 0 || optimisticLinks.isNotEmpty()
+
+                    LaunchedEffect(
+                        navigationState.folder.folderId,
+                        folderLinksRequest?.generation,
+                        snapshotBelongsToCurrentFolder,
+                        loadedServerLinkIds,
+                        categorizedLinkIds,
+                    ) {
+                        if (
+                            folderLinksRequest?.folderId == navigationState.folder.folderId &&
+                            snapshotBelongsToCurrentFolder
+                        ) {
+                            fileViewModel.reconcileCategorizedFolderLinks(
+                                folderId = navigationState.folder.folderId,
+                                loadedLinkIds = loadedServerLinkIds,
+                            )
+                        }
+                    }
+
+                    when {
+                        folderLinksRequest?.folderId != navigationState.folder.folderId ||
+                            isPersonalLoading -> {
+                            LoadingFoldersGrid(modifier = Modifier.fillMaxSize())
+                        }
+                        refreshState is LoadState.Error &&
+                            (!snapshotBelongsToCurrentFolder || !hasVisibleLinks) -> {
+                            SharedFolderErrorState(
+                                title = stringResource(R.string.classified_links_load_failed),
+                                retryLabel = stringResource(R.string.classified_links_retry),
+                                onRetry = links::retry,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                        !snapshotBelongsToCurrentFolder ||
+                            refreshState is LoadState.Loading && !hasVisibleLinks -> {
+                            // Paging presenter는 새 Refresh Insert 전까지 이전 폴더 snapshot을 유지합니다.
+                            LoadingFoldersGrid(modifier = Modifier.fillMaxSize())
+                        }
+                        else -> {
+                            ClassifiedLinksGrid(
+                                links = links,
+                                optimisticLinks = optimisticLinks,
+                                hasNotCategorizationLinks = notCategorizationLinks.isNotEmpty(),
+                                onLinkCategorizationClick = {
+                                    folderStateViewModel
+                                        .updateLinkCategorizationBottomSheetVisible(true)
+                                },
+                                onLinkClick = onLinkClick,
+                                onDeleteLink = fileViewModel::deleteLink,
+                            )
+                        }
+                    }
                 }
 
                 FileNavigationState.SharedFolderGroups -> when (val state = sharedGroupsState) {

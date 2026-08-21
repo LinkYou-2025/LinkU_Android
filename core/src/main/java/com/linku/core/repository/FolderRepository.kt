@@ -1,5 +1,6 @@
 package com.linku.core.repository
 
+import androidx.paging.PagingData
 import com.linku.core.model.FolderInfo
 import com.linku.core.model.FolderPermission
 import com.linku.core.model.FolderSimpleInfo
@@ -59,6 +60,14 @@ interface FolderRepository {
         onGetFolders: (List<FolderSimpleInfo>) -> Unit,
         onGetLinks: (List<LinkItemInfo>) -> Unit
     ): String?
+
+    /**
+     * 지정한 폴더에 저장된 링크를 커서 기반 페이징 스트림으로 조회합니다.
+     *
+     * @param folderId 링크를 조회할 소분류 폴더 ID
+     * @return 첫 페이지부터 다음 커서 순서로 이어지는 폴더 링크 스트림
+     */
+    fun getFolderLinks(folderId: Long): Flow<PagingData<LinkItemInfo>>
 
     // (소분류) 폴더 생성 (소분류 폴더 생성) (예외 던질 수 있음)
     suspend fun createSubfolder(

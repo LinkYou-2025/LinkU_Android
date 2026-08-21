@@ -118,8 +118,11 @@ internal fun PasswordLoginTextField(
                 BasicTextField(
                     value = fieldValue,
                     onValueChange = { newValue: TextFieldValue ->
-                        fieldValue = newValue
-                        onValueChange(newValue.text)
+                        // 비밀번호는 최대 20자까지만 입력 가능
+                        if (newValue.text.length <= 20) {
+                            fieldValue = newValue
+                            onValueChange(newValue.text)
+                        }
                     },
 
                     textStyle =

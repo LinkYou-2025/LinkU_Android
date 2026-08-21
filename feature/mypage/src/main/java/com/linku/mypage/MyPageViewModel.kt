@@ -52,6 +52,12 @@ class MyPageViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(cachedNickname = cached)
             }
         }
+
+        // 로그인 직후 MainViewModel이 미리 채워둔 헤더 캐시가 있으면 API 응답을 기다리지 않고
+        // 바로 반영. loadUserInfo()가 뒤이어 호출되며 최신 값으로 갱신됨.
+        userRepository.cachedUserInfo.value?.let { cached ->
+            _uiState.value = _uiState.value.copy(userInfo = cached)
+        }
     }
 
     fun checkUnreadAlarm() {

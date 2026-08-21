@@ -48,6 +48,7 @@ fun MyPageScreen(
     myFolder: Long,
     myAiLinku: Long,
     loginType: LoginType,
+    isHeaderLoading: Boolean,
     onNavigateAccount: () -> Unit,
     onNavigateAlarm: () -> Unit,
     onNavigateAlarmSetting: () -> Unit,
@@ -77,7 +78,8 @@ fun MyPageScreen(
             socialLoginType = loginType.name.lowercase(),
             onAlarmClick = { onNavigateAlarm() },
             onAISummaryClick = { onNavigateAISummary() },
-            modifier = Modifier.zIndex(1f)
+            modifier = Modifier.zIndex(1f),
+            isLoading = isHeaderLoading
         )
 
         // 설정
@@ -299,6 +301,7 @@ fun PreviewMyPageScreen() {
         myFolder = 5,
         myAiLinku = 48,
         loginType = LoginType.KAKAO,
+        isHeaderLoading = false,
         onNavigateAccount = {},
         onNavigateAlarm = {},
         onNavigateAlarmSetting = {},

@@ -137,7 +137,7 @@ fun SelectionCardItemComparePreview() {
                 modifier = Modifier.size(130.dp)
             )
             SelectionCardItem(
-                text = "글쓰기\n&콘텐츠\n노하우",
+                text = "글쓰기\n&콘텐츠",
                 isSelected = true,
                 iconPainter = painterResource(com.linku.design.R.drawable.ic_purpose_insights),
                 onClick = {},

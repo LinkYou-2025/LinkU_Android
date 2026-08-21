@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,23 +35,26 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.design.component.BottomGradientButton
+import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 import com.linku.design.util.scaler
-import com.linku.login.ui.alert.CodeNotReceivedAlert
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.ui.item.WrongRuleItem
@@ -301,18 +303,26 @@ internal fun EmailVerificationScreenContent(
             )
         }
 
-        // 인증번호가 오지 않을 때 안내하는 딤처리 alert
-        if (showCodeNotReceivedAlert) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(colorTheme.black.copy(alpha = 0.5f))
-                    .clickable(enabled = true, onClick = {})
-            )
-
-            CodeNotReceivedAlert(
-                onDismissRequest = { showCodeNotReceivedAlert = false },
-                onConfirmClick = { showCodeNotReceivedAlert = false }
+        // 인증번호가 오지 않을 때 안내하는 alert
+        ModalWindow(
+            visible = showCodeNotReceivedAlert,
+            onDismiss = { showCodeNotReceivedAlert = false },
+            positiveText = "확인",
+            title = "인증번호가 오지 않았나요?"
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    append("스팸 메일함 또는 프로모션 메일함도 확인해 보세요.\n메일이 도착하기까지 ")
+                    withStyle(SpanStyle(color = colorTheme.gray[800])) {
+                        append("최대 3분")
+                    }
+                    append(" 정도 소요될 수 있어요.")
+                },
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight.Normal,
+                color = colorTheme.gray[600],
+                textAlign = TextAlign.Center
             )
         }
     }

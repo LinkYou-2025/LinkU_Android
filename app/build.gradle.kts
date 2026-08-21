@@ -61,6 +61,7 @@ android {
         )
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
         buildConfigField("String", "SERVER_DOMAIN", "\"$serverDomain\"")
+        buildConfigField("String", "SERVER_HOST", "\"$serverHost\"")
         // 로컬 프로퍼티에 각자 디버그 키(개발 테스트) 꼭 넣어서 주세요. 안 그러면 실행 안됩니다.
         manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
         manifestPlaceholders["SERVER_HOST"] = serverHost

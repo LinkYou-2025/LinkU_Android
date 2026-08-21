@@ -2,7 +2,6 @@ package com.linku.file.ui.bottom.sheet
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -57,6 +56,8 @@ import coil3.request.error
 import coil3.request.fallback
 import coil3.request.placeholder
 import com.linku.core.model.LinkItemInfo
+import com.linku.design.component.CheckIndicator
+import com.linku.design.component.CheckIndicatorStyle
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -66,9 +67,6 @@ import com.linku.file.ui.theme.domainLogoPainterOrNull
 import com.linku.file.ui.theme.extractDomainHost
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import kotlinx.coroutines.launch
-import com.linku.design.R as DesignR
-
-private val LinkCategorizationCheckboxShape = RoundedCornerShape(6.dp)
 private val LinkCategorizationThumbnailShape = RoundedCornerShape(12.dp)
 private val LinkCategorizationThumbnailShadow = Shadow(
     radius = 15.dp,
@@ -116,6 +114,9 @@ internal fun LinkCategorizationBottomSheet(
                 linksToCategorize.forEach {
                     fileViewModel.updateLinkFolder(it, folderId)
                 }
+
+                // 여러 링크를 순차 분류한 뒤 한 번만 새 Pager를 만들어 중복 네트워크 요청을 피합니다.
+                fileViewModel.refreshLinks(folderId)
 
                 selectedLinks.clear()
             }
@@ -200,7 +201,10 @@ private fun LinkCategorizationLinkItem(
             },
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        LinkCategorizationCheckbox(selected = selected)
+        CheckIndicator(
+            checked = selected,
+            style = CheckIndicatorStyle.Outlined,
+        )
 
         Spacer(modifier = Modifier.width(10.dp))
 
@@ -280,40 +284,6 @@ private fun LinkCategorizationLinkItem(
                 )
             }
             Spacer(modifier = Modifier.height(7.dp))
-        }
-    }
-}
-
-@Composable
-private fun LinkCategorizationCheckbox(
-    selected: Boolean,
-) {
-    val colors = MaterialTheme.linkuColors
-
-    Box(
-        modifier = Modifier
-            .size(20.dp)
-            .clip(LinkCategorizationCheckboxShape)
-            .background(if (selected) colors.purple[200] else colors.white)
-            .then(
-                if (selected) {
-                    Modifier
-                } else {
-                    Modifier.border(
-                        width = 1.dp,
-                        color = colors.gray[200],
-                        shape = LinkCategorizationCheckboxShape,
-                    )
-                },
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        if (selected) {
-            Image(
-                modifier = Modifier.size(width = 12.dp, height = 9.dp),
-                painter = painterResource(DesignR.drawable.ic_checkbox_checked),
-                contentDescription = null,
-            )
         }
     }
 }

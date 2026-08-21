@@ -50,6 +50,11 @@ class MainViewModel @Inject constructor(
     private val _nickname = MutableStateFlow<String>("")
     val nickname: StateFlow<String> = _nickname.asStateFlow()
 
+    // 캐시도 서버 응답도 아직 없는 최초 로그인 구간에서만 true.
+    // 이 동안 화면에서는 "링큐" 기본값 대신 스켈레톤을 보여줘야 함.
+    private val _isNicknameLoading = MutableStateFlow(true)
+    val isNicknameLoading: StateFlow<Boolean> = _isNicknameLoading.asStateFlow()
+
     // 인증 상태. ViewModel State로 관리하는 이유:
     // ViewModel은 구성 변경(회전)엔 살아남지만 프로세스 종료 시엔 함께 소멸된다.
     // 따라서 복원 시 항상 false부터 시작 → 실제 로그인/자동 로그인 성공 시에만 true가 되어,
@@ -63,6 +68,18 @@ class MainViewModel @Inject constructor(
         if (value) {
             reRegisterFcmToken()
             syncAlarmSetting()
+            fetchNickname()
+            prefetchMyPageHeader()
+        }
+    }
+
+    // 마이페이지 진입 시 헤더(닉네임/이메일/링크·폴더·AI링크 개수)를 API 응답을 기다리지 않고
+    // 바로 그릴 수 있도록, 로그인 직후 미리 조회해 UserRepository의 캐시를 채워둠.
+    // 실패해도 마이페이지 진입 시 loadUserInfo()가 다시 조회하므로 별도 에러 처리는 하지 않음.
+    private fun prefetchMyPageHeader() {
+        viewModelScope.launch {
+            val id = authPreference.getUserId() ?: return@launch
+            userRepository.getUserInfo(id)
         }
     }
 
@@ -104,17 +121,13 @@ class MainViewModel @Inject constructor(
 
     fun fetchNickname() {
         viewModelScope.launch {
-            // 우선적으로 캐싱 먼저 가져옵니다.(닉네임 변경이 그렇게 많지 않을테니. ui 자연스러움을 위해서 입니다)
-            val cachedNickname = authPreference.getCachedNickname()
-            if (!cachedNickname.isNullOrBlank()) {
-                _nickname.value = cachedNickname
-            }
+            awaitCachedNickname()
 
             // 서버에서 최신 닉네임 조회 후, 변경 감지 시 갱신 및 닉네임 캐시 업데이트
             userRepository.getNickname()
                 .onSuccess { result ->
                     val fresh = result.nickname
-                    if (fresh.isNotBlank() && fresh != cachedNickname) {
+                    if (fresh.isNotBlank() && fresh != _nickname.value) {
                         _nickname.value = fresh
                         authPreference.saveNickname(fresh)  // 캐시 갱신
                     }
@@ -122,12 +135,27 @@ class MainViewModel @Inject constructor(
                 .onFailure { e ->
                     LinkuLog.e("MainViewModel", "[닉네임 조회 실패] ${e.message}")
                 }
+
+            // 캐시도 없었고 여기서 성공/실패가 갈렸어도, 더 기다릴 데이터가 없으므로 로딩 종료.
+            _isNicknameLoading.value = false
+        }
+    }
+
+    // 로그인 성공 후 Home으로 이동하기 전에 캐시된 닉네임을 먼저 반영하기 위해 호출함.
+    // 이걸 기다리지 않고 바로 이동하면 nickname StateFlow의 초기값("")으로 인해
+    // "링큐" 기본 닉네임이 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 생김.
+    suspend fun awaitCachedNickname() {
+        val cachedNickname = authPreference.getCachedNickname()
+        if (!cachedNickname.isNullOrBlank()) {
+            _nickname.value = cachedNickname
+            _isNicknameLoading.value = false
         }
     }
 
     // 메인 뷰모델은 액티비티에 속해있어서 앱 종료까지 살아있어서, 로그아웃시에도 닉네임 정보 살아 있을 수 있음. 제거용 구현
     fun clearNickname() {
         _nickname.value = ""
+        _isNicknameLoading.value = true
     }
 
     private val connectivityManager =

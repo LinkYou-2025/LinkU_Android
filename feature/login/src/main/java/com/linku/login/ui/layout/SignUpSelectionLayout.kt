@@ -94,7 +94,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 60.scaler)
+                .padding(top = 52.scaler) // NOTE SignUpStepLayout(1,2단계)과 StepIndicator 위치 통일
                 .padding(bottom = innerPadding.calculateBottomPadding())
                 .background(colorTheme.white)
         ) {
@@ -105,7 +105,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 )
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(20.scaler)) // NOTE SignUpStepLayout(1,2단계)과 동일 간격
 
             // 타이틀
             Text(

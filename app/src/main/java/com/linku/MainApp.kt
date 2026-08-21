@@ -40,6 +40,7 @@ import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
+import com.linku.deeplink.CUSTOM_SCHEME_OPEN_DEEP_LINK_URI_PATTERN
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.HandleNewIntentDeepLinks
 import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
@@ -48,6 +49,7 @@ import com.linku.deeplink.invitationLinkRoute
 import com.linku.deeplink.openDeepLinkTokenArgument
 import com.linku.deeplink.openDeepLinkUriPattern
 import com.linku.deeplink.parseOpenDeepLinkToken
+import com.linku.deeplink.showAcceptedSharedFolder
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.CategoryColorStyle
@@ -106,7 +108,7 @@ fun MainApp(
     viewModel: MainViewModel,
 ) {
     val context = LocalContext.current
-    val deepLinkDomain = BuildConfig.SERVER_DOMAIN.trimEnd('/')
+    val deepLinkHost = BuildConfig.SERVER_HOST
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
@@ -122,6 +124,7 @@ fun MainApp(
 
     // 닉네임 최상단 뒤치(사용하는 스크린)
     val nickname by viewModel.nickname.collectAsStateWithLifecycle()
+    val isNicknameLoading by viewModel.isNicknameLoading.collectAsStateWithLifecycle()
 
 
     LaunchedEffect(Unit) {
@@ -210,6 +213,8 @@ fun MainApp(
                 currentRoute != SAVE_LINK_ROUTE &&
                 currentRoute != LINK_DETAIL_ROUTE_PATTERN
 
+    // 기기 3대까지 지원하므로 다른 기기에서 닉네임을 바꾸면 즉시 반영되도록 Home/Curation
+    // 진입마다 재호출함. 로그인 시점 선호출(MainViewModel.setAuthenticated)과 별개로 유지.
     LaunchedEffect(currentRoute) {
         if (currentRoute == NavigationRoute.Home.route ||
             currentRoute == NavigationRoute.Curation.route
@@ -327,34 +332,19 @@ fun MainApp(
             navigationBarProp = if (shouldShowNavigationBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
-//                    if (item != currentLinkuNavigationItem) {
-                    val route = when (item) {
-                        LinkuNavigationItem.HOME -> NavigationRoute.Home.route
-                        LinkuNavigationItem.FILE -> NavigationRoute.File.route
-                        LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
-                        LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
-                    }
+                    // 같은 탭 재클릭 시엔 동작 X
+                    if (currentLinkuNavigationItem != item) {
+                        // 목표 라우트
+                        val route = when (item) {
+                            LinkuNavigationItem.HOME -> NavigationRoute.Home.route
+                            LinkuNavigationItem.FILE -> NavigationRoute.File.route
+                            LinkuNavigationItem.CURATION -> NavigationRoute.Curation.route
+                            LinkuNavigationItem.MY_PAGE -> NavigationRoute.MyPage.route
+                        }
 
-
-                    if (currentRoute == route) {
-                        if (item == LinkuNavigationItem.FILE) {
-                            // MainApp 범위 상태는 라우트 재생성 후에도 유지되므로 카테고리 루트로 되돌린다.
-                            folderStateViewModel.resetSharedFolderState()
-                        }
-                        // 같은 탭 재선택: 내부 스택 리셋
+                        // 홈 화면만 백스택에 남겨두고 이동
                         navigator.navigate(route) {
-                            // 해당 탭 루트까지 모두 제거하고
-                            popUpTo(route) { inclusive = true }
-                        }
-                        // 다시 동일 라우트 진입 (깨끗한 초기 상태)
-                        navigator.navigate(route) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    } else {
-                        // 다른 탭으로 이동: 기존 로직 유지
-                        navigator.navigate(route) {
-                            popUpTo(navigator.graph.findStartDestination().id) {
+                            popUpTo(NavigationRoute.Home.route) {
                                 saveState = true
                                 inclusive = false
                             }
@@ -362,7 +352,6 @@ fun MainApp(
                             restoreState = true
                         }
                     }
-
                 },
                 onCenterButtonClicked = {
                     // 여기에 중앙 버튼 눌렀을 때 로직 넣기
@@ -427,6 +416,9 @@ fun MainApp(
                                 is AutoLoginState.Success -> {
                                     showNavBar = true
                                     viewModel.setAuthenticated(true)
+                                    // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
+                                    // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
+                                    viewModel.awaitCachedNickname()
                                     edgeToEdgeSystemBars = false
                                     hideNavigationBar = false
                                     homeViewModel.refreshAfterLogin()
@@ -493,13 +485,22 @@ fun MainApp(
                     }
 
                     /**
-                     * 로그인 화면에서 공유 폴더 상태를 초기화한 뒤 공유 폴더 화면을 새 루트로 엽니다.
+                     * 로그인 화면에서 초대 수락 결과에 맞는 공유 폴더 화면을 새 루트로 엽니다.
+                     *
+                     * @param acceptedResult 상세로 열 초대 수락 결과. 목록 갱신에 실패한 부분 성공이면
+                     * `null`을 전달해 공유 폴더 그룹 화면으로 대체합니다.
                      */
-                    fun openSharedFoldersFromLogin() {
+                    fun openSharedFoldersFromLogin(
+                        acceptedResult: AcceptSharedFolderInvitationResult.Accepted? = null,
+                    ) {
                         if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
                             showNavBar = true
-                            folderStateViewModel.resetSharedFolderState()
-                            folderStateViewModel.updateIsSharedFolders(true)
+                            if (acceptedResult == null) {
+                                folderStateViewModel.resetSharedFolderState()
+                                folderStateViewModel.showSharedFolderGroups()
+                            } else {
+                                folderStateViewModel.showAcceptedSharedFolder(acceptedResult)
+                            }
 
                             navigator.navigate(NavigationRoute.File.route) {
                                 popUpTo(NavigationRoute.Login.route) { inclusive = true }
@@ -551,13 +552,11 @@ fun MainApp(
 
                             if (pendingInvitationToken.isNotBlank()) {
                                 loginScope.launch {
-                                    when (
-                                        fileViewModel.receiveSharedFolderInvitation(
-                                            pendingInvitationToken
-                                        )
-                                    ) {
+                                    when (val result = fileViewModel.receiveSharedFolderInvitation(
+                                        pendingInvitationToken
+                                    )) {
                                         is AcceptSharedFolderInvitationResult.Accepted -> {
-                                            openSharedFoldersFromLogin()
+                                            openSharedFoldersFromLogin(result)
                                         }
 
                                         is AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed -> {
@@ -620,20 +619,30 @@ fun MainApp(
 
                             // 수동 로그인 성공 후 pending 알림 처리
                             viewModel.consumePendingNotification()?.let {
-                                navigator.navigate(NavigationRoute.Home.route) {
-                                    popUpTo("login_root") { inclusive = true }
-                                    launchSingleTop = true
+                                loginScope.launch {
+                                    // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
+                                    // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
+                                    viewModel.awaitCachedNickname()
+                                    navigator.navigate(NavigationRoute.Home.route) {
+                                        popUpTo("login_root") { inclusive = true }
+                                        launchSingleTop = true
+                                    }
+                                    navigateByNotification(it.type, it.targetId)
                                 }
-                                navigateByNotification(it.type, it.targetId)
                                 return@LoginApp
                             }
 
                             // pending 알림이 없는 경우의 기본 동작
 
                             showNavBar = true
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
+                            loginScope.launch {
+                                // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
+                                // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
+                                viewModel.awaitCachedNickname()
+                                navigator.navigate(NavigationRoute.Home.route) {
+                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
                             }
                         }
                     )
@@ -651,6 +660,7 @@ fun MainApp(
                             viewModel = homeViewModel,
                             onSearchOpen = searchViewModel::openSearch,
                             nickname = nickname.orEmpty().ifBlank { "링큐" },
+                            isNicknameLoading = isNicknameLoading,
                             onNavigateToSetting = {
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
@@ -679,7 +689,10 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-
+                            // 스플래시·로그인 화면을 거치지 않는 콜드 스타트 딥링크에서도 File
+                            // 화면이 자신의 비몰입형 시스템 바 정책을 명시적으로 복원합니다.
+                            edgeToEdgeSystemBars = false
+                            hideNavigationBar = false
                         }
 
                         FileApp(
@@ -1112,8 +1125,11 @@ fun MainApp(
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = openDeepLinkUriPattern(deepLinkDomain)
-                        }
+                            uriPattern = openDeepLinkUriPattern(deepLinkHost)
+                        },
+                        navDeepLink {
+                            uriPattern = CUSTOM_SCHEME_OPEN_DEEP_LINK_URI_PATTERN
+                        },
                     )
                 ) { backStackEntry ->
 
@@ -1132,6 +1148,9 @@ fun MainApp(
                                 token = token,
                                 isLoggedIn = viewModel.hasValidRefreshToken(),
                                 onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                                onOpenAcceptedSharedFolder = { acceptedResult ->
+                                    folderStateViewModel.showAcceptedSharedFolder(acceptedResult)
+                                },
                                 onUpdateIsSharedFolders = { isSharedFolders ->
                                     folderStateViewModel.resetSharedFolderState()
                                     folderStateViewModel.updateIsSharedFolders(

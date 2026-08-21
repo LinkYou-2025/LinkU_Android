@@ -18,6 +18,7 @@ import kotlinx.coroutines.CancellationException
  * @param token 처리할 공유 폴더 초대 토큰
  * @param isLoggedIn 현재 유효한 로그인 세션이 있는지 여부
  * @param onReceiveSharedFolderInvitation 초대 토큰을 수락하고 처리 결과를 반환하는 함수
+ * @param onOpenAcceptedSharedFolder 수락된 폴더 결과를 파일 화면의 상세 상태에 반영하는 함수
  * @param onUpdateIsSharedFolders 파일 화면의 공유 폴더 모드 여부를 갱신하는 함수
  * @param onSetPendingInvitation 로그인 후 이어서 처리할 초대 토큰을 저장하거나 제거하는 함수
  * @param onInvalidLink 초대 토큰이 비어 있거나 유효하지 않을 때 호출하는 함수
@@ -33,6 +34,7 @@ internal suspend fun invitationLinkRoute(
     token: String,
     isLoggedIn: Boolean,
     onReceiveSharedFolderInvitation: suspend (String) -> AcceptSharedFolderInvitationResult,
+    onOpenAcceptedSharedFolder: (AcceptSharedFolderInvitationResult.Accepted) -> Unit,
     onUpdateIsSharedFolders: (Boolean) -> Unit,
     onSetPendingInvitation: (String) -> Unit,
     onInvalidLink: () -> Unit = {},
@@ -116,7 +118,8 @@ internal suspend fun invitationLinkRoute(
 
     when (result) {
         is AcceptSharedFolderInvitationResult.Accepted -> {
-            onUpdateIsSharedFolders(true)
+            clearPendingInvitation()
+            onOpenAcceptedSharedFolder(result)
             navigateAsRoot(NavigationRoute.File.route)
         }
 

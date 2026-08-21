@@ -105,6 +105,7 @@ dependencies {
 
     // Paging
     implementation(libs.paging.runtime)
+    implementation(libs.paging.compose)
 
     // Retrofit
     implementation(libs.retrofit2)

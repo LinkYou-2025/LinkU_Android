@@ -21,7 +21,7 @@ enum class Interest(
 
     // 행 4
     SOCIETY("사회 & 문화\n& 환경"),
-    WRITING("글쓰기\n& 콘텐츠 노하우"),
+    WRITING("글쓰기\n& 콘텐츠"),
     PSYCHOLOGY("심리\n& 자기계발");
 
     override val serverKey: String get() = name

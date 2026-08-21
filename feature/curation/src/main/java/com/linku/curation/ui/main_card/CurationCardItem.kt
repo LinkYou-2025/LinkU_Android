@@ -31,9 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.SubcomposeAsyncImage
 import com.linku.curation.R
-import com.linku.curation.ui.effect.skeleton.SkeletonBox
 import com.linku.curation.ui.item.CurationCheckOutButton
 import com.linku.curation.ui.mapper.resolveMonthlyCurationImage
+import com.linku.design.component.SkeletonBox
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
@@ -70,15 +70,16 @@ internal fun CurationCardItem(
 
     // 0번(월간) 카드는 month가 큐레이션 메인 API 응답으로 내려오는데, 응답 도착 전에는
     // month가 0이라 resolveMonthlyCurationImage(0)가 투명 이미지를 반환해 카드가 비어 보인다.
-    // API 응답 대기 중에는 카드 전체를 SkeletonBox(기존 grayShimmerColors)로 대체해
-    // 쉬머가 좌우로 움직이며 로딩 중임을 보여준다.
+    // API 응답 대기 중에는 카드 전체를 SkeletonBox(gray300)로 대체해
+    // 쉬머가 흐르며 로딩 중임을 보여준다.
     if (isLoading) {
         Box(
             modifier = modifier.clip(RoundedCornerShape(24.scaler))
         ) {
             SkeletonBox(
                 modifier = Modifier.matchParentSize(),
-                shape = RoundedCornerShape(24.scaler)
+                shape = RoundedCornerShape(24.scaler),
+                color = colorTheme.gray[300]
             )
         }
         return
@@ -127,7 +128,8 @@ internal fun CurationCardItem(
                 loading = {
                     SkeletonBox(
                         modifier = Modifier.matchParentSize(),
-                        shape = RoundedCornerShape(24.scaler)
+                        shape = RoundedCornerShape(24.scaler),
+                        color = colorTheme.gray[300]
                     )
                 }
             )
