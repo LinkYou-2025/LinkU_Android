@@ -40,6 +40,7 @@ import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
+import com.linku.deeplink.CUSTOM_SCHEME_OPEN_DEEP_LINK_URI_PATTERN
 import com.linku.deeplink.DeepLinkHandlerViewModel
 import com.linku.deeplink.HandleNewIntentDeepLinks
 import com.linku.deeplink.OPEN_DEEP_LINK_ROUTE
@@ -48,6 +49,7 @@ import com.linku.deeplink.invitationLinkRoute
 import com.linku.deeplink.openDeepLinkTokenArgument
 import com.linku.deeplink.openDeepLinkUriPattern
 import com.linku.deeplink.parseOpenDeepLinkToken
+import com.linku.deeplink.showAcceptedSharedFolder
 import com.linku.design.AlarmAllowDialog
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.CategoryColorStyle
@@ -106,7 +108,7 @@ fun MainApp(
     viewModel: MainViewModel,
 ) {
     val context = LocalContext.current
-    val deepLinkDomain = BuildConfig.SERVER_DOMAIN.trimEnd('/')
+    val deepLinkHost = BuildConfig.SERVER_HOST
     val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
@@ -483,13 +485,22 @@ fun MainApp(
                     }
 
                     /**
-                     * 로그인 화면에서 공유 폴더 상태를 초기화한 뒤 공유 폴더 화면을 새 루트로 엽니다.
+                     * 로그인 화면에서 초대 수락 결과에 맞는 공유 폴더 화면을 새 루트로 엽니다.
+                     *
+                     * @param acceptedResult 상세로 열 초대 수락 결과. 목록 갱신에 실패한 부분 성공이면
+                     * `null`을 전달해 공유 폴더 그룹 화면으로 대체합니다.
                      */
-                    fun openSharedFoldersFromLogin() {
+                    fun openSharedFoldersFromLogin(
+                        acceptedResult: AcceptSharedFolderInvitationResult.Accepted? = null,
+                    ) {
                         if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
                             showNavBar = true
-                            folderStateViewModel.resetSharedFolderState()
-                            folderStateViewModel.updateIsSharedFolders(true)
+                            if (acceptedResult == null) {
+                                folderStateViewModel.resetSharedFolderState()
+                                folderStateViewModel.showSharedFolderGroups()
+                            } else {
+                                folderStateViewModel.showAcceptedSharedFolder(acceptedResult)
+                            }
 
                             navigator.navigate(NavigationRoute.File.route) {
                                 popUpTo(NavigationRoute.Login.route) { inclusive = true }
@@ -541,13 +552,11 @@ fun MainApp(
 
                             if (pendingInvitationToken.isNotBlank()) {
                                 loginScope.launch {
-                                    when (
-                                        fileViewModel.receiveSharedFolderInvitation(
-                                            pendingInvitationToken
-                                        )
-                                    ) {
+                                    when (val result = fileViewModel.receiveSharedFolderInvitation(
+                                        pendingInvitationToken
+                                    )) {
                                         is AcceptSharedFolderInvitationResult.Accepted -> {
-                                            openSharedFoldersFromLogin()
+                                            openSharedFoldersFromLogin(result)
                                         }
 
                                         is AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed -> {
@@ -680,7 +689,10 @@ fun MainApp(
                     setNavGraph {
                         LaunchedEffect(Unit) {
                             showNavBar = true
-
+                            // 스플래시·로그인 화면을 거치지 않는 콜드 스타트 딥링크에서도 File
+                            // 화면이 자신의 비몰입형 시스템 바 정책을 명시적으로 복원합니다.
+                            edgeToEdgeSystemBars = false
+                            hideNavigationBar = false
                         }
 
                         FileApp(
@@ -1113,8 +1125,11 @@ fun MainApp(
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = openDeepLinkUriPattern(deepLinkDomain)
-                        }
+                            uriPattern = openDeepLinkUriPattern(deepLinkHost)
+                        },
+                        navDeepLink {
+                            uriPattern = CUSTOM_SCHEME_OPEN_DEEP_LINK_URI_PATTERN
+                        },
                     )
                 ) { backStackEntry ->
 
@@ -1133,6 +1148,9 @@ fun MainApp(
                                 token = token,
                                 isLoggedIn = viewModel.hasValidRefreshToken(),
                                 onReceiveSharedFolderInvitation = fileViewModel::receiveSharedFolderInvitation,
+                                onOpenAcceptedSharedFolder = { acceptedResult ->
+                                    folderStateViewModel.showAcceptedSharedFolder(acceptedResult)
+                                },
                                 onUpdateIsSharedFolders = { isSharedFolders ->
                                     folderStateViewModel.resetSharedFolderState()
                                     folderStateViewModel.updateIsSharedFolders(
