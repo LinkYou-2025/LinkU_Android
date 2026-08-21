@@ -70,6 +70,7 @@ import com.linku.link.screen.LinkDetailLoadErrorScreen
 import com.linku.link.screen.LinkDetailLoadingScreen
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
+import com.linku.link.screen.verifiedLinkDetailJobId
 import com.linku.link.util.toTempFile
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
@@ -140,6 +141,11 @@ fun MainApp(
     var previousLoggedIn by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn == false) {
+            // 토큰 재발급 실패로 로컬 세션만 정리된 경우에도 메모리 인증 상태를 함께 종료합니다.
+            viewModel.setAuthenticated(false)
+        }
+
         // onLogoutToLogin()이 이미 launchSingleTop으로 NavigationRoute.Login.route에 진입시킨 경우 여기서
         // 또 navigate하면 같은 목적지로 두 번 이동하게 되어 LoginApp의 "login" 컴포저블이
         // dispose→재mount되면서 EdgeToEdgeSystemBars의 hidden 값이 순간적으로
@@ -185,6 +191,16 @@ fun MainApp(
     var showNavBar by rememberSaveable { mutableStateOf(false) }
 
     val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+
+    LaunchedEffect(isLoggedIn, isAuthenticated) {
+        if (isLoggedIn == true && isAuthenticated) {
+            // 자동·수동 로그인 모두 세션 저장과 인증 확인이 끝난 뒤 최신 직업을 조회합니다.
+            linkViewModel.loadUserBasics()
+        } else {
+            // 로그아웃·탈퇴·토큰 만료 및 초기 인증 확인 전에는 이전 사용자 직업을 제거합니다.
+            linkViewModel.clearUserBasics()
+        }
+    }
 
     // 스플래시 애니메이션, 로그인 그라데이션 화면처럼 상태바 뒤로 콘텐츠가 그대로 비쳐야 하는
     // (edge-to-edge) 화면에서만 true. 그 외 화면은 전부 흰 상태바 스크림을 켜야 하므로 기본은 false.
@@ -943,6 +959,9 @@ fun MainApp(
                     var selectedDetailImageUri by rememberSaveable(userLinkuId) {
                         mutableStateOf<Uri?>(null)
                     }
+                    var detailUserJobRequestFloor by remember(backStackEntry.id) {
+                        mutableStateOf<Long?>(null)
+                    }
 
                     val detailImagePicker = rememberLauncherForActivityResult(
                         contract = ActivityResultContracts.GetContent()
@@ -950,7 +969,9 @@ fun MainApp(
                         selectedDetailImageUri = uri
                     }
 
-                    LaunchedEffect(userLinkuId) {
+                    LaunchedEffect(backStackEntry.id, userLinkuId) {
+                        // 같은 링크를 다시 열어도 이번 상세 진입 이후 성공한 직업 조회만 사용합니다.
+                        detailUserJobRequestFloor = linkViewModel.loadUserBasics()
                         linkViewModel.loadLinkDetail(userLinkuId)
                         linkViewModel.loadLinkEditCategories()
                     }
@@ -997,6 +1018,14 @@ fun MainApp(
                     val linkDetail = linkUiState.linkDetail?.takeIf { detail ->
                         detail.userLinkuId == userLinkuId
                     }
+                    val detailJobId = verifiedLinkDetailJobId(
+                        jobId = linkUiState.jobId,
+                        minimumUserJobRequestId = detailUserJobRequestFloor,
+                        currentUserJobRequestId = linkUiState.userJobRequestId,
+                        isUserJobReady = linkUiState.isUserJobReady,
+                    )
+                    val verifiedDetailUserJobRequestId =
+                        linkUiState.userJobRequestId.takeIf { detailJobId != null }
 
                     LaunchedEffect(
                         linkDetail?.keyword,
@@ -1017,6 +1046,7 @@ fun MainApp(
                                 categoryId = linkDetail.categoryId,
                                 emotion = emotionNameOf(linkDetail.emotionId),
                                 situationId = linkDetail.situationId,
+                                jobId = detailJobId,
                                 linkUrl = linkDetail.linku,
                                 imageUrl = linkDetail.linkuImageUrl.toImageUrl(),
                                 selectedImageUri = selectedDetailImageUri,
@@ -1038,7 +1068,9 @@ fun MainApp(
                                 onDiscardSelectedImage = {
                                     selectedDetailImageUri = null
                                 },
-                                onSubmitEdit = { title, memo, categoryId, emotionId, situationId, onSuccess, onFailed ->
+                                onSubmitEdit = { title, memo, categoryId, emotionId, situationIdToUpdate, onSuccess, onFailed ->
+                                    val expectedUserJobRequestId =
+                                        verifiedDetailUserJobRequestId
                                     detailCoroutineScope.launch {
                                         val selectedTempImage = runCatching {
                                             withContext(Dispatchers.IO) {
@@ -1055,12 +1087,14 @@ fun MainApp(
                                         }
 
                                         linkViewModel.updateLink(
+                                            expectedUserLinkuId = userLinkuId,
                                             image = selectedTempImage,
                                             title = title,
                                             memo = memo,
                                             categoryId = categoryId,
                                             emotionId = emotionId,
-                                            situationId = situationId,
+                                            situationIdToUpdate = situationIdToUpdate,
+                                            expectedUserJobRequestId = expectedUserJobRequestId,
                                             onSucceed = {
                                                 selectedDetailImageUri = null
                                                 homeViewModel.loadRecentLinks()

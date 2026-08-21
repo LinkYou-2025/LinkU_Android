@@ -54,7 +54,6 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
-import com.linku.curation.ui.effect.skeleton.LinkCardItemSkeleton
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.component.LinkCardItemSkeleton
