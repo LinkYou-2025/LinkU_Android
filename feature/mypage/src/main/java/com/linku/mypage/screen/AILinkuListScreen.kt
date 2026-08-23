@@ -758,10 +758,8 @@ private fun AILinkuPagingList(
                     link = link,
                     onClick = onLinkClick,
                     isInteractionEnabled = isInteractionEnabled,
-                    isDeleteMenuVisible = link.userLinkuId
-                        ?.takeIf { userLinkuId -> userLinkuId > 0L }
-                        ?.let { userLinkuId -> userLinkuId == openedDeleteMenuId }
-                        == true,
+                    isDeleteMenuVisible = link.userLinkuId > 0L &&
+                        link.userLinkuId == openedDeleteMenuId,
                     onMoreClick = onMoreClick,
                     onDeleteClick = onDeleteClick,
                 )
@@ -799,7 +797,7 @@ private fun AILinkuPagingList(
     }
 }
 
-/** ID가 누락된 과도기 응답도 Paging 슬롯별로 충돌하지 않도록 안정적인 키를 만듭니다. */
+/** 아직 로드되지 않았거나 유효한 링크 ID가 없는 Paging 슬롯은 인덱스 대체 키를 사용합니다. */
 internal fun aiLinkuItemKey(index: Int, userLinkuId: Long?): String =
     userLinkuId
         ?.takeIf { it > 0L }

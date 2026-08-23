@@ -179,7 +179,6 @@ class AILinkuListViewModelTest {
             repository.linksByCategory = mapOf(
                 null to listOf(
                     aiArticleLink(0L, CategoryType.NEWS),
-                    aiArticleLink(null, CategoryType.NEWS),
                     aiArticleLink(14L, CategoryType.IT_DEV),
                 ),
             )
@@ -199,14 +198,14 @@ class AILinkuListViewModelTest {
             advanceUntilIdle()
 
             assertEquals(
-                listOf(0L, null, 14L),
+                listOf(0L, 14L),
                 differ.snapshot().items.map(AiArticleLink::userLinkuId),
             )
         }
 
     /** 테스트 Paging 데이터에 사용할 AI 요약 링크를 생성합니다. */
     private fun aiArticleLink(
-        userLinkuId: Long?,
+        userLinkuId: Long,
         category: CategoryType,
     ): AiArticleLink =
         AiArticleLink(

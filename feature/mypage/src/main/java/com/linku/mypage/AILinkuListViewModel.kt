@@ -64,8 +64,7 @@ class AILinkuListViewModel @Inject constructor(
             _deletedUserLinkuIds,
         ) { pagingData, deletedUserLinkuIds ->
             pagingData.filter { link ->
-                val userLinkuId = link.userLinkuId
-                userLinkuId == null || userLinkuId !in deletedUserLinkuIds
+                link.userLinkuId !in deletedUserLinkuIds
             }
         }.cachedIn(viewModelScope)
 
