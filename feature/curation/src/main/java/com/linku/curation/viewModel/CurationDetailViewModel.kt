@@ -57,6 +57,8 @@ class CurationDetailViewModel @Inject constructor(
     }
 
     private fun loadCurationDetail(curationId: Long, month: String) {
+        if (curationId == 0L) return
+
         viewModelScope.launch {
             _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = true, errorMessage = "")
 
