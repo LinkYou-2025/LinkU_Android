@@ -1,5 +1,8 @@
 package com.linku.mypage.screen
 
+import android.content.Intent
+import android.net.Uri
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -33,6 +36,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -40,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.util.LinkuUrls
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -54,6 +59,7 @@ fun FaqScreen(
     onBackClick: () -> Unit
 ) {
     val colors = MaterialTheme.linkuColors
+    val context = LocalContext.current
 
     var keyword by remember { mutableStateOf("") }
     var isFocused by remember { mutableStateOf(false) }
@@ -65,7 +71,9 @@ fun FaqScreen(
     val feedbackRowHeightDp = with(density) { feedbackRowHeightPx.toDp() }
 
     val filteredFaqList = faqList.filter { faq ->
-        val matchesFilter = selectedFilter == "전체" || faq.category == selectedFilter
+        val matchesFilter =
+            selectedFilter == "전체" || faq.category == selectedFilter
+
         val matchesKeyword =
             keyword.isBlank() ||
                     faq.question.contains(keyword, ignoreCase = true) ||
@@ -91,7 +99,9 @@ fun FaqScreen(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .width(11.dp)
-                    .noRippleClickable { onBackClick() }
+                    .noRippleClickable {
+                        onBackClick()
+                    }
             )
 
             Text(
@@ -129,7 +139,10 @@ fun FaqScreen(
             Image(
                 painter = painterResource(R.drawable.ic_logo_gray),
                 contentDescription = null,
-                modifier = Modifier.size(width = 24.dp, height = 17.dp)
+                modifier = Modifier.size(
+                    width = 24.dp,
+                    height = 17.dp
+                )
             )
 
             Spacer(modifier = Modifier.width(13.dp))
@@ -149,7 +162,9 @@ fun FaqScreen(
 
                 BasicTextField(
                     value = keyword,
-                    onValueChange = { keyword = it },
+                    onValueChange = {
+                        keyword = it
+                    },
                     textStyle = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
@@ -159,7 +174,9 @@ fun FaqScreen(
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .onFocusChanged { isFocused = it.isFocused }
+                        .onFocusChanged {
+                            isFocused = it.isFocused
+                        }
                 )
             }
         }
@@ -170,14 +187,19 @@ fun FaqScreen(
             modifier = Modifier.padding(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf("전체", "카테고리", "폴더", "링크", "기타").forEach { filter ->
+            listOf(
+                "전체",
+                "카테고리",
+                "폴더",
+                "링크",
+                "기타"
+            ).forEach { filter ->
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
                         .then(
                             if (selectedFilter == filter) {
-                                Modifier
-                                    .background(colors.gray[800])
+                                Modifier.background(colors.gray[800])
                             } else {
                                 Modifier
                                     .background(colors.white)
@@ -188,8 +210,13 @@ fun FaqScreen(
                                     )
                             }
                         )
-                        .noRippleClickable { selectedFilter = filter }
-                        .padding(horizontal = 15.dp, vertical = 6.dp),
+                        .noRippleClickable {
+                            selectedFilter = filter
+                        }
+                        .padding(
+                            horizontal = 15.dp,
+                            vertical = 6.dp
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -209,14 +236,12 @@ fun FaqScreen(
         Spacer(modifier = Modifier.height(15.dp))
 
         Box(
-            modifier = Modifier
-                .weight(1f),
+            modifier = Modifier.weight(1f),
             contentAlignment = Alignment.BottomCenter
         ) {
             // FAQ 리스트
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = PaddingValues(
                     start = 16.dp,
@@ -233,7 +258,12 @@ fun FaqScreen(
                         answer = faq.answer,
                         expanded = expandedFaqId == faq.id,
                         onToggle = {
-                            expandedFaqId = if (expandedFaqId == faq.id) null else faq.id
+                            expandedFaqId =
+                                if (expandedFaqId == faq.id) {
+                                    null
+                                } else {
+                                    faq.id
+                                }
                         }
                     )
                 }
@@ -252,7 +282,11 @@ fun FaqScreen(
                             )
                         )
                     )
-                    .padding(top = 20.dp, start = 20.dp, end = 20.dp)
+                    .padding(
+                        top = 20.dp,
+                        start = 20.dp,
+                        end = 20.dp
+                    )
                     .onGloballyPositioned { coordinates ->
                         feedbackRowHeightPx = coordinates.size.height
                     },
@@ -264,14 +298,26 @@ fun FaqScreen(
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Normal,
                     color = colors.gray[700]
-
                 )
 
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(18.dp))
                         .background(colors.maincolor)
-                        .padding(top = 13.dp, start = 23.5.dp, end = 28.5.dp, bottom = 13.dp)
+                        .noRippleClickable {
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(LinkuUrls.FEEDBACK_FORM)
+                            )
+
+                            context.startActivity(intent)
+                        }
+                        .padding(
+                            top = 13.dp,
+                            start = 23.5.dp,
+                            end = 28.5.dp,
+                            bottom = 13.dp
+                        )
                 ) {
                     Text(
                         text = "피드백 보내기",
