@@ -44,6 +44,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.core.util.LinkuUrls
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
@@ -306,9 +307,7 @@ fun FaqScreen(
                         .noRippleClickable {
                             val intent = Intent(
                                 Intent.ACTION_VIEW,
-                                Uri.parse(
-                                    "https://docs.google.com/forms/d/e/1FAIpQLSeWv1SQWk_Ud2NC8_dsfsM1BfILt6ZsHZppSfWnIhRnUrzO-g/viewform"
-                                )
+                                Uri.parse(LinkuUrls.FEEDBACK_FORM)
                             )
 
                             context.startActivity(intent)
