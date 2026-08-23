@@ -40,6 +40,7 @@ import com.linku.mypage.screen.ServiceQuitScreen
  * @param onLogoutToLogin 로그아웃 또는 탈퇴 완료 후 로그인 화면으로 이동하는 콜백
  * @param onNavigateToAlarm 앱 루트의 알림 화면으로 이동하는 콜백
  * @param onNavigateToLinkDetail 선택한 사용자 저장 링크 ID를 앱 루트 상세 화면으로 전달하는 콜백
+ * @param onDeleteLink 선택한 사용자 저장 링크를 삭제하고 결과를 화면에 전달하는 콜백
  * @param onImmersiveTransitionChange 로그아웃 전환 중 시스템 바 몰입 상태를 변경하는 콜백
  */
 @Composable
@@ -48,6 +49,11 @@ fun MyPageApp(
     onLogoutToLogin: () -> Unit,
     onNavigateToAlarm: () -> Unit,
     onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
+    onDeleteLink: (
+        userLinkuId: Long,
+        onSuccess: () -> Unit,
+        onFailed: (Throwable) -> Unit,
+    ) -> Unit,
     // 로그아웃/탈퇴 API 응답을 기다리는 동안(성공 전) 로그인 화면 전환 애니메이션이 시작되기도
     // 전에 안드로이드 시스템 바가 잠깐 보였다 사라지는 깜빡임을 없애기 위해, 버튼을 누른 즉시
     // (API 호출 전에) 몰입 모드로 먼저 전환함. 실패해서 계속 MyPage에 남으면 다시 false로 되돌림.
@@ -398,6 +404,7 @@ fun MyPageApp(
             AILinkuListRoute(
                 navController = navController,
                 onNavigateToLinkDetail = onNavigateToLinkDetail,
+                onDeleteLink = onDeleteLink,
             )
         }
     }

@@ -792,7 +792,19 @@ fun MainApp(
                             },
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
-                            }
+                            },
+                            onDeleteLink = { userLinkuId, onSuccess, onFailed ->
+                                linkViewModel.deleteLink(
+                                    userLinkuId = userLinkuId,
+                                    onSucceed = {
+                                        // AI 목록에서 삭제한 링크가 홈의 최근 링크에도 남지 않도록
+                                        // 홈 캐시를 같은 식별자로 즉시 정리한 뒤 화면 성공 처리를 알립니다.
+                                        homeViewModel.onLinkDeleted(userLinkuId)
+                                        onSuccess()
+                                    },
+                                    onFailed = onFailed,
+                                )
+                            },
                         )
                     }
                 }

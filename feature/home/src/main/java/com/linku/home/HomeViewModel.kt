@@ -10,6 +10,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import androidx.paging.filter
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationRequest
 import com.linku.core.model.link.LinkCheckResult
@@ -34,8 +35,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -288,6 +291,7 @@ class HomeViewModel @Inject constructor(
         isRecommendModeState.value = false
         needMoreForRecommendationState.value = false
         recommendationRequestState.value = null
+        _deletedRecommendedLinkIds.value = emptySet()
 
         clipboardValidationJob?.cancel()
         clipboardValidationJob = null
@@ -317,11 +321,21 @@ class HomeViewModel @Inject constructor(
         MutableStateFlow<RecommendationRequest?>(null)
 
     /**
-     * 활성 추천 요청의 페이징 데이터를 제공하고, 요청이 없으면 이전 추천 결과를 비웁니다.
+     * 삭제가 완료된 추천 링크를 서버 페이징 결과에서 다시 노출하지 않기 위한 세션 오버레이입니다.
+     *
+     * 상세 조회와 삭제 API에 사용할 수 있는 양수 사용자 링크 ID만 보관하며, 로그아웃 시
+     * [clearData]에서 초기화해 다음 사용자 세션에 이전 삭제 상태가 전달되지 않도록 합니다.
+     */
+    private val _deletedRecommendedLinkIds = MutableStateFlow<Set<Long>>(emptySet())
+
+    /**
+     * 활성 추천 요청의 원본 페이징 데이터를 ViewModel 생명주기 동안 캐시합니다.
      *
      * 추천 모드를 종료하면 빈 [PagingData]를 방출해 수집 중인 목록을 즉시 초기화합니다.
+     * 삭제 오버레이가 바뀔 때 같은 [PagingData]를 다시 변환하므로, 원본 스트림을 먼저 캐시해
+     * 페이지 이벤트를 안전하게 재수집할 수 있도록 합니다.
      */
-    val recommendedLinks: Flow<PagingData<LinkSimpleInfo>> =
+    private val pagedRecommendedLinks: Flow<PagingData<LinkSimpleInfo>> =
         recommendationRequestState
             .flatMapLatest { request ->
                 if (request == null) {
@@ -346,6 +360,23 @@ class HomeViewModel @Inject constructor(
                 }
             }
             .cachedIn(viewModelScope)
+
+    /**
+     * 홈 화면에 노출할 추천 링크의 페이징 데이터입니다.
+     *
+     * 홈 또는 다른 화면에서 삭제가 완료된 사용자 링크 ID를 원본 페이지에서 즉시 제외합니다.
+     * 이후 추천 조건을 다시 요청해 서버가 삭제 전 항목을 반환하더라도 현재 사용자 세션에서는
+     * 다시 표시하지 않으며, 변환된 최종 스트림도 ViewModel 생명주기 동안 캐시합니다.
+     */
+    val recommendedLinks: Flow<PagingData<LinkSimpleInfo>> =
+        combine(
+            pagedRecommendedLinks,
+            _deletedRecommendedLinkIds,
+        ) { pagingData, deletedRecommendedLinkIds ->
+            pagingData.filter { link ->
+                link.userLinkuId !in deletedRecommendedLinkIds
+            }
+        }.cachedIn(viewModelScope)
 
     fun fetchRecommendations(
         situationId: Long,
@@ -442,14 +473,22 @@ class HomeViewModel @Inject constructor(
     }
 
     /**
-     * 삭제 완료된 링크를 홈 목록에서 즉시 제거하고 사용자 기본 정보와 최근 링크를 재조회합니다.
+     * 삭제 완료된 링크를 홈 추천 및 최근 목록에서 즉시 제거하고 관련 데이터를 재조회합니다.
      *
-     * 삭제 전에 시작한 최근 링크 요청이 늦게 완료되어 삭제된 항목을 다시 노출하지 않도록
-     * 실행 중인 작업을 취소하고 요청 식별자를 무효화한 뒤 최신 서버 상태를 불러옵니다.
+     * 양수 사용자 링크 ID를 추천 목록의 세션 오버레이에 먼저 기록하므로, 서버 Paging 캐시나
+     * 후속 추천 요청에 삭제 전 항목이 남아 있어도 다시 노출하지 않습니다. 삭제 전에 시작한 최근
+     * 링크 요청은 취소하고 요청 식별자를 무효화한 뒤 최신 서버 상태를 불러옵니다.
+     * 상세 조회와 삭제 API에 사용할 수 없는 `0` 이하 값은 상태를 변경하지 않고 무시합니다.
      *
      * @param userLinkuId 삭제 완료된 사용자 링크 식별자
      */
     fun onLinkDeleted(userLinkuId: Long) {
+        if (userLinkuId <= 0L) return
+
+        _deletedRecommendedLinkIds.update { deletedRecommendedLinkIds ->
+            deletedRecommendedLinkIds + userLinkuId
+        }
+
         recentLinksLoadJob?.cancel()
         recentLinksLoadJob = null
         recentLinksRequestId++
