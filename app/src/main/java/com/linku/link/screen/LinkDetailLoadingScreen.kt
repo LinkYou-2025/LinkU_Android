@@ -214,7 +214,6 @@ fun LinkDetailLoadErrorScreen(
                         role = Role.Button,
                         onClick = onRetry,
                     )
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
                     .padding(horizontal = 19.dp, vertical = 11.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
