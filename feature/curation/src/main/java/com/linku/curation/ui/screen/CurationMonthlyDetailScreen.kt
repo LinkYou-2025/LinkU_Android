@@ -88,12 +88,16 @@ fun CurationMonthlyDetailScreen(
         // 제목·본문 등 텍스트 정보, null이면 기본값 사용
         val curationDetail = monthlyCurationDetail?.detail ?: CurationDetail()
 
+        val rawMonth = viewModel.month.substringAfter('-').toIntOrNull() ?: 0
+        val displayMonth = if (rawMonth == 1) 12 else (rawMonth - 1).coerceAtLeast(0)
+
         CurationMonthlyDetailScreenContent(
             onBack = onBack,
             onGoHome = onGoHome,
             isLoading = state.isLoading,
             nickname = monthlyCurationDetail?.nickname?.takeIf { it.isNotEmpty() } ?: state.nickname,
             title = curationDetail.title,
+            displayMonth = displayMonth,
             emotionItems = monthlyCurationDetail?.topTags?.map { tag ->
                 EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
             } ?: emptyList(),
@@ -129,6 +133,7 @@ private fun CurationMonthlyDetailScreenContent(
     isLoading: Boolean = false,
     nickname: String = "",
     title: String = "2026\n월간 큐레이션 5월호",
+    displayMonth: Int = 0,
     headerMent: String = "",
     footerMent: String = "",
     emotionItems: List<EmotionItem> = emptyList(),
@@ -138,7 +143,7 @@ private fun CurationMonthlyDetailScreenContent(
     onGoHome: () -> Unit = {},
 ) {
     val colorTheme = MaterialTheme.linkuColors
-    val isEmpty = emotionItems.isEmpty()
+    val isEmpty = emotionItems.isEmpty() && headerMent.isEmpty()
 
     BackHandler { onBack() }
 
@@ -160,7 +165,7 @@ private fun CurationMonthlyDetailScreenContent(
             Spacer(modifier = Modifier.height(if (isEmpty) 185.scaler else 78.scaler))
 
             Column(modifier = Modifier.padding(horizontal = 30.scaler)) {
-                CurationEmotionSection(items = emotionItems)
+                CurationEmotionSection(month = displayMonth, items = emotionItems)
 
                 if (!isEmpty) {
                     Spacer(modifier = Modifier.height(40.scaler))

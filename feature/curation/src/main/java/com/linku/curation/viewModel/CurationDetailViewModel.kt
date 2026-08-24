@@ -24,7 +24,7 @@ class CurationDetailViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val month = savedStateHandle.get<String>("month").orEmpty()
+    val month = savedStateHandle.get<String>("month").orEmpty()
     private val curationId = savedStateHandle.get<Long>("curationId") ?: 0L
 
     private val _curationDetailedState = MutableStateFlow(CurationDetailedState())
