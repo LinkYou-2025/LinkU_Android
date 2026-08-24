@@ -1,7 +1,6 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
-import com.linku.core.model.Nickname
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
@@ -125,14 +124,12 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     // 닉네임 조회
-    override suspend fun getNickname(): Result<Nickname> {
+    override suspend fun getNickname(): Result<String> {
         LinkuLog.d(TAG, "닉네임 api 호출 시도중")
         return safeApiCall {
             serverApi.checkNickname()
-        }.map{dto ->
-            Nickname(
-                nickname = dto.nickname,
-            )
+        }.map { dto ->
+            dto.nickname
         }.onSuccess {
             Log.d(TAG, "[닉네임 조회 성공] nickname=$it")
         }.onFailure {

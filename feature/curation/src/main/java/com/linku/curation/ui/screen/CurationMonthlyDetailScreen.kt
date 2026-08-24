@@ -25,6 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.LinkType
 import com.linku.core.model.curation.RecommendLink
 import com.linku.curation.ui.emotion.CurationEmotionSection
@@ -80,17 +81,25 @@ fun CurationMonthlyDetailScreen(
             onRetry = { viewModel.handleIntent(CurationDetailedIntent.Retry) }
         )
     } else {
+
+        // API 응답 전체
+        val monthlyCurationDetail = state.monthlyCurationDetail
+
+        // 제목·본문 등 텍스트 정보, null이면 기본값 사용
+        val curationDetail = monthlyCurationDetail?.detail ?: CurationDetail()
+
         CurationMonthlyDetailScreenContent(
             onBack = onBack,
             onGoHome = onGoHome,
-            nickname = state.monthlyCurationDetail?.nickname.orEmpty(),
-            title = state.monthlyCurationDetail?.detail?.title.orEmpty(),
-            emotionItems = state.monthlyCurationDetail?.topTags?.map { tag ->
+            isLoading = state.isLoading,
+            nickname = monthlyCurationDetail?.nickname?.takeIf { it.isNotEmpty() } ?: state.nickname,
+            title = curationDetail.title,
+            emotionItems = monthlyCurationDetail?.topTags?.map { tag ->
                 EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
             } ?: emptyList(),
-            recommendedLinks = state.monthlyCurationDetail?.recommendLink ?: emptyList(),
-            headerMent = state.monthlyCurationDetail?.detail?.headerMent.orEmpty(),
-            footerMent = state.monthlyCurationDetail?.detail?.footerMent.orEmpty(),
+            recommendedLinks = monthlyCurationDetail?.recommendLink ?: emptyList(),
+            headerMent = curationDetail.headerMent,
+            footerMent = curationDetail.footerMent,
             onLinkClick = { link -> viewModel.handleIntent(CurationDetailedIntent.ClickLink(link)) },
         )
     }
@@ -117,6 +126,7 @@ fun CurationMonthlyDetailScreen(
 @Composable
 private fun CurationMonthlyDetailScreenContent(
     onBack: () -> Unit,
+    isLoading: Boolean = false,
     nickname: String = "",
     title: String = "2026\n월간 큐레이션 5월호",
     headerMent: String = "",
@@ -143,6 +153,7 @@ private fun CurationMonthlyDetailScreenContent(
                 contentTopOffset = 92.scaler,
                 title = title,
                 titleDescriptionGap = 12.scaler, // 피그마상 18.49f인데 아무리 봐도 피그마랑 다른데? 12로 했는데 디자이너와 조정해주세용
+                isLoading = isLoading,
                 description = "${nickname}님의 이번 달을 링큐가 분석했어요!"
             )
 

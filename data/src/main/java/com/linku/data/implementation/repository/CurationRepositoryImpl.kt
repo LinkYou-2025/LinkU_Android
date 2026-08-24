@@ -44,6 +44,8 @@ class CurationRepositoryImpl @Inject constructor(
             curationApi.getLatestCuration()
         }.onSuccess { dto ->
             Log.d("CurationRepositoryImpl", "getLatestCuration dto: $dto")
+        }.onFailure { e ->
+            Log.e("CurationRepositoryImpl", "getLatestCuration 실패: ${e.message}")  // 추가
         }.map { it.toDomain() }
     }
 
