@@ -758,6 +758,14 @@ fun MainApp(
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
+
+                                // saveState = true 로 저장된 탭별 백스택 상태(ViewModel 포함)를 제거.
+                                // popUpTo(graph.id, inclusive=true)는 백스택만 비우고 저장 상태는
+                                // NavController 내부 store에 남겨두기 때문에, 재로그인 후 탭 진입 시
+                                // restoreState = true 가 이전 계정의 ViewModel을 복원해버림.
+                                navigator.clearBackStack(NavigationRoute.Curation.route)
+                                navigator.clearBackStack(NavigationRoute.File.route)
+                                navigator.clearBackStack(NavigationRoute.MyPage.route)
                                 navigator.navigate(NavigationRoute.Login.route) {
                                     // 그래프 루트까지 백스택 전부 제거.
                                     // Splash는 로그인 이후 이미 백스택에서 빠져있는 상태라
