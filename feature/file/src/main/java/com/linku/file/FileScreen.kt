@@ -40,7 +40,7 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import com.linku.file.ui.FileFab
-import com.linku.file.ui.ShareMenuItem
+import com.linku.file.ui.FileFabItem
 import com.linku.file.ui.bottom.sheet.CategoryEditBottomSheet
 import com.linku.file.ui.bottom.sheet.LinkCategorizationBottomSheet
 import com.linku.file.ui.bottom.sheet.MyFolderEditBottomSheet
@@ -678,7 +678,7 @@ fun FileScreen(
             }
 
             val editItem = remember {
-                ShareMenuItem(
+                FileFabItem(
                     id = FILE_FAB_EDIT_FOLDER_ID,
                     labelRes = R.string.file_floating_menu_edit_folder,
                     iconRes = R.drawable.ic_file_floating_menu_edit,
@@ -686,7 +686,7 @@ fun FileScreen(
                 )
             }
             val shareItem = remember {
-                ShareMenuItem(
+                FileFabItem(
                     id = FILE_FAB_SHARE_FOLDER_ID,
                     labelRes = R.string.file_floating_menu_share_folder,
                     iconRes = R.drawable.ic_file_floating_menu_share,
@@ -699,7 +699,7 @@ fun FileScreen(
                 is FileNavigationState.PersonalBottom -> listOf(
                     editItem,
                     shareItem,
-                    ShareMenuItem(
+                    FileFabItem(
                         id = FILE_FAB_DELETE_FOLDER_ID,
                         labelRes = R.string.file_floating_menu_delete_folder,
                         iconRes = R.drawable.ic_file_floating_menu_delete,
@@ -708,7 +708,7 @@ fun FileScreen(
                 )
                 is FileNavigationState.SharedFolderList -> listOf(
                     shareItem,
-                    ShareMenuItem(
+                    FileFabItem(
                         id = FILE_FAB_LEAVE_FOLDER_ID,
                         labelRes = R.string.shared_folder_leave,
                         iconRes = R.drawable.ic_file_floating_menu_leave,
