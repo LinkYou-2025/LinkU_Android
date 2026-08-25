@@ -342,7 +342,7 @@ fun MainApp(
             navigationBarProp = if (shouldShowNavigationBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
-                    // 같은 탭 재클릭 시엔 동작 X
+                    // 다른 탭을 선택한 경우에만 탭 내비게이션을 수행한다.
                     if (currentLinkuNavigationItem != item) {
                         // 목표 라우트
                         val route = when (item) {
@@ -361,6 +361,9 @@ fun MainApp(
                             launchSingleTop = true
                             restoreState = true
                         }
+                    } else if (item == LinkuNavigationItem.FILE) {
+                        // MainApp 범위 상태는 같은 탭 재선택만으로 초기화되지 않으므로 카테고리 루트로 되돌린다.
+                        folderStateViewModel.resetSharedFolderState()
                     }
                 },
                 onCenterButtonClicked = {
