@@ -16,12 +16,12 @@ plugins {
     id("com.google.gms.google-services") version "4.5.0" apply false
 }
 
-val localPropertyNames = listOf(
-    "KAKAO_NATIVE_APP_KEY",
-    "GOOGLE_WEB_CLIENT_ID",
-    "SERVER_DOMAIN",
-    "SERVER_HOST",
-    "API_VERSION",
+val localPropertyEnvironmentNames = mapOf(
+    "KAKAO_NATIVE_APP_KEY" to "LINKU_KAKAO_NATIVE_APP_KEY",
+    "GOOGLE_WEB_CLIENT_ID" to "LINKU_GOOGLE_WEB_CLIENT_ID",
+    "SERVER_DOMAIN" to "LINKU_SERVER_DOMAIN",
+    "SERVER_HOST" to "LINKU_SERVER_HOST",
+    "API_VERSION" to "LINKU_API_VERSION",
 )
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -30,11 +30,11 @@ val localProperties = Properties().apply {
         localPropertiesFile.inputStream().use { load(it) }
     }
 
-    localPropertyNames.forEach { propertyName ->
+    localPropertyEnvironmentNames.forEach { (propertyName, environmentVariableName) ->
         val propertyValue = getProperty(propertyName)
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
-            ?: project.providers.environmentVariable(propertyName).orNull
+            ?: project.providers.environmentVariable(environmentVariableName).orNull
                 ?.trim()
                 ?.takeIf { it.isNotEmpty() }
 

@@ -17,7 +17,7 @@ val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException(
         "GOOGLE_WEB_CLIENT_ID is missing or blank. Set it in local.properties, " +
-            "or set the GOOGLE_WEB_CLIENT_ID environment variable."
+            "or set the LINKU_GOOGLE_WEB_CLIENT_ID environment variable."
     )
 
 

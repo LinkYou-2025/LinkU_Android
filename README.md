@@ -182,18 +182,21 @@
 
 ## 로컬 빌드 설정
 
-다음 앱 설정은 키마다 `local.properties`의 non-blank 값, 같은 이름의 환경 변수 순서로 읽습니다.
+다음 앱 설정은 키마다 `local.properties`의 non-blank 값, LinkU 전용 환경 변수 순서로 읽습니다.
 따라서 Android Studio가 `sdk.dir`만 포함한 `local.properties`를 생성해도 환경 변수 fallback이 동작합니다.
 
-- `KAKAO_NATIVE_APP_KEY`
-- `GOOGLE_WEB_CLIENT_ID`
-- `SERVER_DOMAIN`
-- `SERVER_HOST`
-- `API_VERSION`
+| `local.properties` 키 | 환경 변수 |
+| --- | --- |
+| `KAKAO_NATIVE_APP_KEY` | `LINKU_KAKAO_NATIVE_APP_KEY` |
+| `GOOGLE_WEB_CLIENT_ID` | `LINKU_GOOGLE_WEB_CLIENT_ID` |
+| `SERVER_DOMAIN` | `LINKU_SERVER_DOMAIN` |
+| `SERVER_HOST` | `LINKU_SERVER_HOST` |
+| `API_VERSION` | `LINKU_API_VERSION` |
 
 우선순위는 파일 전체가 아니라 각 키를 기준으로 합니다. `local.properties`에 특정 앱 설정이 없거나
-공백이면 같은 이름의 환경 변수를 사용합니다. `sdk.dir`은 Android Studio가 관리하는 파일에 그대로
-둘 수 있으며, 파일이 없는 환경에서는 Android SDK 경로를 표준 Android SDK 환경 설정으로 제공해야 합니다.
+공백이면 표에 매핑된 `LINKU_` 환경 변수를 사용합니다. `sdk.dir`은 Android Studio가 관리하는 파일에
+그대로 둘 수 있으며, 파일이 없는 환경에서는 Android SDK 경로를 표준 `ANDROID_HOME` 환경 변수로
+제공해야 합니다.
 
 이 환경 변수들은 로컬 파일 복사 없이 빌드 설정을 전달하기 위한 수단입니다. 값은 `BuildConfig` 또는
 Android Manifest 등에 포함될 수 있으므로 서버 비밀이나 관리자 토큰을 저장하는 용도로 사용하지 않습니다.

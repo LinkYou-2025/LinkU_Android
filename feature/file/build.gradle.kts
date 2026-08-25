@@ -18,7 +18,7 @@ val serverHost = localProperties.getProperty("SERVER_HOST")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException(
         "SERVER_HOST is missing or blank. Set it in local.properties, " +
-            "or set the SERVER_HOST environment variable."
+            "or set the LINKU_SERVER_HOST environment variable."
     )
 
 android {

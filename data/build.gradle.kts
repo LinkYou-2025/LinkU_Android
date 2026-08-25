@@ -18,7 +18,7 @@ val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException(
         "SERVER_DOMAIN is missing or blank. Set it in local.properties, " +
-            "or set the SERVER_DOMAIN environment variable."
+            "or set the LINKU_SERVER_DOMAIN environment variable."
     )
 
 val apiVersion = localProperties.getProperty("API_VERSION")
@@ -26,7 +26,7 @@ val apiVersion = localProperties.getProperty("API_VERSION")
     ?.takeIf { it.isNotEmpty() }
     ?: throw GradleException(
         "API_VERSION is missing or blank. Set it in local.properties, " +
-            "or set the API_VERSION environment variable."
+            "or set the LINKU_API_VERSION environment variable."
     )
 
 val serverBaseUrl = "$serverDomain/$apiVersion/"
