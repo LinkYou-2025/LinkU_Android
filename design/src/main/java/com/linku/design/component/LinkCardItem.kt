@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
@@ -159,7 +160,9 @@ fun LinkCardItem(
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.ic_domain_default),
                         error = painterResource(R.drawable.ic_domain_default),
-                        modifier = Modifier.size(22.dp)
+                        modifier = Modifier
+                            .size(22.dp)
+                            .clip(CircleShape)
                     )
 
                     Spacer(modifier = Modifier.width(6.dp))
