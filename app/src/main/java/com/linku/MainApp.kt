@@ -220,7 +220,8 @@ fun MainApp(
     val shouldShowNavigationBar =
         showNavBar &&
                 currentRoute != SAVE_LINK_ROUTE &&
-                currentRoute != LINK_DETAIL_ROUTE_PATTERN
+                currentRoute != LINK_DETAIL_ROUTE_PATTERN &&
+                currentRoute != SHARED_LINK_DETAIL_ROUTE
 
     // 기기 3대까지 지원하므로 다른 기기에서 닉네임을 바꾸면 즉시 반영되도록 Home/Curation
     // 진입마다 재호출함. 로그인 시점 선호출(MainViewModel.setAuthenticated)과 별개로 유지.
