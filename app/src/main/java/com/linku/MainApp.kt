@@ -70,6 +70,7 @@ import com.linku.link.screen.LinkDetailLoadErrorScreen
 import com.linku.link.screen.LinkDetailLoadingScreen
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
+import com.linku.link.screen.SharedLinkDetailScreen
 import com.linku.link.util.toTempFile
 import com.linku.login.navigation.LoginApp
 import com.linku.login.viewmodel.LoginViewModel
@@ -94,6 +95,14 @@ private const val SAVE_LINK_ROUTE = "savelink"
 
 private fun linkDetailRoute(userLinkuId: Long): String =
     "savelinkresult/$userLinkuId"
+
+/**
+ * 공유폴더 링크의 읽기 전용 상세 화면 경로입니다.
+ *
+ * 공유폴더 링크는 소유자 상세 API를 호출할 수 없어(다른 사용자 소유라 404), 목록 조회 시점의
+ * 값을 [FolderStateViewModel.selectedSharedLink]에 담아 인자 없이 이 경로로만 이동합니다.
+ */
+private const val SHARED_LINK_DETAIL_ROUTE = "sharedlinkdetail"
 
 /**
  * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
@@ -701,6 +710,9 @@ fun MainApp(
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
                             },
+                            onNavigateToSharedLinkDetail = {
+                                navigator.navigate(SHARED_LINK_DETAIL_ROUTE)
+                            },
                             onSearchOpen = searchViewModel::openSearch,
                         )
                     }
@@ -1123,6 +1135,22 @@ fun MainApp(
                                 },
                             )
                         }
+                    }
+                }
+
+                composable(route = SHARED_LINK_DETAIL_ROUTE) {
+                    val sharedLink = folderStateViewModel.selectedSharedLink
+
+                    if (sharedLink == null) {
+                        LaunchedEffect(Unit) { navigator.popBackStack() }
+                    } else {
+                        SharedLinkDetailScreen(
+                            linkTitle = sharedLink.title,
+                            linkUrl = sharedLink.url,
+                            imageUrl = sharedLink.linkuImageUrl,
+                            tags = sharedLink.tags,
+                            onBack = { navigator.popBackStack() },
+                        )
                     }
                 }
 

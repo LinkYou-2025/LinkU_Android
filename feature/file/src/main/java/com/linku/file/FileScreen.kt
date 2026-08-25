@@ -93,6 +93,9 @@ private data class PendingSharedFolderLeave(
  * @param leaveStateViewModel 공유폴더 나가기 대상 선택 모드를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
  * @param onLinkClick 상세 화면을 열 사용자 링크 ID를 전달하는 콜백
+ * @param onSharedLinkClick 공유폴더 링크의 상세 화면으로 이동시키는 콜백. 공유폴더 링크는
+ * 소유자 상세 API를 호출할 수 없어, 클릭한 링크는 [folderStateViewModel]에 먼저 저장한 뒤
+ * 이동만 요청합니다.
  * @param onSearchOpen 검색 UI가 열릴 때 호출되는 콜백
  */
 @Composable
@@ -103,6 +106,7 @@ fun FileScreen(
     leaveStateViewModel: LeaveStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onLinkClick: (Long) -> Unit,
+    onSharedLinkClick: () -> Unit,
     onSearchOpen: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
@@ -652,7 +656,10 @@ fun FileScreen(
                     -> LoadingFoldersGrid(modifier = Modifier.fillMaxSize())
                     is SharedFolderLoadState.Content -> SharedLinksGrid(
                         links = state.value,
-                        onLinkClick = onLinkClick,
+                        onLinkClick = { link ->
+                            folderStateViewModel.selectSharedLink(link)
+                            onSharedLinkClick()
+                        },
                         modifier = Modifier.fillMaxSize(),
                     )
                     SharedFolderLoadState.Empty -> SharedFolderEmptyState(
@@ -901,6 +908,7 @@ fun FileScreen(
 private fun PreviewFileScreen() {
     FileScreen(
         onLinkClick = {},
+        onSharedLinkClick = {},
         onSearchOpen = {},
     )
 }
