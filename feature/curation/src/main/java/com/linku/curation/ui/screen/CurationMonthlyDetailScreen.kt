@@ -1,6 +1,7 @@
 package com.linku.curation.ui.screen
 
 import android.content.Intent
+import java.util.Calendar
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -88,7 +89,11 @@ fun CurationMonthlyDetailScreen(
         // 제목·본문 등 텍스트 정보, null이면 기본값 사용
         val curationDetail = monthlyCurationDetail?.detail ?: CurationDetail()
 
-        val rawMonth = viewModel.month.substringAfter('-').toIntOrNull() ?: 0
+
+        // month 파싱 실패 시 fallback용 현재 로컬 월 (1~12)
+        val localMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+
+        val rawMonth = viewModel.month.substringAfter('-').toIntOrNull() ?: localMonth
         val displayMonth = if (rawMonth == 1) 12 else (rawMonth - 1).coerceAtLeast(0)
 
         CurationMonthlyDetailScreenContent(
