@@ -116,7 +116,7 @@ internal fun <T : SelectionItem> SignUpSelectionLayout(
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
-            Spacer(modifier = Modifier.height(15.scaler))
+            Spacer(modifier = Modifier.height(12.scaler))
 
             // 서브텍스트
             Text(
