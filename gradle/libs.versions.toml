@@ -9,7 +9,7 @@ kotlinJvmTarget = "11"
 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
 accompanistSystemuicontroller = "0.36.0"
-agp = "9.3.1"
+agp = "9.3.2"
 browser = "1.9.0"
 coilCompose = "2.7.0"
 coilComposeVersion = "3.4.0"
