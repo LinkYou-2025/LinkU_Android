@@ -42,6 +42,7 @@ import coil3.compose.AsyncImage
 import com.linku.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
+import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.design.theme.linkuColors
 import kotlinx.coroutines.launch
 
@@ -50,12 +51,14 @@ import kotlinx.coroutines.launch
  *
  * 공유폴더 링크는 소유자 상세 API(`GET linku/{userLinkuId}`)를 호출할 수 없어(다른 사용자
  * 소유라 404가 남), 폴더 내부 링크 목록 조회 시점에 이미 받아온 값만으로 화면을 구성합니다.
- * 메모·감정·상황·카테고리·AI 요약처럼 목록 응답에 없는 정보와 수정·삭제 동작은 제공하지 않습니다.
+ * 메모·감정·상황·AI 요약처럼 목록 응답에 없는 정보와 수정·삭제 동작은 제공하지 않습니다.
  *
  * @param linkTitle 링크 제목
  * @param linkUrl 원본 링크 URL
  * @param imageUrl 링크 썸네일 URL
  * @param tags 링크 키워드 태그 목록
+ * @param categoryName 링크에 지정된 카테고리 이름이며, 없으면 "카테고리"입니다.
+ * @param categoryColorStyle 카테고리 칩에 적용할 배경·텍스트 색상 단계입니다.
  * @param onBack 뒤로가기 콜백
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -65,6 +68,8 @@ fun SharedLinkDetailScreen(
     linkUrl: String,
     imageUrl: String?,
     tags: List<String>,
+    categoryName: String,
+    categoryColorStyle: CategoryColorStyle,
     onBack: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
@@ -152,15 +157,27 @@ fun SharedLinkDetailScreen(
 
                 Spacer(modifier = Modifier.height(19.dp))
 
-                // Figma(#24-1) 기준 제목 바로 아래, 태그 칩과 같은 줄 오른쪽 끝에 원본 링크
-                // 바로가기 아이콘이 위치합니다. 공유폴더 상세는 태그를 헤더에 두지 않으므로
-                // 아이콘만 같은 위치에 남깁니다.
+                // Figma(#24-1) 기준 제목 바로 아래 줄 왼쪽에 카테고리 칩, 오른쪽 끝에
+                // 원본 링크 바로가기 아이콘이 위치합니다. LinkDetailScreen 조회 모드와 동일한
+                // 칩 색상 규칙을 읽기 전용으로 재사용합니다.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 24.dp, end = 24.dp),
-                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
+                    Text(
+                        text = categoryName,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = categoryColorStyle.color4,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(categoryColorStyle.color1)
+                            .padding(horizontal = 10.dp, vertical = 3.dp)
+                    )
+
                     Image(
                         painter = painterResource(R.drawable.ic_link_go),
                         contentDescription = "원본 링크 열기",
@@ -295,6 +312,8 @@ private fun PreviewSharedLinkDetailScreen() {
             linkUrl = "https://blog.naver.com/linkU/1234567890",
             imageUrl = null,
             tags = listOf("오픽", "AL", "영어회화", "자격증"),
+            categoryName = "어학",
+            categoryColorStyle = CategoryColorStyle.categoryStyleList[0],
             onBack = {},
         )
     }

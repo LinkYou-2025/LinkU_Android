@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.error.DeepLinkError
+import com.linku.core.model.CategoryType
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
@@ -1215,11 +1216,21 @@ fun MainApp(
                     if (sharedLink == null) {
                         LaunchedEffect(Unit) { navigator.popBackStack() }
                     } else {
+                        // 서버 카테고리 목록은 소유자별로 다를 수 있어, 고정된 16종 카테고리
+                        // 마스터(CategoryType)로 categoryId를 이름·색상에 매핑합니다.
+                        val sharedLinkCategoryType = sharedLink.categoryId?.let { categoryId ->
+                            CategoryType.fromId(categoryId)
+                        }
+
                         SharedLinkDetailScreen(
                             linkTitle = sharedLink.title,
                             linkUrl = sharedLink.url,
                             imageUrl = sharedLink.linkuImageUrl,
                             tags = sharedLink.tags,
+                            categoryName = sharedLinkCategoryType?.tagName ?: "카테고리",
+                            categoryColorStyle = sharedLinkCategoryType?.let { categoryType ->
+                                CategoryColorStyle.categoryStyleList.getOrNull(categoryType.ordinal)
+                            } ?: CategoryColorStyle.DEFAULT,
                             onBack = { navigator.popBackStack() },
                         )
                     }
