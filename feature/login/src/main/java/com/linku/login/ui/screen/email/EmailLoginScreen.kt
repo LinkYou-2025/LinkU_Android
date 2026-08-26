@@ -70,7 +70,7 @@ fun EmailLoginScreen(
     val density = LocalDensity.current
 
     val uiState by loginViewModel?.state?.collectAsStateWithLifecycle()
-        ?: androidx.compose.runtime.remember { mutableStateOf(LoginUiState()) }
+        ?: remember { mutableStateOf(LoginUiState()) }
     val loginState = uiState.loginState
 
     val windowInfo = LocalWindowInfo.current
