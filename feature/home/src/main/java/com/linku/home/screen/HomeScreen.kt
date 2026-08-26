@@ -29,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -226,8 +227,8 @@ fun HomeScreen(
     var selectedEmotion by remember { mutableStateOf<Long?>(null) }
     var selectedTask by remember { mutableStateOf<Long?>(null) }
 
-    // 추천 누르면 강제로 접힘 유지하는 용도
-    var isTopBarLockedCollapsed by remember { mutableStateOf(false) }
+    // 홈 백스택 복귀 첫 composition부터 이전 접힘 상태를 복원해 재접힘 애니메이션을 방지합니다.
+    var isTopBarLockedCollapsed by rememberSaveable { mutableStateOf(false) }
 
     // 직업별 상황 리스트
     val jobSituations = remember(jobId) { SituationOptions.situationsFor(jobId) }
@@ -930,4 +931,3 @@ private fun PreviewLinkCardDeleteMenuVisible() {
         )
     }
 }
-

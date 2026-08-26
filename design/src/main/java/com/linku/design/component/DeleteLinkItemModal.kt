@@ -13,11 +13,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.design.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
@@ -56,7 +58,7 @@ fun DeleteLinkItemModal(
             .noRippleClickable { onDeleteClick() }
     ) {
         Text(
-            text = "삭제하기",
+            text = stringResource(R.string.link_card_delete_action),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = colors.gray[800],

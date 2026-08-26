@@ -2,19 +2,20 @@ package com.linku.data.api.dto.aiarticle
 
 import com.linku.data.api.dto.BaseResponse
 import com.squareup.moshi.JsonAdapter
+import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /** AI 요약 링크 목록의 실제 JSON 응답 형태와 Moshi DTO 계약을 검증합니다. */
 class AiArticleLinkResponseParsingTest {
 
-    /** 문자열 커서와 항목별 카테고리 필드가 손실 없이 역직렬화되는지 검증합니다. */
+    /** Long 범위의 숫자 커서와 항목별 카테고리 필드가 손실 없이 역직렬화되는지 검증합니다. */
     @Test
-    fun `response parses string cursor and item category fields`() {
+    fun `response parses long cursor and item category fields`() {
         val responseType = Types.newParameterizedType(
             BaseResponse::class.java,
             AiArticleLinkPageDTO::class.java,
@@ -28,15 +29,16 @@ class AiArticleLinkResponseParsingTest {
         val item = response.result.linkuList.single()
 
         assertTrue(response.isSuccess)
-        assertEquals("00000000000000000042", response.result.nextCursor)
+        assertEquals(3_000_000_000L, response.result.nextCursor)
         assertEquals(4L, item.categoryId)
         assertEquals("IT·개발", item.categoryName)
         assertEquals(1L, item.emotionId)
         assertEquals(7L, item.userLinkuId)
     }
 
+    /** 필수 사용자 저장 링크 ID가 누락된 응답을 거부하는지 검증합니다. */
     @Test
-    fun `response remains readable while user link id is omitted`() {
+    fun `response rejects omitted user link id`() {
         val responseType = Types.newParameterizedType(
             BaseResponse::class.java,
             AiArticleLinkPageDTO::class.java,
@@ -47,9 +49,30 @@ class AiArticleLinkResponseParsingTest {
                 .adapter(responseType)
         val legacyJson = RESPONSE_JSON.replace("\"userLinkuId\": 7,", "")
 
-        val response = requireNotNull(adapter.fromJson(legacyJson))
+        assertThrows(JsonDataException::class.java) {
+            adapter.fromJson(legacyJson)
+        }
+    }
 
-        assertNull(response.result.linkuList.single().userLinkuId)
+    /** 필수 사용자 저장 링크 ID가 명시적으로 `null`인 응답을 거부하는지 검증합니다. */
+    @Test
+    fun `response rejects null user link id`() {
+        val responseType = Types.newParameterizedType(
+            BaseResponse::class.java,
+            AiArticleLinkPageDTO::class.java,
+        )
+        val adapter: JsonAdapter<BaseResponse<AiArticleLinkPageDTO>> =
+            Moshi.Builder()
+                .build()
+                .adapter(responseType)
+        val nullUserLinkuIdJson = RESPONSE_JSON.replace(
+            "\"userLinkuId\": 7,",
+            "\"userLinkuId\": null,",
+        )
+
+        assertThrows(JsonDataException::class.java) {
+            adapter.fromJson(nullUserLinkuIdJson)
+        }
     }
 
     private companion object {
@@ -74,7 +97,7 @@ class AiArticleLinkResponseParsingTest {
                     "categoryName": "IT·개발"
                   }
                 ],
-                "nextCursor": "00000000000000000042",
+                "nextCursor": 3000000000,
                 "hasNext": true
               }
             }

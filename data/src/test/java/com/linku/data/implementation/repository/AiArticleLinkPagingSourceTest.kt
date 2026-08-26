@@ -25,7 +25,7 @@ class AiArticleLinkPagingSourceTest {
             response = successResponse(
                 page = page(
                     items = listOf(item()),
-                    nextCursor = "next-cursor",
+                    nextCursor = 3_000_000_000L,
                     hasNext = true,
                 ),
             ),
@@ -47,18 +47,18 @@ class AiArticleLinkPagingSourceTest {
             listOf(AiArticleRequest(categoryId = null, cursor = null, limit = 10)),
             fakeApi.requests,
         )
-        val loadedPage = result as PagingSource.LoadResult.Page<String, AiArticleLink>
+        val loadedPage = result as PagingSource.LoadResult.Page<Long, AiArticleLink>
         assertEquals(1L, loadedPage.data.single().userLinkuId)
         assertEquals(CategoryType.IT_DEV, loadedPage.data.single().categoryType)
-        assertEquals("next-cursor", loadedPage.nextKey)
+        assertEquals(3_000_000_000L, loadedPage.nextKey)
         assertNull(loadedPage.prevKey)
     }
 
     /** 카테고리 ID, 커서, 로드 개수를 변형 없이 API에 전달하는지 검증합니다. */
     @Test
     fun `append passes selected category and cursor exactly`() = runTest {
-        val currentCursor = "00000000000000000042"
-        val nextCursor = "00000000000000000043"
+        val currentCursor = 3_000_000_000L
+        val nextCursor = 3_000_000_001L
         val fakeApi = FakeAiArticleApi(
             response = successResponse(
                 page = page(
@@ -92,7 +92,7 @@ class AiArticleLinkPagingSourceTest {
         )
         assertEquals(
             nextCursor,
-            (result as PagingSource.LoadResult.Page<String, AiArticleLink>).nextKey,
+            (result as PagingSource.LoadResult.Page<Long, AiArticleLink>).nextKey,
         )
     }
 
@@ -102,7 +102,7 @@ class AiArticleLinkPagingSourceTest {
         val fakeApi = FakeAiArticleApi(
             response = successResponse(
                 page = page(
-                    nextCursor = "unused-cursor",
+                    nextCursor = 3_000_000_002L,
                     hasNext = false,
                 ),
             ),
@@ -114,21 +114,22 @@ class AiArticleLinkPagingSourceTest {
 
         val result = pagingSource.load(
             PagingSource.LoadParams.Append(
-                key = "current-cursor",
+                key = 3_000_000_001L,
                 loadSize = 10,
                 placeholdersEnabled = false,
             ),
         )
 
         assertNull(
-            (result as PagingSource.LoadResult.Page<String, AiArticleLink>).nextKey,
+            (result as PagingSource.LoadResult.Page<Long, AiArticleLink>).nextKey,
         )
     }
 
-    /** 누락, 공백, 반복 커서를 정상 페이지로 취급하지 않는지 검증합니다. */
+    /** 누락 또는 반복된 Long 커서를 정상 페이지로 취급하지 않는지 검증합니다. */
     @Test
     fun `hasNext true with malformed cursor returns paging error`() = runTest {
-        val malformedCursors = listOf<String?>(null, "   ", "current-cursor")
+        val currentCursor = 3_000_000_000L
+        val malformedCursors = listOf<Long?>(null, currentCursor)
 
         malformedCursors.forEach { malformedCursor ->
             val fakeApi = FakeAiArticleApi(
@@ -146,14 +147,14 @@ class AiArticleLinkPagingSourceTest {
 
             val result = pagingSource.load(
                 PagingSource.LoadParams.Append(
-                    key = "current-cursor",
+                    key = currentCursor,
                     loadSize = 10,
                     placeholdersEnabled = false,
                 ),
             )
 
             assertTrue(result is PagingSource.LoadResult.Error<*, *>)
-            val error = result as PagingSource.LoadResult.Error<String, AiArticleLink>
+            val error = result as PagingSource.LoadResult.Error<Long, AiArticleLink>
             assertTrue(error.throwable is IllegalStateException)
         }
     }
@@ -183,14 +184,14 @@ class AiArticleLinkPagingSourceTest {
         )
 
         assertTrue(result is PagingSource.LoadResult.Error<*, *>)
-        val error = result as PagingSource.LoadResult.Error<String, AiArticleLink>
+        val error = result as PagingSource.LoadResult.Error<Long, AiArticleLink>
         assertTrue(error.throwable is ApiError.User.NotFound)
     }
 
     /** Retrofit 프록시가 수집한 AI 요약 목록 요청입니다. */
     private data class AiArticleRequest(
         val categoryId: Long?,
-        val cursor: String?,
+        val cursor: Long?,
         val limit: Int,
     )
 
@@ -215,7 +216,7 @@ class AiArticleLinkPagingSourceTest {
             }
             requests += AiArticleRequest(
                 categoryId = arguments[0] as Long?,
-                cursor = arguments[1] as String?,
+                cursor = arguments[1] as Long?,
                 limit = arguments[2] as Int,
             )
             response
@@ -240,7 +241,7 @@ class AiArticleLinkPagingSourceTest {
         /** 검증에 사용할 AI 요약 링크 페이지를 생성합니다. */
         fun page(
             items: List<AiArticleLinkItemDTO> = emptyList(),
-            nextCursor: String? = null,
+            nextCursor: Long? = null,
             hasNext: Boolean = false,
         ): AiArticleLinkPageDTO =
             AiArticleLinkPageDTO(

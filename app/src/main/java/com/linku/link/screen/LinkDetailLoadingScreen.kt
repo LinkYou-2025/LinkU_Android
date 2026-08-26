@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -154,20 +155,38 @@ fun LinkDetailLoadErrorScreen(
 
     BackHandler(onBack = onBack)
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(colors.white),
     ) {
-        LinkDetailStatusHeader(onBack = onBack)
+        // 파란 상세 헤더 없이도 이전 화면으로 돌아갈 수 있도록 흰 배경용 버튼을 독립 배치합니다.
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(top = 44.dp, start = 2.dp)
+                .size(48.dp)
+                .noRippleClickable(
+                    role = Role.Button,
+                    onClick = onBack,
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_back),
+                contentDescription = stringResource(R.string.link_detail_back),
+                modifier = Modifier
+                    .width(12.dp)
+                    .height(18.dp),
+            )
+        }
 
         Column(
             modifier = Modifier
-                .weight(1f)
+                .align(Alignment.Center)
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = stringResource(R.string.link_detail_load_error_title),
@@ -185,24 +204,34 @@ fun LinkDetailLoadErrorScreen(
                 color = colors.gray[500],
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(45.dp))
 
-            Box(
+            Row(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(50))
                     .background(colors.maincolor)
                     .noRippleClickable(
                         role = Role.Button,
                         onClick = onRetry,
                     )
-                    .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
-                    .padding(horizontal = 28.dp, vertical = 14.dp),
-                contentAlignment = Alignment.Center,
+                    .padding(horizontal = 19.dp, vertical = 11.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_refresh),
+                    contentDescription = null,
+                    modifier = Modifier.size(13.dp),
+                    tint = Color.Unspecified,
+                )
+
+                Spacer(modifier = Modifier.width(6.dp))
+
                 Text(
                     text = stringResource(R.string.link_detail_load_retry),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    lineHeight = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = (-0.01).sp,
                     color = colors.white,
                 )
             }
@@ -278,38 +307,6 @@ private fun LinkDetailLoadingHeader(
                 }
             }
         }
-    }
-}
-
-/**
- * 링크 상세 실패 화면에서 사용하는 정적 상단바입니다.
- *
- * @param onBack 이전 화면으로 돌아갈 때 호출됩니다.
- */
-@Composable
-private fun LinkDetailStatusHeader(
-    onBack: () -> Unit,
-) {
-    val colors = MaterialTheme.linkuColors
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(bottomStart = 22.dp, bottomEnd = 22.dp))
-            .background(colors.blue[200]),
-    ) {
-        Image(
-            painter = painterResource(R.drawable.linku_logo_transparent),
-            contentDescription = null,
-            modifier = Modifier
-                .height(110.dp)
-                .align(Alignment.TopEnd),
-        )
-
-        LinkDetailNavigationRow(
-            onBack = onBack,
-            modifier = Modifier.padding(bottom = LINK_DETAIL_STATUS_HEADER_BOTTOM_PADDING),
-        )
     }
 }
 

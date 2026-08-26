@@ -7,7 +7,7 @@ package com.linku.core.model
  * [categoryType]과 [displayCategoryName]을 통해 일관된 표시 값으로 변환하고, 알 수 없는
  * ID는 서버의 [categoryName]을 그대로 표시합니다.
  *
- * @property userLinkuId 사용자가 저장한 링크의 고유 ID. 서버 전환 중에는 응답에서 누락될 수 있습니다.
+ * @property userLinkuId 사용자가 저장한 링크의 고유 ID
  * @property linku 저장된 원본 URL
  * @property emotionId 링크에 지정된 감정 ID
  * @property domain 원본 URL의 도메인 이름
@@ -18,7 +18,7 @@ package com.linku.core.model
  * @property categoryName 서버가 반환한 카테고리 이름
  */
 data class AiArticleLink(
-    val userLinkuId: Long?,
+    val userLinkuId: Long,
     val linku: String,
     val emotionId: Long,
     val domain: String,

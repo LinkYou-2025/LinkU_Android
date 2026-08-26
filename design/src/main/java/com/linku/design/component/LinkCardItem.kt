@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -38,6 +39,26 @@ import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
 
 
+/**
+ * 저장 링크의 썸네일, 분류 태그, 도메인 정보와 선택 가능한 메뉴를 카드로 표시합니다.
+ *
+ * [onCardClick]이 `null`이면 카드 본문에 클릭 modifier를 부착하지 않습니다. 더보기 버튼과
+ * 삭제 메뉴의 표시 상태는 호출 화면이 관리하며, 이 컴포넌트는 전달받은 콜백만 실행합니다.
+ *
+ * @param hasAiSummary AI 요약이 존재해 북마크를 표시할지 여부
+ * @param linkTitle 카드에 표시할 링크 제목
+ * @param modifier 카드 외부 레이아웃에 적용할 modifier
+ * @param tags 카드에 표시할 분류 태그 목록
+ * @param domainName 링크의 도메인 이름
+ * @param isExternalLink 외부 링크 아이콘을 표시할지 여부
+ * @param linkImageUrl 링크 대표 이미지 URL
+ * @param domainImageUrl 도메인 이미지 URL
+ * @param isMoreVisible 우측 더보기 버튼을 표시할지 여부
+ * @param isDeleteMenuVisible 카드 위에 삭제 메뉴를 표시할지 여부
+ * @param onMoreClick 더보기 버튼을 눌렀을 때 호출되는 콜백
+ * @param onCardClick 카드 본문을 눌렀을 때 호출되는 콜백. `null`이면 카드 본문은 클릭할 수 없음
+ * @param onDeleteClick 삭제 메뉴를 눌렀을 때 호출되는 콜백
+ */
 @Composable
 fun LinkCardItem(
     hasAiSummary: Boolean,
@@ -48,11 +69,11 @@ fun LinkCardItem(
     isExternalLink: Boolean,
     linkImageUrl: String = "",
     domainImageUrl: String = "",
-    isMoreVisible: Boolean = true, // 점 3개 보여줄지 말지 여부
+    isMoreVisible: Boolean = true,
     isDeleteMenuVisible: Boolean = false,
     onMoreClick: () -> Unit = { },
-    onCardClick: () -> Unit = { },  // TODO: 머지 이후 기본값 제거 예정
-    onDeleteClick: () -> Unit = {}, // 안 쓰는 곳(큐레이션)도 있으므로 디폴트값 추가
+    onCardClick: (() -> Unit)? = null,
+    onDeleteClick: () -> Unit = {},
 ) {
     val colors = MaterialTheme.linkuColors
 
@@ -61,7 +82,11 @@ fun LinkCardItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(18.dp))
             .background(colors.white)
-            .noRippleClickable(onClick = onCardClick)
+            .then(
+                onCardClick?.let { cardClick ->
+                    Modifier.noRippleClickable(onClick = cardClick)
+                } ?: Modifier
+            )
     ) {
         Row(
             modifier = Modifier
@@ -192,7 +217,9 @@ fun LinkCardItem(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_more),
-                            contentDescription = "더보기",
+                            contentDescription = stringResource(
+                                R.string.link_card_more_content_description,
+                            ),
                             tint = colors.gray[400],
                             modifier = Modifier.size(17.dp)
                         )

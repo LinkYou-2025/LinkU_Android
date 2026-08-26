@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** AI 링크 목록이 nullable 사용자 저장 링크 ID를 안전하게 처리하는지 검증합니다. */
+/** AI 링크 목록의 사용자 저장 링크 ID 검증과 Paging 슬롯 대체 키를 확인합니다. */
 class AILinkuNavigationIdentityTest {
 
     @Test
@@ -21,13 +21,8 @@ class AILinkuNavigationIdentityTest {
     }
 
     @Test
-    fun `missing user linku id uses index key and disables navigation`() {
-        val action = aiLinkuClickAction(userLinkuId = null) {
-            error("Missing userLinkuId must not navigate.")
-        }
-
+    fun `unloaded paging slot uses index key`() {
         assertEquals("ai-linku-index-3", aiLinkuItemKey(index = 3, userLinkuId = null))
-        assertNull(action)
     }
 
     @Test

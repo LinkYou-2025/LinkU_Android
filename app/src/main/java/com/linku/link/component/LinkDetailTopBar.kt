@@ -72,6 +72,7 @@ private fun DropdownChipBoundsAnchor(
  *
  * @param category 서버에서 내려온 현재 카테고리 이름입니다.
  * @param categoryColorStyle 현재 카테고리의 배경·텍스트 색상 단계입니다.
+ * @param isSituationSelectionEnabled 현재 직업의 상황 후보가 준비되어 수정할 수 있는지 나타냅니다.
  * @param onCategoryChipBoundsChanged 카테고리 칩의 윈도우 기준 영역이 변경될 때 호출됩니다.
  * @param onEmotionChipBoundsChanged 감정 칩의 윈도우 기준 영역이 변경될 때 호출됩니다.
  * @param onSituationChipBoundsChanged 상황 칩의 윈도우 기준 영역이 변경될 때 호출됩니다.
@@ -88,6 +89,7 @@ fun LinkDetailTopBar(
     isCategoryDropdownOpen: Boolean,
     isEmotionDropdownOpen: Boolean,
     isSituationDropdownOpen: Boolean,
+    isSituationSelectionEnabled: Boolean,
     onBack: () -> Unit,
     onMoreClick: () -> Unit,
     onLinkGoClick: () -> Unit,
@@ -430,6 +432,7 @@ fun LinkDetailTopBar(
                                     .clip(RoundedCornerShape(10.dp))
                                 .background(
                                     when {
+                                        isEditMode && !isSituationSelectionEnabled -> colors.blue[100]
                                         isEditMode && isSituationDropdownOpen -> colors.white
                                         isEditMode -> colors.blue[200]
                                         else -> colors.purple[50]
@@ -439,10 +442,10 @@ fun LinkDetailTopBar(
                                     if(isEditMode) {
                                         Modifier.border(
                                             width = 1.dp,
-                                            color = if (isSituationDropdownOpen) {
-                                                colors.white
-                                            } else {
-                                                colors.blue[100]
+                                            color = when {
+                                                !isSituationSelectionEnabled -> colors.blue[100]
+                                                isSituationDropdownOpen -> colors.white
+                                                else -> colors.blue[100]
                                             },
                                             shape = RoundedCornerShape(10.dp)
                                         )
@@ -450,7 +453,9 @@ fun LinkDetailTopBar(
                                         Modifier
                                     }
                                 )
-                                .noRippleClickable(enabled = isEditMode) {
+                                .noRippleClickable(
+                                    enabled = isEditMode && isSituationSelectionEnabled,
+                                ) {
                                     onSituationClick()
                                 }
                                     .padding(horizontal = 10.dp, vertical = 3.dp),
@@ -462,13 +467,15 @@ fun LinkDetailTopBar(
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = when {
+                                        isEditMode && !isSituationSelectionEnabled ->
+                                            colors.white.copy(alpha = 0.5f)
                                         isEditMode && isSituationDropdownOpen -> colors.blue[300]
                                         isEditMode -> colors.white
                                         else -> colors.purple[300]
                                     }
                                 )
 
-                                if(isEditMode) {
+                                if(isEditMode && isSituationSelectionEnabled) {
                                     Image(
                                         painter = painterResource(R.drawable.ic_toggle),
                                         contentDescription = null,
@@ -517,6 +524,7 @@ fun PreviewLinkDetailTopBar() {
             isCategoryDropdownOpen = false,
             isEmotionDropdownOpen = false,
             isSituationDropdownOpen = false,
+            isSituationSelectionEnabled = true,
             onBack = { },
             onMoreClick = { },
             onLinkGoClick = { },
