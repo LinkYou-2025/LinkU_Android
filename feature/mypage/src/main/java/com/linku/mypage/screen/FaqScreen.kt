@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -183,17 +184,22 @@ fun FaqScreen(
 
         Spacer(modifier = Modifier.height(14.75.dp))
 
-        Row(
-            modifier = Modifier.padding(horizontal = 20.dp),
+        // 필터가 화면 너비를 넘으면 마지막 칩까지 가로로 스크롤할 수 있도록 배치합니다.
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            listOf(
-                "전체",
-                "카테고리",
-                "폴더",
-                "링크",
-                "기타"
-            ).forEach { filter ->
+            items(
+                items = listOf(
+                    "전체",
+                    "카테고리",
+                    "폴더",
+                    "링크",
+                    "기타"
+                ),
+                key = { filter -> filter }
+            ) { filter ->
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(10.dp))
