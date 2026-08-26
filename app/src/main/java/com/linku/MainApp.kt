@@ -221,7 +221,8 @@ fun MainApp(
     val shouldShowNavigationBar =
         showNavBar &&
                 currentRoute != SAVE_LINK_ROUTE &&
-                currentRoute != LINK_DETAIL_ROUTE_PATTERN
+                currentRoute != LINK_DETAIL_ROUTE_PATTERN &&
+                currentRoute != SHARED_LINK_DETAIL_ROUTE
 
     // 기기 3대까지 지원하므로 다른 기기에서 닉네임을 바꾸면 즉시 반영되도록 Home/Curation
     // 진입마다 재호출함. 로그인 시점 선호출(MainViewModel.setAuthenticated)과 별개로 유지.
@@ -353,7 +354,7 @@ fun MainApp(
             navigationBarProp = if (shouldShowNavigationBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
-                    // 같은 탭 재클릭 시엔 동작 X
+                    // 다른 탭을 선택한 경우에만 탭 내비게이션을 수행한다.
                     if (currentLinkuNavigationItem != item) {
                         // 목표 라우트
                         val route = when (item) {
@@ -372,6 +373,9 @@ fun MainApp(
                             launchSingleTop = true
                             restoreState = true
                         }
+                    } else if (item == LinkuNavigationItem.FILE) {
+                        // MainApp 범위 상태는 같은 탭 재선택만으로 초기화되지 않으므로 카테고리 루트로 되돌린다.
+                        folderStateViewModel.resetSharedFolderState()
                     }
                 },
                 onCenterButtonClicked = {
