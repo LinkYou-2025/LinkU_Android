@@ -1,6 +1,7 @@
 package com.linku
 
 import android.app.Activity
+import java.util.Calendar
 import android.content.Context
 import android.content.ContextWrapper
 import android.net.Uri
@@ -249,7 +250,18 @@ fun MainApp(
                 }
             }
             AlarmType.FOLDER -> { /* TODO */ }
-            AlarmType.CURATION -> { /* TODO */ }
+            AlarmType.CURATION -> {
+                showNavBar = false
+                val cal = Calendar.getInstance()
+
+                // 알림 payload에 month 없으므로 로컬 현재 월을 yyyy-MM 형식으로 사용
+                val localMonth = "%04d-%02d".format(
+                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1
+                )
+                navigator.navigate("curation/detail/$localMonth/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            }
             AlarmType.ALL -> Unit
         }
     }
@@ -833,7 +845,16 @@ fun MainApp(
                                 navigator.navigate(linkDetailRoute(userLinkuId))
                             },
                             onNavigateToFolder = { /* TODO */ },
-                            onNavigateToCuration = { /* TODO */ },
+                            onNavigateToCuration = { targetId ->
+                                showNavBar = false
+                                val cal = Calendar.getInstance()
+
+                                // 알림 payload에 month 없으므로 로컬 현재 월을 yyyy-MM 형식으로 사용
+                                val localMonth = "%04d-%02d".format(
+                                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1
+                                )
+                                navigator.navigate("curation/detail/$localMonth/$targetId")
+                            },
                             onNavigateToNotice = { targetId ->
                                 showNavBar = false
                                 navigator.navigate("notice_screen/$targetId")

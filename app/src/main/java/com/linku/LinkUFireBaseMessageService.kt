@@ -13,8 +13,6 @@ import com.linku.core.preference.NotificationPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 
