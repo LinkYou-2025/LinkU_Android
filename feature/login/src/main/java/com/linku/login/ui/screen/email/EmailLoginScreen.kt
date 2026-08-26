@@ -170,12 +170,10 @@ fun EmailLoginScreen(
                     ) {
                         Text(
                             text = (loginState as LoginState.Error).errorType.message,
-                            style = TextStyle(
-                                fontSize = 13.sp,
-                                lineHeight = 15.sp,
-                                fontWeight = FontWeight(400),
-                                color = colorTheme.negative
-                            ),
+                            fontSize = 13.sp,
+                            lineHeight = 15.sp,
+                            fontWeight = FontWeight(400),
+                            color = colorTheme.negative,
                             modifier = Modifier.padding(start = 22.scaler)  // 오른쪽으로 22만큼
                         )
                     }
