@@ -85,7 +85,7 @@ import com.linku.file.R
  * @param rotationDegrees 원본 에셋에 적용된 Figma 회전값
  */
 @Immutable
-internal data class ShareMenuItem(
+internal data class FileFabItem(
     val id: String,
     @StringRes val labelRes: Int,
     @DrawableRes val iconRes: Int,
@@ -109,10 +109,10 @@ internal data class ShareMenuItem(
  */
 @Composable
 internal fun FileFab(
-    items: List<ShareMenuItem>,
+    items: List<FileFabItem>,
     expanded: Boolean,
     onExpandedChange: (Boolean) -> Unit,
-    onItemClick: (ShareMenuItem) -> Unit,
+    onItemClick: (FileFabItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var buttonBounds by remember { mutableStateOf(Rect.Zero) }
@@ -160,10 +160,10 @@ internal fun FileFab(
 
 @Composable
 private fun ShareMenuDialog(
-    items: List<ShareMenuItem>,
+    items: List<FileFabItem>,
     buttonBounds: Rect,
     onDismissRequest: () -> Unit,
-    onItemClick: (ShareMenuItem) -> Unit,
+    onItemClick: (FileFabItem) -> Unit,
 ) {
     val density = LocalDensity.current
     val closeDescription = stringResource(R.string.file_floating_menu_close_description)
@@ -253,8 +253,8 @@ private fun ShareMenuDialog(
 
 @Composable
 private fun ShareMenuPanel(
-    items: List<ShareMenuItem>,
-    onItemClick: (ShareMenuItem) -> Unit,
+    items: List<FileFabItem>,
+    onItemClick: (FileFabItem) -> Unit,
     modifier: Modifier,
     height: Dp,
 ) {
@@ -297,7 +297,7 @@ private fun ShareMenuPanel(
 
 @Composable
 private fun ShareMenuRow(
-    item: ShareMenuItem,
+    item: FileFabItem,
     onClick: () -> Unit,
 ) {
     val colors = MaterialTheme.linkuColors
@@ -501,7 +501,7 @@ private fun FileFabPreview(
     val items = remember(includeDeleteItem) {
         buildList {
             add(
-                ShareMenuItem(
+                FileFabItem(
                     id = "edit",
                     labelRes = R.string.file_floating_menu_edit_folder,
                     iconRes = R.drawable.ic_file_floating_menu_edit,
@@ -509,7 +509,7 @@ private fun FileFabPreview(
                 ),
             )
             add(
-                ShareMenuItem(
+                FileFabItem(
                     id = "share",
                     labelRes = R.string.file_floating_menu_share_folder,
                     iconRes = R.drawable.ic_file_floating_menu_share,
@@ -519,7 +519,7 @@ private fun FileFabPreview(
             )
             if (includeDeleteItem) {
                 add(
-                    ShareMenuItem(
+                    FileFabItem(
                         id = "delete",
                         labelRes = R.string.file_floating_menu_delete_folder,
                         iconRes = R.drawable.ic_file_floating_menu_delete,

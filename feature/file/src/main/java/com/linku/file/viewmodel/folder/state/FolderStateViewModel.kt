@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.linku.core.model.FolderSimpleInfo
+import com.linku.core.model.LinkItemInfo
 
 enum class FolderState {
     TOP,        // 최상위 폴더(TopFolderGrid)
@@ -83,6 +84,14 @@ class FolderStateViewModel : ViewModel() {
     ) {
         navigationState = FileNavigationState.SharedFolderDetail(scope, folder)
         closeNavigationMenus()
+    }
+
+    /** 공유폴더 상세에서 선택한 링크입니다. 소유자 상세 API를 호출할 수 없어 목록 조회 시점의 값을 그대로 보관합니다. */
+    var selectedSharedLink by mutableStateOf<LinkItemInfo?>(null)
+        private set
+
+    fun selectSharedLink(link: LinkItemInfo) {
+        selectedSharedLink = link
     }
 
     /** 현재 상태에서 한 단계 뒤로 이동하고, 이동할 단계가 없으면 false를 반환합니다. */
@@ -218,5 +227,6 @@ class FolderStateViewModel : ViewModel() {
         linkCategorizationBottomSheetVisible = false
         shareBottomSheetVisible = false
         shareBottomSheetSessionId = 0L
+        selectedSharedLink = null
     }
 }

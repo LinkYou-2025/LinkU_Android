@@ -1,6 +1,7 @@
 package com.linku.curation.ui.screen
 
 import android.content.Intent
+import java.util.Calendar
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.curation.CurationDetail
 import com.linku.core.model.curation.LinkType
 import com.linku.core.model.curation.RecommendLink
 import com.linku.curation.ui.emotion.CurationEmotionSection
@@ -80,17 +82,33 @@ fun CurationMonthlyDetailScreen(
             onRetry = { viewModel.handleIntent(CurationDetailedIntent.Retry) }
         )
     } else {
+
+        // API 응답 전체
+        val monthlyCurationDetail = state.monthlyCurationDetail
+
+        // 제목·본문 등 텍스트 정보, null이면 기본값 사용
+        val curationDetail = monthlyCurationDetail?.detail ?: CurationDetail()
+
+
+        // month 파싱 실패 시 fallback용 현재 로컬 월 (1~12)
+        val localMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+
+        val rawMonth = viewModel.month.substringAfter('-').toIntOrNull() ?: localMonth
+        val displayMonth = if (rawMonth == 1) 12 else (rawMonth - 1).coerceAtLeast(0)
+
         CurationMonthlyDetailScreenContent(
             onBack = onBack,
             onGoHome = onGoHome,
-            nickname = state.monthlyCurationDetail?.nickname.orEmpty(),
-            title = state.monthlyCurationDetail?.detail?.title.orEmpty(),
-            emotionItems = state.monthlyCurationDetail?.topTags?.map { tag ->
+            isLoading = state.isLoading,
+            nickname = monthlyCurationDetail?.nickname?.takeIf { it.isNotEmpty() } ?: state.nickname,
+            title = curationDetail.title,
+            displayMonth = displayMonth,
+            emotionItems = monthlyCurationDetail?.topTags?.map { tag ->
                 EmotionItem(progress = tag.percent / 100f, keyword = tag.name)
             } ?: emptyList(),
-            recommendedLinks = state.monthlyCurationDetail?.recommendLink ?: emptyList(),
-            headerMent = state.monthlyCurationDetail?.detail?.headerMent.orEmpty(),
-            footerMent = state.monthlyCurationDetail?.detail?.footerMent.orEmpty(),
+            recommendedLinks = monthlyCurationDetail?.recommendLink ?: emptyList(),
+            headerMent = curationDetail.headerMent,
+            footerMent = curationDetail.footerMent,
             onLinkClick = { link -> viewModel.handleIntent(CurationDetailedIntent.ClickLink(link)) },
         )
     }
@@ -117,8 +135,10 @@ fun CurationMonthlyDetailScreen(
 @Composable
 private fun CurationMonthlyDetailScreenContent(
     onBack: () -> Unit,
+    isLoading: Boolean = false,
     nickname: String = "",
     title: String = "2026\n월간 큐레이션 5월호",
+    displayMonth: Int = 0,
     headerMent: String = "",
     footerMent: String = "",
     emotionItems: List<EmotionItem> = emptyList(),
@@ -128,7 +148,7 @@ private fun CurationMonthlyDetailScreenContent(
     onGoHome: () -> Unit = {},
 ) {
     val colorTheme = MaterialTheme.linkuColors
-    val isEmpty = emotionItems.isEmpty()
+    val isEmpty = emotionItems.isEmpty() && headerMent.isEmpty()
 
     BackHandler { onBack() }
 
@@ -143,13 +163,14 @@ private fun CurationMonthlyDetailScreenContent(
                 contentTopOffset = 92.scaler,
                 title = title,
                 titleDescriptionGap = 12.scaler, // 피그마상 18.49f인데 아무리 봐도 피그마랑 다른데? 12로 했는데 디자이너와 조정해주세용
+                isLoading = isLoading,
                 description = "${nickname}님의 이번 달을 링큐가 분석했어요!"
             )
 
             Spacer(modifier = Modifier.height(if (isEmpty) 185.scaler else 78.scaler))
 
             Column(modifier = Modifier.padding(horizontal = 30.scaler)) {
-                CurationEmotionSection(items = emotionItems)
+                CurationEmotionSection(month = displayMonth, items = emotionItems)
 
                 if (!isEmpty) {
                     Spacer(modifier = Modifier.height(40.scaler))

@@ -1,6 +1,5 @@
 package com.linku.core.repository
 
-import com.linku.core.model.Nickname
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.RecoverResult
 import kotlinx.coroutines.flow.StateFlow
@@ -35,7 +34,7 @@ interface UserRepository {
     suspend fun logout(): Result<Unit>
 
     // 닉네임만 호출
-    suspend fun getNickname(): Result<Nickname>
+    suspend fun getNickname(): Result<String>
 
     suspend fun updateMarketingTerms(): Result<Unit>
 

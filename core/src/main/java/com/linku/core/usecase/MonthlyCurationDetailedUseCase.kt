@@ -56,7 +56,7 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
 
             MonthlyCurationDetail(
                 detail = detailDeferred.await().getOrThrow(),
-                nickname = nicknameDeferred.await().getOrNull()?.nickname ?: "",
+                nickname = nicknameDeferred.await().getOrNull() ?: "",
                 recommendLink = recommendLinksDeferred.await().getOrThrow(),
                 topTags = topTagsDeferred.await().getOrThrow()
             )

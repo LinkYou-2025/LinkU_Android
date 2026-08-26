@@ -71,8 +71,11 @@ fun domainLogoPainterOrNull(urlOrHost: String): Painter? {
     }
 
     // 2) 서브도메인 포함 매칭
+    // 티스토리처럼 사용자마다 서브도메인이 바뀌는 도메인(계정명.tistory.com)은 맵의 "www." 접두사
+    // 키와 절대 일치하지 않으므로, 접두사를 뗀 기준 도메인으로 서브도메인 여부를 비교합니다.
     val matched = domainLogoMap.entries.firstOrNull { (key, _) ->
-        host.endsWith(".$key")
+        val baseKey = key.removePrefix("www.")
+        host == baseKey || host.endsWith(".$baseKey")
     } ?: return null
 
     return painterResource(matched.value)

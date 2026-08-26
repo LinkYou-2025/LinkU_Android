@@ -881,3 +881,53 @@ private fun PreviewEmptyRecentBox() {
         EmptyRecentBox()
     }
 }
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewLinkCard() {
+    ThemeProvider {
+        LinkCard(
+            link = LinkSimpleInfo(
+                userLinkuId = 1L,
+                categoryId = 1L,
+                memo = null,
+                emotionId = 1L,
+                title = "Jetpack Compose 완벽 가이드",
+                domain = "developer.android.com",
+                domainImageUrl = null,
+                linkuImageUrl = null,
+                aiArticleExists = true,
+            ),
+            isDeleteMenuVisible = false,
+            onMoreClick = {},
+            onCardClick = {},
+            onDeleteClick = {},
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewLinkCardDeleteMenuVisible() {
+    ThemeProvider {
+        LinkCard(
+            link = LinkSimpleInfo(
+                userLinkuId = 2L,
+                categoryId = null,
+                memo = null,
+                emotionId = null,
+                title = "카테고리·감정 없는 링크",
+                domain = "example.com",
+                domainImageUrl = null,
+                linkuImageUrl = null,
+                aiArticleExists = false,
+            ),
+            isDeleteMenuVisible = true,
+            onMoreClick = {},
+            onCardClick = {},
+            onDeleteClick = {},
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
+    }
+}

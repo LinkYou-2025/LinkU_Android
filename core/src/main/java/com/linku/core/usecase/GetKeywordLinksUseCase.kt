@@ -24,7 +24,7 @@ class GetKeywordLinksUseCase @Inject constructor(
             val linksDeferred = async { curationRepository.getLinksByKeyword(keyword) }
 
             KeywordLinksModel(
-                nickname = nicknameDeferred.await().getOrThrow().nickname,
+                nickname = nicknameDeferred.await().getOrThrow(),
                 links = linksDeferred.await().getOrThrow(),
             )
         }

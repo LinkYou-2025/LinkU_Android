@@ -10,7 +10,6 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -19,8 +18,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
-import java.util.Calendar
-
 data class EmotionItem(
     val progress: Float,
     val keyword: String
@@ -38,13 +35,10 @@ data class EmotionItem(
 @Composable
 internal fun CurationEmotionSection(
     modifier: Modifier = Modifier,
+    month: Int = 0,
     items: List<EmotionItem> = emptyList(),
 ) {
     val colorTheme = MaterialTheme.linkuColors
-
-    val month = remember {
-        Calendar.getInstance().apply { add(Calendar.MONTH, -1) }.get(Calendar.MONTH) + 1
-    }
 
     Column(modifier = modifier) {
         Text(
@@ -101,6 +95,7 @@ internal fun CurationEmotionSection(
 private fun PreviewCurationEmotionSection() {
     LinkuPreview {
         CurationEmotionSection(
+            month = 7,
             items = listOf(
                 EmotionItem(progress = 1.0f, keyword = "#업무 준비 중"),
                 EmotionItem(progress = 0.76f, keyword = "#커리어고민"),

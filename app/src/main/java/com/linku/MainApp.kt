@@ -1,6 +1,7 @@
 package com.linku
 
 import android.app.Activity
+import java.util.Calendar
 import android.content.Context
 import android.content.ContextWrapper
 import android.net.Uri
@@ -70,6 +71,7 @@ import com.linku.link.screen.LinkDetailLoadErrorScreen
 import com.linku.link.screen.LinkDetailLoadingScreen
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
+import com.linku.link.screen.SharedLinkDetailScreen
 import com.linku.link.screen.verifiedLinkDetailJobId
 import com.linku.link.util.toTempFile
 import com.linku.login.navigation.LoginApp
@@ -95,6 +97,14 @@ private const val SAVE_LINK_ROUTE = "savelink"
 
 private fun linkDetailRoute(userLinkuId: Long): String =
     "savelinkresult/$userLinkuId"
+
+/**
+ * 공유폴더 링크의 읽기 전용 상세 화면 경로입니다.
+ *
+ * 공유폴더 링크는 소유자 상세 API를 호출할 수 없어(다른 사용자 소유라 404), 목록 조회 시점의
+ * 값을 [FolderStateViewModel.selectedSharedLink]에 담아 인자 없이 이 경로로만 이동합니다.
+ */
+private const val SHARED_LINK_DETAIL_ROUTE = "sharedlinkdetail"
 
 /**
  * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
@@ -227,7 +237,8 @@ fun MainApp(
     val shouldShowNavigationBar =
         showNavBar &&
                 currentRoute != SAVE_LINK_ROUTE &&
-                currentRoute != LINK_DETAIL_ROUTE_PATTERN
+                currentRoute != LINK_DETAIL_ROUTE_PATTERN &&
+                currentRoute != SHARED_LINK_DETAIL_ROUTE
 
     // 기기 3대까지 지원하므로 다른 기기에서 닉네임을 바꾸면 즉시 반영되도록 Home/Curation
     // 진입마다 재호출함. 로그인 시점 선호출(MainViewModel.setAuthenticated)과 별개로 유지.
@@ -256,7 +267,18 @@ fun MainApp(
                 }
             }
             AlarmType.FOLDER -> { /* TODO */ }
-            AlarmType.CURATION -> { /* TODO */ }
+            AlarmType.CURATION -> {
+                showNavBar = false
+                val cal = Calendar.getInstance()
+
+                // 알림 payload에 month 없으므로 로컬 현재 월을 yyyy-MM 형식으로 사용
+                val localMonth = "%04d-%02d".format(
+                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1
+                )
+                navigator.navigate("curation/detail/$localMonth/$targetId") {
+                    popUpTo(NavigationRoute.Home.route) { inclusive = false }
+                }
+            }
             AlarmType.ALL -> Unit
         }
     }
@@ -348,7 +370,7 @@ fun MainApp(
             navigationBarProp = if (shouldShowNavigationBar) NavigationBarProp(
                 currentLinkuNavigationItem = currentLinkuNavigationItem,
                 onNavigate = { item ->
-                    // 같은 탭 재클릭 시엔 동작 X
+                    // 다른 탭을 선택한 경우에만 탭 내비게이션을 수행한다.
                     if (currentLinkuNavigationItem != item) {
                         // 목표 라우트
                         val route = when (item) {
@@ -367,6 +389,9 @@ fun MainApp(
                             launchSingleTop = true
                             restoreState = true
                         }
+                    } else if (item == LinkuNavigationItem.FILE) {
+                        // MainApp 범위 상태는 같은 탭 재선택만으로 초기화되지 않으므로 카테고리 루트로 되돌린다.
+                        folderStateViewModel.resetSharedFolderState()
                     }
                 },
                 onCenterButtonClicked = {
@@ -717,6 +742,9 @@ fun MainApp(
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
                             },
+                            onNavigateToSharedLinkDetail = {
+                                navigator.navigate(SHARED_LINK_DETAIL_ROUTE)
+                            },
                             onSearchOpen = searchViewModel::openSearch,
                         )
                     }
@@ -774,6 +802,14 @@ fun MainApp(
                                 // 🔐 토큰/세션은 ViewModel 쪽에서 이미 정리한 뒤,
                                 // 전역 스택을 지우고 로그인 루트로 이동
                                 viewModel.clearNickname()
+
+                                // saveState = true 로 저장된 탭별 백스택 상태(ViewModel 포함)를 제거.
+                                // popUpTo(graph.id, inclusive=true)는 백스택만 비우고 저장 상태는
+                                // NavController 내부 store에 남겨두기 때문에, 재로그인 후 탭 진입 시
+                                // restoreState = true 가 이전 계정의 ViewModel을 복원해버림.
+                                navigator.clearBackStack(NavigationRoute.Curation.route)
+                                navigator.clearBackStack(NavigationRoute.File.route)
+                                navigator.clearBackStack(NavigationRoute.MyPage.route)
                                 navigator.navigate(NavigationRoute.Login.route) {
                                     // 그래프 루트까지 백스택 전부 제거.
                                     // Splash는 로그인 이후 이미 백스택에서 빠져있는 상태라
@@ -841,7 +877,16 @@ fun MainApp(
                                 navigator.navigate(linkDetailRoute(userLinkuId))
                             },
                             onNavigateToFolder = { /* TODO */ },
-                            onNavigateToCuration = { /* TODO */ },
+                            onNavigateToCuration = { targetId ->
+                                showNavBar = false
+                                val cal = Calendar.getInstance()
+
+                                // 알림 payload에 month 없으므로 로컬 현재 월을 yyyy-MM 형식으로 사용
+                                val localMonth = "%04d-%02d".format(
+                                    cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1
+                                )
+                                navigator.navigate("curation/detail/$localMonth/$targetId")
+                            },
                             onNavigateToNotice = { targetId ->
                                 showNavBar = false
                                 navigator.navigate("notice_screen/$targetId")
@@ -1161,6 +1206,22 @@ fun MainApp(
                                 },
                             )
                         }
+                    }
+                }
+
+                composable(route = SHARED_LINK_DETAIL_ROUTE) {
+                    val sharedLink = folderStateViewModel.selectedSharedLink
+
+                    if (sharedLink == null) {
+                        LaunchedEffect(Unit) { navigator.popBackStack() }
+                    } else {
+                        SharedLinkDetailScreen(
+                            linkTitle = sharedLink.title,
+                            linkUrl = sharedLink.url,
+                            imageUrl = sharedLink.linkuImageUrl,
+                            tags = sharedLink.tags,
+                            onBack = { navigator.popBackStack() },
+                        )
                     }
                 }
 
