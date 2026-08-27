@@ -98,6 +98,4 @@ dependencies {
     //Paging3
     implementation(libs.paging.runtime)
 
-    // Firebase
-    implementation(libs.bundles.firebase)
 }

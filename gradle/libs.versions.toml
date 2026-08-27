@@ -15,7 +15,7 @@ coilCompose = "2.7.0"
 coilComposeVersion = "3.5.0"
 converterMoshi = "3.0.0"
 datastorePreferences = "1.2.1"
-firebaseBom = "34.10.0"
+firebaseBom = "34.18.0"
 glide = "5.0.9"
 grid = "2.8.0"
 kotlin = "2.4.10"
@@ -42,7 +42,6 @@ kotlinxCoroutines = "1.11.0"
 navigation = "2.10.0"
 androidx-test = "1.7.0"
 testng = "7.12.0"
-firebaseMessagingKtx = "24.1.2"
 gson = "2.14.0"
 composeTesting = "1.0.0-alpha17"
 toolsCore = "1.0.0-alpha14"
@@ -153,14 +152,8 @@ paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.r
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
-firebase-messaging-ktx = { group = "com.google.firebase", name = "firebase-messaging-ktx", version.ref = "firebaseMessagingKtx" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-
-[bundles]
-firebase = [
-    "firebase-bom",
-    "firebase-messaging-ktx"
-]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

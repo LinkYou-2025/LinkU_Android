@@ -122,7 +122,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.messaging.ktx)
     implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -169,6 +168,7 @@ dependencies {
     // FCM
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
 
     // TODO: Add the dependencies for Firebase products you want to use
