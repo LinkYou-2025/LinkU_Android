@@ -206,3 +206,102 @@ Windows 사용자 환경 변수와 외부 백업 파일도 암호화된 비밀 �
 
 환경 변수 등록 후에는 Android Studio와 JetBrains Toolbox를 모두 완전히 종료한 뒤 다시 실행해야
 새 프로세스가 Windows User 환경 변수를 상속합니다.
+
+## CI 릴리스 AAB 생성 및 서명
+
+`Android Release AAB` workflow는 GitHub Actions에서 수동으로만 실행합니다. 입력한
+`version_code`를 release variant에 전달해 AAB와 R8 mapping을 생성하고, 기존 upload key로 AAB를
+서명한 다음 `jarsigner -verify -strict` 검증을 통과한 signed AAB만 업로드합니다.
+
+임의의 새 keystore나 key를 생성하지 않습니다. Play App Signing을 사용하는 경우 upload key는
+개발자가 Google Play에 AAB를 제출할 때 사용하는 키이며, Google이 최종 APK를 서명하는 app signing
+key와는 다른 키입니다.
+
+### `version_code` 입력 계약
+
+- 앞뒤 공백과 불필요한 선행 0 없이, ASCII 10진수로만 구성된 `1..2,100,000,000` 범위의 양의 정수를
+  입력합니다(예: `28`).
+- 현재 Play Console에 등록된 최대 versionCode보다 크고, 이전에 사용하지 않은 값이어야 합니다.
+- workflow는 Play Console을 조회하지 않으므로 값의 고유성과 배포 가능성은 실행자가 확인합니다.
+- Gradle은 앞뒤 공백을 제거한 뒤 값을 검증합니다. 누락, 공백만 있는 값, 0, 음수, 소수, 내부 공백,
+  숫자가 아닌 값 또는 상한 초과 값은 release 빌드 전에 거부됩니다.
+- artifact 이름에는 정리 전 workflow 입력이 사용되므로 ` 28 `이나 `0028`처럼 입력하면 AAB 내부의 정수
+  versionCode와 artifact 이름 표기가 달라질 수 있습니다. 따라서 허용되더라도 이런 표기는 사용하지 않습니다.
+
+### 필수 GitHub Actions Secrets
+
+workflow는 다음 11개 Secret이 모두 non-blank인지 빌드 전에 검사합니다. 이름은
+`.github/workflows/android-release.yml`의 계약과 정확히 일치해야 합니다.
+
+| 구분 | GitHub Actions Secret | 용도와 취급 원칙 |
+| --- | --- | --- |
+| 앱 구성 | `LINKU_KAKAO_NATIVE_APP_KEY` | Kakao SDK 초기화와 Manifest/BuildConfig에 전달하는 Android client key |
+| 앱 구성 | `LINKU_GOOGLE_WEB_CLIENT_ID` | Google 로그인 요청에 사용하는 OAuth web client ID |
+| 앱 구성 | `LINKU_SERVER_DOMAIN` | scheme과 host를 포함하는 HTTP(S) 서버 기준 URL |
+| 앱 구성 | `LINKU_SERVER_HOST` | scheme, port, path를 제외한 서버 host 이름 |
+| 앱 구성 | `LINKU_API_VERSION` | 서버 기준 URL 뒤에 결합하는 API path version |
+| Firebase 구성 | `LINKU_GOOGLE_SERVICES_JSON_BASE64` | `app/google-services.json` 원본 파일의 Base64 표현 |
+| AAB 서명 | `LINKU_UPLOAD_KEYSTORE_BASE64` | 기존 upload keystore 파일의 Base64 표현 |
+| AAB 서명 | `LINKU_UPLOAD_KEYSTORE_TYPE` | 기존 keystore 형식(예: `JKS` 또는 `PKCS12`) |
+| AAB 서명 | `LINKU_UPLOAD_KEYSTORE_PASSWORD` | 기존 upload keystore 비밀번호 |
+| AAB 서명 | `LINKU_UPLOAD_KEY_ALIAS` | 기존 upload key alias |
+| AAB 서명 | `LINKU_UPLOAD_KEY_PASSWORD` | 기존 upload key 비밀번호 |
+
+앞의 앱 설정 5개는 로컬 빌드에서 사용하는 `LINKU_*` 환경 변수와 같은 이름입니다.
+`LINKU_GOOGLE_SERVICES_JSON_BASE64`는 workflow가 임시 runner에서 `app/google-services.json`으로
+복원하기 위한 CI 전용 전달 값입니다.
+
+앱 구성값은 BuildConfig, Manifest 또는 Firebase resource로 최종 AAB에 포함될 수 있으므로 서버
+비밀, 관리자 token 또는 backend 전용 credential을 넣지 않습니다. 반면 upload keystore와 비밀번호는
+외부에 공개해서는 안 되는 배포 credential입니다. Base64는 파일 형식을 문자열로 바꾸는 encoding일
+뿐 암호화가 아니므로, Base64 결과도 원본 keystore와 같은 수준으로 보호합니다.
+
+### Workflow 실행 흐름과 실패 경계
+
+1. 11개 Secret이 non-blank인지 검증합니다.
+2. `LINKU_GOOGLE_SERVICES_JSON_BASE64`를 임시 runner의 `app/google-services.json`으로 복원합니다.
+3. Gradle이 `version_code` 입력 계약을 검증한 뒤
+   `:app:bundleRelease -PlinkuVersionCode=<입력값>`으로 R8이 적용된 unsigned AAB와 mapping을 생성합니다.
+4. 기존 upload keystore를 runner의 임시 경로에 제한된 권한으로 복원합니다.
+5. unsigned AAB와 다른 경로에 signed AAB를 생성합니다.
+6. 기존 keystore의 지정 alias를 기준으로 `jarsigner -verify -strict` 검증을 수행합니다.
+7. 성공·실패 여부와 관계없이 일반적인 step 종료 경로에서는 임시 keystore를 삭제합니다.
+8. 앞 단계가 모두 성공한 경우에만 signed AAB와 R8 mapping을 각각 artifact로 업로드합니다.
+
+누락된 Secret, Base64 decode 오류, release 빌드 실패, keystore type/비밀번호/alias 불일치, 서명 실패
+또는 strict 검증 실패가 발생하면 workflow는 실패하며 artifact upload 단계로 진행하지 않습니다. 다만
+runner 강제 종료처럼 cleanup step 자체가 실행될 수 없는 상황까지 로컬 삭제를 보장하지는 않습니다.
+GitHub-hosted runner는 작업 후 폐기되지만, Secret 원본의 별도 보관·회수·회전 정책은 저장소 밖에서
+관리해야 합니다.
+
+현재 workflow는 복원한 `app/google-services.json`을 별도로 삭제하지 않지만, 이 파일을 artifact로
+업로드하지 않으며 GitHub-hosted runner의 작업 공간이 폐기될 때 함께 사라집니다. 향후
+self-hosted runner로 변경한다면 workflow에 이 파일의 명시적인 cleanup 단계를 추가해야 합니다.
+
+### 산출물 계약
+
+성공한 run은 입력한 versionCode를 이름에 포함한 다음 두 artifact를 생성합니다.
+
+| Artifact 이름 | 업로드 소스 경로 | 용도 |
+| --- | --- | --- |
+| `linku-signed-release-vc-<version_code>` | `app/build/outputs/bundle/release/app-release-signed.aab` | Google Play에 제출할 upload key 서명 AAB |
+| `linku-mapping-vc-<version_code>` | `app/build/outputs/mapping/release/mapping.txt` | 해당 release의 R8 난독화 stack trace 복원 |
+
+`app-release.aab`은 서명 전 중간 산출물이며 artifact로 업로드하지 않습니다. signed AAB와 mapping은
+서로 다른 artifact이므로 mapping 업로드에서만 실패하면 앞서 업로드된 AAB가 실패한 run에 남을 수
+있습니다. 일부 step이 성공했더라도 전체 workflow 결론이 실패 또는 취소라면 그 run의 artifact를
+배포에 사용하지 않습니다.
+
+### 실행 전후 확인 목록
+
+- GitHub Actions Secrets 11개가 정확한 이름으로 등록되어 있고 공백이 아닌지 확인합니다.
+- keystore type, alias와 두 비밀번호가 기존 앱의 upload key 계약과 일치하는지 확인합니다.
+- `version_code`가 앞뒤 공백이나 불필요한 선행 0 없이 입력되었고, 현재 Play Console 최대값보다 크며
+  아직 사용되지 않은 값인지 확인합니다.
+- workflow 전체 결론이 성공인지 확인합니다.
+- signed AAB와 mapping artifact 이름의 versionCode가 입력값과 같은지 확인합니다.
+- Play 업로드 후 같은 release의 mapping을 보존하고 crash/ANR 분석에 연결합니다.
+
+Secret 값, Base64 결과, keystore 원본과 복원 파일은 저장소·issue·PR·workflow 로그에 추가하지
+않습니다. Secret 이름, 주입 위치 또는 artifact 계약을 변경할 때는 workflow와 이 문서를 같은
+변경에서 함께 갱신합니다.

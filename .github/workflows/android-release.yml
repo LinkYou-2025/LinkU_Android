@@ -16,6 +16,9 @@ permissions:
 jobs:
   build-release-aab:
     runs-on: ubuntu-latest
+    env:
+      LINKU_UNSIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release.aab
+      LINKU_SIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release-signed.aab
 
     steps:
       - name: Check out repository
@@ -33,12 +36,17 @@ jobs:
       - name: Validate required release configuration
         shell: bash
         env:
-          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.KAKAO_NATIVE_APP_KEY }}
+          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.LINKU_KAKAO_NATIVE_APP_KEY }}
           LINKU_GOOGLE_WEB_CLIENT_ID: ${{ secrets.LINKU_GOOGLE_WEB_CLIENT_ID }}
           LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
           LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
           LINKU_API_VERSION: ${{ secrets.LINKU_API_VERSION }}
           LINKU_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.LINKU_GOOGLE_SERVICES_JSON_BASE64 }}
+          LINKU_UPLOAD_KEYSTORE_BASE64: ${{ secrets.LINKU_UPLOAD_KEYSTORE_BASE64 }}
+          LINKU_UPLOAD_KEYSTORE_TYPE: ${{ secrets.LINKU_UPLOAD_KEYSTORE_TYPE }}
+          LINKU_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEYSTORE_PASSWORD }}
+          LINKU_UPLOAD_KEY_ALIAS: ${{ secrets.LINKU_UPLOAD_KEY_ALIAS }}
+          LINKU_UPLOAD_KEY_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEY_PASSWORD }}
         run: |
           required_names=(
             LINKU_KAKAO_NATIVE_APP_KEY
@@ -47,6 +55,11 @@ jobs:
             LINKU_SERVER_HOST
             LINKU_API_VERSION
             LINKU_GOOGLE_SERVICES_JSON_BASE64
+            LINKU_UPLOAD_KEYSTORE_BASE64
+            LINKU_UPLOAD_KEYSTORE_TYPE
+            LINKU_UPLOAD_KEYSTORE_PASSWORD
+            LINKU_UPLOAD_KEY_ALIAS
+            LINKU_UPLOAD_KEY_PASSWORD
           )
 
           for required_name in "${required_names[@]}"; do
@@ -68,7 +81,7 @@ jobs:
       - name: Build release AAB
         shell: bash
         env:
-          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.KAKAO_NATIVE_APP_KEY }}
+          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.LINKU_KAKAO_NATIVE_APP_KEY }}
           LINKU_GOOGLE_WEB_CLIENT_ID: ${{ secrets.LINKU_GOOGLE_WEB_CLIENT_ID }}
           LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
           LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
@@ -79,11 +92,68 @@ jobs:
           "-PlinkuVersionCode=${LINKU_RELEASE_VERSION_CODE}"
           --console=plain
 
-      - name: Upload release AAB
+      - name: Restore upload keystore
+        shell: bash
+        env:
+          LINKU_UPLOAD_KEYSTORE_BASE64: ${{ secrets.LINKU_UPLOAD_KEYSTORE_BASE64 }}
+          LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
+        run: |
+          umask 077
+          printf '%s' "$LINKU_UPLOAD_KEYSTORE_BASE64" \
+            | base64 --decode > "$LINKU_UPLOAD_KEYSTORE_PATH"
+
+      - name: Sign release AAB
+        shell: bash
+        env:
+          LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
+          LINKU_UPLOAD_KEYSTORE_TYPE: ${{ secrets.LINKU_UPLOAD_KEYSTORE_TYPE }}
+          LINKU_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEYSTORE_PASSWORD }}
+          LINKU_UPLOAD_KEY_ALIAS: ${{ secrets.LINKU_UPLOAD_KEY_ALIAS }}
+          LINKU_UPLOAD_KEY_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEY_PASSWORD }}
+        run: |
+          if ! jarsigner \
+            -keystore "$LINKU_UPLOAD_KEYSTORE_PATH" \
+            -storetype "$LINKU_UPLOAD_KEYSTORE_TYPE" \
+            -storepass:env LINKU_UPLOAD_KEYSTORE_PASSWORD \
+            -keypass:env LINKU_UPLOAD_KEY_PASSWORD \
+            -signedjar "$LINKU_SIGNED_AAB_PATH" \
+            "$LINKU_UNSIGNED_AAB_PATH" \
+            "$LINKU_UPLOAD_KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::Failed to sign release AAB with the configured upload key."
+            exit 1
+          fi
+
+      - name: Verify signed release AAB
+        shell: bash
+        env:
+          LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
+          LINKU_UPLOAD_KEYSTORE_TYPE: ${{ secrets.LINKU_UPLOAD_KEYSTORE_TYPE }}
+          LINKU_UPLOAD_KEYSTORE_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEYSTORE_PASSWORD }}
+          LINKU_UPLOAD_KEY_ALIAS: ${{ secrets.LINKU_UPLOAD_KEY_ALIAS }}
+        run: |
+          if ! jarsigner -verify -strict \
+            -keystore "$LINKU_UPLOAD_KEYSTORE_PATH" \
+            -storetype "$LINKU_UPLOAD_KEYSTORE_TYPE" \
+            -storepass:env LINKU_UPLOAD_KEYSTORE_PASSWORD \
+            "$LINKU_SIGNED_AAB_PATH" \
+            "$LINKU_UPLOAD_KEY_ALIAS" > /dev/null 2>&1; then
+            echo "::error::Signed release AAB verification failed."
+            exit 1
+          fi
+          echo "Signed release AAB verification passed."
+
+      - name: Remove upload keystore
+        if: always()
+        shell: bash
+        env:
+          LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
+        run: rm -f -- "$LINKU_UPLOAD_KEYSTORE_PATH"
+
+      - name: Upload signed release AAB
         uses: actions/upload-artifact@v7
         with:
-          name: linku-release-vc-${{ inputs.version_code }}
-          path: app/build/outputs/bundle/release/app-release.aab
+          name: linku-signed-release-vc-${{ inputs.version_code }}
+          path: ${{ env.LINKU_SIGNED_AAB_PATH }}
           if-no-files-found: error
 
       - name: Upload R8 mapping
