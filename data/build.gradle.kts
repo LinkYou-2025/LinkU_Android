@@ -1,5 +1,6 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
@@ -10,25 +11,21 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = rootProject.extra["localProperties"] as Properties
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException(
-        "SERVER_DOMAIN is missing or blank. Set it in local.properties, " +
-            "or set the LINKU_SERVER_DOMAIN environment variable."
-    )
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
 
-val apiVersion = localProperties.getProperty("API_VERSION")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException(
-        "API_VERSION is missing or blank. Set it in local.properties, " +
-            "or set the LINKU_API_VERSION environment variable."
-    )
-
-val serverBaseUrl = "$serverDomain/$apiVersion/"
+val serverBaseUrlProvider =
+    linkuConfigProviders.getValue("SERVER_DOMAIN").flatMap { serverDomain ->
+        linkuConfigProviders.getValue("API_VERSION").map { apiVersion ->
+            "$serverDomain/$apiVersion/"
+        }
+    }
 
 android {
     namespace = "com.linku.data"
@@ -38,7 +35,6 @@ android {
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
     }
 
     buildTypes {
@@ -62,6 +58,15 @@ android {
     }
     testOptions {
         unitTests.isReturnDefaultValues = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields?.put(
+            "SERVER_BASE_URL",
+            linkuBuildConfigString(serverBaseUrlProvider)
+        )
     }
 }
 

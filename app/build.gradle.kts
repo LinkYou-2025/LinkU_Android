@@ -1,5 +1,6 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -14,40 +15,22 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = rootProject.extra["localProperties"] as Properties
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException(
-        "KAKAO_NATIVE_APP_KEY is missing or blank. Set it in local.properties, " +
-            "or set the LINKU_KAKAO_NATIVE_APP_KEY environment variable."
-    )
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
 
-// 구글 소셜 로그인 로컬 프로퍼티
-val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException(
-        "GOOGLE_WEB_CLIENT_ID is missing or blank. Set it in local.properties, " +
-            "or set the LINKU_GOOGLE_WEB_CLIENT_ID environment variable."
-    )
+@Suppress("UNCHECKED_CAST")
+val linkuManifestValue =
+    rootProject.extra["linkuManifestValue"] as (Provider<String>) -> Provider<String>
 
-val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException(
-        "SERVER_DOMAIN is missing or blank. Set it in local.properties, " +
-            "or set the LINKU_SERVER_DOMAIN environment variable."
-    )
-
-val serverHost = localProperties.getProperty("SERVER_HOST")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException(
-        "SERVER_HOST is missing or blank. Set it in local.properties, " +
-            "or set the LINKU_SERVER_HOST environment variable."
-    )
+val kakaoNativeAppKeyProvider = linkuConfigProviders.getValue("KAKAO_NATIVE_APP_KEY")
+val serverDomainProvider = linkuConfigProviders.getValue("SERVER_DOMAIN")
+val serverHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
 
 android {
     namespace = "com.linku"
@@ -63,19 +46,6 @@ android {
         versionName = libs.versions.appVersionName.get()
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
-        buildConfigField(
-            "String",
-            "KAKAO_NATIVE_APP_KEY",
-            "\"$kakaoNativeAppKey\""
-        )
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
-        buildConfigField("String", "SERVER_DOMAIN", "\"$serverDomain\"")
-        // 로컬 프로퍼티에 각자 디버그 키(개발 테스트) 꼭 넣어서 주세요. 안 그러면 실행 안됩니다.
-        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
-        manifestPlaceholders["SERVER_HOST"] = serverHost
-    }
-    buildFeatures {
-        buildConfig = true
     }
 
     buildTypes {
@@ -102,6 +72,27 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields?.put(
+            "KAKAO_NATIVE_APP_KEY",
+            linkuBuildConfigString(kakaoNativeAppKeyProvider)
+        )
+        variant.buildConfigFields?.put(
+            "SERVER_DOMAIN",
+            linkuBuildConfigString(serverDomainProvider)
+        )
+        variant.manifestPlaceholders.put(
+            "KAKAO_NATIVE_APP_KEY",
+            linkuManifestValue(kakaoNativeAppKeyProvider)
+        )
+        variant.manifestPlaceholders.put(
+            "SERVER_HOST",
+            linkuManifestValue(serverHostProvider)
+        )
     }
 }
 

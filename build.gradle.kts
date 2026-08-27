@@ -1,5 +1,8 @@
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.api.variant.BuildConfigField
+import java.net.URI
 import java.util.Properties
+import org.gradle.api.provider.Provider
 
 // Top-level build file where you can add configuration options common to all subprojects/modules.
 plugins {
@@ -83,28 +86,149 @@ val localPropertyEnvironmentNames = mapOf(
 )
 
 val localPropertiesFile = rootProject.file("local.properties")
-val localProperties = Properties().apply {
-    if (localPropertiesFile.isFile) {
-        localPropertiesFile.inputStream().use { load(it) }
+val localPropertiesTextProvider = providers
+    .fileContents(layout.projectDirectory.file(localPropertiesFile.name))
+    .asText
+    .orElse("")
+
+fun missingLinkuConfiguration(
+    propertyName: String,
+    environmentVariableName: String,
+): Provider<String> = providers.provider {
+    throw GradleException(
+        "Required configuration '$propertyName' is missing or blank. " +
+            "Set it in local.properties or the $environmentVariableName environment variable."
+    )
+}
+
+fun validateServerDomain(value: String): String {
+    val normalizedValue = value.trim().trimEnd('/')
+    val uri = runCatching { URI(normalizedValue) }.getOrNull()
+    val isValid = uri != null &&
+        uri.isAbsolute &&
+        uri.scheme.lowercase() in setOf("http", "https") &&
+        !uri.host.isNullOrBlank() &&
+        (uri.port == -1 || uri.port in 1..65535) &&
+        uri.rawUserInfo == null &&
+        uri.rawQuery == null &&
+        uri.rawFragment == null
+
+    if (!isValid) {
+        throw GradleException(
+            "Invalid configuration 'SERVER_DOMAIN': expected an absolute HTTP(S) URL " +
+                "with a host, an optional port from 1 to 65535, and without user info, " +
+                "query, or fragment."
+        )
     }
+    return normalizedValue
+}
 
-    localPropertyEnvironmentNames.forEach { (propertyName, environmentVariableName) ->
-        val propertyValue = getProperty(propertyName)
-            ?.trim()
-            ?.takeIf { it.isNotEmpty() }
-            ?: project.providers.environmentVariable(environmentVariableName).orNull
-                ?.trim()
-                ?.takeIf { it.isNotEmpty() }
+fun validateServerHost(value: String): String {
+    val normalizedValue = value.trim()
+    val uri = runCatching { URI("https://$normalizedValue") }.getOrNull()
+    val isValid = normalizedValue.isNotEmpty() &&
+        !normalizedValue.contains("://") &&
+        normalizedValue.none { it == '/' || it == '?' || it == '#' || it == '@' || it == ':' } &&
+        uri?.host == normalizedValue &&
+        uri.rawPath.isNullOrEmpty() &&
+        uri.rawQuery == null &&
+        uri.rawFragment == null
 
-        if (propertyValue == null) {
-            remove(propertyName)
-        } else {
-            setProperty(propertyName, propertyValue)
+    if (!isValid) {
+        throw GradleException(
+            "Invalid configuration 'SERVER_HOST': expected a host name without a scheme, " +
+                "port, path, query, fragment, or user info."
+        )
+    }
+    return normalizedValue
+}
+
+fun validateApiVersion(value: String): String {
+    val normalizedValue = value.trim().trim('/')
+    val isValid = normalizedValue.isNotEmpty() &&
+        normalizedValue.split('/').all { segment ->
+            segment.any { character -> character.isAsciiLetterOrDigit() } &&
+                segment.all { character ->
+                    character.isAsciiLetterOrDigit() ||
+                        character in setOf('-', '.', '_', '~')
+                }
+        }
+
+    if (!isValid) {
+        throw GradleException(
+            "Invalid configuration 'API_VERSION': expected one or more non-blank URL path " +
+                "segments containing only ASCII letters, digits, '-', '.', '_', or '~'."
+        )
+    }
+    return normalizedValue
+}
+
+fun Char.isAsciiLetterOrDigit(): Boolean =
+    this in 'a'..'z' || this in 'A'..'Z' || this in '0'..'9'
+
+fun escapeBuildConfigString(value: String): String = buildString {
+    value.forEach { character ->
+        when (character) {
+            '\\' -> append("\\\\")
+            '"' -> append("\\\"")
+            '\b' -> append("\\b")
+            '\t' -> append("\\t")
+            '\n' -> append("\\n")
+            '\r' -> append("\\r")
+            else -> if (character.code in 0x00..0x1F || character.code == 0x7F) {
+                append("\\u")
+                append(character.code.toString(16).padStart(4, '0'))
+            } else {
+                append(character)
+            }
         }
     }
 }
 
-rootProject.extra["localProperties"] = localProperties
+val linkuConfigProviders = localPropertyEnvironmentNames.mapValues { (propertyName, environmentVariableName) ->
+    val localPropertyProvider = localPropertiesTextProvider
+        .map { contents ->
+            Properties().apply { contents.reader().use(::load) }
+                .getProperty(propertyName)
+                ?.trim()
+                .orEmpty()
+        }
+        .filter(String::isNotEmpty)
+
+    val environmentProvider = providers
+        .environmentVariable(environmentVariableName)
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+
+    localPropertyProvider
+        .orElse(environmentProvider)
+        .orElse(missingLinkuConfiguration(propertyName, environmentVariableName))
+        .let { provider ->
+            when (propertyName) {
+                "SERVER_DOMAIN" -> provider.map(::validateServerDomain)
+                "SERVER_HOST" -> provider.map(::validateServerHost)
+                "API_VERSION" -> provider.map(::validateApiVersion)
+                else -> provider
+            }
+        }
+}
+
+val linkuBuildConfigString: (Provider<String>) -> Provider<BuildConfigField<String>> =
+    { valueProvider ->
+        valueProvider.map { value ->
+            BuildConfigField(
+                type = "String",
+                value = "\"${escapeBuildConfigString(value)}\"",
+                comment = "Generated from an external LinkU configuration provider.",
+            )
+        }
+    }
+
+val linkuManifestValue: (Provider<String>) -> Provider<String> = { valueProvider -> valueProvider }
+
+rootProject.extra["linkuConfigProviders"] = linkuConfigProviders
+rootProject.extra["linkuBuildConfigString"] = linkuBuildConfigString
+rootProject.extra["linkuManifestValue"] = linkuManifestValue
 
 subprojects {
     pluginManager.withPlugin("com.android.application") {
