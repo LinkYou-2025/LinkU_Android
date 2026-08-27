@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.linku.mypage.test", appContext.packageName)
+        assertEquals("com.linku.linku.test.mypage", appContext.packageName)
     }
 }
