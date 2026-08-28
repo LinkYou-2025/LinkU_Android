@@ -116,9 +116,7 @@ class AlarmViewModel @Inject constructor(
                 AlarmType.LINK -> {
                     _sideEffect.send(AlarmSideEffect.NavigateToLinkDetail(alarm.targetId))
                 }
-                AlarmType.FOLDER -> {
-                    _sideEffect.send(AlarmSideEffect.NavigateToSharedFolder(alarm.targetId))
-                }
+                AlarmType.FOLDER -> Unit // 읽음 처리만 하고 이동 없음
                 AlarmType.CURATION -> {
                     _sideEffect.send(AlarmSideEffect.NavigateToCuration(alarm.targetId))
                 }

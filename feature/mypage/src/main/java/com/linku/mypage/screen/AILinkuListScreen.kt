@@ -3,6 +3,7 @@ package com.linku.mypage.screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,16 +29,19 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.shadow.Shadow
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.zIndex
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
@@ -65,6 +71,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.linku.core.error.AppError
 import com.linku.core.model.AiArticleLink
 import com.linku.core.model.CategoryType
+import com.linku.design.component.TimedCustomToastMessage
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.CategoryColorStyle
@@ -73,18 +80,26 @@ import com.linku.design.util.ReportScaffoldBackground
 import com.linku.mypage.AILinkuListViewModel
 import com.linku.mypage.R
 import com.linku.mypage.component.AILinkuItem
+import com.linku.mypage.component.DeleteLinkuModal
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * AI 요약 링크 화면의 ViewModel과 Compose Paging 수집을 연결합니다.
  *
  * @param navController 마이페이지 내부 뒤로가기를 처리할 내비게이션 컨트롤러
  * @param onNavigateToLinkDetail 선택한 사용자 저장 링크 ID를 앱 루트 상세 화면으로 전달하는 콜백
+ * @param onDeleteLink 사용자 저장 링크 삭제를 요청하고 성공 또는 실패 결과를 전달하는 콜백
  * @param viewModel 카테고리 선택과 Paging Flow를 관리하는 ViewModel
  */
 @Composable
 fun AILinkuListRoute(
     navController: NavController,
     onNavigateToLinkDetail: (userLinkuId: Long) -> Unit,
+    onDeleteLink: (
+        userLinkuId: Long,
+        onSuccess: () -> Unit,
+        onFailed: (Throwable) -> Unit,
+    ) -> Unit,
     viewModel: AILinkuListViewModel = hiltViewModel(),
 ) {
     val selectedCategory by viewModel.selectedCategory.collectAsStateWithLifecycle()
@@ -97,6 +112,18 @@ fun AILinkuListRoute(
         onSelectAll = viewModel::selectAll,
         onSelectCategory = viewModel::selectCategory,
         onLinkClick = onNavigateToLinkDetail,
+        onDeleteLink = { userLinkuId, onSuccess, onFailed ->
+            onDeleteLink(
+                userLinkuId,
+                {
+                    // 성공한 ID를 기존 PagingData에서도 즉시 숨긴 뒤 서버 첫 페이지를 다시 조회합니다.
+                    viewModel.onLinkDeleted(userLinkuId)
+                    links.refresh()
+                    onSuccess()
+                },
+                onFailed,
+            )
+        },
     )
 }
 
@@ -109,6 +136,7 @@ fun AILinkuListRoute(
  * @param onSelectAll 전체 필터 선택 요청
  * @param onSelectCategory 카테고리 선택 요청
  * @param onLinkClick 선택한 사용자 저장 링크 ID를 상세 화면 이동 콜백에 전달
+ * @param onDeleteLink 선택한 사용자 저장 링크 삭제와 비동기 결과 처리를 요청하는 콜백
  */
 @Composable
 fun AILinkuListScreen(
@@ -118,30 +146,128 @@ fun AILinkuListScreen(
     onSelectAll: () -> Unit,
     onSelectCategory: (CategoryType) -> Unit,
     onLinkClick: (userLinkuId: Long) -> Unit,
+    onDeleteLink: (
+        userLinkuId: Long,
+        onSuccess: () -> Unit,
+        onFailed: (Throwable) -> Unit,
+    ) -> Unit,
 ) {
     var isCategoryMenuExpanded by rememberSaveable { mutableStateOf(false) }
+    var openedDeleteMenuId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var pendingDeleteId by rememberSaveable { mutableStateOf<Long?>(null) }
+    // 삭제 콜백은 현재 composition의 상태를 캡처하므로, 구성 변경 뒤 오래된 진행 상태만
+    // 복원되어 새 화면의 상호작용을 영구 차단하지 않도록 진행 ID는 저장하지 않습니다.
+    var deletingId by remember { mutableStateOf<Long?>(null) }
+    var deleteToastMessage by remember { mutableStateOf("") }
+    var isDeleteToastVisible by remember { mutableStateOf(false) }
 
-    AILinkuListFrame(
-        selectedCategory = selectedCategory,
-        isCategoryMenuExpanded = isCategoryMenuExpanded,
-        onBack = onBack,
-        onSelectAll = onSelectAll,
-        onToggleCategoryMenu = {
-            isCategoryMenuExpanded = !isCategoryMenuExpanded
-        },
-        onDismissCategoryMenu = {
-            isCategoryMenuExpanded = false
-        },
-        onSelectCategory = { category ->
-            onSelectCategory(category)
-            isCategoryMenuExpanded = false
-        },
-    ) {
-        AILinkuPagingContent(
-            links = links,
-            onLinkClick = onLinkClick,
+    val deleteSuccessMessage = stringResource(R.string.ai_linku_delete_success)
+    val deleteFailureMessage = stringResource(R.string.ai_linku_delete_failure)
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AILinkuListFrame(
+            selectedCategory = selectedCategory,
+            isCategoryMenuExpanded = isCategoryMenuExpanded,
+            onBack = onBack,
+            onSelectAll = {
+                openedDeleteMenuId = null
+                pendingDeleteId = null
+                onSelectAll()
+            },
+            onToggleCategoryMenu = {
+                openedDeleteMenuId = null
+                isCategoryMenuExpanded = !isCategoryMenuExpanded
+            },
+            onDismissCategoryMenu = {
+                isCategoryMenuExpanded = false
+            },
+            onSelectCategory = { category ->
+                openedDeleteMenuId = null
+                pendingDeleteId = null
+                onSelectCategory(category)
+                isCategoryMenuExpanded = false
+            },
+        ) {
+            AILinkuPagingContent(
+                links = links,
+                openedDeleteMenuId = openedDeleteMenuId,
+                isInteractionEnabled = deletingId == null,
+                onLinkClick = { userLinkuId ->
+                    openedDeleteMenuId = null
+                    pendingDeleteId = null
+                    onLinkClick(userLinkuId)
+                },
+                onMoreClick = { userLinkuId ->
+                    if (userLinkuId > 0L && deletingId == null) {
+                        openedDeleteMenuId = if (openedDeleteMenuId == userLinkuId) {
+                            null
+                        } else {
+                            userLinkuId
+                        }
+                    }
+                },
+                onDeleteClick = { userLinkuId ->
+                    if (userLinkuId > 0L && deletingId == null) {
+                        openedDeleteMenuId = null
+                        pendingDeleteId = userLinkuId
+                    }
+                },
+                onDismissDeleteMenu = {
+                    openedDeleteMenuId = null
+                },
+            )
+        }
+
+        TimedCustomToastMessage(
+            visible = isDeleteToastVisible,
+            toastMessage = deleteToastMessage,
+            onDismiss = { isDeleteToastVisible = false },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 22.dp)
+                .zIndex(20f),
         )
     }
+
+    DeleteLinkuModal(
+        visible = pendingDeleteId != null,
+        onDismiss = {
+            pendingDeleteId = null
+            openedDeleteMenuId = null
+        },
+        onConfirm = {
+            val targetId = pendingDeleteId
+            if (targetId != null && targetId > 0L && deletingId == null) {
+                // 모달의 연속 확인이나 다른 카드 삭제가 진행 중일 때 중복 요청하지 않습니다.
+                deletingId = targetId
+                pendingDeleteId = null
+                openedDeleteMenuId = null
+                isDeleteToastVisible = false
+
+                onDeleteLink(
+                    targetId,
+                    {
+                        if (deletingId == targetId) {
+                            deletingId = null
+                            pendingDeleteId = null
+                            openedDeleteMenuId = null
+                            deleteToastMessage = deleteSuccessMessage
+                            isDeleteToastVisible = true
+                        }
+                    },
+                    { _ ->
+                        if (deletingId == targetId) {
+                            deletingId = null
+                            pendingDeleteId = null
+                            openedDeleteMenuId = null
+                            deleteToastMessage = deleteFailureMessage
+                            isDeleteToastVisible = true
+                        }
+                    },
+                )
+            }
+        },
+    )
 }
 
 /**
@@ -507,16 +633,34 @@ private fun AILinkuCategoryMenuItem(
     }
 }
 
-/** refresh 및 append 상태를 구분하고 링크 클릭을 목록 콘텐츠에 전달합니다. */
+/**
+ * refresh 및 append 상태를 구분하고 링크 카드의 상세·더보기·삭제 동작을 목록에 전달합니다.
+ *
+ * 기존 항목이 있는 refresh 중에는 전체 로더로 목록을 교체하지 않아 삭제 직후 새로고침에서도
+ * 남아 있는 카드와 사용자 조작 상태가 유지됩니다.
+ *
+ * @param links 현재 필터에서 수집한 Paging 항목
+ * @param openedDeleteMenuId 삭제 메뉴를 표시할 사용자 저장 링크 ID
+ * @param isInteractionEnabled 카드 상세·더보기·삭제 상호작용을 허용할지 여부
+ * @param onLinkClick 유효한 링크 카드의 상세 이동 요청
+ * @param onMoreClick 유효한 링크 카드의 삭제 메뉴 토글 요청
+ * @param onDeleteClick 삭제 메뉴에서 선택한 링크의 확인 모달 표시 요청
+ * @param onDismissDeleteMenu 목록 배경 탭 또는 스크롤 시작 시 열린 삭제 메뉴 닫기 요청
+ */
 @Composable
 private fun BoxScope.AILinkuPagingContent(
     links: LazyPagingItems<AiArticleLink>,
+    openedDeleteMenuId: Long?,
+    isInteractionEnabled: Boolean,
     onLinkClick: (userLinkuId: Long) -> Unit,
+    onMoreClick: (userLinkuId: Long) -> Unit,
+    onDeleteClick: (userLinkuId: Long) -> Unit,
+    onDismissDeleteMenu: () -> Unit,
 ) {
     val refreshState = links.loadState.refresh
 
     when {
-        refreshState is LoadState.Loading -> {
+        refreshState is LoadState.Loading && links.itemCount == 0 -> {
             AILinkuLoadingContent(modifier = Modifier.align(Alignment.Center))
         }
 
@@ -541,20 +685,67 @@ private fun BoxScope.AILinkuPagingContent(
         else -> {
             AILinkuPagingList(
                 links = links,
+                openedDeleteMenuId = openedDeleteMenuId,
+                isInteractionEnabled = isInteractionEnabled,
                 onLinkClick = onLinkClick,
+                onMoreClick = onMoreClick,
+                onDeleteClick = onDeleteClick,
+                onDismissDeleteMenu = onDismissDeleteMenu,
             )
         }
     }
 }
 
-/** 로드된 링크와 다음 페이지 상태를 표시하고 카드 클릭 시 링크 ID를 전달합니다. */
+/**
+ * 로드된 링크와 다음 페이지 상태를 표시하고 카드별 상세·더보기·삭제 동작을 전달합니다.
+ *
+ * @param links 현재 필터에서 수집한 Paging 항목
+ * @param openedDeleteMenuId 삭제 메뉴를 표시할 사용자 저장 링크 ID
+ * @param isInteractionEnabled 카드 상세·더보기·삭제 상호작용을 허용할지 여부
+ * @param onLinkClick 유효한 링크 카드의 상세 이동 요청
+ * @param onMoreClick 유효한 링크 카드의 삭제 메뉴 토글 요청
+ * @param onDeleteClick 삭제 메뉴에서 선택한 링크의 확인 모달 표시 요청
+ * @param onDismissDeleteMenu 목록 배경 탭 또는 스크롤 시작 시 열린 삭제 메뉴 닫기 요청
+ */
 @Composable
 private fun AILinkuPagingList(
     links: LazyPagingItems<AiArticleLink>,
+    openedDeleteMenuId: Long?,
+    isInteractionEnabled: Boolean,
     onLinkClick: (userLinkuId: Long) -> Unit,
+    onMoreClick: (userLinkuId: Long) -> Unit,
+    onDeleteClick: (userLinkuId: Long) -> Unit,
+    onDismissDeleteMenu: () -> Unit,
 ) {
+    val listState = rememberLazyListState()
+
+    // 카드와 함께 이동하는 삭제 메뉴가 스크롤 뒤 다시 나타나지 않도록 시작 즉시 닫습니다.
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .distinctUntilChanged()
+            .collect { isScrolling ->
+                if (isScrolling) {
+                    onDismissDeleteMenu()
+                }
+            }
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier
+            .fillMaxSize()
+            .then(
+                if (openedDeleteMenuId != null) {
+                    // 자식 카드의 클릭 영역 밖을 누른 경우에만 열린 메뉴를 정리합니다.
+                    Modifier.pointerInput(openedDeleteMenuId) {
+                        detectTapGestures {
+                            onDismissDeleteMenu()
+                        }
+                    }
+                } else {
+                    Modifier
+                },
+            ),
         contentPadding = PaddingValues(bottom = 100.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -566,6 +757,11 @@ private fun AILinkuPagingList(
                 AILinkuItem(
                     link = link,
                     onClick = onLinkClick,
+                    isInteractionEnabled = isInteractionEnabled,
+                    isDeleteMenuVisible = link.userLinkuId > 0L &&
+                        link.userLinkuId == openedDeleteMenuId,
+                    onMoreClick = onMoreClick,
+                    onDeleteClick = onDeleteClick,
                 )
             }
         }
@@ -601,7 +797,7 @@ private fun AILinkuPagingList(
     }
 }
 
-/** ID가 누락된 과도기 응답도 Paging 슬롯별로 충돌하지 않도록 안정적인 키를 만듭니다. */
+/** 아직 로드되지 않았거나 유효한 링크 ID가 없는 Paging 슬롯은 인덱스 대체 키를 사용합니다. */
 internal fun aiLinkuItemKey(index: Int, userLinkuId: Long?): String =
     userLinkuId
         ?.takeIf { it > 0L }

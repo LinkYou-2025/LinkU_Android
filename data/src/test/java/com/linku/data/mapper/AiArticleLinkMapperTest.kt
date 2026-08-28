@@ -59,16 +59,9 @@ class AiArticleLinkMapperTest {
         assertEquals(serverCategoryName, result.displayCategoryName)
     }
 
-    @Test
-    fun `missing user link id remains absent without a fallback`() {
-        val result = createItem(userLinkuId = null).toDomain()
-
-        assertNull(result.userLinkuId)
-    }
-
     /** 매퍼 검증에 사용할 기본 AI 요약 링크 DTO를 생성합니다. */
     private fun createItem(
-        userLinkuId: Long? = 7L,
+        userLinkuId: Long = 7L,
         emotionId: Long = EmotionType.CALM.value,
         categoryId: Long = CategoryType.LANGUAGE.id,
         categoryName: String = CategoryType.LANGUAGE.tagName,

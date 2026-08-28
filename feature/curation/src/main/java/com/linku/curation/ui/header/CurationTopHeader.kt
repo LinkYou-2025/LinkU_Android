@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,8 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.curation.R
+import com.linku.design.component.SkeletonBox
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
@@ -43,6 +46,7 @@ import com.linku.design.util.scaler
  * @param title 큐레이션 제목. ex) "월간 큐레이션 5월호". 없으면 빈 문자열
  * @param description 큐레이션 설명. ex) "세나님의 이번 달을 링큐가 분석했어요!". 없으면 빈 문자열
  * @param titleDescriptionGap title과 description 사이 간격 (피그마 px에 [scaler]를 적용해서 전달)
+ * @param isLoading true이면 title·description을 스켈레톤으로 대체 (백버튼·트윙클은 항상 표시)
  */
 @Composable
 internal fun CurationTopHeader(
@@ -53,6 +57,7 @@ internal fun CurationTopHeader(
     title: String, // 빈 값 불가함.
     titleDescriptionGap: Dp = 18.49f.scaler, // 제목이랑 묘사 사이는 대부분 18.49f인데, 일부 12가 있어서.. 추가함..
     description: String, // 빈 값 불가함.
+    isLoading: Boolean = false, // true면 title·description을 스켈레톤으로 대체
 ) {
     val colorTheme = MaterialTheme.linkuColors
 
@@ -84,29 +89,63 @@ internal fun CurationTopHeader(
                 Spacer(modifier = Modifier.height(18.49f.scaler))
             }
 
-            if (title.isNotEmpty()) {
-                Text(
-                    text = title,
-                    fontSize = 20.sp,
-                    lineHeight = 25.sp,
-                    fontWeight = FontWeight(600),
-                    textAlign = TextAlign.Center,
-                    style = LocalTextStyle.current.copy(brush = colorTheme.curationGradient),
+            if (isLoading) {
+                // 제목 1줄
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(22.scaler)
+                        .fillMaxWidth(0.55f),
+                    shape = RoundedCornerShape(6.dp),
+                    color = colorTheme.gray[300]
                 )
-            }
 
-            if (description.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(6.scaler))
+
+                // 제목 2줄
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(22.scaler)
+                        .fillMaxWidth(0.8f),
+                    shape = RoundedCornerShape(6.dp),
+                    color = colorTheme.gray[300]
+                )
+
                 Spacer(modifier = Modifier.height(titleDescriptionGap))
 
-                Text(
-                    text = description,
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    fontWeight = FontWeight(400),
-                    textAlign = TextAlign.Center,
-                    color = colorTheme.gray[600],
+                // 설명
+                SkeletonBox(
+                    modifier = Modifier
+                        .height(16.scaler)
+                        .fillMaxWidth(0.45f),
+                    shape = RoundedCornerShape(4.dp),
+                    color = colorTheme.gray[300]
                 )
+            } else {
+                if (title.isNotEmpty()) {
+                    Text(
+                        text = title,
+                        textAlign = TextAlign.Center,
+                        style = LocalTextStyle.current.copy(
+                            brush = colorTheme.curationGradient,
+                            fontSize = 20.sp,
+                            lineHeight = 25.sp,
+                            fontWeight = FontWeight(600),
+                        ),
+                    )
+                }
 
+                if (description.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(titleDescriptionGap))
+
+                    Text(
+                        text = description,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        fontWeight = FontWeight(400),
+                        textAlign = TextAlign.Center,
+                        color = colorTheme.gray[600],
+                    )
+                }
             }
         }
     }

@@ -11,6 +11,13 @@ internal const val OPEN_DEEP_LINK_TOKEN_ARGUMENT = "token"
 /** 초대 토큰 인자를 포함하는 `/open` 내비게이션 라우트 템플릿입니다. */
 internal const val OPEN_DEEP_LINK_ROUTE = "open?token={$OPEN_DEEP_LINK_TOKEN_ARGUMENT}"
 
+/** 랜딩 화면의 앱 열기 버튼이 사용하는 커스텀 스킴 딥링크 URI 패턴입니다. */
+internal const val CUSTOM_SCHEME_OPEN_DEEP_LINK_URI_PATTERN =
+    "linku://open?token={$OPEN_DEEP_LINK_TOKEN_ARGUMENT}"
+
+/** 딥링크 호스트에 허용하는 DNS 호스트 문자 형식입니다. */
+private val DEEP_LINK_HOST_PATTERN = Regex("^[A-Za-z0-9.-]+$")
+
 /**
  * `/open` 라우트가 사용하는 필수 초대 토큰 인자 계약을 생성합니다.
  *
@@ -28,13 +35,24 @@ internal fun openDeepLinkTokenArgument(): NamedNavArgument =
     }
 
 /**
- * 서버 도메인과 초대 토큰 인자를 조합해 `/open` 딥링크 URI 패턴을 생성합니다.
+ * 딥링크 전용 호스트와 초대 토큰 인자를 조합해 HTTPS `/open` URI 패턴을 생성합니다.
  *
- * @param deepLinkDomain 딥링크에 사용할 서버 도메인
- * @return 도메인 끝의 슬래시가 제거된 `/open` 딥링크 URI 패턴
+ * API 주소와 독립적으로 관리하는 `SERVER_HOST` 값만 받으며, 스킴이나 경로가 섞인 설정은
+ * 허용하지 않습니다.
+ *
+ * @param deepLinkHost 딥링크에 사용할 스킴 없는 호스트
+ * @return HTTPS 스킴과 `/open` 경로를 포함한 딥링크 URI 패턴
+ * @throws IllegalArgumentException 호스트가 비어 있거나 DNS 호스트 이외의 형식인 경우
  */
-internal fun openDeepLinkUriPattern(deepLinkDomain: String): String =
-    "${deepLinkDomain.trimEnd('/')}/open?token={$OPEN_DEEP_LINK_TOKEN_ARGUMENT}"
+internal fun openDeepLinkUriPattern(deepLinkHost: String): String {
+    val normalizedHost = deepLinkHost.trim()
+    require(normalizedHost.isNotBlank()) { "Deep link host must not be blank." }
+    require(DEEP_LINK_HOST_PATTERN.matches(normalizedHost)) {
+        "Deep link host must not contain a scheme, port, path, query, or fragment."
+    }
+
+    return "https://$normalizedHost/open?token={$OPEN_DEEP_LINK_TOKEN_ARGUMENT}"
+}
 
 /**
  * `/open` 딥링크의 초대 토큰에서 앞뒤 공백을 제거하고 유효성을 검사합니다.

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -163,7 +164,9 @@ internal fun SharedFolderLeaveDialog(
                         ) {
                             Text(
                                 text = dismissLabel,
-                                color = colors.blue[200],
+                                style = LocalTextStyle.current.copy(
+                                    brush = colors.maincolor
+                                ),
                                 fontFamily = font,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Medium,

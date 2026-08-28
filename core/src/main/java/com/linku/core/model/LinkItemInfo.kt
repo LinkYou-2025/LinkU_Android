@@ -14,5 +14,6 @@ data class LinkItemInfo(
     val url: String,
     val tags: List<String> = emptyList(),
     val linkuImageUrl: String?,
+    val categoryId: Long? = null,
     val createdAt: OffsetDateTime?,
 )

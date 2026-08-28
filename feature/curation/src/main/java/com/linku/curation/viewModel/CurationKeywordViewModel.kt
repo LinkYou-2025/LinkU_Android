@@ -32,6 +32,8 @@ class CurationKeywordViewModel @Inject constructor(
     }
 
     private fun loadKeyWords(month: String) {
+        if (month.isEmpty()) return
+
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true)
             curationKeywordUseCase(month)

@@ -24,6 +24,8 @@ import com.linku.file.viewmodel.leave.state.LeaveStateViewModel
  * @param leaveStateViewModel 공유폴더 나가기 대상 선택 모드를 관리하는 ViewModel
  * @param folderStateViewModel 현재 폴더 단계와 파일 화면 UI 상태를 관리하는 ViewModel
  * @param onNavigateToLinkDetail 선택한 사용자 링크의 상세 화면으로 이동시키는 콜백
+ * @param onNavigateToSharedLinkDetail 공유폴더에서 선택한 링크의 상세 화면으로 이동시키는 콜백.
+ * 소유자 상세 API를 호출할 수 없어 별도 경로로 분리되어 있습니다.
  * @param onSearchOpen 검색 UI가 열릴 때 호출되는 콜백
  */
 @Composable
@@ -34,6 +36,7 @@ fun FileApp(
     leaveStateViewModel: LeaveStateViewModel = viewModel(),
     folderStateViewModel: FolderStateViewModel = viewModel(),
     onNavigateToLinkDetail: (Long) -> Unit,
+    onNavigateToSharedLinkDetail: () -> Unit,
     onSearchOpen: () -> Unit = {},
 ) {
     val navController = rememberNavController()
@@ -54,6 +57,7 @@ fun FileApp(
                 leaveStateViewModel = leaveStateViewModel,
                 folderStateViewModel = folderStateViewModel,
                 onLinkClick = onNavigateToLinkDetail,
+                onSharedLinkClick = onNavigateToSharedLinkDetail,
                 onSearchOpen = onSearchOpen,
             )
         }

@@ -12,7 +12,7 @@ import com.linku.data.mapper.toDomain
  * AI 요약이 생성된 저장 링크를 서버 커서 기반으로 불러오는 [PagingSource]입니다.
  *
  * 첫 요청에는 `null` 커서를 그대로 전달하여 쿼리에서 생략합니다. 다음 페이지가 있다는
- * 응답에 유효한 커서가 없거나 기존 커서가 반복되면 무한 요청을 막기 위해 로드 실패로
+ * 응답에 정수형 커서가 없거나 기존 커서가 반복되면 무한 요청을 막기 위해 로드 실패로
  * 처리합니다.
  *
  * @property aiArticleApi AI 요약 링크 목록 API
@@ -21,12 +21,12 @@ import com.linku.data.mapper.toDomain
 internal class AiArticleLinkPagingSource(
     private val aiArticleApi: AIArticleApi,
     private val category: CategoryType?,
-) : PagingSource<String, AiArticleLink>() {
+) : PagingSource<Long, AiArticleLink>() {
 
     /** 현재 커서에 해당하는 AI 요약 링크 페이지를 로드합니다. */
     override suspend fun load(
-        params: LoadParams<String>,
-    ): LoadResult<String, AiArticleLink> {
+        params: LoadParams<Long>,
+    ): LoadResult<Long, AiArticleLink> {
         val cursor = params.key
         val result = safeApiCall {
             aiArticleApi.getAiArticleLinks(
@@ -48,7 +48,7 @@ internal class AiArticleLinkPagingSource(
                         prevKey = null,
                         nextKey = null,
                     )
-                    page.nextCursor.isNullOrBlank() -> {
+                    nextCursor == null -> {
                         LoadResult.Error(
                             IllegalStateException(MISSING_NEXT_CURSOR_MESSAGE),
                         )
@@ -74,12 +74,12 @@ internal class AiArticleLinkPagingSource(
 
     /** 새로고침 시 첫 페이지부터 최신 저장 순으로 다시 조회합니다. */
     override fun getRefreshKey(
-        state: PagingState<String, AiArticleLink>,
-    ): String? = null
+        state: PagingState<Long, AiArticleLink>,
+    ): Long? = null
 
     private companion object {
         const val MISSING_NEXT_CURSOR_MESSAGE =
-            "AI article response hasNext=true but nextCursor is null or blank."
+            "AI article response hasNext=true but nextCursor is null."
         const val REPEATED_NEXT_CURSOR_MESSAGE =
             "AI article response repeated the current nextCursor."
     }

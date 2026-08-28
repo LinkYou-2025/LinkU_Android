@@ -25,15 +25,16 @@ private const val SHARED_LINK_ITEM_RATIO = 10f / 174f
  * 공유폴더 상세의 링크를 읽기 전용으로 표시합니다.
  *
  * 링크 추가 셀과 편집·삭제 long press는 제공하지 않습니다. 일반 tap만 기존 루트 링크 상세
- * 콜백으로 [LinkItemInfo.userLinkuId]를 전달합니다.
+ * 콜백으로 클릭한 [LinkItemInfo] 전체를 전달합니다. 소유자 상세 API는 공유폴더 링크에 대해
+ * 호출할 수 없으므로, 이미 목록 조회로 받아온 값을 그대로 상세 화면에 넘겨서 재사용합니다.
  *
  * @param links 현재 공유폴더에 속한 링크 목록
- * @param onLinkClick 루트 링크 상세 이동을 요청할 사용자 링크 ID 콜백
+ * @param onLinkClick 루트 링크 상세 이동을 요청할 링크 정보 콜백
  */
 @Composable
 internal fun SharedLinksGrid(
     links: List<LinkItemInfo>,
-    onLinkClick: (Long) -> Unit,
+    onLinkClick: (LinkItemInfo) -> Unit,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(
         top = 20.dp,
@@ -65,7 +66,7 @@ internal fun SharedLinksGrid(
                 LinkItemLayout(
                     link = link,
                     onClick = { selectedLink ->
-                        selectedLink?.let { onLinkClick(it.userLinkuId) }
+                        selectedLink?.let(onLinkClick)
                     },
                     modifier = Modifier.fillMaxSize(),
                 )

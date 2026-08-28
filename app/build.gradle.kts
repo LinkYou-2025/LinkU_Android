@@ -32,6 +32,11 @@ val kakaoNativeAppKeyProvider = linkuConfigProviders.getValue("KAKAO_NATIVE_APP_
 val serverDomainProvider = linkuConfigProviders.getValue("SERVER_DOMAIN")
 val serverHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
 
+val keystoreProperties = Properties().apply {
+    val file = rootProject.file("key.properties")
+    if (file.exists()) load(file.inputStream())
+}
+
 android {
     namespace = "com.linku"
 
@@ -48,6 +53,15 @@ android {
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = keystoreProperties.getProperty("storeFile")?.let { rootProject.file(it) }
+            storePassword = keystoreProperties.getProperty("storePassword")
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         debug {
             versionNameSuffix = "-debug"
@@ -60,6 +74,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {

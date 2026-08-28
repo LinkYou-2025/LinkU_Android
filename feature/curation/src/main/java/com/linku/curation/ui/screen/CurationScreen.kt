@@ -36,6 +36,7 @@ import com.linku.curation.viewModel.CurationViewModel
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
+import java.time.LocalDate
 
 private const val CURATION_CARD_COUNT = 3
 private const val PAGER_VIRTUAL_PAGE_COUNT = Int.MAX_VALUE
@@ -114,21 +115,28 @@ fun CurationScreen(
                     isLoading = state.isLoading,
                     pagerState = pagerState,
                     onCardClick = { index ->
-                        val month = state.curationMain?.latestCurationMonth ?: return@CurationScreenContent
                         when (index) {
                             0 -> viewModel.handleIntent(
                                 CurationMainIntent.ClickCurationSection(
-                                    curationId = state.curationMain?.latestCurationId ?: return@CurationScreenContent,
-                                    month = month
+                                    curationId = state.curationMain?.latestCurationId ?: 0L,
+                                    month = state.curationMain?.latestCurationMonth.orEmpty()
                                 )
                             )
-                            1 -> viewModel.handleIntent(CurationMainIntent.ClickLastMonthKeyWord(month))
+                            1 -> viewModel.handleIntent(
+                                CurationMainIntent.ClickLastMonthKeyWord(
+                                    state.curationMain?.latestCurationMonth.orEmpty()
+                                )
+                            )
                             2 -> viewModel.handleIntent(CurationMainIntent.ClickUnreadLink)
                         }
                     },
                     onMonthlyCurationClick = {
-                        state.curationMain?.latestCurationMonth?.let { month ->
+                        val month = state.curationMain?.latestCurationMonth
+                        if (month != null) {
                             viewModel.handleIntent(CurationMainIntent.ClickYearHistory(month))
+                        } else {
+                            // 최신 큐레이션 응답이 빈 응답일 때 로컬 시간 사용
+                            onCurationHistoryClick(LocalDate.now().year)
                         }
                     }
                 )

@@ -74,6 +74,8 @@ import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.linku.R
 import com.linku.core.model.EmotionType
+import com.linku.core.model.JobType
+import com.linku.core.model.Situation
 import com.linku.core.model.SituationOptions
 import com.linku.core.util.caller.getCaller
 import com.linku.core.util.logging.LinkuLog
@@ -108,6 +110,134 @@ private enum class LinkDetailDropdownType {
 }
 
 private const val MAX_MEMO_LENGTH = 200
+
+/** 지원되는 각 직업에 정의된 상황 후보 개수입니다. */
+private const val EXPECTED_SITUATION_OPTION_COUNT = 8
+
+/**
+ * 링크 상세 수정에서 현재 직업으로 새롭게 선택할 수 있는 상황 목록을 반환합니다.
+ *
+ * @param jobId 현재 로그인 사용자의 직업 ID입니다.
+ * @return 지원되는 직업이면 해당 직업의 상황 목록, 미확인·미지원 직업이면 빈 목록입니다.
+ */
+internal fun linkDetailSituationOptions(jobId: Long?): List<Situation> {
+    val matchedJob = JobType.entries.firstOrNull { jobType -> jobType.id == jobId }
+        ?: return emptyList()
+
+    return SituationOptions.situationsFor(matchedJob.id)
+}
+
+/**
+ * 상세 진입 이후 성공한 최신 조회에서 확인된 지원 직업 ID만 화면에 전달합니다.
+ *
+ * 전역 인증 동기화 조회와 상세 진입 조회의 실행 순서는 보장되지 않으므로, 상세 진입이 시작한
+ * 세대 이상에서 성공한 최신 결과를 허용합니다. 조회 중·실패·로그아웃 상태에서는 마지막 성공
+ * 직업 ID가 남아 있어도 `null`을 반환해 이전 상황 후보 노출을 막습니다.
+ *
+ * @param jobId 마지막으로 조회에 성공한 로그인 사용자의 직업 ID입니다.
+ * @param minimumUserJobRequestId 상세 진입 시 시작한 조회의 최소 세대 ID입니다.
+ * @param currentUserJobRequestId 현재 상태가 가리키는 최신 조회의 세대 ID입니다.
+ * @param isUserJobReady 최신 조회가 성공했는지 여부입니다.
+ * @return 현재 상세 화면에서 신뢰할 수 있는 지원 직업 ID이며, 아직 확인할 수 없으면 `null`입니다.
+ */
+internal fun verifiedLinkDetailJobId(
+    jobId: Long?,
+    minimumUserJobRequestId: Long?,
+    currentUserJobRequestId: Long,
+    isUserJobReady: Boolean,
+): Long? {
+    if (
+        minimumUserJobRequestId == null ||
+        currentUserJobRequestId < minimumUserJobRequestId ||
+        !isUserJobReady
+    ) {
+        return null
+    }
+
+    return jobId?.takeIf { candidateId ->
+        JobType.entries.any { jobType -> jobType.id == candidateId }
+    }
+}
+
+/**
+ * 링크에 저장된 상황 ID를 직업 변경 여부와 무관하게 표시 모델로 변환합니다.
+ *
+ * @param situationId 서버에서 받은 기존 상황 ID입니다.
+ * @return ID와 일치하는 상황이며, 값이 없거나 지원하지 않으면 `null`입니다.
+ */
+internal fun linkDetailSituation(situationId: Long?): Situation? {
+    return SituationOptions.allSituations.firstOrNull { situation ->
+        situation.id.value == situationId
+    }
+}
+
+/**
+ * 링크 상세 편집에서 사용자가 명시적으로 변경한 상황 ID만 추출합니다.
+ *
+ * @param selectedSituationId 현재 화면에 선택된 상황 ID입니다.
+ * @param baselineSituationId 편집 진입 시 화면에 표시된 기존 상황 ID입니다.
+ * @return 기존 값과 다를 때만 PATCH 후보 ID를 반환하며, 변경하지 않았으면 `null`입니다.
+ */
+internal fun linkDetailSituationIdToUpdate(
+    selectedSituationId: Long?,
+    baselineSituationId: Long?,
+): Long? = if (selectedSituationId == baselineSituationId) null else selectedSituationId
+
+/**
+ * 현재 상황 초안이 최신 직업 상황 후보로 안전하게 저장 가능한지 확인합니다.
+ *
+ * 기존 상황을 변경하지 않았다면 과거 직업의 상황이어도 다른 필드 수정을 허용합니다. 상황을
+ * 변경한 경우에는 최신 직업 조회가 준비됐고 선택값이 현재 직업 후보에 포함돼야 합니다.
+ *
+ * @param selectedSituationId 현재 화면에 선택된 상황 ID입니다.
+ * @param baselineSituationId 편집 진입 시 화면에 표시된 기존 상황 ID입니다.
+ * @param isSituationSelectionReady 현재 직업 상황 후보를 신뢰할 수 있는지 여부입니다.
+ * @param situationOptions 현재 직업에 속한 상황 후보 목록입니다.
+ */
+internal fun isLinkDetailSituationChangeValid(
+    selectedSituationId: Long?,
+    baselineSituationId: Long?,
+    isSituationSelectionReady: Boolean,
+    situationOptions: List<Situation>,
+): Boolean {
+    if (selectedSituationId == baselineSituationId) return true
+
+    return isSituationSelectionReady && situationOptions.any { situation ->
+        situation.id.value == selectedSituationId
+    }
+}
+
+/**
+ * 직업 조회가 성공한 뒤 현재 직업과 맞지 않는 편집 중 상황 초안을 복원할지 판단합니다.
+ *
+ * 조회 중에는 일시적으로 후보가 비어도 사용자가 고른 값을 보존하고 저장만 차단합니다. 편집
+ * 기준이 확정된 상태에서 최신 조회가 성공했고 선택값이 후보에 없을 때만 복원합니다.
+ *
+ * @param isEditMode 현재 링크를 편집 중인지 여부입니다.
+ * @param isEditBaselineCaptured 편집 진입 시 기존 상황을 기준값으로 저장했는지 여부입니다.
+ * @param selectedSituationId 현재 화면에 선택된 상황 ID입니다.
+ * @param baselineSituationId 편집 진입 시 저장한 기존 상황 ID입니다.
+ * @param isSituationSelectionReady 최신 직업 상황 후보 조회가 성공했는지 여부입니다.
+ * @param situationOptions 현재 직업에 속한 상황 후보 목록입니다.
+ */
+internal fun shouldResetLinkDetailSituationDraft(
+    isEditMode: Boolean,
+    isEditBaselineCaptured: Boolean,
+    selectedSituationId: Long?,
+    baselineSituationId: Long?,
+    isSituationSelectionReady: Boolean,
+    situationOptions: List<Situation>,
+): Boolean =
+    isEditMode &&
+        isEditBaselineCaptured &&
+        isSituationSelectionReady &&
+        selectedSituationId != baselineSituationId &&
+        !isLinkDetailSituationChangeValid(
+            selectedSituationId = selectedSituationId,
+            baselineSituationId = baselineSituationId,
+            isSituationSelectionReady = isSituationSelectionReady,
+            situationOptions = situationOptions,
+        )
 
 /**
  * 윈도우 기준 칩 영역을 링크 상세 화면 기준 드롭다운 시작 좌표로 변환합니다.
@@ -157,6 +287,12 @@ private fun calculateEndAlignedDropdownOffset(
     )
 }
 
+/**
+ * 저장된 링크의 상세 정보를 표시하고 편집·삭제·공유 및 AI 요약 요청을 처리합니다.
+ *
+ * @param jobId 현재 로그인 사용자의 직업 ID입니다. 직업을 확인하지 못한 동안에는 잘못된
+ * 상황 후보를 대신 표시하지 않도록 상황 드롭다운을 비활성 상태로 유지합니다.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun LinkDetailScreen(
@@ -165,6 +301,7 @@ fun LinkDetailScreen(
     categoryId: Long?,
     emotion: String,
     situationId: Long?,
+    jobId: Long?,
     linkUrl: String,
     imageUrl: String? = "",
     selectedImageUri: Uri? = null,
@@ -182,7 +319,7 @@ fun LinkDetailScreen(
         memo: String?,
         categoryId: Long?,
         emotionId: Long?,
-        situationId: Long?,
+        situationIdToUpdate: Long?,
         onSuccess: () -> Unit,
         onFailed: () -> Unit,
     ) -> Unit,
@@ -231,7 +368,10 @@ fun LinkDetailScreen(
     var isEditToastVisible by rememberSaveable { mutableStateOf(false) }
 
     val emotionOptions = EmotionType.entries
-    val situationOptions = SituationOptions.allSituations
+    // 홈 화면과 동일한 매핑을 사용하되, 직업 조회 전이나 미지원 ID에는 임의 기본값을 적용하지 않습니다.
+    val situationOptions = remember(jobId) {
+        linkDetailSituationOptions(jobId)
+    }
 
     var selectedTitle by rememberSaveable { mutableStateOf(linkTitle) }
     var selectedCategoryId by rememberSaveable(userLinkuId) { mutableStateOf(categoryId) }
@@ -240,7 +380,7 @@ fun LinkDetailScreen(
             EmotionType.entries.firstOrNull { it.tagName == emotion }
         )
     }
-    var selectedSituationId by rememberSaveable { mutableStateOf(situationId) }
+    var selectedSituationId by rememberSaveable(userLinkuId) { mutableStateOf(situationId) }
     var selectedMemo by rememberSaveable { mutableStateOf(memo) }
 
     // 편집 도중 상세 API가 갱신되어도 비교 기준이 움직이지 않도록 진입 시점의 값을 보관합니다.
@@ -259,8 +399,9 @@ fun LinkDetailScreen(
     // 수정 모드에서는 저장 액션을 항상 제공하고, 조회 모드에서는 AI 요약이 없을 때만 생성 액션을 표시합니다.
     val shouldShowBottomAction = isEditMode || !isAiSummaryMode
 
-    val selectedSituation = situationOptions.firstOrNull {
-        it.id.value == selectedSituationId
+    // 직업 변경 전에 저장한 링크도 기존 상황명을 유지하도록 표시값은 전체 목록에서 찾습니다.
+    val selectedSituation = remember(selectedSituationId) {
+        linkDetailSituation(selectedSituationId)
     }
 
     // ID를 기준으로 현재 선택 항목을 찾으면 목록이 늦게 도착해도 이름과 색상이 자동으로 갱신됩니다.
@@ -275,6 +416,48 @@ fun LinkDetailScreen(
         mutableStateOf<LinkDetailDropdownType?>(null)
     }
 
+    val isSituationSelectionReady =
+        jobId != null && situationOptions.size == EXPECTED_SITUATION_OPTION_COUNT
+    val isSituationChangeValid = isLinkDetailSituationChangeValid(
+        selectedSituationId = selectedSituationId,
+        baselineSituationId = editBaselineSituationId,
+        isSituationSelectionReady = isSituationSelectionReady,
+        situationOptions = situationOptions,
+    )
+    val situationIdToUpdate = linkDetailSituationIdToUpdate(
+        selectedSituationId = selectedSituationId,
+        baselineSituationId = editBaselineSituationId,
+    )
+
+    LaunchedEffect(
+        isEditMode,
+        isEditBaselineCaptured,
+        isSituationSelectionReady,
+        situationOptions,
+        selectedSituationId,
+        editBaselineSituationId,
+    ) {
+        val shouldResetSituationDraft = shouldResetLinkDetailSituationDraft(
+            isEditMode = isEditMode,
+            isEditBaselineCaptured = isEditBaselineCaptured,
+            selectedSituationId = selectedSituationId,
+            baselineSituationId = editBaselineSituationId,
+            isSituationSelectionReady = isSituationSelectionReady,
+            situationOptions = situationOptions,
+        )
+
+        if (!isSituationSelectionReady || shouldResetSituationDraft) {
+            if (openedDropdownType == LinkDetailDropdownType.SITUATION) {
+                openedDropdownType = null
+            }
+        }
+
+        if (shouldResetSituationDraft) {
+            // 기존 타 직업 상황은 유지하고, 사용자가 새로 고른 유효하지 않은 초안만 되돌립니다.
+            selectedSituationId = editBaselineSituationId
+        }
+    }
+
     // 서버에 실제로 전달되는 정규화 값과 ID를 기준으로 변경 여부를 판단합니다.
     val hasEditChanges = isEditMode && isEditBaselineCaptured && (
         selectedImageUri != null ||
@@ -286,7 +469,8 @@ fun LinkDetailScreen(
         )
 
     // 수정 모드에서는 유효한 제목과 실제 변경사항이 모두 있을 때만 완료 액션을 활성화합니다.
-    val isSaveButtonEnabled = !isEditMode || (isTitleValid && hasEditChanges)
+    val isSaveButtonEnabled =
+        !isEditMode || (isTitleValid && hasEditChanges && isSituationChangeValid)
 
     // 수정 전 값으로 초안을 복원하고 링크 상세 화면을 유지한 채 수정 모드만 종료합니다.
     val discardEditChanges: () -> Unit = {
@@ -374,12 +558,13 @@ fun LinkDetailScreen(
     val aiSectionSparkleRes =
         if (isEditMode) R.drawable.ic_sparkle_gray else R.drawable.ic_sparkles_colored
 
-    LaunchedEffect(linkTitle, categoryId, emotion, situationId, memo) {
+    LaunchedEffect(linkTitle, categoryId, emotion, situationId, memo, isEditMode) {
         if (!isEditMode) {
             selectedTitle = linkTitle
             selectedCategoryId = categoryId
             selectedEmotion = EmotionType.entries.firstOrNull { it.tagName == emotion }
             selectedSituationId = situationId
+            editBaselineSituationId = situationId
             selectedMemo = memo
         }
     }
@@ -510,6 +695,7 @@ fun LinkDetailScreen(
                     isCategoryDropdownOpen = openedDropdownType == LinkDetailDropdownType.CATEGORY,
                     isEmotionDropdownOpen = openedDropdownType == LinkDetailDropdownType.EMOTION,
                     isSituationDropdownOpen = openedDropdownType == LinkDetailDropdownType.SITUATION,
+                    isSituationSelectionEnabled = isSituationSelectionReady,
                     onBack = requestBack,
                     onMoreClick = {
                         isDropdownVisible = !isDropdownVisible
@@ -528,9 +714,11 @@ fun LinkDetailScreen(
                             else LinkDetailDropdownType.EMOTION
                     },
                     onSituationClick = {
-                        openedDropdownType =
-                            if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
-                            else LinkDetailDropdownType.SITUATION
+                        if (isSituationSelectionReady) {
+                            openedDropdownType =
+                                if (openedDropdownType == LinkDetailDropdownType.SITUATION) null
+                                else LinkDetailDropdownType.SITUATION
+                        }
                     },
                     onCategoryChipBoundsChanged = { bounds ->
                         categoryChipBoundsInWindow = bounds
@@ -1079,7 +1267,7 @@ fun LinkDetailScreen(
                                 selectedMemo,
                                 selectedCategoryId,
                                 selectedEmotion?.id?.value,
-                                selectedSituationId,
+                                situationIdToUpdate,
                                 {
                                     editToastMessage = "저장 완료!"
                                     isEditToastVisible = true
@@ -1200,6 +1388,7 @@ fun PreviewLinkDetailScreen() {
             categoryId = 1L,
             emotion = "평온",
             situationId = 10L,
+            jobId = 2L,
             linkUrl = "https://blog.naver.com/linkU/1234567890",
             memo = "오픽 시험 준비시 도움이 되는 내용 정리",
             tags = listOf("오픽", "AL", "영어회화", "자격증"),

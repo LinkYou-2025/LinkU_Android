@@ -47,6 +47,8 @@ class LinkViewModel @Inject constructor(
             selectedSaveEmotionId = null,
             selectedSaveSituationId = null,
             jobId = null,
+            userJobRequestId = 0L,
+            isUserJobReady = false,
             isSaving = false,
             linkDetail = null,
             requestedLinkDetailId = null,
@@ -77,31 +79,90 @@ class LinkViewModel @Inject constructor(
     /** 동일 ID 요청까지 구분하여 취소된 작업이 최신 상태를 덮어쓰지 못하게 하는 세대 값입니다. */
     private var linkDetailRequestGeneration: Long = 0L
 
-    init {
-        loadUserBasics()
-    }
+    /** 현재 사용자 기본 정보를 조회하는 작업입니다. 새 요청이 시작되면 이전 작업을 취소합니다. */
+    private var userBasicsLoadJob: Job? = null
+
+    /** 취소된 사용자 직업 조회가 최신 상태를 덮어쓰지 못하게 구분하는 세대 값입니다. */
+    private var userBasicsRequestGeneration: Long = 0L
 
     /*
      * Save link
      */
 
-    fun loadUserBasics() {
-        viewModelScope.launch {
-            val userId = authPreference.getUserId()
+    /**
+     * 로그인 사용자의 최신 직업 정보를 조회해 링크 저장·상세 화면 상태에 반영합니다.
+     *
+     * 진행 중인 이전 요청은 취소하고 세대 ID를 갱신해 오래된 응답의 상태 반영을 막습니다.
+     * 일시적인 조회 실패가 링크 저장 화면까지 잘못된 기본 직업으로 바꾸지 않도록 마지막 성공
+     * 직업 ID는 유지하되, 상세 화면은 반환된 세대 ID의 조회가 성공한 뒤에만 상황 선택을 허용합니다.
+     *
+     * @return 이번 사용자 직업 조회에 부여한 세대 ID입니다.
+     */
+    fun loadUserBasics(): Long {
+        val requestId = ++userBasicsRequestGeneration
+        userBasicsLoadJob?.cancel()
 
-            if (userId == null || userId <= 0L) {
-                return@launch
+        _uiState.update { state ->
+            state.copy(
+                userJobRequestId = requestId,
+                isUserJobReady = false,
+            )
+        }
+
+        userBasicsLoadJob = viewModelScope.launch {
+            try {
+                val userId = authPreference.getUserId()
+
+                if (userId == null || userId <= 0L) {
+                    return@launch
+                }
+
+                val userInfo = userRepository.getUserInfo(userId).getOrThrow()
+
+                if (isCurrentUserBasicsRequest(requestId)) {
+                    _uiState.update { state ->
+                        state.copy(
+                            jobId = userInfo.jobId,
+                            isUserJobReady = true,
+                        )
+                    }
+                }
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                // 마지막 성공 jobId는 저장 화면을 위해 보존하고, 상세 선택 준비 상태만 실패로 둡니다.
+                if (isCurrentUserBasicsRequest(requestId)) {
+                    _uiState.update { state -> state.copy(isUserJobReady = false) }
+                }
+                Log.e("LinkViewModel", "loadUserBasics failed", error)
             }
+        }
 
-            userRepository.getUserInfo(userId)
-                .onSuccess { userInfo ->
-                    _uiState.update { state -> state.copy(jobId = userInfo.jobId) }
-                }
-                .onFailure { error ->
-                    Log.e("LinkViewModel", "loadUserBasics failed", error)
-                }
+        return requestId
+    }
+
+    /**
+     * 로그아웃한 사용자의 직업 정보를 제거하고 진행 중인 조회를 취소합니다.
+     *
+     * 다음 사용자가 이전 사용자의 상황 목록을 잠시라도 보지 않도록 인증 세션 종료 시 호출합니다.
+     */
+    fun clearUserBasics() {
+        val invalidatedRequestId = ++userBasicsRequestGeneration
+        userBasicsLoadJob?.cancel()
+        userBasicsLoadJob = null
+        _uiState.update { state ->
+            state.copy(
+                jobId = null,
+                userJobRequestId = invalidatedRequestId,
+                isUserJobReady = false,
+            )
         }
     }
+
+    /** 완료된 사용자 직업 조회가 현재 상태가 기다리는 최신 요청인지 확인합니다. */
+    private fun isCurrentUserBasicsRequest(requestId: Long): Boolean =
+        userBasicsRequestGeneration == requestId &&
+            _uiState.value.userJobRequestId == requestId
 
     fun setSaveImage(file: TempImageFile?) {
         _uiState.update { state -> state.copy(saveImage = file) }
@@ -434,25 +495,56 @@ class LinkViewModel @Inject constructor(
         _uiState.value.requestedLinkDetailId == userLinkuId &&
             linkDetailRequestGeneration == requestGeneration
 
+    /**
+     * 현재 상세 링크에서 사용자가 실제로 변경한 필드만 서버에 반영합니다.
+     *
+     * 상황 변경값은 저장 클릭 시 신뢰한 정확한 직업 조회에 속하는지 요청 직전까지 재검증합니다.
+     * 검증되지 않은 상황 ID는 Repository에 전달하지 않고 실패 콜백으로 반환합니다.
+     *
+     * @param expectedUserLinkuId 저장을 누른 상세 화면의 사용자 링크 ID입니다.
+     * @param situationIdToUpdate 기존 표시값이 아니라 사용자가 명시적으로 바꾼 상황 ID입니다.
+     * @param expectedUserJobRequestId 저장 클릭 시 신뢰했던 사용자 직업 조회의 정확한 세대 ID입니다.
+     */
     fun updateLink(
+        expectedUserLinkuId: Long,
         image: TempImageFile?,
         title: String,
         memo: String?,
         categoryId: Long?,
         emotionId: Long?,
-        situationId: Long?,
+        situationIdToUpdate: Long?,
+        expectedUserJobRequestId: Long?,
         onSucceed: (LinkResultInfo) -> Unit = {},
         onFailed: (Throwable) -> Unit = {},
     ) {
         val currentState = _uiState.value
-        val current = currentState.linkDetail ?: run {
-            onFailed(IllegalStateException("링크 상세가 없습니다."))
+        val current = currentState.linkDetail?.takeIf { detail ->
+            isCurrentLinkUpdateTarget(
+                expectedUserLinkuId = expectedUserLinkuId,
+                requestedLinkDetailId = currentState.requestedLinkDetailId,
+                currentLinkDetailId = detail.userLinkuId,
+            )
+        } ?: run {
+            onFailed(IllegalStateException("현재 화면의 링크 상세가 아닙니다."))
             return
         }
 
         if (currentState.isUpdatingLink) return
 
-        val userLinkuId = current.userLinkuId
+        if (
+            !isLinkSituationUpdateAllowed(
+                situationIdToUpdate = situationIdToUpdate,
+                expectedUserJobRequestId = expectedUserJobRequestId,
+                currentUserJobRequestId = currentState.userJobRequestId,
+                isUserJobReady = currentState.isUserJobReady,
+                jobId = currentState.jobId,
+            )
+        ) {
+            onFailed(IllegalArgumentException("현재 직업에서 선택할 수 없는 상황입니다."))
+            return
+        }
+
+        val userLinkuId = expectedUserLinkuId
 
         val normalizedTitle = title.trim()
 
@@ -460,7 +552,7 @@ class LinkViewModel @Inject constructor(
         val changedMemo = memo?.trim()?.takeIf { normalizedMemo -> normalizedMemo != current.memo.orEmpty() }
         val changedCategoryId = categoryId.takeIf { it != current.categoryId }
         val changedEmotionId = emotionId.takeIf { it != current.emotionId }
-        val changedSituationId = situationId.takeIf { it != current.situationId }
+        val changedSituationId = situationIdToUpdate?.takeIf { it != current.situationId }
 
         val hasChanges = image != null ||
             changedTitle != null ||
@@ -478,6 +570,30 @@ class LinkViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
+                // 이미지 변환이나 화면 전환 중 직업 요청이 바뀔 수 있어 네트워크 호출 직전 다시 검증합니다.
+                val latestState = _uiState.value
+                if (
+                    !isCurrentLinkUpdateTarget(
+                        expectedUserLinkuId = userLinkuId,
+                        requestedLinkDetailId = latestState.requestedLinkDetailId,
+                        currentLinkDetailId = latestState.linkDetail?.userLinkuId,
+                    )
+                ) {
+                    throw IllegalStateException("현재 화면의 링크 상세가 아닙니다.")
+                }
+
+                if (
+                    !isLinkSituationUpdateAllowed(
+                        situationIdToUpdate = changedSituationId,
+                        expectedUserJobRequestId = expectedUserJobRequestId,
+                        currentUserJobRequestId = latestState.userJobRequestId,
+                        isUserJobReady = latestState.isUserJobReady,
+                        jobId = latestState.jobId,
+                    )
+                ) {
+                    throw IllegalArgumentException("현재 직업에서 선택할 수 없는 상황입니다.")
+                }
+
                 val updated = linkuRepository.updateLink(
                     userLinkuId = userLinkuId,
                     image = image,
@@ -488,7 +604,14 @@ class LinkViewModel @Inject constructor(
                     title = changedTitle,
                 )
                 linkCache[userLinkuId] = Cached(updated)
-                _uiState.update { state -> state.copy(linkDetail = updated) }
+                _uiState.update { state ->
+                    // 요청 도중 다른 상세로 이동했다면 캐시만 갱신하고 현재 화면은 덮어쓰지 않습니다.
+                    if (state.requestedLinkDetailId == userLinkuId) {
+                        state.copy(linkDetail = updated)
+                    } else {
+                        state
+                    }
+                }
                 onSucceed(updated)
             } catch (error: CancellationException) {
                 throw error

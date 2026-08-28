@@ -126,7 +126,7 @@ class MainViewModel @Inject constructor(
             // 서버에서 최신 닉네임 조회 후, 변경 감지 시 갱신 및 닉네임 캐시 업데이트
             userRepository.getNickname()
                 .onSuccess { result ->
-                    val fresh = result.nickname
+                    val fresh = result
                     if (fresh.isNotBlank() && fresh != _nickname.value) {
                         _nickname.value = fresh
                         authPreference.saveNickname(fresh)  // 캐시 갱신

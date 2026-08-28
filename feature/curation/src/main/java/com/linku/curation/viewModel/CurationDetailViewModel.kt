@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.model.curation.LinkType
+import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.MonthlyCurationDetailedUseCase
 import com.linku.curation.viewModel.intent.CurationDetailedIntent
 import com.linku.curation.viewModel.sideeffect.CurationDetailedSideEffect
@@ -19,10 +20,11 @@ import javax.inject.Inject
 @HiltViewModel
 class CurationDetailViewModel @Inject constructor(
     private val monthlyCurationDetailedUseCase: MonthlyCurationDetailedUseCase,
+    private val userRepository: UserRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val month = savedStateHandle.get<String>("month").orEmpty()
+    val month = savedStateHandle.get<String>("month").orEmpty()
     private val curationId = savedStateHandle.get<Long>("curationId") ?: 0L
 
     private val _curationDetailedState = MutableStateFlow(CurationDetailedState())
@@ -57,6 +59,23 @@ class CurationDetailViewModel @Inject constructor(
     }
 
     private fun loadCurationDetail(curationId: Long, month: String) {
+        if (curationId == 0L) {
+            viewModelScope.launch {
+                _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = true)
+                userRepository.getNickname()
+                    .onSuccess { nickname ->
+                        _curationDetailedState.value = _curationDetailedState.value.copy(
+                            nickname = nickname,
+                            isLoading = false
+                        )
+                    }
+                    .onFailure {
+                        _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = false)
+                    }
+            }
+            return
+        }
+
         viewModelScope.launch {
             _curationDetailedState.value = _curationDetailedState.value.copy(isLoading = true, errorMessage = "")
 

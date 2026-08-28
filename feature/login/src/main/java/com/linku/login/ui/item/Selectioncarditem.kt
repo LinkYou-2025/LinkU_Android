@@ -93,7 +93,7 @@ internal fun SelectionCardItem(
             )
             Text(
                 text = text,
-                fontSize = 12.5.sp,
+                fontSize = 14.sp,
                 lineHeight = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colorTheme.black

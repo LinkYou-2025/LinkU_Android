@@ -28,14 +28,14 @@ interface AIArticleApi {
      * [cursor]가 `null`이면 첫 페이지를 요청합니다.
      *
      * @param categoryId 필터링할 카테고리 ID. `null`이면 전체 조회
-     * @param cursor 이전 응답의 커서. 첫 요청이면 `null`
+     * @param cursor 이전 응답의 64비트 정수형 커서. 첫 요청이면 `null`
      * @param limit 한 번에 조회할 개수
      * @return AI 요약 링크 페이지를 포함한 공통 응답
      */
     @GET("aiarticle")
     suspend fun getAiArticleLinks(
         @Query("categoryId") categoryId: Long? = null,
-        @Query("cursor") cursor: String? = null,
+        @Query("cursor") cursor: Long? = null,
         @Query("limit") limit: Int = 10,
     ): BaseResponse<AiArticleLinkPageDTO>
 }

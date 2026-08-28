@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import com.linku.design.component.CheckIndicator
 import com.linku.design.theme.linkuColors
 import com.linku.design.util.scaler
 
