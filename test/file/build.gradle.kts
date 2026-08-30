@@ -11,12 +11,12 @@ plugins {
 }
 
 android {
-    namespace = "com.linku.linku.test.file"
+    namespace = "com.linku.test.file"
 
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.linku.linku.test.file"
+        applicationId = "com.linku.test.file"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = libs.versions.appVersionCode.get().toInt()
