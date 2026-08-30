@@ -18,6 +18,8 @@ import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.data.preference.AuthPreference
 import com.linku.core.preference.NotificationPreference
+import com.linku.share.SharedUrlParseResult
+import com.linku.share.parseSharedUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.awaitClose
@@ -61,6 +63,18 @@ class MainViewModel @Inject constructor(
     // 세션이 죽었는데 stale-true가 복원돼 인증 전 pending 알림을 소비하는 문제를 원천 차단.
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
+
+    /** 외부 앱의 `ACTION_SEND`에서 받아 아직 저장 화면에 전달하지 않은 URL입니다. */
+    private val _pendingSharedUrl = MutableStateFlow<String?>(null)
+
+    /** 인증과 앱 루트 내비게이션이 준비되면 소비할 외부 공유 URL입니다. */
+    val pendingSharedUrl: StateFlow<String?> = _pendingSharedUrl.asStateFlow()
+
+    /** 현재 포그라운드 진입이 공유 Intent로 시작되어 클립보드 읽기를 건너뛰어야 하는지 나타냅니다. */
+    private val _isShareIntentEntry = MutableStateFlow(false)
+
+    /** 공유 Intent 진입과 일반 앱 복귀의 클립보드 처리 우선순위를 제공하는 상태입니다. */
+    val isShareIntentEntry: StateFlow<Boolean> = _isShareIntentEntry.asStateFlow()
 
     // 로그인/자동 로그인 성공 시 true, 로그아웃 시 false로 갱신
     fun setAuthenticated(value: Boolean) {
@@ -238,6 +252,51 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    /**
+     * 외부 앱이 공유한 텍스트에서 저장 가능한 URL을 찾고 앱 루트에 전달합니다.
+     *
+     * 공유 Intent 진입은 같은 포그라운드 전환에서 오래된 클립보드 URL보다 우선합니다. 새 공유 요청이
+     * 들어오면 이전 미처리 공유 URL을 교체하여 가장 최근 요청만 저장 화면에 전달합니다.
+     *
+     * @param sharedText `Intent.EXTRA_TEXT`로 전달된 외부 앱의 공유 본문
+     */
+    fun handleSharedText(sharedText: String?) {
+        _isShareIntentEntry.value = true
+        _pendingSharedUrl.value = null
+
+        when (val result = parseSharedUrl(sharedText)) {
+            is SharedUrlParseResult.Success -> {
+                _pendingSharedUrl.value = result.url
+            }
+
+            SharedUrlParseResult.EmptyText,
+            SharedUrlParseResult.NoSupportedUrl -> {
+                sendSharedUrlError(SharedUrlError.MISSING_URL)
+            }
+
+            SharedUrlParseResult.MultipleUrls -> {
+                sendSharedUrlError(SharedUrlError.MULTIPLE_URLS)
+            }
+        }
+    }
+
+    /** 저장 화면에 전달할 공유 URL을 한 번 반환하고 보류 상태에서 제거합니다. */
+    fun consumePendingSharedUrl(): String? {
+        return _pendingSharedUrl.value.also { _pendingSharedUrl.value = null }
+    }
+
+    /** 공유 Intent로 시작된 현재 앱 진입을 관찰했음을 반영해 다음 클립보드 진입을 허용합니다. */
+    fun completeShareIntentEntry() {
+        _isShareIntentEntry.value = false
+    }
+
+    /** 공유 URL 오류를 Compose UI에 표시하도록 일회성 이벤트를 전송합니다. */
+    private fun sendSharedUrlError(error: SharedUrlError) {
+        viewModelScope.launch {
+            _sideEffect.send(SideEffect.ShowSharedUrlError(error))
+        }
+    }
+
     // 푸시 알림 클릭 시 앱이 죽어있던 경우, auth 완료 전까지 목적지를 임시 보관
     private var pendingNotification: PendingNotification? = null
 
@@ -298,11 +357,23 @@ sealed interface SideEffect {
     data object ShowPushAlarmDialog: SideEffect
     data class ShowToast(val message: String) : SideEffect
 
+    /** 외부 공유 본문을 링크 저장에 사용할 수 없음을 알립니다. */
+    data class ShowSharedUrlError(val error: SharedUrlError) : SideEffect
+
     data class NavigateByNotification(
         val type: AlarmType,
         val targetId: Long,
         val alarmId: Long?
     ) : SideEffect
+}
+
+/** 외부 앱이 전달한 공유 본문을 링크 저장에 사용할 수 없는 원인입니다. */
+enum class SharedUrlError {
+    /** 공유 본문에 지원하는 URL이 없습니다. */
+    MISSING_URL,
+
+    /** 공유 본문에 URL이 여러 개 있어 저장 대상을 하나로 정할 수 없습니다. */
+    MULTIPLE_URLS,
 }
 
 data class PendingNotification(

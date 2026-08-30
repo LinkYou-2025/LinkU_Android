@@ -59,6 +59,33 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
+     * 전달된 [Intent]를 분석하여 외부 공유 링크와 알림을 각각 처리합니다.
+     *
+     * @param intent 처리를 수행할 인텐트 객체
+     */
+    private fun handleIntent(intent: Intent) {
+        handleSharedTextIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    /**
+     * 외부 앱의 `ACTION_SEND` 인텐트에서 공유 텍스트를 꺼내 ViewModel에 전달합니다.
+     *
+     * LinkU가 공유 대상으로 등록한 `text/plain`만 처리하며, 전달을 마친 extra는 Activity 재생성 시
+     * 같은 링크 저장 화면이 다시 열리지 않도록 즉시 소비합니다.
+     *
+     * @param intent 외부 앱에서 전달된 공유 인텐트
+     */
+    private fun handleSharedTextIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_SEND || intent.type != SHARED_TEXT_MIME_TYPE) {
+            return
+        }
+
+        viewModel.handleSharedText(intent.getStringExtra(Intent.EXTRA_TEXT))
+        intent.removeExtra(Intent.EXTRA_TEXT)
+    }
+
+    /**
      * 전달된 [Intent]를 분석하여 알림 처리를 수행합니다.
      *
      * Intent의 extra 데이터에서 "type"과 "targetId"를 추출하며,
@@ -66,8 +93,7 @@ class MainActivity : ComponentActivity() {
      *
      * @param intent 처리를 수행할 인텐트 객체
      */
-    private fun handleIntent(intent: Intent) {
-
+    private fun handleNotificationIntent(intent: Intent) {
         val rawType = intent.getStringExtra("type") ?: return
         val type = AlarmType.fromOrNull(rawType) ?: return
 
@@ -86,5 +112,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+    }
+
+    private companion object {
+        /** 외부 앱의 URL 공유에 사용하는 Android 표준 텍스트 MIME 타입입니다. */
+        const val SHARED_TEXT_MIME_TYPE = "text/plain"
     }
 }

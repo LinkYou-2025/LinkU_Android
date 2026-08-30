@@ -63,6 +63,8 @@ import com.linku.file.viewmodel.folder.state.FileNavigationState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
+import com.linku.home.component.ObserveClipboardLinkOnAppEntry
+import com.linku.home.model.ClipboardLinkCandidate
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.NoticeScreen
 import com.linku.home.viewmodel.AIArticleViewModel
@@ -202,6 +204,28 @@ fun MainApp(
     var showNavBar by rememberSaveable { mutableStateOf(false) }
 
     val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+    val pendingSharedUrl by viewModel.pendingSharedUrl.collectAsStateWithLifecycle()
+    val isShareIntentEntry by viewModel.isShareIntentEntry.collectAsStateWithLifecycle()
+    var clipboardEntryCandidate by remember {
+        mutableStateOf<ClipboardLinkCandidate?>(null)
+    }
+    ObserveClipboardLinkOnAppEntry(
+        skipClipboardRead = isShareIntentEntry,
+        onCandidateDetected = { candidate ->
+            clipboardEntryCandidate = candidate
+            if (isShareIntentEntry) {
+                viewModel.completeShareIntentEntry()
+            }
+        },
+    )
+
+    LaunchedEffect(clipboardEntryCandidate, isAuthenticated, isShareIntentEntry) {
+        homeViewModel.prepareClipboardBannerCandidate(
+            candidate = clipboardEntryCandidate.takeIf {
+                isAuthenticated && !isShareIntentEntry
+            },
+        )
+    }
 
     LaunchedEffect(isLoggedIn, isAuthenticated) {
         if (isLoggedIn == true && isAuthenticated) {
@@ -284,6 +308,36 @@ fun MainApp(
         }
     }
 
+    /**
+     * 앱 진입 시 받은 URL을 기존 링크 저장 폼에 채우고 저장 화면으로 이동합니다.
+     *
+     * 클립보드 복사와 공유 Intent가 이 진입점을 함께 사용합니다. 이미 저장 화면이 열려 있으면
+     * 백스택을 중복으로 쌓지 않고 새 URL로 폼을 교체합니다.
+     *
+     * @param url 클립보드 또는 공유 Intent에서 받은 HTTP 또는 HTTPS URL
+     */
+    fun navigateToSaveLinkWithUrl(url: String) {
+        linkViewModel.resetSaveForm()
+        linkViewModel.setSaveUrl(url)
+        navigator.navigate(SAVE_LINK_ROUTE) {
+            launchSingleTop = true
+        }
+    }
+
+    LaunchedEffect(pendingSharedUrl, isAuthenticated, currentRoute) {
+        val sharedUrl = pendingSharedUrl ?: return@LaunchedEffect
+        val isNavigationReady = currentRoute != null &&
+            currentRoute != NavigationRoute.Splash.route &&
+            currentRoute != NavigationRoute.Login.route
+
+        if (!isAuthenticated || !isNavigationReady) {
+            return@LaunchedEffect
+        }
+
+        viewModel.consumePendingSharedUrl()
+        navigateToSaveLinkWithUrl(sharedUrl)
+    }
+
     // 채널 사이드 이펙트 수신
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
@@ -292,6 +346,14 @@ fun MainApp(
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 is SideEffect.ShowPushAlarmDialog ->
                     showPushAlarmDialog = true
+
+                is SideEffect.ShowSharedUrlError -> {
+                    val messageResource = when (effect.error) {
+                        SharedUrlError.MISSING_URL -> R.string.shared_url_missing
+                        SharedUrlError.MULTIPLE_URLS -> R.string.shared_url_multiple
+                    }
+                    Toast.makeText(context, messageResource, Toast.LENGTH_SHORT).show()
+                }
 
                 is SideEffect.NavigateByNotification -> {
                     // alarmId 포함해서 저장 → consume 시점(인증 완료 후)에 readAlarm 호출됨
@@ -707,8 +769,7 @@ fun MainApp(
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onNavigateToSaveLink = { url ->
-                                linkViewModel.setSaveUrl(url)
-                                navigator.navigate(SAVE_LINK_ROUTE)
+                                navigateToSaveLinkWithUrl(url)
                             },
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
@@ -962,14 +1023,8 @@ fun MainApp(
                         isSaveButtonEnabled =
                             linkUiState.isSaveButtonEnabled,
                         onSaveButtonClick = {
-                            val submittedUrl = linkUiState.saveUrl
-                            val submittedClipboardCandidate =
-                                homeViewModel.captureClipboardCandidate(submittedUrl)
                             linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
-                                    submittedClipboardCandidate?.let(
-                                        homeViewModel::markClipboardCandidateHandled,
-                                    )
                                     linkViewModel.loadLinkDetail(
                                         saved.userLinkuId,
                                     )
