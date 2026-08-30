@@ -1,28 +1,31 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.FileInputStream
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
     //alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 
     // Hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    load(FileInputStream(rootProject.file("local.properties")))
-}
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
-    ?: throw GradleException("SERVER_DOMAIN is not set in local.properties")
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
 
-val apiVersion = localProperties.getProperty("API_VERSION")
-    ?: throw GradleException("API_VERSION is not set in local.properties")
-
-val serverBaseUrl = "$serverDomain/$apiVersion/"
+val serverBaseUrlProvider =
+    linkuConfigProviders.getValue("SERVER_DOMAIN").flatMap { serverDomain ->
+        linkuConfigProviders.getValue("API_VERSION").map { apiVersion ->
+            "$serverDomain/$apiVersion/"
+        }
+    }
 
 android {
     namespace = "com.linku.data"
@@ -32,7 +35,6 @@ android {
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
     }
 
     buildTypes {
@@ -59,6 +61,15 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields?.put(
+            "SERVER_BASE_URL",
+            linkuBuildConfigString(serverBaseUrlProvider)
+        )
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
@@ -71,7 +82,8 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(libs.material)
-    implementation(libs.firebase.messaging.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)

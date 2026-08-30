@@ -19,3 +19,12 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Kakao SDK models are accessed reflectively in optimized builds.
+# https://developers.kakao.com/docs/ko/android/getting-started
+-keep class com.kakao.sdk.**.model.* { <fields>; }
+
+# Optional TLS providers referenced by OkHttp and the Kakao SDK.
+-dontwarn org.bouncycastle.jsse.**
+-dontwarn org.conscrypt.*
+-dontwarn org.openjsse.**

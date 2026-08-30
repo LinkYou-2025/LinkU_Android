@@ -1,5 +1,6 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
@@ -10,21 +11,17 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) {
-        file.inputStream().use { inputStream ->
-            load(inputStream)
-        }
-    }
 
-}
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
 
+val googleWebClientIdProvider = linkuConfigProviders.getValue("GOOGLE_WEB_CLIENT_ID")
 
 android {
     namespace = "com.linku.login"
@@ -36,7 +33,6 @@ android {
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         //consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
     buildTypes {
@@ -59,6 +55,15 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields?.put(
+            "GOOGLE_WEB_CLIENT_ID",
+            linkuBuildConfigString(googleWebClientIdProvider)
+        )
     }
 }
 

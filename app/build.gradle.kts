@@ -1,5 +1,6 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -14,31 +15,22 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) load(file.inputStream())
-}
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val kakaoNativeAppKey = localProperties.getProperty("KAKAO_NATIVE_APP_KEY")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("KAKAO_NATIVE_APP_KEY is missing or blank in local.properties")
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
 
-// 구글 소셜 로그인 로컬 프로퍼티
-val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("GOOGLE_WEB_CLIENT_ID is missing or blank in local.properties")
+@Suppress("UNCHECKED_CAST")
+val linkuManifestValue =
+    rootProject.extra["linkuManifestValue"] as (Provider<String>) -> Provider<String>
 
-val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("SERVER_DOMAIN is missing or blank in local.properties")
-
-val serverHost = localProperties.getProperty("SERVER_HOST")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("SERVER_HOST is missing or blank in local.properties")
+val kakaoNativeAppKeyProvider = linkuConfigProviders.getValue("KAKAO_NATIVE_APP_KEY")
+val serverDomainProvider = linkuConfigProviders.getValue("SERVER_DOMAIN")
+val serverHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
 
 val keystoreProperties = Properties().apply {
     val file = rootProject.file("key.properties")
@@ -59,20 +51,6 @@ android {
         versionName = libs.versions.appVersionName.get()
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
-        buildConfigField(
-            "String",
-            "KAKAO_NATIVE_APP_KEY",
-            "\"$kakaoNativeAppKey\""
-        )
-        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
-        buildConfigField("String", "SERVER_DOMAIN", "\"$serverDomain\"")
-        buildConfigField("String", "SERVER_HOST", "\"$serverHost\"")
-        // 로컬 프로퍼티에 각자 디버그 키(개발 테스트) 꼭 넣어서 주세요. 안 그러면 실행 안됩니다.
-        manifestPlaceholders["KAKAO_NATIVE_APP_KEY"] = kakaoNativeAppKey
-        manifestPlaceholders["SERVER_HOST"] = serverHost
-    }
-    buildFeatures {
-        buildConfig = true
     }
 
     signingConfigs {
@@ -85,8 +63,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            versionNameSuffix = "-debug"
+        }
+
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -107,6 +90,27 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        variant.buildConfigFields?.put(
+            "KAKAO_NATIVE_APP_KEY",
+            linkuBuildConfigString(kakaoNativeAppKeyProvider)
+        )
+        variant.buildConfigFields?.put(
+            "SERVER_DOMAIN",
+            linkuBuildConfigString(serverDomainProvider)
+        )
+        variant.manifestPlaceholders.put(
+            "KAKAO_NATIVE_APP_KEY",
+            linkuManifestValue(kakaoNativeAppKeyProvider)
+        )
+        variant.manifestPlaceholders.put(
+            "SERVER_HOST",
+            linkuManifestValue(serverHostProvider)
+        )
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
@@ -124,7 +128,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.messaging.ktx)
     implementation(libs.androidx.compose.material.icons.extended)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
@@ -171,6 +174,7 @@ dependencies {
     // FCM
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 
 
     // TODO: Add the dependencies for Firebase products you want to use
@@ -186,9 +190,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
-
-    // Paging
-    implementation(libs.paging.runtime)
 
     implementation(libs.lottie)
 
