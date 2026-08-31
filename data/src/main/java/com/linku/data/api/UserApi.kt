@@ -29,10 +29,13 @@ interface UserApi {
     ): BaseResponse<DeleteUserResponseDTO>
 
     // 로그아웃 - 요청의 deviceId에 해당하는 현재 디바이스 세션만 로그아웃
+    // result는 항상 빈 객체({})이므로, 다른 BaseResponse<String> 등 구체 타입 API와
+    // 제네릭 타입이 뒤섞여 Moshi 어댑터 캐시가 잘못 재사용되는 것을 막기 위해
+    // BaseResponse<*>/<Any?> 대신 구체적인 Map 타입을 명시함.
     @POST("auth/logout")
     suspend fun logout(
         @Query("deviceId") deviceId: String
-    ): BaseResponse<*> // result {}
+    ): BaseResponse<Map<String, Any?>?>
 
     // 회원 탈퇴 복구 (계정 활성화) - 탈퇴 유예기간(14일) 내 재로그인 시 호출.
     // 로그인 응답의 accessToken(purpose=RECOVER)이 Authorization 헤더로 자동 첨부됨.
@@ -51,12 +54,12 @@ interface UserApi {
     @PATCH("users/profile")
     suspend fun updateUserInfo(
         @Body body: UpdateUserProfileRequestDTO
-    ): BaseResponse<*> // BaseResponse 형태임. 별도 클래스 생성 없음.
+    ): BaseResponse<Map<String, Any?>?> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
     // 마케팅 동의 여부 업데이트 api
     @PATCH("users/terms/marketing/toggle")
     suspend fun updateMarketingTerms(
-    ): BaseResponse<*> // BaseResponse 형태임. 별도 클래스 생성 없음.
+    ): BaseResponse<Map<String, Any?>?> // BaseResponse 형태임. 별도 클래스 생성 없음.
 
     @GET("users/terms/status")
     suspend fun checkTermsStatus(

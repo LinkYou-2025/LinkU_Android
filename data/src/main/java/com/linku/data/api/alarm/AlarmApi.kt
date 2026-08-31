@@ -38,7 +38,7 @@ interface AlarmApi {
     @POST("alarm/fcmtoken")
     suspend fun registerFcmToken(
         @Body body: FcmTokenRequest
-    ): BaseResponse<Any?>
+    ): BaseResponse<Map<String, Any?>?>
 
     @GET("alarm/detail/{alarmId}")
     suspend fun getAlarmDetail(
@@ -48,7 +48,7 @@ interface AlarmApi {
     @PATCH("alarm/{alarmId}/read")
     suspend fun readAlarm(
         @Path("alarmId") alarmId: Long,
-    ): BaseResponse<Any?>
+    ): BaseResponse<Map<String, Any?>?>
 
     @GET("alarm/unread")
     suspend fun getUnreadAlarmExists(): BaseResponse<UnreadAlarmExistDTO>
@@ -56,7 +56,7 @@ interface AlarmApi {
     @HTTP(method = "DELETE", path = "alarm/fcmtoken", hasBody = true)
     suspend fun deleteFcmToken(
         @Body body: FcmTokenRequest
-    ): BaseResponse<Any?>
+    ): BaseResponse<Map<String, Any?>?>
 
 
 }

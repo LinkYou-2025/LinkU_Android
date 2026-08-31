@@ -87,7 +87,7 @@ interface FolderApi {
     @DELETE("folders/subfolders/{folderId}")
     suspend fun deleteSubfolder(
         @Path("folderId") folderId: Long
-    ): BaseResponse<*>
+    ): BaseResponse<Map<String, Any?>?>
 
     // 공유 받은 폴더 목록 조회
     @GET("folders/shared")
@@ -97,7 +97,7 @@ interface FolderApi {
     @DELETE("folders/shared/{folderId}")
     suspend fun leaveReceivedSharedFolder(
         @Path("folderId") folderId: Long
-    ): BaseResponse<*>
+    ): BaseResponse<Map<String, Any?>?>
 
     /** 현재 사용자가 소유하면서 다른 멤버와 실제로 공유 중인 폴더를 조회합니다. */
     @GET("folders/share/my")
@@ -143,5 +143,5 @@ interface FolderApi {
     @DELETE("folders/share/{folderId}/invitation")
     suspend fun deactivateInvitationLink(
         @Path("folderId") folderId: Long
-    ): BaseResponse<*>
+    ): BaseResponse<Map<String, Any?>?>
 }

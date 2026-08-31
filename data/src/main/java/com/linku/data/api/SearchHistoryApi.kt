@@ -12,10 +12,10 @@ interface SearchHistoryApi {
     suspend fun getRecentKeywords(): BaseResponse<List<SearchHistoryItemResponseDTO>>
 
     @DELETE("links/search/history")
-    suspend fun deleteAllKeywords(): BaseResponse<Any?>
+    suspend fun deleteAllKeywords(): BaseResponse<Map<String, Any?>?>
 
     @DELETE("links/search/history/{searchHistoryId}")
     suspend fun deleteKeyword(
         @Path("searchHistoryId") searchHistoryId: Long
-    ): BaseResponse<Any?>
+    ): BaseResponse<Map<String, Any?>?>
 }

@@ -121,6 +121,6 @@ interface LinkuApi {
     @DELETE("linku/{userLinkuId}")
     suspend fun deleteLink(
         @Path("userLinkuId") userLinkuId: Long,
-    ): BaseResponse<Any?>
+    ): BaseResponse<Map<String, Any?>?>
 
 }
