@@ -9,6 +9,8 @@ import com.linku.core.repository.UserRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import java.time.YearMonth
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 /**
@@ -48,11 +50,17 @@ class MonthlyCurationDetailedUseCase @Inject constructor(
          * @param month 상위 태그 조회에 사용할 월(`yyyy-MM`)입니다.
          * @return 조회 결과를 담은 [MonthlyCurationDetail] 또는 실패 정보를 포함한 [Result]입니다.
          */
+
+        // 태그 조회는 이정달로 사용
+        val previousMonth = YearMonth.parse(month, DateTimeFormatter.ofPattern("yyyy-MM"))
+            .minusMonths(1)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM"))
+
         coroutineScope {
             val detailDeferred = async { curationRepository.getCurationDetail(curationId) }
             val nicknameDeferred = async { userRepository.getNickname() }
             val recommendLinksDeferred = async { curationRepository.getRecommendLinks(curationId) }
-            val topTagsDeferred = async { curationRepository.getMyTopTags(month) }
+            val topTagsDeferred = async { curationRepository.getMyTopTags(previousMonth) }
 
             MonthlyCurationDetail(
                 detail = detailDeferred.await().getOrThrow(),
