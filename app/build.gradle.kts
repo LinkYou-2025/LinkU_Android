@@ -1,6 +1,7 @@
 import com.android.build.api.variant.BuildConfigField
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -99,6 +100,10 @@ androidComponents {
         variant.buildConfigFields?.put(
             "SERVER_DOMAIN",
             linkuBuildConfigString(serverDomainProvider)
+        )
+        variant.buildConfigFields?.put(
+            "SERVER_HOST",
+            linkuBuildConfigString(serverHostProvider)
         )
         variant.manifestPlaceholders.put(
             "KAKAO_NATIVE_APP_KEY",
