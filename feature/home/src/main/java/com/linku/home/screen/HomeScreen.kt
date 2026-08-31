@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -65,7 +64,6 @@ import com.linku.design.theme.linkuColors
 import com.linku.home.HomeViewModel
 import com.linku.home.R
 import com.linku.home.component.ClipboardLinkPasteBanner
-import com.linku.home.component.rememberClipboardLinkCandidate
 import com.linku.home.model.RecentLinksUiState
 import com.linku.home.ui.home.bar.HomeTopBar
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -322,24 +320,9 @@ fun HomeScreen(
             }
         }
 
-    val clipboardCandidate by rememberClipboardLinkCandidate()
-    val validatedClipboardCandidate by
-        homeViewModel.validatedClipboardCandidate.collectAsStateWithLifecycle()
-
-    LaunchedEffect(clipboardCandidate) {
-        homeViewModel.validateClipboardCandidate(clipboardCandidate)
-    }
-
-    DisposableEffect(homeViewModel) {
-        onDispose(homeViewModel::endClipboardBannerSession)
-    }
-
-    // URL과 복사 시각이 모두 현재 클립보드 항목과 일치하는 검증 완료 후보만 표시합니다.
-    val shouldShowClipboardBanner =
-        validatedClipboardCandidate != null &&
-            validatedClipboardCandidate == clipboardCandidate
-
     val isUnreadAlarmExists by homeViewModel.isUnreadAlarmExists.collectAsStateWithLifecycle()
+    val clipboardCandidate by
+        homeViewModel.clipboardBannerCandidate.collectAsStateWithLifecycle()
 
     Box(
         modifier = Modifier
@@ -646,27 +629,23 @@ fun HomeScreen(
                 .zIndex(21f),
         )
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 20.dp, vertical = 15.dp)
-                .zIndex(10f)
-        ) {
+        clipboardCandidate?.let { candidate ->
             ClipboardLinkPasteBanner(
-                visible = shouldShowClipboardBanner,
-                link = validatedClipboardCandidate?.url.orEmpty(),
-                modifier = Modifier,
+                link = candidate.url,
                 onDismiss = {
-                    validatedClipboardCandidate?.let(homeViewModel::markClipboardCandidateHandled)
+                    homeViewModel.dismissClipboardBannerCandidate(candidate)
                 },
                 onPasteClick = {
-                    validatedClipboardCandidate?.let { candidate ->
-                        homeViewModel.markClipboardCandidateHandled(candidate)
-                        onNavigateToSaveLink(candidate.url)
-                    }
-                }
+                    homeViewModel.dismissClipboardBannerCandidate(candidate)
+                    onNavigateToSaveLink(candidate.url)
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 20.dp, vertical = 15.dp)
+                    .zIndex(10f),
             )
         }
+
     }
 }
 

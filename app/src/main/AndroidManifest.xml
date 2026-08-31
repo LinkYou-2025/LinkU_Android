@@ -41,6 +41,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
+            <!-- 외부 앱에서 공유한 웹 URL 텍스트 수신 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="notice_icon_click"/>
                 <category android:name="android.intent.category.DEFAULT"/>

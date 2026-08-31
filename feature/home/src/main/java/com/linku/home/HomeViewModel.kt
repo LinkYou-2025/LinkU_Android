@@ -13,12 +13,12 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationRequest
-import com.linku.core.model.link.LinkCheckResult
+import com.linku.core.util.UrlValidationResult
+import com.linku.core.util.validateUrlInput
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
-import com.linku.core.usecase.CheckLinkUseCase
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
@@ -26,8 +26,6 @@ import com.linku.home.model.ClipboardLinkCandidate
 import com.linku.home.model.RecentLinksLoadStatus
 import com.linku.home.model.RecentLinksUiState
 import com.linku.home.paging.RecommendationPagingSource
-import com.linku.home.util.UrlValidationResult
-import com.linku.home.util.validateUrlInput
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -49,7 +47,6 @@ class HomeViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val alarmRepository: AlarmRepository,
-    private val checkLinkUseCase: CheckLinkUseCase,
 ) : ViewModel() {
 
     private companion object {
@@ -67,44 +64,42 @@ class HomeViewModel @Inject constructor(
         loadCategoryColors()
     }
 
-    /** 백엔드 검사까지 통과하여 클립보드 배너에 표시할 수 있는 항목입니다. */
-    private val _validatedClipboardCandidate = MutableStateFlow<ClipboardLinkCandidate?>(null)
+    /** 앱 진입 시 홈의 링크 붙여넣기 말풍선에 표시할 클립보드 항목입니다. */
+    private val _clipboardBannerCandidate = MutableStateFlow<ClipboardLinkCandidate?>(null)
 
     /**
-     * 프론트 및 백엔드 유효성 검사를 모두 통과한 클립보드 링크와 복사 이벤트입니다.
+     * 프론트 유효성 검사와 사용자별 중복 검사를 통과한 클립보드 링크와 복사 이벤트입니다.
      *
-     * `null`이면 검사할 후보가 없거나, 검사 중이거나, 검사에 실패한 상태를 의미합니다.
+     * `null`이면 처리할 새 복사 이벤트가 없거나 검사 중인 상태를 의미합니다.
      */
-    val validatedClipboardCandidate: StateFlow<ClipboardLinkCandidate?> =
-        _validatedClipboardCandidate.asStateFlow()
+    val clipboardBannerCandidate: StateFlow<ClipboardLinkCandidate?> =
+        _clipboardBannerCandidate.asStateFlow()
 
-    /** 새 클립보드 후보가 들어왔을 때 이전 백엔드 검사를 취소하기 위한 작업입니다. */
-    private var clipboardValidationJob: Job? = null
+    /** 새 앱 진입 후보가 들어왔을 때 이전 준비 작업을 취소하기 위한 작업입니다. */
+    private var clipboardPreparationJob: Job? = null
 
-    /** 취소 시점과 겹쳐 완료된 이전 요청의 결과 반영을 차단하는 요청 식별자입니다. */
-    private var clipboardValidationRequestId = 0L
+    /** 취소 시점과 겹쳐 완료된 이전 준비 결과 반영을 차단하는 요청 식별자입니다. */
+    private var clipboardPreparationRequestId = 0L
 
-    /** 현재 홈 화면이 전달한 가장 최신의 유효한 클립보드 후보입니다. */
+    /** 앱이 포그라운드로 진입하면서 읽은 가장 최신의 유효한 클립보드 후보입니다. */
     private var currentClipboardCandidate: ClipboardLinkCandidate? = null
 
     /**
-     * 클립보드 URL을 프론트에서 먼저 검사하고, 통과한 경우에만 백엔드 검사를 실행합니다.
+     * 앱 진입 시 읽은 클립보드 URL을 홈 말풍선 표시 후보로 준비합니다.
      *
-     * 새 후보를 검사하기 시작하면 기존 배너 항목을 즉시 제거합니다. URL과 복사 시각이 모두 같은 항목을
-     * 이전 화면 세션에서 이미 노출했거나, 해당 항목을 복사한 뒤 같은 URL 저장에 성공했다면 백엔드 호출 없이
-     * 종료합니다. 복사 시각이 제공되는 환경에서는 같은 URL을 다시 복사한 항목도 새 후보로 다시 검증합니다.
-     * 백엔드가 신규 링크 또는 이미 저장한 링크로 응답하면 중복 저장 가능 정책에 따라 모두 공개합니다.
-     * 공개 전에 후보를 영속화하므로 화면 재진입과 앱 재실행에서도 같은 클립보드 항목은 반복 노출되지 않습니다.
-     * 프론트 검사 실패와 백엔드·네트워크 오류는 배너를 노출하지 않고 종료합니다.
+     * URL과 복사 시각이 모두 같은 항목을 이전 앱 진입에서 이미 처리했거나, 해당 항목을 복사한 뒤 같은
+     * URL 저장에 성공했다면 말풍선을 표시하지 않습니다. 새 후보는 사용자별로 먼저 영속화한 뒤 공개하므로
+     * 화면 전환이나 앱 재실행이 발생해도 같은 복사 이벤트가 반복 처리되지 않습니다. 네트워크 검사는
+     * 저장 버튼을 누르는 기존 흐름에서 수행하여 앱 진입 직후 화면 이동을 지연시키지 않습니다.
      *
      * @param candidate 시스템 클립보드에서 읽은 URL과 복사 시각. 후보가 없으면 `null`
      */
-    fun validateClipboardCandidate(candidate: ClipboardLinkCandidate?) {
-        clipboardValidationJob?.cancel()
-        clipboardValidationJob = null
-        _validatedClipboardCandidate.value = null
+    fun prepareClipboardBannerCandidate(candidate: ClipboardLinkCandidate?) {
+        clipboardPreparationJob?.cancel()
+        clipboardPreparationJob = null
+        _clipboardBannerCandidate.value = null
 
-        val requestId = ++clipboardValidationRequestId
+        val requestId = ++clipboardPreparationRequestId
         val normalizedCandidate = candidate?.copy(url = candidate.url.trim())
         val frontendValidationResult = validateUrlInput(normalizedCandidate?.url.orEmpty())
 
@@ -115,11 +110,11 @@ class HomeViewModel @Inject constructor(
 
         currentClipboardCandidate = normalizedCandidate
 
-        clipboardValidationJob = viewModelScope.launch {
+        clipboardPreparationJob = viewModelScope.launch {
             try {
                 val userId = authPreference.getUserId() ?: return@launch
 
-                if (!isCurrentClipboardValidation(requestId, normalizedCandidate)) {
+                if (!isCurrentClipboardPreparation(requestId, normalizedCandidate)) {
                     return@launch
                 }
 
@@ -128,7 +123,7 @@ class HomeViewModel @Inject constructor(
                     copiedAtMillis = normalizedCandidate.copiedAtMillis,
                     userId = userId,
                 )
-                if (!isCurrentClipboardValidation(requestId, normalizedCandidate)) {
+                if (!isCurrentClipboardPreparation(requestId, normalizedCandidate)) {
                     return@launch
                 }
 
@@ -137,7 +132,7 @@ class HomeViewModel @Inject constructor(
                     copiedAtMillis = normalizedCandidate.copiedAtMillis,
                     userId = userId,
                 )
-                if (!isCurrentClipboardValidation(requestId, normalizedCandidate)) {
+                if (!isCurrentClipboardPreparation(requestId, normalizedCandidate)) {
                     return@launch
                 }
 
@@ -145,80 +140,53 @@ class HomeViewModel @Inject constructor(
                     return@launch
                 }
 
-                when (checkLinkUseCase(normalizedCandidate.url)) {
-                    LinkCheckResult.Available,
-                    LinkCheckResult.AlreadySaved -> {
-                        if (!isCurrentClipboardValidation(requestId, normalizedCandidate)) {
-                            return@launch
-                        }
+                val isPresentationSaved = authPreference.savePresentedClipboardLink(
+                    url = normalizedCandidate.url,
+                    copiedAtMillis = normalizedCandidate.copiedAtMillis,
+                    userId = userId,
+                )
 
-                        val isPresentationSaved = authPreference.savePresentedClipboardLink(
-                            url = normalizedCandidate.url,
-                            copiedAtMillis = normalizedCandidate.copiedAtMillis,
-                            userId = userId,
-                        )
-
-                        if (
-                            isPresentationSaved &&
-                            isCurrentClipboardValidation(requestId, normalizedCandidate)
-                        ) {
-                            _validatedClipboardCandidate.value = normalizedCandidate
-                        }
-                    }
+                if (
+                    isPresentationSaved &&
+                    isCurrentClipboardPreparation(requestId, normalizedCandidate)
+                ) {
+                    _clipboardBannerCandidate.value = normalizedCandidate
                 }
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
-                Log.e("HomeVM", "clipboard link validation failed", error)
+                Log.e("HomeVM", "clipboard banner preparation failed", error)
             }
         }
     }
 
     /**
-     * 현재 클립보드 후보가 사용자 동작으로 처리되었음을 반영하고 배너를 즉시 숨깁니다.
+     * 현재 클립보드 후보의 말풍선 표시가 사용자 동작으로 끝났음을 반영합니다.
      *
-     * 배너 닫기·붙여넣기와 링크 저장 성공이 모두 이 진입점을 사용합니다. URL과 복사 시각 중 하나라도
-     * 최신 후보와 다르면 다른 클립보드 이벤트로 판단해 현재 배너 상태를 변경하지 않습니다.
+     * URL과 복사 시각 중 하나라도 최신 후보와 다르면 다른 복사 이벤트로 판단해 현재 상태를 변경하지
+     * 않습니다. 일치하는 후보는 일회성 이동이 끝났으므로 메모리 상태에서도 제거합니다.
      *
-     * @param candidate 사용자가 닫거나 저장한 정확한 클립보드 후보
+     * @param candidate 사용자가 닫거나 저장 화면으로 전달한 정확한 클립보드 후보
      */
-    fun markClipboardCandidateHandled(candidate: ClipboardLinkCandidate) {
+    fun dismissClipboardBannerCandidate(candidate: ClipboardLinkCandidate) {
         val normalizedCandidate = candidate.copy(url = candidate.url.trim())
         if (currentClipboardCandidate != normalizedCandidate) {
             return
         }
 
-        clipboardValidationJob?.cancel()
-        clipboardValidationJob = null
-        clipboardValidationRequestId++
-        _validatedClipboardCandidate.value = null
+        clipboardPreparationJob?.cancel()
+        clipboardPreparationJob = null
+        clipboardPreparationRequestId++
+        _clipboardBannerCandidate.value = null
+        currentClipboardCandidate = null
     }
 
-    /**
-     * 저장 버튼을 누른 시점의 URL과 일치하는 현재 클립보드 후보를 반환합니다.
-     *
-     * 저장 완료 전 같은 URL을 다시 복사해 현재 후보가 달라져도, 호출자는 여기서 캡처한 이전 후보만
-     * 처리 완료로 전달할 수 있습니다. 저장 완료 시각 이전의 복사 항목은 별도의 저장 이력 비교로 처리됩니다.
-     *
-     * @param url 저장을 시도한 URL
-     */
-    fun captureClipboardCandidate(url: String): ClipboardLinkCandidate? =
-        currentClipboardCandidate?.takeIf { it.url == url.trim() }
-
-    /** 홈 화면 Composition이 종료될 때 이전 세션의 배너 상태가 남지 않도록 정리합니다. */
-    fun endClipboardBannerSession() {
-        clipboardValidationJob?.cancel()
-        clipboardValidationJob = null
-        clipboardValidationRequestId++
-        _validatedClipboardCandidate.value = null
-    }
-
-    /** 요청 식별자와 후보 전체가 모두 최신 클립보드 항목을 가리키는지 확인합니다. */
-    private fun isCurrentClipboardValidation(
+    /** 요청 식별자와 후보 전체가 모두 최신 앱 진입 클립보드 항목을 가리키는지 확인합니다. */
+    private fun isCurrentClipboardPreparation(
         requestId: Long,
         candidate: ClipboardLinkCandidate,
     ): Boolean =
-        requestId == clipboardValidationRequestId && currentClipboardCandidate == candidate
+        requestId == clipboardPreparationRequestId && currentClipboardCandidate == candidate
 
     // 직업 ID 보관
     private val jobIdState = mutableStateOf<Long?>(null)
@@ -293,11 +261,11 @@ class HomeViewModel @Inject constructor(
         recommendationRequestState.value = null
         _deletedRecommendedLinkIds.value = emptySet()
 
-        clipboardValidationJob?.cancel()
-        clipboardValidationJob = null
-        clipboardValidationRequestId++
+        clipboardPreparationJob?.cancel()
+        clipboardPreparationJob = null
+        clipboardPreparationRequestId++
         currentClipboardCandidate = null
-        _validatedClipboardCandidate.value = null
+        _clipboardBannerCandidate.value = null
     }
 
     // 사용자가 저장한 링크 개수
