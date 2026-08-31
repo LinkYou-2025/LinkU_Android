@@ -26,6 +26,15 @@ class ClipboardLinkCandidateParserTest {
         )
     }
 
+    /** 프로토콜 없는 URL도 링크 저장 화면과 동일하게 후보로 만드는지 검증합니다. */
+    @Test
+    fun `URL without protocol becomes clipboard candidate`() {
+        assertEquals(
+            ClipboardLinkCandidate("example.com/article", 250L),
+            parseClipboardLinkCandidate("example.com/article", 250L),
+        )
+    }
+
     /** URL이 섞인 일반 문장은 저장 화면 자동 진입 후보가 아닌지 검증합니다. */
     @Test
     fun `text containing URL is ignored`() {

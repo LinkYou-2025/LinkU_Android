@@ -14,6 +14,15 @@ class SharedUrlParserTest {
         )
     }
 
+    /** 프로토콜 없는 URL도 링크 저장 화면과 동일하게 허용하는지 검증합니다. */
+    @Test
+    fun `URL without protocol is returned`() {
+        assertEquals(
+            SharedUrlParseResult.Success("example.com/article"),
+            parseSharedUrl("example.com/article"),
+        )
+    }
+
     /** 기사 제목과 함께 공유된 본문에서는 URL만 추출하는지 검증합니다. */
     @Test
     fun `URL is extracted from article share text`() {
@@ -37,7 +46,7 @@ class SharedUrlParserTest {
     fun `missing shared URL is rejected`() {
         assertEquals(SharedUrlParseResult.EmptyText, parseSharedUrl("   "))
         assertEquals(
-            SharedUrlParseResult.NoxptSupportedUrl,
+            SharedUrlParseResult.NoSupportedUrl,
             parseSharedUrl("공유할 웹 주소가 없습니다."),
         )
     }

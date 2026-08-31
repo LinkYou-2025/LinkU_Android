@@ -1,12 +1,14 @@
 package com.linku.share
 
-import java.net.URI
+import com.linku.core.util.UrlValidationResult
+import com.linku.core.util.extractWebUrls
+import com.linku.core.util.validateUrlInput
 
 /**
  * 외부 앱이 `ACTION_SEND`로 공유한 텍스트에서 저장할 웹 URL을 추출합니다.
  *
- * 공유 본문에는 기사 제목이나 설명이 URL과 함께 포함될 수 있으므로 HTTP 또는 HTTPS URL 후보를
- * 찾습니다. 링크 저장 대상이 모호하지 않도록 유효한 URL 하나만 포함된 본문을 허용합니다.
+ * 공유 본문에는 기사 제목이나 설명이 URL과 함께 포함될 수 있으므로 URL 후보를 먼저 찾고, 링크
+ * 저장 화면과 동일한 공통 검사 기준을 통과한 URL 하나만 허용합니다.
  *
  * @param sharedText `Intent.EXTRA_TEXT`로 전달된 공유 본문
  * @return URL 개수와 유효성에 따른 [SharedUrlParseResult]
@@ -17,9 +19,9 @@ fun parseSharedUrl(sharedText: String?): SharedUrlParseResult {
         return SharedUrlParseResult.EmptyText
     }
 
-    val urls = SHARED_WEB_URL_REGEX.findAll(normalizedText)
-        .map { matchResult -> trimTrailingSentencePunctuation(matchResult.value) }
-        .filter(::isSupportedWebUrl)
+    val urls = extractWebUrls(normalizedText)
+        .map(::trimTrailingSentencePunctuation)
+        .filter { candidate -> validateUrlInput(candidate) == UrlValidationResult.Valid }
         .toList()
 
     return when {
@@ -43,11 +45,6 @@ sealed interface SharedUrlParseResult {
     /** 공유 본문에 URL이 두 개 이상 포함되어 저장 대상을 정할 수 없는 상태입니다. */
     data object MultipleUrls : SharedUrlParseResult
 }
-
-/** 공백과 인용 부호 전까지의 HTTP 또는 HTTPS URL 후보를 찾는 패턴입니다. */
-private val SHARED_WEB_URL_REGEX = Regex(
-    pattern = """(?i)https?://[^\s<>\"']+""",
-)
 
 /** 문장 끝의 구두점과 짝이 없는 닫는 괄호를 URL 후보에서 제거합니다. */
 private fun trimTrailingSentencePunctuation(candidate: String): String {
@@ -75,14 +72,5 @@ private fun trimUnmatchedClosingDelimiter(
     return normalized
 }
 
-/** URL 후보가 저장 가능한 HTTP 또는 HTTPS 절대 주소인지 확인합니다. */
-private fun isSupportedWebUrl(candidate: String): Boolean {
-    val uri = runCatching { URI(candidate) }.getOrNull() ?: return false
-    return uri.scheme?.lowercase() in SUPPORTED_WEB_SCHEMES && !uri.rawAuthority.isNullOrBlank()
-}
-
 /** 공유 문장에서 URL 뒤에 붙을 수 있는 일반적인 구두점입니다. */
 private val TRAILING_SENTENCE_PUNCTUATION = charArrayOf('.', ',', '!', '?', ';', ':', '。', '，')
-
-/** 외부 공유 링크에서 허용하는 웹 URL 스킴입니다. */
-private val SUPPORTED_WEB_SCHEMES = setOf("http", "https")
