@@ -11,12 +11,12 @@ plugins {
 }
 
 android {
-    namespace = "com.linku.linku.test.mypage"
+    namespace = "com.linku.test.mypage"
 
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "com.linku.linku.test.mypage"
+        applicationId = "com.linku.test.mypage"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = libs.versions.appVersionCode.get().toInt()
@@ -42,6 +42,9 @@ android {
     /*    kotlinOptions {
             jvmTarget = "11"
         }*/
+    buildFeatures {
+        compose = true
+    }
 }
 
 kotlin {
