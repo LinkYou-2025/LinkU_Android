@@ -2,6 +2,7 @@ package com.linku.data.api
 
 import android.util.Log
 import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
+import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
 import com.linku.data.preference.AuthPreference
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
@@ -22,6 +23,7 @@ class TokenAuthenticator @Inject constructor(
 
     companion object {
         private const val TAG = "TokenAuthenticator"
+        private const val MAX_REISSUE_ATTEMPTS = 3
         private val refreshMutex = Mutex()
     }
 
@@ -59,21 +61,33 @@ class TokenAuthenticator @Inject constructor(
                         return@withLock null
                     }
 
-                    val reissueResponse = authApi.reissue(
-                        ReissueRequestDTO(
-                            refreshToken = refreshToken,
-                            deviceId = deviceId
-                        )
-                    )
+                    var reissueResult: RefreshTokenResponseDTO? = null
+                    for (attempt in 1..MAX_REISSUE_ATTEMPTS) {
+                        try {
+                            val reissueResponse = authApi.reissue(
+                                ReissueRequestDTO(
+                                    refreshToken = refreshToken,
+                                    deviceId = deviceId
+                                )
+                            )
+                            if (reissueResponse.isSuccess) {
+                                reissueResult = reissueResponse.result
+                                break
+                            }
+                            Log.e(TAG, "[토큰 재발급 실패 $attempt/$MAX_REISSUE_ATTEMPTS] 서버 응답 실패")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "[토큰 재발급 실패 $attempt/$MAX_REISSUE_ATTEMPTS] ${e.message}")
+                        }
+                    }
 
-                    if (!reissueResponse.isSuccess) {
-                        Log.e(TAG, "[토큰 재발급 실패] 서버 응답 실패")
+                    if (reissueResult == null) {
+                        Log.e(TAG, "[토큰 재발급 최종 실패] ${MAX_REISSUE_ATTEMPTS}회 시도 후 로그아웃 처리")
                         authPreference.clear()
                         return@withLock null
                     }
 
-                    val newAccessToken = reissueResponse.result.accessToken
-                    val newRefreshToken = reissueResponse.result.refreshToken
+                    val newAccessToken = reissueResult.accessToken
+                    val newRefreshToken = reissueResult.refreshToken
 
 
                     authPreference.updateAccessToken(
