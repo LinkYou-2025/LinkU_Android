@@ -12,6 +12,7 @@ on:
 permissions:
   contents: read
 
+
 jobs:
   build-release-aab:
     runs-on: ubuntu-latest
@@ -23,9 +24,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      # version.properties에서 VERSION_CODE, VERSION_NAME을 읽어 이후 스텝에서 참조할 수 있도록 출력한다.
-      # 기존에는 workflow_dispatch input으로 version_code만 수동 입력받았으나,
-      # 파일 기반으로 자동화하고 version_name도 함께 관리하도록 변경하였다.
+      # VERSION_CODE, VERSION_NAME 모두 개발자가 version.properties에서 직접 관리한다.
       - name: Read version
         id: version
         run: |
