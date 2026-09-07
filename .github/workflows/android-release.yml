@@ -1,17 +1,17 @@
 name: Android Release AAB
 
-# This workflow does not query Play Console. Reusing version_code can recreate
-# artifacts with the same versionCode, so uniqueness remains the operator's responsibility.
+# main 브랜치 push 시 자동 실행되며, 필요 시 수동으로도 트리거 가능하다.
+# 기존에는 workflow_dispatch로 version_code를 직접 입력받았으나,
+# version.properties 파일에서 자동으로 읽어오도록 변경하였다.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
-    inputs:
-      version_code:
-        description: "현재 Play Console의 최대값보다 큰, 아직 사용하지 않은 versionCode를 입력하세요."
-        required: true
-        type: string
 
 permissions:
   contents: read
+
 
 jobs:
   build-release-aab:
@@ -23,6 +23,19 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      # VERSION_CODE, VERSION_NAME 모두 개발자가 version.properties에서 직접 관리한다.
+      - name: Read version
+        id: version
+        run: |
+          VERSION_CODE=$(grep '^VERSION_CODE=' version.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          VERSION_NAME=$(grep '^VERSION_NAME=' version.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          if [[ -z "$VERSION_CODE" || -z "$VERSION_NAME" ]]; then
+            echo "::error::version.properties에서 VERSION_CODE/VERSION_NAME을 읽지 못했습니다."
+            exit 1
+          fi
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -86,10 +99,11 @@ jobs:
           LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
           LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
           LINKU_API_VERSION: ${{ secrets.LINKU_API_VERSION }}
-          LINKU_RELEASE_VERSION_CODE: ${{ inputs.version_code }}
+        # version_code, version_name 모두 Read version 스텝 출력값을 사용한다.
         run: >-
           ./gradlew :app:bundleRelease
-          "-PlinkuVersionCode=${LINKU_RELEASE_VERSION_CODE}"
+          "-PlinkuVersionCode=${{ steps.version.outputs.version_code }}"
+          "-PlinkuVersionName=${{ steps.version.outputs.version_name }}"
           --console=plain
 
       - name: Restore upload keystore
@@ -149,16 +163,17 @@ jobs:
           LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
         run: rm -f -- "$LINKU_UPLOAD_KEYSTORE_PATH"
 
+      # 아티팩트 이름에 version_name을 추가하여 Play Store 제출 시 버전을 쉽게 식별할 수 있도록 한다.
       - name: Upload signed release AAB
         uses: actions/upload-artifact@v7
         with:
-          name: linku-signed-release-vc-${{ inputs.version_code }}
+          name: linku-signed-release-vc-${{ steps.version.outputs.version_code }}-vn-${{ steps.version.outputs.version_name }}
           path: ${{ env.LINKU_SIGNED_AAB_PATH }}
           if-no-files-found: error
 
       - name: Upload R8 mapping
         uses: actions/upload-artifact@v7
         with:
-          name: linku-mapping-vc-${{ inputs.version_code }}
+          name: linku-mapping-vc-${{ steps.version.outputs.version_code }}-vn-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error

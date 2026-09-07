@@ -23,6 +23,8 @@ val linkuVersionCodePropertyName = "linkuVersionCode"
 val linkuVersionCodeUsage = "-PlinkuVersionCode=<positive-base-10-integer>"
 val maxGooglePlayVersionCode = 2_100_000_000L
 
+val linkuVersionNamePropertyName = "linkuVersionName"
+
 /**
  * Validates the release-only versionCode contract without exposing the supplied value.
  */
@@ -73,6 +75,18 @@ val releaseVersionCodeProvider = providers.gradleProperty(linkuVersionCodeProper
             throw GradleException(
                 "Required Gradle property '$linkuVersionCodePropertyName' is missing for release builds. " +
                     "Use $linkuVersionCodeUsage (for example, -PlinkuVersionCode=28)."
+            )
+        }
+    )
+
+val releaseVersionNameProvider = providers.gradleProperty(linkuVersionNamePropertyName)
+    .map(String::trim)
+    .filter(String::isNotEmpty)
+    .orElse(
+        providers.provider {
+            throw GradleException(
+                "Required Gradle property '$linkuVersionNamePropertyName' is missing for release builds. " +
+                    "Use -PlinkuVersionName=<version-name> (for example, -PlinkuVersionName=1.2.0)."
             )
         }
     )
@@ -236,6 +250,7 @@ subprojects {
             onVariants(selector().withBuildType("release")) { variant ->
                 variant.outputs.forEach { output ->
                     output.versionCode.set(releaseVersionCodeProvider)
+                    output.versionName.set(releaseVersionNameProvider)
                 }
             }
         }
