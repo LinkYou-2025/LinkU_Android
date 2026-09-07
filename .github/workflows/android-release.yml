@@ -28,8 +28,12 @@ jobs:
       - name: Read version
         id: version
         run: |
-          VERSION_CODE=$(grep VERSION_CODE version.properties | cut -d'=' -f2)
-          VERSION_NAME=$(grep VERSION_NAME version.properties | cut -d'=' -f2)
+          VERSION_CODE=$(grep '^VERSION_CODE=' version.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          VERSION_NAME=$(grep '^VERSION_NAME=' version.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          if [[ -z "$VERSION_CODE" || -z "$VERSION_NAME" ]]; then
+            echo "::error::version.properties에서 VERSION_CODE/VERSION_NAME을 읽지 못했습니다."
+            exit 1
+          fi
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
 
