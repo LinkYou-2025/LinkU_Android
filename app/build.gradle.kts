@@ -60,6 +60,7 @@ android {
             storePassword = keystoreProperties.getProperty("storePassword")
             keyAlias = keystoreProperties.getProperty("keyAlias")
             keyPassword = keystoreProperties.getProperty("keyPassword")
+            keystoreProperties.getProperty("storeType")?.let { storeType = it }
         }
     }
 

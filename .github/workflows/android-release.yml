@@ -17,8 +17,7 @@ jobs:
   build-release-aab:
     runs-on: ubuntu-latest
     env:
-      LINKU_UNSIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release.aab
-      LINKU_SIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release-signed.aab
+      LINKU_SIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release.aab
 
     steps:
       - name: Check out repository
@@ -91,21 +90,6 @@ jobs:
           printf '%s' "$LINKU_GOOGLE_SERVICES_JSON_BASE64" \
             | base64 --decode > app/google-services.json
 
-      - name: Build release AAB
-        shell: bash
-        env:
-          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.LINKU_KAKAO_NATIVE_APP_KEY }}
-          LINKU_GOOGLE_WEB_CLIENT_ID: ${{ secrets.LINKU_GOOGLE_WEB_CLIENT_ID }}
-          LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
-          LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
-          LINKU_API_VERSION: ${{ secrets.LINKU_API_VERSION }}
-        # version_code, version_name 모두 Read version 스텝 출력값을 사용한다.
-        run: >-
-          ./gradlew :app:bundleRelease
-          "-PlinkuVersionCode=${{ steps.version.outputs.version_code }}"
-          "-PlinkuVersionName=${{ steps.version.outputs.version_name }}"
-          --console=plain
-
       - name: Restore upload keystore
         shell: bash
         env:
@@ -116,7 +100,9 @@ jobs:
           printf '%s' "$LINKU_UPLOAD_KEYSTORE_BASE64" \
             | base64 --decode > "$LINKU_UPLOAD_KEYSTORE_PATH"
 
-      - name: Sign release AAB
+      # Gradle이 bundleRelease 실행 중 바로 서명하도록, CI 전용 key.properties를 생성한다.
+      # 로컬 개발용 key.properties(gitignore)와 동일한 형식을 CI에서 임시로 재현한다.
+      - name: Write release signing configuration
         shell: bash
         env:
           LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
@@ -125,17 +111,30 @@ jobs:
           LINKU_UPLOAD_KEY_ALIAS: ${{ secrets.LINKU_UPLOAD_KEY_ALIAS }}
           LINKU_UPLOAD_KEY_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEY_PASSWORD }}
         run: |
-          if ! jarsigner \
-            -keystore "$LINKU_UPLOAD_KEYSTORE_PATH" \
-            -storetype "$LINKU_UPLOAD_KEYSTORE_TYPE" \
-            -storepass:env LINKU_UPLOAD_KEYSTORE_PASSWORD \
-            -keypass:env LINKU_UPLOAD_KEY_PASSWORD \
-            -signedjar "$LINKU_SIGNED_AAB_PATH" \
-            "$LINKU_UNSIGNED_AAB_PATH" \
-            "$LINKU_UPLOAD_KEY_ALIAS" > /dev/null 2>&1; then
-            echo "::error::Failed to sign release AAB with the configured upload key."
-            exit 1
-          fi
+          umask 077
+          {
+            echo "storeFile=$LINKU_UPLOAD_KEYSTORE_PATH"
+            echo "storeType=$LINKU_UPLOAD_KEYSTORE_TYPE"
+            echo "storePassword=$LINKU_UPLOAD_KEYSTORE_PASSWORD"
+            echo "keyAlias=$LINKU_UPLOAD_KEY_ALIAS"
+            echo "keyPassword=$LINKU_UPLOAD_KEY_PASSWORD"
+          } > key.properties
+
+      - name: Build release AAB
+        shell: bash
+        env:
+          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.LINKU_KAKAO_NATIVE_APP_KEY }}
+          LINKU_GOOGLE_WEB_CLIENT_ID: ${{ secrets.LINKU_GOOGLE_WEB_CLIENT_ID }}
+          LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
+          LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
+          LINKU_API_VERSION: ${{ secrets.LINKU_API_VERSION }}
+        # version_code, version_name 모두 Read version 스텝 출력값을 사용한다.
+        # key.properties가 존재하므로 bundleRelease가 서명까지 완료한 AAB를 만든다.
+        run: >-
+          ./gradlew :app:bundleRelease
+          "-PlinkuVersionCode=${{ steps.version.outputs.version_code }}"
+          "-PlinkuVersionName=${{ steps.version.outputs.version_name }}"
+          --console=plain
 
       - name: Verify signed release AAB
         shell: bash
@@ -156,12 +155,12 @@ jobs:
           fi
           echo "Signed release AAB verification passed."
 
-      - name: Remove upload keystore
+      - name: Remove upload keystore and signing configuration
         if: always()
         shell: bash
         env:
           LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
-        run: rm -f -- "$LINKU_UPLOAD_KEYSTORE_PATH"
+        run: rm -f -- "$LINKU_UPLOAD_KEYSTORE_PATH" key.properties
 
       # 아티팩트 이름에 version_name을 추가하여 Play Store 제출 시 버전을 쉽게 식별할 수 있도록 한다.
       - name: Upload signed release AAB
