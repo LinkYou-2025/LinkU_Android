@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 
 jobs:
@@ -22,6 +22,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          # release-vc-* 태그 목록을 전부 봐야 버전 역행 검사가 가능하므로 전체 히스토리를 받는다.
+          fetch-depth: 0
 
       # VERSION_CODE, VERSION_NAME 모두 개발자가 version.properties에서 직접 관리한다.
       - name: Read version
@@ -35,6 +38,25 @@ jobs:
           fi
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      # 이 저장소에서 실제로 서명까지 성공한 마지막 빌드(release-vc-* 태그) 대비
+      # VERSION_CODE가 반드시 더 커야만 다음 단계로 진행한다. Play Console의 실제 값과는
+      # 별개로, "우리가 이미 내보낸 빌드보다 낮거나 같은 버전으로 다시 빌드되는 것"을 막는다.
+      - name: Validate version code strictly increased
+        shell: bash
+        run: |
+          CURRENT_VC=${{ steps.version.outputs.version_code }}
+          LAST_VC=$(git tag --list 'release-vc-*' \
+            | sed -nE 's/^release-vc-([0-9]+)$/\1/p' \
+            | sort -n | tail -1)
+
+          if [[ -n "$LAST_VC" ]]; then
+            if (( CURRENT_VC <= LAST_VC )); then
+              echo "::error::VERSION_CODE($CURRENT_VC)가 이 저장소에서 마지막으로 서명 성공한 VERSION_CODE($LAST_VC)보다 크지 않습니다. version.properties의 VERSION_CODE를 올려주세요."
+              exit 1
+            fi
+          fi
+          echo "버전 코드 검증 통과: $CURRENT_VC > ${LAST_VC:-(이전 기록 없음)}"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -82,13 +104,16 @@ jobs:
             fi
           done
 
+      # release variant 전용 위치에 둬야 google-services 플러그인이 이 파일을 쓴다.
+      # (app/src/debug/google-services.json은 각 개발자가 로컬에 dev 프로젝트용으로 따로 둠)
       - name: Restore Google Services configuration
         shell: bash
         env:
           LINKU_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.LINKU_GOOGLE_SERVICES_JSON_BASE64 }}
         run: |
+          mkdir -p app/src/release
           printf '%s' "$LINKU_GOOGLE_SERVICES_JSON_BASE64" \
-            | base64 --decode > app/google-services.json
+            | base64 --decode > app/src/release/google-services.json
 
       - name: Restore upload keystore
         shell: bash
@@ -176,3 +201,13 @@ jobs:
           name: linku-mapping-vc-${{ steps.version.outputs.version_code }}-vn-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
+
+      # 다음 실행의 "Validate version code strictly increased" 스텝이 참조할 이력을 남긴다.
+      - name: Tag successful release build
+        shell: bash
+        run: |
+          TAG_NAME="release-vc-${{ steps.version.outputs.version_code }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Signed release build vc=${{ steps.version.outputs.version_code }} vn=${{ steps.version.outputs.version_name }}"
+          git push origin "$TAG_NAME"
