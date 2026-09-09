@@ -21,7 +21,8 @@ val linkuBuildConfigString =
     rootProject.extra["linkuBuildConfigString"] as
         (Provider<String>) -> Provider<BuildConfigField<String>>
 
-val googleWebClientIdProvider = linkuConfigProviders.getValue("GOOGLE_WEB_CLIENT_ID")
+val releaseGoogleWebClientIdProvider = linkuConfigProviders.getValue("GOOGLE_WEB_CLIENT_ID")
+val debugGoogleWebClientIdProvider = linkuConfigProviders.getValue("DEV_GOOGLE_WEB_CLIENT_ID")
 
 android {
     namespace = "com.linku.login"
@@ -60,6 +61,11 @@ android {
 
 androidComponents {
     onVariants { variant ->
+        val googleWebClientIdProvider = if (variant.buildType == "debug") {
+            debugGoogleWebClientIdProvider
+        } else {
+            releaseGoogleWebClientIdProvider
+        }
         variant.buildConfigFields?.put(
             "GOOGLE_WEB_CLIENT_ID",
             linkuBuildConfigString(googleWebClientIdProvider)

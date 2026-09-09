@@ -10,19 +10,21 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 
 jobs:
   build-release-aab:
     runs-on: ubuntu-latest
     env:
-      LINKU_UNSIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release.aab
-      LINKU_SIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release-signed.aab
+      LINKU_SIGNED_AAB_PATH: app/build/outputs/bundle/release/app-release.aab
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+        with:
+          # release-vc-* 태그 목록을 전부 봐야 버전 역행 검사가 가능하므로 전체 히스토리를 받는다.
+          fetch-depth: 0
 
       # VERSION_CODE, VERSION_NAME 모두 개발자가 version.properties에서 직접 관리한다.
       - name: Read version
@@ -36,6 +38,25 @@ jobs:
           fi
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      # 이 저장소에서 실제로 서명까지 성공한 마지막 빌드(release-vc-* 태그) 대비
+      # VERSION_CODE가 반드시 더 커야만 다음 단계로 진행한다. Play Console의 실제 값과는
+      # 별개로, "우리가 이미 내보낸 빌드보다 낮거나 같은 버전으로 다시 빌드되는 것"을 막는다.
+      - name: Validate version code strictly increased
+        shell: bash
+        run: |
+          CURRENT_VC=${{ steps.version.outputs.version_code }}
+          LAST_VC=$(git tag --list 'release-vc-*' \
+            | sed -nE 's/^release-vc-([0-9]+)$/\1/p' \
+            | sort -n | tail -1)
+
+          if [[ -n "$LAST_VC" ]]; then
+            if (( CURRENT_VC <= LAST_VC )); then
+              echo "::error::VERSION_CODE($CURRENT_VC)가 이 저장소에서 마지막으로 서명 성공한 VERSION_CODE($LAST_VC)보다 크지 않습니다. version.properties의 VERSION_CODE를 올려주세요."
+              exit 1
+            fi
+          fi
+          echo "버전 코드 검증 통과: $CURRENT_VC > ${LAST_VC:-(이전 기록 없음)}"
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -83,28 +104,16 @@ jobs:
             fi
           done
 
+      # release variant 전용 위치에 둬야 google-services 플러그인이 이 파일을 쓴다.
+      # (app/src/debug/google-services.json은 각 개발자가 로컬에 dev 프로젝트용으로 따로 둠)
       - name: Restore Google Services configuration
         shell: bash
         env:
           LINKU_GOOGLE_SERVICES_JSON_BASE64: ${{ secrets.LINKU_GOOGLE_SERVICES_JSON_BASE64 }}
         run: |
+          mkdir -p app/src/release
           printf '%s' "$LINKU_GOOGLE_SERVICES_JSON_BASE64" \
-            | base64 --decode > app/google-services.json
-
-      - name: Build release AAB
-        shell: bash
-        env:
-          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.LINKU_KAKAO_NATIVE_APP_KEY }}
-          LINKU_GOOGLE_WEB_CLIENT_ID: ${{ secrets.LINKU_GOOGLE_WEB_CLIENT_ID }}
-          LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
-          LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
-          LINKU_API_VERSION: ${{ secrets.LINKU_API_VERSION }}
-        # version_code, version_name 모두 Read version 스텝 출력값을 사용한다.
-        run: >-
-          ./gradlew :app:bundleRelease
-          "-PlinkuVersionCode=${{ steps.version.outputs.version_code }}"
-          "-PlinkuVersionName=${{ steps.version.outputs.version_name }}"
-          --console=plain
+            | base64 --decode > app/src/release/google-services.json
 
       - name: Restore upload keystore
         shell: bash
@@ -116,7 +125,9 @@ jobs:
           printf '%s' "$LINKU_UPLOAD_KEYSTORE_BASE64" \
             | base64 --decode > "$LINKU_UPLOAD_KEYSTORE_PATH"
 
-      - name: Sign release AAB
+      # Gradle이 bundleRelease 실행 중 바로 서명하도록, CI 전용 key.properties를 생성한다.
+      # 로컬 개발용 key.properties(gitignore)와 동일한 형식을 CI에서 임시로 재현한다.
+      - name: Write release signing configuration
         shell: bash
         env:
           LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
@@ -125,17 +136,30 @@ jobs:
           LINKU_UPLOAD_KEY_ALIAS: ${{ secrets.LINKU_UPLOAD_KEY_ALIAS }}
           LINKU_UPLOAD_KEY_PASSWORD: ${{ secrets.LINKU_UPLOAD_KEY_PASSWORD }}
         run: |
-          if ! jarsigner \
-            -keystore "$LINKU_UPLOAD_KEYSTORE_PATH" \
-            -storetype "$LINKU_UPLOAD_KEYSTORE_TYPE" \
-            -storepass:env LINKU_UPLOAD_KEYSTORE_PASSWORD \
-            -keypass:env LINKU_UPLOAD_KEY_PASSWORD \
-            -signedjar "$LINKU_SIGNED_AAB_PATH" \
-            "$LINKU_UNSIGNED_AAB_PATH" \
-            "$LINKU_UPLOAD_KEY_ALIAS" > /dev/null 2>&1; then
-            echo "::error::Failed to sign release AAB with the configured upload key."
-            exit 1
-          fi
+          umask 077
+          {
+            echo "storeFile=$LINKU_UPLOAD_KEYSTORE_PATH"
+            echo "storeType=$LINKU_UPLOAD_KEYSTORE_TYPE"
+            echo "storePassword=$LINKU_UPLOAD_KEYSTORE_PASSWORD"
+            echo "keyAlias=$LINKU_UPLOAD_KEY_ALIAS"
+            echo "keyPassword=$LINKU_UPLOAD_KEY_PASSWORD"
+          } > key.properties
+
+      - name: Build release AAB
+        shell: bash
+        env:
+          LINKU_KAKAO_NATIVE_APP_KEY: ${{ secrets.LINKU_KAKAO_NATIVE_APP_KEY }}
+          LINKU_GOOGLE_WEB_CLIENT_ID: ${{ secrets.LINKU_GOOGLE_WEB_CLIENT_ID }}
+          LINKU_SERVER_DOMAIN: ${{ secrets.LINKU_SERVER_DOMAIN }}
+          LINKU_SERVER_HOST: ${{ secrets.LINKU_SERVER_HOST }}
+          LINKU_API_VERSION: ${{ secrets.LINKU_API_VERSION }}
+        # version_code, version_name 모두 Read version 스텝 출력값을 사용한다.
+        # key.properties가 존재하므로 bundleRelease가 서명까지 완료한 AAB를 만든다.
+        run: >-
+          ./gradlew :app:bundleRelease
+          "-PlinkuVersionCode=${{ steps.version.outputs.version_code }}"
+          "-PlinkuVersionName=${{ steps.version.outputs.version_name }}"
+          --console=plain
 
       - name: Verify signed release AAB
         shell: bash
@@ -156,12 +180,12 @@ jobs:
           fi
           echo "Signed release AAB verification passed."
 
-      - name: Remove upload keystore
+      - name: Remove upload keystore and signing configuration
         if: always()
         shell: bash
         env:
           LINKU_UPLOAD_KEYSTORE_PATH: ${{ runner.temp }}/linku-upload-keystore
-        run: rm -f -- "$LINKU_UPLOAD_KEYSTORE_PATH"
+        run: rm -f -- "$LINKU_UPLOAD_KEYSTORE_PATH" key.properties
 
       # 아티팩트 이름에 version_name을 추가하여 Play Store 제출 시 버전을 쉽게 식별할 수 있도록 한다.
       - name: Upload signed release AAB
@@ -177,3 +201,13 @@ jobs:
           name: linku-mapping-vc-${{ steps.version.outputs.version_code }}-vn-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
+
+      # 다음 실행의 "Validate version code strictly increased" 스텝이 참조할 이력을 남긴다.
+      - name: Tag successful release build
+        shell: bash
+        run: |
+          TAG_NAME="release-vc-${{ steps.version.outputs.version_code }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Signed release build vc=${{ steps.version.outputs.version_code }} vn=${{ steps.version.outputs.version_name }}"
+          git push origin "$TAG_NAME"

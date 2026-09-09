@@ -20,8 +20,17 @@ val linkuBuildConfigString =
     rootProject.extra["linkuBuildConfigString"] as
         (Provider<String>) -> Provider<BuildConfigField<String>>
 
-val serverBaseUrlProvider =
+// release(로컬/CI 공통)는 SERVER_DOMAIN을, debug는 DEV_SERVER_DOMAIN을 쓴다.
+// 둘 다 local.properties(각자 로컬) 또는 CI 시크릿에서 읽어오며, 값 자체를 Gradle에 하드코딩하지 않는다.
+val releaseServerBaseUrlProvider =
     linkuConfigProviders.getValue("SERVER_DOMAIN").flatMap { serverDomain ->
+        linkuConfigProviders.getValue("API_VERSION").map { apiVersion ->
+            "$serverDomain/$apiVersion/"
+        }
+    }
+
+val debugServerBaseUrlProvider =
+    linkuConfigProviders.getValue("DEV_SERVER_DOMAIN").flatMap { serverDomain ->
         linkuConfigProviders.getValue("API_VERSION").map { apiVersion ->
             "$serverDomain/$apiVersion/"
         }
@@ -63,9 +72,14 @@ android {
 
 androidComponents {
     onVariants { variant ->
+        val baseUrlProvider = if (variant.buildType == "debug") {
+            debugServerBaseUrlProvider
+        } else {
+            releaseServerBaseUrlProvider
+        }
         variant.buildConfigFields?.put(
             "SERVER_BASE_URL",
-            linkuBuildConfigString(serverBaseUrlProvider)
+            linkuBuildConfigString(baseUrlProvider)
         )
     }
 }

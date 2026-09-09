@@ -93,8 +93,17 @@ val releaseVersionNameProvider = providers.gradleProperty(linkuVersionNameProper
 
 val localPropertyEnvironmentNames = mapOf(
     "KAKAO_NATIVE_APP_KEY" to "LINKU_KAKAO_NATIVE_APP_KEY",
+    // debug 빌드 전용 카카오 네이티브 앱 키. 카카오 개발자 콘솔의 dev/운영 앱을 분리할 경우를 대비해
+    // release(KAKAO_NATIVE_APP_KEY)와 분리해서 관리한다.
+    "DEV_KAKAO_NATIVE_APP_KEY" to "LINKU_DEV_KAKAO_NATIVE_APP_KEY",
     "GOOGLE_WEB_CLIENT_ID" to "LINKU_GOOGLE_WEB_CLIENT_ID",
+    // debug 빌드 전용 웹 클라이언트 ID. app/src/debug/google-services.json(dev Firebase 프로젝트)의
+    // oauth_client와 짝이 맞아야 하므로 release(GOOGLE_WEB_CLIENT_ID)와 반드시 분리해서 관리한다.
+    "DEV_GOOGLE_WEB_CLIENT_ID" to "LINKU_DEV_GOOGLE_WEB_CLIENT_ID",
     "SERVER_DOMAIN" to "LINKU_SERVER_DOMAIN",
+    // debug 빌드 전용 서버 주소. release(SERVER_DOMAIN)와 분리해서, 로컬 개발 중엔 이 값만
+    // local.properties에서 바꾸면 되고 CI의 release 빌드에는 영향이 없다.
+    "DEV_SERVER_DOMAIN" to "LINKU_DEV_SERVER_DOMAIN",
     "SERVER_HOST" to "LINKU_SERVER_HOST",
     "API_VERSION" to "LINKU_API_VERSION",
 )
@@ -220,6 +229,7 @@ val linkuConfigProviders = localPropertyEnvironmentNames.mapValues { (propertyNa
         .let { provider ->
             when (propertyName) {
                 "SERVER_DOMAIN" -> provider.map(::validateServerDomain)
+                "DEV_SERVER_DOMAIN" -> provider.map(::validateServerDomain)
                 "SERVER_HOST" -> provider.map(::validateServerHost)
                 "API_VERSION" -> provider.map(::validateApiVersion)
                 else -> provider
