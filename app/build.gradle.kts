@@ -64,11 +64,18 @@ android {
             keyPassword = keystoreProperties.getProperty("keyPassword")
             keystoreProperties.getProperty("storeType")?.let { storeType = it }
         }
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {
         debug {
             versionNameSuffix = "-debug"
+            signingConfig = signingConfigs.getByName("debug")
         }
 
         release {

@@ -210,6 +210,20 @@ Windows 사용자 환경 변수와 외부 백업 파일도 암호화된 비밀 �
 환경 변수 등록 후에는 Android Studio와 JetBrains Toolbox를 모두 완전히 종료한 뒤 다시 실행해야
 새 프로세스가 Windows User 환경 변수를 상속합니다.
 
+### 팀 공용 디버그 키스토어
+
+기본값인 사용자별 `~/.android/debug.keystore`를 쓰면 팀원마다 SHA-1이 달라져 Kakao/Naver/Google
+로그인처럼 SHA-1을 등록해야 하는 기능이 로컬 환경에 따라 실패할 수 있습니다. 이를 막기 위해
+저장소 루트의 `debug.keystore`(커밋됨, 비밀번호는 표준 디버그 키와 동일하게 `android`)를
+`debug` 빌드타입 서명에 고정해서 모든 팀원이 동일한 SHA-1을 사용하도록 했습니다.
+
+- Store: `debug.keystore` (저장소 루트)
+- Alias / storePassword / keyPassword: `androiddebugkey` / `android` / `android`
+
+SHA-1은 Kakao/Naver/Firebase 콘솔에 이미 등록되어 있어 별도 등록 작업은 필요 없습니다.
+`app/build.gradle.kts`가 이 파일을 자동으로 참조하므로, 팀원은 저장소를 pull 받기만 하면
+동일한 서명의 디버그 빌드로 소셜 로그인을 테스트할 수 있습니다.
+
 ## CI 릴리스 AAB 생성 및 서명
 
 `Android Release AAB` workflow는 `main` 브랜치 push 시 자동 실행되며, `workflow_dispatch`로 다른
