@@ -195,7 +195,9 @@
 | `SERVER_DOMAIN` | `LINKU_SERVER_DOMAIN` |
 | `DEV_SERVER_DOMAIN` | `LINKU_DEV_SERVER_DOMAIN` |
 | `SERVER_HOST` | `LINKU_SERVER_HOST` |
+| `DEV_SERVER_HOST` | `LINKU_DEV_SERVER_HOST` |
 | `API_VERSION` | `LINKU_API_VERSION` |
+| `DEV_API_VERSION` | `LINKU_DEV_API_VERSION` |
 
 우선순위는 파일 전체가 아니라 각 키를 기준으로 합니다. `local.properties`에 특정 앱 설정이 없거나
 공백이면 표에 매핑된 `LINKU_` 환경 변수를 사용합니다. `sdk.dir`은 Android Studio가 관리하는 파일에

@@ -33,7 +33,8 @@ val releaseKakaoNativeAppKeyProvider = linkuConfigProviders.getValue("KAKAO_NATI
 val debugKakaoNativeAppKeyProvider = linkuConfigProviders.getValue("DEV_KAKAO_NATIVE_APP_KEY")
 val releaseServerDomainProvider = linkuConfigProviders.getValue("SERVER_DOMAIN")
 val debugServerDomainProvider = linkuConfigProviders.getValue("DEV_SERVER_DOMAIN")
-val serverHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
+val releaseServerHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
+val debugServerHostProvider = linkuConfigProviders.getValue("DEV_SERVER_HOST")
 
 val keystoreProperties = Properties().apply {
     val file = rootProject.file("key.properties")
@@ -109,6 +110,11 @@ androidComponents {
             debugServerDomainProvider
         } else {
             releaseServerDomainProvider
+        }
+        val serverHostProvider = if (variant.buildType == "debug") {
+            debugServerHostProvider
+        } else {
+            releaseServerHostProvider
         }
         variant.buildConfigFields?.put(
             "SERVER_DOMAIN",

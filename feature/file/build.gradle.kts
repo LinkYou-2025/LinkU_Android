@@ -21,7 +21,8 @@ val linkuBuildConfigString =
     rootProject.extra["linkuBuildConfigString"] as
         (Provider<String>) -> Provider<BuildConfigField<String>>
 
-val serverHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
+val releaseServerHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
+val debugServerHostProvider = linkuConfigProviders.getValue("DEV_SERVER_HOST")
 
 android {
     namespace = "com.linku.file"
@@ -59,6 +60,11 @@ android {
 
 androidComponents {
     onVariants { variant ->
+        val serverHostProvider = if (variant.buildType == "debug") {
+            debugServerHostProvider
+        } else {
+            releaseServerHostProvider
+        }
         variant.buildConfigFields?.put(
             "SERVER_HOST",
             linkuBuildConfigString(serverHostProvider)
