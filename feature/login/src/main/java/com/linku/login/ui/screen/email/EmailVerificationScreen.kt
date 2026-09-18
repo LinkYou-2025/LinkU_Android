@@ -3,6 +3,7 @@ package com.linku.login.ui.screen.email
 import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.linku.core.model.auth.LoginType
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.modal.ModalWindow
 import com.linku.design.modifier.noRippleClickable
@@ -55,6 +59,7 @@ import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors
 import com.linku.design.theme.linkuFont
 import com.linku.design.util.scaler
+import com.linku.login.R
 import com.linku.login.ui.item.LoginTextField
 import com.linku.login.ui.item.StepIndicator
 import com.linku.login.ui.item.WrongRuleItem
@@ -70,6 +75,7 @@ import java.util.Locale
 internal fun EmailVerificationScreen(
     onBackClick: () -> Unit,
     onNavigateToPassword: () -> Unit,
+    onNavigateToLogin: () -> Unit,
     viewModel: EmailAuthViewModel = hiltViewModel(),
     signUpViewModel: SignUpViewModel
 ) {
@@ -95,6 +101,10 @@ internal fun EmailVerificationScreen(
                 is EmailUiEffect.NavigateToPassword -> {
                     signUpViewModel.updateForm { it.copy(email = effect.verifiedEmail) }
                     onNavigateToPassword()
+                }
+
+                is EmailUiEffect.NavigateToLogin -> {
+                    onNavigateToLogin()
                 }
             }
         }
@@ -325,6 +335,48 @@ internal fun EmailVerificationScreenContent(
                 textAlign = TextAlign.Center
             )
         }
+
+        // 이미 소셜 로그인으로 가입된 이메일로 인증 코드를 요청한 경우 안내하는 alert.
+        // 확인 시 LoginScreen(소셜 로그인)으로 돌아가야 하므로 codeError/emailError 인라인 문구와는
+        // 별개의 케이스로 분리해서 처리함. 서버가 가입 시 사용한 제공자(카카오/구글)를 함께 내려주므로
+        // 해당 제공자 아이콘/문구를 그대로 보여줌.
+        val socialProvider = emailUiState.socialAlertProvider
+        val socialProviderName = when (socialProvider) {
+            LoginType.KAKAO -> "카카오"
+            LoginType.GOOGLE -> "Google"
+            else -> "소셜"
+        }
+        val socialProviderIcon = when (socialProvider) {
+            LoginType.KAKAO -> R.drawable.icon_login_kakao
+            LoginType.GOOGLE -> R.drawable.icon_login_google
+            else -> null
+        }
+        ModalWindow(
+            visible = socialProvider != null,
+            onDismiss = { onEmailEvent(EmailUiEvent.SocialAccountAlertConfirmed) },
+            onOkay = { onEmailEvent(EmailUiEvent.SocialAccountAlertConfirmed) },
+            positiveText = "$socialProviderName 로그인 하러가기",
+            title = "이미 $socialProviderName 계정으로 가입되어 있어요"
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                if (socialProviderIcon != null) {
+//                    Image(
+//                        painter = painterResource(socialProviderIcon),
+//                        contentDescription = null,
+//                        modifier = Modifier.size(32.scaler)
+//                    )
+                    Spacer(modifier = Modifier.height(10.scaler))
+                }
+                Text(
+                    text = "가입하실 때 사용한 $socialProviderName 로그인으로\n다시 로그인해주세요.",
+                    fontSize = 15.sp,
+                    lineHeight = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colorTheme.gray[600],
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -340,6 +392,36 @@ fun EmailVerificationScreen_TimerPreview() {
                 timer = 180
             ),
             timerProvider = { 180 },
+            onEmailEvent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "이미 가입된 이메일 - 카카오")
+@Composable
+fun EmailVerificationScreen_SocialAlertKakaoPreview() {
+    LinkuPreview {
+        EmailVerificationScreenContent(
+            emailUiState = EmailUiState(
+                email = "linku2025@gmail.com",
+                socialAlertProvider = LoginType.KAKAO
+            ),
+            timerProvider = { 0 },
+            onEmailEvent = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "이미 가입된 이메일 - 구글")
+@Composable
+fun EmailVerificationScreen_SocialAlertGooglePreview() {
+    LinkuPreview {
+        EmailVerificationScreenContent(
+            emailUiState = EmailUiState(
+                email = "linku2025@gmail.com",
+                socialAlertProvider = LoginType.GOOGLE
+            ),
+            timerProvider = { 0 },
             onEmailEvent = {}
         )
     }

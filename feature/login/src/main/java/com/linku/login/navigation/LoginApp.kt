@@ -281,6 +281,12 @@ fun LoginApp(
                             launchSingleTop = true
                         }
                     },
+                    onNavigateToLogin = {
+                        // 이미 소셜 로그인으로 가입된 이메일 안내 후 소셜 로그인이 가능한
+                        // LoginScreen("login")으로 돌아감. "login"은 auth_graph의 시작
+                        // 목적지라 항상 백스택에 있으므로 popBackStack으로 되돌아갈 수 있음.
+                        navController.popBackStack("login", inclusive = false)
+                    },
                     viewModel = emailVm,
                     signUpViewModel = signUpVm
                 )
@@ -376,6 +382,12 @@ fun LoginApp(
                         navController.navigate("email_login") {
                             popUpTo("reset_password") { inclusive = true }
                         }
+                    },
+                    onNavigateToLogin = {
+                        // 이미 소셜 로그인으로 가입된 이메일 안내 후 소셜 로그인이 가능한
+                        // LoginScreen("login")으로 돌아감. "login"은 auth_graph의 시작
+                        // 목적지라 항상 백스택에 있으므로 popBackStack으로 되돌아갈 수 있음.
+                        navController.popBackStack("login", inclusive = false)
                     }
                 )
             }

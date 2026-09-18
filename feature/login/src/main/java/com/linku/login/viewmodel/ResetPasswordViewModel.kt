@@ -3,6 +3,7 @@ package com.linku.login.viewmodel
 import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.error.ApiError
 import com.linku.core.repository.AuthRepository
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
@@ -54,6 +55,17 @@ by mviContainer(ResetPasswordState()) {
                     updateState { copy(isLoading = false, showSuccessDialog = true) }
                 }
                 .onFailure { e ->
+                    // 이미 소셜 로그인으로 가입된 이메일은 발송 실패 문구 대신 별도의
+                    // alert로 소셜 로그인을 안내해야 하므로 먼저 분기함.
+                    if (e is ApiError.User.SocialAlreadyRegistered) {
+                        updateState { copy(isLoading = false, socialAlertProvider = e.provider) }
+                        return@onFailure
+                    }
+                    // 아예 가입되지 않은 이메일(404)도 발송 실패 문구 대신 회원가입 안내 alert로 분기함.
+                    if (e is ApiError.User.NotFound) {
+                        updateState { copy(isLoading = false, showNotRegisteredAlert = true) }
+                        return@onFailure
+                    }
                     updateState {
                         copy(
                             isLoading = false,
@@ -71,5 +83,23 @@ by mviContainer(ResetPasswordState()) {
     fun onSuccessDialogConfirmed() {
         updateState { copy(showSuccessDialog = false) }
         postSideEffect(ResetPasswordEffect.NavigateToEmailLogin)
+    }
+
+    /**
+     * 소셜 계정 안내 alert의 확인 버튼 클릭 시 호출
+     * 소셜 로그인이 가능한 LoginScreen으로 이동
+     */
+    fun onSocialAccountAlertConfirmed() {
+        updateState { copy(socialAlertProvider = null) }
+        postSideEffect(ResetPasswordEffect.NavigateToLogin)
+    }
+
+    /**
+     * 회원가입 안내 alert(가입되지 않은 이메일)의 확인 버튼 클릭 시 호출
+     * 소셜/이메일 로그인을 모두 선택할 수 있는 LoginScreen으로 이동
+     */
+    fun onNotRegisteredAlertConfirmed() {
+        updateState { copy(showNotRegisteredAlert = false) }
+        postSideEffect(ResetPasswordEffect.NavigateToLogin)
     }
 }
