@@ -197,11 +197,11 @@ sealed class ApiError(
         class DuplicateEmail(message: String) : User(message)
 
         /**
-         * USERS4093(구글)/USERS4094(카카오) - 이미 소셜 로그인으로 가입된 이메일
-         * (이메일 OTP 요청/비밀번호 재설정 시 발생). [provider]로 어느 소셜 로그인으로
+         * USERS4093(구글)/USERS4094(카카오)/USERS4095(카카오+구글 모두) - 이미 소셜 로그인으로 가입된 이메일
+         * (이메일 OTP 요청/비밀번호 재설정 시 발생). [providers]로 어느 소셜 로그인으로
          * 가입되었는지 구분해서 UI에서 해당 제공자 아이콘/안내 문구를 노출한다.
          */
-        class SocialAlreadyRegistered(message: String, val provider: LoginType) : User(message)
+        class SocialAlreadyRegistered(message: String, val providers: List<LoginType>) : User(message)
 
         /** USERS5001 - 인증 코드 전송 실패 */
         class SendMailFailed(message: String) : User(message)

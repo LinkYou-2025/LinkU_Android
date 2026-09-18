@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -70,7 +69,7 @@ fun ResetPasswordScreen(
     // 거의 안 보임 — 상태바도 edge-to-edge라 딤이 그 아래까지 비치기 때문(EdgeToEdgeSystemBars 참고).
     // 딤이 떠 있는 동안만 흰 아이콘으로 전환하고, 화면을 벗어나면 기본값(검정)으로 되돌림.
     val statusBarDarkIcons = LocalStatusBarDarkIcons.current
-    val isDimmed = ui.isLoading || ui.showSuccessDialog || ui.socialAlertProvider != null || ui.showNotRegisteredAlert
+    val isDimmed = ui.isLoading || ui.showSuccessDialog || ui.socialAlertProviders.isNotEmpty() || ui.showNotRegisteredAlert
     DisposableEffect(isDimmed) {
         statusBarDarkIcons.value = !isDimmed
         onDispose { statusBarDarkIcons.value = true }
@@ -219,43 +218,30 @@ fun ResetPasswordScreen(
 
         // 입력한 이메일이 이미 소셜 로그인으로 가입된 계정인 경우 안내하는 alert.
         // 성공 alert(PasswordResetAlert)와 달리 확인 시 소셜 로그인이 가능한 LoginScreen으로 이동해야 하므로 별개로 분리함.
-        // 서버가 가입 시 사용한 제공자(카카오/구글)를 함께 내려주므로 해당 제공자 아이콘/문구를 그대로 보여줌.
-        val socialProvider = ui.socialAlertProvider
-        val socialProviderName = when (socialProvider) {
-            LoginType.KAKAO -> "카카오"
-            LoginType.GOOGLE -> "Google"
-            else -> "소셜"
-        }
-        val socialProviderIcon = when (socialProvider) {
-            LoginType.KAKAO -> R.drawable.icon_login_kakao
-            LoginType.GOOGLE -> R.drawable.icon_login_google
-            else -> null
+        // 서버가 가입 시 사용한 제공자(카카오/구글, 둘 다 가입했으면 2개)를 함께 내려주므로 해당 제공자 문구를 그대로 보여줌.
+        val socialProviders = ui.socialAlertProviders
+        val socialProviderName = socialProviders.joinToString(" 또는 ") {
+            when (it) {
+                LoginType.KAKAO -> "카카오"
+                LoginType.GOOGLE -> "Google"
+                else -> "소셜"
+            }
         }
         ModalWindow(
-            visible = socialProvider != null,
+            visible = socialProviders.isNotEmpty(),
             onDismiss = { viewModel.onSocialAccountAlertConfirmed() },
             onOkay = { viewModel.onSocialAccountAlertConfirmed() },
-            positiveText = "$socialProviderName 로그인 하러가기",
+            positiveText = if (socialProviders.size == 1) "$socialProviderName 로그인 하러가기" else "로그인 하러가기",
             title = "이미 $socialProviderName 계정으로 가입되어 있어요"
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (socialProviderIcon != null) {
-//                    Image(
-//                        painter = painterResource(id = socialProviderIcon),
-//                        contentDescription = null,
-//                        modifier = Modifier.size(32.scaler)
-//                    )
-                    Spacer(modifier = Modifier.height(10.scaler))
-                }
-                Text(
-                    text = "가입하실 때 사용한 $socialProviderName 로그인으로\n다시 로그인해주세요.",
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight(400),
-                    color = colorTheme.gray[600],
-                    textAlign = TextAlign.Center
-                )
-            }
+            Text(
+                text = "가입하실 때 사용한 $socialProviderName 로그인으로\n다시 로그인해주세요.",
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight(400),
+                color = colorTheme.gray[600],
+                textAlign = TextAlign.Center
+            )
         }
 
         // 입력한 이메일이 아예 가입되지 않은 경우(404) 안내하는 alert.
@@ -309,43 +295,30 @@ private fun ResetPasswordScreenPreview() {
  * [ResetPasswordScreen]은 stateless Content로 분리되어 있지 않아 화면 전체 대신 alert(ModalWindow)만 미리 봄.
  */
 @Composable
-private fun ResetPasswordSocialAlertPreview(provider: LoginType) {
-    val providerName = when (provider) {
-        LoginType.KAKAO -> "카카오"
-        LoginType.GOOGLE -> "Google"
-        else -> "소셜"
-    }
-    val providerIcon = when (provider) {
-        LoginType.KAKAO -> R.drawable.icon_login_kakao
-        LoginType.GOOGLE -> R.drawable.icon_login_google
-        else -> null
+private fun ResetPasswordSocialAlertPreview(providers: List<LoginType>) {
+    val providerName = providers.joinToString(" 또는 ") {
+        when (it) {
+            LoginType.KAKAO -> "카카오"
+            LoginType.GOOGLE -> "Google"
+            else -> "소셜"
+        }
     }
     LinkuPreview {
         ModalWindow(
             visible = true,
             onDismiss = {},
             onOkay = {},
-            positiveText = "$providerName 로그인 하러가기",
+            positiveText = if (providers.size == 1) "$providerName 로그인 하러가기" else "로그인 하러가기",
             title = "이미 $providerName 계정으로 가입되어 있어요"
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                if (providerIcon != null) {
-                    Image(
-                        painter = painterResource(id = providerIcon),
-                        contentDescription = null,
-                        modifier = Modifier.size(32.scaler)
-                    )
-                    Spacer(modifier = Modifier.height(10.scaler))
-                }
-                Text(
-                    text = "가입하실 때 사용한 $providerName 로그인으로\n다시 로그인해주세요.",
-                    fontSize = 15.sp,
-                    lineHeight = 22.sp,
-                    fontWeight = FontWeight(400),
-                    color = MaterialTheme.linkuColors.gray[600],
-                    textAlign = TextAlign.Center
-                )
-            }
+            Text(
+                text = "가입하실 때 사용한 $providerName 로그인으로\n다시 로그인해주세요.",
+                fontSize = 15.sp,
+                lineHeight = 22.sp,
+                fontWeight = FontWeight(400),
+                color = MaterialTheme.linkuColors.gray[600],
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
@@ -353,13 +326,19 @@ private fun ResetPasswordSocialAlertPreview(provider: LoginType) {
 @Preview(showBackground = true, name = "이미 가입된 이메일 - 카카오")
 @Composable
 private fun ResetPasswordSocialAlertKakaoPreview() {
-    ResetPasswordSocialAlertPreview(LoginType.KAKAO)
+    ResetPasswordSocialAlertPreview(listOf(LoginType.KAKAO))
 }
 
 @Preview(showBackground = true, name = "이미 가입된 이메일 - 구글")
 @Composable
 private fun ResetPasswordSocialAlertGooglePreview() {
-    ResetPasswordSocialAlertPreview(LoginType.GOOGLE)
+    ResetPasswordSocialAlertPreview(listOf(LoginType.GOOGLE))
+}
+
+@Preview(showBackground = true, name = "이미 가입된 이메일 - 카카오+구글")
+@Composable
+private fun ResetPasswordSocialAlertBothPreview() {
+    ResetPasswordSocialAlertPreview(listOf(LoginType.KAKAO, LoginType.GOOGLE))
 }
 
 /** 비밀번호 재설정 시 가입되지 않은 이메일(404) 안내 alert 프리뷰. */

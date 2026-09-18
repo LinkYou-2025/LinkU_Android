@@ -11,8 +11,8 @@ import com.linku.login.mvi.UiState
  * @property isLoading API 요청 진행 중 여부 (버튼 비활성화 + 딤처리)
  * @property showSuccessDialog 메일 발송 성공 시 다이얼로그 표시 여부
  * @property error 서버 응답 실패 시 표시할 에러 메시지
- * @property socialAlertProvider 입력한 이메일이 이미 소셜 로그인으로 가입된 계정인 경우 해당 제공자(카카오/구글). null이면 alert를 노출하지 않음. (error와 별개의 케이스)
- * @property showNotRegisteredAlert 입력한 이메일이 아예 가입되지 않은 계정인 경우(404) true. 회원가입 안내 alert 노출용, socialAlertProvider와 별개의 케이스.
+ * @property socialAlertProviders 입력한 이메일이 이미 소셜 로그인으로 가입된 계정인 경우 해당 제공자 목록(카카오/구글, 둘 다 가입했으면 2개). 비어 있으면 alert를 노출하지 않음. (error와 별개의 케이스)
+ * @property showNotRegisteredAlert 입력한 이메일이 아예 가입되지 않은 계정인 경우(404) true. 회원가입 안내 alert 노출용, socialAlertProviders와 별개의 케이스.
  */
 internal data class ResetPasswordState(
     val email: String = "",
@@ -20,6 +20,6 @@ internal data class ResetPasswordState(
     val isLoading: Boolean = false,
     val showSuccessDialog: Boolean = false,
     val error: String? = null,
-    val socialAlertProvider: LoginType? = null,
+    val socialAlertProviders: List<LoginType> = emptyList(),
     val showNotRegisteredAlert: Boolean = false
 ) : UiState

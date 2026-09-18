@@ -39,7 +39,7 @@ internal class EmailAuthViewModel @Inject constructor(
     }
 
     private fun handleSocialAccountAlertConfirmed() {
-        updateState { copy(socialAlertProvider = null) }
+        updateState { copy(socialAlertProviders = emptyList()) }
         postSideEffect(EmailUiEffect.NavigateToLogin)
     }
 
@@ -130,7 +130,7 @@ internal class EmailAuthViewModel @Inject constructor(
                     // 소셜 로그인으로 이미 가입된 이메일은 인증 코드 발송 실패 문구 대신
                     // 별도의 alert로 소셜 로그인을 안내해야 하므로 여기서 먼저 분기함.
                     if (error is ApiError.User.SocialAlreadyRegistered) {
-                        updateState { copy(isLoading = false, socialAlertProvider = error.provider) }
+                        updateState { copy(isLoading = false, socialAlertProviders = error.providers) }
                         return@foldApp
                     }
 

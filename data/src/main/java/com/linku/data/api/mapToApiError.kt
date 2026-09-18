@@ -61,8 +61,9 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "USERS4042" -> ApiError.User.Inactive(message)
     "USERS4091" -> ApiError.User.DuplicateNickname(message)
     "USERS4092" -> ApiError.User.DuplicateEmail(message)
-    "USERS4093" -> ApiError.User.SocialAlreadyRegistered(message, LoginType.GOOGLE)
-    "USERS4094" -> ApiError.User.SocialAlreadyRegistered(message, LoginType.KAKAO)
+    "USERS4093" -> ApiError.User.SocialAlreadyRegistered(message, listOf(LoginType.GOOGLE))
+    "USERS4094" -> ApiError.User.SocialAlreadyRegistered(message, listOf(LoginType.KAKAO))
+    "USERS4095" -> ApiError.User.SocialAlreadyRegistered(message, listOf(LoginType.KAKAO, LoginType.GOOGLE))
     "USERS5001" -> ApiError.User.SendMailFailed(message)
     "TERMS4001" -> ApiError.Terms.InvalidTermsType(message)
 

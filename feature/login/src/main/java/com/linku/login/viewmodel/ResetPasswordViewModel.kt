@@ -58,7 +58,7 @@ by mviContainer(ResetPasswordState()) {
                     // 이미 소셜 로그인으로 가입된 이메일은 발송 실패 문구 대신 별도의
                     // alert로 소셜 로그인을 안내해야 하므로 먼저 분기함.
                     if (e is ApiError.User.SocialAlreadyRegistered) {
-                        updateState { copy(isLoading = false, socialAlertProvider = e.provider) }
+                        updateState { copy(isLoading = false, socialAlertProviders = e.providers) }
                         return@onFailure
                     }
                     // 아예 가입되지 않은 이메일(404)도 발송 실패 문구 대신 회원가입 안내 alert로 분기함.
@@ -90,7 +90,7 @@ by mviContainer(ResetPasswordState()) {
      * 소셜 로그인이 가능한 LoginScreen으로 이동
      */
     fun onSocialAccountAlertConfirmed() {
-        updateState { copy(socialAlertProvider = null) }
+        updateState { copy(socialAlertProviders = emptyList()) }
         postSideEffect(ResetPasswordEffect.NavigateToLogin)
     }
 
