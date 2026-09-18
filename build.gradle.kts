@@ -105,7 +105,9 @@ val localPropertyEnvironmentNames = mapOf(
     // local.properties에서 바꾸면 되고 CI의 release 빌드에는 영향이 없다.
     "DEV_SERVER_DOMAIN" to "LINKU_DEV_SERVER_DOMAIN",
     "SERVER_HOST" to "LINKU_SERVER_HOST",
+    "DEV_SERVER_HOST" to "LINKU_DEV_SERVER_HOST",
     "API_VERSION" to "LINKU_API_VERSION",
+    "DEV_API_VERSION" to "LINKU_DEV_API_VERSION",
 )
 
 val localPropertiesFile = rootProject.file("local.properties")
@@ -124,7 +126,7 @@ fun missingLinkuConfiguration(
     )
 }
 
-fun validateServerDomain(value: String): String {
+fun validateServerDomain(configurationName: String, value: String): String {
     val normalizedValue = value.trim().trimEnd('/')
     val uri = runCatching { URI(normalizedValue) }.getOrNull()
     val isValid = uri != null &&
@@ -138,7 +140,7 @@ fun validateServerDomain(value: String): String {
 
     if (!isValid) {
         throw GradleException(
-            "Invalid configuration 'SERVER_DOMAIN': expected an absolute HTTP(S) URL " +
+            "Invalid configuration '$configurationName': expected an absolute HTTP(S) URL " +
                 "with a host, an optional port from 1 to 65535, and without user info, " +
                 "query, or fragment."
         )
@@ -146,7 +148,7 @@ fun validateServerDomain(value: String): String {
     return normalizedValue
 }
 
-fun validateServerHost(value: String): String {
+fun validateServerHost(configurationName: String, value: String): String {
     val normalizedValue = value.trim()
     val uri = runCatching { URI("https://$normalizedValue") }.getOrNull()
     val isValid = normalizedValue.isNotEmpty() &&
@@ -159,14 +161,14 @@ fun validateServerHost(value: String): String {
 
     if (!isValid) {
         throw GradleException(
-            "Invalid configuration 'SERVER_HOST': expected a host name without a scheme, " +
+            "Invalid configuration '$configurationName': expected a host name without a scheme, " +
                 "port, path, query, fragment, or user info."
         )
     }
     return normalizedValue
 }
 
-fun validateApiVersion(value: String): String {
+fun validateApiVersion(configurationName: String, value: String): String {
     val normalizedValue = value.trim().trim('/')
     val isValid = normalizedValue.isNotEmpty() &&
         normalizedValue.split('/').all { segment ->
@@ -179,7 +181,7 @@ fun validateApiVersion(value: String): String {
 
     if (!isValid) {
         throw GradleException(
-            "Invalid configuration 'API_VERSION': expected one or more non-blank URL path " +
+            "Invalid configuration '$configurationName': expected one or more non-blank URL path " +
                 "segments containing only ASCII letters, digits, '-', '.', '_', or '~'."
         )
     }
@@ -228,10 +230,12 @@ val linkuConfigProviders = localPropertyEnvironmentNames.mapValues { (propertyNa
         .orElse(missingLinkuConfiguration(propertyName, environmentVariableName))
         .let { provider ->
             when (propertyName) {
-                "SERVER_DOMAIN" -> provider.map(::validateServerDomain)
-                "DEV_SERVER_DOMAIN" -> provider.map(::validateServerDomain)
-                "SERVER_HOST" -> provider.map(::validateServerHost)
-                "API_VERSION" -> provider.map(::validateApiVersion)
+                "SERVER_DOMAIN", "DEV_SERVER_DOMAIN" ->
+                    provider.map { value -> validateServerDomain(propertyName, value) }
+                "SERVER_HOST", "DEV_SERVER_HOST" ->
+                    provider.map { value -> validateServerHost(propertyName, value) }
+                "API_VERSION", "DEV_API_VERSION" ->
+                    provider.map { value -> validateApiVersion(propertyName, value) }
                 else -> provider
             }
         }
