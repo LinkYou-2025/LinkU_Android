@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.analytics.AnalyticsEvent
-import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.error.AppError
 import com.linku.core.model.CategoryType
 import com.linku.core.model.LinkResultInfo
@@ -18,6 +17,7 @@ import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.CheckLinkUseCase
 import com.linku.core.util.UrlValidationResult
 import com.linku.core.util.validateUrlInput
+import com.linku.data.analytics.FirebaseAnalyticsLogger
 import com.linku.data.preference.AuthPreference
 import com.linku.home.util.toToastMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +39,7 @@ class LinkViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val checkLinkUseCase: CheckLinkUseCase,
-    private val analyticsLogger: AnalyticsLogger,
+    private val analyticsLogger: FirebaseAnalyticsLogger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(

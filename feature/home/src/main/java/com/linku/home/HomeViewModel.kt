@@ -13,7 +13,6 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import com.linku.core.analytics.AnalyticsEmotionType
 import com.linku.core.analytics.AnalyticsEvent
-import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.analytics.AnalyticsSituationType
 import com.linku.core.analytics.situationAnalyticsTypeOf
 import com.linku.core.analytics.toAnalyticsType
@@ -26,6 +25,7 @@ import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
+import com.linku.data.analytics.FirebaseAnalyticsLogger
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
@@ -54,7 +54,7 @@ class HomeViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val alarmRepository: AlarmRepository,
-    private val analyticsLogger: AnalyticsLogger,
+    private val analyticsLogger: FirebaseAnalyticsLogger,
 ) : ViewModel() {
 
     private companion object {

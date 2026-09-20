@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.analytics.AnalyticsEvent
-import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.analytics.SignUpMethod
 import com.linku.core.error.ApiError
 import com.linku.core.error.AppError
@@ -15,6 +14,7 @@ import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpForm
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.repository.AuthRepository
+import com.linku.data.analytics.FirebaseAnalyticsLogger
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.SignUpEffect
@@ -33,7 +33,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class SignUpViewModel @Inject constructor(
     private val authRepository: AuthRepository,
-    private val analyticsLogger: AnalyticsLogger,
+    private val analyticsLogger: FirebaseAnalyticsLogger,
 ) : ViewModel(), MviContainer<SignUpUiState, SignUpEffect> by mviContainer(SignUpUiState()) {
 
     // 상수 분리
