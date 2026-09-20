@@ -11,6 +11,12 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
+import com.linku.core.analytics.AnalyticsEmotionType
+import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.AnalyticsSituationType
+import com.linku.core.analytics.situationAnalyticsTypeOf
+import com.linku.core.analytics.toAnalyticsType
+import com.linku.core.model.EmotionType
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.RecommendationRequest
 import com.linku.core.util.UrlValidationResult
@@ -19,6 +25,7 @@ import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
+import com.linku.data.analytics.FirebaseAnalyticsLogger
 import com.linku.data.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
@@ -47,6 +54,7 @@ class HomeViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val alarmRepository: AlarmRepository,
+    private val analyticsLogger: FirebaseAnalyticsLogger,
 ) : ViewModel() {
 
     private companion object {
@@ -381,6 +389,51 @@ class HomeViewModel @Inject constructor(
         isRecommendModeState.value = false
         needMoreForRecommendationState.value = false
         recommendationRequestState.value = null
+    }
+
+    /** 감정 버튼을 선택했을 때 호출합니다. 선택 해제(`null`)는 기록하지 않습니다. */
+    fun onEmotionSelected(emotionId: Long) {
+        val emotionType = EmotionType.fromValue(emotionId) ?: return
+        analyticsLogger.log(AnalyticsEvent.EmotionSelected(emotionType.toAnalyticsType()))
+    }
+
+    /** 상황 버튼을 선택했을 때 호출합니다. 선택 해제(`null`)는 기록하지 않습니다. */
+    fun onSituationSelected(situationId: Long) {
+        val situationType = situationAnalyticsTypeOf(situationId) ?: return
+        analyticsLogger.log(AnalyticsEvent.SituationSelected(situationType))
+    }
+
+    /** 마지막으로 노출 이벤트를 기록한 추천 요청입니다. 같은 요청의 재조회로 노출이 중복 집계되지 않게 합니다. */
+    private var lastShownRecommendationRequestId: Long? = null
+
+    /**
+     * 추천 링크 목록이 화면에 표시됐을 때 호출합니다.
+     *
+     * 삭제 후 새로고침이나 재시도로 같은 추천 요청의 목록이 다시 로드되어도 요청당 한 번만 기록해
+     * 추천 노출 수와 클릭률이 왜곡되지 않게 합니다.
+     */
+    fun onRecommendationShown() {
+        val request = recommendationRequestState.value ?: return
+        if (lastShownRecommendationRequestId == request.requestId) return
+
+        val (emotionType, situationType) = request.toAnalyticsTypes() ?: return
+        lastShownRecommendationRequestId = request.requestId
+        analyticsLogger.log(AnalyticsEvent.RecommendationShown(emotionType, situationType))
+    }
+
+    /** 추천 목록의 링크를 클릭했을 때 호출합니다. */
+    fun onRecommendedLinkClicked() {
+        val request = recommendationRequestState.value ?: return
+        val (emotionType, situationType) = request.toAnalyticsTypes() ?: return
+        analyticsLogger.log(AnalyticsEvent.RecommendedLinkClick(emotionType, situationType))
+    }
+
+    private fun RecommendationRequest.toAnalyticsTypes():
+        Pair<AnalyticsEmotionType, AnalyticsSituationType>? {
+        val emotionType = EmotionType.fromValue(emotionId)?.toAnalyticsType() ?: return null
+        val situationType = situationAnalyticsTypeOf(situationId) ?: return null
+
+        return emotionType to situationType
     }
 
     /** 최근 조회 링크 목록과 로딩 결과를 함께 보관하는 내부 상태입니다. */
