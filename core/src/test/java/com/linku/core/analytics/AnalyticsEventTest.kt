@@ -78,7 +78,9 @@ class AnalyticsEventTest {
                 "어학", "뉴스", "공부법", "IT·개발", "자기계발", "취업·이직", "비즈니스 인사이트", "생산성·툴",
                 "라이프스타일", "심리·자기이해", "에세이·칼럼", "트렌드", "디자인·예술", "영상·뮤직", "맛집·여행", "기타",
             ),
-            CategoryType.entries.map { AnalyticsEvent.LinkSaved(it).params.getValue("category") },
+            CategoryType.entries.map {
+                AnalyticsEventMapper.toParams(AnalyticsEvent.LinkSaved(it)).getValue("category")
+            },
         )
     }
 
@@ -122,6 +124,6 @@ class AnalyticsEventTest {
 
     private fun assertEvent(name: String, params: Map<String, String>, event: AnalyticsEvent) {
         assertEquals(name, event.name)
-        assertEquals(params, event.params)
+        assertEquals(params, AnalyticsEventMapper.toParams(event))
     }
 }
