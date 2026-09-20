@@ -6,7 +6,7 @@ targetSdk = "36"
 # 로컬/debug 빌드용 fallback. release 빌드 시에는 version.properties의 VERSION_CODE가 우선 적용된다.
 appVersionCode = "1"
 # 로컬/debug 빌드용 fallback. release 빌드 시에는 version.properties의 VERSION_NAME이 우선 적용된다.
-appVersionName = "1.1.2"
+appVersionName = "1.1.3"
 
 javaTarget = "11"
 kotlinJvmTarget = "11"
