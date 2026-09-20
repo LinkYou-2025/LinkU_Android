@@ -1,9 +1,6 @@
 package com.linku.link.screen
 
-import android.Manifest
-import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
@@ -64,7 +61,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import coil3.compose.rememberAsyncImagePainter
 import com.linku.R
 import com.linku.core.model.JobType
@@ -106,7 +102,6 @@ fun SaveLinkScreen(
     selectedSituationId: Long?,
     jobId: Long,
     onImageSelected: (TempImageFile) -> Unit,
-    onPermissionDenied: () -> Unit,
     onImageLoadFailed: () -> Unit,
     onDeleteImage: () -> Unit,
     onUrlChange: (String) -> Unit,
@@ -129,7 +124,6 @@ fun SaveLinkScreen(
     val imeAnimationTargetInsets = WindowInsets.imeAnimationTarget
 
     val currentOnImageSelected by rememberUpdatedState(onImageSelected)
-    val currentOnPermissionDenied by rememberUpdatedState(onPermissionDenied)
     val currentOnImageLoadFailed by rememberUpdatedState(onImageLoadFailed)
 
     var isMemoFocused by remember { mutableStateOf(false) }
@@ -157,41 +151,9 @@ fun SaveLinkScreen(
         }
     }
 
-    val photoPermission = remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_IMAGES
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-    ) { isGranted ->
-        if (isGranted) {
-            imagePicker.launch("image/*")
-        } else {
-            currentOnPermissionDenied()
-        }
-    }
-
+    // GetContent는 시스템 사진 선택기를 사용하므로 별도의 미디어 읽기 권한이 필요 없다.
     val launchImagePicker = {
-        when {
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.M -> {
-                imagePicker.launch("image/*")
-            }
-
-            ContextCompat.checkSelfPermission(
-                context,
-                photoPermission,
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                imagePicker.launch("image/*")
-            }
-
-            else -> {
-                permissionLauncher.launch(photoPermission)
-            }
-        }
+        imagePicker.launch("image/*")
     }
 
     val jobType = JobType.fromId(jobId)
@@ -709,7 +671,6 @@ fun PreviewSaveLinkScreen() {
             selectedSituationId = null,
             jobId = 2L,
             onImageSelected = { },
-            onPermissionDenied = { },
             onImageLoadFailed = { },
             onDeleteImage = { },
             onUrlChange = { },

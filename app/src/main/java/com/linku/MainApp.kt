@@ -995,13 +995,6 @@ fun MainApp(
                             linkUiState.selectedSaveSituationId,
                         jobId = linkUiState.jobId ?: 3L,
                         onImageSelected = linkViewModel::setSaveImage,
-                        onPermissionDenied = {
-                            Toast.makeText(
-                                context,
-                                "사진을 추가하려면 사진 접근 권한이 필요합니다.",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        },
                         onImageLoadFailed = {
                             Toast.makeText(
                                 context,
