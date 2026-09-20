@@ -4,6 +4,9 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.AnalyticsLogger
+import com.linku.core.analytics.SignUpMethod
 import com.linku.core.error.ApiError
 import com.linku.core.model.LoginResult
 import com.linku.core.model.auth.Gender
@@ -44,6 +47,7 @@ class SocialAuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val userRepository: UserRepository,
     private val authPreference: AuthPreference,
+    private val analyticsLogger: AnalyticsLogger,
     @param:ApplicationContext private val context: Context
 ) : ViewModel(),
     MviContainer<SocialAuthUiState, SocialAuthUiEffect> by mviContainer(SocialAuthUiState()) {
@@ -357,6 +361,9 @@ class SocialAuthViewModel @Inject constructor(
                     if (isSuccess) {
                         // 응답 토큰으로 로그인 세션 저장(자동 로그인)까지 리포지토리에서 이미 끝난 상태.
                         Log.d(TAG, "소셜 프로필 동기화 전면 성공 - 자동 로그인 완료")
+                        SignUpMethod.from(loginType)?.let { method ->
+                            analyticsLogger.log(AnalyticsEvent.SignUp(method))
+                        }
                         postSideEffect(SocialAuthUiEffect.CompleteProfileSuccess)
                     } else {
                         val message = "프로필 저장 처리에 실패하였습니다."

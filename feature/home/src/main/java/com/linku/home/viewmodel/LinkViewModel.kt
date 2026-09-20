@@ -3,7 +3,10 @@ package com.linku.home.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.error.AppError
+import com.linku.core.model.CategoryType
 import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.TempImageFile
@@ -36,6 +39,7 @@ class LinkViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val checkLinkUseCase: CheckLinkUseCase,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -295,6 +299,9 @@ class LinkViewModel @Inject constructor(
             emotionId = state.selectedSaveEmotionId,
             situationId = state.selectedSaveSituationId,
         )
+
+        // 서버가 카테고리를 내려주지 않은 경우에도 저장 이벤트는 누락하지 않도록 '기타'로 기록합니다.
+        analyticsLogger.log(AnalyticsEvent.LinkSaved(saved.categoryType ?: CategoryType.ETC))
 
         if (userId != null) {
             try {

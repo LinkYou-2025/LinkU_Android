@@ -206,6 +206,11 @@ fun HomeScreen(
                 hasObservedRecommendationRefreshLoading -> {
                 isEmptyRecommendationToastVisible = recommendedLinks.itemCount == 0
                 hasObservedRecommendationRefreshLoading = false
+
+                // 결과가 비어 있으면 목록이 표시되지 않으므로 노출로 집계하지 않습니다.
+                if (recommendedLinks.itemCount > 0) {
+                    homeViewModel.onRecommendationShown()
+                }
             }
         }
     }
@@ -352,9 +357,15 @@ fun HomeScreen(
                     userName = userName,
                     isNicknameLoading = isNicknameLoading,
                     selectedEmotionId = selectedEmotion,
-                    onEmotionChange = { id -> selectedEmotion = id },
+                    onEmotionChange = { id ->
+                        selectedEmotion = id
+                        id?.let(homeViewModel::onEmotionSelected)
+                    },
                     selectedTaskId = selectedTask,
-                    onTaskChange = { id -> selectedTask = id },
+                    onTaskChange = { id ->
+                        selectedTask = id
+                        id?.let(homeViewModel::onSituationSelected)
+                    },
                     situations = jobSituations,
                     recommendEnabled =
                         selectedEmotion != null &&
@@ -532,6 +543,7 @@ fun HomeScreen(
                             },
                             onCardClick = { userLinkuId ->
                                 openedDeleteMenuId = null
+                                homeViewModel.onRecommendedLinkClicked()
                                 onLinkClick(userLinkuId)
                             },
                             modifier = Modifier.padding(start = 20.dp, end = 20.dp, bottom = 10.dp),

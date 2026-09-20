@@ -2,6 +2,9 @@ package com.linku.home.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.AnalyticsLogger
+import com.linku.core.analytics.SummarySource
 import com.linku.core.error.ApiError
 import com.linku.core.error.NetworkError
 import com.linku.core.model.AIArticleUiState
@@ -17,7 +20,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AIArticleViewModel @Inject constructor(
-    private val aiArticleRepository: AIArticleRepository
+    private val aiArticleRepository: AIArticleRepository,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AIArticleUiState())
@@ -40,6 +44,8 @@ class AIArticleViewModel @Inject constructor(
 
     fun getAiArticle(userLinkuId: Long) {
         if (_uiState.value.isLoading) return
+
+        analyticsLogger.log(AnalyticsEvent.AiSummaryView(SummarySource.SAVED_LINK))
 
         viewModelScope.launch {
             _uiState.update {

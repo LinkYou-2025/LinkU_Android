@@ -7,6 +7,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
+import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.AnalyticsLogger
+import com.linku.core.analytics.ShareMethod
 import com.linku.core.error.SameNameException
 import com.linku.core.error.UserIdNullException
 import com.linku.core.model.AiArticle
@@ -87,6 +90,7 @@ class FileViewModel @Inject constructor(
     private val aiArticleRepository: AIArticleRepository,
     private val acceptSharedFolderInvitationUseCase: AcceptSharedFolderInvitationUseCase,
     private val getFolderLinksUseCase: GetFolderLinksUseCase,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
     // ---------- field ----------
@@ -1580,6 +1584,7 @@ class FileViewModel @Inject constructor(
 
             try {
                 val link = buildInvitationLink(folderRepository.makeInvitationLink(folderId))
+                analyticsLogger.log(AnalyticsEvent.FolderShared(ShareMethod.DEEPLINK))
                 onSuccess(link)
 
                 Log.d("FileViewModel", "createInvitationLink result: true")
