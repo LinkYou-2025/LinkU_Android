@@ -411,9 +411,9 @@ private fun MyFoldersGridPreview() {
         FolderSimpleInfo(3, "Folder 3", 0, false)
     )
     val links = listOf(
-        LinkItemInfo(1, 0, "Link 1", "https://example.com/1", emptyList(), null, null),
-        LinkItemInfo(2, 0, "Link 2", "https://example.com/2", emptyList(), null, null),
-        LinkItemInfo(3, 0, "Link 3", "https://example.com/3", emptyList(), null, null)
+        LinkItemInfo(1, 0, "Link 1", "https://example.com/1", emptyList(), null, createdAt = null),
+        LinkItemInfo(2, 0, "Link 2", "https://example.com/2", emptyList(), null, createdAt = null),
+        LinkItemInfo(3, 0, "Link 3", "https://example.com/3", emptyList(), null, createdAt = null)
     )
 
     LinkuPreview {
@@ -443,9 +443,9 @@ private fun MyFoldersGridEditModePreview() {
         FolderSimpleInfo(3, "Folder 3", 0, false)
     )
     val links = listOf(
-        LinkItemInfo(1, 0, "Link 1", "https://example.com/1", emptyList(), null, null),
-        LinkItemInfo(2, 0, "Link 2", "https://example.com/2", emptyList(), null, null),
-        LinkItemInfo(3, 0, "Link 3", "https://example.com/3", emptyList(), null, null)
+        LinkItemInfo(1, 0, "Link 1", "https://example.com/1", emptyList(), null, createdAt = null),
+        LinkItemInfo(2, 0, "Link 2", "https://example.com/2", emptyList(), null, createdAt = null),
+        LinkItemInfo(3, 0, "Link 3", "https://example.com/3", emptyList(), null, createdAt = null)
     )
 
     LinkuPreview {

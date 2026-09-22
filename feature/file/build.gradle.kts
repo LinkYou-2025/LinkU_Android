@@ -1,6 +1,6 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.util.Properties
-import kotlin.apply
 
 plugins {
     alias(libs.plugins.android.library)
@@ -12,15 +12,17 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) load(file.inputStream())
-}
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val serverHost = localProperties.getProperty("SERVER_HOST")
-    ?.trim()
-    ?.takeIf { it.isNotEmpty() }
-    ?: throw GradleException("SERVER_HOST is missing or blank in local.properties")
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
+
+val releaseServerHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
+val debugServerHostProvider = linkuConfigProviders.getValue("DEV_SERVER_HOST")
 
 android {
     namespace = "com.linku.file"
@@ -32,7 +34,6 @@ android {
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         //consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "SERVER_HOST", "\"$serverHost\"")
     }
 
     buildTypes {
@@ -52,7 +53,22 @@ android {
         jvmTarget = "11"
     }*/
     buildFeatures {
+        compose = true
         buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val serverHostProvider = if (variant.buildType == "debug") {
+            debugServerHostProvider
+        } else {
+            releaseServerHostProvider
+        }
+        variant.buildConfigFields?.put(
+            "SERVER_HOST",
+            linkuBuildConfigString(serverHostProvider)
+        )
     }
 }
 

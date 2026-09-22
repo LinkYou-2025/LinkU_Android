@@ -34,7 +34,13 @@ internal class EmailAuthViewModel @Inject constructor(
             is EmailUiEvent.VerifyCodeClicked -> verifyEmailCode()
             is EmailUiEvent.ClearStatus -> resetAll()
             is EmailUiEvent.ToastShown -> handleToastShown()
+            is EmailUiEvent.SocialAccountAlertConfirmed -> handleSocialAccountAlertConfirmed()
         }
+    }
+
+    private fun handleSocialAccountAlertConfirmed() {
+        updateState { copy(socialAlertProviders = emptyList()) }
+        postSideEffect(EmailUiEffect.NavigateToLogin)
     }
 
     private fun handleToastShown() {
@@ -120,6 +126,13 @@ internal class EmailAuthViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     Log.e("EmailAuthVM", "sendEmailCode 실패", error)
+
+                    // 소셜 로그인으로 이미 가입된 이메일은 인증 코드 발송 실패 문구 대신
+                    // 별도의 alert로 소셜 로그인을 안내해야 하므로 여기서 먼저 분기함.
+                    if (error is ApiError.User.SocialAlreadyRegistered) {
+                        updateState { copy(isLoading = false, socialAlertProviders = error.providers) }
+                        return@foldApp
+                    }
 
                     val uiMessage = when (error) {
                         is ApiError.User.DuplicateEmail -> "이미 가입된 이메일입니다."

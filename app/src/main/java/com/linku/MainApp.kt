@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import com.linku.core.error.DeepLinkError
+import com.linku.core.model.CategoryType
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
@@ -62,6 +63,8 @@ import com.linku.file.viewmodel.folder.state.FileNavigationState
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import com.linku.home.HomeApp
 import com.linku.home.HomeViewModel
+import com.linku.home.component.ObserveClipboardLinkOnAppEntry
+import com.linku.home.model.ClipboardLinkCandidate
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.NoticeScreen
 import com.linku.home.viewmodel.AIArticleViewModel
@@ -201,6 +204,38 @@ fun MainApp(
     var showNavBar by rememberSaveable { mutableStateOf(false) }
 
     val isAuthenticated by viewModel.isAuthenticated.collectAsStateWithLifecycle()
+    val pendingSharedUrl by viewModel.pendingSharedUrl.collectAsStateWithLifecycle()
+    val isShareIntentEntry by viewModel.isShareIntentEntry.collectAsStateWithLifecycle()
+    var clipboardEntryCandidate by remember {
+        mutableStateOf<ClipboardLinkCandidate?>(null)
+    }
+    ObserveClipboardLinkOnAppEntry(
+        skipClipboardRead = isShareIntentEntry,
+        onCandidateDetected = { candidate ->
+            clipboardEntryCandidate = candidate
+            if (isShareIntentEntry) {
+                viewModel.completeShareIntentEntry()
+            }
+        },
+    )
+
+    LaunchedEffect(clipboardEntryCandidate, isAuthenticated, isShareIntentEntry) {
+        homeViewModel.prepareClipboardBannerCandidate(
+            candidate = clipboardEntryCandidate.takeIf {
+                isAuthenticated && !isShareIntentEntry
+            },
+        )
+    }
+
+    LaunchedEffect(isLoggedIn, isAuthenticated) {
+        if (isLoggedIn == true && isAuthenticated) {
+            // 자동·수동 로그인 모두 세션 저장과 인증 확인이 끝난 뒤 최신 직업을 조회합니다.
+            linkViewModel.loadUserBasics()
+        } else {
+            // 로그아웃·탈퇴·토큰 만료 및 초기 인증 확인 전에는 이전 사용자 직업을 제거합니다.
+            linkViewModel.clearUserBasics()
+        }
+    }
 
     LaunchedEffect(isLoggedIn, isAuthenticated) {
         if (isLoggedIn == true && isAuthenticated) {
@@ -283,6 +318,36 @@ fun MainApp(
         }
     }
 
+    /**
+     * 앱 진입 시 받은 URL을 기존 링크 저장 폼에 채우고 저장 화면으로 이동합니다.
+     *
+     * 클립보드 복사와 공유 Intent가 이 진입점을 함께 사용합니다. 이미 저장 화면이 열려 있으면
+     * 백스택을 중복으로 쌓지 않고 새 URL로 폼을 교체합니다.
+     *
+     * @param url 클립보드 또는 공유 Intent에서 받은 HTTP 또는 HTTPS URL
+     */
+    fun navigateToSaveLinkWithUrl(url: String) {
+        linkViewModel.resetSaveForm()
+        linkViewModel.setSaveUrl(url)
+        navigator.navigate(SAVE_LINK_ROUTE) {
+            launchSingleTop = true
+        }
+    }
+
+    LaunchedEffect(pendingSharedUrl, isAuthenticated, currentRoute) {
+        val sharedUrl = pendingSharedUrl ?: return@LaunchedEffect
+        val isNavigationReady = currentRoute != null &&
+            currentRoute != NavigationRoute.Splash.route &&
+            currentRoute != NavigationRoute.Login.route
+
+        if (!isAuthenticated || !isNavigationReady) {
+            return@LaunchedEffect
+        }
+
+        viewModel.consumePendingSharedUrl()
+        navigateToSaveLinkWithUrl(sharedUrl)
+    }
+
     // 채널 사이드 이펙트 수신
     LaunchedEffect(Unit) {
         viewModel.sideEffect.collect { effect ->
@@ -291,6 +356,14 @@ fun MainApp(
                     Toast.makeText(context, effect.message, Toast.LENGTH_SHORT).show()
                 is SideEffect.ShowPushAlarmDialog ->
                     showPushAlarmDialog = true
+
+                is SideEffect.ShowSharedUrlError -> {
+                    val messageResource = when (effect.error) {
+                        SharedUrlError.MISSING_URL -> R.string.shared_url_missing
+                        SharedUrlError.MULTIPLE_URLS -> R.string.shared_url_multiple
+                    }
+                    Toast.makeText(context, messageResource, Toast.LENGTH_SHORT).show()
+                }
 
                 is SideEffect.NavigateByNotification -> {
                     // alarmId 포함해서 저장 → consume 시점(인증 완료 후)에 readAlarm 호출됨
@@ -706,8 +779,7 @@ fun MainApp(
                                 navigator.navigate(NavigationRoute.AlarmSetting.route)
                             },
                             onNavigateToSaveLink = { url ->
-                                linkViewModel.setSaveUrl(url)
-                                navigator.navigate(SAVE_LINK_ROUTE)
+                                navigateToSaveLinkWithUrl(url)
                             },
                             onNavigateToLinkDetail = { userLinkuId ->
                                 navigator.navigate(linkDetailRoute(userLinkuId))
@@ -933,13 +1005,6 @@ fun MainApp(
                             linkUiState.selectedSaveSituationId,
                         jobId = linkUiState.jobId ?: 3L,
                         onImageSelected = linkViewModel::setSaveImage,
-                        onPermissionDenied = {
-                            Toast.makeText(
-                                context,
-                                "사진을 추가하려면 사진 접근 권한이 필요합니다.",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        },
                         onImageLoadFailed = {
                             Toast.makeText(
                                 context,
@@ -961,14 +1026,8 @@ fun MainApp(
                         isSaveButtonEnabled =
                             linkUiState.isSaveButtonEnabled,
                         onSaveButtonClick = {
-                            val submittedUrl = linkUiState.saveUrl
-                            val submittedClipboardCandidate =
-                                homeViewModel.captureClipboardCandidate(submittedUrl)
                             linkViewModel.onSaveButtonClick(
                                 onSucceed = { saved ->
-                                    submittedClipboardCandidate?.let(
-                                        homeViewModel::markClipboardCandidateHandled,
-                                    )
                                     linkViewModel.loadLinkDetail(
                                         saved.userLinkuId,
                                     )
@@ -1215,11 +1274,21 @@ fun MainApp(
                     if (sharedLink == null) {
                         LaunchedEffect(Unit) { navigator.popBackStack() }
                     } else {
+                        // 서버 카테고리 목록은 소유자별로 다를 수 있어, 고정된 16종 카테고리
+                        // 마스터(CategoryType)로 categoryId를 이름·색상에 매핑합니다.
+                        val sharedLinkCategoryType = sharedLink.categoryId?.let { categoryId ->
+                            CategoryType.fromId(categoryId)
+                        }
+
                         SharedLinkDetailScreen(
                             linkTitle = sharedLink.title,
                             linkUrl = sharedLink.url,
                             imageUrl = sharedLink.linkuImageUrl,
                             tags = sharedLink.tags,
+                            categoryName = sharedLinkCategoryType?.tagName ?: "카테고리",
+                            categoryColorStyle = sharedLinkCategoryType?.let { categoryType ->
+                                CategoryColorStyle.categoryStyleList.getOrNull(categoryType.ordinal)
+                            } ?: CategoryColorStyle.DEFAULT,
                             onBack = { navigator.popBackStack() },
                         )
                     }

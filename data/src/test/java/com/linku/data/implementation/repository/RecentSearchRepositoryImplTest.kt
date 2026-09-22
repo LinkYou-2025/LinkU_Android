@@ -85,17 +85,17 @@ class RecentSearchRepositoryImplTest {
         override suspend fun getRecentKeywords(): BaseResponse<List<SearchHistoryItemResponseDTO>> =
             recentKeywordsResponse
 
-        override suspend fun deleteAllKeywords(): BaseResponse<Any?> {
+        override suspend fun deleteAllKeywords(): BaseResponse<Map<String, Any?>?> {
             deleteAllCalled = true
             return successUnitResponse()
         }
 
-        override suspend fun deleteKeyword(searchHistoryId: Long): BaseResponse<Any?> {
+        override suspend fun deleteKeyword(searchHistoryId: Long): BaseResponse<Map<String, Any?>?> {
             deletedSearchHistoryId = searchHistoryId
             return successUnitResponse()
         }
 
-        private fun successUnitResponse(): BaseResponse<Any?> =
+        private fun successUnitResponse(): BaseResponse<Map<String, Any?>?> =
             BaseResponse(
                 isSuccess = true,
                 code = "COMMON200",

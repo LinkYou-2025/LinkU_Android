@@ -35,6 +35,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
     buildFeatures {
+        compose = true
         buildConfig = true
     }
 /*    kotlinOptions {
@@ -97,6 +98,4 @@ dependencies {
     //Paging3
     implementation(libs.paging.runtime)
 
-    // Firebase
-    implementation(libs.bundles.firebase)
 }

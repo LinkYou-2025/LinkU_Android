@@ -3,6 +3,8 @@ package com.linku.login.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.SignUpMethod
 import com.linku.core.error.ApiError
 import com.linku.core.error.AppError
 import com.linku.core.model.auth.Gender
@@ -12,6 +14,7 @@ import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpForm
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.repository.AuthRepository
+import com.linku.data.analytics.FirebaseAnalyticsLogger
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.SignUpEffect
@@ -29,7 +32,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class SignUpViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val analyticsLogger: FirebaseAnalyticsLogger,
 ) : ViewModel(), MviContainer<SignUpUiState, SignUpEffect> by mviContainer(SignUpUiState()) {
 
     // 상수 분리
@@ -294,6 +298,7 @@ internal class SignUpViewModel @Inject constructor(
                     onSuccess = { result ->
                         Log.d("SignUpViewModel", "[회원가입 성공] userId=${result.userId}")
                         // 회원가입 응답 토큰으로 자동 로그인 세션 저장까지 리포지토리에서 이미 끝난 상태.
+                        analyticsLogger.log(AnalyticsEvent.SignUp(SignUpMethod.EMAIL))
                         _signUpState.value = SignUpState.Success
                         postSideEffect(SignUpEffect.NavigateToHome)
                     },

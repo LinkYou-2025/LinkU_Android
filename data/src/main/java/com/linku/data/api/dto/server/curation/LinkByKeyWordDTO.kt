@@ -1,7 +1,9 @@
 package com.linku.data.api.dto.server.curation
 
 import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class LinkByKeyWordDTO(
     @field:Json(name = "userLinkuId") val userLinkuId: Long?,
     @field:Json(name = "title") val title: String,

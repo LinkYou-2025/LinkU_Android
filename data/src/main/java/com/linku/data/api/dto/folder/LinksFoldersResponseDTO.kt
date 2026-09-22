@@ -43,6 +43,9 @@ data class LinkDTO(
     @field:Json(name = "linkuImageUrl")
     val linkuImageUrl: String?,  // 링크 도메인
 
+    @field:Json(name = "categoryId")
+    val categoryId: Long? = null,
+
     @field:Json(name = "createdAt")
     val createdAt: OffsetDateTime? // 생성일시 (null 가능)
 )

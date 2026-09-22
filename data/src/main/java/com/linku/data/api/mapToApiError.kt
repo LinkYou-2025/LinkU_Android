@@ -1,6 +1,7 @@
 package com.linku.data.api
 
 import com.linku.core.error.ApiError
+import com.linku.core.model.auth.LoginType
 import org.json.JSONObject
 import retrofit2.HttpException
 
@@ -60,6 +61,9 @@ internal fun mapToApiError(code: String, message: String): ApiError = when (code
     "USERS4042" -> ApiError.User.Inactive(message)
     "USERS4091" -> ApiError.User.DuplicateNickname(message)
     "USERS4092" -> ApiError.User.DuplicateEmail(message)
+    "USERS4093" -> ApiError.User.SocialAlreadyRegistered(message, listOf(LoginType.GOOGLE))
+    "USERS4094" -> ApiError.User.SocialAlreadyRegistered(message, listOf(LoginType.KAKAO))
+    "USERS4095" -> ApiError.User.SocialAlreadyRegistered(message, listOf(LoginType.KAKAO, LoginType.GOOGLE))
     "USERS5001" -> ApiError.User.SendMailFailed(message)
     "TERMS4001" -> ApiError.Terms.InvalidTermsType(message)
 

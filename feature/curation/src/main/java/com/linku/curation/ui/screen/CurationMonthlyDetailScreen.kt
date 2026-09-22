@@ -90,18 +90,25 @@ fun CurationMonthlyDetailScreen(
         val curationDetail = monthlyCurationDetail?.detail ?: CurationDetail()
 
 
-        // month 파싱 실패 시 fallback용 현재 로컬 월 (1~12)
-        val localMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+        // month 파싱 실패 시 fallback용 현재 로컬 연/월
+        val localCalendar = Calendar.getInstance()
+        val localYear = localCalendar.get(Calendar.YEAR)
+        val localMonth = localCalendar.get(Calendar.MONTH) + 1
 
+        val rawYear = viewModel.month.substringBefore('-').toIntOrNull() ?: localYear
         val rawMonth = viewModel.month.substringAfter('-').toIntOrNull() ?: localMonth
         val displayMonth = if (rawMonth == 1) 12 else (rawMonth - 1).coerceAtLeast(0)
+
+        // 데이터가 비어있는 경우 서버가 title 계산에 쓰이는 month를 빈 값으로 내려줄 수 있어,
+        // 화면 진입 시 이미 알고 있는 viewModel.month로 직접 제목을 만들어 폴백한다.
+        val fallbackTitle = "$rawYear\n월간 큐레이션 ${rawMonth}월호"
 
         CurationMonthlyDetailScreenContent(
             onBack = onBack,
             onGoHome = onGoHome,
             isLoading = state.isLoading,
             nickname = monthlyCurationDetail?.nickname?.takeIf { it.isNotEmpty() } ?: state.nickname,
-            title = curationDetail.title,
+            title = curationDetail.title.ifEmpty { fallbackTitle },
             displayMonth = displayMonth,
             emotionItems = monthlyCurationDetail?.topTags?.map { tag ->
                 EmotionItem(progress = tag.percent / 100f, keyword = tag.name)

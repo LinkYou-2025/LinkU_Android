@@ -4,6 +4,8 @@
     <string name="authentication_required">로그인이 필요한 공유 링크입니다.</string>
     <string name="network_error">네트워크 연결을 확인해주세요.</string>
     <string name="share_folder_refresh_failed">공유 폴더를 받았지만 목록 갱신에 실패했습니다.</string>
+    <string name="shared_url_missing">공유한 내용에서 저장할 웹 링크를 찾지 못했습니다.</string>
+    <string name="shared_url_multiple">한 번에 링크 하나만 공유해 주세요.</string>
     <string name="link_edit_discard_title">수정한 내용이 저장되지 않았어요</string>
     <string name="link_edit_discard_body">지금 나가면 변경사항이\n저장되지 않고 사라져요.</string>
     <string name="link_edit_discard_exit">나가기</string>

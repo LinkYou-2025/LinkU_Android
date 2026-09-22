@@ -1,28 +1,41 @@
+import com.android.build.api.variant.BuildConfigField
+import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.io.FileInputStream
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.library)
     //alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 
     // Hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
-val localProperties = Properties().apply {
-    load(FileInputStream(rootProject.file("local.properties")))
-}
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
 
-val serverDomain = localProperties.getProperty("SERVER_DOMAIN")
-    ?: throw GradleException("SERVER_DOMAIN is not set in local.properties")
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
 
-val apiVersion = localProperties.getProperty("API_VERSION")
-    ?: throw GradleException("API_VERSION is not set in local.properties")
+// release(로컬/CI 공통)는 SERVER_DOMAIN/API_VERSION을,
+// debug는 DEV_SERVER_DOMAIN/DEV_API_VERSION을 쓴다.
+// 모두 local.properties(각자 로컬) 또는 환경 변수에서 읽어오며, 값 자체를 Gradle에 하드코딩하지 않는다.
+val releaseServerBaseUrlProvider =
+    linkuConfigProviders.getValue("SERVER_DOMAIN").flatMap { serverDomain ->
+        linkuConfigProviders.getValue("API_VERSION").map { apiVersion ->
+            "$serverDomain/$apiVersion/"
+        }
+    }
 
-val serverBaseUrl = "$serverDomain/$apiVersion/"
+val debugServerBaseUrlProvider =
+    linkuConfigProviders.getValue("DEV_SERVER_DOMAIN").flatMap { serverDomain ->
+        linkuConfigProviders.getValue("DEV_API_VERSION").map { apiVersion ->
+            "$serverDomain/$apiVersion/"
+        }
+    }
 
 android {
     namespace = "com.linku.data"
@@ -32,7 +45,6 @@ android {
 
         testInstrumentationRunner = libs.versions.testInstrumentationRunner.get()
         consumerProguardFiles("consumer-rules.pro")
-        buildConfigField("String", "SERVER_BASE_URL", "\"$serverBaseUrl\"")
     }
 
     buildTypes {
@@ -59,6 +71,20 @@ android {
     }
 }
 
+androidComponents {
+    onVariants { variant ->
+        val baseUrlProvider = if (variant.buildType == "debug") {
+            debugServerBaseUrlProvider
+        } else {
+            releaseServerBaseUrlProvider
+        }
+        variant.buildConfigFields?.put(
+            "SERVER_BASE_URL",
+            linkuBuildConfigString(baseUrlProvider)
+        )
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
@@ -71,7 +97,9 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.activity.compose)
     implementation(libs.material)
-    implementation(libs.firebase.messaging.ktx)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)

@@ -1,5 +1,6 @@
 package com.linku.login.viewmodel.state
 
+import com.linku.core.model.auth.LoginType
 import com.linku.login.mvi.UiSideEffect
 import com.linku.login.mvi.UiState
 
@@ -17,6 +18,7 @@ import com.linku.login.mvi.UiState
  * @property isVerifySuccess 이메일 최종 인증 성공 여부. (true일 때 다음 단계 화면 전환 트리거)
  * @property failureToastMessage 인증 실패 안내 및 횟수 초과 경고 메시지. (스낵바/토스트 노출용)
  * @property verificationFailCount 인증 코드 누적 실패 횟수. (5회 제한 조건 검증용)
+ * @property socialAlertProviders 인증 코드 발송 요청한 이메일이 이미 소셜 로그인으로 가입된 계정인 경우 해당 제공자 목록(카카오/구글, 둘 다 가입했으면 2개). 비어 있으면 alert를 노출하지 않음. (emailError/codeError와 별개의 케이스)
  */
 internal data class EmailUiState(
     val email: String = "",
@@ -29,7 +31,8 @@ internal data class EmailUiState(
     val isCodeExpired: Boolean = false,
     val isVerifySuccess: Boolean = false,
     val failureToastMessage: String? = null,
-    val verificationFailCount: Int = 0
+    val verificationFailCount: Int = 0,
+    val socialAlertProviders: List<LoginType> = emptyList()
 ) : UiState
 
 /**
@@ -41,6 +44,7 @@ internal data class EmailUiState(
  * @property VerifyCodeClicked 인증하기 버튼을 눌렀을 때 발생.
  * @property ClearStatus 화면 진입/이탈 시 기존 입력 및 타이머 상태를 초기화할 때 발생.
  * @property ToastShown 실패 토스트/스낵바 노출이 완료되어 메시지를 비울 때 발생.
+ * @property SocialAccountAlertConfirmed 이미 소셜 로그인으로 가입된 계정이라는 안내 alert의 확인 버튼을 눌렀을 때 발생.
  */
 internal sealed interface EmailUiEvent {
     data class EmailChanged(val email: String) : EmailUiEvent
@@ -49,9 +53,11 @@ internal sealed interface EmailUiEvent {
     object VerifyCodeClicked : EmailUiEvent
     object ClearStatus : EmailUiEvent
     object ToastShown : EmailUiEvent
+    object SocialAccountAlertConfirmed : EmailUiEvent
 }
 
 internal sealed interface EmailUiEffect : UiSideEffect {
     data class NavigateToPassword(val verifiedEmail: String) : EmailUiEffect
     data class ShowToast(val message: String) : EmailUiEffect
+    object NavigateToLogin : EmailUiEffect
 }

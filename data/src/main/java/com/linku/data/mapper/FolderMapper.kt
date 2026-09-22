@@ -123,6 +123,7 @@ fun LinkDTO.toDomain(parentFolderId: Long): LinkItemInfo {
         tags = keyword?.split(",")?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty(),
         url = url,
         linkuImageUrl = linkuImageUrl,
+        categoryId = categoryId,
         createdAt = createdAt
     )
 }

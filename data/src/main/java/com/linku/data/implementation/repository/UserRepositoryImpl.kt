@@ -1,6 +1,7 @@
 package com.linku.data.implementation.repository
 
 import android.util.Log
+import com.linku.core.error.ApiError
 import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
@@ -138,12 +139,20 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     // logout. deleteUser()와 동일하게 서버 호출이 성공했을 때만 로컬 세션을 지움.
+    // 단, 서버가 이미 세션을 무효로 보는 인증 에러(만료된/무효한 토큰)는 "이미 로그아웃된 상태"와
+    // 동치이므로 예외적으로 로컬 세션을 지운다 - 그렇지 않으면 만료된 세션에서는 로그아웃 버튼이
+    // 영원히 동작하지 않게 된다(서버 호출이 항상 인증 에러로 실패하므로).
     override suspend fun logout(): Result<Unit> {
         return try {
             val deviceId = authPreference.getDeviceId()
             Log.d(TAG, "[로그아웃 시도] deviceId=$deviceId")
 
-            safeApiCallUnit { serverApi.logout(deviceId) }.getOrThrow()
+            val result = safeApiCallUnit { serverApi.logout(deviceId) }
+            val error = result.exceptionOrNull()
+            if (result.isFailure && !isSessionAlreadyInvalid(error)) {
+                throw error ?: IllegalStateException("로그아웃 실패")
+            }
+
             authPreference.clear()
             _cachedUserInfo.value = null
             Log.d(TAG, "로그아웃 완료")
@@ -154,6 +163,13 @@ class UserRepositoryImpl @Inject constructor(
             Log.e(TAG, "[로그아웃 실패] ${e.message}")
             Result.failure(e)
         }
+    }
+
+    private fun isSessionAlreadyInvalid(error: Throwable?): Boolean {
+        return error is ApiError.Common.Unauthorized ||
+            error is ApiError.Auth.Unauthorized ||
+            error is ApiError.Auth.TokenExpired ||
+            error is ApiError.Auth.InvalidToken
     }
 
     override suspend fun updateMarketingTerms(): Result<Unit> {
