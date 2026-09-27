@@ -1,6 +1,5 @@
 package com.linku.design.component
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -34,42 +33,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.network.HttpException
 import com.linku.design.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors
-import java.net.URI
-
-/** release 기기에서 링크 썸네일의 임시 진단 결과를 찾기 위한 Logcat 태그입니다. */
-private const val LINK_THUMBNAIL_LOG_TAG = "LinkThumbnail"
-
-/**
- * 썸네일의 로딩 결과를 release에서도 기록하되 주소의 경로, 쿼리, 인증 정보는 제외합니다.
- *
- * 예외 메시지와 스택 트레이스에는 원본 URL이 포함될 수 있어 예외 종류만 기록합니다.
- * 원인 예외는 최대 8개까지만 확인하여 순환 참조에 의한 무한 순회를 방지합니다.
- *
- * @param event 로딩 단계 또는 결과를 나타내는 고정 문자열입니다.
- * @param imageUrl 이미지 로더에 전달한 주소입니다.
- * @param failure 이미지 로더가 반환한 실패 원인입니다.
- */
-private fun logLinkThumbnail(event: String, imageUrl: String, failure: Throwable? = null) {
-    // 엄격한 URI 파싱에 실패하면 원본 주소를 출력하지 않고 누락된 메타데이터로 표시합니다.
-    val uri = runCatching { URI(imageUrl) }.getOrNull()
-    val causes = generateSequence(failure) { it.cause }.take(8).toList()
-    val httpStatus = causes.filterIsInstance<HttpException>().firstOrNull()?.response?.code
-    val exceptionTypes = causes.joinToString(",") { it.javaClass.simpleName }
-        .ifEmpty { "none" }
-
-    // Log.i를 사용해 debug 전용 로거에 의해 release 진단 로그가 생략되지 않도록 합니다.
-    Log.i(
-        LINK_THUMBNAIL_LOG_TAG,
-        "event=$event blank=${imageUrl.isBlank()} " +
-            "scheme=${uri?.scheme ?: "unknown"} host=${uri?.host ?: "unknown"} " +
-            "exceptions=$exceptionTypes httpStatus=${httpStatus ?: "none"}",
-    )
-}
 
 
 /**
@@ -133,12 +100,6 @@ fun LinkCardItem(
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.img_link_default),
                 error = painterResource(R.drawable.img_link_default),
-                // 임시 진단: 원본 주소나 예외 메시지 없이 로딩 단계와 실패 종류만 기록합니다.
-                onLoading = { logLinkThumbnail("loading", linkImageUrl) },
-                onSuccess = { logLinkThumbnail("success", linkImageUrl) },
-                onError = { state ->
-                    logLinkThumbnail("error", linkImageUrl, state.result.throwable)
-                },
                 modifier = Modifier
                     .size(85.dp)
                     .clip(RoundedCornerShape(12.dp))
