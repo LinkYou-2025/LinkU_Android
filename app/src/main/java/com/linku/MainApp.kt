@@ -39,6 +39,7 @@ import com.linku.core.model.CategoryType
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
+import com.linku.core.util.toImageUrl
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.curation.navigation.curationGraph
@@ -1430,23 +1431,6 @@ fun MainApp(
     }
 
 
-}
-
-/**
- * 이미지 URL에 스킴이 없으면 HTTPS 스킴을 추가한다.
- *
- * 빈 문자열이나 null은 null로 반환한다.
- * 스킴이 포함된 URI는 스킴의 종류와 대소문자에 관계없이 원본 값을 유지하며,
- * 프로토콜 상대 URL은 HTTPS 스킴을 추가한다.
- */
-private fun String?.toImageUrl(): String? {
-    val value = this?.trim()?.takeIf { it.isNotEmpty() } ?: return null
-
-    return when {
-        value.startsWith("//") -> "https:$value"
-        Uri.parse(value).scheme != null -> value
-        else -> "https://$value"
-    }
 }
 
 // 확장 함수: Context -> Activity

@@ -54,6 +54,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
+import com.linku.core.util.toImageUrl
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.component.LinkCardItemSkeleton
@@ -851,7 +852,8 @@ private fun LinkCard(
             },
             domainName = link.domain,
             isExternalLink = false,
-            linkImageUrl = link.linkuImageUrl.orEmpty(),
+            // 최근·추천 링크의 스킴 없는 이미지 주소도 HTTPS로 불러옵니다.
+            linkImageUrl = link.linkuImageUrl.toImageUrl().orEmpty(),
             domainImageUrl = link.domainImageUrl.orEmpty(),
             isDeleteMenuVisible = isDeleteMenuVisible,
             onMoreClick = onMoreClick,
