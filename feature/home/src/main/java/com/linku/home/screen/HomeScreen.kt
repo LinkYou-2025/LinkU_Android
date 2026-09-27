@@ -852,9 +852,9 @@ private fun LinkCard(
             },
             domainName = link.domain,
             isExternalLink = false,
-            // 최근·추천 링크의 스킴 없는 이미지 주소도 HTTPS로 불러옵니다.
+            // 이미지 URL을 보정하고 빈 값·HTTP 주소는 카드의 기본 이미지로 표시합니다.
             linkImageUrl = link.linkuImageUrl.toImageUrl().orEmpty(),
-            domainImageUrl = link.domainImageUrl.orEmpty(),
+            domainImageUrl = link.domainImageUrl.toImageUrl().orEmpty(),
             isDeleteMenuVisible = isDeleteMenuVisible,
             onMoreClick = onMoreClick,
             onCardClick = {
