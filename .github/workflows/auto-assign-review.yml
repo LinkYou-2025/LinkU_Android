@@ -1,0 +1,43 @@
+name: Auto Assign & Request Review
+
+on:
+  pull_request:
+    types: [opened, ready_for_review, reopened]
+    branches:
+      - develop
+
+permissions:
+  pull-requests: write
+
+jobs:
+  auto-assign:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assign author and request team review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // LinkYou-2025/android 팀 전원 (develop 대상 PR은 항상 이 4명에게 리뷰 요청)
+            const teamReviewers = ["Hongji03", "ugmin1030", "KateteDeveloper", "codebidoof"];
+            const author = context.payload.pull_request.user.login;
+
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              assignees: [author],
+            });
+
+            const reviewers = teamReviewers.filter(
+              (login) => login.toLowerCase() !== author.toLowerCase()
+            );
+
+            if (reviewers.length > 0) {
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.issue.number,
+                reviewers,
+              });
+            }
