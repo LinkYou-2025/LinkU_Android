@@ -54,6 +54,7 @@ import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.linku.core.model.LinkSimpleInfo
 import com.linku.core.model.SituationOptions
+import com.linku.core.util.toImageUrl
 import com.linku.design.component.CustomToastMessage
 import com.linku.design.component.LinkCardItem
 import com.linku.design.component.LinkCardItemSkeleton
@@ -851,8 +852,9 @@ private fun LinkCard(
             },
             domainName = link.domain,
             isExternalLink = false,
-            linkImageUrl = link.linkuImageUrl.orEmpty(),
-            domainImageUrl = link.domainImageUrl.orEmpty(),
+            // 이미지 URL을 보정하고 빈 값·HTTP 주소는 카드의 기본 이미지로 표시합니다.
+            linkImageUrl = link.linkuImageUrl.toImageUrl().orEmpty(),
+            domainImageUrl = link.domainImageUrl.toImageUrl().orEmpty(),
             isDeleteMenuVisible = isDeleteMenuVisible,
             onMoreClick = onMoreClick,
             onCardClick = {

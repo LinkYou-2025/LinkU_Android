@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.linku.core.model.AiArticleLink
+import com.linku.core.util.toImageUrl
 import com.linku.design.component.LinkCardItem
 import com.linku.design.theme.ThemeProvider
 
@@ -58,8 +59,9 @@ fun AILinkuItem(
         ),
         domainName = link.domain,
         isExternalLink = false,
-        linkImageUrl = link.linkuImageUrl.orEmpty(),
-        domainImageUrl = link.domainImageUrl.orEmpty(),
+        // 서버 이미지 주소에 스킴을 보정하고 HTTP·빈 값은 카드의 기본 이미지로 표시합니다.
+        linkImageUrl = link.linkuImageUrl.toImageUrl().orEmpty(),
+        domainImageUrl = link.domainImageUrl.toImageUrl().orEmpty(),
         isMoreVisible = hasEnabledUserLinkuId,
         isDeleteMenuVisible = hasEnabledUserLinkuId && isDeleteMenuVisible,
         onMoreClick = onMoreClickAction ?: {},
