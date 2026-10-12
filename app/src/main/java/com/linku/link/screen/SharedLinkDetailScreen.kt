@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
+import com.linku.core.util.toImageUrl
 import com.linku.R
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.ThemeProvider
@@ -199,11 +200,13 @@ fun SharedLinkDetailScreen(
                 .padding(top = 25.dp, start = 20.dp, end = 20.dp, bottom = 50.dp)
         ) {
             AsyncImage(
-                model = imageUrl,
+                // HTTP 또는 빈 주소는 요청하지 않고 아래 기본 이미지를 사용합니다.
+                model = imageUrl.toImageUrl(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.img_link_detail_default),
                 error = painterResource(R.drawable.img_link_detail_default),
+                fallback = painterResource(R.drawable.img_link_detail_default),
                 modifier = Modifier
                     .fillMaxWidth()
                     .aspectRatio(1f)

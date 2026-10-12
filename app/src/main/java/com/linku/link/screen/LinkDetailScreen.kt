@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
+import com.linku.core.util.toImageUrl
 import com.linku.R
 import com.linku.core.model.EmotionType
 import com.linku.core.model.JobType
@@ -750,11 +751,13 @@ fun LinkDetailScreen(
             ) {
                 Box {
                     AsyncImage(
-                        model = selectedImageUri ?: imageUrl,
+                        // 갤러리 선택 URI를 우선하고 서버 이미지 URL에만 공통 정책을 적용합니다.
+                        model = selectedImageUri ?: imageUrl.toImageUrl(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         placeholder = painterResource(R.drawable.img_link_detail_default),
                         error = painterResource(R.drawable.img_link_detail_default),
+                        fallback = painterResource(R.drawable.img_link_detail_default),
                         onLoading = {
                             LinkuLog.d(caller) { "loading: ${selectedImageUri ?: imageUrl}" }
                         },
