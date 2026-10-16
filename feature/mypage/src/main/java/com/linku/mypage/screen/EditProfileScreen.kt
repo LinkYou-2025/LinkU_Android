@@ -107,6 +107,7 @@ fun EditProfileScreen(
 
     val nicknameWarningText = if (isNicknameChanged && trimmedName.isNotBlank()) {
         when (val checkState = nicknameCheckState) {
+            is NicknameCheckState.Checking -> "사용 가능한 닉네임인지 확인 중이에요."
             is NicknameCheckState.Duplicated -> "이미 존재하는 닉네임이예요."
             is NicknameCheckState.Error -> checkState.message
             else -> null
