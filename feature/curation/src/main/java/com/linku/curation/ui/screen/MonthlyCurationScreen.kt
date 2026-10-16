@@ -125,13 +125,22 @@ private fun MonthlyCurationScreenContent(
             .fillMaxSize()
             .background(colorTheme.white)
     ) {
-        YearSelector(
-            year = year,
-            isPrevEnabled = true,
-            isNextEnabled = true,
-            onPrevClick = { /* TODO: 이전 연도 클릭 처리 */ },
-            onNextClick = { /* TODO: 다음 연도 클릭 처리 */ },
-            modifier = Modifier.padding(top = 92.scaler)
+
+        CurationTopHeader(
+            onBackClick = onBackClick,
+            contentTopOffset = 92.scaler,
+            title = "",                       // 슬롯을 쓰니 비워둬요 (title은 필수 파라미터)
+            description = "월간 큐레이션",
+            titleDescriptionGap = 8.scaler,
+            titleContent = {
+                YearSelector(
+                    year = year,
+                    isPrevEnabled = true,
+                    isNextEnabled = true,
+                    onPrevClick = { /* TODO */ },
+                    onNextClick = { /* TODO */ },
+                )
+            },
         )
 
         Spacer(modifier = Modifier.height(44.49f.scaler))
