@@ -55,6 +55,7 @@ internal fun CurationTopHeader(
     contentTopOffset: Dp, // 로고 + 제목 + 설명이 세트가 y좌표가 유동적이라 추가했습니다(다현아 살려줘)
     showTwinkle: Boolean = true, // 기본적으로 true인데, 일부 false 있음. 그래서 기본값은 true
     title: String, // 빈 값 불가함.
+    titleContent: (@Composable () -> Unit)? = null,
     titleDescriptionGap: Dp = 18.49f.scaler, // 제목이랑 묘사 사이는 대부분 18.49f인데, 일부 12가 있어서.. 추가함..
     description: String, // 빈 값 불가함.
     isLoading: Boolean = false, // true면 title·description을 스켈레톤으로 대체
@@ -121,7 +122,9 @@ internal fun CurationTopHeader(
                     color = colorTheme.gray[300]
                 )
             } else {
-                if (title.isNotEmpty()) {
+                if (titleContent != null) {
+                    titleContent()
+                } else if (title.isNotEmpty()) {
                     Text(
                         text = title,
                         textAlign = TextAlign.Center,

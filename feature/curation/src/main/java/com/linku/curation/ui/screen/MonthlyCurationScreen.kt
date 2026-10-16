@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.linku.curation.ui.header.CurationTopHeader
+import com.linku.curation.ui.header.YearSelector
 import com.linku.curation.ui.monthly.MonthlyCurationGrid
 import com.linku.curation.viewModel.CurationHistoryViewModel
 import com.linku.curation.viewModel.intent.CurationHistoryIntent
@@ -124,12 +125,22 @@ private fun MonthlyCurationScreenContent(
             .fillMaxSize()
             .background(colorTheme.white)
     ) {
+
         CurationTopHeader(
             onBackClick = onBackClick,
             contentTopOffset = 92.scaler,
-            title = "${year}년",
+            title = "",                       // 슬롯을 쓰니 비워둬요 (title은 필수 파라미터)
             description = "월간 큐레이션",
-            titleDescriptionGap = 8.scaler // 피그마상 12인데 아무리 봐도 12간격으로는... 피그마랑 다른데? 6로 했는데 디자이너와 조정해주세용
+            titleDescriptionGap = 8.scaler,
+            titleContent = {
+                YearSelector(
+                    year = year,
+                    isPrevEnabled = true,
+                    isNextEnabled = true,
+                    onPrevClick = { /* TODO */ },
+                    onNextClick = { /* TODO */ },
+                )
+            },
         )
 
         Spacer(modifier = Modifier.height(44.49f.scaler))

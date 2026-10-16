@@ -1036,7 +1036,10 @@ fun MainApp(
 
                                     navigator.navigate(
                                         linkDetailRoute(saved.userLinkuId),
-                                    )
+                                    ){
+                                        popUpTo(NavigationRoute.Home.route)
+                                        launchSingleTop = true
+                                    }
                                 },
                                 onFailed = { error ->
                                     Log.e(
