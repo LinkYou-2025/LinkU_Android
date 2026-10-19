@@ -1,4 +1,4 @@
-package com.linku.data.preference
+package com.linku.core.preference
 
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.UserSession

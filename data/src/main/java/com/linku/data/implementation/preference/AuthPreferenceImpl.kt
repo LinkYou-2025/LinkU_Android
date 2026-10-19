@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.UserSession
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first

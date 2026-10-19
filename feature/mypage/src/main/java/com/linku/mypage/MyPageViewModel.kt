@@ -8,7 +8,7 @@ import com.linku.core.model.auth.UserSession
 import com.linku.core.repository.AlarmRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.LogoutUseCase
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

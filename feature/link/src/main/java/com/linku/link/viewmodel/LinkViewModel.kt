@@ -18,7 +18,7 @@ import com.linku.core.usecase.CheckLinkUseCase
 import com.linku.core.util.UrlValidationResult
 import com.linku.core.util.validateUrlInput
 import com.linku.data.analytics.FirebaseAnalyticsLogger
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.linku.link.util.toToastMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException

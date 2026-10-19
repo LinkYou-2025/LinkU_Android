@@ -38,6 +38,10 @@ android {
         compose = true
         buildConfig = true
     }
+    testOptions {
+        // 단위 테스트에서 android.util.Log 같은 프레임워크 호출이 예외 대신 기본값을 돌려주게 함.
+        unitTests.isReturnDefaultValues = true
+    }
 /*    kotlinOptions {
         jvmTarget = "11"
     }*/

@@ -17,7 +17,7 @@ import com.linku.core.model.auth.Purpose
 import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.analytics.FirebaseAnalyticsLogger
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.linku.login.R
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer

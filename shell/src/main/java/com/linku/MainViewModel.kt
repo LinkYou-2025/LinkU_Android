@@ -16,7 +16,7 @@ import com.linku.core.usecase.FirstPushAlarmAllowedUseCase
 import com.linku.core.usecase.ReRegisterFcmTokenUseCase
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.linku.core.preference.NotificationPreference
 import com.linku.share.SharedUrlParseResult
 import com.linku.share.parseSharedUrl

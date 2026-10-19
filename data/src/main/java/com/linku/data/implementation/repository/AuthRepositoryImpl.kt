@@ -23,7 +23,7 @@ import com.linku.data.api.dto.auth.signup.email.SignUpEmailRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
 import com.linku.data.mapper.SocialProfileMapper
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 

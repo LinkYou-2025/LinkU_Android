@@ -9,7 +9,7 @@ import com.linku.core.model.UserInfo
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.repository.AuthRepository
 import com.linku.core.repository.UserRepository
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.linku.mypage.intent.EditUserInfoIntent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
