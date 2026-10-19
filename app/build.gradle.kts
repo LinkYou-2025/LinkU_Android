@@ -169,6 +169,7 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:file"))
     implementation(project(":feature:curation"))
+    implementation(project(":feature:link"))
     implementation(project(":feature:mypage"))
     implementation(project(":core"))
     implementation(project(":data"))

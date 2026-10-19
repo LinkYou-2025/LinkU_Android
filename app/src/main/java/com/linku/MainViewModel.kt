@@ -34,6 +34,9 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 import javax.inject.Inject
 
+/** 서버에 전달하는 핸드폰 기기 종류 값입니다. */
+private const val DEVICE_TYPE_PHONE = "PHONE"
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     application: Application,
@@ -219,10 +222,12 @@ class MainViewModel @Inject constructor(
 
 
     // 디바이스 정보 초기화 비즈니스 로직 내포
-    fun initDeviceInfo(deviceType: String) {
+    // TODO: 현재는 핸드폰만 지원하므로 기기 종류를 "PHONE"으로 고정함. 태블릿을 지원하게 되면
+    //  smallestScreenWidthDp(600 이상이면 "TABLET") 기준으로 다시 판별해야 함.
+    fun initDeviceInfo() {
         viewModelScope.launch {
             val uniqueDeviceId = "android-${UUID.randomUUID()}"
-            authPreference.initDeviceInfo(uniqueDeviceId, deviceType)
+            authPreference.initDeviceInfo(uniqueDeviceId, DEVICE_TYPE_PHONE)
         }
     }
 

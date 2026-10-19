@@ -38,10 +38,10 @@ import com.linku.core.error.DeepLinkError
 import com.linku.core.model.CategoryType
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
-import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.util.toImageUrl
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
+import com.linku.curation.navigation.CurationRoute
 import com.linku.curation.navigation.curationGraph
 import com.linku.deeplink.CUSTOM_SCHEME_OPEN_DEEP_LINK_URI_PATTERN
 import com.linku.deeplink.DeepLinkHandlerViewModel
@@ -68,17 +68,16 @@ import com.linku.home.component.ObserveClipboardLinkOnAppEntry
 import com.linku.home.model.ClipboardLinkCandidate
 import com.linku.home.screen.AlarmScreen
 import com.linku.home.screen.NoticeScreen
-import com.linku.home.viewmodel.AIArticleViewModel
-import com.linku.home.viewmodel.LinkViewModel
-import com.linku.link.component.LinkCategoryOption
+import com.linku.link.viewmodel.LinkViewModel
+import com.linku.link.navigation.LinkRoute
+import com.linku.link.navigation.linkGraph
 import com.linku.link.screen.LinkDetailLoadErrorScreen
 import com.linku.link.screen.LinkDetailLoadingScreen
 import com.linku.link.screen.LinkDetailScreen
 import com.linku.link.screen.SaveLinkScreen
 import com.linku.link.screen.SharedLinkDetailScreen
-import com.linku.link.screen.verifiedLinkDetailJobId
 import com.linku.link.util.toTempFile
-import com.linku.login.navigation.LoginApp
+import com.linku.login.navigation.loginGraph
 import com.linku.login.viewmodel.LoginViewModel
 import com.linku.mypage.MyPageApp
 import com.linku.mypage.MyPageViewModel
@@ -86,29 +85,12 @@ import com.linku.mypage.NotificationViewModel
 import com.linku.mypage.screen.AlarmSettingScreen
 import com.linku.navigation.DoubleBackToExitIfTop
 import com.linku.navigation.LinkuNavigationItem
+import com.linku.navigation.handleLoginSuccess
 import com.linku.search.SearchViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.coroutines.cancellation.CancellationException
-
-private const val LINK_DETAIL_USER_LINKU_ID_ARGUMENT = "userLinkuId"
-private const val LINK_DETAIL_ROUTE_PATTERN =
-    "savelinkresult/{$LINK_DETAIL_USER_LINKU_ID_ARGUMENT}"
-
-/** 새 링크 정보를 입력하는 앱 루트 경로입니다. */
-private const val SAVE_LINK_ROUTE = "savelink"
-
-private fun linkDetailRoute(userLinkuId: Long): String =
-    "savelinkresult/$userLinkuId"
-
-/**
- * 공유폴더 링크의 읽기 전용 상세 화면 경로입니다.
- *
- * 공유폴더 링크는 소유자 상세 API를 호출할 수 없어(다른 사용자 소유라 404), 목록 조회 시점의
- * 값을 [FolderStateViewModel.selectedSharedLink]에 담아 인자 없이 이 경로로만 이동합니다.
- */
-private const val SHARED_LINK_DETAIL_ROUTE = "sharedlinkdetail"
 
 /**
  * 앱 전역 UI와 내비게이션 그래프를 구성하고 딥링크 및 로그인 후 화면 전환을 연결합니다.
@@ -124,7 +106,6 @@ fun MainApp(
 ) {
     val context = LocalContext.current
     val deepLinkHost = BuildConfig.SERVER_HOST
-    val app = LocalContext.current.applicationContext
 
     var showPushAlarmDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -143,9 +124,7 @@ fun MainApp(
 
 
     LaunchedEffect(Unit) {
-        val smallestWidth = app.resources.configuration.smallestScreenWidthDp
-        val deviceType = if (smallestWidth >= 600) "TABLET" else "PHONE"
-        viewModel.initDeviceInfo(deviceType)
+        viewModel.initDeviceInfo()
     }
 
     val navigator = rememberNavController()
@@ -168,7 +147,7 @@ fun MainApp(
         if (previousLoggedIn == true && isLoggedIn == false &&
             navigator.currentDestination?.route != NavigationRoute.Login.route
         ) {
-            navigator.navigate("login_root") {
+            navigator.navigate(NavigationRoute.Login.route) {
                 popUpTo(navigator.graph.id) { inclusive = true }
                 launchSingleTop = true
             }
@@ -272,9 +251,9 @@ fun MainApp(
     // 탭별 showNavBar 상태는 보존하고 앱 루트의 링크 저장·상세 화면에서는 하단 네비게이션을 가립니다.
     val shouldShowNavigationBar =
         showNavBar &&
-                currentRoute != SAVE_LINK_ROUTE &&
-                currentRoute != LINK_DETAIL_ROUTE_PATTERN &&
-                currentRoute != SHARED_LINK_DETAIL_ROUTE
+                currentRoute != LinkRoute.SAVE_LINK &&
+                currentRoute != LinkRoute.LINK_DETAIL_PATTERN &&
+                currentRoute != LinkRoute.SHARED_LINK_DETAIL
 
     // 기기 3대까지 지원하므로 다른 기기에서 닉네임을 바꾸면 즉시 반영되도록 Home/Curation
     // 진입마다 재호출함. 로그인 시점 선호출(MainViewModel.setAuthenticated)과 별개로 유지.
@@ -292,13 +271,13 @@ fun MainApp(
         when (type) {
             AlarmType.NOTICE -> {
                 showNavBar = false
-                navigator.navigate("notice_screen/$targetId") {
+                navigator.navigate(NavigationRoute.Notice.create(targetId)) {
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
             }
             AlarmType.LINK -> {
                 val userLinkuId = targetId
-                navigator.navigate(linkDetailRoute(userLinkuId)) {
+                navigator.navigate(LinkRoute.linkDetail(userLinkuId)) {
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
             }
@@ -311,7 +290,7 @@ fun MainApp(
                 val localMonth = "%04d-%02d".format(
                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1
                 )
-                navigator.navigate("curation/detail/$localMonth/$targetId") {
+                navigator.navigate(CurationRoute.detail(localMonth, targetId)) {
                     popUpTo(NavigationRoute.Home.route) { inclusive = false }
                 }
             }
@@ -330,7 +309,7 @@ fun MainApp(
     fun navigateToSaveLinkWithUrl(url: String) {
         linkViewModel.resetSaveForm()
         linkViewModel.setSaveUrl(url)
-        navigator.navigate(SAVE_LINK_ROUTE) {
+        navigator.navigate(LinkRoute.SAVE_LINK) {
             launchSingleTop = true
         }
     }
@@ -397,8 +376,8 @@ fun MainApp(
 
         // 큐레이션은 하위 라우트 존재(디테일 뭐 등등)
         isTabRoute(currentRoute, NavigationRoute.Home.route) ||
-                currentRoute == SAVE_LINK_ROUTE ||
-                currentRoute == LINK_DETAIL_ROUTE_PATTERN -> LinkuNavigationItem.HOME
+                currentRoute == LinkRoute.SAVE_LINK ||
+                currentRoute == LinkRoute.LINK_DETAIL_PATTERN -> LinkuNavigationItem.HOME
         isTabRoute(currentRoute, NavigationRoute.File.route) -> LinkuNavigationItem.FILE
         isTabRoute(currentRoute, NavigationRoute.MyPage.route) -> LinkuNavigationItem.MY_PAGE
         else -> null
@@ -417,7 +396,7 @@ fun MainApp(
 
     LaunchedEffect(saveLinkEntryTriggered) {
         if (saveLinkEntryTriggered) {
-            navigator.navigate(SAVE_LINK_ROUTE)
+            navigator.navigate(LinkRoute.SAVE_LINK)
             saveLinkEntryTriggered = false
         }
     }
@@ -493,7 +472,7 @@ fun MainApp(
                     onQueryClear = searchViewModel::clearRecentQueries,
                     onLinkClick = { userLinkuId ->
                         searchViewModel.dismissSearch()
-                        navigator.navigate(linkDetailRoute(userLinkuId))
+                        navigator.navigate(LinkRoute.linkDetail(userLinkuId))
                     },
                     searchResults = searchResults,
                     uiState = searchUiState,
@@ -580,188 +559,32 @@ fun MainApp(
                     }
                 }
 
-                composable(NavigationRoute.Login.route) {
-                    LaunchedEffect(Unit) { showNavBar = false }
-                    val loginScope = rememberCoroutineScope()
-
-                    /**
-                     * 비동기 로그인 결과가 도착한 시점에도 로그인 화면에 있을 때만 대상 화면으로 이동합니다.
-                     *
-                     * @param route 로그인 화면에서 전환할 목적지 경로
-                     */
-                    fun navigateFromLoginTo(route: String) {
-                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
-                            showNavBar = route != NavigationRoute.Login.route
-                            navigator.navigate(route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-
-                    /**
-                     * 로그인 화면에서 초대 수락 결과에 맞는 공유 폴더 화면을 새 루트로 엽니다.
-                     *
-                     * @param acceptedResult 상세로 열 초대 수락 결과. 목록 갱신에 실패한 부분 성공이면
-                     * `null`을 전달해 공유 폴더 그룹 화면으로 대체합니다.
-                     */
-                    fun openSharedFoldersFromLogin(
-                        acceptedResult: AcceptSharedFolderInvitationResult.Accepted? = null,
-                    ) {
-                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
-                            showNavBar = true
-                            if (acceptedResult == null) {
-                                folderStateViewModel.resetSharedFolderState()
-                                folderStateViewModel.showSharedFolderGroups()
-                            } else {
-                                folderStateViewModel.showAcceptedSharedFolder(acceptedResult)
-                            }
-
-                            navigator.navigate(NavigationRoute.File.route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-
-                    /**
-                     * 보류 중인 초대 처리 실패를 알리고 일반 폴더 상태로 홈 화면을 새 루트로 엽니다.
-                     *
-                     * @param messageResId 실패 원인을 안내할 문자열 리소스 ID
-                     */
-                    fun handlePendingInvitationFailure(messageResId: Int) {
-                        if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
-                            showNavBar = true
-                            folderStateViewModel.resetSharedFolderState()
-                            folderStateViewModel.updateIsSharedFolders(false)
-                            Toast.makeText(
-                                context,
-                                messageResId,
-                                Toast.LENGTH_SHORT,
-                            ).show()
-
-                            navigator.navigate(NavigationRoute.Home.route) {
-                                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        }
-                    }
-
-                    LoginApp(
-                        //navController = navigator,
-                        loginViewModel = loginViewModel,
-                        onEdgeToEdgeChange = { hideStatusBar, hideNavBar ->
-                            edgeToEdgeSystemBars = hideStatusBar
-                            hideNavigationBar = hideNavBar
-                        },
-                        onLoginSuccess = {
-                            showNavBar = true
-                            viewModel.setAuthenticated(true)
-                            edgeToEdgeSystemBars = false
-                            hideNavigationBar = false
-
-                            // 보류된 초대 토큰을 먼저 처리하고, 없으면 공유 폴더 ID를 처리합니다.
-                            // 둘 다 없을 때만 정상 로그인 경로로 홈 화면을 엽니다.
-                            val pendingInvitationToken =
-                                deepLinkViewModel.consumePendingInvitation()
-
-                            if (pendingInvitationToken.isNotBlank()) {
-                                loginScope.launch {
-                                    when (val result = fileViewModel.receiveSharedFolderInvitation(
-                                        pendingInvitationToken
-                                    )) {
-                                        is AcceptSharedFolderInvitationResult.Accepted -> {
-                                            openSharedFoldersFromLogin(result)
-                                        }
-
-                                        is AcceptSharedFolderInvitationResult.AcceptedButRefreshFailed -> {
-                                            // 초대 수락은 완료되었으므로 갱신 실패를 알리고 공유 폴더를 엽니다.
-                                            Toast.makeText(
-                                                context,
-                                                R.string.share_folder_refresh_failed,
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                            openSharedFoldersFromLogin()
-                                        }
-
-                                        is AcceptSharedFolderInvitationResult.AuthenticationRequired -> {
-                                            // 소비한 토큰을 복원해 다음 로그인 성공 후 초대 수락을 재시도합니다.
-                                            deepLinkViewModel.setPendingInvitation(
-                                                pendingInvitationToken
-                                            )
-                                            Toast.makeText(
-                                                context,
-                                                R.string.authentication_required,
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                            navigateFromLoginTo(NavigationRoute.Login.route)
-                                        }
-
-                                        is AcceptSharedFolderInvitationResult.InvalidInvitation -> {
-                                            handlePendingInvitationFailure(
-                                                R.string.invalid_share_link
-                                            )
-                                        }
-
-                                        is AcceptSharedFolderInvitationResult.NetworkFailure -> {
-                                            handlePendingInvitationFailure(
-                                                R.string.network_error
-                                            )
-                                        }
-
-                                        is AcceptSharedFolderInvitationResult.Failure -> {
-                                            handlePendingInvitationFailure(
-                                                R.string.undefined_behavior
-                                            )
-                                        }
-                                    }
-                                }
-                                return@LoginApp
-                            }
-
-                            deepLinkViewModel.consumePendingShare()?.let { folderId ->
-                                showNavBar = true
-                                fileViewModel.receiveSharedFolder(folderId)
-                                folderStateViewModel.resetSharedFolderState()
-                                folderStateViewModel.updateIsSharedFolders(true)
-
-                                navigator.navigate(NavigationRoute.File.route) {
-                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                                return@LoginApp
-                            }
-
-                            // 수동 로그인 성공 후 pending 알림 처리
-                            viewModel.consumePendingNotification()?.let {
-                                loginScope.launch {
-                                    // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
-                                    // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
-                                    viewModel.awaitCachedNickname()
-                                    navigator.navigate(NavigationRoute.Home.route) {
-                                        popUpTo("login_root") { inclusive = true }
-                                        launchSingleTop = true
-                                    }
-                                    navigateByNotification(it.type, it.targetId)
-                                }
-                                return@LoginApp
-                            }
-
-                            // pending 알림이 없는 경우의 기본 동작
-
-                            showNavBar = true
-                            loginScope.launch {
-                                // 캐시된 닉네임을 먼저 반영한 뒤 홈으로 이동해야 "링큐" 기본값이
-                                // 잠깐 보였다가 실제 닉네임으로 바뀌는 깜빡임이 없음.
-                                viewModel.awaitCachedNickname()
-                                navigator.navigate(NavigationRoute.Home.route) {
-                                    popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                                    launchSingleTop = true
-                                }
-                            }
-                        }
-                    )
-                }
+                loginGraph(
+                    route = NavigationRoute.Login.route,
+                    loginViewModel = loginViewModel,
+                    onEnter = { showNavBar = false },
+                    onEdgeToEdgeChange = { hideStatusBar, hideNavBar ->
+                        edgeToEdgeSystemBars = hideStatusBar
+                        hideNavigationBar = hideNavBar
+                    },
+                    onLoginSuccess = { loginScope ->
+                        handleLoginSuccess(
+                            scope = loginScope,
+                            context = context,
+                            navigator = navigator,
+                            viewModel = viewModel,
+                            fileViewModel = fileViewModel,
+                            folderStateViewModel = folderStateViewModel,
+                            deepLinkViewModel = deepLinkViewModel,
+                            setShowNavBar = { showNavBar = it },
+                            onEdgeToEdgeChange = { hideStatusBar, hideNavBar ->
+                                edgeToEdgeSystemBars = hideStatusBar
+                                hideNavigationBar = hideNavBar
+                            },
+                            navigateByNotification = ::navigateByNotification,
+                        )
+                    },
+                )
 
 
                 with(NavigationRoute.Home) {
@@ -783,7 +606,7 @@ fun MainApp(
                                 navigateToSaveLinkWithUrl(url)
                             },
                             onNavigateToLinkDetail = { userLinkuId ->
-                                navigator.navigate(linkDetailRoute(userLinkuId))
+                                navigator.navigate(LinkRoute.linkDetail(userLinkuId))
                             },
                             onDeleteLink = { userLinkuId, onSuccess, onFailed ->
                                 linkViewModel.deleteLink(
@@ -813,10 +636,10 @@ fun MainApp(
                             fileViewModel = fileViewModel,
                             folderStateViewModel = folderStateViewModel,
                             onNavigateToLinkDetail = { userLinkuId ->
-                                navigator.navigate(linkDetailRoute(userLinkuId))
+                                navigator.navigate(LinkRoute.linkDetail(userLinkuId))
                             },
                             onNavigateToSharedLinkDetail = {
-                                navigator.navigate(SHARED_LINK_DETAIL_ROUTE)
+                                navigator.navigate(LinkRoute.SHARED_LINK_DETAIL)
                             },
                             onSearchOpen = searchViewModel::openSearch,
                         )
@@ -831,7 +654,7 @@ fun MainApp(
                     nickname = { nickname.orEmpty().ifBlank { "링큐" } },
                     onNavigateToSaveLink = { saveLinkEntryTriggered = true },
                     onNavigateToLinkDetail = { userLinkuId ->
-                        navigator.navigate(linkDetailRoute(userLinkuId))
+                        navigator.navigate(LinkRoute.linkDetail(userLinkuId))
                     },
                 )
 
@@ -900,7 +723,7 @@ fun MainApp(
                                 navigator.navigate(NavigationRoute.Alarm.route)
                             },
                             onNavigateToLinkDetail = { userLinkuId ->
-                                navigator.navigate(linkDetailRoute(userLinkuId))
+                                navigator.navigate(LinkRoute.linkDetail(userLinkuId))
                             },
                             onDeleteLink = { userLinkuId, onSuccess, onFailed ->
                                 linkViewModel.deleteLink(
@@ -947,7 +770,7 @@ fun MainApp(
                             },
                             onNavigateToLinkDetail = { targetId ->
                                 val userLinkuId = targetId
-                                navigator.navigate(linkDetailRoute(userLinkuId))
+                                navigator.navigate(LinkRoute.linkDetail(userLinkuId))
                             },
                             onNavigateToFolder = { /* TODO */ },
                             onNavigateToCuration = { targetId ->
@@ -958,11 +781,11 @@ fun MainApp(
                                 val localMonth = "%04d-%02d".format(
                                     cal.get(Calendar.YEAR), cal.get(Calendar.MONTH) + 1
                                 )
-                                navigator.navigate("curation/detail/$localMonth/$targetId")
+                                navigator.navigate(CurationRoute.detail(localMonth, targetId))
                             },
                             onNavigateToNotice = { targetId ->
                                 showNavBar = false
-                                navigator.navigate("notice_screen/$targetId")
+                                navigator.navigate(NavigationRoute.Notice.create(targetId))
                             }
                         )
                     }
@@ -970,7 +793,7 @@ fun MainApp(
 
                 composable(
                     route = NavigationRoute.Notice.route,
-                    arguments = listOf(navArgument("targetId") { type = NavType.LongType })
+                    arguments = listOf(navArgument(NavigationRoute.Notice.ARG_TARGET_ID) { type = NavType.LongType })
                 ) {
                     LaunchedEffect(Unit) { showNavBar = false }
                     NoticeScreen(
@@ -982,321 +805,13 @@ fun MainApp(
                     )
                 }
 
-                composable(SAVE_LINK_ROUTE) {
-                    val context = LocalContext.current
-                    val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
-
-                    fun exitSaveLinkScreen() {
-                        linkViewModel.resetSaveForm()
-                        navigator.popBackStack()
-                    }
-
-                    BackHandler {
-                        exitSaveLinkScreen()
-                    }
-
-                    SaveLinkScreen(
-                        image = linkUiState.saveImage,
-                        url = linkUiState.saveUrl,
-                        title = linkUiState.saveTitle,
-                        memo = linkUiState.saveMemo,
-                        selectedEmotionId =
-                            linkUiState.selectedSaveEmotionId,
-                        selectedSituationId =
-                            linkUiState.selectedSaveSituationId,
-                        jobId = linkUiState.jobId ?: 3L,
-                        onImageSelected = linkViewModel::setSaveImage,
-                        onImageLoadFailed = {
-                            Toast.makeText(
-                                context,
-                                "이미지 로드에 실패했습니다.",
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                        },
-                        onDeleteImage = linkViewModel::deleteSaveImage,
-                        onUrlChange = linkViewModel::setSaveUrl,
-                        onTitleChange = linkViewModel::setSaveTitle,
-                        onMemoChange = linkViewModel::setSaveMemo,
-                        onEmotionSelect =
-                            linkViewModel::selectSaveEmotion,
-                        onSituationClick =
-                            linkViewModel::onSaveSituationClick,
-                        onBack = {
-                            exitSaveLinkScreen()
-                        },
-                        isSaveButtonEnabled =
-                            linkUiState.isSaveButtonEnabled,
-                        onSaveButtonClick = {
-                            linkViewModel.onSaveButtonClick(
-                                onSucceed = { saved ->
-                                    linkViewModel.loadLinkDetail(
-                                        saved.userLinkuId,
-                                    )
-                                    linkViewModel.resetSaveForm()
-
-                                    navigator.navigate(
-                                        linkDetailRoute(saved.userLinkuId),
-                                    ){
-                                        popUpTo(NavigationRoute.Home.route)
-                                        launchSingleTop = true
-                                    }
-                                },
-                                onFailed = { error ->
-                                    Log.e(
-                                        "SaveLink",
-                                        "failed",
-                                        error,
-                                    )
-                                },
-                            )
-                        },
-                        toastEvent = linkViewModel.toastEvent,
-                    )
-                }
-
-
-                composable(
-                    route = LINK_DETAIL_ROUTE_PATTERN,
-                    arguments = listOf(
-                        navArgument(LINK_DETAIL_USER_LINKU_ID_ARGUMENT) {
-                            type = NavType.LongType
-                        }
-                    )
-                ) { backStackEntry ->
-                    val context = LocalContext.current
-                    val detailCoroutineScope = rememberCoroutineScope()
-                    val linkUiState by linkViewModel.uiState.collectAsStateWithLifecycle()
-
-                    val userLinkuId = backStackEntry.arguments
-                        ?.takeIf { it.containsKey(LINK_DETAIL_USER_LINKU_ID_ARGUMENT) }
-                        ?.getLong(LINK_DETAIL_USER_LINKU_ID_ARGUMENT)
-                        ?.takeIf { it > 0L }
-                        ?: return@composable
-
-                    val aiArticleViewModel: AIArticleViewModel = hiltViewModel(backStackEntry)
-                    val aiArticleUiState by aiArticleViewModel.uiState.collectAsStateWithLifecycle()
-
-                    var selectedDetailImageUri by rememberSaveable(userLinkuId) {
-                        mutableStateOf<Uri?>(null)
-                    }
-                    var detailUserJobRequestFloor by remember(backStackEntry.id) {
-                        mutableStateOf<Long?>(null)
-                    }
-
-                    val detailImagePicker = rememberLauncherForActivityResult(
-                        contract = ActivityResultContracts.GetContent()
-                    ) { uri: Uri? ->
-                        selectedDetailImageUri = uri
-                    }
-
-                    LaunchedEffect(backStackEntry.id, userLinkuId) {
-                        // 같은 링크를 다시 열어도 이번 상세 진입 이후 성공한 직업 조회만 사용합니다.
-                        detailUserJobRequestFloor = linkViewModel.loadUserBasics()
-                        linkViewModel.loadLinkDetail(userLinkuId)
-                        linkViewModel.loadLinkEditCategories()
-                    }
-
-                    fun emotionNameOf(id: Long?): String {
-                        return when (id) {
-                            1L -> "즐거움"
-                            2L -> "평온"
-                            3L -> "설렘"
-                            4L -> "슬픔"
-                            5L -> "짜증"
-                            6L -> "분노"
-                            else -> "감정"
-                        }
-                    }
-
-                    val linkEditCategories = linkUiState.linkEditCategories
-                    val fallbackCategoryColorStyle = CategoryColorStyle.DEFAULT
-
-                    // 기존 공통 매핑을 읽기 전용으로 재사용해 서버의 네 가지 색상 단계를 보존합니다.
-                    val categoryColorMap = remember(linkEditCategories) {
-                        runCatching {
-                            linkEditCategories.toCategoryColorStyleMap()
-                        }.getOrDefault(emptyMap())
-                    }
-
-                    // 원본 목록 순서와 실제 ID를 유지하면서 이름과 색상 스타일을 UI 항목으로 묶습니다.
-                    val categoryOptions = remember(
-                        linkEditCategories,
-                        categoryColorMap,
-                        fallbackCategoryColorStyle,
-                    ) {
-                        linkEditCategories.map { category ->
-                            LinkCategoryOption(
-                                id = category.categoryId,
-                                name = category.categoryName,
-                                colorStyle = categoryColorMap[category.categoryName]
-                                    ?: fallbackCategoryColorStyle,
-                            )
-                        }
-                    }
-
-                    // 라우트 ID와 일치하는 상세만 실제 화면에 전달해 이전 링크가 한 프레임도 노출되지 않게 합니다.
-                    val linkDetail = linkUiState.linkDetail?.takeIf { detail ->
-                        detail.userLinkuId == userLinkuId
-                    }
-                    val detailJobId = verifiedLinkDetailJobId(
-                        jobId = linkUiState.jobId,
-                        minimumUserJobRequestId = detailUserJobRequestFloor,
-                        currentUserJobRequestId = linkUiState.userJobRequestId,
-                        isUserJobReady = linkUiState.isUserJobReady,
-                    )
-                    val verifiedDetailUserJobRequestId =
-                        linkUiState.userJobRequestId.takeIf { detailJobId != null }
-
-                    LaunchedEffect(
-                        linkDetail?.keyword,
-                        linkDetail?.summary,
-                    ) {
-                        aiArticleViewModel.setLinkContent(
-                            keyword = linkDetail?.keyword,
-                            summary = linkDetail?.summary,
-                        )
-                    }
-
-                    when {
-                        linkDetail != null -> {
-                            // 동일 ID 콘텐츠는 서버 재검증 중에도 유지하며 스켈레톤으로 다시 덮지 않습니다.
-                            LinkDetailScreen(
-                                userLinkuId = userLinkuId,
-                                linkTitle = linkDetail.title,
-                                categoryId = linkDetail.categoryId,
-                                emotion = emotionNameOf(linkDetail.emotionId),
-                                situationId = linkDetail.situationId,
-                                jobId = detailJobId,
-                                linkUrl = linkDetail.linku,
-                                imageUrl = linkDetail.linkuImageUrl.toImageUrl(),
-                                selectedImageUri = selectedDetailImageUri,
-                                memo = linkDetail.memo.orEmpty(),
-                                tags = aiArticleUiState.displayTags,
-                                aiSummary = aiArticleUiState.displaySummary,
-                                isAiArticleLoading = aiArticleUiState.isLoading,
-                                aiArticleErrorMessage = aiArticleUiState.errorMessage,
-                                onRequestAiArticle = aiArticleViewModel::getAiArticle,
-                                onClearAiArticleError =
-                                    aiArticleViewModel::clearErrorMessage,
-                                categoryOptions = categoryOptions,
-                                onBack = {
-                                    navigator.popBackStack()
-                                },
-                                onPickImage = {
-                                    detailImagePicker.launch("image/*")
-                                },
-                                onDiscardSelectedImage = {
-                                    selectedDetailImageUri = null
-                                },
-                                onSubmitEdit = { title, memo, categoryId, emotionId, situationIdToUpdate, onSuccess, onFailed ->
-                                    val expectedUserJobRequestId =
-                                        verifiedDetailUserJobRequestId
-                                    detailCoroutineScope.launch {
-                                        val selectedTempImage = runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                selectedDetailImageUri?.toTempFile(context)
-                                            }
-                                        }.getOrElse { error ->
-                                            LinkuLog.e(
-                                                "LinkDetail",
-                                                "selected image conversion failed",
-                                                error,
-                                            )
-                                            onFailed()
-                                            return@launch
-                                        }
-
-                                        linkViewModel.updateLink(
-                                            expectedUserLinkuId = userLinkuId,
-                                            image = selectedTempImage,
-                                            title = title,
-                                            memo = memo,
-                                            categoryId = categoryId,
-                                            emotionId = emotionId,
-                                            situationIdToUpdate = situationIdToUpdate,
-                                            expectedUserJobRequestId = expectedUserJobRequestId,
-                                            onSucceed = {
-                                                selectedDetailImageUri = null
-                                                homeViewModel.loadRecentLinks()
-                                                onSuccess()
-                                            },
-                                            onFailed = { error ->
-                                                LinkuLog.e(
-                                                    "LinkDetail",
-                                                    "update failed",
-                                                    error,
-                                                )
-                                                onFailed()
-                                            },
-                                        )
-                                    }
-                                },
-                                onDeleteLink = { onSuccess, onFailed ->
-                                    linkViewModel.deleteCurrentLink(
-                                        onSucceed = {
-                                            homeViewModel.refreshHomeData()
-                                            onSuccess()
-                                        },
-                                        onFailed = {
-                                            onFailed()
-                                        },
-                                    )
-                                }
-                            )
-                        }
-
-                        linkUiState.requestedLinkDetailId == userLinkuId &&
-                            !linkUiState.isLoadingLinkDetail &&
-                            linkUiState.linkDetailLoadError != null -> {
-                            LinkDetailLoadErrorScreen(
-                                onBack = {
-                                    navigator.popBackStack()
-                                },
-                                onRetry = {
-                                    linkViewModel.loadLinkDetail(
-                                        userLinkuId = userLinkuId,
-                                        forceRefresh = true,
-                                    )
-                                },
-                            )
-                        }
-
-                        else -> {
-                            // 첫 composition에서도 ID가 다른 이전 상세 대신 곧바로 스켈레톤을 렌더링합니다.
-                            LinkDetailLoadingScreen(
-                                onBack = {
-                                    navigator.popBackStack()
-                                },
-                            )
-                        }
-                    }
-                }
-
-                composable(route = SHARED_LINK_DETAIL_ROUTE) {
-                    val sharedLink = folderStateViewModel.selectedSharedLink
-
-                    if (sharedLink == null) {
-                        LaunchedEffect(Unit) { navigator.popBackStack() }
-                    } else {
-                        // 서버 카테고리 목록은 소유자별로 다를 수 있어, 고정된 16종 카테고리
-                        // 마스터(CategoryType)로 categoryId를 이름·색상에 매핑합니다.
-                        val sharedLinkCategoryType = sharedLink.categoryId?.let { categoryId ->
-                            CategoryType.fromId(categoryId)
-                        }
-
-                        SharedLinkDetailScreen(
-                            linkTitle = sharedLink.title,
-                            linkUrl = sharedLink.url,
-                            imageUrl = sharedLink.linkuImageUrl,
-                            tags = sharedLink.tags,
-                            categoryName = sharedLinkCategoryType?.tagName ?: "카테고리",
-                            categoryColorStyle = sharedLinkCategoryType?.let { categoryType ->
-                                CategoryColorStyle.categoryStyleList.getOrNull(categoryType.ordinal)
-                            } ?: CategoryColorStyle.DEFAULT,
-                            onBack = { navigator.popBackStack() },
-                        )
-                    }
-                }
+                linkGraph(
+                    navigator = navigator,
+                    linkViewModel = linkViewModel,
+                    selectedSharedLink = { folderStateViewModel.selectedSharedLink },
+                    onLinkUpdated = homeViewModel::loadRecentLinks,
+                    onLinkDeleted = homeViewModel::refreshHomeData,
+                )
 
                 composable(
                     route = OPEN_DEEP_LINK_ROUTE,
