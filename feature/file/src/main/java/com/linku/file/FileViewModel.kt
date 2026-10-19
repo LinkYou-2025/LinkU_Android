@@ -30,7 +30,7 @@ import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
 import com.linku.core.usecase.GetFolderLinksUseCase
 import com.linku.data.analytics.FirebaseAnalyticsLogger
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.file.viewmodel.folder.state.SharedFolderScope

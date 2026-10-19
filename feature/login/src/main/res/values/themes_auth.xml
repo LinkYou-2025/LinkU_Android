@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 로그인 Activity 전용 테마. 첫 프레임이 그려지기 전에도 흰 배경이 비치지 않도록 창 배경을 지정함. -->
+    <style name="Theme.LinkU.Auth" parent="Theme.Material3.Light.NoActionBar">
+        <item name="android:windowBackground">@drawable/bg_auth_window</item>
+    </style>
+</resources>

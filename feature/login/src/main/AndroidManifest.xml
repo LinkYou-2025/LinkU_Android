@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <application>
+
+        <!-- 로그인/회원가입 전용 Activity. 메인 Activity가 결과 대기 방식으로 엽니다. -->
+        <activity
+            android:name="com.linku.login.AuthActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false"
+            android:theme="@style/Theme.LinkU.Auth" />
+
+    </application>
 </manifest>

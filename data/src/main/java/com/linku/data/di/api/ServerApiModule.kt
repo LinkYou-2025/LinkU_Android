@@ -6,7 +6,7 @@ import com.linku.data.api.AuthClient
 import com.linku.data.api.PublicClient
 import com.linku.data.api.ServerApi
 import com.linku.data.api.TokenAuthenticator
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides

@@ -26,7 +26,7 @@ import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
 import com.linku.data.analytics.FirebaseAnalyticsLogger
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import com.linku.data.util.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.home.model.ClipboardLinkCandidate

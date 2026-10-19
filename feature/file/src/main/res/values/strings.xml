@@ -76,4 +76,11 @@
     <string name="shared_folder_detail_title">공유 폴더</string>
     <string name="shared_folder_detail_back_description">공유폴더 목록으로 돌아가기</string>
     <string name="shared_folder_detail_more_description">공유폴더 메뉴 열기</string>
+
+    <!-- 공유 폴더 초대 딥링크 처리 결과 안내 -->
+    <string name="invalid_share_link">유효하지 않은 공유 링크입니다.</string>
+    <string name="undefined_behavior">예상치 못한 오류가 발생했습니다.</string>
+    <string name="authentication_required">로그인이 필요한 공유 링크입니다.</string>
+    <string name="network_error">네트워크 연결을 확인해주세요.</string>
+    <string name="share_folder_refresh_failed">공유 폴더를 받았지만 목록 갱신에 실패했습니다.</string>
 </resources>

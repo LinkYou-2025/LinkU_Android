@@ -115,9 +115,6 @@ dependencies {
 
 
     // 여기에 추가
-    implementation(project(":feature:home"))
-    implementation(project(":feature:curation"))
-    implementation(project(":feature:file"))
 
 
     // Retrofit2

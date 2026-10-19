@@ -3,7 +3,7 @@ package com.linku.data.api
 import android.util.Log
 import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
