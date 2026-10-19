@@ -11,7 +11,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.app.ActivityOptionsCompat
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.linku.login.AuthActivityContract
@@ -36,6 +40,7 @@ fun NavGraphBuilder.loginGraph(
     onLoginSuccess: (scope: CoroutineScope, reopenLogin: () -> Unit) -> Unit,
 ) {
     composable(route) {
+        val context = LocalContext.current
         val loginScope = rememberCoroutineScope()
 
         // 로그인 화면을 열어 달라는 요청 횟수와 실제로 연 횟수입니다. 프로세스가 재생성되어도 이미 연 요청이면
@@ -53,11 +58,23 @@ fun NavGraphBuilder.loginGraph(
             if (openedRequest != openRequest) {
                 openedRequest = openRequest
                 onEnter()
-                loginLauncher.launch(Unit)
+                // 전환 애니메이션 없이 열어 뒤의 자리표시자가 비치지 않게 합니다.
+                loginLauncher.launch(Unit, ActivityOptionsCompat.makeCustomAnimation(context, 0, 0))
             }
         }
 
-        // 로그인 Activity가 위에 떠 있는 동안과 성공 후 전환 직전의 빈 배경입니다.
-        Box(modifier = Modifier.fillMaxSize().background(Color.White))
+        // 로그인 Activity가 위에 떠 있는 동안과 성공 후 전환 직전에 보이는 배경입니다. 스플래시 마지막
+        // 단계와 로그인 화면의 그라데이션과 같은 색을 써서 화면이 끊겨 보이지 않게 합니다.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
+                        start = Offset(0f, 0f),
+                        end = Offset.Infinite,
+                    )
+                )
+        )
     }
 }

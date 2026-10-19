@@ -52,6 +52,7 @@ kotlin {
 dependencies {
 
     // design 모듈 의존성
+    api(project(":core:navigation"))
     implementation(project(":design"))
 
 

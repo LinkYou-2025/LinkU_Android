@@ -73,6 +73,9 @@ class AuthActivity : ComponentActivity() {
                         onLoginSuccess = {
                             setResult(RESULT_OK)
                             finish()
+                            // 닫히는 전환 애니메이션을 없애 메인 화면의 자리표시자가 비치지 않게 합니다.
+                            @Suppress("DEPRECATION")
+                            overridePendingTransition(0, 0)
                         },
                     )
                 }
@@ -98,7 +101,11 @@ private fun AuthScreenShell(
     var hideStatusBar by rememberSaveable { mutableStateOf(true) }
     var hideNavigationBar by rememberSaveable { mutableStateOf(true) }
     val statusBarDarkIcons = remember { mutableStateOf(true) }
-    var containerColor by remember { mutableStateOf(Color.White) }
+    var reportedContainerColor by remember { mutableStateOf(Color.White) }
+
+    // 그라데이션 몰입 화면(상태바 숨김)에서는 Scaffold를 투명하게 둬 창 배경의 그라데이션이 그대로
+    // 비치게 합니다. 화면이 그려지기 전 첫 프레임에 흰색이 보이는 것을 막기 위함입니다.
+    val containerColor = if (hideStatusBar) Color.Transparent else reportedContainerColor
 
     EdgeToEdgeSystemBars(
         statusBarDarkIcons = statusBarDarkIcons.value,
@@ -109,7 +116,7 @@ private fun AuthScreenShell(
 
     CompositionLocalProvider(
         LocalStatusBarDarkIcons provides statusBarDarkIcons,
-        LocalScaffoldBackgroundReporter provides { containerColor = it },
+        LocalScaffoldBackgroundReporter provides { reportedContainerColor = it },
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
