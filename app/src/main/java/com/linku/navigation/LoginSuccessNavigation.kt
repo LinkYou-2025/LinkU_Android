@@ -32,6 +32,7 @@ import kotlinx.coroutines.launch
  * @param setShowNavBar 하단 내비게이션 바 표시 여부를 갱신하는 함수
  * @param onEdgeToEdgeChange 상태바와 내비게이션 바 숨김 여부를 갱신하는 함수
  * @param navigateByNotification 보류된 푸시 알림 대상으로 이동하는 함수
+ * @param reopenLogin 로그인 화면을 다시 여는 함수
  */
 internal fun handleLoginSuccess(
     scope: CoroutineScope,
@@ -44,19 +45,15 @@ internal fun handleLoginSuccess(
     setShowNavBar: (Boolean) -> Unit,
     onEdgeToEdgeChange: (hideStatusBar: Boolean, hideNavigationBar: Boolean) -> Unit,
     navigateByNotification: (type: AlarmType, targetId: Long) -> Unit,
+    reopenLogin: () -> Unit,
 ) {
     /**
-     * 비동기 로그인 결과가 도착한 시점에도 로그인 화면에 있을 때만 대상 화면으로 이동합니다.
-     *
-     * @param route 로그인 화면에서 전환할 목적지 경로
+     * 비동기 로그인 결과가 도착한 시점에도 로그인 목적지에 있을 때만 로그인 화면을 다시 엽니다.
      */
-    fun navigateFromLoginTo(route: String) {
+    fun reopenLoginScreen() {
         if (navigator.currentDestination?.route == NavigationRoute.Login.route) {
-            setShowNavBar(route != NavigationRoute.Login.route)
-            navigator.navigate(route) {
-                popUpTo(NavigationRoute.Login.route) { inclusive = true }
-                launchSingleTop = true
-            }
+            setShowNavBar(false)
+            reopenLogin()
         }
     }
 
@@ -143,7 +140,7 @@ internal fun handleLoginSuccess(
                         R.string.authentication_required,
                         Toast.LENGTH_SHORT,
                     ).show()
-                    navigateFromLoginTo(NavigationRoute.Login.route)
+                    reopenLoginScreen()
                 }
 
                 is AcceptSharedFolderInvitationResult.InvalidInvitation -> {

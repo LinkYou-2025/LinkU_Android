@@ -561,13 +561,14 @@ fun MainApp(
 
                 loginGraph(
                     route = NavigationRoute.Login.route,
-                    loginViewModel = loginViewModel,
-                    onEnter = { showNavBar = false },
-                    onEdgeToEdgeChange = { hideStatusBar, hideNavBar ->
-                        edgeToEdgeSystemBars = hideStatusBar
-                        hideNavigationBar = hideNavBar
+                    onEnter = {
+                        // 로그인 화면은 별도 Activity가 그리므로, 돌아와서 전환하기 전까지 메인 쪽은
+                        // 스플래시와 같은 몰입 상태를 유지함.
+                        showNavBar = false
+                        edgeToEdgeSystemBars = true
+                        hideNavigationBar = true
                     },
-                    onLoginSuccess = { loginScope ->
+                    onLoginSuccess = { loginScope, reopenLogin ->
                         handleLoginSuccess(
                             scope = loginScope,
                             context = context,
@@ -582,6 +583,7 @@ fun MainApp(
                                 hideNavigationBar = hideNavBar
                             },
                             navigateByNotification = ::navigateByNotification,
+                            reopenLogin = reopenLogin,
                         )
                     },
                 )

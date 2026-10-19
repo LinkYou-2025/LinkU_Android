@@ -85,6 +85,14 @@
 
         </activity>
 
+        <!-- 로그인/회원가입 전용 Activity. 메인 Activity가 결과 대기 방식으로 엽니다. -->
+        <activity
+            android:name="com.linku.login.AuthActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false"
+            android:theme="@style/Theme.LinkU_Android" />
+
         <!-- 카카오 로그인 콜백(카카오계정/웹뷰 로그인 리다이렉트). 로컬 프로퍼티에 꼭 각자 디버그 키 넣어주세요. -->
         <activity
             android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
