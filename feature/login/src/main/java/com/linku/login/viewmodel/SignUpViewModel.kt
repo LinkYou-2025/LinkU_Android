@@ -13,7 +13,8 @@ import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SignUpForm
 import com.linku.core.model.auth.SignUpState
-import com.linku.core.repository.AuthRepository
+import com.linku.core.usecase.CheckNicknameUseCase
+import com.linku.core.usecase.SignUpWithEmailUseCase
 import com.linku.data.analytics.FirebaseAnalyticsLogger
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
@@ -32,7 +33,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class SignUpViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val checkNicknameUseCase: CheckNicknameUseCase,
+    private val signUpWithEmailUseCase: SignUpWithEmailUseCase,
     private val analyticsLogger: FirebaseAnalyticsLogger,
 ) : ViewModel(), MviContainer<SignUpUiState, SignUpEffect> by mviContainer(SignUpUiState()) {
 
@@ -168,7 +170,7 @@ internal class SignUpViewModel @Inject constructor(
             updateState {
                 copy(nicknameStep = nicknameStep.copy(nicknameCheckState = NicknameCheckState.Checking))
             }
-            authRepository.checkNickname(nickname).foldApp(
+            checkNicknameUseCase(nickname).foldApp(
                 onSuccess = {
                     updateState {
                         copy(nicknameStep = nicknameStep.copy(nicknameCheckState = NicknameCheckState.Available))
@@ -285,7 +287,7 @@ internal class SignUpViewModel @Inject constructor(
                     "MARKETING" to form.agreeMarketing
                 )
 
-                authRepository.signUpWithEmail(
+                signUpWithEmailUseCase(
                     nickname = form.nickname,
                     email = form.email,
                     password = form.password,

@@ -29,10 +29,10 @@ import kotlin.coroutines.cancellation.CancellationException
 @HiltViewModel
 open class LoginViewModel @Inject constructor(
     application: Application,
-    private val loginWithEmail: LoginWithEmailUseCase,
-    private val recoverAccount: RecoverAccountUseCase,
-    private val autoLogin: AutoLoginUseCase,
-    private val clearAuthSession: ClearAuthSessionUseCase,
+    private val loginWithEmailUseCase: LoginWithEmailUseCase,
+    private val recoverAccountUseCase: RecoverAccountUseCase,
+    private val autoLoginUseCase: AutoLoginUseCase,
+    private val clearAuthSessionUseCase: ClearAuthSessionUseCase,
 ) : AndroidViewModel(application),
     MviContainer<LoginUiState, LoginUiEffect> by mviContainer(LoginUiState()) {
 
@@ -82,7 +82,7 @@ open class LoginViewModel @Inject constructor(
                 updateState { copy(loginState = LoginState.Loading) }
                 Log.d(TAG, "로그인 시도")
 
-                when (val outcome = loginWithEmail(email, password)) {
+                when (val outcome = loginWithEmailUseCase(email, password)) {
                     is EmailLoginOutcome.RecoveryRequired -> {
                         // 탈퇴 유예기간 계정 -> 홈으로 보내지 않고 복구 여부를 묻는 모달을 띄움.
                         // 정식 로그인 상태(LOGGED_IN)를 저장하면 다음 실행 시 자동 로그인이 서버 상태를
@@ -135,7 +135,7 @@ open class LoginViewModel @Inject constructor(
      */
     fun recoverAccount() {
         viewModelScope.launch {
-            val outcome = recoverAccount(
+            val outcome = recoverAccountUseCase(
                 consumePendingUserId = {
                     // 복구 응답을 기다리는 동안 모달이 닫혔는지 응답 이후에 확인하고, 보류 상태를 해제함.
                     val pendingResult = pendingRecoverLoginResult
@@ -167,7 +167,7 @@ open class LoginViewModel @Inject constructor(
     fun keepWithdrawn() {
         viewModelScope.launch {
             pendingRecoverLoginResult = null
-            clearAuthSession()
+            clearAuthSessionUseCase()
         }
     }
 
@@ -176,7 +176,7 @@ open class LoginViewModel @Inject constructor(
     fun dismissRecoverModal() {
         viewModelScope.launch {
             pendingRecoverLoginResult = null
-            clearAuthSession()
+            clearAuthSessionUseCase()
         }
     }
 
@@ -184,7 +184,7 @@ open class LoginViewModel @Inject constructor(
         if (_autoLoginState.value == AutoLoginState.Checking) return
 
         viewModelScope.launch {
-            _autoLoginState.value = autoLogin()
+            _autoLoginState.value = autoLoginUseCase()
         }
     }
 

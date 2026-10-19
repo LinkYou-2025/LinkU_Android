@@ -44,11 +44,15 @@ class RecoverAccountUseCase @Inject constructor(
      * 복구 응답이 도착한 뒤에 [consumePendingUserId]를 호출해 이어서 처리할 사용자 ID를 가져옵니다. 응답을
      * 기다리는 동안 복구 모달이 닫힌 경우를 구분하기 위해서입니다.
      *
+     * @param loginType 정식 세션으로 저장할 로그인 수단. 이메일 로그인이 기본값입니다.
      * @param consumePendingUserId 이어서 처리할 로그인 응답의 사용자 ID를 꺼내고 보류 상태를 해제하는 함수.
      * 없으면 `null`을 돌려줍니다.
      * @return 복구 결과를 나타내는 [RecoverAccountOutcome]
      */
-    suspend operator fun invoke(consumePendingUserId: () -> Long?): RecoverAccountOutcome {
+    suspend operator fun invoke(
+        loginType: LoginType = LoginType.EMAIL,
+        consumePendingUserId: () -> Long?,
+    ): RecoverAccountOutcome {
         val recoverResult = userRepository.recoverUser()
         val pendingUserId = consumePendingUserId()
 
@@ -67,7 +71,7 @@ class RecoverAccountUseCase @Inject constructor(
             accessToken = recovered.accessToken,
             refreshToken = recovered.refreshToken,
             userId = pendingUserId,
-            loginType = LoginType.EMAIL
+            loginType = loginType
         )
         return RecoverAccountOutcome.Recovered
     }

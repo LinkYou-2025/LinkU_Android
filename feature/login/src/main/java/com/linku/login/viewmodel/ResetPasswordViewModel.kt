@@ -4,7 +4,7 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.ApiError
-import com.linku.core.repository.AuthRepository
+import com.linku.core.usecase.SendPasswordResetEmailUseCase
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.ResetPasswordEffect
@@ -22,7 +22,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ResetPasswordViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val sendPasswordResetEmailUseCase: SendPasswordResetEmailUseCase
 ) : ViewModel(), MviContainer<ResetPasswordState, ResetPasswordEffect>
 by mviContainer(ResetPasswordState()) {
 
@@ -50,7 +50,7 @@ by mviContainer(ResetPasswordState()) {
         viewModelScope.launch {
             updateState { copy(isLoading = true, error = null) }
 
-            authRepository.sendPasswordResetEmail(state.value.email)
+            sendPasswordResetEmailUseCase(state.value.email)
                 .onSuccess {
                     updateState { copy(isLoading = false, showSuccessDialog = true) }
                 }

@@ -6,7 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.ApiError
 import com.linku.core.error.NetworkError
-import com.linku.core.repository.AuthRepository
+import com.linku.core.usecase.SendEmailCodeUseCase
+import com.linku.core.usecase.VerifyEmailCodeUseCase
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.EmailUiEffect
@@ -21,7 +22,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 internal class EmailAuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val sendEmailCodeUseCase: SendEmailCodeUseCase,
+    private val verifyEmailCodeUseCase: VerifyEmailCodeUseCase,
 ) : ViewModel(), MviContainer<EmailUiState, EmailUiEffect> by mviContainer(EmailUiState()) {
 
     private var timerJob: Job? = null
@@ -119,7 +121,7 @@ internal class EmailAuthViewModel @Inject constructor(
                 )
             }
 
-            authRepository.sendEmailCode(email).foldApp(
+            sendEmailCodeUseCase(email).foldApp(
                 onSuccess = {
                     updateState { copy(isLoading = false) }
                     startTimer()
@@ -180,7 +182,7 @@ internal class EmailAuthViewModel @Inject constructor(
         viewModelScope.launch {
             updateState { copy(isLoading = true, codeError = null, isCodeExpired = false) }
 
-            authRepository.verifyEmailCode(email, code).foldApp(
+            verifyEmailCodeUseCase(email, code).foldApp(
                 onSuccess = {
                     stopTimer()
                     updateState { copy(isLoading = false, isVerifySuccess = true) }
