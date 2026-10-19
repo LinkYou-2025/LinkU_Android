@@ -31,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.linku.data.preference.NotificationPreferenceImpl
+import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
 import com.linku.shell.R
@@ -103,12 +104,8 @@ fun Splash(onResult: () -> Unit) {
             .fillMaxSize()
             .background(
                 if (isGlowPhase) {
-                    //  Glow 단계: Figma와 동일하게 분홍 → 파랑 (좌상단 → 우하단)
-                    Brush.linearGradient(
-                        colors = listOf(Color(0xFFC800FF), Color(0xFF2C6FFF)),
-                        start = Offset(0f, 0f),
-                        end = Offset.Infinite
-                    )
+                    //  Glow 단계: Figma와 동일하게 분홍 → 파랑 (좌상단 → 우하단). 로그인 화면과 같은 테마 그라데이션.
+                    LocalColorTheme.current.linearMainColor
                 } else {
                     //  애니메이션 단계: 파랑 → 분홍 → 파랑 보간
                     Brush.linearGradient(
