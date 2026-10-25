@@ -1,5 +1,6 @@
 package com.linku.navigation
 
+import com.linku.design.component.LinkuNavigationItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState

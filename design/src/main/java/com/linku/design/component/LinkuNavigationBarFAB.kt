@@ -1,4 +1,4 @@
-package com.linku.component
+package com.linku.design.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.linku.design.modifier.gradientTint
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.theme.color.Basic
-import com.linku.shell.R
+import com.linku.design.R
 
 /*
 * 내비게이션 바 중앙에 들어갈 링크 추가 버튼 컴포넌트
@@ -63,7 +63,7 @@ fun LinkuNavigationBarFAB(
     ) {
         // 더하기 아이콘
         Icon(
-            painter = painterResource(id = R.drawable.ic_plus),
+            painter = painterResource(id = R.drawable.ic_nav_fab_plus),
 
             contentDescription = "링큐 추가 버튼 더하기 아이콘",
 

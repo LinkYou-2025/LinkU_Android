@@ -1,4 +1,4 @@
-package com.linku.component
+package com.linku.design.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,7 +33,6 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.color.Basic
-import com.linku.navigation.LinkuNavigationItem
 
 // val centerButtonSize = DpSize(19.2.dp, 19.2.dp)
 val iconHeight = 24.dp
