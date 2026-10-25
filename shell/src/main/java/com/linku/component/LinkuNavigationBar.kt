@@ -1,4 +1,4 @@
-package com.linku.design.component
+package com.linku.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.linku.navigation.LinkuNavigationItem
 import com.linku.design.modifier.gradientTint
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.LocalFontTheme

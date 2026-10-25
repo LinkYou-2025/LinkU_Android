@@ -1,8 +1,8 @@
-package com.linku.design.component
+package com.linku.navigation
 
 import androidx.annotation.DrawableRes
 import androidx.compose.ui.geometry.Size
-import com.linku.design.R
+import com.linku.shell.R
 
 /*
 * 메인 레이아웃의 바텀 내비게이션 바에 사용되는 아이템.

@@ -26,12 +26,12 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import com.linku.design.component.LinkuNavigationBar
+import com.linku.component.LinkuNavigationBar
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.util.EdgeToEdgeSystemBars
 import com.linku.design.util.LocalScaffoldBackgroundReporter
 import com.linku.design.util.LocalStatusBarDarkIcons
-import com.linku.design.component.LinkuNavigationItem
+import com.linku.navigation.LinkuNavigationItem
 
 data class NavigationBarProp(
     val currentLinkuNavigationItem: LinkuNavigationItem?,
