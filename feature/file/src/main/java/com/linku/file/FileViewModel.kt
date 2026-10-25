@@ -31,7 +31,7 @@ import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
 import com.linku.core.usecase.GetFolderLinksUseCase
 import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.preference.AuthPreference
-import com.linku.data.util.toCategoryColorStyleMap
+import com.linku.core.ui.category.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.file.viewmodel.folder.state.SharedFolderScope
 import com.linku.file.viewmodel.folder.state.SharedFolderTarget

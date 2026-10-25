@@ -110,6 +110,7 @@ dependencies {
 
     // 의존성 정의
     implementation(project(":core"))
+    implementation(project(":core:ui"))
     implementation(project(":data"))
     implementation(project(":design"))
 

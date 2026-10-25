@@ -27,7 +27,7 @@ import com.linku.core.navigation.LinkuRoute
 import com.linku.core.util.logging.LinkuLog
 import com.linku.core.util.logging.e
 import com.linku.core.util.toImageUrl
-import com.linku.data.util.toCategoryColorStyleMap
+import com.linku.core.ui.category.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.link.component.LinkCategoryOption
 import com.linku.link.screen.LinkDetailLoadErrorScreen

@@ -27,7 +27,7 @@ import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
 import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.preference.AuthPreference
-import com.linku.data.util.toCategoryColorStyleMap
+import com.linku.core.ui.category.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.home.model.ClipboardLinkCandidate
 import com.linku.home.model.RecentLinksLoadStatus

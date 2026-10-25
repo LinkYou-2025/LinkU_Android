@@ -55,9 +55,7 @@ kotlin {
 
 dependencies {
 
-    // design 모듈 의존성
     api(project(":core:navigation"))
-    implementation(project(":design"))
 
 
     // ✅ Retrofit2 & OkHttp 추가 (버전은 app 모듈과 동일한 libs 사용)

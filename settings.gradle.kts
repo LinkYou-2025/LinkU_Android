@@ -27,6 +27,7 @@ rootProject.name = "LinkU_Android"
 include(":app")
 include(":core")
 include(":core:navigation")
+include(":core:ui")
 include(":data")
 include(":design")
 include(":feature:login")

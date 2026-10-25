@@ -19,7 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Interest
-import com.linku.core.model.auth.icon.iconPainter
+import com.linku.core.ui.icon.iconPainter
 import com.linku.design.BrushText
 import com.linku.design.theme.ThemeProvider
 import com.linku.design.theme.linkuColors

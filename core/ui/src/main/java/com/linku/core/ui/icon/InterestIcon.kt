@@ -1,4 +1,4 @@
-package com.linku.core.model.auth.icon
+package com.linku.core.ui.icon
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
