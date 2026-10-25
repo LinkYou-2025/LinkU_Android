@@ -1,4 +1,4 @@
-package com.linku
+package com.linku.splash
 
 import android.Manifest
 import android.os.Build
@@ -33,7 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
-import com.linku.shell.R
 
 @Composable
 fun Splash(

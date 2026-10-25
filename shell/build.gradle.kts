@@ -69,6 +69,7 @@ dependencies {
     implementation(project(":feature:link"))
     implementation(project(":feature:search"))
     implementation(project(":feature:mypage"))
+    implementation(project(":feature:splash"))
     implementation(project(":core"))
     implementation(project(":design"))
 

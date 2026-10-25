@@ -1,4 +1,4 @@
-package com.linku
+package com.linku.splash
 
 import androidx.lifecycle.ViewModel
 import com.linku.core.preference.NotificationPreference

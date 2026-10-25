@@ -11,7 +11,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import com.linku.MainViewModel
-import com.linku.Splash
+import com.linku.splash.Splash
 import com.linku.core.model.alarm.AlarmType
 import com.linku.core.model.auth.AutoLoginState
 import com.linku.home.HomeViewModel
