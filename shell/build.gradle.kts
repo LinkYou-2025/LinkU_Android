@@ -70,7 +70,6 @@ dependencies {
     implementation(project(":feature:search"))
     implementation(project(":feature:mypage"))
     implementation(project(":core"))
-    implementation(project(":data"))
     implementation(project(":design"))
 
     // SharedPreference

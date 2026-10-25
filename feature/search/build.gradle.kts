@@ -74,7 +74,6 @@ dependencies {
     // 의존성 정의
     implementation(project(":core"))
     implementation(project(":design"))
-    implementation(project(":data"))
 
     // Hilt
     implementation(libs.hilt.android)

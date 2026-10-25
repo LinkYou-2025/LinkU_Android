@@ -27,17 +27,19 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.linku.data.preference.NotificationPreferenceImpl
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
 import com.linku.shell.R
 
 @Composable
-fun Splash(onResult: () -> Unit) {
+fun Splash(
+    onResult: () -> Unit,
+    viewModel: SplashViewModel = hiltViewModel(),
+) {
 
     // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
     // (MainApp.kt가 Splash 진입 시 edgeToEdgeSystemBars=true로 세팅함).
@@ -56,20 +58,12 @@ fun Splash(onResult: () -> Unit) {
             permissionFinished = true // 허용&거부 상관없이 팝업 끝나면 true
         }
 
-    // 알림 설정 저장소
-    // 스플래시에서만 일회성으로 사용하는 값이라 Hilt & ViewModel 없이 직접 생성.
-    val context = LocalContext.current
-    val notificationPreference = remember {
-        NotificationPreferenceImpl(context)
-    }
-
     LaunchedEffect(Unit) {
         // Android 13 이상에서는 POST_NOTIFICATIONS 런타임 권한이 필요하므로 조건부 요청
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            !notificationPreference.isSystemPermissionRequested()
+            viewModel.consumeSystemPermissionRequest()
         ) {
-            notificationPreference.setSystemPermissionRequested(true)
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         } else { // 이미 시스템 팝업 띄운 전적이 있으면 permissionFinished를 true로 세팅하고 넘김.
             permissionFinished = true

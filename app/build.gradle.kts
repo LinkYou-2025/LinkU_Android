@@ -152,6 +152,7 @@ dependencies {
     // 기능 모듈과 data, design은 shell을 통해 전이 의존으로 포함되며 Hilt가 그래프를 조립합니다.
     implementation(project(":shell"))
     implementation(project(":core"))
+    implementation(project(":data"))
 
     // Hilt
     implementation(libs.hilt.android)
