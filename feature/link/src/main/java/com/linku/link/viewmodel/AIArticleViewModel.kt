@@ -9,7 +9,7 @@ import com.linku.core.error.NetworkError
 import com.linku.core.model.AIArticleUiState
 import com.linku.core.model.AiArticle
 import com.linku.core.repository.AIArticleRepository
-import com.linku.data.analytics.FirebaseAnalyticsLogger
+import com.linku.core.analytics.AnalyticsLogger
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AIArticleViewModel @Inject constructor(
     private val aiArticleRepository: AIArticleRepository,
-    private val analyticsLogger: FirebaseAnalyticsLogger,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AIArticleUiState())

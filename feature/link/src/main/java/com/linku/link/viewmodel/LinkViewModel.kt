@@ -17,7 +17,7 @@ import com.linku.core.repository.UserRepository
 import com.linku.core.usecase.CheckLinkUseCase
 import com.linku.core.util.UrlValidationResult
 import com.linku.core.util.validateUrlInput
-import com.linku.data.analytics.FirebaseAnalyticsLogger
+import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.preference.AuthPreference
 import com.linku.link.util.toToastMessage
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +39,7 @@ class LinkViewModel @Inject constructor(
     private val authPreference: AuthPreference,
     private val categoryRepository: CategoryRepository,
     private val checkLinkUseCase: CheckLinkUseCase,
-    private val analyticsLogger: FirebaseAnalyticsLogger,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(

@@ -15,7 +15,7 @@ import com.linku.core.model.auth.SignUpForm
 import com.linku.core.model.auth.SignUpState
 import com.linku.core.usecase.CheckNicknameUseCase
 import com.linku.core.usecase.SignUpWithEmailUseCase
-import com.linku.data.analytics.FirebaseAnalyticsLogger
+import com.linku.core.analytics.AnalyticsLogger
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.SignUpEffect
@@ -35,7 +35,7 @@ import javax.inject.Inject
 internal class SignUpViewModel @Inject constructor(
     private val checkNicknameUseCase: CheckNicknameUseCase,
     private val signUpWithEmailUseCase: SignUpWithEmailUseCase,
-    private val analyticsLogger: FirebaseAnalyticsLogger,
+    private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel(), MviContainer<SignUpUiState, SignUpEffect> by mviContainer(SignUpUiState()) {
 
     // 상수 분리

@@ -22,7 +22,7 @@ import com.linku.core.usecase.LoginWithGoogleUseCase
 import com.linku.core.usecase.LoginWithKakaoUseCase
 import com.linku.core.usecase.RecoverAccountOutcome
 import com.linku.core.usecase.RecoverAccountUseCase
-import com.linku.data.analytics.FirebaseAnalyticsLogger
+import com.linku.core.analytics.AnalyticsLogger
 import com.linku.login.R
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
@@ -61,7 +61,7 @@ class SocialAuthViewModel @Inject constructor(
     private val recoverAccountUseCase: RecoverAccountUseCase,
     private val clearAuthSessionUseCase: ClearAuthSessionUseCase,
     private val getRecentLoginTypeUseCase: GetRecentLoginTypeUseCase,
-    private val analyticsLogger: FirebaseAnalyticsLogger,
+    private val analyticsLogger: AnalyticsLogger,
     @param:ApplicationContext private val context: Context
 ) : ViewModel(),
     MviContainer<SocialAuthUiState, SocialAuthUiEffect> by mviContainer(SocialAuthUiState()) {
