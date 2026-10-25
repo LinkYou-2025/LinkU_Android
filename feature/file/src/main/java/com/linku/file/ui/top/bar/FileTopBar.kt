@@ -38,7 +38,6 @@ import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.font.Taebaek
 import com.linku.design.theme.linkuColors
 import com.linku.file.FileViewModel
-import com.linku.file.R
 import com.linku.file.ui.top.bar.component.FileSearchBar
 import com.linku.file.ui.top.bar.component.FolderScopeListLayout
 import com.linku.file.ui.top.bar.component.FolderScopeListMenu
@@ -118,7 +117,7 @@ fun FileTopBar(
             // 아이콘 색상 (흰색)
             tint = colors.white,
             // 사용할 아이콘 이미지 리소스
-            painter = painterResource(id = R.drawable.linku_logo),
+            painter = painterResource(id = com.linku.design.R.drawable.linku_logo),
             // 이미지 설명 ("링큐 투명 로고")
             contentDescription = "링큐 투명 로고"
         )

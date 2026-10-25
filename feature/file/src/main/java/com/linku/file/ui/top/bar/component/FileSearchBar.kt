@@ -22,7 +22,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.theme.linkuColors
-import com.linku.file.R
 
 @Composable
 fun FileSearchBar() {
@@ -77,7 +76,7 @@ fun FileSearchBar() {
                 tint = colors.white,
 
                 // 사용할 아이콘 이미지 리소스 (drawable/linku_logo.xml)
-                painter = painterResource(id = R.drawable.linku_logo),
+                painter = painterResource(id = com.linku.design.R.drawable.linku_logo),
 
                 // 이미지 설명 ("링큐 로고")
                 contentDescription = "링큐 로고"

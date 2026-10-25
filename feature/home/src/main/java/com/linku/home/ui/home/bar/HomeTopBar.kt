@@ -49,7 +49,6 @@ import com.linku.design.theme.LocalFontTheme
 import com.linku.design.theme.font.Taebaek
 import com.linku.design.theme.linkuColors
 import com.linku.design.top.bar.AlarmButton
-import com.linku.file.ui.theme.MainColor
 import com.linku.home.R
 import com.linku.home.ui.home.bar.component.EmotionIconSelector
 import com.linku.home.ui.home.bar.component.HomeSearchBar
@@ -112,7 +111,7 @@ fun HomeTopBar(
                             fontSize = 24.sp,
                             fontFamily = Taebaek.font,
                             fontWeight = FontWeight.Normal,
-                            brush = MainColor,
+                            brush = colors.maincolor,
                         )
                     ) {
                         append("링큐")
