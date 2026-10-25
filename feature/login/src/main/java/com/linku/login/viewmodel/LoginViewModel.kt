@@ -6,10 +6,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.linku.core.error.toLoginErrorType
 import com.linku.core.model.LoginResult
-import com.linku.core.model.auth.AutoLoginState
 import com.linku.core.model.auth.LoginErrorType
 import com.linku.core.model.auth.LoginState
-import com.linku.core.usecase.AutoLoginUseCase
 import com.linku.core.usecase.ClearAuthSessionUseCase
 import com.linku.core.usecase.EmailLoginOutcome
 import com.linku.core.usecase.LoginWithEmailUseCase
@@ -20,8 +18,6 @@ import com.linku.login.mvi.mviContainer
 import com.linku.login.viewmodel.state.LoginUiEffect
 import com.linku.login.viewmodel.state.LoginUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
@@ -31,13 +27,9 @@ open class LoginViewModel @Inject constructor(
     application: Application,
     private val loginWithEmailUseCase: LoginWithEmailUseCase,
     private val recoverAccountUseCase: RecoverAccountUseCase,
-    private val autoLoginUseCase: AutoLoginUseCase,
     private val clearAuthSessionUseCase: ClearAuthSessionUseCase,
 ) : AndroidViewModel(application),
     MviContainer<LoginUiState, LoginUiEffect> by mviContainer(LoginUiState()) {
-
-    private val _autoLoginState = MutableStateFlow<AutoLoginState>(AutoLoginState.Idle)
-    val autoLoginState: StateFlow<AutoLoginState> = _autoLoginState
 
     // INACTIVE 로그인 응답을 복구 모달이 뜬 동안 임시로 들고 있는 값. "부활" 성공 시에만
     // 정식 세션 저장에 사용하고, 그 전까지는 정식 로그인 상태(LOGGED_IN)를 저장하지 않음.
@@ -177,14 +169,6 @@ open class LoginViewModel @Inject constructor(
         viewModelScope.launch {
             pendingRecoverLoginResult = null
             clearAuthSessionUseCase()
-        }
-    }
-
-    fun tryAutoLogin() {
-        if (_autoLoginState.value == AutoLoginState.Checking) return
-
-        viewModelScope.launch {
-            _autoLoginState.value = autoLoginUseCase()
         }
     }
 

@@ -20,7 +20,7 @@ import com.linku.search.SearchViewModel
  * 모두 Activity 범위의 인스턴스이며, 내비게이션 그래프와 셸이 같은 인스턴스를 함께 사용합니다.
  *
  * @property main 앱 전역 상태와 세션, 사이드 이펙트를 제공하는 [MainViewModel]
- * @property login 스플래시의 자동 로그인 상태를 제공하는 [LoginViewModel]
+ * @property login 로그인 화면 상태를 제공하는 [LoginViewModel]
  * @property home 홈 화면 상태를 제공하는 [HomeViewModel]
  * @property link 링크 저장, 조회, 수정, 삭제 상태를 제공하는 [LinkViewModel]
  * @property file 파일 화면 데이터를 제공하는 [FileViewModel]

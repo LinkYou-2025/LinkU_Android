@@ -19,6 +19,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -29,16 +30,29 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.linku.design.theme.LocalColorTheme
 import com.linku.design.util.PixelScaler
 import kotlinx.coroutines.delay
 
 @Composable
 fun Splash(
-    onResult: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToLogin: () -> Unit,
     viewModel: SplashViewModel = hiltViewModel(),
 ) {
+    val currentOnNavigateToHome by rememberUpdatedState(onNavigateToHome)
+    val currentOnNavigateToLogin by rememberUpdatedState(onNavigateToLogin)
+
+    // 자동 로그인 결과에 따른 첫 화면 결정은 ViewModel이 하고, 실제 이동은 호출한 쪽에 맡깁니다.
+    LaunchedEffect(viewModel) {
+        viewModel.destination.collect { destination ->
+            when (destination) {
+                SplashDestination.Home -> currentOnNavigateToHome()
+                SplashDestination.Login -> currentOnNavigateToLogin()
+            }
+        }
+    }
 
     // 시스템 바 숨김/복원은 MainScreen의 EdgeToEdgeSystemBars(hideSystemBars) 한 곳에서만 처리함
     // (MainApp.kt가 Splash 진입 시 edgeToEdgeSystemBars=true로 세팅함).
@@ -83,8 +97,8 @@ fun Splash(
         delay(700)
 
         delay(800)
-        println("Splash onResult 호출")
-        onResult() //애니메이션 끝났음
+        println("Splash 종료, 첫 화면 결정 요청")
+        viewModel.onSplashFinished() //애니메이션 끝났음
     }
 
     // 배경 색상 보간용 progress

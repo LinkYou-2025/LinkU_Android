@@ -70,7 +70,6 @@ internal fun AppNavHost(
         splashGraph(
             navigator = navigator,
             viewModel = viewModel,
-            loginViewModel = viewModels.login,
             homeViewModel = homeViewModel,
             setShowNavBar = { appState.showNavBar = it },
             onEdgeToEdgeChange = appState::updateSystemBars,
