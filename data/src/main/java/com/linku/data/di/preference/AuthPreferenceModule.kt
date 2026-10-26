@@ -2,7 +2,7 @@ package com.linku.data.di.preference
 
 import android.content.Context
 import com.linku.data.implementation.preference.AuthPreferenceImpl
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

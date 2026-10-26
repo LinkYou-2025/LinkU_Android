@@ -14,10 +14,15 @@ import com.linku.core.model.auth.Job
 import com.linku.core.model.auth.LoginType
 import com.linku.core.model.auth.NicknameCheckState
 import com.linku.core.model.auth.Purpose
-import com.linku.core.repository.AuthRepository
-import com.linku.core.repository.UserRepository
-import com.linku.data.analytics.FirebaseAnalyticsLogger
-import com.linku.data.preference.AuthPreference
+import com.linku.core.usecase.CheckNicknameUseCase
+import com.linku.core.usecase.ClearAuthSessionUseCase
+import com.linku.core.usecase.CompleteSocialProfileUseCase
+import com.linku.core.usecase.GetRecentLoginTypeUseCase
+import com.linku.core.usecase.LoginWithGoogleUseCase
+import com.linku.core.usecase.LoginWithKakaoUseCase
+import com.linku.core.usecase.RecoverAccountOutcome
+import com.linku.core.usecase.RecoverAccountUseCase
+import com.linku.core.analytics.AnalyticsLogger
 import com.linku.login.R
 import com.linku.login.mvi.MviContainer
 import com.linku.login.mvi.mviContainer
@@ -39,15 +44,24 @@ import javax.inject.Inject
  * 소셜 로그인(카카오, 구글) 통합 세션을 제어하고, TEMP 회원의 온보딩 필수 프로필 설정 폼을 제어하는
  * LinkU 표준 MVI 아키텍처 기반의 비즈니스 뷰모델입니다.
  *
- * @property authRepository 세션 인가 코드 검증 및 성향 데이터 저장을 대행하는 도메인 인증 저장소 계층입니다.
- * @property authPreference 로컬 디바이스 보안 프리퍼런스 세션 저장소 제어 장치입니다.
+ * @property loginWithKakaoUseCase 카카오 인증 토큰으로 소셜 로그인을 요청합니다.
+ * @property loginWithGoogleUseCase 구글 인증 토큰으로 소셜 로그인을 요청합니다.
+ * @property completeSocialProfileUseCase 신규 소셜 회원의 프로필 입력을 완료합니다.
+ * @property checkNicknameUseCase 닉네임 중복 여부를 확인합니다.
+ * @property recoverAccountUseCase 탈퇴 유예기간 계정을 복구합니다.
+ * @property clearAuthSessionUseCase 로컬에 임시 저장된 인증 정보를 정리합니다.
+ * @property getRecentLoginTypeUseCase 마지막으로 로그인했던 수단을 조회합니다.
  */
 @HiltViewModel
 class SocialAuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository,
-    private val userRepository: UserRepository,
-    private val authPreference: AuthPreference,
-    private val analyticsLogger: FirebaseAnalyticsLogger,
+    private val loginWithKakaoUseCase: LoginWithKakaoUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
+    private val completeSocialProfileUseCase: CompleteSocialProfileUseCase,
+    private val checkNicknameUseCase: CheckNicknameUseCase,
+    private val recoverAccountUseCase: RecoverAccountUseCase,
+    private val clearAuthSessionUseCase: ClearAuthSessionUseCase,
+    private val getRecentLoginTypeUseCase: GetRecentLoginTypeUseCase,
+    private val analyticsLogger: AnalyticsLogger,
     @param:ApplicationContext private val context: Context
 ) : ViewModel(),
     MviContainer<SocialAuthUiState, SocialAuthUiEffect> by mviContainer(SocialAuthUiState()) {
@@ -74,7 +88,7 @@ class SocialAuthViewModel @Inject constructor(
      */
     private fun loadRecentLoginType() {
         viewModelScope.launch {
-            val recentLoginType = authPreference.getLoginType()
+            val recentLoginType = getRecentLoginTypeUseCase()
             updateState { copy(recentLoginType = recentLoginType) }
         }
     }
@@ -100,7 +114,7 @@ class SocialAuthViewModel @Inject constructor(
             updateState { copy(isLoading = true, error = null) }
             Log.d(TAG, "[카카오 로그인 트랜잭션 수립]")
 
-            authRepository.loginWithKakao(token).foldApp(
+            loginWithKakaoUseCase(token).foldApp(
                 onSuccess = { result ->
                     currentSocialProvider = LoginType.KAKAO
                     updateState { copy(isLoading = false) }
@@ -123,7 +137,7 @@ class SocialAuthViewModel @Inject constructor(
             updateState { copy(isLoading = true, error = null) }
             Log.d(TAG, "[구글 로그인 트랜잭션 수립]")
 
-            authRepository.loginWithGoogle(token).foldApp(
+            loginWithGoogleUseCase(token).foldApp(
                 onSuccess = { result ->
                     currentSocialProvider = LoginType.GOOGLE
                     updateState { copy(isLoading = false) }
@@ -149,7 +163,7 @@ class SocialAuthViewModel @Inject constructor(
         when (result.status) {
             "TEMP" -> {
                 Log.d(TAG, "신규 TEMP 회원 감지 -> 로컬 세션 초기화 및 온보딩 입력 플로우 지시")
-                authPreference.clear()
+                clearAuthSessionUseCase()
                 postSideEffect(
                     SocialAuthUiEffect.NavigateToAdditionalInfo(
                         result,
@@ -179,26 +193,27 @@ class SocialAuthViewModel @Inject constructor(
     fun recoverAccount() {
         viewModelScope.launch {
             val pendingResult = state.value.pendingLoginResult
-            val recoverResult = userRepository.recoverUser()
-            updateState { copy(showRecoverModal = false, pendingLoginResult = null) }
+            val outcome = recoverAccountUseCase(
+                loginType = currentSocialProvider,
+                consumePendingUserId = {
+                    // 복구 응답이 도착하면 모달을 닫고 보류 중이던 로그인 응답을 해제함.
+                    updateState { copy(showRecoverModal = false, pendingLoginResult = null) }
+                    pendingResult?.userId
+                }
+            )
 
-            recoverResult.onSuccess { recovered ->
-                if (pendingResult == null) return@onSuccess
-                Log.d(TAG, "계정 복구 성공")
-                // 복구가 확정된 시점에만 정식 세션(LOGGED_IN=true)으로 저장함.
-                // recover API가 새로 내려준 정식 토큰을 씀 (로그인 때 받은 복구 전용 토큰이 아님).
-                authPreference.saveTokens(
-                    accessToken = recovered.accessToken,
-                    refreshToken = recovered.refreshToken,
-                    userId = pendingResult.userId,
-                    loginType = currentSocialProvider
-                )
-                postSideEffect(SocialAuthUiEffect.NavigateToHome(pendingResult))
-            }.onFailure { error ->
-                Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)", error)
-                // 복구 실패 시 계정은 여전히 비활성 상태이므로 임시 저장된 세션을 정리함.
-                authPreference.clear()
-                postSideEffect(SocialAuthUiEffect.ShowToast("계정 복구에 실패했습니다. 다시 시도해주세요."))
+            when (outcome) {
+                RecoverAccountOutcome.Recovered -> {
+                    Log.d(TAG, "계정 복구 성공")
+                    pendingResult?.let { postSideEffect(SocialAuthUiEffect.NavigateToHome(it)) }
+                }
+
+                RecoverAccountOutcome.Ignored -> Unit
+
+                is RecoverAccountOutcome.Failed -> {
+                    Log.e(TAG, "계정 복구 실패 (유예기간 만료 등)", outcome.error)
+                    postSideEffect(SocialAuthUiEffect.ShowToast("계정 복구에 실패했습니다. 다시 시도해주세요."))
+                }
             }
         }
     }
@@ -209,7 +224,7 @@ class SocialAuthViewModel @Inject constructor(
      */
     fun keepWithdrawn() {
         viewModelScope.launch {
-            authPreference.clear()
+            clearAuthSessionUseCase()
             updateState { copy(showRecoverModal = false, pendingLoginResult = null) }
         }
     }
@@ -275,7 +290,7 @@ class SocialAuthViewModel @Inject constructor(
     private suspend fun checkNicknameInternal(nickname: String) {
         updateState { copy(nicknameCheckState = NicknameCheckState.Checking) }
 
-        authRepository.checkNickname(nickname).foldApp(
+        checkNicknameUseCase(nickname).foldApp(
             onSuccess = {
                 updateState { copy(nicknameCheckState = NicknameCheckState.Available) }
             },
@@ -346,7 +361,7 @@ class SocialAuthViewModel @Inject constructor(
                 "MARKETING" to form.agreeMarketing
             )
 
-            authRepository.completeSocialProfile(
+            completeSocialProfileUseCase(
                 socialToken = socialToken,
                 nickName = form.nickname,
                 gender = form.gender,

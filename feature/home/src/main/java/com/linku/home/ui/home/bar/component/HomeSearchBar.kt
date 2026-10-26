@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.linku.design.modifier.noRippleClickable
 import com.linku.design.theme.linkuColors
-import com.linku.file.R
-import com.linku.file.ui.theme.White
 
 @Composable
 fun HomeSearchBar(
@@ -50,8 +48,8 @@ fun HomeSearchBar(
         ) {
             Icon(
                 modifier = Modifier.padding(start = 18.51.dp),
-                tint = White,
-                painter = painterResource(id = R.drawable.linku_logo),
+                tint = colors.white,
+                painter = painterResource(id = com.linku.design.R.drawable.linku_logo),
                 contentDescription = "링큐 로고"
             )
 
@@ -60,7 +58,7 @@ fun HomeSearchBar(
                 fontSize = 16.sp,
                 lineHeight = 20.sp,
                 fontWeight = FontWeight(500),
-                color = White,
+                color = colors.white,
             )
         }
     }

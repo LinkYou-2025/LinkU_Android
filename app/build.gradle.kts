@@ -6,7 +6,6 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     //alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
 
     // Add the Google services Gradle plugin
     id("com.google.gms.google-services")
@@ -90,7 +89,6 @@ android {
         jvmTarget = "11"
     }*/
     buildFeatures {
-        compose = true
         buildConfig = true
     }
 }
@@ -144,87 +142,31 @@ kotlin {
 dependencies {
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.ui)
-    implementation(libs.androidx.ui.graphics)
-    implementation(libs.androidx.ui.tooling.preview)
-    implementation(libs.androidx.material3)
-    implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.kotlinx.coroutines.android)
+
     testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.ui.test.junit4)
-    debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation(libs.gson)
-
-    // 의존성 정의
-    implementation(project(":feature:login"))
-    implementation(project(":feature:home"))
-    implementation(project(":feature:file"))
-    implementation(project(":feature:curation"))
-    implementation(project(":feature:mypage"))
+    // 앱 조립: 화면과 내비게이션은 shell이, 공통 계약은 core가 가집니다.
+    // 기능 모듈과 data, design은 shell을 통해 전이 의존으로 포함되며 Hilt가 그래프를 조립합니다.
+    implementation(project(":shell"))
     implementation(project(":core"))
     implementation(project(":data"))
-    implementation(project(":design"))
-
-    // Retrofit2
-    implementation(libs.retrofit2)
-    implementation(libs.retrofit2.converter.gson)
-    implementation(libs.converter.moshi)
-    implementation(libs.moshi.kotlin)
-
-    // SharedPreference
-    implementation(libs.preference.ktx)
 
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
-
     ksp(libs.androidx.hilt.compiler)
-
-    implementation(libs.androidx.hilt.navigation)
-    implementation(libs.androidx.hilt.navigation.compose)
-
-    // coil
-    implementation(libs.coil.compose)
 
     // FCM
     // Import the Firebase BoM
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
 
-
-    // TODO: Add the dependencies for Firebase products you want to use
     // When using the BoM, don't specify versions in Firebase dependencies
     implementation(libs.firebase.analytics)
 
     // 카카오 로그인
     implementation(libs.v2.user)
-
-    implementation(libs.androidx.security.crypto)
-    implementation(libs.androidx.constraintlayout)
-    implementation(libs.androidx.fragment.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.ktx)
-
-    implementation(libs.kotlinx.coroutines.android)
-
-    implementation(libs.lottie)
-
-    // coil 의존성 추가 -> 추후 리팩토링 진행 시 feature 모듈로 따로 이동할 때 삭제할 예정
-    implementation(libs.coil3.coil.compose)
-    implementation(libs.coil.network.okhttp)
-    implementation(libs.coil.svg)
-    implementation(libs.accompanist.systemuicontroller)
-
-    // paging
-    implementation(libs.paging.runtime)
-    implementation(libs.paging.compose)
-
 }

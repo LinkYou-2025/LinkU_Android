@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import com.linku.core.model.auth.Interest
 import com.linku.core.model.auth.Purpose
 import com.linku.core.model.auth.SelectionItem
-import com.linku.core.model.auth.icon.iconPainter
+import com.linku.core.ui.icon.iconPainter
 import com.linku.design.component.BottomGradientButton
 import com.linku.design.theme.LinkuPreview
 import com.linku.design.theme.linkuColors

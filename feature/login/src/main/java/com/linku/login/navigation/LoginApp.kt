@@ -72,7 +72,7 @@ fun LoginApp(
     var showRecoverModal by remember { mutableStateOf(false) }
 
     // 채널 effect는 오직 LoginApp에서만.
-    // 자동 로그인 성공/실패는 Splash가 loginViewModel.autoLoginState(StateFlow)를 직접 관찰해 라우팅하므로
+    // 자동 로그인 성공/실패는 SplashViewModel이 판단해 스플래시가 직접 라우팅하므로
     // 여기서는 다루지 않음 - LoginApp은 자동 로그인 시점엔 아직 컴포즈되지 않아 이 채널로 보내면
     // 이벤트가 버퍼에 쌓였다가, 로그아웃/탈퇴 후 LoginApp이 뒤늦게 재구성될 때 그 오래된 이벤트를
     // 받아 엉뚱하게 홈으로 되돌아가는 문제가 있었음.

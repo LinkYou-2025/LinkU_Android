@@ -80,7 +80,7 @@ internal fun SharedFolderDetailTopBar(
             .background(colors.maincolor),
     ) {
         Icon(
-            painter = painterResource(R.drawable.linku_logo),
+            painter = painterResource(com.linku.design.R.drawable.linku_logo),
             contentDescription = null,
             tint = colors.white,
             modifier = Modifier

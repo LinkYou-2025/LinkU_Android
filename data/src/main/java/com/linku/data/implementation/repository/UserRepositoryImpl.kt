@@ -15,7 +15,7 @@ import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
-import com.linku.data.preference.AuthPreference
+import com.linku.core.preference.AuthPreference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

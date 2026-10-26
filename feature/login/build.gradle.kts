@@ -110,14 +110,11 @@ dependencies {
 
     // 의존성 정의
     implementation(project(":core"))
-    implementation(project(":data"))
+    implementation(project(":core:ui"))
     implementation(project(":design"))
 
 
     // 여기에 추가
-    implementation(project(":feature:home"))
-    implementation(project(":feature:curation"))
-    implementation(project(":feature:file"))
 
 
     // Retrofit2
