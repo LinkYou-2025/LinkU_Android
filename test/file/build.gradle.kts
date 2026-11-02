@@ -1,3 +1,4 @@
+import com.android.build.api.variant.BuildConfigField
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -9,6 +10,18 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
+
+@Suppress("UNCHECKED_CAST")
+val linkuConfigProviders =
+    rootProject.extra["linkuConfigProviders"] as Map<String, Provider<String>>
+
+@Suppress("UNCHECKED_CAST")
+val linkuBuildConfigString =
+    rootProject.extra["linkuBuildConfigString"] as
+        (Provider<String>) -> Provider<BuildConfigField<String>>
+
+val releaseServerHostProvider = linkuConfigProviders.getValue("SERVER_HOST")
+val debugServerHostProvider = linkuConfigProviders.getValue("DEV_SERVER_HOST")
 
 android {
     namespace = "com.linku.test.file"
@@ -44,6 +57,21 @@ android {
         }*/
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+}
+
+androidComponents {
+    onVariants { variant ->
+        val serverHostProvider = if (variant.buildType == "debug") {
+            debugServerHostProvider
+        } else {
+            releaseServerHostProvider
+        }
+        variant.buildConfigFields?.put(
+            "SERVER_HOST",
+            linkuBuildConfigString(serverHostProvider)
+        )
     }
 }
 

@@ -8,9 +8,10 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navDeepLink
-import com.linku.file.R
+import com.linku.core.deeplink.parseInvitationToken
 import com.linku.core.error.DeepLinkError
 import com.linku.file.FileViewModel
+import com.linku.file.R
 import com.linku.file.viewmodel.folder.state.FolderStateViewModel
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -65,7 +66,7 @@ fun NavGraphBuilder.openDeepLinkGraph(
 
             try {
                 // non-null 인자의 빈 기본값은 파서에서 구체적인 딥링크 오류로 변환합니다.
-                val token = parseOpenDeepLinkToken(
+                val token = parseInvitationToken(
                     backStackEntry.arguments?.getString(
                         OPEN_DEEP_LINK_TOKEN_ARGUMENT
                     ).orEmpty()

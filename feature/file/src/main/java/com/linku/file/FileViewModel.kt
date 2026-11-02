@@ -1,6 +1,5 @@
 package com.linku.file
 
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +7,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.filter
 import com.linku.core.analytics.AnalyticsEvent
+import com.linku.core.analytics.AnalyticsLogger
 import com.linku.core.analytics.ShareMethod
 import com.linku.core.error.SameNameException
 import com.linku.core.error.UserIdNullException
@@ -20,18 +20,18 @@ import com.linku.core.model.LinkResultInfo
 import com.linku.core.model.OwnedSharedFolderInfo
 import com.linku.core.model.ParentFolderSort
 import com.linku.core.model.SharedFolderInfo
+import com.linku.core.preference.AuthPreference
 import com.linku.core.repository.AIArticleRepository
 import com.linku.core.repository.CategoryRepository
 import com.linku.core.repository.FolderRepository
 import com.linku.core.repository.InvitationRepository
 import com.linku.core.repository.LinkuRepository
 import com.linku.core.repository.UserRepository
+import com.linku.core.ui.category.toCategoryColorStyleMap
 import com.linku.core.usecase.AcceptSharedFolderInvitationResult
 import com.linku.core.usecase.AcceptSharedFolderInvitationUseCase
+import com.linku.core.usecase.CreateInvitationLinkUseCase
 import com.linku.core.usecase.GetFolderLinksUseCase
-import com.linku.core.analytics.AnalyticsLogger
-import com.linku.core.preference.AuthPreference
-import com.linku.core.ui.category.toCategoryColorStyleMap
 import com.linku.design.theme.color.CategoryColorStyle
 import com.linku.file.viewmodel.folder.state.SharedFolderScope
 import com.linku.file.viewmodel.folder.state.SharedFolderTarget
@@ -74,6 +74,7 @@ import javax.inject.Inject
  *
  * @property acceptSharedFolderInvitationUseCase 초대 토큰을 사용해 공유 폴더 초대를 수락하고
  * 최신 공유 폴더 목록을 함께 반환하는 UseCase입니다.
+ * @property createInvitationLinkUseCase 초대 발급과 공유용 HTTPS 링크 생성을 처리하는 UseCase입니다.
  * @property getFolderLinksUseCase 선택한 소분류 폴더의 링크를 커서 Paging 스트림으로 조회합니다.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,6 +90,7 @@ class FileViewModel @Inject constructor(
 
     private val aiArticleRepository: AIArticleRepository,
     private val acceptSharedFolderInvitationUseCase: AcceptSharedFolderInvitationUseCase,
+    private val createInvitationLinkUseCase: CreateInvitationLinkUseCase,
     private val getFolderLinksUseCase: GetFolderLinksUseCase,
     private val analyticsLogger: AnalyticsLogger,
 ) : ViewModel() {
@@ -1470,52 +1472,6 @@ class FileViewModel @Inject constructor(
     // ---------- share method ----------
     // 폴더 공유하기
     /**
-     * 서버가 반환한 초대 토큰 또는 소문자 `http://`·`https://` 접두사의 초대 링크를
-     * 앱에서 공유할 HTTPS 링크로 정규화합니다.
-     *
-     * 최종 링크는 [BuildConfig.SERVER_HOST]의 `/open` 경로에 URL 인코딩된 `token`
-     * 쿼리 파라미터를 포함합니다.
-     *
-     * @param tokenOrLink 원시 초대 토큰 또는 소문자 `http://`·`https://` 접두사로 시작하고
-     * `token` 쿼리 파라미터가 포함된 링크입니다.
-     * @return 앱에서 공유할 수 있는 완전한 HTTPS 초대 링크입니다.
-     * @throws IllegalArgumentException 입력에서 추출한 초대 토큰이 빈 문자열인 경우 발생합니다.
-     */
-    private fun buildInvitationLink(tokenOrLink: String): String {
-        val invitationToken = extractInvitationToken(tokenOrLink)
-        require(invitationToken.isNotBlank()) {
-            "Invitation token must not be blank."
-        }
-
-        return Uri.Builder()
-            .scheme("https")
-            .authority(BuildConfig.SERVER_HOST)
-            .path("open")
-            .appendQueryParameter("token", invitationToken)
-            .build()
-            .toString()
-    }
-
-    /**
-     * 원시 초대 토큰과 소문자 `http://`·`https://` 접두사의 기존 초대 링크를 구분해
-     * 초대 토큰만 추출합니다.
-     *
-     * @param tokenOrLink 원시 초대 토큰 또는 소문자 `http://`·`https://` 접두사로 시작하고
-     * `token` 쿼리 파라미터가 포함된 링크입니다.
-     * @return 링크 입력이면 `token` 쿼리 값, 그 외에는 앞뒤 공백을 제거한 입력값입니다.
-     * 링크에 `token` 쿼리 파라미터가 없으면 빈 문자열을 반환합니다.
-     */
-    private fun extractInvitationToken(tokenOrLink: String): String {
-        val trimmed = tokenOrLink.trim()
-
-        return if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-            Uri.parse(trimmed).getQueryParameter("token").orEmpty()
-        } else {
-            trimmed
-        }
-    }
-
-    /**
      * 지정한 폴더의 초대 링크 생성 요청을 시작하고 현재 링크 값을 즉시 반환합니다.
      *
      * 이 함수는 [viewModelScope]에서 시작한 비동기 요청의 완료를 기다리지 않습니다. 따라서 반환
@@ -1540,8 +1496,7 @@ class FileViewModel @Inject constructor(
 
                 Log.d("FileViewModel", "makeInvitationLink try")
 
-                val token = folderRepository.makeInvitationLink(folderId)
-                link = buildInvitationLink(token)
+                link = createInvitationLinkUseCase(folderId)
 
                 Log.d("FileViewModel", "makeInvitationLink try result: true")
 
@@ -1583,7 +1538,7 @@ class FileViewModel @Inject constructor(
             Log.d("FileViewModel", "createInvitationLink launch")
 
             try {
-                val link = buildInvitationLink(folderRepository.makeInvitationLink(folderId))
+                val link = createInvitationLinkUseCase(folderId)
                 analyticsLogger.log(AnalyticsEvent.FolderShared(ShareMethod.DEEPLINK))
                 onSuccess(link)
 
