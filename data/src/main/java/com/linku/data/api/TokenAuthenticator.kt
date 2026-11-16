@@ -1,5 +1,6 @@
 package com.linku.data.api
 
+import retrofit2.HttpException
 import android.util.Log
 import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
@@ -11,6 +12,7 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,7 +25,6 @@ class TokenAuthenticator @Inject constructor(
 
     companion object {
         private const val TAG = "TokenAuthenticator"
-        private const val MAX_REISSUE_ATTEMPTS = 3
         private val refreshMutex = Mutex()
     }
 
@@ -61,33 +62,21 @@ class TokenAuthenticator @Inject constructor(
                         return@withLock null
                     }
 
-                    var reissueResult: RefreshTokenResponseDTO? = null
-                    for (attempt in 1..MAX_REISSUE_ATTEMPTS) {
-                        try {
-                            val reissueResponse = authApi.reissue(
-                                ReissueRequestDTO(
-                                    refreshToken = refreshToken,
-                                    deviceId = deviceId
-                                )
-                            )
-                            if (reissueResponse.isSuccess) {
-                                reissueResult = reissueResponse.result
-                                break
-                            }
-                            Log.e(TAG, "[토큰 재발급 실패 $attempt/$MAX_REISSUE_ATTEMPTS] 서버 응답 실패")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "[토큰 재발급 실패 $attempt/$MAX_REISSUE_ATTEMPTS] ${e.message}")
+                    val newTokens = when(val result = reissueOnce(refreshToken, deviceId)) {
+                        is ReissueResult.Success -> result.tokens
+                        is ReissueResult.Rejected -> {
+                            Log.e(TAG, "[토큰 재발급 실패] 서버가 재발급을 거절했습니다. 세션을 정리합니다.")
+                            authPreference.clear()
+                            return@withLock null
+                        }
+                        is ReissueResult.Unavailable -> {
+                            Log.e(TAG, "[토큰 재발급 실패] 서버가 일시적으로 응답하지 않습니다.")
+                            return@withLock null
                         }
                     }
 
-                    if (reissueResult == null) {
-                        Log.e(TAG, "[토큰 재발급 최종 실패] ${MAX_REISSUE_ATTEMPTS}회 시도 후 로그아웃 처리")
-                        authPreference.clear()
-                        return@withLock null
-                    }
-
-                    val newAccessToken = reissueResult.accessToken
-                    val newRefreshToken = reissueResult.refreshToken
+                    val newAccessToken = newTokens.accessToken
+                    val newRefreshToken = newTokens.refreshToken
 
 
                     authPreference.updateAccessToken(
@@ -106,6 +95,33 @@ class TokenAuthenticator @Inject constructor(
                     Log.e(TAG, "[토큰 재발급 실패] ${e.message}")
                     null
                 }
+            }
+        }
+    }
+
+    private sealed interface ReissueResult {
+        data class Success(val tokens: RefreshTokenResponseDTO) : ReissueResult
+        data object Rejected : ReissueResult      // 서버가 거절 → 로그아웃
+        data object Unavailable : ReissueResult   // 일시적 실패 → 토큰 유지
+    }
+
+    /** 재발급을 한 번 시도하고, 결과를 위 세 가지 중 하나로 분류합니다. */
+    private suspend fun reissueOnce(refreshToken: String, deviceId: String): ReissueResult {
+        return try {
+            val response = authApi.reissue(ReissueRequestDTO(refreshToken, deviceId))
+            if (response.isSuccess) {
+                ReissueResult.Success(response.result)
+            } else {
+                ReissueResult.Rejected
+            }
+
+        } catch (e: IOException) {
+            ReissueResult.Unavailable // 오프라인, 타임아웃은 토큰의 문제가 아님.
+        } catch (e: HttpException) {
+            if (e.code() in 500..599) {
+                ReissueResult.Unavailable
+            } else {
+                ReissueResult.Rejected
             }
         }
     }
