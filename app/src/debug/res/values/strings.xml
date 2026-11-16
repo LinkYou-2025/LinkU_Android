@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- release 앱과 런처에서 구분되도록 debug 빌드의 앱 이름을 덮어쓴다. -->
+    <string name="app_name">링큐 QA</string>
+</resources>

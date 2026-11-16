@@ -68,6 +68,9 @@ android {
 
     buildTypes {
         debug {
+            // release(com.linku)와 한 기기에 함께 설치할 수 있도록 debug만 패키지를 분리한다.
+            // namespace는 R/BuildConfig 패키지가 깨지므로 바꾸지 않는다.
+            applicationIdSuffix = ".qa"
             versionNameSuffix = "-debug"
         }
 

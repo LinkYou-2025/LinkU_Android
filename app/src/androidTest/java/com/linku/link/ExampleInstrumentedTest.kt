@@ -12,6 +12,7 @@ class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.linku", appContext.packageName)
+        // androidTest는 debug 변형에서 실행되므로 applicationIdSuffix(.qa)가 붙는다.
+        assertEquals("com.linku.qa", appContext.packageName)
     }
 }
