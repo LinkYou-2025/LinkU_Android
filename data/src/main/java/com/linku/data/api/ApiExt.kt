@@ -5,6 +5,7 @@ import com.linku.core.error.AppError
 import com.linku.core.error.NetworkError
 import com.linku.data.api.dto.BaseResponse
 import kotlinx.coroutines.CancellationException
+import com.squareup.moshi.JsonEncodingException
 import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
@@ -127,6 +128,7 @@ private fun <Data> Result<Data>.apiExceptions(): Result<Data> {
                 is AppError -> exception
                 is SocketTimeoutException -> NetworkError.Timeout()
                 is HttpException -> mapHttpError(exception)
+                is JsonEncodingException -> ApiError.Unknown(message = "서버 응답을 해석할 수 없습니다.") // 서버 응답이 깨진 경우 case 추가.
                 is UnknownHostException, is IOException -> NetworkError.NoConnection()
                 else -> ApiError.Unknown(
                     message = exception.message ?: "알 수 없는 오류가 발생했습니다."
