@@ -10,11 +10,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * 이메일 로그인, 계정 복구, 자동 로그인, 인증 정보 정리 유스케이스가 기존 로그인 화면의 동작과 같은
@@ -22,9 +22,9 @@ import org.junit.Test
  */
 class LoginUseCasesTest {
 
-    /** 정상 로그인 응답이면 정식 세션(토큰, 사용자 ID, 이메일 로그인 방식)을 저장하고 임시 저장은 하지 않는지 검증합니다. */
+    /** 정상 로그인 응답이면 [EmailLoginOutcome.Authenticated]를 돌려주고, 토큰 저장은 Repository에 맡기는지 검증합니다. */
     @Test
-    fun `active account saves a full session`() = runTest {
+    fun `active account returns authenticated without saving tokens itself`() = runTest {
         val preference = FakeAuthPreference()
         val result = loginResult(status = "ACTIVE")
         val useCase = LoginWithEmailUseCase(FakeAuthRepository(Result.success(result)), preference)
@@ -32,13 +32,13 @@ class LoginUseCasesTest {
         val outcome = useCase("a@b.com", "pw")
 
         assertEquals(EmailLoginOutcome.Authenticated(result), outcome)
-        assertEquals(listOf(SavedTokens("access", "refresh", 7L, LoginType.EMAIL)), preference.savedTokens)
+        assertTrue(preference.savedTokens.isEmpty())
         assertTrue(preference.updatedAccessTokens.isEmpty())
     }
 
-    /** 탈퇴 유예기간 계정이면 정식 세션을 저장하지 않고 복구 API용 토큰만 임시 저장하는지 검증합니다. */
+    /** 탈퇴 유예기간 계정이면 [EmailLoginOutcome.RecoveryRequired]를 돌려주고, 토큰 저장은 Repository에 맡기는지 검증합니다. */
     @Test
-    fun `inactive account stores only a temporary recovery token`() = runTest {
+    fun `inactive account returns recovery required without saving tokens itself`() = runTest {
         val preference = FakeAuthPreference()
         val result = loginResult(status = "INACTIVE")
         val useCase = LoginWithEmailUseCase(FakeAuthRepository(Result.success(result)), preference)
@@ -47,7 +47,7 @@ class LoginUseCasesTest {
 
         assertEquals(EmailLoginOutcome.RecoveryRequired(result), outcome)
         assertTrue(preference.savedTokens.isEmpty())
-        assertEquals(listOf("access" to "refresh"), preference.updatedAccessTokens)
+        assertTrue(preference.updatedAccessTokens.isEmpty())
     }
 
     /** 로그인 요청에 저장된 기기 정보가 그대로 전달되는지 검증합니다. */
@@ -156,18 +156,19 @@ class LoginUseCasesTest {
         assertEquals(AutoLoginState.Failed, useCase())
     }
 
-    /** 토큰 만료만 세션을 정리하고 실패로 처리하는지 검증합니다. */
+    /** 코루틴 취소는 삼키지 않고 그대로 다시 던지는지 검증합니다. */
     @Test
-    fun `auto login clears the session only when the token expired`() = runTest {
-        val preference = FakeAuthPreference(loggedIn = flow { throw ApiError.Auth.TokenExpired("expired") })
+    fun `auto login rethrows cancellation`() = runTest {
+        val preference = FakeAuthPreference(loggedIn = flow { throw CancellationException("cancelled") })
 
-        assertEquals(AutoLoginState.Failed, AutoLoginUseCase(preference)())
-        assertTrue(preference.cleared)
+        assertThrows(CancellationException::class.java) {
+            kotlinx.coroutines.runBlocking { AutoLoginUseCase(preference)() }
+        }
     }
 
-    /** 그 밖의 실패는 절대 로그아웃(세션 정리)하지 않고 실패로만 처리하는지 검증합니다. */
+    /** 로그인 상태를 읽다 실패해도 세션을 지우지 않고 실패로만 처리하는지 검증합니다. */
     @Test
-    fun `auto login never clears the session for other failures`() = runTest {
+    fun `auto login fails without clearing when reading the login state fails`() = runTest {
         val preference = FakeAuthPreference(loggedIn = flow { throw IllegalStateException("network") })
 
         assertEquals(AutoLoginState.Failed, AutoLoginUseCase(preference)())
