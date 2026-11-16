@@ -6,6 +6,7 @@ import com.linku.data.api.AuthClient
 import com.linku.data.api.PublicClient
 import com.linku.data.api.ServerApi
 import com.linku.data.api.TokenAuthenticator
+import com.linku.data.api.withNetworkTiming
 import com.linku.core.preference.AuthPreference
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -62,6 +63,7 @@ object ServerApiModule {
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .client(
             OkHttpClient.Builder()
+                .withNetworkTiming()
                 .addInterceptor(httpLoggingInterceptor())
                 .build()
         )
@@ -91,6 +93,7 @@ object ServerApiModule {
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .client(
             OkHttpClient.Builder()
+                .withNetworkTiming()
                 .authenticator(tokenAuthenticator)
                 .addInterceptor { chain ->
                     // 호출자가 이미 지정한 인증 헤더는 변경하지 않고 그대로 사용합니다.
