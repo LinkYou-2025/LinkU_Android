@@ -41,6 +41,16 @@ class TokenAuthenticatorTest {
     }
 
     @Test
+    fun `재발급 서버가 429이면 세션을 지우지 않고 null을 반환한다`() {
+        val authenticator = authenticatorWith { throw httpException(429) }
+
+        val result = authenticator.authenticate(null, unauthorizedResponse(OLD_ACCESS))
+
+        assertNull(result)
+        assertFalse(preference.cleared)
+    }
+
+    @Test
     fun `재발급 서버가 5xx이면 세션을 지우지 않고 null을 반환한다`() {
         val authenticator = authenticatorWith { throw httpException(503) }
 

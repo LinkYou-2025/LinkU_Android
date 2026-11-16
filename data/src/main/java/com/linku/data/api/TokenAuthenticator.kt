@@ -118,10 +118,9 @@ class TokenAuthenticator @Inject constructor(
         } catch (e: IOException) {
             ReissueResult.Unavailable // 오프라인, 타임아웃은 토큰의 문제가 아님.
         } catch (e: HttpException) {
-            if (e.code() in 500..599) {
-                ReissueResult.Unavailable
-            } else {
-                ReissueResult.Rejected
+            when (e.code()) {
+                in 500..599, 408, 429 -> ReissueResult.Unavailable
+                else -> ReissueResult.Rejected
             }
         }
     }
