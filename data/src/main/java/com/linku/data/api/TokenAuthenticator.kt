@@ -1,6 +1,7 @@
 package com.linku.data.api
 
-import retrofit2.HttpException
+import com.linku.core.error.ApiError
+import com.linku.core.error.NetworkError
 import android.util.Log
 import com.linku.data.api.dto.auth.refreshToken.ReissueRequestDTO
 import com.linku.data.api.dto.auth.refreshToken.RefreshTokenResponseDTO
@@ -12,7 +13,6 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -107,22 +107,18 @@ class TokenAuthenticator @Inject constructor(
 
     /** 재발급을 한 번 시도하고, 결과를 위 세 가지 중 하나로 분류합니다. */
     private suspend fun reissueOnce(refreshToken: String, deviceId: String): ReissueResult {
-        return try {
-            val response = authApi.reissue(ReissueRequestDTO(refreshToken, deviceId))
-            if (response.isSuccess) {
-                ReissueResult.Success(response.result)
-            } else {
-                ReissueResult.Rejected
+        return safeApiCall { authApi.reissue(ReissueRequestDTO(refreshToken, deviceId)) }.fold(
+            onSuccess = { ReissueResult.Success(it) },
+            onFailure = { error ->
+                when (error) {
+                    is NetworkError,                       // 오프라인, 타임아웃
+                    is ApiError.Common.InternalServer,     // 5xx
+                    is ApiError.Common.TooManyRequests,    // 429
+                    is ApiError.Unknown -> ReissueResult.Unavailable
+                    else -> ReissueResult.Rejected
+                }
             }
-
-        } catch (e: IOException) {
-            ReissueResult.Unavailable // 오프라인, 타임아웃은 토큰의 문제가 아님.
-        } catch (e: HttpException) {
-            when (e.code()) {
-                in 500..599, 408, 429 -> ReissueResult.Unavailable
-                else -> ReissueResult.Rejected
-            }
-        }
+        )
     }
 
     /** 재시도 횟수 계산 */
