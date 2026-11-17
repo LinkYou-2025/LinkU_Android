@@ -1,7 +1,6 @@
 package com.linku.core.usecase
 
 import com.linku.core.model.LoginResult
-import com.linku.core.model.auth.LoginType
 import com.linku.core.preference.AuthPreference
 import com.linku.core.repository.AuthRepository
 import javax.inject.Inject
@@ -12,7 +11,7 @@ import javax.inject.Inject
 sealed interface EmailLoginOutcome {
 
     /**
-     * 정상 로그인입니다. 토큰과 사용자 ID가 정식 세션으로 저장되었습니다.
+     * 정상 로그인입니다. 토큰과 사용자 ID는 Repository가 정식 세션으로 저장했습니다.
      *
      * @property loginResult 로그인 응답
      */
@@ -27,16 +26,16 @@ sealed interface EmailLoginOutcome {
 }
 
 /**
- * 이메일과 비밀번호로 로그인하고, 응답 상태에 맞게 인증 정보를 저장하는 UseCase입니다.
+ * 이메일과 비밀번호로 로그인하고, 응답 상태에 맞는 [EmailLoginOutcome]을 돌려주는 UseCase입니다.
  *
- * 로그인 응답이 `INACTIVE`(탈퇴 유예기간 계정)이면 정식 세션(`LOGGED_IN`)을 저장하지 않고 복구 API 호출용
- * 토큰만 임시 저장합니다. `LOGGED_IN`을 저장하면 다음 실행 시 자동 로그인이 서버 상태를 다시 확인하지 않고
- * 로컬 플래그만 보고 바로 홈으로 보내 버리기 때문입니다.
+ * 토큰 저장은 [AuthRepository.login]이 맡습니다. 응답이 `INACTIVE`(탈퇴 유예기간 계정)이면 정식 세션
+ * (`LOGGED_IN`)을 저장하지 않고 복구 API 호출용 토큰만 임시 저장합니다. `LOGGED_IN`을 저장하면 다음 실행 시
+ * 자동 로그인이 서버 상태를 다시 확인하지 않고 로컬 플래그만 보고 바로 홈으로 보내 버리기 때문입니다.
  *
  * 실패하면 예외를 그대로 던집니다. 호출한 쪽이 취소 예외는 다시 던지고, 나머지는 화면용 오류로 변환합니다.
  *
  * @property authRepository 로그인 API를 호출하는 레포지토리
- * @property authPreference 기기 정보와 인증 토큰을 저장하는 저장소
+ * @property authPreference 로그인 요청에 담을 기기 정보를 제공하는 저장소
  */
 class LoginWithEmailUseCase @Inject constructor(
     private val authRepository: AuthRepository,
@@ -61,22 +60,11 @@ class LoginWithEmailUseCase @Inject constructor(
             deviceType = deviceType
         ).getOrThrow()
 
-        if (loginResult.status == INACTIVE_STATUS) {
-            // 탈퇴 유예기간 계정 -> 복구 API 호출용 토큰만 임시 저장함.
-            authPreference.updateAccessToken(
-                loginResult.accessToken,
-                loginResult.refreshToken
-            )
-            return EmailLoginOutcome.RecoveryRequired(loginResult)
+        return if (loginResult.status == INACTIVE_STATUS) {
+            EmailLoginOutcome.RecoveryRequired(loginResult)
+        } else {
+            EmailLoginOutcome.Authenticated(loginResult)
         }
-
-        authPreference.saveTokens(
-            accessToken = loginResult.accessToken,
-            refreshToken = loginResult.refreshToken,
-            userId = loginResult.userId,
-            loginType = LoginType.EMAIL
-        )
-        return EmailLoginOutcome.Authenticated(loginResult)
     }
 
     private companion object {
