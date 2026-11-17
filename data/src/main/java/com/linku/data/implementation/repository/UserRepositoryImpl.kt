@@ -15,6 +15,7 @@ import com.linku.data.api.dto.user.DeleteUserRequestDTO
 import com.linku.data.api.dto.user.UpdateUserProfileRequestDTO
 import com.linku.data.api.safeApiCall
 import com.linku.data.api.safeApiCallUnit
+import com.linku.data.util.SingleFlight
 import com.linku.core.preference.AuthPreference
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,10 +32,20 @@ class UserRepositoryImpl @Inject constructor(
     private val _cachedUserInfo = MutableStateFlow<UserInfo?>(null)
     override val cachedUserInfo: StateFlow<UserInfo?> = _cachedUserInfo.asStateFlow()
 
-    override suspend fun getUserInfo(userId: Long): Result<UserInfo> {
+    /**
+     * 로그인 직후처럼 같은 순간에 여러 곳에서 부르는 `GET /users/me`를 한 번의 요청으로 합칩니다.
+     * 이미 진행 중인 요청이 있을 때만 결과를 공유하고, 끝난 뒤의 호출은 항상 새로 조회합니다.
+     * (다른 기기에서 바꾼 정보를 화면 진입마다 반영해야 하므로 결과를 시간으로 캐시하지 않습니다.)
+     */
+    private val userInfoFlight = SingleFlight<Result<UserInfo>>()
+
+    /** `GET /auth/nickname`의 동시 중복 호출을 합칩니다. 동작 원칙은 [userInfoFlight]와 같습니다. */
+    private val nicknameFlight = SingleFlight<Result<String>>()
+
+    override suspend fun getUserInfo(userId: Long): Result<UserInfo> = userInfoFlight.run {
         Log.d(TAG, "[유저 정보 가져오기 시도] userId=$userId")
 
-        return safeApiCall(
+        safeApiCall(
             apiCall = { serverApi.getUserInfo() }
         ).map { dto ->
             UserInfo(
@@ -72,7 +83,16 @@ class UserRepositoryImpl @Inject constructor(
 
         return safeApiCallUnit {
             serverApi.updateUserInfo(dto)
+        }.onSuccess {
+            // 수정 전에 출발한 진행 중 조회와 합쳐지면 수정 전 값을 받으므로, 이후 호출은 새로 조회하게 합니다.
+            invalidateInFlightRequests()
         }
+    }
+
+    /** 진행 중인 사용자 정보와 닉네임 조회 공유를 끊어 이후 호출이 새 요청이 되게 합니다. */
+    private suspend fun invalidateInFlightRequests() {
+        userInfoFlight.invalidate()
+        nicknameFlight.invalidate()
     }
 
     override suspend fun deleteUser(reason: String): Result<Unit> {
@@ -87,6 +107,7 @@ class UserRepositoryImpl @Inject constructor(
         return try {
             authPreference.clear()
             _cachedUserInfo.value = null
+            invalidateInFlightRequests()
             result
         } catch (e: CancellationException) {
             throw e
@@ -125,9 +146,9 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     // 닉네임 조회
-    override suspend fun getNickname(): Result<String> {
+    override suspend fun getNickname(): Result<String> = nicknameFlight.run {
         LinkuLog.d(TAG, "닉네임 api 호출 시도중")
-        return safeApiCall {
+        safeApiCall {
             serverApi.checkNickname()
         }.map { dto ->
             dto.nickname
@@ -155,6 +176,8 @@ class UserRepositoryImpl @Inject constructor(
 
             authPreference.clear()
             _cachedUserInfo.value = null
+            // 다음에 로그인하는 계정이 이전 계정의 진행 중 조회 결과를 받지 않도록 끊습니다.
+            invalidateInFlightRequests()
             Log.d(TAG, "로그아웃 완료")
             Result.success(Unit)
         } catch (e: CancellationException) {
