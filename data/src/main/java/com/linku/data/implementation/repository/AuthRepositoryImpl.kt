@@ -94,8 +94,7 @@ class AuthRepositoryImpl @Inject constructor(
                     accessToken = response.accessToken,
                     refreshToken = response.refreshToken,
                     userId = response.userId,
-                    loginType = LoginType.EMAIL,
-                    joinedYear = response.createdAt,
+                    loginType = LoginType.EMAIL
                 )
                 Log.d(TAG, "[토큰 저장 완료]")
             }
@@ -105,7 +104,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = response.inactiveDate,
+                inactiveDate = response.inactiveDate
             )
         }
     }
@@ -154,14 +153,13 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
-                loginType = LoginType.EMAIL,
-                joinedYear = response.createdAt
+                loginType = LoginType.EMAIL
             )
             Log.d(TAG, "[회원가입 후 자동 로그인 토큰 저장 완료]")
 
             SignUpEmailResult(
                 userId = response.userId,
-                createdAt = response.createdAt.toString(),
+                createdAt = response.createdAt,
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken
             )
@@ -261,8 +259,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
-                loginType = loginType,
-                joinedYear = response.createdAt,
+                loginType = loginType
             )
             Log.d(TAG, "[소셜 프로필 완성 후 자동 로그인 토큰 저장 완료]")
 
@@ -296,8 +293,7 @@ class AuthRepositoryImpl @Inject constructor(
                         accessToken = response.accessToken,
                         refreshToken = response.refreshToken,
                         userId = response.userId,
-                        loginType = LoginType.KAKAO,
-                        joinedYear = response.createdAt,
+                        loginType = LoginType.KAKAO
                     )
                     Log.d(TAG, "[카카오 로그인] ACTIVE 상태 - 토큰 저장 완료")
                 }
@@ -325,7 +321,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = response.inactiveDate,
+                inactiveDate = response.inactiveDate
             )
         }
     }
@@ -356,8 +352,7 @@ class AuthRepositoryImpl @Inject constructor(
                         accessToken = response.accessToken,
                         refreshToken = response.refreshToken,
                         userId = response.userId,
-                        loginType = LoginType.GOOGLE,
-                        joinedYear = response.createdAt,
+                        loginType = LoginType.GOOGLE
                     )
                     Log.d(TAG, "[구글 로그인] ACTIVE 상태 - 토큰 저장 완료")
                 }
@@ -385,7 +380,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = response.inactiveDate,
+                inactiveDate = response.inactiveDate
             )
         }.onFailure { e ->
             Log.e(TAG, "[구글 로그인 실패] ${e.message}")
@@ -400,5 +395,36 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d(TAG, "[비밀번호 재설정 이메일 발송 성공]")
         }
     }
+
+
+//    // 구글로 로그인 api
+//    override suspend fun loginWithGoogle(token: String): Result<LoginResult> {
+//        Log.d("UserRepositoryImpl", "loginWithGoogle token: $token")
+//        val googleResponse: SocialLoginResponseDTO
+//
+//        try {
+//            Log.d("UserRepositoryImpl", "loginWithGoogle try")
+//            googleResponse = serverApi.withErrorHandling {
+//                googleLogin(SocialLoginRequestDTO(token = token))
+//            }
+//            Result.success(
+//                LoginResult(
+//                    userId = googleResponse.userId,
+//                    accessToken = googleResponse.accessToken,
+//                    refreshToken = googleResponse.refreshToken,
+//                    status = googleResponse.status ?: "",
+//                    inactiveDate = ""
+//                )
+//            )
+//
+//            Log.d("UserRepositoryImpl", "loginWithGoogle response: $googleResponse")
+//        } catch (e: Exception) {
+//            Log.e("UserRepositoryImpl", "loginWithGoogle error: $e")
+//            throw e
+//        }
+//
+//        Log.d("UserRepositoryImpl", "loginWithGoogle return: $googleResponse")
+//
+//    }
 
 }

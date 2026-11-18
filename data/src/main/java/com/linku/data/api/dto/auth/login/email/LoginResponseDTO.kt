@@ -23,8 +23,6 @@ data class LoginResponseDTO (
     val status: String = "",
 
     @field:Json(name = "inactiveDate")
-    val inactiveDate: String? = null,
+    val inactiveDate: String? = null
 
-    @field:Json(name = "createdAt")
-    val createdAt: Int? = null,
 )

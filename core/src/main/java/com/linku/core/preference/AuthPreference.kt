@@ -24,8 +24,7 @@ interface AuthPreference {
         accessToken: String,
         refreshToken: String?,
         userId: Long,
-        loginType: LoginType,
-        joinedYear: Int? = null,
+        loginType: LoginType
     )
 
     // 소셜 가입(TEMP) 유저가 나중에 가입을 최종 완료했을 때 수단만 따로 업데이트하기 위함
@@ -96,8 +95,6 @@ interface AuthPreference {
         savedAtMillis: Long,
         userId: Long,
     ): Boolean
-
-    suspend fun getJoinedYear(): Int?
 
 }
 

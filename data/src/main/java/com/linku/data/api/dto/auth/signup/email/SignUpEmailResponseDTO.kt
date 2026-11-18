@@ -11,7 +11,7 @@ data class SignUpEmailResponseDTO(
     val userId: Long,
 
     @field:Json(name = "createdAt")
-    val createdAt: Int? = null,
+    val createdAt: String,
 
     @field:Json(name = "tokenResponse")
     val tokenResponse: TokenResponseDTO

@@ -21,7 +21,4 @@ data class SocialLoginResponseDTO(
 
     @field:Json(name = "inactiveDate")
     val inactiveDate: String? = "",
-
-    @field:Json(name = "createdAt")
-    val createdAt: Int? = null,
 )

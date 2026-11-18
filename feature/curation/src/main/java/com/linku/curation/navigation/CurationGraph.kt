@@ -129,10 +129,12 @@ fun NavGraphBuilder.curationGraph(
     composable(
         route = CurationRoute.MONTHLY_PATTERN,
         arguments = listOf(navArgument(CurationRoute.ARG_YEAR) { type = NavType.IntType })
-    ) {
+    ) { backStackEntry ->
+        val year = backStackEntry.arguments?.getInt(CurationRoute.ARG_YEAR) ?: 0
         val viewModel = hiltViewModel<CurationHistoryViewModel>()
 
         MonthlyCurationScreen(
+            year = year,
             viewModel = viewModel,
             onBackClick = { navigator.popBackStack() },
             onMonthClick = { month, curationId ->
