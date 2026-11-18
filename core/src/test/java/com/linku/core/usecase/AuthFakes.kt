@@ -101,6 +101,7 @@ internal class FakeAuthRepository(
 
     override suspend fun reissue(refreshToken: String): Result<TokenReissueResult> = unused()
 
+
     override suspend fun completeSocialProfile(
         socialToken: String,
         nickName: String,
@@ -186,15 +187,19 @@ internal class FakeAuthPreference(
     override suspend fun getDeviceId(): String = deviceId
     override suspend fun getDeviceType(): String = deviceType
     override suspend fun getLoginType(): LoginType = recentLoginType
-
+    override suspend fun getJoinedYear(): Int? = savedJoinedYear
     override suspend fun saveTokens(
         accessToken: String,
         refreshToken: String?,
         userId: Long,
         loginType: LoginType,
+        joinedYear: Int?,
     ) {
         savedTokens += SavedTokens(accessToken, refreshToken, userId, loginType)
+        savedJoinedYear = joinedYear
     }
+
+    var savedJoinedYear: Int? = null
 
     override suspend fun updateAccessToken(accessToken: String, refreshToken: String?) {
         updatedAccessTokens += accessToken to refreshToken
