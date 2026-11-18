@@ -5,5 +5,5 @@ data class UserSession(
     val userId: Long? = null,
     val accessToken: String? = null,
     val refreshToken: String? = null,
-    val loginType: LoginType = LoginType.NONE
+    val loginType: LoginType = LoginType.NONE,
 )
