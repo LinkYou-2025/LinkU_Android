@@ -174,6 +174,9 @@ dependencies {
     // 매니페스트가 com.kakao.sdk.auth.AuthCodeHandlerActivity를 직접 선언하므로 :app 컴파일 클래스패스에 v2-auth가
     // 있어야 한다. feature:login의 implementation 의존은 :app에 전이되지 않아 release lintVital이
     // "AuthCodeHandlerActivity must extend android.app.Activity"로 실패했다.
+    // AuthCodeHandlerActivity는 CustomTabLauncherActivity → AppCompatActivity를 상속한다. 상속 사슬을 lint가
+    // 끝까지 따라가려면 :app 컴파일 클래스패스에 appcompat도 필요하다(모듈 분리 전에는 compose 의존으로 들어와 있었다).
+    implementation(libs.androidx.appcompat)
     implementation(libs.v2.common)
     implementation(libs.v2.auth)
     implementation(libs.v2.user)
