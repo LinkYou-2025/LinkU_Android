@@ -17,6 +17,13 @@ import com.linku.core.model.curation.LinkByKeyWord
 import com.linku.core.preference.AuthPreference
 import com.linku.data.local.CurationHistoryDao
 import com.linku.data.local.CurationHistoryEntity
+import com.linku.data.api.dto.server.curation.CurationDetailDTO
+import com.linku.data.api.dto.server.curation.MyTopTagDTO
+import com.linku.data.api.dto.server.curation.RecommendLinkDTO
+import com.linku.data.local.ApiCacheDao
+import com.linku.data.local.ApiCacheEntity
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import java.time.Clock
 import java.time.LocalDate
 import javax.inject.Inject
@@ -27,6 +34,8 @@ class CurationRepositoryImpl @Inject constructor(
     private val historyDao: CurationHistoryDao,
     private val authPreference: AuthPreference,
     private val clock: Clock,
+    private val apiCacheDao: ApiCacheDao,
+    private val moshi: Moshi,
 ) : CurationRepository {
 
     override suspend fun getSections(month: String?): Result<List<SectionItem>> {
@@ -40,8 +49,11 @@ class CurationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getRecommendLinks(curationId: Long): Result<List<RecommendLink>> {
-        return safeApiCall {
-            curationApi.getRecommendLinks(curationId)
+        return cachedCall(
+            key = "links:$curationId",
+            type = Types.newParameterizedType(List::class.java, RecommendLinkDTO::class.java),
+        ) {
+            safeApiCall { curationApi.getRecommendLinks(curationId) }
         }.map { dtos ->
             dtos.map { it.toDomain() }
         }
@@ -89,6 +101,34 @@ class CurationRepositoryImpl @Inject constructor(
         return fetched
     }
 
+    /**
+     * 서버 응답을 우선 사용하고, 성공하면 JSON으로 캐시합니다. 서버 호출이 실패했을 때만 캐시로 대체합니다.
+     *
+     * 온라인에서는 항상 최신 응답이 캐시를 덮어쓰므로 닉네임·문구 변경도 다음 접속에 반영됩니다.
+     * 읽기 실패나 파싱 실패는 캐시 미스로 취급해 원래 서버 오류를 그대로 돌려줍니다.
+     *
+     * @param key 응답 종류와 파라미터. ex) "detail:98"
+     * @param type 응답 DTO의 타입. JSON 변환에 사용합니다.
+     * @param call 서버 호출
+     */
+    private suspend fun <T : Any> cachedCall(
+        key: String,
+        type: java.lang.reflect.Type,
+        call: suspend () -> Result<T>,
+    ): Result<T> {
+        val userId = authPreference.getUserId() ?: return call()
+        val adapter = moshi.adapter<T>(type)
+
+        val fetched = call()
+        fetched.onSuccess { apiCacheDao.put(ApiCacheEntity(userId, key, adapter.toJson(it))) }
+        if (fetched.isSuccess) return fetched
+
+        val cached = runCatching {
+            apiCacheDao.get(userId, key)?.let { adapter.fromJson(it) }
+        }.getOrNull()
+        return if (cached != null) Result.success(cached) else fetched
+    }
+
     private suspend fun fetchHistory(year: Int?): Result<List<History>> =
         safeApiCall { curationApi.getHistory(year) }.map { dtos -> dtos.map { it.toDomain() } }
 
@@ -98,8 +138,8 @@ class CurationRepositoryImpl @Inject constructor(
         CurationHistoryEntity(userId, month, curationId, thumbnailUrl, fetchedYear)
 
     override suspend fun getCurationDetail(curationId: Long): Result<CurationDetail> {
-        return safeApiCall {
-            curationApi.getCurationDetail(curationId)
+        return cachedCall(key = "detail:$curationId", type = CurationDetailDTO::class.java) {
+            safeApiCall { curationApi.getCurationDetail(curationId) }
         }.map { it.toDomain() }
     }
 
@@ -112,8 +152,11 @@ class CurationRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getMyTopTags(month: String, limit: Int): Result<List<MyTopTag>> {
-        return safeApiCall {
-            curationApi.getMyTopTags(month, limit)
+        return cachedCall(
+            key = "tags:$month:$limit",
+            type = Types.newParameterizedType(List::class.java, MyTopTagDTO::class.java),
+        ) {
+            safeApiCall { curationApi.getMyTopTags(month, limit) }
         }.map { dtos ->
             dtos.map { it.toDomain() }
         }

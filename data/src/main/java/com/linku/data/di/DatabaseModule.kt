@@ -2,6 +2,7 @@ package com.linku.data.di
 
 import android.content.Context
 import androidx.room.Room
+import com.linku.data.local.ApiCacheDao
 import com.linku.data.local.CurationHistoryDao
 import com.linku.data.local.LinkuDatabase
 import dagger.Module
@@ -27,6 +28,9 @@ object DatabaseModule {
     @Provides
     fun provideCurationHistoryDao(database: LinkuDatabase): CurationHistoryDao =
         database.curationHistoryDao()
+
+    @Provides
+    fun provideApiCacheDao(database: LinkuDatabase): ApiCacheDao = database.apiCacheDao()
 
     /** 올해 판단을 테스트에서 고정할 수 있도록 시계를 주입합니다. */
     @Provides

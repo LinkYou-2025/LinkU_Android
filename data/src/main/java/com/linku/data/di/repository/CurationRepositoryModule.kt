@@ -5,6 +5,8 @@ import com.linku.data.api.CurationApi
 import com.linku.data.implementation.repository.CurationRepositoryImpl
 import com.linku.core.preference.AuthPreference
 import com.linku.data.local.CurationHistoryDao
+import com.linku.data.local.ApiCacheDao
+import com.squareup.moshi.Moshi
 import java.time.Clock
 import dagger.Module
 import dagger.Provides
@@ -24,12 +26,16 @@ fun provideCurationRepository(
     historyDao: CurationHistoryDao,
     authPreference: AuthPreference,
     clock: Clock,
+    apiCacheDao: ApiCacheDao,
+    moshi: Moshi,
 ): CurationRepository {
     return CurationRepositoryImpl(
         curationApi = curationApi,
         historyDao = historyDao,
         authPreference = authPreference,
         clock = clock,
+        apiCacheDao = apiCacheDao,
+        moshi = moshi,
     )
 }
 }

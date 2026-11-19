@@ -4,7 +4,12 @@ import com.linku.core.preference.AuthPreference
 import com.linku.data.api.CurationApi
 import com.linku.data.api.dto.BaseResponse
 import com.linku.data.api.dto.server.curation.HistoryDTO
+import com.linku.data.api.dto.server.curation.CurationDetailDTO
+import com.linku.data.local.ApiCacheDao
+import com.linku.data.local.ApiCacheEntity
 import com.linku.data.local.CurationHistoryDao
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import com.linku.data.local.CurationHistoryEntity
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -26,13 +31,19 @@ class CurationRepositoryHistoryCacheTest {
     private val dao = FakeDao()
     private var apiCalls = 0
     private var apiResult: () -> List<HistoryDTO> = { error("offline") }
+    private var detailResult: () -> CurationDetailDTO = { error("offline") }
+    private val apiCacheDao = FakeApiCacheDao()
+    private val moshi = Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
 
     private val api = Proxy.newProxyInstance(
         CurationApi::class.java.classLoader, arrayOf(CurationApi::class.java),
     ) { _, method, _ ->
-        check(method.name == "getHistory")
         apiCalls++
-        BaseResponse(true, "OK", "ok", apiResult())
+        when (method.name) {
+            "getHistory" -> BaseResponse(true, "OK", "ok", apiResult())
+            "getCurationDetail" -> BaseResponse(true, "OK", "ok", detailResult())
+            else -> error("unexpected ${method.name}")
+        }
     } as CurationApi
 
     private fun auth(userId: Long?) = Proxy.newProxyInstance(
@@ -45,7 +56,7 @@ class CurationRepositoryHistoryCacheTest {
     // 2026-06-01로 고정: "올해"는 2026
     private val clock = Clock.fixed(Instant.parse("2026-06-01T00:00:00Z"), ZoneOffset.UTC)
 
-    private fun repo(userId: Long? = 1L) = CurationRepositoryImpl(api, dao, auth(userId), clock)
+    private fun repo(userId: Long? = 1L) = CurationRepositoryImpl(api, dao, auth(userId), clock, apiCacheDao, moshi)
 
     private fun dtos(year: Int, curationId: Long? = null) =
         (1..12).map { HistoryDTO(if (it == 1) curationId else null, "%d-%02d".format(year, it), null) }
@@ -123,6 +134,47 @@ class CurationRepositoryHistoryCacheTest {
         repo().getHistory(null)
 
         assertTrue(dao.rows.isEmpty())
+    }
+
+    @Test
+    fun `상세는 서버 성공 시 캐시에 저장하고 이후 서버가 실패하면 캐시를 반환한다`() = runTest {
+        detailResult = { CurationDetailDTO(98L, "2025-09", "헤더", "푸터") }
+        val repository = repo()
+        repository.getCurationDetail(98L)
+
+        detailResult = { error("offline") }
+        val result = repository.getCurationDetail(98L)
+
+        assertEquals("헤더", result.getOrThrow().headerMent)
+    }
+
+    @Test
+    fun `상세는 온라인이면 서버 응답이 캐시를 덮어쓴다`() = runTest {
+        val repository = repo()
+        detailResult = { CurationDetailDTO(98L, "2025-09", "옛 문구", "푸터") }
+        repository.getCurationDetail(98L)
+        detailResult = { CurationDetailDTO(98L, "2025-09", "새 문구", "푸터") }
+        repository.getCurationDetail(98L)
+
+        detailResult = { error("offline") }
+        assertEquals("새 문구", repository.getCurationDetail(98L).getOrThrow().headerMent)
+    }
+
+    @Test
+    fun `상세 캐시는 다른 사용자에게 보이지 않는다`() = runTest {
+        detailResult = { CurationDetailDTO(98L, "2025-09", "헤더", "푸터") }
+        repo(userId = 1L).getCurationDetail(98L)
+
+        detailResult = { error("offline") }
+        assertTrue(repo(userId = 2L).getCurationDetail(98L).isFailure)
+    }
+
+    /** Room 없이 메모리에서 동작하는 테스트용 범용 캐시 DAO입니다. */
+    private class FakeApiCacheDao : ApiCacheDao {
+        val map = mutableMapOf<Pair<Long, String>, String>()
+        override suspend fun get(userId: Long, key: String) = map[userId to key]
+        override suspend fun put(entity: ApiCacheEntity) { map[entity.userId to entity.key] = entity.json }
+        override suspend fun clearAll() = map.clear()
     }
 
     /** Room 없이 메모리에서 동작하는 테스트용 DAO입니다. */
