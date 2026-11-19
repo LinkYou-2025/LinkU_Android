@@ -37,6 +37,7 @@ class GetCurationStartYearUseCaseTest {
 
         assertEquals(2026, result)
         assertEquals(0, repository.requestedYears.size)
+        assertEquals(emptyList<Int>(), preference.joinedYearSaves) // 이미 저장돼 있으니 다시 저장하지 않음
     }
 
     @Test
@@ -58,7 +59,7 @@ class GetCurationStartYearUseCaseTest {
     }
 
     @Test
-    fun `저장된 값이 없고 최소 연도에 큐레이션이 있으면 최소 연도를 반환한다`() = runTest {
+    fun `저장된 값이 없고 최소 연도에 큐레이션이 있으면 최소 연도를 반환하고 저장한다`() = runTest {
         val result = useCase(
             mapOf(
                 2025 to Result.success(historyWith(curationId = 10L)),
@@ -67,10 +68,11 @@ class GetCurationStartYearUseCaseTest {
         )(CURRENT_YEAR)
 
         assertEquals(2025, result)
+        assertEquals(listOf(2025), preference.joinedYearSaves)
     }
 
     @Test
-    fun `저장된 값이 없고 앞 연도 큐레이션이 모두 비어 있으면 큐레이션이 있는 첫 해를 반환한다`() = runTest {
+    fun `앞 연도가 모두 성공했고 큐레이션이 비어 있으면 큐레이션이 있는 첫 해를 반환하고 저장한다`() = runTest {
         val result = useCase(
             mapOf(
                 2025 to Result.success(emptyHistory()),
@@ -79,10 +81,11 @@ class GetCurationStartYearUseCaseTest {
         )(CURRENT_YEAR)
 
         assertEquals(2026, result)
+        assertEquals(listOf(2026), preference.joinedYearSaves)
     }
 
     @Test
-    fun `저장된 값이 없고 앞 연도 조회가 실패하면 그 해를 건너뛰고 다음 해를 반환한다`() = runTest {
+    fun `앞 연도 조회가 실패하면 다음 해를 반환하지만 추정이 불확실해 저장하지 않는다`() = runTest {
         val result = useCase(
             mapOf(
                 2025 to Result.failure(IOException("offline")),
@@ -91,10 +94,38 @@ class GetCurationStartYearUseCaseTest {
         )(CURRENT_YEAR)
 
         assertEquals(2026, result)
+        assertEquals(emptyList<Int>(), preference.joinedYearSaves)
     }
 
     @Test
-    fun `저장된 값이 없고 모든 연도 조회가 실패하면 올해를 반환한다`() = runTest {
+    fun `찾은 해보다 뒤의 연도 조회가 실패해도 앞이 모두 확실하면 저장한다`() = runTest {
+        val result = useCase(
+            mapOf(
+                2025 to Result.success(historyWith(curationId = 10L)),
+                2026 to Result.failure(IOException("offline")),
+            ),
+        )(CURRENT_YEAR)
+
+        assertEquals(2025, result)
+        assertEquals(listOf(2025), preference.joinedYearSaves)
+    }
+
+    @Test
+    fun `중간 연도 조회가 실패하면 그 뒤에서 찾아도 저장하지 않는다`() = runTest {
+        val result = useCase(
+            mapOf(
+                2025 to Result.success(emptyHistory()),
+                2026 to Result.failure(IOException("offline")),
+                2027 to Result.success(historyWith(curationId = 30L)),
+            ),
+        )(2027)
+
+        assertEquals(2027, result)
+        assertEquals(emptyList<Int>(), preference.joinedYearSaves)
+    }
+
+    @Test
+    fun `저장된 값이 없고 모든 연도 조회가 실패하면 올해를 반환하고 저장하지 않는다`() = runTest {
         val result = useCase(
             mapOf(
                 2025 to Result.failure(IOException("offline")),
@@ -103,10 +134,11 @@ class GetCurationStartYearUseCaseTest {
         )(CURRENT_YEAR)
 
         assertEquals(CURRENT_YEAR, result)
+        assertEquals(emptyList<Int>(), preference.joinedYearSaves)
     }
 
     @Test
-    fun `저장된 값이 없고 어느 해에도 큐레이션이 없으면 올해를 반환한다`() = runTest {
+    fun `저장된 값이 없고 어느 해에도 큐레이션이 없으면 올해를 반환하고 저장하지 않는다`() = runTest {
         val result = useCase(
             mapOf(
                 2025 to Result.success(emptyHistory()),
@@ -115,6 +147,7 @@ class GetCurationStartYearUseCaseTest {
         )(CURRENT_YEAR)
 
         assertEquals(CURRENT_YEAR, result)
+        assertEquals(emptyList<Int>(), preference.joinedYearSaves)
     }
 
     /** 서버는 큐레이션이 없는 해에도 12개월 목록을 주되 curationId만 null로 둡니다. */

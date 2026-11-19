@@ -67,7 +67,7 @@ class RecoverAccountUseCase @Inject constructor(
 
         // 복구가 확정된 시점에만 정식 세션(LOGGED_IN=true)으로 저장함.
         // recover API가 새로 내려준 정식 토큰을 씀 (로그인 때 받은 복구 전용 토큰이 아님).
-        authPreference.saveTokens(
+        authPreference.saveLoginSession(
             accessToken = recovered.accessToken,
             refreshToken = recovered.refreshToken,
             userId = pendingUserId,

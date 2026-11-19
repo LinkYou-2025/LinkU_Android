@@ -81,7 +81,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
 
             if (currentStatus == "INACTIVE") {
-                // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                // 탈퇴 유예기간 계정. saveLoginSession()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
                 // 아직 아무 선택도 하지 않았는데도 정식 로그인 상태로 취급될 수 있음. 복구 API
                 // (users/recover) 호출에 필요한 임시 토큰만 저장함. (소셜 로그인과 동일한 처리)
                 authPreference.updateAccessToken(
@@ -90,7 +90,7 @@ class AuthRepositoryImpl @Inject constructor(
                 )
                 Log.d(TAG, "[이메일 로그인] INACTIVE 상태 - 복구용 토큰 임시 저장 완료")
             } else {
-                authPreference.saveTokens(
+                authPreference.saveLoginSession(
                     accessToken = response.accessToken,
                     refreshToken = response.refreshToken,
                     userId = response.userId,
@@ -150,7 +150,7 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d(TAG, "[회원가입 성공]")
 
             // 회원가입 응답에 포함된 토큰으로 곧바로 로그인 세션을 저장(자동 로그인).
-            authPreference.saveTokens(
+            authPreference.saveLoginSession(
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
@@ -257,7 +257,7 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d(TAG, "[소셜 프로필 완성 성공]")
 
             // 완성 응답에 포함된 토큰으로 곧바로 로그인 세션을 저장(자동 로그인).
-            authPreference.saveTokens(
+            authPreference.saveLoginSession(
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
@@ -292,7 +292,7 @@ class AuthRepositoryImpl @Inject constructor(
 
             when (currentStatus) {
                 "ACTIVE" -> {
-                    authPreference.saveTokens(
+                    authPreference.saveLoginSession(
                         accessToken = response.accessToken,
                         refreshToken = response.refreshToken,
                         userId = response.userId,
@@ -307,7 +307,7 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
                 "INACTIVE" -> {
-                    // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                    // 탈퇴 유예기간 계정. saveLoginSession()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
                     // 아직 아무 선택도 하지 않았는데도 다음 실행 시 자동 로그인이 서버 재확인 없이 홈으로
                     // 보내버릴 수 있음. 복구 API(users/recover) 호출에 필요한 임시 토큰만 임시로 저장함.
                     authPreference.updateAccessToken(
@@ -352,7 +352,7 @@ class AuthRepositoryImpl @Inject constructor(
 
             when (currentStatus) {
                 "ACTIVE" -> {
-                    authPreference.saveTokens(
+                    authPreference.saveLoginSession(
                         accessToken = response.accessToken,
                         refreshToken = response.refreshToken,
                         userId = response.userId,
@@ -367,7 +367,7 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
                 "INACTIVE" -> {
-                    // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                    // 탈퇴 유예기간 계정. saveLoginSession()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
                     // 아직 아무 선택도 하지 않았는데도 다음 실행 시 자동 로그인이 서버 재확인 없이 홈으로
                     // 보내버릴 수 있음. 복구 API(users/recover) 호출에 필요한 토큰만 임시로 저장함.
                     authPreference.updateAccessToken(

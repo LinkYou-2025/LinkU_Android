@@ -188,7 +188,7 @@ internal class FakeAuthPreference(
     override suspend fun getDeviceType(): String = deviceType
     override suspend fun getLoginType(): LoginType = recentLoginType
     override suspend fun getJoinedYear(): Int? = savedJoinedYear
-    override suspend fun saveTokens(
+    override suspend fun saveLoginSession(
         accessToken: String,
         refreshToken: String?,
         userId: Long,
@@ -200,6 +200,14 @@ internal class FakeAuthPreference(
     }
 
     var savedJoinedYear: Int? = null
+
+    /** [saveJoinedYear]가 호출될 때마다 넘겨받은 연도를 순서대로 기록합니다. 저장 여부 검증용입니다. */
+    val joinedYearSaves = mutableListOf<Int>()
+
+    override suspend fun saveJoinedYear(joinedYear: Int) {
+        savedJoinedYear = joinedYear
+        joinedYearSaves += joinedYear
+    }
 
     override suspend fun updateAccessToken(accessToken: String, refreshToken: String?) {
         updatedAccessTokens += accessToken to refreshToken

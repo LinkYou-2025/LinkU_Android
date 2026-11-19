@@ -108,7 +108,7 @@ class AuthPreferenceImpl @Inject constructor(
         return runCatching { LoginType.valueOf(name) }.getOrElse { LoginType.NONE }
     }
 
-    override suspend fun saveTokens(
+    override suspend fun saveLoginSession(
         accessToken: String,
         refreshToken: String?,
         userId: Long,
@@ -160,6 +160,12 @@ class AuthPreferenceImpl @Inject constructor(
 
     override suspend fun getJoinedYear(): Int? {
         return context.authDataStore.data.map { it[Keys.JOINED_YEAR] }.first()
+    }
+
+    override suspend fun saveJoinedYear(joinedYear: Int) {
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.JOINED_YEAR] = joinedYear
+        }
     }
 
     override suspend fun wasClipboardLinkPresented(
