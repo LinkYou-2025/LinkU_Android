@@ -3,6 +3,7 @@ package com.linku.data.implementation.preference
 import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -33,6 +34,8 @@ class AuthPreferenceImpl @Inject constructor(
         val DEVICE_ID = stringPreferencesKey("device_id")
         val DEVICE_TYPE = stringPreferencesKey("device_type")
         val NICKNAME = stringPreferencesKey("nickname")
+
+        val JOINED_YEAR = intPreferencesKey("joined_year")
 
         /** 마지막 배너 노출 URL, 복사 시각, 해당 URL을 기록한 사용자 ID입니다. */
         val LAST_PRESENTED_CLIPBOARD_URL = stringPreferencesKey("last_presented_clipboard_url")
@@ -105,11 +108,12 @@ class AuthPreferenceImpl @Inject constructor(
         return runCatching { LoginType.valueOf(name) }.getOrElse { LoginType.NONE }
     }
 
-    override suspend fun saveTokens(
+    override suspend fun saveLoginSession(
         accessToken: String,
         refreshToken: String?,
         userId: Long,
-        loginType: LoginType
+        loginType: LoginType,
+        joinedYear: Int?,
     ) {
         context.authDataStore.edit { prefs ->
             prefs[Keys.LOGGED_IN] = true
@@ -117,6 +121,7 @@ class AuthPreferenceImpl @Inject constructor(
             refreshToken?.let { prefs[Keys.REFRESH_TOKEN] = it }
             prefs[Keys.USER_ID] = userId
             prefs[Keys.LOGIN_TYPE] = loginType.name
+            joinedYear?.let { prefs[Keys.JOINED_YEAR] = it }
         }
     }
 
@@ -150,6 +155,16 @@ class AuthPreferenceImpl @Inject constructor(
     override suspend fun saveNickname(nickname: String) {
         context.authDataStore.edit { prefs ->
             prefs[Keys.NICKNAME] = nickname
+        }
+    }
+
+    override suspend fun getJoinedYear(): Int? {
+        return context.authDataStore.data.map { it[Keys.JOINED_YEAR] }.first()
+    }
+
+    override suspend fun saveJoinedYear(joinedYear: Int) {
+        context.authDataStore.edit { prefs ->
+            prefs[Keys.JOINED_YEAR] = joinedYear
         }
     }
 

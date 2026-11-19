@@ -22,7 +22,7 @@ interface AuthRepository {
         email: String,
         password: String,
         deviceId: String,
-        deviceType: String
+        deviceType: String,
     ): Result<LoginResult>
     suspend fun signUpWithEmail(
         nickname: String,

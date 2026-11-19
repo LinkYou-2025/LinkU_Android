@@ -42,7 +42,6 @@ import com.linku.design.util.scaler
 fun MonthlyCurationScreen(
     modifier: Modifier = Modifier,
     viewModel: CurationHistoryViewModel,
-    year: Int = 2026,
     onBackClick: () -> Unit = {},
     onMonthClick: (month: String, curationId: Long) -> Unit = { _, _ -> },
 ) {
@@ -71,7 +70,11 @@ fun MonthlyCurationScreen(
     Box {
         MonthlyCurationScreenContent(
             modifier = modifier,
-            year = year,
+            year = state.year,
+            hasPrev = state.hasPrev,
+            hasNext = state.hasNext,
+            onPrevClick = { viewModel.handleIntent(CurationHistoryIntent.ClickPrev) },
+            onNextClick = { viewModel.handleIntent(CurationHistoryIntent.ClickNext) },
             onBackClick = onBackClick,
             onMonthClick = { monthNum ->
                 // 클릭된 월(1~12)로 히스토리 조회. 데이터 없는 달이면 무시
@@ -106,6 +109,10 @@ fun MonthlyCurationScreen(
  * 값 받으면 헤더 뒤에 배경 Box 하나 추가하면 됨.
  *
  * @param year 상단에 표시할 연도. ex) 2026
+ * @param hasPrev 이전 연도 화살표 표시 여부. false면 숨기되 자리는 유지함
+ * @param hasNext 다음 연도 화살표 표시 여부. false면 숨기되 자리는 유지함
+ * @param onPrevClick 이전 연도 화살표 클릭 콜백
+ * @param onNextClick 다음 연도 화살표 클릭 콜백
  * @param onBackClick 백버튼 클릭 콜백
  * @param onMonthClick 월 카드 클릭 콜백. 클릭된 월(1~12)을 전달함
  * @param imageUrlOf 월(1~12)에 해당하는 카드 배경 이미지 URL을 반환하는 함수. 없으면 null 반환
@@ -114,6 +121,10 @@ fun MonthlyCurationScreen(
 private fun MonthlyCurationScreenContent(
     modifier: Modifier = Modifier,
     year: Int = 2026,
+    hasPrev: Boolean = true,
+    hasNext: Boolean = true,
+    onPrevClick: () -> Unit = {},
+    onNextClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onMonthClick: (Long) -> Unit = {},
     imageUrlOf: (Int) -> String? = { null },
@@ -135,10 +146,10 @@ private fun MonthlyCurationScreenContent(
             titleContent = {
                 YearSelector(
                     year = year,
-                    isPrevEnabled = true,
-                    isNextEnabled = true,
-                    onPrevClick = { /* TODO */ },
-                    onNextClick = { /* TODO */ },
+                    isPrevEnabled = hasPrev,
+                    isNextEnabled = hasNext,
+                    onPrevClick = onPrevClick,
+                    onNextClick = onNextClick,
                 )
             },
         )

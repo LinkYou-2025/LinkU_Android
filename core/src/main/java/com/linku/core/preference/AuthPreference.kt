@@ -20,14 +20,37 @@ interface AuthPreference {
 
     suspend fun getLoginType(): LoginType
 
-    suspend fun saveTokens(
+    /**
+     * 로그인이 완료됐을 때 세션 정보를 한 번의 트랜잭션으로 저장합니다.
+     * 토큰, 사용자 ID, 로그인 수단, 가입 연도가 일부만 저장되는 일은 없습니다.
+     *
+     * @param accessToken 서버가 발급한 액세스 토큰
+     * @param refreshToken 서버가 발급한 리프레시 토큰. null이면 기존 값을 유지함
+     * @param userId 로그인한 사용자 ID
+     * @param loginType 로그인 수단(이메일, 카카오, 구글)
+     * @param joinedYear 가입 연도. null이면 기존 값을 유지함
+     */
+    suspend fun saveLoginSession(
         accessToken: String,
         refreshToken: String?,
         userId: Long,
-        loginType: LoginType
+        loginType: LoginType,
+        joinedYear: Int? = null,
     )
 
-    // 소셜 가입(TEMP) 유저가 나중에 가입을 최종 완료했을 때 수단만 따로 업데이트하기 위함
+    /**
+     * 사용자의 가입 연도를 저장합니다.
+     *
+     * @param joinedYear 저장할 가입 연도
+     */
+    suspend fun saveJoinedYear(joinedYear: Int)
+
+    /**
+     * 로그인 수단을 업데이트합니다.
+     * 주로 소셜 가입(TEMP) 유저가 추가 정보를 입력하여 가입을 최종 완료했을 때 사용합니다.
+     *
+     * @param loginType 업데이트할 로그인 수단
+     */
     suspend fun updateLoginType(loginType: LoginType)
 
     suspend fun updateAccessToken(
@@ -95,6 +118,8 @@ interface AuthPreference {
         savedAtMillis: Long,
         userId: Long,
     ): Boolean
+
+    suspend fun getJoinedYear(): Int?
 
 }
 

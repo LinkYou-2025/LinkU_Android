@@ -81,7 +81,7 @@ class AuthRepositoryImpl @Inject constructor(
             }
 
             if (currentStatus == "INACTIVE") {
-                // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                // 탈퇴 유예기간 계정. saveLoginSession()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
                 // 아직 아무 선택도 하지 않았는데도 정식 로그인 상태로 취급될 수 있음. 복구 API
                 // (users/recover) 호출에 필요한 임시 토큰만 저장함. (소셜 로그인과 동일한 처리)
                 authPreference.updateAccessToken(
@@ -90,11 +90,12 @@ class AuthRepositoryImpl @Inject constructor(
                 )
                 Log.d(TAG, "[이메일 로그인] INACTIVE 상태 - 복구용 토큰 임시 저장 완료")
             } else {
-                authPreference.saveTokens(
+                authPreference.saveLoginSession(
                     accessToken = response.accessToken,
                     refreshToken = response.refreshToken,
                     userId = response.userId,
-                    loginType = LoginType.EMAIL
+                    loginType = LoginType.EMAIL,
+                    joinedYear = response.createdAt,
                 )
                 Log.d(TAG, "[토큰 저장 완료]")
             }
@@ -104,7 +105,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = response.inactiveDate
+                inactiveDate = response.inactiveDate,
             )
         }
     }
@@ -149,17 +150,18 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d(TAG, "[회원가입 성공]")
 
             // 회원가입 응답에 포함된 토큰으로 곧바로 로그인 세션을 저장(자동 로그인).
-            authPreference.saveTokens(
+            authPreference.saveLoginSession(
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
-                loginType = LoginType.EMAIL
+                loginType = LoginType.EMAIL,
+                joinedYear = response.createdAt
             )
             Log.d(TAG, "[회원가입 후 자동 로그인 토큰 저장 완료]")
 
             SignUpEmailResult(
                 userId = response.userId,
-                createdAt = response.createdAt,
+                createdAt = response.createdAt.toString(),
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken
             )
@@ -255,11 +257,12 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d(TAG, "[소셜 프로필 완성 성공]")
 
             // 완성 응답에 포함된 토큰으로 곧바로 로그인 세션을 저장(자동 로그인).
-            authPreference.saveTokens(
+            authPreference.saveLoginSession(
                 accessToken = response.tokenResponse.accessToken,
                 refreshToken = response.tokenResponse.refreshToken,
                 userId = response.userId,
-                loginType = loginType
+                loginType = loginType,
+                joinedYear = response.createdAt,
             )
             Log.d(TAG, "[소셜 프로필 완성 후 자동 로그인 토큰 저장 완료]")
 
@@ -289,11 +292,12 @@ class AuthRepositoryImpl @Inject constructor(
 
             when (currentStatus) {
                 "ACTIVE" -> {
-                    authPreference.saveTokens(
+                    authPreference.saveLoginSession(
                         accessToken = response.accessToken,
                         refreshToken = response.refreshToken,
                         userId = response.userId,
-                        loginType = LoginType.KAKAO
+                        loginType = LoginType.KAKAO,
+                        joinedYear = response.createdAt,
                     )
                     Log.d(TAG, "[카카오 로그인] ACTIVE 상태 - 토큰 저장 완료")
                 }
@@ -303,7 +307,7 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
                 "INACTIVE" -> {
-                    // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                    // 탈퇴 유예기간 계정. saveLoginSession()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
                     // 아직 아무 선택도 하지 않았는데도 다음 실행 시 자동 로그인이 서버 재확인 없이 홈으로
                     // 보내버릴 수 있음. 복구 API(users/recover) 호출에 필요한 임시 토큰만 임시로 저장함.
                     authPreference.updateAccessToken(
@@ -321,7 +325,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = response.inactiveDate
+                inactiveDate = response.inactiveDate,
             )
         }
     }
@@ -348,11 +352,12 @@ class AuthRepositoryImpl @Inject constructor(
 
             when (currentStatus) {
                 "ACTIVE" -> {
-                    authPreference.saveTokens(
+                    authPreference.saveLoginSession(
                         accessToken = response.accessToken,
                         refreshToken = response.refreshToken,
                         userId = response.userId,
-                        loginType = LoginType.GOOGLE
+                        loginType = LoginType.GOOGLE,
+                        joinedYear = response.createdAt,
                     )
                     Log.d(TAG, "[구글 로그인] ACTIVE 상태 - 토큰 저장 완료")
                 }
@@ -362,7 +367,7 @@ class AuthRepositoryImpl @Inject constructor(
                 }
 
                 "INACTIVE" -> {
-                    // 탈퇴 유예기간 계정. saveTokens()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
+                    // 탈퇴 유예기간 계정. saveLoginSession()는 LOGGED_IN=true까지 세팅해 사용자가 복구 모달에서
                     // 아직 아무 선택도 하지 않았는데도 다음 실행 시 자동 로그인이 서버 재확인 없이 홈으로
                     // 보내버릴 수 있음. 복구 API(users/recover) 호출에 필요한 토큰만 임시로 저장함.
                     authPreference.updateAccessToken(
@@ -380,7 +385,7 @@ class AuthRepositoryImpl @Inject constructor(
                 accessToken = response.accessToken,
                 refreshToken = response.refreshToken,
                 status = currentStatus,
-                inactiveDate = response.inactiveDate
+                inactiveDate = response.inactiveDate,
             )
         }.onFailure { e ->
             Log.e(TAG, "[구글 로그인 실패] ${e.message}")
@@ -395,36 +400,5 @@ class AuthRepositoryImpl @Inject constructor(
             Log.d(TAG, "[비밀번호 재설정 이메일 발송 성공]")
         }
     }
-
-
-//    // 구글로 로그인 api
-//    override suspend fun loginWithGoogle(token: String): Result<LoginResult> {
-//        Log.d("UserRepositoryImpl", "loginWithGoogle token: $token")
-//        val googleResponse: SocialLoginResponseDTO
-//
-//        try {
-//            Log.d("UserRepositoryImpl", "loginWithGoogle try")
-//            googleResponse = serverApi.withErrorHandling {
-//                googleLogin(SocialLoginRequestDTO(token = token))
-//            }
-//            Result.success(
-//                LoginResult(
-//                    userId = googleResponse.userId,
-//                    accessToken = googleResponse.accessToken,
-//                    refreshToken = googleResponse.refreshToken,
-//                    status = googleResponse.status ?: "",
-//                    inactiveDate = ""
-//                )
-//            )
-//
-//            Log.d("UserRepositoryImpl", "loginWithGoogle response: $googleResponse")
-//        } catch (e: Exception) {
-//            Log.e("UserRepositoryImpl", "loginWithGoogle error: $e")
-//            throw e
-//        }
-//
-//        Log.d("UserRepositoryImpl", "loginWithGoogle return: $googleResponse")
-//
-//    }
 
 }
