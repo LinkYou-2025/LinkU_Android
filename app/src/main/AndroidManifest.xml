@@ -7,6 +7,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- Activity의 screenOrientation="portrait"는 세로 화면 하드웨어를 필수로 선언한 것으로 처리되어
+         Play에서 일부 기기(태블릿, Desktop, Android XR) 설치가 막힌다. 세로 고정 동작은 그대로 두고
+         기능 요구만 선택으로 낮춘다. -->
+    <uses-feature
+        android:name="android.hardware.screen.portrait"
+        android:required="false" />
+
     <application
         android:name="com.linku.MainApplication"
         android:enableOnBackInvokedCallback="false"
