@@ -171,5 +171,10 @@ dependencies {
     implementation(libs.firebase.analytics)
 
     // 카카오 로그인
+    // 매니페스트가 com.kakao.sdk.auth.AuthCodeHandlerActivity를 직접 선언하므로 :app 컴파일 클래스패스에 v2-auth가
+    // 있어야 한다. feature:login의 implementation 의존은 :app에 전이되지 않아 release lintVital이
+    // "AuthCodeHandlerActivity must extend android.app.Activity"로 실패했다.
+    implementation(libs.v2.common)
+    implementation(libs.v2.auth)
     implementation(libs.v2.user)
 }
