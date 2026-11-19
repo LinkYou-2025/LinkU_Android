@@ -21,12 +21,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.linku.data.local.CurationHistoryDao
 import javax.inject.Inject
 import kotlin.onSuccess
 
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
+    private val curationHistoryDao: CurationHistoryDao,
 ) : UserRepository {
 
     private val _cachedUserInfo = MutableStateFlow<UserInfo?>(null)
@@ -106,6 +108,7 @@ class UserRepositoryImpl @Inject constructor(
         // DataStore I/O 예외가 여기서 나면 Result 계약 밖으로 새지 않도록 잡아서 failure로 변환함.
         return try {
             authPreference.clear()
+            curationHistoryDao.clearAll()
             _cachedUserInfo.value = null
             invalidateInFlightRequests()
             result
@@ -175,6 +178,8 @@ class UserRepositoryImpl @Inject constructor(
             }
 
             authPreference.clear()
+            // 서버 데이터 캐시도 함께 비움 (캐시는 userId로도 구분되지만 로그아웃 후 기기에 남기지 않음)
+            curationHistoryDao.clearAll()
             _cachedUserInfo.value = null
             // 다음에 로그인하는 계정이 이전 계정의 진행 중 조회 결과를 받지 않도록 끊습니다.
             invalidateInFlightRequests()

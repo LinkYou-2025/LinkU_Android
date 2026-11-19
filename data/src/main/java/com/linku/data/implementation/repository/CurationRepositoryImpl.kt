@@ -14,11 +14,19 @@ import com.linku.data.api.safeApiCall
 import com.linku.data.mapper.CurationMapper.toDomain
 import android.util.Log
 import com.linku.core.model.curation.LinkByKeyWord
+import com.linku.core.preference.AuthPreference
+import com.linku.data.local.CurationHistoryDao
+import com.linku.data.local.CurationHistoryEntity
+import java.time.Clock
+import java.time.LocalDate
 import javax.inject.Inject
 
 
 class CurationRepositoryImpl @Inject constructor(
-    private val curationApi: CurationApi
+    private val curationApi: CurationApi,
+    private val historyDao: CurationHistoryDao,
+    private val authPreference: AuthPreference,
+    private val clock: Clock,
 ) : CurationRepository {
 
     override suspend fun getSections(month: String?): Result<List<SectionItem>> {
@@ -49,13 +57,45 @@ class CurationRepositoryImpl @Inject constructor(
         }.map { it.toDomain() }
     }
 
+    /**
+     * 월별 큐레이션 히스토리를 조회합니다. 캐시 정책:
+     *
+     * - 확정된 과거 연도(받아온 시점의 올해가 그 연도보다 큰 캐시): 서버를 호출하지 않고 캐시를 반환합니다.
+     * - 그 외(올해, 캐시 없음): 서버를 먼저 호출하고 성공하면 캐시를 교체합니다.
+     *   서버 호출이 실패했는데 캐시가 있으면 오프라인 대비로 캐시를 반환합니다.
+     *
+     * 큐레이션이 생성되기 전의 빈 달이 영구 저장되지 않도록, 해가 지난 뒤에 받아온 데이터만 확정으로 봅니다.
+     *
+     * @param year 조회할 연도. null이면 서버 기본값을 쓰며 캐시하지 않습니다. ex) 2025
+     */
     override suspend fun getHistory(year: Int?): Result<List<History>> {
-        return safeApiCall {
-            curationApi.getHistory(year)
-        }.map { dtos ->
-            dtos.map { it.toDomain() }
+        val userId = authPreference.getUserId()
+        if (year == null || userId == null) return fetchHistory(year)
+
+        val prefix = "$year-"
+        val cached = historyDao.getByYear(userId, prefix)
+        if (cached.isNotEmpty() && cached.all { it.fetchedYear > year }) {
+            return Result.success(cached.map { it.toDomain() })
         }
+
+        val fetched = fetchHistory(year)
+        fetched.onSuccess { histories ->
+            val thisYear = LocalDate.now(clock).year
+            historyDao.replaceYear(userId, prefix, histories.map { it.toEntity(userId, thisYear) })
+        }
+        if (fetched.isFailure && cached.isNotEmpty()) {
+            return Result.success(cached.map { it.toDomain() })
+        }
+        return fetched
     }
+
+    private suspend fun fetchHistory(year: Int?): Result<List<History>> =
+        safeApiCall { curationApi.getHistory(year) }.map { dtos -> dtos.map { it.toDomain() } }
+
+    private fun CurationHistoryEntity.toDomain() = History(curationId, month, thumbnailUrl)
+
+    private fun History.toEntity(userId: Long, fetchedYear: Int) =
+        CurationHistoryEntity(userId, month, curationId, thumbnailUrl, fetchedYear)
 
     override suspend fun getCurationDetail(curationId: Long): Result<CurationDetail> {
         return safeApiCall {
