@@ -85,6 +85,11 @@ androidComponents {
     }
 }
 
+ksp {
+    // Room 스키마 JSON을 내보내 마이그레이션 검증/이력 관리에 사용
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
@@ -132,6 +137,11 @@ dependencies {
 
     // datastore
     implementation(libs.androidx.datastore.preferences)
+
+    // Room (큐레이션 히스토리 캐시)
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.kotlinx.serialization.json)
 

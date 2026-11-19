@@ -21,12 +21,16 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.linku.data.local.ApiCacheDao
+import com.linku.data.local.CurationHistoryDao
 import javax.inject.Inject
 import kotlin.onSuccess
 
 class UserRepositoryImpl @Inject constructor(
     private val serverApi: ServerApi,
     private val authPreference: AuthPreference,
+    private val curationHistoryDao: CurationHistoryDao,
+    private val apiCacheDao: ApiCacheDao,
 ) : UserRepository {
 
     private val _cachedUserInfo = MutableStateFlow<UserInfo?>(null)
@@ -106,6 +110,8 @@ class UserRepositoryImpl @Inject constructor(
         // DataStore I/O 예외가 여기서 나면 Result 계약 밖으로 새지 않도록 잡아서 failure로 변환함.
         return try {
             authPreference.clear()
+            curationHistoryDao.clearAll()
+            apiCacheDao.clearAll()
             _cachedUserInfo.value = null
             invalidateInFlightRequests()
             result
@@ -154,8 +160,13 @@ class UserRepositoryImpl @Inject constructor(
             dto.nickname
         }.onSuccess {
             Log.d(TAG, "[닉네임 조회 성공] nickname=$it")
+            // 오프라인 대비. 온라인에서 받을 때마다 갱신되므로 닉네임 변경도 반영됨
+            runCatching { authPreference.saveNickname(it) }
         }.onFailure {
             Log.e(TAG, "[닉네임 조회 실패] ${it.message}")
+        }.recoverCatching { error ->
+            // 서버 조회에 실패하면 마지막으로 받은 닉네임을 대신 사용
+            authPreference.getCachedNickname() ?: throw error
         }
     }
 
@@ -175,6 +186,9 @@ class UserRepositoryImpl @Inject constructor(
             }
 
             authPreference.clear()
+            // 서버 데이터 캐시도 함께 비움 (캐시는 userId로도 구분되지만 로그아웃 후 기기에 남기지 않음)
+            curationHistoryDao.clearAll()
+            apiCacheDao.clearAll()
             _cachedUserInfo.value = null
             // 다음에 로그인하는 계정이 이전 계정의 진행 중 조회 결과를 받지 않도록 끊습니다.
             invalidateInFlightRequests()

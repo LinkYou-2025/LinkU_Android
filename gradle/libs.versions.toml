@@ -52,6 +52,7 @@ toolsCore = "1.0.0-alpha14"
 media3 = "1.11.0"
 accompanist = "0.36.0"
 ksp = "2.3.11"
+room = "2.8.5"
 kakao = "2.24.0"
 v2Auth = "2.11.0"
 v2Common = "2.11.0"
@@ -73,6 +74,10 @@ material3 = "1.4.0"
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "room" }
 androidx-ui-test-android = { module = "androidx.test:core", version.ref = "androidx-test" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
